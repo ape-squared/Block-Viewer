@@ -879,7 +879,7 @@ notecard-markdown-demo =
 
     > 埋め込まれたアイテムはノートカードの一部のままです。
 
-    { "[" }Blockビューア](https://ape-squared.github.io/Block)
+    { "[" }Blockビューア](https://ape-squared.github.io/Block-Viewer/)
 
     ```text
     プレーンなコードブロック
@@ -5737,7 +5737,7 @@ ui-options-crash-github-hint = クラッシュレポート用にこのコンピ�
 ui-options-crash-github-forget = 忘れる
 ui-options-your-data = あなたのデータ
 ui-options-privacy-policy = プライバシーポリシー
-ui-options-privacy-policy-hint = Blockビューアが何を誰に送信し、このコンピュータに何を保存するか（ape-squared.github.io/Block）。
+ui-options-privacy-policy-hint = Blockビューアが何を誰に送信し、このコンピュータに何を保存するか（ape-squared.github.io/Block-Viewer）。
 ui-options-privacy-policy-open = 読む
 ui-options-bars = バー
 ui-options-at-startup = 起動時
@@ -12762,3 +12762,14 @@ import-source-folder-name-help = { $source } のインベントリ内のフォ�
 
 import-local-stage-upload = アップロードに追加（{ $count }）
 import-local-stage-upload-help = 非表示を含むチェック済みファイルのアップロードを準備し、ローカルプレビューは保持します。料金は別途確認します。
+update-check-from-github = GitHub Releases（{ $page }）を確認します。ヘルプの「更新を確認」、またはログイン／上部バーの更新から。
+ui-options-prevent-display-sleep = ディスプレイのスリープを防ぐ
+ui-options-prevent-display-sleep-hint = 画面を起こしたままにします（音声通話中など、マウスやキーボードを使わないとき向け）。
+ui-options-force-window-size = ウィンドウサイズを固定
+ui-options-force-window-size-hint = 録画やテスト用の論理サイズ。幅と高さを 0 にすると通常の記憶サイズです。
+common-width = 幅
+common-height = 高さ
+voice-morphing = ボイスモーフィング
+voice-morphing-effect = ボイス効果
+voice-morphing-effect-hint = Legacy の Voice Morphing。Vivox のボイスフォントがあるとき選べます。オフは地声のままです。
+voice-morphing-none = モーフィングなし

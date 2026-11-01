@@ -56,6 +56,30 @@ pub fn page(cx: &mut Cx) {
                 (Channel::Beta, tr!("update-channel-beta")),
             ],
         );
+        cx.note(&tr!("update-check-from-github", page = block_updater::feed::RELEASE_PAGE));
+        cx.toggle(
+            tr!("ui-options-prevent-display-sleep"),
+            tr!("ui-options-prevent-display-sleep-hint"),
+            &field!(prevent_display_sleep),
+        );
+        let muted = cx.p.muted;
+        cx.row(
+            tr!("ui-options-force-window-size"),
+            tr!("ui-options-force-window-size-hint"),
+            &Nothing,
+            |ui, s| {
+                let mut changed = false;
+                ui.label(RichText::new(tr!("common-width")).size(12.0).color(muted));
+                changed |= ui
+                    .add(egui::DragValue::new(&mut s.force_window_width).range(0..=7680).suffix(" px"))
+                    .changed();
+                ui.label(RichText::new(tr!("common-height")).size(12.0).color(muted));
+                changed |= ui
+                    .add(egui::DragValue::new(&mut s.force_window_height).range(0..=4320).suffix(" px"))
+                    .changed();
+                changed
+            },
+        );
     });
     // the system's state, not a saved setting, so outside the page's reset;
     // the Legacy Viewer's installer asks it once

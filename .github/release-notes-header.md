@@ -1,4 +1,5 @@
-> This software is not provided or supported by Linden Lab, the makers of Second Life.
+# Block Viewer
 
-Support: [issues](https://github.com/ape-squared/Block/issues) · [Discord](https://discord.gg/s96h8KwES7) · [contact@ape-squared.github.io/Block](mailto:contact@ape-squared.github.io/Block) — Privacy: [ape-squared.github.io/Block/privacy](https://ape-squared.github.io/Block/privacy/) — Early development (0.x): see [what works today](https://github.com/ape-squared/Block#what-works-today) and the [roadmap](https://github.com/ape-squared/Block#roadmap).
+Support: [issues](https://github.com/ape-squared/Block-Viewer/issues) · [Discord](https://discord.gg/s96h8KwES7) · [website](https://ape-squared.github.io/Block-Viewer/) — Privacy: [privacy](https://ape-squared.github.io/Block-Viewer/privacy/) — Early development (0.x).
 
+Sister project (injector, not this client): [Block-GPPI](https://ape-squared.github.io/Block-GPPI/).

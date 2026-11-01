@@ -8,9 +8,10 @@ use semver::Version;
 use serde::Deserialize;
 use std::time::Duration;
 
-pub const RELEASES: &str = "https://api.github.com/repos/Block-Viewer/Block-Viewer/releases?per_page=100";
-pub const RELEASE_PAGE: &str = "https://github.com/Block-Viewer/Block-Viewer/releases";
-const DOWNLOADS: &str = "https://github.com/Block-Viewer/Block-Viewer/releases/download";
+pub const RELEASES: &str = "https://api.github.com/repos/ape-squared/Block-Viewer/releases?per_page=100";
+pub const RELEASE_PAGE: &str = "https://github.com/ape-squared/Block-Viewer/releases";
+const DOWNLOADS: &str = "https://github.com/ape-squared/Block-Viewer/releases/download";
+
 pub const POLICY: &str = "block-update-policy.json";
 pub const MAX_ARCHIVE: u64 = 2 * 1024 * 1024 * 1024;
 
@@ -300,7 +301,7 @@ mod tests {
         let production = Source::default();
         assert!(
             production
-                .validate_url("https://github.com/Block-Viewer/Block-Viewer/releases")
+                .validate_url("https://github.com/ape-squared/Block-Viewer/releases")
                 .is_ok()
         );
         for url in [

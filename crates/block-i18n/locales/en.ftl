@@ -879,7 +879,7 @@ notecard-markdown-demo =
 
     > Embedded items remain part of the notecard.
 
-    { "[" }Block Viewer](https://ape-squared.github.io/Block)
+    { "[" }Block Viewer](https://ape-squared.github.io/Block-Viewer/)
 
     ```text
     A plain code block
@@ -5738,7 +5738,7 @@ ui-options-crash-github-hint = Forgets the GitHub authorization kept on this com
 ui-options-crash-github-forget = Forget
 ui-options-your-data = Your data
 ui-options-privacy-policy = Privacy policy
-ui-options-privacy-policy-hint = What Block Viewer sends, to whom, and what it keeps on this computer, on ape-squared.github.io/Block.
+ui-options-privacy-policy-hint = What Block Viewer sends, to whom, and what it keeps on this computer, on ape-squared.github.io/Block-Viewer.
 ui-options-privacy-policy-open = Read
 ui-options-bars = Bars
 ui-options-at-startup = At startup
@@ -12791,3 +12791,14 @@ ui-options-lovense-endpoint = Connect URL
 ui-options-lovense-endpoint-help = Blank uses http://127.0.0.1:20010/command then the HTTPS default
 ui-options-lovense-max = Max strength
 ui-options-lovense-max-help = Cap vibrate strength from 1 to 20
+update-check-from-github = Checks GitHub Releases at { $page }. Use Help › Check for updates, or the login / top-bar update control.
+ui-options-prevent-display-sleep = Prevent display sleep
+ui-options-prevent-display-sleep-hint = Keep the screen awake (useful during long voice sessions without mouse or keyboard input).
+ui-options-force-window-size = Force window size
+ui-options-force-window-size-hint = Fixed logical size for recording or tests. Set width and height to 0 to use the normal remembered size.
+common-width = Width
+common-height = Height
+voice-morphing = Voice morphing
+voice-morphing-effect = Voice effect
+voice-morphing-effect-hint = Legacy Voice Morphing: choose a voice font when Vivox offers it. Off leaves your natural voice.
+voice-morphing-none = No morphing

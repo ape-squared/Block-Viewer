@@ -1,15 +1,12 @@
-//! Preferences › Aurora: what Aurora does differently from the Legacy
+//! Preferences › Block: what Block does differently from the Legacy
 //! Viewer, and for each redrawn element the way back to the Legacy look.
-//! The entry of the sidebar carries the aurora gradient, the one exception
-//! to the theme here (docs/BRANDING.md); the settings keep the rows of the
-//! other pages.
+//! The sidebar entry uses solid signal lime (brand accent), not a rainbow.
 
 use super::super::cx::{Cx, F, field};
 use crate::settings::{ChatStyle, NotificationsStyle, PhotoWindowStyle, Settings, WorldMapStyle};
 use crate::theme::Palette;
 use crate::world::lookat::{Aim, Style};
-use egui::epaint::{Mesh, Vertex, WHITE_UV};
-use egui::{Color32, FontId, Pos2, Rect, Sense, Shape, Vec2};
+use egui::{FontId, Pos2, Rect, Sense, Vec2};
 
 /// The two looks a redrawn element can take.
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
@@ -59,40 +56,7 @@ pub fn set_all(s: &mut Settings, look: Look) {
     s.synchronize_animations = aurora;
 }
 
-/// The aurora gradient at `t` (0 at its start, 1 at its end): the brand's
-/// green, turquoise, indigo, violet and rose, taken from the palette.
-fn block_color(p: &Palette, t: f32) -> Color32 {
-    let stops = [p.success, p.teal, p.indigo_light, p.violet_light, p.rose];
-    let x = t.clamp(0.0, 1.0) * (stops.len() - 1) as f32;
-    let i = (x.floor() as usize).min(stops.len() - 2);
-    stops[i].lerp_to_gamma(stops[i + 1], x - i as f32)
-}
-
-fn vertex(pos: Pos2, color: Color32) -> Vertex {
-    Vertex { pos, uv: WHITE_UV, color }
-}
-
-/// A strip of the aurora gradient, from its top to its bottom.
-fn block_strip(p: &Palette, r: Rect) -> Shape {
-    const STEPS: usize = 16;
-    let mut m = Mesh::default();
-    for i in 0..=STEPS {
-        let t = i as f32 / STEPS as f32;
-        let c = block_color(p, t);
-        let y = r.top() + r.height() * t;
-        m.vertices.push(vertex(Pos2::new(r.left(), y), c));
-        m.vertices.push(vertex(Pos2::new(r.right(), y), c));
-        if i > 0 {
-            let k = (i as u32) * 2;
-            m.add_triangle(k - 2, k - 1, k);
-            m.add_triangle(k - 1, k + 1, k);
-        }
-    }
-    Shape::mesh(m)
-}
-
-/// The entry of the page in the sidebar: the neighbours' entry, with the
-/// aurora gradient in its edge mark and its name.
+/// The entry of the page in the sidebar: signal-lime edge and label.
 pub fn nav_entry(ui: &mut egui::Ui, p: &Palette, label: &str, icon: &str, selected: bool) -> egui::Response {
     let (rect, response) = ui.allocate_exact_size(Vec2::new(ui.available_width(), 34.0), Sense::click());
     let radius = ui.visuals().widgets.inactive.corner_radius;
@@ -104,27 +68,21 @@ pub fn nav_entry(ui: &mut egui::Ui, p: &Palette, label: &str, icon: &str, select
         p.raised.gamma_multiply(0.3)
     };
     ui.painter().rect_filled(rect, radius, face);
-    ui.painter().add(block_strip(
-        p,
+    ui.painter().rect_filled(
         Rect::from_min_max(rect.left_top(), Pos2::new(rect.left() + 3.0, rect.bottom())),
-    ));
+        egui::CornerRadius::ZERO,
+        p.violet,
+    );
     if let Some(texture) = crate::ui::icons::global(icon) {
         ui.painter().image(
             texture.id(),
             Rect::from_center_size(rect.left_center() + Vec2::new(17.0, 0.0), Vec2::splat(17.0)),
             Rect::from_min_max(Pos2::ZERO, Pos2::new(1.0, 1.0)),
-            p.teal,
+            p.violet,
         );
     }
-    // the name in the gradient, one letter after the other
     let font = FontId::new(12.0, crate::ui::fonts::semibold(ui.ctx()));
-    let count = label.chars().count().max(2) as f32 - 1.0;
-    let mut job = egui::text::LayoutJob::default();
-    for (i, ch) in label.chars().enumerate() {
-        let color = block_color(p, i as f32 / count);
-        job.append(&ch.to_string(), 0.0, egui::TextFormat::simple(font.clone(), color));
-    }
-    let galley = ui.painter().layout_job(job);
+    let galley = ui.painter().layout_no_wrap(label.to_owned(), font, p.violet);
     ui.painter()
         .galley(rect.left_center() + Vec2::new(34.0, -galley.size().y / 2.0), galley, p.ink);
     response.widget_info(|| egui::WidgetInfo::selected(egui::Role::Button, true, selected, label));
@@ -518,10 +476,9 @@ mod tests {
     }
 
     #[test]
-    fn the_block_gradient_runs_from_green_to_rose() {
+    fn the_block_nav_mark_is_signal_lime() {
         let p = crate::theme::Theme::default().palette();
-        assert_eq!(block_color(&p, 0.0), p.success);
-        assert_eq!(block_color(&p, 1.0), p.rose);
-        assert_eq!(block_color(&p, 0.5), p.indigo_light);
+        // Brand signal (#D4FF3F) is the Preferences › Block accent — not a rainbow.
+        assert_eq!(format!("{:02X}{:02X}{:02X}", p.violet.r(), p.violet.g(), p.violet.b()), "D4FF3F");
     }
 }

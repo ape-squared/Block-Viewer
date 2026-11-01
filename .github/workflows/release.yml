@@ -27,7 +27,7 @@ on:
       - packaging/linux/**
       - packaging/macos/**
       - scripts/package-macos.ps1
-      - assets/branding/aurora.icns
+      - assets/branding/block.icns
       - scripts/verify-version.ps1
 
 # a new push to a pull request stops its previous dry run; a release (a
@@ -73,7 +73,7 @@ jobs:
         run: |
           dump_syms target/release/block-viewer.exe --store symbols
           if ($LASTEXITCODE -ne 0) { throw 'dump_syms failed' }
-          $zip = "Aurora-Viewer-$env:TAG-windows-x64-symbols.zip"
+          $zip = "Block-Viewer-$env:TAG-windows-x64-symbols.zip"
           & 7z a -tzip -mx=9 $zip ./symbols/* | Out-Null
           if ($LASTEXITCODE -ne 0) { throw '7z failed' }
           $hash = (Get-FileHash -LiteralPath $zip -Algorithm SHA256).Hash.ToLowerInvariant()
@@ -86,7 +86,7 @@ jobs:
         shell: pwsh
         run: |
           $v = $env:TAG
-          $dir = "Aurora-Viewer-$v-windows-x64"
+          $dir = "Block-Viewer-$v-windows-x64"
           ./scripts/package.ps1 -Exe target/release/block-viewer.exe -Out $dir
           Compress-Archive -Path $dir -DestinationPath "$dir.zip"
           $hash = (Get-FileHash -LiteralPath "$dir.zip" -Algorithm SHA256).Hash.ToLowerInvariant()
@@ -157,7 +157,7 @@ jobs:
         shell: pwsh
         run: |
           $v = $env:TAG
-          $dir = "Aurora-Viewer-$v-linux-x64"
+          $dir = "Block-Viewer-$v-linux-x64"
           ./scripts/package.ps1 -Exe target/release/block-viewer -Out $dir
           & tar -czf "$dir.tar.gz" $dir
           if ($LASTEXITCODE -ne 0) { throw 'tar failed' }
@@ -267,7 +267,7 @@ jobs:
       # signature (and its stapled ticket)
       - name: Disk image
         run: |
-          dmg="Aurora-Viewer-$TAG-macos-arm64.dmg"
+          dmg="Block-Viewer-$TAG-macos-arm64.dmg"
           stage="$RUNNER_TEMP/dmg"
           mkdir -p "$stage"
           ditto "$APP" "$stage/$APP"

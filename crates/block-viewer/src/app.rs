@@ -5440,7 +5440,7 @@ impl App {
         if !self.net.wait_viewer_stats(Duration::from_secs(2)) {
             log::debug!("the last viewer statistics report was still being posted at exit");
         }
-        if let Some(g) = self.gfx.as_ref().filter(|_| forced_window_size().is_none()) {
+        if let Some(g) = self.gfx.as_ref().filter(|_| effective_forced_window_size(&self.settings).is_none()) {
             self.settings.window_maximized = g.window.is_maximized();
             // when maximized, keep the restored size / position recorded below
             if !self.settings.window_maximized && !g.window.is_minimized().unwrap_or(false) {
@@ -5489,7 +5489,10 @@ impl App {
         let Some(t) = self.geom_changed else {
             return;
         };
-        if t.elapsed() < Duration::from_millis(300) || self.capture.is_some() || forced_window_size().is_some() {
+        if t.elapsed() < Duration::from_millis(300)
+            || self.capture.is_some()
+            || effective_forced_window_size(&self.settings).is_some()
+        {
             return;
         }
         self.geom_changed = None;
@@ -7773,6 +7776,10 @@ impl App {
                 _ => {}
             }
         }
+        crate::display_sleep::set_prevent_display_sleep(
+            self.settings.prevent_display_sleep
+                && (self.settings.audio.voice_enabled || self.world.login.is_some()),
+        );
         if self.updater.poll(&self.settings, &mut self.login_info, self.net.runtime()) {
             self.shutdown(event_loop);
             return;
@@ -15804,6 +15811,14 @@ fn forced_window_size() -> Option<(u32, u32)> {
     })
 }
 
+/// Env override, else Preferences › Language and updates forced size (both > 0).
+fn effective_forced_window_size(settings: &crate::settings::Settings) -> Option<(u32, u32)> {
+    forced_window_size().or_else(|| {
+        let (w, h) = (settings.force_window_width, settings.force_window_height);
+        (w >= 800 && h >= 560).then_some((w, h))
+    })
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 enum NameTagsEnv {
     Classic,
@@ -15898,7 +15913,7 @@ impl ApplicationHandler for App {
         let (mut w, mut h) = (self.settings.window_width.max(800), self.settings.window_height.max(600));
         // (a forced size is placed like a capture's window: not where the
         // last session was, not maximized)
-        let forced = forced_window_size();
+        let forced = effective_forced_window_size(&self.settings);
         if let Some(size) = forced {
             (w, h) = size;
         }

@@ -427,6 +427,11 @@ pub struct Settings {
     /// (Preferences › Language and updates).
     pub update_channel: block_updater::feed::Channel,
     pub ignored_update: String,
+    /// Keep the display awake (voice / AFK chat). Windows SetThreadExecutionState.
+    pub prevent_display_sleep: bool,
+    /// Optional forced window size in logical pixels (0 = off). Dev / recording.
+    pub force_window_width: u32,
+    pub force_window_height: u32,
     pub area_search: area_search::AreaSearch,
     pub crash_reports: CrashReports,
     /// Firestorm Language: default follows the OS.
@@ -1566,6 +1571,8 @@ pub struct AudioSettings {
     pub reject_group_calls: bool,
     pub reject_adhoc_calls: bool,
     pub reject_p2p_calls: bool,
+    /// Vivox voice morph / font id (empty = no morph). Legacy Voice Morphing menu.
+    pub voice_morph: String,
 }
 
 impl Default for AudioSettings {
@@ -1608,6 +1615,7 @@ impl Default for AudioSettings {
             reject_group_calls: false,
             reject_adhoc_calls: false,
             reject_p2p_calls: false,
+            voice_morph: String::new(),
         }
     }
 }
@@ -1637,6 +1645,9 @@ impl Default for Settings {
     fn default() -> Self {
         Settings {
             update_mode: crate::updater::Mode::Ask,
+            prevent_display_sleep: true,
+            force_window_width: 0,
+            force_window_height: 0,
             update_channel: block_updater::feed::Channel::Stable,
             ignored_update: String::new(),
             area_search: Default::default(),
@@ -1807,7 +1818,7 @@ impl Default for Settings {
             log_nearby: false,
             reopen_ims: false,
             log_show_history: true,
-            announce_incoming_im: false,
+            announce_incoming_im: true,
             log_dated_names: false,
             warn_external_links: true,
             trusted_sites: Default::default(),

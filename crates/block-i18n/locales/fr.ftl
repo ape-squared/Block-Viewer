@@ -882,7 +882,7 @@ notecard-markdown-demo =
 
     > Les pièces jointes font toujours partie de la note.
 
-    { "[" }Block Viewer](https://ape-squared.github.io/Block)
+    { "[" }Block Viewer](https://ape-squared.github.io/Block-Viewer/)
 
     ```text
     Un bloc de code brut
@@ -5742,7 +5742,7 @@ ui-options-crash-github-hint = Oublie l’autorisation GitHub conservée sur cet
 ui-options-crash-github-forget = Oublier
 ui-options-your-data = Vos données
 ui-options-privacy-policy = Politique de confidentialité
-ui-options-privacy-policy-hint = Ce qu’Block Viewer envoie, à qui, et ce qu’il garde sur cet ordinateur, sur ape-squared.github.io/Block.
+ui-options-privacy-policy-hint = Ce qu’Block Viewer envoie, à qui, et ce qu’il garde sur cet ordinateur, sur ape-squared.github.io/Block-Viewer.
 ui-options-privacy-policy-open = Lire
 ui-options-bars = Barres
 ui-options-at-startup = À l’ouverture
@@ -12775,3 +12775,14 @@ import-source-folder-name-help = Nom du dossier d’inventaire pour { $source }.
 
 import-local-stage-upload = Ajouter à l’upload ({ $count })
 import-local-stage-upload-help = Conserver les aperçus locaux et préparer l’upload des fichiers cochés, y compris les fichiers masqués. Les frais seront confirmés séparément.
+update-check-from-github = Vérifie les versions sur GitHub Releases ({ $page }). Aide › Vérifier les mises à jour, ou le contrôle de mise à jour à la connexion / barre du haut.
+ui-options-prevent-display-sleep = Empêcher la mise en veille de l’écran
+ui-options-prevent-display-sleep-hint = Garde l’écran allumé (utile en vocal sans souris ni clavier).
+ui-options-force-window-size = Forcer la taille de la fenêtre
+ui-options-force-window-size-hint = Taille logique fixe pour l’enregistrement ou les tests. Largeur et hauteur à 0 = taille mémorisée.
+common-width = Largeur
+common-height = Hauteur
+voice-morphing = Morphing vocal
+voice-morphing-effect = Effet vocal
+voice-morphing-effect-hint = Morphing vocal du Legacy Viewer : police Vivox quand elle est disponible. Désactivé = voix naturelle.
+voice-morphing-none = Pas de morphing

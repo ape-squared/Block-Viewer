@@ -1,12 +1,16 @@
-name: Bug Report
-description: Report a bug in Aurora
-type: Bug
+name: Bug report
+description: Something broke in Block Viewer
+labels: ["bug"]
 body:
   - type: textarea
     id: steps-to-reproduce
     attributes:
       label: Steps to reproduce
       description: What steps are required to reproduce the problem?
+      placeholder: |
+        1. Launch BlockViewer.exe
+        2. Log in / open demo
+        3. …
     validations:
       required: true
 
@@ -14,7 +18,7 @@ body:
     id: expected-behavior
     attributes:
       label: Expected behavior
-      description: A clear and concise description of what you expected to happen.
+      description: What you expected to happen.
     validations:
       required: true
 
@@ -22,25 +26,31 @@ body:
     id: actual-behavior
     attributes:
       label: Actual behavior
-      description: A clear and concise description of what actually happened.
+      description: What actually happened (error text, crash, wrong UI…).
     validations:
       required: true
 
   - type: input
-    id: viewer-version
+    id: environment
     attributes:
-      label: Viewer version and System information if applicable
-      placeholder: 0.5.1, Windows 11, Intel I9-14900K, RTX 4090 24Gb, 32Gb
+      label: Viewer version, OS, GPU
+      placeholder: Block Viewer 0.0.3, Windows 11, RTX 4070
     validations:
       required: true
 
-  - type: upload
-    id: attachments
+  - type: textarea
+    id: logs
     attributes:
-      label: Attachments (Logs, Screenshots, or Files)
-      description: |
-        **WARNING:** All uploaded files are **PUBLIC** and visible to everyone on the internet. 
-        Do **NOT** upload sensitive information, private logs, passwords, or personal data. 
-        Attach only public screenshots or sanitized logs.
+      label: Logs (optional)
+      description: Paste relevant log lines (Dev Toolbox copy tools preferred over full logs).
+      render: shell
     validations:
       required: false
+
+  - type: checkboxes
+    id: scope
+    attributes:
+      label: Scope
+      options:
+        - label: This is about Block Viewer (the client), not Block-GPPI (the injector)
+          required: true

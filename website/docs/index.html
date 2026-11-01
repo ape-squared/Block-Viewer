@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Docs — Block Viewer</title>
+  <meta name="description" content="Documentation links for Block Viewer — README, branding, NOTICE, and building from source.">
+  <link rel="canonical" href="https://ape-squared.github.io/Block-Viewer/docs/">
+  <link rel="icon" href="../assets/mark.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../styles.css?v=1">
+</head>
+<body>
+  <div class="atmosphere" aria-hidden="true"></div>
+
+  <header class="nav" data-nav>
+    <a class="brand" href="../" aria-label="Block Viewer home">
+      <img src="../assets/mark.svg" width="28" height="28" alt="">
+      <span>BLOCK</span>
+    </a>
+    <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="site-nav" data-nav-toggle>
+      <span class="nav-toggle-bar"></span>
+      <span class="sr-only">Menu</span>
+    </button>
+    <nav id="site-nav" class="nav-links" aria-label="Primary">
+      <a href="../download/">Download</a>
+      <a class="is-active" href="../docs/">Docs</a>
+      <a href="../foundation/">Foundation</a>
+    </nav>
+    <a class="btn btn-primary nav-cta" href="../download/">Get Viewer</a>
+  </header>
+
+  <main class="section">
+    <div class="section-head reveal">
+      <p class="eyebrow">source of truth · GitHub</p>
+      <h1>Docs</h1>
+      <p>Short static links into the repository. No duplicate handbooks here yet.</p>
+    </div>
+
+    <ul class="status-list reveal">
+      <li>
+        <a href="https://github.com/ape-squared/Block-Viewer/blob/main/README.md">README.md</a>
+        <span class="tag">overview</span>
+      </li>
+      <li>
+        <a href="https://github.com/ape-squared/Block-Viewer/blob/main/docs/BRANDING.md">docs/BRANDING.md</a>
+        <span class="tag">brand</span>
+      </li>
+      <li>
+        <a href="https://github.com/ape-squared/Block-Viewer/blob/main/NOTICE.md">NOTICE.md</a>
+        <span class="tag">credits</span>
+      </li>
+      <li>
+        <a href="https://github.com/ape-squared/Block-Viewer/blob/main/ARCHITECTURE.md">ARCHITECTURE.md</a>
+        <span class="tag">code</span>
+      </li>
+      <li>
+        <a href="https://github.com/ape-squared/Block-Viewer/blob/main/LICENSE">LICENSE</a>
+        <span class="tag">GPLv3</span>
+      </li>
+      <li>
+        <a href="../foundation/">Foundation</a>
+        <span class="tag">Aurora</span>
+      </li>
+    </ul>
+
+    <div class="section-head reveal" style="margin-top:2.5rem">
+      <h2>Build from source</h2>
+      <p>Rust stable. Windows MSVC + Vulkan GPU.</p>
+    </div>
+    <article class="reveal" style="background:var(--surface);border:1px solid var(--line);padding:1.15rem">
+      <pre style="margin:0;font:500 0.85rem/1.5 var(--mono);color:var(--data);white-space:pre-wrap">powershell -ExecutionPolicy Bypass -File scripts\build-block-demo.ps1
+powershell -ExecutionPolicy Bypass -File scripts\build-block-prod.ps1</pre>
+    </article>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-row">
+      <a class="brand" href="../"><img src="../assets/mark.svg" width="22" height="22" alt=""><span>BLOCK VIEWER</span></a>
+      <nav aria-label="Footer">
+        <a href="../download/">Download</a>
+        <a href="../docs/">Docs</a>
+        <a href="../foundation/">Foundation</a>
+        <a href="https://github.com/ape-squared/Block-Viewer">GitHub</a>
+      </nav>
+    </div>
+    <p class="legal">Docs live in the repo so they stay in sync with the code.</p>
+  </footer>
+
+  <script src="../site.js?v=1" defer></script>
+</body>
+</html>

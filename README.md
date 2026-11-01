@@ -9,7 +9,9 @@ A modern Second Life client for Windows — Vulkan renderer, open source (GPLv3)
 
 Block Viewer stands on the open-source **Aurora Viewer** codebase as its foundation: we keep that engine, protocol work, and GPL lineage (credits in [NOTICE.md](NOTICE.md)), and build on top of it for a **different audience** — Block’s look, tools, and product direction rather than shipping Aurora under another name. Not affiliated with Linden Lab. Not an official Aurora Viewer release.
 
-Sibling to the [Block](https://github.com/ape-squared/Block) post-processing injector. Keep the two repos separate (different licenses and jobs).
+Sibling to the [Block](https://github.com/ape-squared/Block) post-processing injector ([site](https://ape-squared.github.io/Block-GPPI/)). Keep the two repos separate (different licenses and jobs).
+
+**Site (GitHub Pages):** source in [`website/`](website/) → https://ape-squared.github.io/Block-Viewer/
 
 ## Status
 

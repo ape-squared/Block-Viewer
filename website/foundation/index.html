@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Foundation — Block Viewer</title>
+  <meta name="description" content="Block Viewer stands on the open-source Aurora Viewer codebase and builds on it for a different product audience.">
+  <link rel="canonical" href="https://ape-squared.github.io/Block-Viewer/foundation/">
+  <link rel="icon" href="../assets/mark.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../styles.css?v=1">
+</head>
+<body>
+  <div class="atmosphere" aria-hidden="true"></div>
+
+  <header class="nav" data-nav>
+    <a class="brand" href="../" aria-label="Block Viewer home">
+      <img src="../assets/mark.svg" width="28" height="28" alt="">
+      <span>BLOCK</span>
+    </a>
+    <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="site-nav" data-nav-toggle>
+      <span class="nav-toggle-bar"></span>
+      <span class="sr-only">Menu</span>
+    </button>
+    <nav id="site-nav" class="nav-links" aria-label="Primary">
+      <a href="../download/">Download</a>
+      <a href="../docs/">Docs</a>
+      <a class="is-active" href="../foundation/">Foundation</a>
+    </nav>
+    <a class="btn btn-primary nav-cta" href="../download/">Get Viewer</a>
+  </header>
+
+  <main class="section">
+    <div class="section-head reveal">
+      <p class="eyebrow">credit · lineage · GPLv3</p>
+      <h1>Foundation</h1>
+      <p>
+        Block Viewer stands on the open-source <strong>Aurora Viewer</strong> codebase as its foundation.
+        We keep that engine, protocol work, and GPL lineage, and build on top of it for a
+        <strong>different audience</strong> — Block’s look, tools, and product direction —
+        rather than shipping Aurora under another name.
+      </p>
+    </div>
+
+    <div class="feature-grid reveal">
+      <article>
+        <h3>What we keep</h3>
+        <p>GPL-compatible lineage, protocol expectations, and the hard-won viewer engineering Aurora published as open source. Full credit lives in <a href="https://github.com/ape-squared/Block-Viewer/blob/main/NOTICE.md">NOTICE.md</a>.</p>
+      </article>
+      <article>
+        <h3>What we change</h3>
+        <p>Product name, branding, UI chrome, packaging, and the roadmap aimed at Block users — not a drop-in Aurora rebadge.</p>
+      </article>
+      <article>
+        <h3>Not affiliated</h3>
+        <p>Not an official Aurora Viewer release. Not affiliated with Linden Lab or Second Life.</p>
+      </article>
+      <article>
+        <h3>Sister project</h3>
+        <p><a href="https://ape-squared.github.io/Block-GPPI/">Block (GPPI)</a> is the post-processing injector for other viewers. Separate repository — do not conflate downloads or issues.</p>
+      </article>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-row">
+      <a class="brand" href="../"><img src="../assets/mark.svg" width="22" height="22" alt=""><span>BLOCK VIEWER</span></a>
+      <nav aria-label="Footer">
+        <a href="../download/">Download</a>
+        <a href="../docs/">Docs</a>
+        <a href="../foundation/">Foundation</a>
+        <a href="https://github.com/ape-squared/Block-Viewer">GitHub</a>
+      </nav>
+    </div>
+    <p class="legal">See NOTICE.md in the repository for upstream licences and attributions.</p>
+  </footer>
+
+  <script src="../site.js?v=1" defer></script>
+</body>
+</html>

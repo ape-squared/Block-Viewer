@@ -1,0 +1,3 @@
+Phosphor Icons — MIT License
+https://github.com/phosphor-icons/core
+Copied into phosphor/ for Block Viewer UI. See phosphor/LICENSE.

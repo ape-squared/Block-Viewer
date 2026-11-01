@@ -1,6 +1,6 @@
-# Installing Aurora Viewer on Linux
+# Installing Block Viewer on Linux
 
-Every release of Aurora Viewer comes with a Linux build: an archive to
+Every release of Block Viewer comes with a Linux build: an archive to
 extract and run, with nothing to install as root. It is tested on Arch Linux
 and CachyOS; other recent distributions work the same way.
 
@@ -43,24 +43,24 @@ Plus the Vulkan driver of your graphics card if it is not there yet:
 
 ## 2. Download and extract
 
-From the [latest release](https://github.com/Aurora-Viewer/Aurora-Viewer/releases/latest),
-download `Aurora-Viewer-vX.Y.Z-linux-x64.tar.gz` and its `.sha256` file into
+From the [latest release](https://github.com/Block-Viewer/Block-Viewer/releases/latest),
+download `Block-Viewer-vX.Y.Z-linux-x64.tar.gz` and its `.sha256` file into
 the same folder, then:
 
 ```bash
-sha256sum -c Aurora-Viewer-vX.Y.Z-linux-x64.tar.gz.sha256
-tar -xzf Aurora-Viewer-vX.Y.Z-linux-x64.tar.gz
+sha256sum -c Block-Viewer-vX.Y.Z-linux-x64.tar.gz.sha256
+tar -xzf Block-Viewer-vX.Y.Z-linux-x64.tar.gz
 ```
 
-The archive holds one folder, `Aurora-Viewer-vX.Y.Z-linux-x64`, with the
-viewer (`aurora-viewer`), its desktop entry and icon, its licences and the
-README. Move it where you like, for example `~/.local/opt/aurora-viewer`.
+The archive holds one folder, `Block-Viewer-vX.Y.Z-linux-x64`, with the
+viewer (`block-viewer`), its desktop entry and icon, its licences and the
+README. Move it where you like, for example `~/.local/opt/block-viewer`.
 
 ## 3. Start the viewer
 
 ```bash
-cd Aurora-Viewer-vX.Y.Z-linux-x64
-./aurora-viewer
+cd Block-Viewer-vX.Y.Z-linux-x64
+./block-viewer
 ```
 
 To start it from your desktop's menu, with its icon in the panel and the
@@ -70,19 +70,19 @@ desktop entry specification asks, so a folder name with spaces or symbols
 works:
 
 ```bash
-install -Dm644 aurora-viewer.svg ~/.local/share/icons/hicolor/scalable/apps/aurora-viewer.svg
+install -Dm644 block-viewer.svg ~/.local/share/icons/hicolor/scalable/apps/block-viewer.svg
 mkdir -p ~/.local/share/applications
-exe=$(printf '%s' "$PWD/aurora-viewer" | sed -e 's/[\\"`$]/\\&/g' -e 's/\\/\\\\/g' -e 's/%/%%/g')
-EXEC="\"$exe\"" awk '/^Exec=/ { print "Exec=" ENVIRON["EXEC"]; next } 1' aurora-viewer.desktop > ~/.local/share/applications/aurora-viewer.desktop
+exe=$(printf '%s' "$PWD/block-viewer" | sed -e 's/[\\"`$]/\\&/g' -e 's/\\/\\\\/g' -e 's/%/%%/g')
+EXEC="\"$exe\"" awk '/^Exec=/ { print "Exec=" ENVIRON["EXEC"]; next } 1' block-viewer.desktop > ~/.local/share/applications/block-viewer.desktop
 ```
 
 Run the last two lines again if you move the folder. Avoid a `%` in the
 folder's path: GNOME and other GLib desktops then refuse the entry. The
-window identifies itself as `aurora-viewer` (Wayland app_id and X11
+window identifies itself as `block-viewer` (Wayland app_id and X11
 `WM_CLASS`), the name of the entry and its `StartupWMClass`: that is how
 the desktop puts the window under the entry's icon. Compositor rules can
-match it too (Hyprland: `class:^(aurora-viewer)$`; KDE: window class
-`aurora-viewer`).
+match it too (Hyprland: `class:^(block-viewer)$`; KDE: window class
+`block-viewer`).
 
 ## Web pages and video
 
@@ -121,7 +121,7 @@ Your settings, cache and logs are kept: they are not in the viewer's folder.
 Preferences › Language and updates › "Open SLURL and Hypergrid links in
 Aurora" makes Aurora the handler of `secondlife://`, `hop://` and
 `x-grid-location-info://` links for the current user. It writes a hidden
-desktop entry, `~/.local/share/applications/aurora-viewer-slurl.desktop`,
+desktop entry, `~/.local/share/applications/block-viewer-slurl.desktop`,
 and makes it the default for the three schemes in `~/.config/mimeapps.list`;
 the rest of that file is kept. Turning it off removes both. A link opened
 while Aurora runs goes to that viewer over the session bus instead of
@@ -147,10 +147,10 @@ your desktop (GNOME, KDE and other GLib desktops read such paths).
 ```bash
 sudo pacman -S --needed git base-devel rustup cmake clang pkgconf alsa-lib libxkbcommon wayland libx11 libxcursor libxrandr libxi vulkan-icd-loader
 rustup default stable
-git clone https://github.com/Aurora-Viewer/Aurora-Viewer aurora-viewer
-cd aurora-viewer
-cargo build --release -p aurora-viewer
-./target/release/aurora-viewer
+git clone https://github.com/Block-Viewer/Block-Viewer block-viewer
+cd block-viewer
+cargo build --release -p block-viewer
+./target/release/block-viewer
 ```
 
 On Debian and Ubuntu, the build packages are `build-essential cmake clang

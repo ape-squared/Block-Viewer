@@ -237,7 +237,7 @@ $manifest = [ordered]@{
     }
     packages = $built
 }
-$manifestPath = Join-Path (Resolve-Path -LiteralPath $Out).Path 'aurora-media-plugins.json'
+$manifestPath = Join-Path (Resolve-Path -LiteralPath $Out).Path 'block-media-plugins.json'
 # Windows PowerShell 5.1 does not support Set-Content -Encoding utf8NoBOM.
 [IO.File]::WriteAllText($manifestPath, ($manifest | ConvertTo-Json), [Text.UTF8Encoding]::new($false))
 

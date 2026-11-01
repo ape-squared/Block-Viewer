@@ -6,8 +6,8 @@
 //! mutations start from the formats' real structure; nothing comes from the
 //! grid cache.
 
-use aurora_llsd::Llsd;
-use aurora_msg::{Msg, msgs};
+use block_llsd::Llsd;
+use block_msg::{Msg, msgs};
 
 pub struct Target {
     pub name: &'static str,
@@ -98,10 +98,10 @@ pub fn run(name: &str, data: &[u8]) {
 
 fn j2k(data: &[u8]) {
     let Some((&discard, body)) = data.split_first() else { return };
-    if let Some(info) = aurora_assets::j2k_info(body) {
-        let _ = aurora_assets::bytes_for_discard(&info, discard % 6);
+    if let Some(info) = block_assets::j2k_info(body) {
+        let _ = block_assets::bytes_for_discard(&info, discard % 6);
     }
-    let _ = aurora_assets::decode_j2k(body, discard % 6);
+    let _ = block_assets::decode_j2k(body, discard % 6);
 }
 
 fn j2k_seeds() -> Vec<Vec<u8>> {
@@ -109,7 +109,7 @@ fn j2k_seeds() -> Vec<Vec<u8>> {
     for (w, h, c) in [(8u32, 8u32, 3u8), (16, 8, 4), (4, 4, 1), (33, 17, 3)] {
         let pixels: Vec<u8> = (0..w * h * u32::from(c)).map(|i| (i * 37 % 251) as u8).collect();
         for lossless in [false, true] {
-            if let Ok(bytes) = aurora_assets::j2k::encode_texture_j2k(w, h, c, &pixels, lossless) {
+            if let Ok(bytes) = block_assets::j2k::encode_texture_j2k(w, h, c, &pixels, lossless) {
                 out.push([&[0u8][..], &bytes].concat());
             }
         }
@@ -120,23 +120,23 @@ fn j2k_seeds() -> Vec<Vec<u8>> {
 // ---- meshes: the header, every section it names, and raw sections
 
 fn mesh(data: &[u8]) {
-    if let Ok(header) = aurora_assets::parse_mesh_header(data) {
+    if let Ok(header) = block_assets::parse_mesh_header(data) {
         let _ = header.actual_lod(3);
         for range in header.lods.into_iter().flatten() {
-            if let Some(section) = aurora_assets::mesh::section_bytes(data, range) {
-                let _ = aurora_assets::decode_mesh_lod(section);
+            if let Some(section) = block_assets::mesh::section_bytes(data, range) {
+                let _ = block_assets::decode_mesh_lod(section);
             }
         }
-        if let Some(section) = header.skin.and_then(|range| aurora_assets::mesh::section_bytes(data, range)) {
-            let _ = aurora_assets::decode_skin(section);
+        if let Some(section) = header.skin.and_then(|range| block_assets::mesh::section_bytes(data, range)) {
+            let _ = block_assets::decode_skin(section);
         }
     }
-    let _ = aurora_assets::decode_mesh_lod(data);
-    let _ = aurora_assets::decode_skin(data);
+    let _ = block_assets::decode_mesh_lod(data);
+    let _ = block_assets::decode_skin(data);
 }
 
 fn mesh_seeds() -> Vec<Vec<u8>> {
-    use aurora_assets::import_mesh::{Face, Model, Skin, Vertex, encode, process};
+    use block_assets::import_mesh::{Face, Model, Skin, Vertex, encode, process};
     use glam::{Mat4, Vec3};
     let cube = |skinned: bool| {
         let vertices = [-0.5f32, 0.5]
@@ -184,9 +184,9 @@ fn mesh_seeds() -> Vec<Vec<u8>> {
         };
         let lods = [Some(model.clone()), None, Some(model.clone()), Some(model)];
         if let Ok(asset) = encode::asset(&lods, None, &process::Physics::default(), options) {
-            if let Ok(header) = aurora_assets::parse_mesh_header(&asset) {
+            if let Ok(header) = block_assets::parse_mesh_header(&asset) {
                 for range in header.lods.into_iter().flatten().chain(header.skin) {
-                    if let Some(section) = aurora_assets::mesh::section_bytes(&asset, range) {
+                    if let Some(section) = block_assets::mesh::section_bytes(&asset, range) {
                         out.push(section.to_vec());
                     }
                 }
@@ -200,19 +200,19 @@ fn mesh_seeds() -> Vec<Vec<u8>> {
 // ---- animations (`.anim` keyframe assets)
 
 fn anim(data: &[u8]) {
-    let _ = aurora_assets::parse_animation(data);
-    let _ = aurora_assets::parse_animation_upload(data);
+    let _ = block_assets::parse_animation(data);
+    let _ = block_assets::parse_animation_upload(data);
 }
 
-const SKELETON: &[u8] = include_bytes!("../../crates/aurora-viewer/assets/character/avatar_skeleton.xml");
-const CANNONBALL: &[u8] = include_bytes!("../../crates/aurora-viewer/assets/animations/swimming/cannonball.anim");
-const BVH: &[u8] = include_bytes!("../../crates/aurora-viewer/assets/animations/swimming/backstroke.bvh");
+const SKELETON: &[u8] = include_bytes!("../../crates/block-viewer/assets/character/avatar_skeleton.xml");
+const CANNONBALL: &[u8] = include_bytes!("../../crates/block-viewer/assets/animations/swimming/cannonball.anim");
+const BVH: &[u8] = include_bytes!("../../crates/block-viewer/assets/animations/swimming/backstroke.bvh");
 
 fn anim_seeds() -> Vec<Vec<u8>> {
     let mut out = vec![CANNONBALL.to_vec()];
-    if let Ok(skeleton) = aurora_assets::Skeleton::parse(SKELETON)
-        && let Ok(bvh) = aurora_assets::import_animation::parse_bvh(BVH, &skeleton)
-        && let Ok(bytes) = aurora_assets::import_animation::encode(&bvh.animation)
+    if let Ok(skeleton) = block_assets::Skeleton::parse(SKELETON)
+        && let Ok(bvh) = block_assets::import_animation::parse_bvh(BVH, &skeleton)
+        && let Ok(bytes) = block_assets::import_animation::encode(&bvh.animation)
     {
         out.push(bytes);
     }
@@ -222,14 +222,14 @@ fn anim_seeds() -> Vec<Vec<u8>> {
 // ---- LLSD in its three encodings, and XML-RPC replies (login)
 
 fn llsd(data: &[u8]) {
-    let _ = aurora_llsd::from_binary(data);
-    let _ = aurora_llsd::from_notation(data);
-    let _ = aurora_llsd::from_xml(data);
-    let _ = aurora_net::xmlrpc::parse_response(data);
+    let _ = block_llsd::from_binary(data);
+    let _ = block_llsd::from_notation(data);
+    let _ = block_llsd::from_xml(data);
+    let _ = block_net::xmlrpc::parse_response(data);
 }
 
 fn sample_llsd() -> Llsd {
-    let mut map = aurora_llsd::Map::new();
+    let mut map = block_llsd::Map::new();
     map.insert("name".to_owned(), Llsd::String("Example <&> \u{e9}".into()));
     map.insert("count".to_owned(), Llsd::Integer(-42));
     map.insert("ratio".to_owned(), Llsd::Real(0.5));
@@ -255,9 +255,9 @@ fn sample_llsd() -> Llsd {
 fn llsd_seeds() -> Vec<Vec<u8>> {
     let value = sample_llsd();
     vec![
-        aurora_llsd::to_binary(&value),
-        aurora_llsd::to_notation(&value).into_bytes(),
-        aurora_llsd::to_xml(&value),
+        block_llsd::to_binary(&value),
+        block_llsd::to_notation(&value).into_bytes(),
+        block_llsd::to_xml(&value),
         br#"<?xml version="1.0"?><methodResponse><params><param><value><struct><member><name>login</name><value><string>true</string></value></member><member><name>circuit_code</name><value><i4>123</i4></value></member><member><name>buddy-list</name><value><array><data><value><struct><member><name>buddy_id</name><value><string>00000000-0000-0000-0000-000000000001</string></value></member></struct></value></data></array></value></member></struct></value></param></params></methodResponse>"#.to_vec(),
     ]
 }
@@ -265,54 +265,54 @@ fn llsd_seeds() -> Vec<Vec<u8>> {
 // ---- GLTF materials: assets and the per-face overrides of objects
 
 fn material(data: &[u8]) {
-    let _ = aurora_assets::parse_material_asset(data);
-    let _ = aurora_net::objects::parse_gltf_override(data);
+    let _ = block_assets::parse_material_asset(data);
+    let _ = block_net::objects::parse_gltf_override(data);
 }
 
 fn material_seeds() -> Vec<Vec<u8>> {
     let gltf = r#"{"asset":{"version":"2.0"},"materials":[{"pbrMetallicRoughness":{"baseColorFactor":[1,0.5,0.25,1],"metallicFactor":0.2,"roughnessFactor":0.7,"baseColorTexture":{"index":0,"extensions":{"KHR_texture_transform":{"offset":[0.1,0.2],"scale":[2,2],"rotation":0.5}}}},"alphaMode":"MASK","alphaCutoff":0.4,"doubleSided":true,"emissiveFactor":[0.1,0.1,0.1]}],"textures":[{"source":0}],"images":[{"uri":"00000000-0000-0000-0000-000000000001"}]}"#;
-    let mut map = aurora_llsd::Map::new();
+    let mut map = block_llsd::Map::new();
     map.insert("version".to_owned(), Llsd::String("1.1".into()));
     map.insert("type".to_owned(), Llsd::String("GLTF 2.0".into()));
     map.insert("data".to_owned(), Llsd::String(gltf.into()));
     let asset = Llsd::Map(map);
     vec![
-        aurora_llsd::to_binary(&asset),
-        aurora_llsd::to_xml(&asset),
-        aurora_llsd::to_notation(&asset).into_bytes(),
+        block_llsd::to_binary(&asset),
+        block_llsd::to_xml(&asset),
+        block_llsd::to_notation(&asset).into_bytes(),
     ]
 }
 
 // ---- UDP packets: framing, zerocoding, and the object / terrain messages
 
 fn packet(data: &[u8]) {
-    let Ok(packet) = aurora_msg::parse_packet(data) else { return };
+    let Ok(packet) = block_msg::parse_packet(data) else { return };
     match packet.id {
         msgs::ObjectUpdate::ID => {
             if let Ok(m) = packet.decode::<msgs::ObjectUpdate>() {
                 for b in &m.object_data {
-                    let _ = aurora_net::objects::parse_full(b);
+                    let _ = block_net::objects::parse_full(b);
                 }
             }
         }
         msgs::ObjectUpdateCompressed::ID => {
             if let Ok(m) = packet.decode::<msgs::ObjectUpdateCompressed>() {
                 for b in &m.object_data {
-                    let _ = aurora_net::objects::parse_compressed(&b.data, b.update_flags);
+                    let _ = block_net::objects::parse_compressed(&b.data, b.update_flags);
                 }
             }
         }
         msgs::ImprovedTerseObjectUpdate::ID => {
             if let Ok(m) = packet.decode::<msgs::ImprovedTerseObjectUpdate>() {
                 for b in &m.object_data {
-                    let _ = aurora_net::objects::parse_terse(b);
+                    let _ = block_net::objects::parse_terse(b);
                 }
             }
         }
         msgs::LayerData::ID => {
             if let Ok(m) = packet.decode::<msgs::LayerData>() {
-                let _ = aurora_net::terrain::decode_land_layer(m.layer_id.type_, &m.layer_data.data);
-                let _ = aurora_net::terrain::decode_wind_layer(m.layer_id.type_, &m.layer_data.data);
+                let _ = block_net::terrain::decode_land_layer(m.layer_id.type_, &m.layer_data.data);
+                let _ = block_net::terrain::decode_wind_layer(m.layer_id.type_, &m.layer_data.data);
             }
         }
         _ => {}
@@ -343,7 +343,7 @@ fn packet_seeds() -> Vec<Vec<u8>> {
             ..Default::default()
         }],
     };
-    aurora_msg::build_packet(&full, 1, true, false, &[], &mut buf);
+    block_msg::build_packet(&full, 1, true, false, &[], &mut buf);
     push(&mut buf);
     let compressed = msgs::ObjectUpdateCompressed {
         region_data: msgs::object_update_compressed::RegionData::default(),
@@ -355,7 +355,7 @@ fn packet_seeds() -> Vec<Vec<u8>> {
             })
             .collect(),
     };
-    aurora_msg::build_packet(&compressed, 2, false, false, &[1, 2], &mut buf);
+    block_msg::build_packet(&compressed, 2, false, false, &[1, 2], &mut buf);
     push(&mut buf);
     let terse = msgs::ImprovedTerseObjectUpdate {
         region_data: msgs::improved_terse_object_update::RegionData::default(),
@@ -364,14 +364,14 @@ fn packet_seeds() -> Vec<Vec<u8>> {
             texture_entry: Vec::new(),
         }],
     };
-    aurora_msg::build_packet(&terse, 3, false, true, &[], &mut buf);
+    block_msg::build_packet(&terse, 3, false, true, &[], &mut buf);
     push(&mut buf);
     for seed in terrain_seeds() {
         let layer = msgs::LayerData {
             layer_id: msgs::layer_data::LayerID { type_: seed[0] },
             layer_data: msgs::layer_data::LayerData { data: seed[1..].to_vec() },
         };
-        aurora_msg::build_packet(&layer, 4, false, false, &[], &mut buf);
+        block_msg::build_packet(&layer, 4, false, false, &[], &mut buf);
         push(&mut buf);
     }
     out
@@ -384,9 +384,9 @@ fn object(data: &[u8]) {
     let Some((flags, body)) = data.split_first_chunk::<4>() else {
         return;
     };
-    let _ = aurora_net::objects::parse_compressed(body, u32::from_le_bytes(*flags));
-    let _ = aurora_net::objects::TextureAnim::parse(body);
-    let _ = aurora_net::objects::TextureAnim::parse_message(body);
+    let _ = block_net::objects::parse_compressed(body, u32::from_le_bytes(*flags));
+    let _ = block_net::objects::TextureAnim::parse(body);
+    let _ = block_net::objects::TextureAnim::parse_message(body);
 }
 
 fn object_seeds() -> Vec<Vec<u8>> {
@@ -456,9 +456,9 @@ fn object_seeds() -> Vec<Vec<u8>> {
 // ---- primitive blocks: texture entries, extra parameters, particles
 
 fn prim(data: &[u8]) {
-    let _ = aurora_prim::parse_texture_entry(data);
-    let _ = aurora_prim::parse_extra_params(data);
-    let _ = aurora_prim::particles::parse(data);
+    let _ = block_prim::parse_texture_entry(data);
+    let _ = block_prim::parse_extra_params(data);
+    let _ = block_prim::particles::parse(data);
 }
 
 fn prim_seeds() -> Vec<Vec<u8>> {
@@ -497,10 +497,10 @@ fn prim_seeds() -> Vec<Vec<u8>> {
 
 // ---- prim shapes from the object messages' quantized parameters
 
-fn raw_shape(d: &[u8]) -> Option<(aurora_prim::RawShape, &[u8])> {
+fn raw_shape(d: &[u8]) -> Option<(block_prim::RawShape, &[u8])> {
     let (b, rest) = d.split_first_chunk::<23>()?;
     let u16_at = |i: usize| u16::from_le_bytes([b[i], b[i + 1]]);
-    let shape = aurora_prim::RawShape {
+    let shape = block_prim::RawShape {
         path_curve: b[0],
         profile_curve: b[1],
         path_begin: u16_at(2),
@@ -535,9 +535,9 @@ fn detail(rest: &[u8]) -> f32 {
 fn volume(data: &[u8]) {
     let Some((shape, rest)) = raw_shape(data) else { return };
     let params = shape.to_params();
-    let _ = aurora_prim::generate_volume(&params, detail(rest));
-    let _ = aurora_prim::lod_triangle_counts(&params);
-    let _ = aurora_prim::num_faces(&params);
+    let _ = block_prim::generate_volume(&params, detail(rest));
+    let _ = block_prim::lod_triangle_counts(&params);
+    let _ = block_prim::num_faces(&params);
 }
 
 fn volume_seeds() -> Vec<Vec<u8>> {
@@ -560,15 +560,15 @@ fn sculpt(data: &[u8]) {
         return;
     };
     let mut params = shape.to_params();
-    params.sculpt = Some(aurora_prim::SculptParams {
+    params.sculpt = Some(block_prim::SculptParams {
         texture: uuid::Uuid::from_u128(1),
         sculpt_type: head[0],
     });
     // Sculpt maps are textures: at most 2048 a side.
     let width = u32::from(u16::from_le_bytes([head[1], head[2]])) % 2049;
     let height = u32::from(u16::from_le_bytes([head[3], head[4]])) % 2049;
-    let _ = aurora_prim::generate_sculpt(&params, detail(&head[5..]), width, height, head[5], pixels);
-    let _ = aurora_prim::sculpt_placeholder(&params, 1.0);
+    let _ = block_prim::generate_sculpt(&params, detail(&head[5..]), width, height, head[5], pixels);
+    let _ = block_prim::sculpt_placeholder(&params, 1.0);
 }
 
 fn sculpt_seeds() -> Vec<Vec<u8>> {
@@ -589,8 +589,8 @@ fn sculpt_seeds() -> Vec<Vec<u8>> {
 
 fn terrain(data: &[u8]) {
     let Some((&kind, body)) = data.split_first() else { return };
-    let _ = aurora_net::terrain::decode_land_layer(kind, body);
-    let _ = aurora_net::terrain::decode_wind_layer(kind, body);
+    let _ = block_net::terrain::decode_land_layer(kind, body);
+    let _ = block_net::terrain::decode_wind_layer(kind, body);
 }
 
 fn terrain_seeds() -> Vec<Vec<u8>> {
@@ -612,7 +612,7 @@ fn terrain_seeds() -> Vec<Vec<u8>> {
 // ---- sounds (Ogg Vorbis assets; the decoder also reads WAV)
 
 fn sound(data: &[u8]) {
-    let _ = aurora_audio::SoundClip::decode(data);
+    let _ = block_audio::SoundClip::decode(data);
 }
 
 fn sound_seeds() -> Vec<Vec<u8>> {
@@ -640,14 +640,14 @@ fn sound_seeds() -> Vec<Vec<u8>> {
 // gestures, wearables, avatar base meshes
 
 fn misc(data: &[u8]) {
-    let _ = aurora_net::inventory::notecard::Notecard::decode(data);
-    let _ = aurora_net::task_inventory::parse_legacy(data);
-    let _ = aurora_assets::gesture::Gesture::decode(data);
-    let _ = aurora_assets::wearable::Wearable::parse(data);
-    let _ = aurora_assets::parse_llm(data);
+    let _ = block_net::inventory::notecard::Notecard::decode(data);
+    let _ = block_net::task_inventory::parse_legacy(data);
+    let _ = block_assets::gesture::Gesture::decode(data);
+    let _ = block_assets::wearable::Wearable::parse(data);
+    let _ = block_assets::parse_llm(data);
 }
 
-const EYE: &[u8] = include_bytes!("../../crates/aurora-viewer/assets/character/avatar_eye.llm");
+const EYE: &[u8] = include_bytes!("../../crates/block-viewer/assets/character/avatar_eye.llm");
 
 fn misc_seeds() -> Vec<Vec<u8>> {
     vec![
@@ -684,49 +684,49 @@ mod tests {
         let j2k = j2k_seeds();
         assert!(j2k.len() >= 4, "{} j2k seeds", j2k.len());
         for s in &j2k {
-            aurora_assets::decode_j2k(&s[1..], 0).expect("j2k seed");
+            block_assets::decode_j2k(&s[1..], 0).expect("j2k seed");
         }
         let mesh = mesh_seeds();
-        let assets: Vec<_> = mesh.iter().filter(|s| aurora_assets::parse_mesh_header(s).is_ok()).collect();
+        let assets: Vec<_> = mesh.iter().filter(|s| block_assets::parse_mesh_header(s).is_ok()).collect();
         assert_eq!(assets.len(), 2, "two mesh assets");
-        assert!(mesh.iter().any(|s| aurora_assets::decode_skin(s).is_ok()), "a skin section");
-        assert!(mesh.iter().any(|s| aurora_assets::decode_mesh_lod(s).is_ok()), "a LOD section");
+        assert!(mesh.iter().any(|s| block_assets::decode_skin(s).is_ok()), "a skin section");
+        assert!(mesh.iter().any(|s| block_assets::decode_mesh_lod(s).is_ok()), "a LOD section");
         for s in anim_seeds() {
-            aurora_assets::parse_animation(&s).expect("anim seed");
+            block_assets::parse_animation(&s).expect("anim seed");
         }
         assert_eq!(anim_seeds().len(), 2);
         let llsd = llsd_seeds();
         let value = sample_llsd();
-        assert_eq!(aurora_llsd::from_binary(&llsd[0]).expect("binary").0, value);
-        assert_eq!(aurora_llsd::from_notation(&llsd[1]).expect("notation"), value);
-        assert_eq!(aurora_llsd::from_xml(&llsd[2]).expect("xml"), value);
-        aurora_net::xmlrpc::parse_response(&llsd[3]).expect("xml-rpc");
+        assert_eq!(block_llsd::from_binary(&llsd[0]).expect("binary").0, value);
+        assert_eq!(block_llsd::from_notation(&llsd[1]).expect("notation"), value);
+        assert_eq!(block_llsd::from_xml(&llsd[2]).expect("xml"), value);
+        block_net::xmlrpc::parse_response(&llsd[3]).expect("xml-rpc");
         for s in material_seeds() {
-            aurora_assets::parse_material_asset(&s).expect("material seed");
+            block_assets::parse_material_asset(&s).expect("material seed");
         }
         for s in packet_seeds() {
-            aurora_msg::parse_packet(&s).expect("packet seed");
+            block_msg::parse_packet(&s).expect("packet seed");
         }
         let te = &prim_seeds()[0];
-        assert!(aurora_prim::parse_texture_entry(te).is_some(), "texture entry");
+        assert!(block_prim::parse_texture_entry(te).is_some(), "texture entry");
         let object = object_seeds();
         assert!(
-            aurora_net::objects::parse_compressed(&object[0][4..], 0).is_some(),
+            block_net::objects::parse_compressed(&object[0][4..], 0).is_some(),
             "compressed update"
         );
         for s in volume_seeds() {
             let (shape, _) = raw_shape(&s).expect("shape");
-            assert!(aurora_prim::num_faces(&shape.to_params()) > 0);
+            assert!(block_prim::num_faces(&shape.to_params()) > 0);
         }
         assert!(
-            sound(&sound_seeds()[0]) == () && aurora_audio::SoundClip::decode(&sound_seeds()[0]).is_ok(),
+            sound(&sound_seeds()[0]) == () && block_audio::SoundClip::decode(&sound_seeds()[0]).is_ok(),
             "wav"
         );
         let misc = misc_seeds();
-        aurora_net::inventory::notecard::Notecard::decode(&misc[0]).expect("notecard");
-        assert_eq!(aurora_net::task_inventory::parse_legacy(&misc[1]).expect("task inventory").len(), 2);
-        aurora_assets::wearable::Wearable::parse(&misc[2]).expect("wearable");
-        aurora_assets::gesture::Gesture::decode(&misc[3]).expect("gesture");
-        aurora_assets::parse_llm(&misc[4]).expect("llm");
+        block_net::inventory::notecard::Notecard::decode(&misc[0]).expect("notecard");
+        assert_eq!(block_net::task_inventory::parse_legacy(&misc[1]).expect("task inventory").len(), 2);
+        block_assets::wearable::Wearable::parse(&misc[2]).expect("wearable");
+        block_assets::gesture::Gesture::decode(&misc[3]).expect("gesture");
+        block_assets::parse_llm(&misc[4]).expect("llm");
     }
 }

@@ -115,7 +115,7 @@ jobs:
       # pull requests: the quick tests of the media host and the updater
       - name: Tests of the media host and the updater
         if: steps.changes.outputs.code == 'true' && github.event_name == 'pull_request'
-        run: cargo test --profile ci --locked -p aurora-media -p aurora-updater
+        run: cargo test --profile ci --locked -p block-media -p block-updater
       # the merge queue: the whole workspace, beside the Windows and macOS
       # jobs (on pull requests it would take CI from ~4 to ~15 minutes). The
       # Linux-only tests (the secondlife:// handler, its hand-over over the

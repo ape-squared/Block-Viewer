@@ -97,7 +97,7 @@ script is started. Rigged sources continue to follow the avatar as before.
    searched without recursively scanning your disks. Removable drives are added
    through **Install in Blender…**, avoiding empty card readers during
    detection. Prior Aurora package files and `userpref.blend` are preserved under the selected profile's
-   `aurora-backups` directory; failed installation restores these files. Newer
+   `block-backups` directory; failed installation restores these files. Newer
    plug-in versions are never downgraded. Multiple executables of the same
    Blender major/minor version can share one profile.
 
@@ -298,12 +298,12 @@ is the minimum supported version; Blender 2.79 is not supported.
 Developers can build either format from the repository root:
 
 ```powershell
-python blender/package.py .scratch/aurora-live-mesh-0.8.7.zip
-python blender/package.py --legacy .scratch/aurora-live-mesh-0.8.7-legacy.zip
+python blender/package.py .scratch/block-live-mesh-0.8.7.zip
+python blender/package.py --legacy .scratch/block-live-mesh-0.8.7-legacy.zip
 ```
 
 The extension ZIP has a root manifest and targets Blender 4.2+. The classic
-ZIP contains an `aurora_live/` directory with `bl_info` and targets 2.93–4.1.
+ZIP contains an `block_live/` directory with `bl_info` and targets 2.93–4.1.
 
 ## Create a rig and test T-shirt
 
@@ -322,7 +322,7 @@ separate the body, hands, face, wings, tail and other extensions in Blender
 per group. Body and hand sets are visible initially; enable other collections
 or layers in Armature Data Properties when needed. All 159 bones can deform
 meshes. Classic layer indices are recorded in the rig's
-`aurora_bone_layers` custom property.
+`block_bone_layers` custom property.
 
 The optional T-shirt has editable quad topology, open neck/hem/cuffs, a UV
 map, a fabric material, an Armature modifier and normalized vertex weights
@@ -581,7 +581,7 @@ and excluding target topology modifiers and armature posing.
 **Max distance** rejects any vertex too far from the source; zero is unlimited.
 
 The donor is evaluated on a disposable copy, with shape keys and geometry
-modifiers but without armature posing. Bone aliases map through `aurora_joint`.
+modifiers but without armature posing. Bone aliases map through `block_joint`.
 Bento and Fitted Mesh deform weights are included; non-deforming IK controls
 are excluded. A donor without deform weights, an unweighted target vertex,
 a locked target bone group, or an exceeded distance rejects the entire
@@ -678,7 +678,7 @@ skeleton from receiving the shape twice when previewed in Aurora.
 
 Use a Second Life compatible armature and its deform vertex groups (`mPelvis`,
 `mTorso`, `mChest`, Bento joints, supported aliases and collision volumes).
-An optional string custom property **`aurora_joint`** on a Blender bone maps
+An optional string custom property **`block_joint`** on a Blender bone maps
 its name to an Aurora joint. Unrecognized weighted bones are reported.
 Unweighted vertices
 inherit the nearest weighted vertex's influences in the exported copy, using

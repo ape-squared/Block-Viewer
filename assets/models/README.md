@@ -1,6 +1,6 @@
 # Aurora 3D
 
-`aurora-3d.glb` is the detailed model supplied by the user for material
+`block-3d.glb` is the detailed model supplied by the user for material
 previews: 2,342 triangles, with its original extruded geometry and UVs.
 It is self-contained, including its PNG texture.
 

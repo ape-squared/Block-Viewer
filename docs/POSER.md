@@ -1,6 +1,6 @@
 # Local photo poser
 
-Local trial for [issue #727](https://github.com/Aurora-Viewer/Aurora-Viewer/issues/727),
+Local trial for [issue #727](https://github.com/Block-Viewer/Block-Viewer/issues/727),
 based on the merged IK workbench (PR #893) and the supplied Poser
 handoff and mockup. Issue #727 remains open while grid validation is pending.
 The human validated the local demo on 2026-10-23 and authorized main integration on 2026-10-24. Two-client grid validation remains required.
@@ -82,7 +82,7 @@ poser. Poses affect only this viewer, including poses of other residents.
 
 ## Library and files
 
-Save writes a named `*.aurora-pose.json` under the current account's local
+Save writes a named `*.block-pose.json` under the current account's local
 `poses/` directory. It retains rotation, relative translation, scale and
 world-lock flags, without subject IDs, avatar names or world coordinates.
 The book in the title bar shows the library in the joints column's place

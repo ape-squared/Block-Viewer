@@ -6,7 +6,7 @@ members = ["crates/*"]
 version = "0.1.0"
 edition = "2024"
 license = "GPL-3.0-or-later"
-repository = "https://github.com/Aurora-Viewer/Aurora-Viewer"
+repository = "https://github.com/ape-squared/Block-Viewer"
 publish = false
 
 # The single local profile: check.ps1 (clippy, tests) and the demo runs share
@@ -37,7 +37,7 @@ incremental = false
 [profile.ci.package."*"]
 opt-level = 0
 
-# "Debug viewer" of aurora-tools.cmd (target\debugging): a console window,
+# "Debug viewer" of block-tools.cmd (target\debugging): a console window,
 # debug assertions and overflow checks, full debug info for Aurora's own
 # crates (line tables only for the dependencies, to keep it to a few GB).
 [profile.debugging]

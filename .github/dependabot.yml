@@ -10,7 +10,7 @@ updates:
     labels: [maintenance]
     commit-message:
       prefix: "chore(deps)"
-    # held for sccache, see crates/aurora-viewer/Cargo.toml
+    # held for sccache, see crates/block-viewer/Cargo.toml
     ignore:
       - dependency-name: mimalloc
       - dependency-name: libmimalloc-sys

@@ -3,7 +3,7 @@
 `stars.bin` holds the 8,920 stars of visual magnitude 6.5 or brighter (the
 stars visible to the naked eye under a dark sky): right ascension,
 declination, magnitude and B-V colour index. The viewer draws its night sky
-from it (`crates/aurora-render/src/stars.rs`).
+from it (`crates/block-render/src/stars.rs`).
 
 It is derived from the **HYG database v4.4** by David Nash (astronexus),
 https://codeberg.org/astronexus/hyg, licensed under the

@@ -1,4 +1,4 @@
-﻿# Aurora Tools: colours, layout and keyboard (dot-sourced by aurora-tools.ps1).
+# Aurora Tools: colours, layout and keyboard (dot-sourced by block-tools.ps1).
 
 # True colours when the terminal understands them, the 16 console colours
 # otherwise, plain text when the output is redirected. Interactive: keys are

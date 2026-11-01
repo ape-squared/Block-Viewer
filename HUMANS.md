@@ -6,8 +6,8 @@ several AI agents (Claude Code, Codex…) in parallel. The agents follow
 fits together.
 
 **To get started:** [clone the repository and double-click
-`aurora-tools.cmd`](#installing-the-environment); after that, everything is
-done with [the Aurora tools](#the-aurora-tools-aurora-toolscmd).
+`block-tools.cmd`](#installing-the-environment); after that, everything is
+done with [the Aurora tools](#the-block-tools-block-toolscmd).
 
 ## What the agents do, what you do
 
@@ -33,7 +33,7 @@ to your agent in French or in English: it answers in your language.
 2. The agent creates its working folder `..\work\<task>` on a branch of its
    own: it does not see the other agents' code in progress, and vice versa.
 3. It codes, tests in demo mode, then **builds and launches the viewer for
-   you** with a window named "Aurora Viewer <version> - Test <task> (Dev)";
+   you** with a window named "Block Viewer <version> - Test <task> (Dev)";
    the title ends with the build profile: (Dev), (Release) or (Debug).
 4. **You test** what it asks you to (in demo mode or on the grid: you are the
    one who logs in) and tell it whether it is good. For a PR with no effect
@@ -118,7 +118,7 @@ a review or that left the queue.
   "Restrict editing to collaborators only" under Settings › Features ›
   Wikis. The workflow can then be started from the Actions tab ("Wiki" ›
   "Run workflow") or waits for the next change to a guide.
-- **The repository** belongs to the `Aurora-Viewer` organisation; the
+- **The repository** belongs to the `Block-Viewer` organisation; the
   developers are in the `Devs` team.
 
 ### Publishing a release
@@ -162,7 +162,7 @@ sorted by category, from the merged PRs. By hand, it is:
 
 ```bash
 git switch main && git pull
-git tag -a v0.4.0 -m "Aurora Viewer 0.4.0"
+git tag -a v0.4.0 -m "Block Viewer 0.4.0"
 git push origin v0.4.0
 ```
 
@@ -208,15 +208,15 @@ see the news item in the viewer **before** merging, launch it with
 
 ## Installing the environment
 
-1. Create a folder for the project (for example `C:\Aurora-Viewer`), open a
+1. Create a folder for the project (for example `C:\Block-Viewer`), open a
    command prompt in it (in Explorer: type `cmd` in the address bar, then
    Enter) and clone the repository:
 
    ```bat
-   git clone https://github.com/Aurora-Viewer/Aurora-Viewer aurora-viewer
+   git clone https://github.com/Block-Viewer/Block-Viewer block-viewer
    ```
 
-2. Double-click **`aurora-viewer\aurora-tools.cmd`** (the Aurora tools, next
+2. Double-click **`block-viewer\block-tools.cmd`** (the Aurora tools, next
    section). They check what is missing and offer **Repair / update**:
    - they install what is missing with winget: GitHub CLI (for the whole
      machine), the Visual Studio C++ tools that Rust needs to build (several
@@ -237,26 +237,26 @@ command installs everything, Git included, then opens the tools (it first
 shows what it is going to do and asks where to install):
 
 ```bat
-powershell -NoProfile -ExecutionPolicy Bypass -Command "$f = Join-Path $env:TEMP 'aurora-setup.ps1'; irm https://raw.githubusercontent.com/Aurora-Viewer/Aurora-Viewer/main/scripts/setup.ps1 -OutFile $f; & $f"
+powershell -NoProfile -ExecutionPolicy Bypass -Command "$f = Join-Path $env:TEMP 'block-setup.ps1'; irm https://raw.githubusercontent.com/Block-Viewer/Block-Viewer/main/scripts/setup.ps1 -OutFile $f; & $f"
 ```
 
 From here on, **the project folder** is the one of the installation: it
-contains `aurora-viewer\`, `phoenix-firestorm\`, `work\` (the agents' tasks)
+contains `block-viewer\`, `phoenix-firestorm\`, `work\` (the agents' tasks)
 and, later, `RELEASE\`.
 
-## The Aurora tools: `aurora-tools.cmd`
+## The Aurora tools: `block-tools.cmd`
 
-Double-click **`aurora-tools.cmd`**, at the root of the repository (or the
+Double-click **`block-tools.cmd`**, at the root of the repository (or the
 "Aurora Tools" shortcut the tool can create). Everything is done with the
 keyboard: **↑ ↓** to choose, **Enter** to confirm, **Esc** or **Backspace**
 to go back, and the key shown in front of each choice as a shortcut.
 
 The launcher loads the scripts present in `scripts/tools/` each time it
 opens. It also works when placed in the project folder, next to
-`aurora-viewer/`; alone in an empty folder, it downloads the installer from
+`block-viewer/`; alone in an empty folder, it downloads the installer from
 the `main` of GitHub. On the command line, it passes the arguments to the
 tools and returns their exit code, for example
-`aurora-tools.cmd -Action diagnose`. Exclamation marks in the path stay valid
+`block-tools.cmd -Action diagnose`. Exclamation marks in the path stay valid
 even from a prompt with delayed expansion.
 
 The active choice carries a **›** mark on a violet background; the text
@@ -322,7 +322,7 @@ refresh. GitHub is queried every 10 to 20 seconds, no more: GitHub's quota
 (5,000 requests per hour) is shared with your agents.
 
 Each choice also exists without the menu, for a script:
-`./scripts/tools/aurora-tools.ps1 -Action diagnose` (`repair`, `release`,
+`./scripts/tools/block-tools.ps1 -Action diagnose` (`repair`, `release`,
 `dev`, `debug`, `demo`, `tasks`, `disk`, `logs`, `prs`, `releases`,
 `reset`, `shortcut`, `claude`); `-DryRun` shows what `releases`, `reset` and
 `claude` would do without doing it.
@@ -331,7 +331,7 @@ Each choice also exists without the menu, for a script:
 
 The **Release viewer** choice of the tools, or a double-click on
 `RELEASE\build-release.bat` in the project folder. The ready-to-launch exe is
-in `RELEASE\Aurora-Viewer\` (the same folder as the zip of the releases: the
+in `RELEASE\Block-Viewer\` (the same folder as the zip of the releases: the
 avatar files and the emoji font are inside the exe),
 and `version.txt` gives the version announced by the viewer and the commit
 built.
@@ -349,7 +349,7 @@ built.
 ## Building and launching by hand
 
 ```bash
-cargo run -p aurora-viewer
+cargo run -p block-viewer
 ```
 
 - The default profile (without `--release`) is the agents' one: it behaves
@@ -357,7 +357,7 @@ cargo run -p aurora-viewer
   `cargo build --release` is still possible to measure performance (it
   rebuilds everything a second time).
 - Demo mode (no connection): `$env:AURORA_DEMO="1"` before launching.
-- Naming the window: `cargo run -p aurora-viewer -- --title "My test"`.
+- Naming the window: `cargo run -p block-viewer -- --title "My test"`.
 - Checking everything like CI: `./scripts/check.ps1`.
 - The agents build in their own folder `..\work\<task>\target`: their open
   viewers do not block yours.
@@ -418,16 +418,16 @@ for the format of the packages and their policy.
 | Task tracking | [TASKS.md](TASKS.md) (open work and what was finished since the last release); older finished tasks in [docs/TASKS_ARCHIVE.md](docs/TASKS_ARCHIVE.md) |
 | Agents' working folders | `work\`, in the project folder |
 | Legacy Viewer sources (reference) | `phoenix-firestorm\`, in the project folder |
-| Settings, skins, layout | `%APPDATA%\Aurora\AuroraViewer\config\` |
-| Conversation history (text files, per account and per grid; Preferences › Chat to open it, turn it off or erase it) | `%APPDATA%\Aurora\AuroraViewer\config\accounts\<account uuid>\chat_logs\<grid>\` |
-| Cache (textures, mesh…) — can be deleted safely | `%LOCALAPPDATA%\Aurora\AuroraViewer\cache\` |
-| Logs (to send to an agent after a test) | `%LOCALAPPDATA%\Aurora\AuroraViewer\data\logs\` |
-| `--release` viewer of the latest `main` | `RELEASE\Aurora-Viewer\aurora-viewer.exe`, in the project folder |
-| Program built by hand | `target\debug\aurora-viewer.exe` (or `work\<task>\target\debug\`) |
+| Settings, skins, layout | `%APPDATA%\Aurora\BlockViewer\config\` |
+| Conversation history (text files, per account and per grid; Preferences › Chat to open it, turn it off or erase it) | `%APPDATA%\Aurora\BlockViewer\config\accounts\<account uuid>\chat_logs\<grid>\` |
+| Cache (textures, mesh…) — can be deleted safely | `%LOCALAPPDATA%\Aurora\BlockViewer\cache\` |
+| Logs (to send to an agent after a test) | `%LOCALAPPDATA%\Aurora\BlockViewer\data\logs\` |
+| `--release` viewer of the latest `main` | `RELEASE\Block-Viewer\block-viewer.exe`, in the project folder |
+| Program built by hand | `target\debug\block-viewer.exe` (or `work\<task>\target\debug\`) |
 
 `aurora.log` is the log of your last real session; the session before is kept
 as `aurora.previous.log`. Demo sessions have their own logs
-(`aurora-demo*.log`).
+(`block-demo*.log`).
 
 ## Security
 

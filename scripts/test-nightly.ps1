@@ -48,10 +48,10 @@ Assert-Nightly (@(Get-BetasToPrune @('v0.7.6', 'v0.7.7-beta.20261025.1') 10).Cou
 # The policy line: the newest stable tag's thresholds, the beta's version,
 # accepted by the release's own check (tools/update-policy.ps1).
 . "$PSScriptRoot/tools/update-policy.ps1"
-$line = Get-PolicyLine @('Aurora Viewer 0.7.6', '', 'Aurora-Update-Policy: {"schema":1,"version":"0.7.6","minimum_supported_version":null,"cache_invalidation_before":"0.7.1","settings_reset_before":"0.7.3"}') '0.7.7-beta.20261025.1'
+$line = Get-PolicyLine @('Block Viewer 0.7.6', '', 'Aurora-Update-Policy: {"schema":1,"version":"0.7.6","minimum_supported_version":null,"cache_invalidation_before":"0.7.1","settings_reset_before":"0.7.3"}') '0.7.7-beta.20261025.1'
 $policy = $line.Substring('Aurora-Update-Policy: '.Length) | ConvertFrom-Json
 Assert-Nightly ($policy.version -eq '0.7.7-beta.20261025.1' -and $policy.cache_invalidation_before -eq '0.7.1' -and $policy.settings_reset_before -eq '0.7.3') "Unexpected policy line: $line"
 Assert-UpdatePolicy $policy '0.7.7-beta.20261025.1'
-Assert-Nightly ($null -eq (Get-PolicyLine @('Aurora Viewer 0.7.6') '0.7.7-beta.20261025.1')) 'No policy line.'
+Assert-Nightly ($null -eq (Get-PolicyLine @('Block Viewer 0.7.6') '0.7.7-beta.20261025.1')) 'No policy line.'
 
 Write-Host 'Nightly tests passed.'

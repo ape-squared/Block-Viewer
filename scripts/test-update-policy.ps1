@@ -1,7 +1,7 @@
-﻿# Local policy/tag fixtures; never publishes a release or changes the checkout.
+# Local policy/tag fixtures; never publishes a release or changes the checkout.
 $ErrorActionPreference = 'Stop'
 . "$PSScriptRoot/tools/update-policy.ps1"
-$taskRoot = Join-Path ([IO.Path]::GetTempPath()) "aurora-policy-test-$([Guid]::NewGuid().ToString('N'))"
+$taskRoot = Join-Path ([IO.Path]::GetTempPath()) "block-policy-test-$([Guid]::NewGuid().ToString('N'))"
 New-Item -ItemType Directory -Path $taskRoot | Out-Null
 function Assert-PolicyTest([bool]$Condition, [string]$Message) { if (-not $Condition) { throw $Message } }
 try {
@@ -50,6 +50,6 @@ try {
 } finally {
     $taskResolved = [IO.Path]::GetFullPath($taskRoot)
     $taskTemp = [IO.Path]::GetFullPath([IO.Path]::GetTempPath())
-    if ((Split-Path $taskResolved -Parent).TrimEnd('\') -ne $taskTemp.TrimEnd('\') -or (Split-Path $taskResolved -Leaf) -notlike 'aurora-policy-test-*') { throw 'Refused to clean up outside the fixture.' }
+    if ((Split-Path $taskResolved -Parent).TrimEnd('\') -ne $taskTemp.TrimEnd('\') -or (Split-Path $taskResolved -Leaf) -notlike 'block-policy-test-*') { throw 'Refused to clean up outside the fixture.' }
     Remove-Item -LiteralPath $taskResolved -Recurse -Force
 }

@@ -11,10 +11,10 @@ own cache (`…\config\demo`, `…\cache\demo`).
 ```powershell
 $env:AURORA_DEMO = "1"
 $env:AURORA_DEMO_MAP = "1"          # a scenario, if needed
-cargo run -p aurora-viewer -- --title "Test my-task"
+cargo run -p block-viewer -- --title "Test my-task"
 ```
 
-The logs are in `%LOCALAPPDATA%\Aurora\AuroraViewer\data\logs\`.
+The logs are in `%LOCALAPPDATA%\Aurora\BlockViewer\data\logs\`.
 
 For localisation, launch the same scenario with `--language en`, then
 `--language fr`. `AURORA_DEMO_OPTIONS=1` opens the interface preferences,
@@ -25,7 +25,7 @@ catalogues, dates and plurals are in [TRANSLATING.md](TRANSLATING.md).
 **Unit tests**: always on the whole workspace, filtered by name if needed:
 `cargo test --workspace render_thread`, never `cargo test -p <crate>`. A
 single crate resolves the features of its dependencies on its own, so Cargo
-builds a second copy of them (`cargo test -p aurora-render` alone: 67 s of
+builds a second copy of them (`cargo test -p block-render` alone: 67 s of
 dependencies, then again for the next `--workspace` build).
 
 **To add a variable**: one short line in the table of its topic (the name
@@ -54,7 +54,7 @@ outline. From the task's worktree, after the build:
 
 ```powershell
 $env:AURORA_DEMO = '1'
-$viewer = Start-Process -FilePath '.\target\debug\aurora-viewer.exe' -PassThru `
+$viewer = Start-Process -FilePath '.\target\debug\block-viewer.exe' -PassThru `
   -ArgumentList '--title "Test my-task [AUTOMATION - DO NOT TOUCH]"'
 $borderScript = (Resolve-Path '.\scripts\automation-window-border.ps1').Path
 $borderArgs = @(
@@ -540,9 +540,9 @@ mode): at frame 600 the photo takes those looks, stacked in the order
 given with `+` (`Sepia+aurora:fine-grain`), the last one chosen: each a
 Legacy Viewer filter by
 its file's name (`Sepia`, `Toycamera`, `Lightleak`, `Miniature`,
-`Posterize`…, see `crates/aurora-render/src/looks/legacy/`), one of Aurora's
+`Posterize`…, see `crates/block-render/src/looks/legacy/`), one of Aurora's
 looks as `aurora:<id>` (`aurora:instant`, `aurora:vhs`, `aurora:haze`…, see
-`crates/aurora-render/src/looks/aurora/`), a table of the library as
+`crates/block-render/src/looks/aurora/`), a table of the library as
 `lut:<file>`, or `lut:demo` (a warm table, "Demo warm", written into the
 demo's library); the chosen one at 100 % or the percentage given, its
 settings set with `set=<v>,<v>,…` (an Aurora look's values in the order of
@@ -1694,7 +1694,7 @@ the base, deformed outline, translucent straight box and size handles.
 `stretch,object:90000,fz,100,0` pulls the face opposite the base; the
 flexible keeps its curvature during the change of size.
 
-To check the pacing ([#172](https://github.com/Aurora-Viewer/Aurora-Viewer/issues/172)),
+To check the pacing ([#172](https://github.com/Block-Viewer/Block-Viewer/issues/172)),
 use `AURORA_DEMO_FLEXIBLE=1`, `AURORA_NOVSYNC=1`, then the caps
 `AURORA_FPS_LIMIT=30|59|60|61|144|500` in separate launches. Gravity, wind,
 force and the reaction of the last prim to the moving parent must keep the
@@ -2093,7 +2093,7 @@ scripts in Mono mode with `lslint` when changing them:
 
 ```powershell
 foreach ($script in 'bridge', 'query', 'ik') {
-    lslint -m "crates/aurora-viewer/src/world/bridge/$script.lsl"
+    lslint -m "crates/block-viewer/src/world/bridge/$script.lsl"
 }
 ```
 
@@ -3975,14 +3975,14 @@ both open states and the selection count. Capture at frame 620.
   `max=` and `r_acquire` in `max:` on the seconds of a growth; with
   `AURORA_PROFILE_FRAMES=1`, the `render profile` line of the slow frame.
   What a growth costs is the first use of the new buffer, about 21 µs per
-  MB (`aurora-render/src/arena.rs`). The arena's peak use is remembered
+  MB (`block-render/src/arena.rs`). The arena's peak use is remembered
   for the region (`geometry-needs.txt` of the cache, that of the demo for
   the demo: `cache\demo`): the next run grows the arena at once behind
   the loading screen (`geometry arena grown ahead behind the loading
   screen` in the log) and no growth happens in the scene any more. Delete
   that file to measure a first visit again.
 - **`AURORA_GPU_OOM=<mb>`** (demo or grid): every allocation of `mb`
-  megabytes or more made through `aurora-render/src/gpu_alloc.rs` fails as
+  megabytes or more made through `block-render/src/gpu_alloc.rs` fails as
   if video memory were full (`0`: all of them): the geometry arena, the
   draw records, the culling tables, the joint palettes and skin bindings,
   the texture pages. With `AURORA_DEMO_GEOMETRY=700,60` and a value of 64,
@@ -4407,7 +4407,7 @@ before (`amis`, `groupes`, `repere`, `historique`…) are still accepted.
 | `AURORA_DEMO_REGION_MESSAGE=1` | Messages to the whole region in the middle of the screen (#1404), one waiting behind the other |
 | `AURORA_DEMO_SIM_VERSION=1\|on` | The region's simulator version changes during the run: no notice by default, one with `on` |
 | `AURORA_DEMO_OBJECT_IM=off\|region\|parcel\|strict` | Objects' messages from near and far, with the filter of Preferences › Privacy set for this run |
-| `AURORA_DEMO_ABOUT=info\|licences[:end]` | Help › About Aurora Viewer opens on its Info or Licences tab |
+| `AURORA_DEMO_ABOUT=info\|licences[:end]` | Help › About Block Viewer opens on its Info or Licences tab |
 | `AURORA_DEMO_COLLISIONS=1\|chat` | Residents bump, push and hit the agent; the "Bumps, pushes & hits" window opens on the list |
 | `AURORA_DEMO_RESTART=<seconds>[:manager][:fast][:still][:min][:lm]…` | The demo region announces its restart: the alert card, its steps, pill, bell card, Firestorm's box |
 | `AURORA_DEMO_LINK=stall:<frame>[:<seconds>],lost:<frame>` | The region goes silent (the unsteady-connection pill and its count), or the link is lost (login screen offering to go back to the same place) |
@@ -5020,13 +5020,13 @@ failure. Grid validation and any paid upload are performed by the human.
   the windows. The build window keeps its width across its six sections,
   including Shape for the advanced settings; long lists scroll in the body,
   the actions stay visible. Modal confirmations keep the blurred background.
-- **`AURORA_DEMO_INVENTORY=link-icons|aurora-link-icons`**: adds original/link pairs
+- **`AURORA_DEMO_INVENTORY=link-icons|block-link-icons`**: adds original/link pairs
   for demo item types and all seventeen wearable subtypes, plus a folder link and
   a broken link. Expand the context-test folder and scroll through it: valid links
   keep their target's type icon and tint with the shortcut arrow at the lower left;
   the broken link keeps the generic link icon. Compare the Legacy and Aurora layouts.
 
-- **`AURORA_DEMO_INVENTORY=hover-photo|hover-photo-object|aurora-hover-photo|aurora-hover-photo-object`**:
+- **`AURORA_DEMO_INVENTORY=hover-photo|hover-photo-object|block-hover-photo|block-hover-photo-object`**:
   hover the synthetic texture or an object with a saved picture after frame 600.
   Capture after frame 700. Both layouts must show the image without selecting
   or opening the item. Preferences > Inventory > Show pictures on hover is on
@@ -5042,7 +5042,7 @@ failure. Grid validation and any paid upload are performed by the human.
   Regression filter `inventory_hover_cache` exercises 1,000 successive images,
   real egui handle release, active/recent retention, expiry, shared world/UI
   source references, bounded workers and replies arriving after cancellation.
-- **`AURORA_DEMO_INVENTORY=default-permissions|aurora-default-permissions`**:
+- **`AURORA_DEMO_INVENTORY=default-permissions|block-default-permissions`**:
   opens the shared Default permissions window over the Legacy or Aurora
   inventory. The final New-menu entry opens the same window. Check creation
   rows, no-copy/transfer rules and fixed environment-copy controls. Import rows
@@ -5598,7 +5598,7 @@ failure. Grid validation and any paid upload are performed by the human.
 - **`AURORA_DEMO_GLYPHS=rtl`**: the same scene in right-to-left text
   (`ui/bidi.rs`): an Arabic sentence with an emoji, a Hebrew one, an English
   sentence with Arabic in it, Arabic with times, numbers and brackets,
-  Arabic-Indic digits, Hebrew with "Aurora Viewer" in it, a long Arabic line
+  Arabic-Indic digits, Hebrew with "Block Viewer" in it, a long Arabic line
   that wraps, an Arabic line with a link; Arabic and Hebrew names and titles,
   Arabic floating text on the cube. What to see: in the name tags, the
   transcript, the chat bar and the bubbles, the first word of an Arabic or
@@ -6087,9 +6087,9 @@ failure. Grid validation and any paid upload are performed by the human.
   stack. `overflow` recurses until the stack overflows (`0xC00000FD`): the
   report is a native exception with its stack, written by the vectored
   handler. `thread`, once the window shows, makes a thread named
-  `aurora-net` panic: the viewer ends the session at its next frame, the
+  `block-net` panic: the viewer ends the session at its next frame, the
   window says "A part of the viewer stopped working" and the report adds
-  `| Thread | aurora-net (the session was ended) |` to the panic. The window must keep the language
+  `| Thread | block-net (the session was ended) |` to the panic. The window must keep the language
   and the theme of the stopped session, allow the trace to be selected and
   copied and open its folder; no window after a normal
   close. The screenshots are taken after three frames of the independent
@@ -6165,7 +6165,7 @@ Human grid validation: remember MFA for account A and B, restart the viewer, the
   a server on this machine (`http://127.0.0.1:<port>/`, `localhost` or
   `[::1]`), for example `python -m http.server 8123 --bind 127.0.0.1` run
   in the `news/` folder of the worktree; or another branch of the repository
-  (`https://raw.githubusercontent.com/Aurora-Viewer/Aurora-Viewer/<branch>/news/`),
+  (`https://raw.githubusercontent.com/Block-Viewer/Block-Viewer/<branch>/news/`),
   to review a news item before merging its PR. What is downloaded
   this way is not kept in the cache. The panel first shows the news
   already known, then that of the file as soon as it is received; changing
@@ -6252,7 +6252,7 @@ Human grid validation: remember MFA for account A and B, restart the viewer, the
   `target` of the worktree, dev profile, then restoration of the normal binary
   at its Git version; no tag or release published. `AURORA_UPDATE_TEST_ROOT` is
   only accepted for an exe in its `install` subfolder, with an
-  `aurora-update-test.json` marker defining a loopback HTTP feed. Settings,
+  `block-update-test.json` marker defining a loopback HTTP feed. Settings,
   cache and logs are isolated under this root; login and credential vault inert.
   `AURORA_UPDATE_TEST_VERSION` is reserved for these binaries and refused in
   release or with `AURORA_VERSION_TAG`. The synthetic binaries refuse any normal
@@ -7388,10 +7388,10 @@ and rebakes when finer source levels arrive. Unrelated worn assets do not block
 an edited region. It uses 2048-pixel bakes (512 for eyes), or 1024 on a low-memory staging pool;
 saving still requests the server's normal bake. Capture `skin:preview`,
 `shirt:preview`, `tattoo:preview` and `alpha:preview` after frame 900; cancellation
-restores the pinned server textures. `AURORA_DEMO_INVENTORY=aurora-menu-folder-uuid`
+restores the pinned server textures. `AURORA_DEMO_INVENTORY=block-menu-folder-uuid`
 shows the UUID command in the unlocked menu's hidden shelf;
-`aurora-menu-folder-uuid-restored` shows it after the user exposes it.
-`AURORA_DEMO_INVENTORY=aurora-menu-textures-export` selects a texture and a
+`block-menu-folder-uuid-restored` shows it after the user exposes it.
+`AURORA_DEMO_INVENTORY=block-menu-textures-export` selects a texture and a
 snapshot and opens the context menu's export format group. Check both PNG and
 TGA choices; each keeps the whole selection and uses one destination folder.
 Exports retain full resolution, RGBA pixels and the existing full-permission
@@ -7689,9 +7689,9 @@ gestures, permissions, outfit switching, teleport and restoration after
 relogging. A rejected save must keep the draft, and deactivation must stop
 only the gesture's requested motions.
 
-**Inventory menu customization:** saving/restoring a menu notecard reports success in theme green, clears older warning text and disappears after five seconds in both inventory window presentations. Failed callbacks remain warnings and do not inherit an older green notice. Restoration wording omits Shared/common. `aurora-menu-restored` simulates a native notecard callback: capture before five seconds after the loading overlay fades (for example 240 frames at 60 FPS) for the green confirmation, and after five seconds (420 frames) for its disappearance. Locked menus hide empty vertical, horizontal and icon groups after live commands and saved placements are resolved, including parents containing only empty groups, bars or separators. Disabled commands and the movable Lock remain valid content. This is presentation only: stored groups, placements and absolute cells survive and reappear in customization or when applicable commands return. Filter queries still show their no-results state on nonempty groups so users can clear them. Use `aurora-menu-empty|aurora-menu-empty-custom` for the same emptied Attachments group and unused custom group in locked/editor modes. While unlocked, every inventory command is available for arrangement regardless of the original right-click target. Inapplicable options are greyed but draggable; their native command bindings remain absent. This includes Trash commands, folder commands, animation/sound/environment actions, worn actions and body/HUD points. Locked menus still resolve only the applicable native commands. Use `aurora-menu-all-texture|aurora-menu-all-folder|aurora-menu-all-trash` to inspect the same complete editor from three different sources, and `aurora-menu-texture|aurora-menu-trash` for the corresponding locked menus. Move an animation action from the texture editor into an icon bar or hidden storage, save/reload, then verify its placement on an animation without adding it to the locked texture menu. Existing hidden options remain in the customization companion. Use `AURORA_DEMO_INVENTORY=aurora-menu-object|aurora-menu-folder|aurora-menu-animation|aurora-menu-script|aurora-menu-link` for the common locked arrangement resolved against the native commands of each type, `aurora-menu-organize` for the expanded Organize group, and `aurora-menu-custom|aurora-menu-locked` for a saved arrangement with empty icon cells, text Copy, a custom group and horizontal Organize. `aurora-menu-hidden` opens the editing companion with hidden Image and Organize entries. The movable Lock option opens/closes the adjacent settings panel (Hidden options, Create a group, Reset menu); the default bottom icon bar places Lock in cell 1 and native Delete in cell 8. Drag Lock into another icon bar or into text to display the localized Lock label (Verrouiller in French); it still toggles customization while ordinary commands stay blocked during editing. Lock and any containing group/bar cannot be placed in Hidden options, including by moving an ancestor or by right-click. Saved layouts that hide Lock recover it as a visible text option; old fixed Delete-footer placements migrate into the bottom bar. Unlocked menus use a grab cursor and suppress command execution, including deletion: only layout editing and group navigation work. Drag text, icons, groups and dividers into Hidden options and back; hidden descendants retain their permissions and are absent when locked. Right-click also offers Hide/Restore. Compare the customizer with Construction `general+organize`: shared typography, violet Hidden options heading with close action, inset storage, full-width actions and the pointer-following drag preview. Its width resets for each command so a short previous title cannot force the next title into a narrow column. Losing window focus, clicking outside the menu and its editing panels, or dismissing the owner automatically relocks, cancels an unfinished drag/name editor and preserves placements; another right click must open a usable locked menu. Moving between the menu, settings and child panels keeps editing active. Close or Finish organizing relocks without losing placements; the companion follows the menu on the free side with aligned bottoms. Every icon bar reserves eight absolute cells. While editing, its drag grip sits to the left and its removal trash to the right on the same row; no title row is shown. Add an icon bar in settings; its organizing-only left grip drags the whole bar and its right trash action (also offered on right click) removes it, restoring its members as text in visible icon order, including temporarily unavailable commands. The two default bars can also move, hide or be removed; reset restores them. Newly added unused bars remain available. Once populated, a bar disappears automatically when its last option is moved out (including into Hidden options or a new group); undo restores it. Temporarily unavailable commands retain their saved bar and cell across restart. This also applies to the default bars and bars inside groups; empty parent groups follow their usual cleanup rules. Use `aurora-menu-bars` for a filled added bar with gaps, an extra empty bar and the default bottom bar removed. `aurora-menu-drop` holds a synthetic layout drag, starting with Image and switching to Attach to HUD after 60 pointer frames. Set AURORA_DEMO_POINTER to the top edge, center or lower edge of a group header to capture the before/inside/after indicators: an upper line inserts before, an outline puts the option inside, and a lower line inserts after the entire expanded group. Edge insertion keeps closed groups closed; only the center expands them during dragging. This capture fixture keeps synthetic window focus while recording so the real focus-loss behavior does not dismiss its menus in the background. Icon groups (New, clothing categories or a group moved into a bar) open on click, never on hover; a second click closes them. Text submenus retain hover navigation, and editing still blocks native commands. Repeating a stationary right click dismisses the latest editing panel, then the root menu. Layout, hidden placements, enabled group filters, expansion and lock state live in global settings as one arrangement across all inventory types and accounts. Legacy per-type layouts migrate once, preferring an edited object layout, then edited folders or another edited type. Consecutive dividers render once; leading/trailing dividers disappear in every group after applicable commands and search results are resolved, without moving their stored identities. Right-click a group while organizing to add/remove its filter. The field works in locked vertical, horizontal and icon groups; matching descendants retain their parent path, clear restores the list, and Lock remains reachable. Queries are temporary and clear on dismissal. `aurora-menu-filter` shows a vertical Attach to group with synthetic French input `main`. The settings companion offers Save to a notecard and Reload from a notecard. Save captures the common arrangement, groups, dividers, absolute icon cells and enabled filters; load validates the entire bounded/versioned inventory-menu document before applying it and relocks the result. Construction profiles and malformed/incompatible files are rejected without changing the current menu. Native upload request IDs and downloaded item IDs correlate callbacks; live notecard type/copy permission, Trash ancestry and preview restrictions are rechecked. `aurora-menu-export` and `aurora-menu-load` show the native save/picker dialogs; `aurora-menu-load-search` shows a matching notecard with its parent folders. Reload closes its owner context menu and opens a texture-style picker with a search field and non-empty inventory folders. Later text-field menus remain usable. Browse nested folders or type a notecard name: results keep their real parent path, and clearing search restores normal browsing expansion. Other asset types and Trash contents are excluded; non-copyable notecards cannot be selected. Selection alone issues no download; Reload rechecks the live item and preview permissions. Reset restores the supplied default arrangement: Image and Move to lead Organize, asset UUID is at the root before Organize, and Attachments/Organize start expanded. Existing saved layouts are retained until explicitly reset. Human grid validation: save a named notecard, alter the common menu, reload that notecard, and confirm all item types recover the arrangement and group filters while native permissions still apply. Native offline input tests cover drops, visibility, editing isolation and the lock; the human validates real inventory operations and persistence across accounts online.
+**Inventory menu customization:** saving/restoring a menu notecard reports success in theme green, clears older warning text and disappears after five seconds in both inventory window presentations. Failed callbacks remain warnings and do not inherit an older green notice. Restoration wording omits Shared/common. `block-menu-restored` simulates a native notecard callback: capture before five seconds after the loading overlay fades (for example 240 frames at 60 FPS) for the green confirmation, and after five seconds (420 frames) for its disappearance. Locked menus hide empty vertical, horizontal and icon groups after live commands and saved placements are resolved, including parents containing only empty groups, bars or separators. Disabled commands and the movable Lock remain valid content. This is presentation only: stored groups, placements and absolute cells survive and reappear in customization or when applicable commands return. Filter queries still show their no-results state on nonempty groups so users can clear them. Use `block-menu-empty|block-menu-empty-custom` for the same emptied Attachments group and unused custom group in locked/editor modes. While unlocked, every inventory command is available for arrangement regardless of the original right-click target. Inapplicable options are greyed but draggable; their native command bindings remain absent. This includes Trash commands, folder commands, animation/sound/environment actions, worn actions and body/HUD points. Locked menus still resolve only the applicable native commands. Use `block-menu-all-texture|block-menu-all-folder|block-menu-all-trash` to inspect the same complete editor from three different sources, and `block-menu-texture|block-menu-trash` for the corresponding locked menus. Move an animation action from the texture editor into an icon bar or hidden storage, save/reload, then verify its placement on an animation without adding it to the locked texture menu. Existing hidden options remain in the customization companion. Use `AURORA_DEMO_INVENTORY=block-menu-object|block-menu-folder|block-menu-animation|block-menu-script|block-menu-link` for the common locked arrangement resolved against the native commands of each type, `block-menu-organize` for the expanded Organize group, and `block-menu-custom|block-menu-locked` for a saved arrangement with empty icon cells, text Copy, a custom group and horizontal Organize. `block-menu-hidden` opens the editing companion with hidden Image and Organize entries. The movable Lock option opens/closes the adjacent settings panel (Hidden options, Create a group, Reset menu); the default bottom icon bar places Lock in cell 1 and native Delete in cell 8. Drag Lock into another icon bar or into text to display the localized Lock label (Verrouiller in French); it still toggles customization while ordinary commands stay blocked during editing. Lock and any containing group/bar cannot be placed in Hidden options, including by moving an ancestor or by right-click. Saved layouts that hide Lock recover it as a visible text option; old fixed Delete-footer placements migrate into the bottom bar. Unlocked menus use a grab cursor and suppress command execution, including deletion: only layout editing and group navigation work. Drag text, icons, groups and dividers into Hidden options and back; hidden descendants retain their permissions and are absent when locked. Right-click also offers Hide/Restore. Compare the customizer with Construction `general+organize`: shared typography, violet Hidden options heading with close action, inset storage, full-width actions and the pointer-following drag preview. Its width resets for each command so a short previous title cannot force the next title into a narrow column. Losing window focus, clicking outside the menu and its editing panels, or dismissing the owner automatically relocks, cancels an unfinished drag/name editor and preserves placements; another right click must open a usable locked menu. Moving between the menu, settings and child panels keeps editing active. Close or Finish organizing relocks without losing placements; the companion follows the menu on the free side with aligned bottoms. Every icon bar reserves eight absolute cells. While editing, its drag grip sits to the left and its removal trash to the right on the same row; no title row is shown. Add an icon bar in settings; its organizing-only left grip drags the whole bar and its right trash action (also offered on right click) removes it, restoring its members as text in visible icon order, including temporarily unavailable commands. The two default bars can also move, hide or be removed; reset restores them. Newly added unused bars remain available. Once populated, a bar disappears automatically when its last option is moved out (including into Hidden options or a new group); undo restores it. Temporarily unavailable commands retain their saved bar and cell across restart. This also applies to the default bars and bars inside groups; empty parent groups follow their usual cleanup rules. Use `block-menu-bars` for a filled added bar with gaps, an extra empty bar and the default bottom bar removed. `block-menu-drop` holds a synthetic layout drag, starting with Image and switching to Attach to HUD after 60 pointer frames. Set AURORA_DEMO_POINTER to the top edge, center or lower edge of a group header to capture the before/inside/after indicators: an upper line inserts before, an outline puts the option inside, and a lower line inserts after the entire expanded group. Edge insertion keeps closed groups closed; only the center expands them during dragging. This capture fixture keeps synthetic window focus while recording so the real focus-loss behavior does not dismiss its menus in the background. Icon groups (New, clothing categories or a group moved into a bar) open on click, never on hover; a second click closes them. Text submenus retain hover navigation, and editing still blocks native commands. Repeating a stationary right click dismisses the latest editing panel, then the root menu. Layout, hidden placements, enabled group filters, expansion and lock state live in global settings as one arrangement across all inventory types and accounts. Legacy per-type layouts migrate once, preferring an edited object layout, then edited folders or another edited type. Consecutive dividers render once; leading/trailing dividers disappear in every group after applicable commands and search results are resolved, without moving their stored identities. Right-click a group while organizing to add/remove its filter. The field works in locked vertical, horizontal and icon groups; matching descendants retain their parent path, clear restores the list, and Lock remains reachable. Queries are temporary and clear on dismissal. `block-menu-filter` shows a vertical Attach to group with synthetic French input `main`. The settings companion offers Save to a notecard and Reload from a notecard. Save captures the common arrangement, groups, dividers, absolute icon cells and enabled filters; load validates the entire bounded/versioned inventory-menu document before applying it and relocks the result. Construction profiles and malformed/incompatible files are rejected without changing the current menu. Native upload request IDs and downloaded item IDs correlate callbacks; live notecard type/copy permission, Trash ancestry and preview restrictions are rechecked. `block-menu-export` and `block-menu-load` show the native save/picker dialogs; `block-menu-load-search` shows a matching notecard with its parent folders. Reload closes its owner context menu and opens a texture-style picker with a search field and non-empty inventory folders. Later text-field menus remain usable. Browse nested folders or type a notecard name: results keep their real parent path, and clearing search restores normal browsing expansion. Other asset types and Trash contents are excluded; non-copyable notecards cannot be selected. Selection alone issues no download; Reload rechecks the live item and preview permissions. Reset restores the supplied default arrangement: Image and Move to lead Organize, asset UUID is at the root before Organize, and Attachments/Organize start expanded. Existing saved layouts are retained until explicitly reset. Human grid validation: save a named notecard, alter the common menu, reload that notecard, and confirm all item types recover the arrangement and group filters while native permissions still apply. Native offline input tests cover drops, visibility, editing isolation and the lock; the human validates real inventory operations and persistence across accounts online.
 
-**Expanded inventory layout (#1020):** `aurora-columns` opens the wide explorer with a resized folder sidebar and custom column widths; `aurora-columns-hidden` keeps only Name and Permissions. Compare `aurora-medium`, `aurora-wide`, `aurora-rights` and the compact `aurora` layout. Drag the sidebar gap or column-header boundaries, hold the pointer stationary, then resize/reopen the window: widths remain saved and rows stay aligned with their headers. Double-click a boundary to restore its default widths. The Columns toolbar menu toggles Type, Permissions and Modified independently; Name stays visible. Reset inventory layout restores all columns and responsive widths. Check folder windows, filtered results, ordinary row selection and drag/drop at 100% and 150% UI scale. Medium views now give permissions their own column instead of appending them to the name; compact trees keep their existing inline rights. These controls are local and need no grid connection.
+**Expanded inventory layout (#1020):** `block-columns` opens the wide explorer with a resized folder sidebar and custom column widths; `block-columns-hidden` keeps only Name and Permissions. Compare `block-medium`, `block-wide`, `block-rights` and the compact `aurora` layout. Drag the sidebar gap or column-header boundaries, hold the pointer stationary, then resize/reopen the window: widths remain saved and rows stay aligned with their headers. Double-click a boundary to restore its default widths. The Columns toolbar menu toggles Type, Permissions and Modified independently; Name stays visible. Reset inventory layout restores all columns and responsive widths. Check folder windows, filtered results, ordinary row selection and drag/drop at 100% and 150% UI scale. Medium views now give permissions their own column instead of appending them to the name; compact trees keep their existing inline rights. These controls are local and need no grid connection.
 
 **`AURORA_DEMO_INVENTORY`** — opens a synthetic inventory: personal
 folder, subfolder, outfits, objects, documents, texture, sound, gesture,
@@ -7702,7 +7702,7 @@ offline; the files and snapshots uploaded in demo stay offline.
 - `1`: the inventory alone. This mode and every one below but the
   `aurora` ones were written for the Legacy Viewer's window and show it,
   whatever Preferences › Aurora › Inventory says.
-- `landmark`, `aurora-landmark`: a landmark's context menu in each inventory
+- `landmark`, `block-landmark`: a landmark's context menu in each inventory
   layout. Capture at frame 700. Copy SLurl must copy the destination's actual
   region and coordinates; Show on map must open and center the map without
   teleporting. Both actions resolve an initially unloaded landmark offline.
@@ -7714,7 +7714,7 @@ offline; the files and snapshots uploaded in demo stay offline.
   Compare `object`, `script` and `link`: the entry must be absent because
   these types never expose an asset UUID. These visibility rules apply to
   both inventory layouts and folder windows through their shared menu.
-- `show-original`, `aurora-show-original`: minimize the inventory at frame
+- `show-original`, `block-show-original`: minimize the inventory at frame
   650, then run an attachment's "Show in inventory" action at frame 750.
   Capture frames `700,850`: first the title bar alone, then the restored
   window with the demo object selected and revealed. Covers both layouts
@@ -7726,22 +7726,22 @@ offline; the files and snapshots uploaded in demo stay offline.
   does not answer that network request. Capture at frame 700. On a grid,
   log in without opening Appearance and replace an outfit from Inventory;
   after its contents arrive, the entry must activate in the same open menu.
-- `favorites`, `aurora-favorites`: the Favorites tab with three objects of
+- `favorites`, `block-favorites`: the Favorites tab with three objects of
   the same type, added through the batch planner. `favorites-multi` and
-  `aurora-favorites-multi` show their selected rows and Add to Favorites
+  `block-favorites-multi` show their selected rows and Add to Favorites
   menu; click it to check that every object receives its own star. Capture
   at frame 700; the `aurora` variants exercise the Aurora layout.
-- `aurora-sidebar-medium`, `aurora-sidebar-wide`: the expanded inventory
+- `block-sidebar-medium`, `block-sidebar-wide`: the expanded inventory
   with 80 extra folders for #970. Click folders near the top and bottom
   of the left column, then scroll it and repeat, including partly visible
   rows: the clicked folder must
   stay under the pointer while the explorer lists its contents. Capture
   at frame 700. Also use Find original from an inventory link to check
   that navigating to an offscreen folder still brings it into sight.
-- `aurora`, `aurora-medium`, `aurora-wide`, `aurora-rights`: Aurora's
+- `aurora`, `block-medium`, `block-wide`, `block-rights`: Aurora's
   window, placed at frame 2 at its narrow (440 px), medium (800 px) and wide
   (1180 px) width, on the demo object of the right-click tests, the demo
-  shirt in the favourites; `aurora-rights` is the wide window with the
+  shirt in the favourites; `block-rights` is the wide window with the
   CMT menu on "Both". Capture at frame 700 with `AURORA_FPS_LIMIT=60`.
   At every width, the search field and advanced-search button occupy a full
   row below the tools. Collapse all / Expand all are directly accessible in
@@ -7760,30 +7760,30 @@ offline; the files and snapshots uploaded in demo stay offline.
   attachments and clothing regardless of the double-click preferences.
   Body parts and physics still offer Wear because they cannot stack. Widen the narrow
   window with the title bar button.
-- `aurora-no-details`, `aurora-medium-no-details`,
-  `aurora-wide-no-details`: the same three widths with the selection's
+- `block-no-details`, `block-medium-no-details`,
+  `block-wide-no-details`: the same three widths with the selection's
   details hidden (the bottom-bar button of the toolbar at the narrow and
   medium widths, the right-pane button at the wide one, unlit): the list
   takes the room of the card or of the pane. Click the button to show them
   again; the choice is kept with the inventory preferences, so a later
   normal launch keeps it.
-- `aurora-folder-window`, `aurora-folder-window-wide`: the same, with the
+- `block-folder-window`, `block-folder-window-wide`: the same, with the
   right-click tests opened in a folder window ("Show in a new window") beside
   the narrow main window, narrow (420 px) or wide (1180 px). No tabs; the
   column holds the folder itself and its subfolders only (no shortcuts, no
   Trash); the explorer and the breadcrumb stop at the folder; a search stays
   inside it.
-- `aurora-additional`: the narrow main window, its "Additional inventory
+- `block-additional`: the narrow main window, its "Additional inventory
   window" button (a second briefcase, right of CMT) lit, and the additional
   window on its left: the whole inventory with its tabs but no Received
   tab, and no such button. Click the lit button: the additional window
   closes; click it again: it reopens at the same place, its folders and
   search forgotten. Drag an item from one window onto a folder of the other.
-- `smart`, `aurora-smart`, `aurora-smart-wide`: advanced search. The window
+- `smart`, `block-smart`, `block-smart-wide`: advanced search. The window
   is in advanced mode on a saved smart search: objects or scripts, or a name
   ending in a number (an Any group), but not the no-copy object (a Not
-  rule). `aurora-smart` shows the narrow window, whose chip bar keeps its
-  chips and its field only; `aurora-smart-wide` shows the whole chip bar
+  rule). `block-smart` shows the narrow window, whose chip bar keeps its
+  chips and its field only; `block-smart-wide` shows the whole chip bar
   (All/Any, add, save, leave) and the "Smart searches" sidebar section with
   two saved searches, the first highlighted; `smart` shows the classic
   window with the rule summary and the rule builder open in the Filters
@@ -7791,7 +7791,7 @@ offline; the files and snapshots uploaded in demo stay offline.
   All/Any; right-click an item for "Find similar"; the ✕ of the chip bar (or
   "Quick search" in the search options) brings quick search back with its
   text. The demo keeps saved searches in memory only.
-- `aurora-worn`, `aurora-worn-medium`, `aurora-worn-wide`: Aurora's three
+- `block-worn`, `block-worn-medium`, `block-worn-wide`: Aurora's three
   widths on the clothing folder with no selection. Worn clothing names stay
   semi-bold and use the exact text colour of their Worn tag beside the
   regular spare shirt, without needing a click. Change the theme or its
@@ -7815,14 +7815,14 @@ offline; the files and snapshots uploaded in demo stay offline.
   unavailable), a text field (the Delete key edits the text) and a folder
   window. A selection entirely in the Trash asks for confirmation
   before permanent deletion.
-- `keyboard`, `aurora-keyboard`, `aurora-keyboard-wide`: click the demo
+- `keyboard`, `block-keyboard`, `block-keyboard-wide`: click the demo
   object at frame 650, extend its selection with Shift+Down twice, then
   shrink it with Shift+Up at frame 710. Capture at 690 (three selected rows)
   and 720 (two), in the Legacy, compact Aurora and wide Aurora layouts.
   The log reports the selection count and visibility at both capture points.
   Manually check held arrows, direction reversal, open-folder boundaries,
   filtered lists, folder windows and arrow editing in search/rename fields.
-- `keyboard-fold`, `aurora-keyboard-fold`: click the demo object at frame
+- `keyboard-fold`, `block-keyboard-fold`: click the demo object at frame
   650, press Left at 665 (its folder is selected) and 680 (that folder
   closes), then Right at 700 (it opens again). Capture at 690 (the folder
   closed and selected) and 720 (open). The log reports the selection and
@@ -7876,8 +7876,8 @@ offline; the files and snapshots uploaded in demo stay offline.
   search limited to its Marketplace box and state with no received folder. The
   list and the Collapse / Expand buttons keep the same presentation; no
   personal folder must appear in this tab.
-- `received-sort`, `received-sort-name`, `aurora-received-sort`,
-  `aurora-received-sort-name`: open Received preferences in the classic or wide
+- `received-sort`, `received-sort-name`, `block-received-sort`,
+  `block-received-sort-name`: open Received preferences in the classic or wide
   Aurora layout. Three purchases contain files dated one, two and three hours
   ago. With newest first and "Folders always by name" off, folders show Z, M, A;
   checking it shows A, M, Z. The `-name` variants open the checked state for
@@ -8198,7 +8198,7 @@ What the inventory must show with these scenarios:
   shows them) are marked everywhere Aurora shows a resident: on the name plate, green
   to violet curtains of light rise from behind the top edge, the border's
   colours flow around it over a soft halo, and the full and compact plates
-  carry the "Aurora Viewer" tag over their top left edge (the far pill keeps
+  carry the "Block Viewer" tag over their top left edge (the far pill keeps
   the light alone); after the name in People (Nearby, Friends, Recent,
   Contact sets, the radar table), in the Conversations window (the name of
   a message, the head of a conversation) and on the profile, the same tag
@@ -8362,7 +8362,7 @@ What the inventory must show with these scenarios:
   (SLPlugin, CEF, LibVLC; on Linux GStreamer instead of LibVLC, from the
   system). A viewer that finds no plugins downloads it once
   from the Aurora release `media-plugins-<n>` into
-  `%LOCALAPPDATA%\Aurora\AuroraViewer\data\media-plugins\<n>`, in demo mode
+  `%LOCALAPPDATA%\Aurora\BlockViewer\data\media-plugins\<n>`, in demo mode
   too; every later run and every worktree reuses it. The media wait for it
   and start by themselves; the log says `media: downloading the plugins
   pack` then `media: plugins in …`. An installed Firestorm is no longer
@@ -8380,7 +8380,7 @@ What the inventory must show with these scenarios:
   (`-linux-x64.zip` on Linux)
   instead of the GitHub release; only a loopback address is accepted, and
   the archive must still have the size and the SHA-256 written in
-  `crates/aurora-updater/src/media_pack.rs`. A pack installed that way is
+  `crates/block-updater/src/media_pack.rs`. A pack installed that way is
   replaced when these two values change.
 - **`AURORA_DEMO_MUSIC`**: `1` designates an unreachable dummy address; the
   music waits for the radio button.
@@ -8585,7 +8585,7 @@ What the inventory must show with these scenarios:
 
 ### Details
 
-- **`AURORA_DEMO_VIEWER_STATS=1`** (`aurora_net::viewer_stats`,
+- **`AURORA_DEMO_VIEWER_STATS=1`** (`block_net::viewer_stats`,
   `app/viewer_stats.rs`): on the grid the session posts Linden Lab's viewer
   statistics to the region's `ViewerStats` capability once the agent has
   arrived, every 5 minutes, and at logout (send_viewer_stats of the Legacy
@@ -8595,7 +8595,7 @@ What the inventory must show with these scenarios:
   network counters are the demo's; the session id is never in it, and the
   adapter address and the serial show as `(not logged)`). On the
   grid the report is logged at debug level only, `sending viewer
-  statistics: …` (`RUST_LOG=info,aurora_net=debug`).
+  statistics: …` (`RUST_LOG=info,block_net=debug`).
 - **`AURORA_VULKAN_LAYERS=keep`**: at start the viewer sets the variables
   that disable Overwolf's implicit Vulkan layers (`VK_LAYER_OW_OVERLAY`,
   `DISABLE_VULKAN_OW_OVERLAY_LAYER=1`; `VK_LAYER_OW_OBS_HOOK`,
@@ -8643,7 +8643,7 @@ What the inventory must show with these scenarios:
   shows, with its type, memory and whether it can present, then
   `GPU adapter <n> chosen:` and why. When only an integrated GPU is listed
   on a PC that has a dedicated one, the NVIDIA Control Panel's "Preferred
-  graphics processor" for `aurora-viewer.exe` hides it from Vulkan
+  graphics processor" for `block-viewer.exe` hides it from Vulkan
   (`VK_LAYER_NV_optimus`): the log says so, and Preferences › Graphics ›
   Fluidity › Graphics card shows a note under its title (the same for a
   dedicated card that cannot present). The list of that choice comes from
@@ -8659,7 +8659,7 @@ What the inventory must show with these scenarios:
   Network and cache for this launch, without changing the saved setting,
   from 100 to 10,000. A session first asks its simulator for one and a
   half times the setting, 6,000 kb/s at most in all
-  (`aurora-net/src/throttle.rs`): the default, 4,000, already asks for
+  (`block-net/src/throttle.rs`): the default, 4,000, already asks for
   that most, and 3,000 is Firestorm's default.
   `AURORA_THROTTLE_MAX_KBPS=<n>` (6,000 to 50,000) raises that most for
   the launch, to measure what a simulator sends when asked for more than
@@ -8685,7 +8685,7 @@ What the inventory must show with these scenarios:
   camera during the reading.
 - **`AURORA_LABEL_OCCLUSION=0`**: the avatar name tags (plates and classic)
   and the floating texts are no longer compared with the scene's depth
-  (`aurora-render/src/label_depth.rs`): egui-wgpu draws them over the scene,
+  (`block-render/src/label_depth.rs`): egui-wgpu draws them over the scene,
   as before, and they show through walls. The image only differs where the
   scene is in front of a label. Scene: `AURORA_DEMO_TAGS=wall`; cost:
   `r_egui`, `gpu=` and `draws=` of `perf summary` in a crowd
@@ -8720,7 +8720,7 @@ What the inventory must show with these scenarios:
     (1000000) removes all pressure, to compare.
 - **`AURORA_VRAM_BUDGET_MB=<n>`**: the budget the driver grants the viewer
   is taken as n MB (at least 256), what the texture budget and the
-  Performance window then read (`aurora-render/src/vram.rs`); what the
+  Performance window then read (`block-render/src/vram.rs`); what the
   driver counts for the viewer stays the real figure.
   - In demo, `AURORA_DEMO_STREAM=3000` with `AURORA_VRAM_BUDGET_MB=2048`
     behaves like a small card: the texture target leaves 20 % of the
@@ -8734,7 +8734,7 @@ What the inventory must show with these scenarios:
     colour and the overview the warning "Video memory over the driver's
     budget".
 - **`AURORA_TEXTURE_SLOTS=<n>`**: the texture table holds n textures
-  instead of 65,536 (`aurora-render/src/textures.rs`; the `renderer ready:`
+  instead of 65,536 (`block-render/src/textures.rs`; the `renderer ready:`
   line of the log gives its size). Each texture known to the streamer holds
   a slot of it, from the first face that uses it until 45 s after the last
   one stopped. Used to fill the table in demo.
@@ -8928,7 +8928,7 @@ What the inventory must show with these scenarios:
   main view only walks the reflection probes that cover at once its screen
   column, its row and its depth slice (the sets of the lights,
   `AURORA_LIGHT_TILES`, filled for the probes: `probes::tiles` in
-  `aurora-render/src/probes.rs`), once for its two lookups (ambient and
+  `block-render/src/probes.rs`), once for its two lookups (ambient and
   reflection of a PBR face, glossy and environment reflection of a legacy
   one; `sample_probes_pair` in `common.wgsl`). Same image: a probe left out
   covers none of the fragments drawn there, and those that stay are added
@@ -8955,7 +8955,7 @@ What the inventory must show with these scenarios:
 - **`AURORA_LIGHT_TILES=0|alt|check`**: by default, a lit fragment only
   walks the local lights that cover at once its screen column, its row and
   its depth slice (32 of each; sets computed each frame on the render
-  thread, `aurora-render/src/light_tiles.rs`), in the order of the list:
+  thread, `block-render/src/light_tiles.rs`), in the order of the list:
   same image, the lights that reach the fragment are added up as before and
   in the same order.
   - `0`: each fragment walks the whole list (up to 64 lights), as before,
@@ -9100,7 +9100,7 @@ What the inventory must show with these scenarios:
   windows that keep their size.
 - **`AURORA_PRESENT_MODE=immediate|mailbox|fifo|fifo-relaxed`**: replaces
   the present mode chosen from vertical sync
-  (`aurora-render/src/present.rs`: without sync `Mailbox`, otherwise
+  (`block-render/src/present.rs`: without sync `Mailbox`, otherwise
   `Immediate`; with it, `FifoRelaxed`, otherwise `Fifo`), if the surface
   offers it; an unknown value is reported in the log and ignored. Used to
   compare the fps from one screen to another (screens with different
@@ -9311,7 +9311,7 @@ What the inventory must show with these scenarios:
   (#1711), so the frames overlap there as without pacing. Without GPU
   timestamps it stays off. `pace` (that wait, 0 while it is off) and
   `input` (input to presentation) in the `perf summary` line; with `0`,
-  `pace` stays at 0 (`aurora-render/src/pacing.rs`). `always` waits on
+  `pace` stays at 0 (`block-render/src/pacing.rs`). `always` waits on
   every frame, whoever sets the pace, as 0.8.4 did: the "before" of a
   comparison in a busy region.
 - **`AURORA_FRAME_PRIORITY=normal|alt`**: by default the threads a frame
@@ -9319,7 +9319,7 @@ What the inventory must show with these scenarios:
   help the main thread in the frame's parallel loops and the texture page
   thread) run one step above normal priority, so that other programs
   keeping the cores busy do not take a core from a step of the frame
-  (`aurora-render/src/frame_priority.rs`). `normal` keeps them at normal
+  (`block-render/src/frame_priority.rs`). `normal` keeps them at normal
   priority, as before; `alt` puts them back at normal priority one second
   in three, named `xmode=old` at the end of the `perf summary` line
   (`xmode=new` for the others): read `ft=` and `off_cpu:` per mode, on a
@@ -9376,11 +9376,11 @@ What the inventory must show with these scenarios:
 - **`AURORA_SHADOW_LEGACY=1|splits|separate|ab|merge`**: to compare the
   image and the measurements of the shadows. By default, each cascade only
   draws the objects whose shadow can fall on what the view reads in it
-  (`aurora-render/src/shadow_cull.rs`), the opaque faces are drawn without
+  (`block-render/src/shadow_cull.rs`), the opaque faces are drawn without
   a fragment shader, the cascade of a pixel is chosen from its own distance
   to the camera, and an opaque object that the cascade before already holds
   is not drawn again: that part of the cascade is filled from the finer
-  map (`aurora-render/src/shadow_merge.rs`), so most objects are drawn in
+  map (`block-render/src/shadow_merge.rs`), so most objects are drawn in
   one cascade only.
   - `separate`: each cascade draws all its objects, as before. An object
     whose shadow reaches two or three cascades is drawn in each: in a
@@ -9887,15 +9887,15 @@ tens of thousands of objects), the threads listed by a thread of their own.
   `working_set` is the resident memory (`VmRSS`), `peak` its high-water
   mark (`VmHWM`) and `private` the anonymous memory, resident or swapped
   out (`RssAnon` + `VmSwap`).
-- `cpu summary` (Windows and Linux), written by the `aurora-probe` thread:
+- `cpu summary` (Windows and Linux), written by the `block-probe` thread:
   the process's CPU time as a share of one core and of all the cores,
   `machine=` how busy all the cores were (every process: another program
   loading the PC shows there), then each group of threads as a share of
-  one core, the busiest first: `main`, `aurora-render`, `aurora-worker`
-  (the frame's parallel loops), `aurora-jobs` (decodes, meshes, disk),
-  `aurora-net` (the network runtime), `aurora-pages`, `aurora-trash`,
+  one core, the busiest first: `main`, `block-render`, `block-worker`
+  (the frame's parallel loops), `block-jobs` (decodes, meshes, disk),
+  `block-net` (the network runtime), `block-pages`, `block-trash`,
   audio, voice, `unnamed` (the driver's and the system's threads)…; a pool
-  gives its threads and its busiest one (`aurora-jobs=320%(14t max=31%)`);
+  gives its threads and its busiest one (`block-jobs=320%(14t max=31%)`);
   the groups under 0.1 % of a core are only counted (`quiet_groups=`).
   `main` near 100 %: the main thread is the limit; a pool near its thread
   count × 100 %: that pool is; `machine` near 100 %: the PC is.
@@ -10028,7 +10028,7 @@ cached textures (read-only), per size class, on one thread then on as many
 threads as the background tasks:
 
 ```powershell
-cargo run --release -p aurora-assets --example j2k_bench -- "$env:LOCALAPPDATA\Aurora\AuroraViewer\cache\tex"
+cargo run --release -p block-assets --example j2k_bench -- "$env:LOCALAPPDATA\Aurora\BlockViewer\cache\tex"
 ```
 
 Options: `--sample <n>` (2000 textures by default), `--threads <n>`,
@@ -10039,7 +10039,7 @@ pass the quality check, video memory with and without it, cost of encoding
 against decoding), opaque textures and textures with alpha apart:
 
 ```powershell
-cargo run --release -p aurora-render --example bc7_check -- "$env:LOCALAPPDATA\Aurora\AuroraViewer\cache\tex"
+cargo run --release -p block-render --example bc7_check -- "$env:LOCALAPPDATA\Aurora\BlockViewer\cache\tex"
 ```
 
 Options: `--sample <n>` (1000 by default), `--discard <n>` (decoded level,
@@ -10076,13 +10076,13 @@ Human grid validation: let the existing bridge upgrade to 1.20 in `#Aurora/Auror
 Read-only bridge validation (2026-10-16): 2,843 workspace tests pass, 24 ignored, with the known unrelated GPU transparency test skipped. Script parsing, formatting, Clippy and LSL lint pass; the default dev viewer embeds the full 1.20 source byte-for-byte. Inspected `.scratch/bridge-query-radar-fr.png` (Sky Visitor: 2015.2 m from the demo avatar at about 33 m, using the bridge's 2048 m altitude), `bridge-query-scripts-fr.png`, `bridge-query-scripts-en.png` and `bridge-query-error-fr.png`. Reports are readable with localized metrics and safe failure text; their dedicated offline logs contain no panic/error. These checks do not validate real simulator queries or Havok. Human grid follow-up above remains pending.
 
 
-Cleanup regressions (2026-10-16): verify known native/coarse heights never issue a bridge query, cached/late replies cannot override a newly known 250 m height, and an unloaded avatar with missing coarse height becomes a 2480 m range from a 20 m observer after a 2500 m bridge reply. Parent-chain coverage retains missing direct/indirect seat ancestors, a rotated complete chain and cyclic parents. Nil IDs must not invalidate a batch containing a valid missing-height target. The speculative stale/native verification scenarios and status-counter UI were removed at the maintainer's request after they clarified that the actual target altitude was 250 m, not 2500 m. The approximately 235 m real-region case and script information were confirmed by the maintainer; real-grid lookup above the coarse altitude limit remains unconfirmed. LSL and physical motors are unchanged. Cleanup validation: 2,848 workspace tests pass, zero failures, 24 ignored, with the known unrelated GPU transparency test skipped. Scripts, formatting, final Clippy and the default dev build pass. Inspected .scratch/bridge-query-radar-fr.png and bridge-query-radar-en.png: both menus retain the simple default-on toggle without counters, and the missing-height target shows a distance of about 2 km. Dedicated radar demo logs have no panic/error. The unchanged complete LSL 1.20 source is embedded byte-for-byte; source hashes confirm the read-only protocol, physical motors and swimming routing are unchanged. The normal test viewer was relaunched as Test aurora-bridge-movelock radar cleanup 1.20, without automatic login.
+Cleanup regressions (2026-10-16): verify known native/coarse heights never issue a bridge query, cached/late replies cannot override a newly known 250 m height, and an unloaded avatar with missing coarse height becomes a 2480 m range from a 20 m observer after a 2500 m bridge reply. Parent-chain coverage retains missing direct/indirect seat ancestors, a rotated complete chain and cyclic parents. Nil IDs must not invalidate a batch containing a valid missing-height target. The speculative stale/native verification scenarios and status-counter UI were removed at the maintainer's request after they clarified that the actual target altitude was 250 m, not 2500 m. The approximately 235 m real-region case and script information were confirmed by the maintainer; real-grid lookup above the coarse altitude limit remains unconfirmed. LSL and physical motors are unchanged. Cleanup validation: 2,848 workspace tests pass, zero failures, 24 ignored, with the known unrelated GPU transparency test skipped. Scripts, formatting, final Clippy and the default dev build pass. Inspected .scratch/bridge-query-radar-fr.png and bridge-query-radar-en.png: both menus retain the simple default-on toggle without counters, and the missing-height target shows a distance of about 2 km. Dedicated radar demo logs have no panic/error. The unchanged complete LSL 1.20 source is embedded byte-for-byte; source hashes confirm the read-only protocol, physical motors and swimming routing are unchanged. The normal test viewer was relaunched as Test block-bridge-movelock radar cleanup 1.20, without automatic login.
 
 **`AURORA_DEMO_AO=firestorm|empty`** — AO startup reconstruction. `firestorm` seeds a synthetic Legacy Viewer catalogue and an empty shared Aurora parent; the real bootstrap and inventory-mutation callbacks must create #Aurora/Aurora AO, preserve sets/links/options and the four actual legacy swim mappings and select the remapped set without changing any #Firestorm folder or item. Floating, Swimming Forward, Swimming Up and Swimming Down (including their Swim.H/N/U/D aliases) must be fetched and copied when present; The approved completion copies available donor configurations into Aurora-only slots. A missing donor for a required slot must keep swimming unavailable; copying the set must not enable the swimming preference. `empty` opens an AO without either source and must create no AO data or upload prompt. `swim` remains the visual check that the old import-pack button is gone in English/French. All scenarios are offline and never log into a grid.
 
 AO startup regressions cover existing (including empty) Aurora-folder precedence, complete Firestorm set/group/track/cycle reconstruction, original-link preservation, saved selection remapping, missing source/legacy swim items, incomplete fetches and missing original items, interrupted staging without duplicate replay, and shared-parent creation coordination. A bridge factory regression provisions and updates its script without an AO or enabled Movelock. Human grid validation remains required for first-login AIS behavior, a second login with existing Aurora data, absent source data, and animation visibility from another viewer.
 
-AO startup validation (2026-10-16): 2,854 workspace tests pass, zero failures, 24 ignored, with the known unrelated GPU transparency test skipped. Scripts, formatting, final Clippy and default dev build succeed. Inspected .scratch/ao-startup-swim-fr.png and ao-startup-swim-en.png (ordinary swimming inventory editor, no pack-import button), ao-startup-firestorm-fr.png (reconstructed catalogue, saved set and working cycle) and ao-startup-empty-fr.png (no set and no upload prompt). Their dedicated offline logs have no panic/error. Source hashes confirm the bridge factory, full LSL 1.20, physical motors and AO animation runtime are unchanged; the executable embeds that full script and no longer contains the removed pack action/description. Normal viewer relaunched as Test aurora-bridge-movelock AO startup 1.20, without automatic login. Real-grid first-login reconstruction remains for human validation.
+AO startup validation (2026-10-16): 2,854 workspace tests pass, zero failures, 24 ignored, with the known unrelated GPU transparency test skipped. Scripts, formatting, final Clippy and default dev build succeed. Inspected .scratch/ao-startup-swim-fr.png and ao-startup-swim-en.png (ordinary swimming inventory editor, no pack-import button), ao-startup-firestorm-fr.png (reconstructed catalogue, saved set and working cycle) and ao-startup-empty-fr.png (no set and no upload prompt). Their dedicated offline logs have no panic/error. Source hashes confirm the bridge factory, full LSL 1.20, physical motors and AO animation runtime are unchanged; the executable embeds that full script and no longer contains the removed pack action/description. Normal viewer relaunched as Test block-bridge-movelock AO startup 1.20, without automatic login. Real-grid first-login reconstruction remains for human validation.
 
 **`AURORA_DEMO_AO=firestorm-wait`** — cached inventory with delayed write/readback services. Seeds a synthetic MonSet with Standing:CT15.00:CY:RN under #Firestorm/#AO and no native AO. Before frame 720, the ordinary AO window must show loading and no new AO folder. At frame 720 both synthetic capabilities become available through the same writable gate as production; the real bootstrap must reconstruct exactly one #Aurora/Aurora AO/MonSet, preserve the standing options, the four actual swim mappings and the original source. Capture at 620 (waiting) and 1000 (saved); offline only.
 
@@ -10654,7 +10654,7 @@ observations do not establish a general speedup or a busy-grid cost.
 
 ### Received inventory filing
 
-`AURORA_DEMO_INVENTORY=received-filing` exercises new direct deliveries, an offline delivery, an intact folder and an accepted scripted gift below their sender/owner legacy names. `aurora-received-filing` shows the same fixture in Aurora's wide inventory. Both use the real filing state machine and synthetic inventory acknowledgements; at frame 700 the Received tree expands for capture. `aurora-received-unread` and `aurora-received-unread-compact` leave the Received tab unopened to show the combined red badge in the sidebar and compact tabs. Use `AURORA_CAPTURE_FRAMES=900`. Preferences › Inventory (`AURORA_DEMO_OPTIONS=inventory`) shows the OFF-by-default switch with the shared experimental icon; there is no warning paragraph below it. No grid access or old-inventory classification. On the grid, the human checks enabled/disabled direct and object-owner deliveries, offline retrieval, rejection, folder contents, and Marketplace purchases above the sender folders. Check another gift from the same sender raises the red badge after opening Received, that type destinations never override sender filing, and that empty sender folders move to Trash (MarketPlace and nonempty/unloaded folders stay).
+`AURORA_DEMO_INVENTORY=received-filing` exercises new direct deliveries, an offline delivery, an intact folder and an accepted scripted gift below their sender/owner legacy names. `block-received-filing` shows the same fixture in Aurora's wide inventory. Both use the real filing state machine and synthetic inventory acknowledgements; at frame 700 the Received tree expands for capture. `block-received-unread` and `block-received-unread-compact` leave the Received tab unopened to show the combined red badge in the sidebar and compact tabs. Use `AURORA_CAPTURE_FRAMES=900`. Preferences › Inventory (`AURORA_DEMO_OPTIONS=inventory`) shows the OFF-by-default switch with the shared experimental icon; there is no warning paragraph below it. No grid access or old-inventory classification. On the grid, the human checks enabled/disabled direct and object-owner deliveries, offline retrieval, rejection, folder contents, and Marketplace purchases above the sender folders. Check another gift from the same sender raises the red badge after opening Received, that type destinations never override sender filing, and that empty sender folders move to Trash (MarketPlace and nonempty/unloaded folders stay).
 
 Received items are the last group of Preferences › Inventory; Aurora's water is on Graphics › Reflections and water (`AURORA_DEMO_OPTIONS=graphics/3:cogs`).
 

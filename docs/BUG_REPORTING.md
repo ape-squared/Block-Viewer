@@ -2,7 +2,7 @@
 
 "Report a bug", in the top bar, the Help menu and on the login screen, opens
 the project's
-[GitHub issue forms](https://github.com/Aurora-Viewer/Aurora-Viewer/issues/new/choose)
+[GitHub issue forms](https://github.com/Block-Viewer/Block-Viewer/issues/new/choose)
 in the browser. The tester needs a GitHub account, chooses the bug report
 template and fills it in on GitHub. "Copy trace" and "Open report folder",
 in the crash window, give the full technical details, to review before
@@ -25,7 +25,7 @@ browser" opens a new issue with the same title and text instead (text in
 the clipboard when the link would be too long).
 
 The authorization is kept in the system credential store (Windows
-Credential Manager, entry "Aurora Viewer GitHub"), never in the settings,
+Credential Manager, entry "Block Viewer GitHub"), never in the settings,
 the reports or the logs: an expiring user token and its refresh token,
 refreshed without any client secret (allowed for the Device Flow) and
 replaced at each refresh. "Forget the GitHub connection", in the crash
@@ -49,7 +49,7 @@ crash report would publish (version, commit, crash kind, system, GPU, the
 stack as `module+0xoffset` with the modules' PDB identities, the panic
 location inside the sources, recognised warning categories). It never
 contains raw addresses, panic messages, paths or log lines; the
-`<!-- aurora-crash v1 -->` marker at its top is for the repository's crash
+`<!-- block-crash v1 -->` marker at its top is for the repository's crash
 triage.
 
 What each part tells the one who fixes it:
@@ -98,12 +98,12 @@ What each part tells the one who fixes it:
 
 ### Crash symbols
 
-Each Windows release carries `Aurora-Viewer-vX.Y.Z-windows-x64-symbols.zip`:
+Each Windows release carries `Block-Viewer-vX.Y.Z-windows-x64-symbols.zip`:
 the Breakpad symbol file of the exe, made by `dump_syms` from the release
 build's PDB (line tables only) and stored as
-`aurora_viewer.pdb/<debug id>/aurora_viewer.sym`. The debug id is the
-`id=` of the `aurora_viewer` line in a report's modules: the file of the
-version that crashed turns each `aurora_viewer+0xoffset` into a function
+`block_viewer.pdb/<debug id>/block_viewer.sym`. The debug id is the
+`id=` of the `block_viewer` line in a report's modules: the file of the
+version that crashed turns each `block_viewer+0xoffset` into a function
 and a source line. A pull request that changes the Release workflow keeps
 the file of its dry run as the run's artifact. The PDB itself is not
 published. To resolve a stack by hand, unzip the file and look up, for
@@ -113,7 +113,7 @@ contains it and the line record under it; or use the triage script below.
 ### Crash triage
 
 The Crash triage workflow (`.github/workflows/crash-triage.yml`) runs on
-every new issue whose body carries the `<!-- aurora-crash v1 -->` marker.
+every new issue whose body carries the `<!-- block-crash v1 -->` marker.
 `scripts/crash-triage.ps1` reads the issue through the API and validates
 each value again (anyone can write an issue). For a released version whose
 symbol file has the report's debug id, it resolves the viewer's frames,
@@ -140,7 +140,7 @@ closed issue is not a reference: a crash that comes back after its fix
 opens a new issue. "Run workflow" with an issue number triages it again,
 for example once the symbols of its version are published. Locally, on a
 crash session's `public-report.md` and an unzipped symbol file:
-`./scripts/crash-triage.ps1 -ReportFile <public-report.md> -SymbolFile <aurora_viewer.sym>`
+`./scripts/crash-triage.ps1 -ReportFile <public-report.md> -SymbolFile <block_viewer.sym>`
 prints the section, title and signature without writing to GitHub.
 `scripts/test-crash-triage.ps1` holds the fixture tests; the workflow runs
 them on the pull requests that change the triage.
@@ -180,7 +180,7 @@ new authorisation from the tester.
 
 ### Setting up direct sending
 
-Create a **GitHub App**, in the developer settings of the Aurora-Viewer
+Create a **GitHub App**, in the developer settings of the Block-Viewer
 organisation, then:
 
 - turn on **Enable Device Flow**, keep the expiry of the authorisations;
@@ -188,7 +188,7 @@ organisation, then:
 - repository permissions: **Issues — Read and write**, read-only metadata,
   no other permission;
 - public application (**Any account**) for the testers; install it on the
-  organisation with only the Aurora-Viewer repository selected;
+  organisation with only the Block-Viewer repository selected;
 - copy the **public Client ID** into `bug_report/github.rs::CLIENT_ID`.
   The numeric App ID is not suitable. No Client secret and no private key
   may be added to the viewer.

@@ -1,4 +1,4 @@
-﻿<#
+<#
 .SYNOPSIS
     Creates the work folder of a task: a git worktree on its own branch,
     next to the repository (..\work\<task>), with its own target\. Its
@@ -72,6 +72,6 @@ Write-Host "Task ready:" -ForegroundColor Green
 Write-Host "  folder  $dir"
 Write-Host "  branch  $branch (from $base)"
 Write-Host ""
-Write-Host "Test:   `$env:AURORA_DEMO='1'; cargo run -p aurora-viewer -- --title `"Test $slug`""
+Write-Host "Test:   `$env:AURORA_DEMO='1'; cargo run -p block-viewer -- --title `"Test $slug`""
 Write-Host "Check:  ./scripts/check.ps1"
 Write-Host "Finish: ./scripts/end-task.ps1 -Name $slug (after the PR is merged)"

@@ -88,7 +88,7 @@ class ExporterTests(unittest.TestCase):
         value = exporter.snapshot([self.mesh, static], {"mPelvis", "mChest"}, 1)
         self.assertTrue(value["meshes"][0]["joints"])
         self.assertEqual(value["meshes"][1]["joints"], [])
-        with self.assertRaisesRegex(ValueError, "Update Aurora Viewer"):
+        with self.assertRaisesRegex(ValueError, "Update Block Viewer"):
             wire_snapshot(value, ["source-ids"])
         self.assertEqual(wire_snapshot(value, ["static-meshes", "source-ids"]), value)
 

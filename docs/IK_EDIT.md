@@ -122,7 +122,7 @@ A malformed/missing destination leaves the current editor intact. Names are
 labels; UUID filenames prevent path characters in a title from selecting a
 folder. The local catalogue contains up to 128 projects.
 
-The **Project** row in the shared footer exchanges `.aurora-ik.json` files and
+The **Project** row in the shared footer exchanges `.block-ik.json` files and
 inventory notecards. The project includes all profiles, binding calibrations,
 virtual controls, animation order/frames, suppression settings and selected
 profile. **Restore local draft** can recover an older unnamed draft; the

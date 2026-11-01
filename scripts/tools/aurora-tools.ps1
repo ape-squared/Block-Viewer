@@ -1,10 +1,10 @@
-﻿<#
+<#
 .SYNOPSIS
-    The development tools of Aurora Viewer, as a keyboard menu
+    The development tools of Block Viewer, as a keyboard menu
     (arrows, Enter, Esc): diagnosis and repair of the environment,
     release / dev / debug viewers, demo, agent tasks, disk, logs,
     live PR tracking (bottom bar, notifications), release
-    management, shortcuts, Claude Code permissions, repository reset. Started by aurora-tools.cmd, at the repository root.
+    management, shortcuts, Claude Code permissions, repository reset. Started by block-tools.cmd, at the repository root.
 
 .DESCRIPTION
     Without a repository (first installation: the one-line command runs
@@ -12,8 +12,8 @@
     the chosen folder, then opens the menu of the installed repository.
 
 .EXAMPLE
-    ./scripts/tools/aurora-tools.ps1                     # the menu
-    ./scripts/tools/aurora-tools.ps1 -Action diagnose    # one action, without the menu
+    ./scripts/tools/block-tools.ps1                     # the menu
+    ./scripts/tools/block-tools.ps1 -Action diagnose    # one action, without the menu
 #>
 param(
     [ValidateSet('menu', 'install', 'diagnose', 'repair', 'release', 'dev', 'debug', 'demo', 'tasks', 'disk', 'logs', 'shortcut', 'prs', 'releases', 'reset', 'claude')]
@@ -27,7 +27,7 @@ param(
 )
 $ErrorActionPreference = 'Continue'
 # every module of this folder: ui.ps1 first, the others use it
-foreach ($m in @('ui.ps1') + @(Get-ChildItem -LiteralPath $PSScriptRoot -Filter *.ps1 | Where-Object { $_.Name -notin 'ui.ps1', 'aurora-tools.ps1' } | ForEach-Object Name)) {
+foreach ($m in @('ui.ps1') + @(Get-ChildItem -LiteralPath $PSScriptRoot -Filter *.ps1 | Where-Object { $_.Name -notin 'ui.ps1', 'block-tools.ps1' } | ForEach-Object Name)) {
     . (Join-Path $PSScriptRoot $m)
 }
 if ($Interactive) { $Host.UI.RawUI.WindowTitle = 'Aurora Tools' }
@@ -66,7 +66,7 @@ function Invoke-ToolsRepair($P) {
     try { Invoke-Repair $P } finally {
         # A later repair step may fail after git has already updated the tools.
         if ($ToolsFingerprint -ne (Get-ToolsFingerprint $P.Repo)) {
-            $script:ToolsRestartPath = Join-Path $P.Repo 'scripts\tools\aurora-tools.ps1'
+            $script:ToolsRestartPath = Join-Path $P.Repo 'scripts\tools\block-tools.ps1'
         }
     }
 }
@@ -96,7 +96,7 @@ function Start-Install {
         Show-Checks (Get-Checks (Get-Paths $root)) "Proposed project folder: $root"
         if (-not $Yes -and -not (Read-YesNo "Install everything in ${root}?")) {
             do {
-                $answer = Read-Text 'Path of the Aurora-Viewer folder (created if missing), for example D:\Dev\Aurora-Viewer; empty: cancel'
+                $answer = Read-Text 'Path of the Block-Viewer folder (created if missing), for example D:\Dev\Block-Viewer; empty: cancel'
                 if (-not $answer) { Write-Color '  Nothing was installed.' muted; exit 0 }
                 $root = [IO.Path]::GetFullPath($answer)
                 if (Test-Path -LiteralPath $root -PathType Leaf) { Write-Color "  $root is a file, not a folder." warn; $root = $null }
@@ -116,8 +116,8 @@ function Start-Install {
     Write-Aurora "  » All set, in $([math]::Floor($took.TotalMinutes)) min $($took.Seconds) s."
     Write-Color "    $($p.Repo)" ink
     Write-Color '    Open your agent (Claude Code…) in this folder; your role is explained in HUMANS.md.' muted
-    $tools = Join-Path $p.Repo 'scripts\tools\aurora-tools.ps1'
-    if (-not $Yes -and (Test-Path $tools) -and (Read-YesNo 'Open the Aurora tools (aurora-tools.cmd)?')) {
+    $tools = Join-Path $p.Repo 'scripts\tools\block-tools.ps1'
+    if (-not $Yes -and (Test-Path $tools) -and (Read-YesNo 'Open the Aurora tools (block-tools.cmd)?')) {
         & $tools
     }
 }

@@ -1,0 +1,49 @@
+[package]
+name = "block-render"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+publish.workspace = true
+
+[dependencies]
+block-llsd = { version = "0.1.0", path = "../block-llsd" }
+bytemuck = { version = "1.25.2", features = ["derive"] }
+egui = { version = "0.37.0", features = ["monochrome_emoji_fonts"] }
+egui-wgpu = "0.37.0"
+glam = { version = "0.34.1", features = ["bytemuck"] }
+log = "0.4.34"
+parking_lot = "0.13.0"
+pollster = "1.0.1"
+thiserror = "2.0.21"
+uuid = "1.27.0"
+# counters: bytes of the live textures and buffers, for the memory budget (vram.rs)
+wgpu = { version = "30.0.1", features = ["counters"] }
+bcdec_rs = "0.2.0"
+intel_tex_2 = "0.5.0"
+
+# Vulkan under wgpu: memory budget (vram.rs), texture pages in memory of
+# their own (dedicated.rs); macOS draws through Metal instead
+[target.'cfg(not(target_os = "macos"))'.dependencies]
+ash = "0.38"
+
+# Metal under wgpu: memory budget and size of the device (vram.rs); the
+# version and the feature wgpu-hal uses
+[target.'cfg(target_os = "macos")'.dependencies]
+objc2-metal = { version = "0.3.2", default-features = false, features = ["std", "MTLDevice"] }
+
+[target.'cfg(windows)'.dependencies]
+# CPU time of a thread, for the profile (thread_cpu.rs)
+windows-sys = { version = "0.61.2", features = ["Win32_System_Threading", "Win32_System_WindowsProgramming"] }
+
+[target.'cfg(target_os = "linux")'.dependencies]
+# CPU time of a thread, for the profile (thread_cpu.rs); already in the tree
+libc = "0.2.190"
+
+[dev-dependencies]
+naga = { version = "30", features = ["wgsl-in"] }
+block-assets = { path = "../block-assets" }
+rayon = "1.12.0"
+
+[lints]
+workspace = true

@@ -1,4 +1,4 @@
-﻿<#
+<#
 .SYNOPSIS
     Shows the space taken by builds (target folders) and frees what can be
     freed. By default, deletes NOTHING: -Apply is required.
@@ -81,7 +81,7 @@ if (-not $Apply) {
     exit 0
 }
 
-$busy = Get-Process cargo, rustc, clippy-driver, aurora-viewer -ErrorAction SilentlyContinue
+$busy = Get-Process cargo, rustc, clippy-driver, block-viewer -ErrorAction SilentlyContinue
 if ($busy) {
     throw "A build or a viewer is running ($(($busy.Name | Sort-Object -Unique) -join ', ')): try again when they have finished."
 }

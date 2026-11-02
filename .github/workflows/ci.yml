@@ -18,6 +18,6 @@ jobs:
     name: workspace resolves
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Cargo metadata
         run: cargo metadata --locked --format-version 1 > /dev/null

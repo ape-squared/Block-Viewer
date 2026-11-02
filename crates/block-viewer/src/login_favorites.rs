@@ -57,21 +57,18 @@ pub fn save(agent: &uuid::Uuid, entries: &[Entry]) {
 pub fn from_view(list: &[crate::ui::bars::favorites::Favorite]) -> Vec<Entry> {
     list.iter()
         .filter_map(|f| {
-            let place = f
-                .slurl
-                .clone()
-                .or_else(|| {
-                    (!f.region.is_empty()).then(|| {
-                        if let Some(g) = f.global {
-                            let x = g.x.rem_euclid(256.0).round() as i32;
-                            let y = g.y.rem_euclid(256.0).round() as i32;
-                            let z = g.z.round() as i32;
-                            format!("{}/{x}/{y}/{z}", f.region)
-                        } else {
-                            f.region.clone()
-                        }
-                    })
-                })?;
+            let place = f.slurl.clone().or_else(|| {
+                (!f.region.is_empty()).then(|| {
+                    if let Some(g) = f.global {
+                        let x = g.x.rem_euclid(256.0).round() as i32;
+                        let y = g.y.rem_euclid(256.0).round() as i32;
+                        let z = g.z.round() as i32;
+                        format!("{}/{x}/{y}/{z}", f.region)
+                    } else {
+                        f.region.clone()
+                    }
+                })
+            })?;
             Some(Entry {
                 name: f.name.clone(),
                 place,

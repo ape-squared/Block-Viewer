@@ -167,6 +167,9 @@ pub struct BuildSettings {
     /// handles) and of their pick areas, as a factor of the Legacy Viewer's
     /// fixed screen sizes, which it has no setting for (#1328).
     pub gizmo_scale: f32,
+    /// Aurora: height of the Move / Rotate / Stretch / Align strip in the
+    /// compact build window, as a factor of the default 26 px row.
+    pub tool_button_scale: f32,
 }
 
 impl BuildSettings {
@@ -175,6 +178,16 @@ impl BuildSettings {
     pub fn gizmo_scale(&self) -> f32 {
         if self.gizmo_scale.is_finite() {
             self.gizmo_scale.clamp(*GIZMO_SCALE_RANGE.start(), *GIZMO_SCALE_RANGE.end())
+        } else {
+            1.0
+        }
+    }
+
+    /// Compact Move/Rotate/Stretch/Align button height factor.
+    pub fn tool_button_scale(&self) -> f32 {
+        if self.tool_button_scale.is_finite() {
+            self.tool_button_scale
+                .clamp(*TOOL_BUTTON_SCALE_RANGE.start(), *TOOL_BUTTON_SCALE_RANGE.end())
         } else {
             1.0
         }
@@ -198,6 +211,8 @@ impl BuildSettings {
 pub const DISTANCE_LIMIT_RANGE: std::ops::RangeInclusive<f32> = 0.001..=1024.0;
 /// The manipulator size slider (`gizmo_scale`).
 pub const GIZMO_SCALE_RANGE: std::ops::RangeInclusive<f32> = 0.5..=3.0;
+/// Compact build tool-strip button size (`tool_button_scale`).
+pub const TOOL_BUTTON_SCALE_RANGE: std::ops::RangeInclusive<f32> = 0.75..=2.0;
 
 fn sane_distance(value: f32, default: f32) -> f32 {
     if value.is_finite() {
@@ -457,7 +472,8 @@ impl Default for BuildSettings {
             edit_linked: false,
             scale_uniform: false,
             scale_stretch_textures: true,
-            follow_edit_object: false,
+            // Track the focused edit selection like Legacy "follow object".
+            follow_edit_object: true,
             show_highlight: true,
             create_shape: 0,
             keep_tool: false,
@@ -488,6 +504,7 @@ impl Default for BuildSettings {
             limit_drag_distance: true,
             max_drag_distance: MAX_DRAG_DISTANCE,
             gizmo_scale: 1.0,
+            tool_button_scale: 1.0,
         }
     }
 }

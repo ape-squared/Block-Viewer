@@ -47,10 +47,7 @@ mod tests {
     #[test]
     fn short_and_empty_texts() {
         assert_eq!(message_parts("hello"), ["hello"]);
-        assert_eq!(
-            message_parts(&"a".repeat(MAX_MESSAGE_BYTES)),
-            ["a".repeat(MAX_MESSAGE_BYTES)]
-        );
+        assert_eq!(message_parts(&"a".repeat(MAX_MESSAGE_BYTES)), ["a".repeat(MAX_MESSAGE_BYTES)]);
         assert!(message_parts("").is_empty());
     }
 
@@ -71,10 +68,7 @@ mod tests {
     #[test]
     fn a_space_just_past_the_limit_cuts_there() {
         let text = format!("{} next", "x".repeat(MAX_MESSAGE_BYTES));
-        assert_eq!(
-            message_parts(&text),
-            ["x".repeat(MAX_MESSAGE_BYTES), "next".into()]
-        );
+        assert_eq!(message_parts(&text), ["x".repeat(MAX_MESSAGE_BYTES), "next".into()]);
     }
 
     #[test]

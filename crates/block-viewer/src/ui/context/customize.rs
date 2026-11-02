@@ -350,6 +350,7 @@ fn action_key(action: &CtxAction) -> String {
         CtxAction::OpenAppearance { .. } => "OpenAppearance",
         CtxAction::OpenPeople(..) => "OpenPeople",
         CtxAction::ZoomAvatar(..) => "ZoomAvatar",
+        CtxAction::PoseAvatar(..) => "PoseAvatar",
         CtxAction::TeleportToAvatar(..) => "TeleportToAvatar",
         CtxAction::ShowOnMap(..) => "ShowOnMap",
         CtxAction::ShowPlaceInfo(..) => "ShowPlaceInfo",

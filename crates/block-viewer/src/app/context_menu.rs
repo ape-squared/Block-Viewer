@@ -797,6 +797,9 @@ impl App {
                     self.camera.zoom_to(p, None, &mut self.world.agent, &self.settings.camera);
                 }
             }
+            CtxAction::PoseAvatar(id) => {
+                self.ik_editor.pose_avatar_from_menu(&self.world, id);
+            }
             CtxAction::TeleportToAvatar(id) | CtxAction::ShowOnMap(id) => {
                 let teleport = matches!(act, CtxAction::TeleportToAvatar(_));
                 if self.world.locate_avatar(id, teleport) && !teleport {

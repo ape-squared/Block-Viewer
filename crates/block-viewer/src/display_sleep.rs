@@ -4,9 +4,7 @@
 
 #[cfg(windows)]
 pub fn set_prevent_display_sleep(on: bool) {
-    use windows_sys::Win32::System::Power::{
-        ES_CONTINUOUS, ES_DISPLAY_REQUIRED, ES_SYSTEM_REQUIRED, SetThreadExecutionState,
-    };
+    use windows_sys::Win32::System::Power::{ES_CONTINUOUS, ES_DISPLAY_REQUIRED, ES_SYSTEM_REQUIRED, SetThreadExecutionState};
     // SAFETY: SetThreadExecutionState only toggles the calling thread's
     // execution state flags; arguments are constants.
     unsafe {

@@ -45,7 +45,7 @@ pub fn panel(
                         _ => label_key,
                     };
                     let selected = start_slurl.is_none() && start_location.as_str() == value;
-                    if dest_row(ui, p, icons, icon, &label, selected) {
+                    if dest_row(ui, p, icons, icon, label, selected) {
                         *start_location = value.into();
                         *start_slurl = None;
                         if value == "region" {

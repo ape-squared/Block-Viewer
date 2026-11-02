@@ -470,6 +470,8 @@ pub enum CtxAction {
     OpenPeople(u8),
     /// Camera on an avatar of a list, following it (Avatar.ZoomIn).
     ZoomAvatar(Uuid),
+    /// Open the local photo Poser on this avatar (Ask consent when needed).
+    PoseAvatar(Uuid),
     /// Teleport to where an avatar is (FSRadar teleport_to).
     TeleportToAvatar(Uuid),
     /// World map on an avatar (Avatar.ShowOnMap).

@@ -103,7 +103,7 @@ pub(super) fn ruler_controls(ui: &mut egui::Ui, p: &Palette, s: &mut BuildSettin
 }
 
 /// Aurora: the size of the edit handles, in percent of the Legacy Viewer's
-/// fixed screen sizes (#1328).
+/// fixed screen sizes (#1328), and of the compact Move/Rotate strip.
 pub(super) fn handle_controls(ui: &mut egui::Ui, p: &Palette, s: &mut BuildSettings) {
     ui.spacing_mut().slider_width = (ui.available_width() - 80.0).clamp(100.0, 220.0);
     let range = crate::build::GIZMO_SCALE_RANGE;
@@ -119,6 +119,21 @@ pub(super) fn handle_controls(ui: &mut egui::Ui, p: &Palette, s: &mut BuildSetti
             .changed()
         {
             s.gizmo_scale = percent / 100.0;
+        }
+    });
+    let buttons = crate::build::TOOL_BUTTON_SCALE_RANGE;
+    ui.horizontal(|ui| {
+        label(ui, p, block_i18n::tr!("build-ui-floaters-tool-button-size"));
+        let mut percent = (s.tool_button_scale() * 100.0).round();
+        if ui
+            .add(
+                egui::Slider::new(&mut percent, buttons.start() * 100.0..=buttons.end() * 100.0)
+                    .custom_parser(block_i18n::parse_number)
+                    .step_by(5.0),
+            )
+            .changed()
+        {
+            s.tool_button_scale = percent / 100.0;
         }
     });
 }

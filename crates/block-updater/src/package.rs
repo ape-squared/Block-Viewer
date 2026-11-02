@@ -268,10 +268,7 @@ mod tests {
         // PowerShell Compress-Archive uses backslashes; accept and normalize.
         assert_eq!(
             components(r"Block-Viewer-v0.0.5-windows-x64\block-viewer.exe").expect("backslash zip"),
-            vec![
-                "Block-Viewer-v0.0.5-windows-x64".to_owned(),
-                "block-viewer.exe".to_owned()
-            ]
+            vec!["Block-Viewer-v0.0.5-windows-x64".to_owned(), "block-viewer.exe".to_owned()]
         );
         for value in [
             "../a",

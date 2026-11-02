@@ -513,9 +513,7 @@ fn voice(cx: &mut Cx) {
                             .selectable_value(&mut s.audio.voice_morph, String::new(), tr!("voice-morphing-none"))
                             .changed();
                         for id in ["Warm", "Breathy", "Robot", "Deep"] {
-                            changed |= ui
-                                .selectable_value(&mut s.audio.voice_morph, id.to_owned(), id)
-                                .changed();
+                            changed |= ui.selectable_value(&mut s.audio.voice_morph, id.to_owned(), id).changed();
                         }
                     });
                 changed

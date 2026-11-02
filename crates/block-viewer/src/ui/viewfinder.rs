@@ -652,12 +652,14 @@ impl Viewfinder {
             p.navy.gamma_multiply(0.62),
             Color32::TRANSPARENT,
         );
-        // (the AF mode and area are the bottom bar's, once)
-        egui::Area::new(Id::unique("vf_top_left"))
+        // Left rail: guide / timer / sky / status in one column so the
+        // cheat-sheet never sits under those buttons (photo-mode overlap).
+        let left = egui::Area::new(Id::unique("vf_top_left"))
             .order(Order::Foreground)
             .fade_in(false)
             .fixed_pos(screen.left_top() + Vec2::new(GAP, 12.0))
             .show(ctx, |ui| {
+                ui.spacing_mut().item_spacing.y = 8.0;
                 ui.horizontal(|ui| {
                     ui.spacing_mut().item_spacing.x = 18.0;
                     if icon_text_button(
@@ -686,6 +688,33 @@ impl Viewfinder {
                         icon_text_button(ui, p, "user-filled", block_i18n::tr!("photo-vf-first-person"), p.teal, "");
                     }
                 });
+                if icon_text_button(
+                    ui,
+                    p,
+                    "sun-filled",
+                    time_label(panel.light.env.time),
+                    p.ink,
+                    block_i18n::tr!("photo-vf-time-tip"),
+                )
+                .clicked()
+                {
+                    panel.light.env.set_time(next_time(panel.light.env.time));
+                }
+                if panel.freeze_world {
+                    ui.horizontal(|ui| {
+                        icon_text_button(ui, p, "snowflake", block_i18n::tr!("photo-vf-world-frozen"), p.ink, "");
+                    });
+                }
+                if panel.light.clouds_paused {
+                    ui.horizontal(|ui| {
+                        icon_text_button(ui, p, "cloud-filled", block_i18n::tr!("photo-vf-clouds-frozen"), p.ink, "");
+                    });
+                }
+                if !panel.light.attached_lights {
+                    ui.horizontal(|ui| {
+                        icon_text_button(ui, p, "bulb-off", block_i18n::tr!("photo-vf-lights-off"), p.amber, "");
+                    });
+                }
             });
 
         // what the photo will be: each a switch, a click for the next value
@@ -776,60 +805,11 @@ impl Viewfinder {
                 });
             });
 
-        // the light of the photo
-        let mut y = screen.top() + 66.0;
-        let line = |y: &mut f32, name: &str, text: &str, color: Color32| {
-            icon(
-                back,
-                name,
-                Rect::from_center_size(Pos2::new(screen.left() + GAP + 8.0, *y), Vec2::splat(16.0)),
-                color,
-            );
-            shadow_text(
-                back,
-                p,
-                Pos2::new(screen.left() + GAP + 23.0, *y),
-                Align2::LEFT_CENTER,
-                text,
-                regular(12.5),
-                color,
-            );
-            *y += 24.0;
-        };
-        // (the time of day is a switch too)
-        egui::Area::new(Id::unique("vf_time"))
-            .order(Order::Foreground)
-            .fade_in(false)
-            .pivot(Align2::LEFT_CENTER)
-            .fixed_pos(Pos2::new(screen.left() + GAP, y))
-            .show(ctx, |ui| {
-                if icon_text_button(
-                    ui,
-                    p,
-                    "sun-filled",
-                    time_label(panel.light.env.time),
-                    p.ink,
-                    block_i18n::tr!("photo-vf-time-tip"),
-                )
-                .clicked()
-                {
-                    panel.light.env.set_time(next_time(panel.light.env.time));
-                }
-            });
-        y += 24.0;
-        if panel.freeze_world {
-            line(&mut y, "snowflake", block_i18n::tr!("photo-vf-world-frozen"), p.ink);
-        }
-        if panel.light.clouds_paused {
-            line(&mut y, "cloud-filled", block_i18n::tr!("photo-vf-clouds-frozen"), p.ink);
-        }
-        if !panel.light.attached_lights {
-            line(&mut y, "bulb-off", block_i18n::tr!("photo-vf-lights-off"), p.amber);
-        }
+        let mut y = left.response.rect.bottom() + 10.0;
 
         // the controls, under the light
         if s.viewfinder.hints && !self.menu && !self.help && !self.drawer {
-            y += 14.0;
+            y += 4.0;
             let dial = match self.dial {
                 Dial::Focal => block_i18n::tr!("photo-vf-dial-focal"),
                 Dial::Aperture => block_i18n::tr!("photo-vf-dial-aperture"),

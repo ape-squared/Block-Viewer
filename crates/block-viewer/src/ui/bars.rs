@@ -1489,7 +1489,11 @@ fn stand_chip(ui: &mut egui::Ui, p: &Palette, text: &str) -> egui::Response {
         .layout_no_wrap(text.to_owned(), egui::FontId::proportional(11.5), p.on_accent);
     let (rect, response) = ui.allocate_exact_size(Vec2::new(galley.size().x + 14.0, CHIP_HEIGHT), egui::Sense::click());
     let radius = ui.visuals().window_corner_radius;
-    let fill = if response.hovered() { p.violet } else { p.violet.gamma_multiply(0.85) };
+    let fill = if response.hovered() {
+        p.violet
+    } else {
+        p.violet.gamma_multiply(0.85)
+    };
     ui.painter().rect_filled(rect, radius, fill);
     super::widgets::paint_ink_centered(ui.painter(), galley, rect.center(), p.on_accent);
     response.on_hover_cursor(egui::CursorIcon::PointingHand).on_hover_text(text)

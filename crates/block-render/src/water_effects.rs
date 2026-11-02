@@ -239,7 +239,6 @@ pub(crate) struct WaterGpu {
 
 impl WaterGpu {
     pub fn new(device: &wgpu::Device, size: u32) -> Self {
-        use wgpu::util::DeviceExt;
         let textures = std::array::from_fn(|index| {
             device.create_texture(&wgpu::TextureDescriptor {
                 label: Some("water ripple/foam field"),
@@ -276,10 +275,13 @@ impl WaterGpu {
             usage: wgpu::TextureUsages::TEXTURE_BINDING | wgpu::TextureUsages::COPY_DST,
             view_formats: &[],
         });
-        let uniform = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
+        // Unmapped + `write_buffer` in `prepare`: some drivers reject
+        // `mapped_at_creation` ranges (`create_buffer_init` panics there).
+        let uniform = device.create_buffer(&wgpu::BufferDescriptor {
             label: Some("water effects"),
-            contents: bytemuck::bytes_of(&Uniform::zeroed()),
+            size: std::mem::size_of::<Uniform>() as u64,
             usage: wgpu::BufferUsages::UNIFORM | wgpu::BufferUsages::COPY_DST,
+            mapped_at_creation: false,
         });
         let events = device.create_buffer(&wgpu::BufferDescriptor {
             label: Some("water interaction events"),

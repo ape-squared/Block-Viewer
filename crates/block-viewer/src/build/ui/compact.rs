@@ -220,6 +220,9 @@ pub(super) fn manipulation(ui: &mut egui::Ui, p: &Palette, tool: &mut BuildTool,
     ui.scope(|ui| {
         ui.horizontal(|ui| {
             ui.spacing_mut().item_spacing.x = 4.0;
+            let scale = s.tool_button_scale();
+            let height = (26.0 * scale).round().clamp(20.0, 52.0);
+            let icon_size = (17.0 * scale).round().clamp(14.0, 28.0);
             for (mode, icon, title) in [
                 (EditMode::Move, "arrows-move", block_i18n::tr!("build-compact-move")),
                 (EditMode::Rotate, "rotate-clockwise", block_i18n::tr!("build-compact-rotate")),
@@ -230,8 +233,8 @@ pub(super) fn manipulation(ui: &mut egui::Ui, p: &Palette, tool: &mut BuildTool,
                     block_i18n::tr!("build-compact-align"),
                 ),
             ] {
-                let width = ((ui.max_rect().width() - 12.0) / 4.0).max(24.0);
-                let (rect, response) = ui.allocate_exact_size(Vec2::new(width, 26.0), egui::Sense::click());
+                let width = ((ui.max_rect().width() - 12.0) / 4.0).max(24.0 * scale);
+                let (rect, response) = ui.allocate_exact_size(Vec2::new(width, height), egui::Sense::click());
                 let active = tool.effective_mode(mods) == mode;
                 ui.painter().rect_filled(
                     rect,
@@ -248,7 +251,7 @@ pub(super) fn manipulation(ui: &mut egui::Ui, p: &Palette, tool: &mut BuildTool,
                 }
                 glyph(
                     ui,
-                    egui::Rect::from_center_size(rect.center(), Vec2::splat(17.0)),
+                    egui::Rect::from_center_size(rect.center(), Vec2::splat(icon_size)),
                     icon,
                     if active { p.violet_pale } else { p.muted },
                 );

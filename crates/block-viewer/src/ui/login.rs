@@ -263,7 +263,11 @@ pub(super) fn start_menu(
         }
         if !favorites.is_empty() {
             ui.separator();
-            ui.label(RichText::new(block_i18n::tr!("ui-login-favorites")).size(11.0).color(ui.visuals().weak_text_color()));
+            ui.label(
+                RichText::new(block_i18n::tr!("ui-login-favorites"))
+                    .size(11.0)
+                    .color(ui.visuals().weak_text_color()),
+            );
             for fav in favorites {
                 let loc = crate::slurl::parse(&fav.place);
                 let selected = loc.as_ref().is_some_and(|l| slurl.as_ref() == Some(l));

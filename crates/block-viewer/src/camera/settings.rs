@@ -10,19 +10,19 @@ mod first_person_tests {
     use super::*;
 
     #[test]
-    fn first_person_options_default_off_and_keep_a_saved_choice() {
+    fn first_person_options_keep_a_saved_choice() {
         let migrated: CameraSettings = serde_json::from_str("{}").unwrap();
         assert!(!migrated.show_avatar_in_mouselook);
-        assert!(!migrated.mouselook_follow_eyes);
+        assert!(migrated.mouselook_follow_eyes);
         let chosen = CameraSettings {
             show_avatar_in_mouselook: true,
-            mouselook_follow_eyes: true,
+            mouselook_follow_eyes: false,
             ..migrated
         };
         let saved = serde_json::to_string(&chosen).unwrap();
         let loaded: CameraSettings = serde_json::from_str(&saved).unwrap();
         assert!(loaded.show_avatar_in_mouselook);
-        assert!(loaded.mouselook_follow_eyes);
+        assert!(!loaded.mouselook_follow_eyes);
     }
 }
 
@@ -157,7 +157,8 @@ impl Default for CameraSettings {
             track_focus_object: true,
             enable_mouselook: true,
             show_avatar_in_mouselook: false,
-            mouselook_follow_eyes: false,
+            // Eye height in mouselook (Legacy-like); chest offset felt too low.
+            mouselook_follow_eyes: true,
             wheel_exits_mouselook: true,
             // no zoom until the wheel is turned once while the button is held
             mouselook_zoom_fov: None,

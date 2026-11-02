@@ -87,9 +87,7 @@ fn create_mapped_staging(device: &wgpu::Device, chunk_bytes: u64) -> Option<wgpu
                 return Some(buffer);
             }
             Err(e) => {
-                log::warn!(
-                    "staging: mapped_at_creation range rejected ({e}); trying map_async"
-                );
+                log::warn!("staging: mapped_at_creation range rejected ({e}); trying map_async");
                 drop(buffer);
             }
         }
@@ -258,10 +256,7 @@ impl StagingPool {
 
     /// Build as many mapped chunks as the device accepts for `(count, size)`.
     /// `None` when every attempt failed (caller may try a smaller layout).
-    fn build_free_chunks(
-        device: &wgpu::Device,
-        (count, chunk_bytes): (usize, u64),
-    ) -> Option<(usize, u64, Vec<Arc<Chunk>>)> {
+    fn build_free_chunks(device: &wgpu::Device, (count, chunk_bytes): (usize, u64)) -> Option<(usize, u64, Vec<Arc<Chunk>>)> {
         let free: Vec<Arc<Chunk>> = (0..count)
             .filter_map(|_| {
                 let buffer = create_mapped_staging(device, chunk_bytes)?;

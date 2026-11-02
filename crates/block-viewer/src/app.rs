@@ -5493,10 +5493,7 @@ impl App {
         let Some(t) = self.geom_changed else {
             return;
         };
-        if t.elapsed() < Duration::from_millis(300)
-            || self.capture.is_some()
-            || effective_forced_window_size(&self.settings).is_some()
-        {
+        if t.elapsed() < Duration::from_millis(300) || self.capture.is_some() || effective_forced_window_size(&self.settings).is_some() {
             return;
         }
         self.geom_changed = None;
@@ -5629,9 +5626,7 @@ impl App {
         if !self.region_group_key.is_empty() {
             let previous = self.world.groups.active;
             if !previous.is_nil() {
-                self.settings
-                    .region_groups
-                    .insert(self.region_group_key.clone(), previous);
+                self.settings.region_groups.insert(self.region_group_key.clone(), previous);
             }
         }
         self.region_group_key = key.clone();
@@ -5660,9 +5655,7 @@ impl App {
             .copied()
             .is_none_or(|g| g != active);
         if changed {
-            self.settings
-                .region_groups
-                .insert(self.region_group_key.clone(), active);
+            self.settings.region_groups.insert(self.region_group_key.clone(), active);
             self.settings.save();
         }
     }
@@ -5676,11 +5669,7 @@ impl App {
             let share_loc = !self.world.rlva.has("showloc");
             let share_name = self.world.rlva_can_name(self.world.agent_id);
             let party_size = self.radar.entries().filter(|e| !e.left_behind).count() as i32;
-            let grid = crate::world::chat_log::grid_name(
-                &self.settings.grid,
-                &self.settings.custom_login_uri,
-                self.demo,
-            );
+            let grid = crate::world::chat_log::grid_name(&self.settings.grid, &self.settings.custom_login_uri, self.demo);
             Some(crate::discord_presence::snapshot_from_world(
                 &self.settings.discord,
                 &self.world,
@@ -7869,8 +7858,7 @@ impl App {
             }
         }
         crate::display_sleep::set_prevent_display_sleep(
-            self.settings.prevent_display_sleep
-                && (self.settings.audio.voice_enabled || self.world.login.is_some()),
+            self.settings.prevent_display_sleep && (self.settings.audio.voice_enabled || self.world.login.is_some()),
         );
         if self.updater.poll(&self.settings, &mut self.login_info, self.net.runtime()) {
             self.shutdown(event_loop);

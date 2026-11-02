@@ -50,7 +50,10 @@ impl Settings {
             return false;
         }
         let lower = name.to_ascii_lowercase();
-        !self.blacklist.iter().any(|b| b.eq_ignore_ascii_case(&lower) || b.to_ascii_lowercase() == lower)
+        !self
+            .blacklist
+            .iter()
+            .any(|b| b.eq_ignore_ascii_case(&lower) || b.to_ascii_lowercase() == lower)
     }
 }
 
@@ -169,7 +172,10 @@ impl Presence {
 }
 
 fn unix_now() -> i64 {
-    SystemTime::now().duration_since(UNIX_EPOCH).map(|d| d.as_secs() as i64).unwrap_or(0)
+    SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .map(|d| d.as_secs() as i64)
+        .unwrap_or(0)
 }
 
 fn worker_loop(rx: mpsc::Receiver<Cmd>, mut start: i64) {

@@ -262,7 +262,8 @@ fn object_menu(ui: &mut Builder, f: &Facts, key: ObjKey, id: Uuid, offset: Vec3,
             ui.item_if(icon, label, o.scripts, CtxAction::Scripts { id, action });
         }
     });
-    ui.item("zoom-in-filled", block_i18n::tr!("common-zoom-2"), CtxAction::Zoom(point, None));
+    // Pass the object so TrackFocusObject can follow it (Legacy Zoom).
+    ui.item("zoom-in-filled", block_i18n::tr!("common-zoom-2"), CtxAction::Zoom(point, Some(id)));
     ui.item(
         "list-details-filled",
         block_i18n::tr!("ui-context-show-in-region-objects"),
@@ -702,6 +703,8 @@ fn avatar_groups(ui: &mut Builder, f: &Facts, id: Uuid, attachment: Option<Uuid>
         CtxAction::LookAtAvatar(id),
     );
     ui.item("zoom-in-filled", block_i18n::tr!("common-zoom-2"), CtxAction::Zoom(point, Some(id)));
+    // Local photo Poser: Ask / Pose through the subject consent flow.
+    ui.item("wand", block_i18n::tr!("ui-context-pose-avatar"), CtxAction::PoseAvatar(id));
     ui.item("coin-filled", block_i18n::tr!("common-pay"), CtxAction::PayResident(id));
     ui.separator();
     if let Some(object) = attachment {

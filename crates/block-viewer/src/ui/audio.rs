@@ -181,7 +181,7 @@ pub fn top_controls(
             }
             let music = toggle(
                 ui,
-                "radio",
+                "music",
                 if !media.music_available {
                     block_i18n::tr!("ui-audio-no-music-on-this-parcel")
                 } else if media.music_playing {

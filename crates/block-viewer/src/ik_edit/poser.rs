@@ -170,6 +170,16 @@ impl Editor {
     pub fn select_pose_subject(&mut self, world: &World, id: Uuid) {
         self.pick_subject(world, id);
     }
+    /// Context-menu Pose: open the window, pick when consent is already
+    /// granted, otherwise queue Ask (bridge + Privacy policy still apply).
+    pub fn pose_avatar_from_menu(&mut self, world: &World, id: Uuid) {
+        self.open_poser();
+        if id == world.agent_id || world.poser_consent.can_pose(world, id) {
+            self.pick_subject(world, id);
+        } else if crate::world::poser_consent::nearby(world, id) {
+            self.poser.requests.push(Request::Ask(id));
+        }
+    }
     pub fn sync_poser_settings(&mut self, config: &mut Config) -> bool {
         if !self.poser.active && !self.poser.settings_loaded {
             return false;

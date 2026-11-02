@@ -226,14 +226,15 @@ fn worker_loop(rx: mpsc::Receiver<Cmd>, mut start: i64) {
 
 fn set_activity(client: &mut DiscordIpcClient, snap: &Snapshot, start: i64) -> Result<(), Box<dyn std::error::Error>> {
     let mut act = activity::Activity::new()
+        .name("Block Viewer")
         .state(&snap.state)
         .timestamps(activity::Timestamps::new().start(start))
         .assets(
             activity::Assets::new()
                 .large_image("block")
-                .large_text(&snap.grid_label)
+                .large_text("Block Viewer")
                 .small_image("block")
-                .small_text("via Block Viewer"),
+                .small_text(&snap.grid_label),
         );
     if !snap.details.is_empty() {
         act = act.details(&snap.details);

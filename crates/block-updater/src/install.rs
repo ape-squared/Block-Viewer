@@ -11,9 +11,13 @@ use std::{
 };
 
 const EXE: &str = "block-viewer.exe";
+/// Windows launcher name used in older Block zip layouts.
+const EXE_ALIAS: &str = "BlockViewer.exe";
 const ACK_ENV: &str = "AURORA_UPDATE_ACK";
 const ALLOWED: &[&str] = &[
     EXE,
+    EXE_ALIAS,
+    "BlockViewer.bat",
     "assets",
     "LICENSE",
     "NOTICE.md",
@@ -21,6 +25,10 @@ const ALLOWED: &[&str] = &[
     "version.txt",
     "block-install.json",
 ];
+
+fn has_viewer_exe(install: &Path) -> bool {
+    install.join(EXE).is_file() || install.join(EXE_ALIAS).is_file()
+}
 
 pub struct Workspace {
     pub root: PathBuf,
@@ -75,7 +83,7 @@ fn validate_install(install: &Path) -> Result<()> {
         ensure!(!entry.file_type()?.is_symlink(), "package entry is a link");
     }
     ensure!(
-        install.join(EXE).is_file() && install.join("assets").is_dir() && install.join("LICENSE").is_file(),
+        has_viewer_exe(install) && install.join("assets").is_dir() && install.join("LICENSE").is_file(),
         "viewer is not installed as a portable package"
     );
     // A directory junction nested in the assets must never be followed by cleanup.
@@ -127,7 +135,13 @@ impl Workspace {
     /// Called on a worker; copies the helper before the viewer shuts down.
     pub fn handoff(mut self, version: &str, maintenance: crate::Maintenance) -> Result<()> {
         let exe = std::env::current_exe()?.canonicalize()?;
-        ensure!(exe == self.install.join(EXE), "updater is not running from its installation");
+        let primary = self.install.join(EXE);
+        let alias = self.install.join(EXE_ALIAS);
+        let installed = [primary, alias]
+            .into_iter()
+            .find(|p| p.is_file())
+            .and_then(|p| p.canonicalize().ok());
+        ensure!(installed.as_ref() == Some(&exe), "updater is not running from its installation");
         fs::copy(&exe, self.root.join("helper.exe"))?;
         let args: Vec<String> = std::env::args_os()
             .skip(1)
@@ -259,7 +273,12 @@ pub fn run_helper() -> Result<bool> {
         validate_install(&work.join("prepared"))?;
         apply(&plan.install, &work, || {
             let mut data = crate::user_data::Backup::prepare(&plan.install, &plan.token, plan.maintenance)?;
-            let mut command = Command::new(plan.install.join(EXE));
+            let launch = if plan.install.join(EXE).is_file() {
+                plan.install.join(EXE)
+            } else {
+                plan.install.join(EXE_ALIAS)
+            };
+            let mut command = Command::new(launch);
             command.args(&plan.args).env(ACK_ENV, &work).current_dir(&plan.install);
             hidden(&mut command);
             let mut child = command.spawn()?;
@@ -286,8 +305,9 @@ pub fn run_helper() -> Result<bool> {
         fs::write(work.join("failure.txt"), format!("{error:#}"))?;
         // `apply` restored the directory; launch the old viewer with a visible
         // localized rollback notice. Backups are retained if restoration failed.
-        if plan.install.join(EXE).is_file() && !work.join("backup").exists() {
-            let mut command = Command::new(plan.install.join(EXE));
+        let rollback_exe = [EXE, EXE_ALIAS].into_iter().map(|n| plan.install.join(n)).find(|p| p.is_file());
+        if let Some(exe) = rollback_exe.filter(|_| !work.join("backup").exists()) {
+            let mut command = Command::new(exe);
             command
                 .args(&plan.args)
                 .env("AURORA_UPDATE_ROLLBACK", "1")

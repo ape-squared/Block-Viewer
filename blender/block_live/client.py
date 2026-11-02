@@ -148,9 +148,9 @@ class Client:
         self._import = None
         self._import_received = 0.0
         self._import_result = None
-        self._status = "Connecting to Aurora…"
+        self._status = "Connecting to Block Viewer…"
         self._issues = (None, {})
-        self._thread = threading.Thread(target=self._run, name="Aurora Live", daemon=True)
+        self._thread = threading.Thread(target=self._run, name="Block Live", daemon=True)
         self._thread.start()
 
     def state(self):
@@ -246,10 +246,10 @@ class Client:
     def _line(stream):
         line = stream.readline(MAX_REPLY + 1)
         if not line or len(line) > MAX_REPLY or not line.endswith(b"\n"):
-            raise ValueError("Invalid Aurora response")
+            raise ValueError("Invalid Block Viewer response")
         value = json.loads(line)
         if not isinstance(value, dict):
-            raise ValueError("Invalid Aurora response")
+            raise ValueError("Invalid Block Viewer response")
         return value
 
     def _run(self):
@@ -266,13 +266,13 @@ class Client:
                     with connection.makefile("rb") as reader:
                         hello = self._line(reader)
                         if hello.get("protocol") != 1 or not hello.get("joints"):
-                            raise ValueError("Incompatible Aurora protocol")
+                            raise ValueError("Incompatible Block Viewer protocol")
                         if "pbr-materials" not in hello.get("features", []):
                             raise ValueError("Update Block Viewer to use live PBR materials")
                         with self._lock:
                             self._rest_axes = hello.get("rest_axes", {})
                             self._features = frozenset(hello.get("features", []))
-                        self._set_status("Connected to Aurora", hello["joints"])
+                        self._set_status("Connected to Block Viewer", hello["joints"])
                         if "shape-transfer" in hello.get("features", []):
                             features = [name for name in ("shape-transfer", "shape-apply", "import-lods") if name in hello.get("features", [])]
                             payload = json.dumps({"type": "features", "features": features}).encode("utf-8")
@@ -320,7 +320,7 @@ class Client:
                                 if reply.get("ok"):
                                     self._set_status("Connected · revision {}".format(sent))
                                 else:
-                                    self._set_status("Aurora: " + str(reply.get("error", "Snapshot rejected")))
+                                    self._set_status("Block Viewer: " + str(reply.get("error", "Snapshot rejected")))
                                     if reply.get("retry"):
                                         sent = None
                                         self._stop.wait(0.5)
@@ -331,7 +331,7 @@ class Client:
                                 self._reply(reader)
                                 heartbeat = time.monotonic()
             except (OSError, ValueError, TypeError, OverflowError, struct.error) as error:
-                self._set_status("Waiting for Aurora: " + str(error), ())
+                self._set_status("Waiting for Block Viewer: " + str(error), ())
                 self._stop.wait(1.0)
             finally:
                 with self._lock:

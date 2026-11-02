@@ -171,7 +171,7 @@ def armature_for(source):
 def coordinate_basis(armature, forward="AUTO"):
     """Map rest-data axes to SL +X; object placement is removed separately.
 
-    Avastar faces Blender -Y, while older Aurora/SL rigs face +X. Rest joint
+    Avastar faces Blender -Y, while older Block/SL rigs face +X. Rest joint
     pairs identify the left axis without relying on bone roll, current pose or
     vendor properties. Capture remains independent for each armature.
     """
@@ -310,7 +310,7 @@ def _mesh(source, supported, forward, rest_axes, capture, include_slots=False, p
                 if abs(shaped.determinant()) < 1e-8:
                     raise ValueError("Invalid transferred shape bind: " + name)
                 # Cancel the transferred rest shape, including its scale, before
-                # Aurora applies the wearer's current shape and animation.
+                # Block Viewer applies the wearer's current shape and animation.
                 inverse_bind.append(_column_major(shaped @ Matrix.Translation(Vector(reference) - heads[name])))
             else:
                 rotation = bind_rotation(armature, source_bone, bone_transform)

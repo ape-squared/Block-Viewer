@@ -491,8 +491,8 @@ fn voice(cx: &mut Cx) {
         cx.toggle(tr!("voice-show-in-calls"), "", &field!(audio.voice_visualizers_in_calls));
         cx.toggle(tr!("voice-show-conversation"), "", &field!(audio.conversation_voice_indicator));
     });
-    // Legacy Voice Morphing menu: store the chosen font id (empty = none).
-    // Vivox effect packs are applied when the connector lists them.
+    // Legacy Voice Morphing menu: store the chosen effect id (empty = none).
+    // Applied as a mic pitch shift (WebRTC path; no Vivox fonts).
     cx.group(tr!("voice-morphing"), |cx| {
         cx.row(
             tr!("voice-morphing-effect"),

@@ -46,6 +46,8 @@ pub struct VoiceInputs<'a> {
     pub parcel: Option<&'a block_net::ParcelInfo>,
     pub input_device: &'a str,
     pub mic_gain: f32,
+    /// Preferences › Sound › Voice Morphing (empty = none). Mapped to mic pitch.
+    pub voice_morph: &'a str,
     pub processing: block_audio::MicProcessing,
     pub ear: crate::settings::VoiceEar,
     pub transmit: bool,
@@ -66,6 +68,17 @@ pub enum VoiceLight {
     Connected,
     /// Not connected (no voice here, error, offline).
     Down,
+}
+
+/// Pitch ratio for Preferences › Voice Morphing (WebRTC has no Vivox fonts).
+fn voice_morph_pitch(id: &str) -> f32 {
+    match id {
+        "Warm" => 1.08,
+        "Breathy" => 1.18,
+        "Robot" => 0.88,
+        "Deep" => 0.72,
+        _ => 1.0,
+    }
 }
 
 #[derive(Default)]
@@ -197,6 +210,7 @@ impl Voice {
             }
             // one gain only (they multiply): on the capture, so the meter shows it
             m.set_gain(v.mic_gain);
+            m.set_pitch(voice_morph_pitch(v.voice_morph));
             m.set_processing(v.processing, v.engine.map(AudioEngine::echo_reference));
             self.mic_level = m.level();
             self.mic_meter = (m.level() / OVERDRIVEN_POWER_LEVEL).clamp(0.0, 1.0);

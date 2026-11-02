@@ -4112,7 +4112,8 @@ impl App {
             Action::Performance => ui::widgets::toggle_floater(&self.egui_ctx, "perf", &mut self.panels.perf),
             Action::DevToolbox => ui::widgets::toggle_floater(&self.egui_ctx, ui::dev_toolbox::WINDOW, &mut self.panels.dev_toolbox),
             Action::Preferences => ui::widgets::toggle_floater(&self.egui_ctx, ui::options::WINDOW, &mut self.panels.settings),
-            Action::ToggleInterface => self.toggle_interface(),
+            // Alt+Shift+U: immersion (Legacy ToggleUI; keeps chat like Block immersive).
+            Action::ToggleInterface => self.toggle_immersive(),
             Action::HoverTips => self.toggle_hover_tips(),
             Action::ShowHuds => self.set_show_huds(!self.settings.show_huds),
             Action::Import => self.imports.toggle_window(&self.egui_ctx),
@@ -5852,6 +5853,7 @@ impl App {
             parcel: self.world.parcel.as_deref(),
             input_device: &self.settings.audio.input_device,
             mic_gain: self.settings.audio.mic_gain,
+            voice_morph: &self.settings.audio.voice_morph,
             processing: self.settings.audio.mic_processing(),
             ear: self.settings.audio.voice_ear,
             transmit,
@@ -12254,7 +12256,7 @@ impl App {
                 self.settings.save();
             }
             BarAction::Favorite(f) => self.favorite_action(f),
-            BarAction::ToggleInterface => self.toggle_interface(),
+            BarAction::ToggleInterface => self.toggle_immersive(),
             BarAction::HideInterface => self.interface.set_hidden(&self.egui_ctx, true),
             BarAction::ToggleImmersive => self.toggle_immersive(),
             BarAction::ImmersiveHuds(visible) => self.set_immersive_huds(visible),
@@ -12332,23 +12334,6 @@ impl App {
             BarAction::CustomizeBars => self.toolbar_ui.open = true,
             BarAction::StopAnimations => self.stop_current_animations(),
             BarAction::ResyncAnimations => self.scene.resync_animations(Instant::now()),
-        }
-    }
-
-    /// Alt+Shift+U, Show User Interface (LLViewToggleUI): nothing in
-    /// mouselook; shown, hidden at once with the islands, after Firestorm's
-    /// ConfirmHideUI with its bars (unless unticked); hidden, shown at once.
-    fn toggle_interface(&mut self) {
-        if self.camera.mouselook() {
-            return;
-        }
-        if self.interface.hidden {
-            self.interface.set_hidden(&self.egui_ctx, false);
-        } else if self.bars_look().0 && self.settings.confirm_hide_interface {
-            self.interface.confirm = true;
-            self.interface.confirm_again = true;
-        } else {
-            self.interface.set_hidden(&self.egui_ctx, true);
         }
     }
 

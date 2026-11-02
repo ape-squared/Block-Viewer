@@ -139,7 +139,7 @@ def control_name(key, pole=False):
 
 
 def constraint_name(key):
-    return "Aurora IK " + key
+    return "Block Viewer IK " + key
 
 
 def chain(rig, key):
@@ -268,7 +268,7 @@ def _align_pole(context, rig, key, reposition=True, preserve_pose=True):
 def reposition_poles(context, rig):
     editable(rig)
     if not ready(rig):
-        raise ValueError("Create Aurora IK controls first")
+        raise ValueError("Create Block Viewer IK controls first")
     if rig.data.pose_position != "POSE" or rig.mode == "EDIT":
         raise ValueError("Use Pose Position and leave Edit Mode to switch IK")
     context.view_layer.update()
@@ -280,7 +280,7 @@ def reposition_poles(context, rig):
 def correct_knees(context, rig):
     editable(rig)
     if not ready(rig):
-        raise ValueError("Create Aurora IK controls first")
+        raise ValueError("Create Block Viewer IK controls first")
     if rig.data.pose_position != "POSE" or rig.mode == "EDIT":
         raise ValueError("Use Pose Position and leave Edit Mode to switch IK")
     keys = [key for key in ("FOOT_L", "FOOT_R") if constraint(rig, key).influence > 0.5 and not constraint(rig, key).mute]
@@ -301,8 +301,8 @@ def setup(context, rig):
     chains = {key: chain(rig, key) for key in LIMBS}
     for key, names in chains.items():
         for name in names:
-            if any(not c.name.startswith("Aurora IK ") for c in rig.pose.bones[name].constraints):
-                raise ValueError("The limb already has constraints; use a simple SL rig for Aurora IK")
+            if any(not c.name.startswith("Block Viewer IK ") for c in rig.pose.bones[name].constraints):
+                raise ValueError("The limb already has constraints; use a simple SL rig for Block Viewer IK")
         for pole in (False, True):
             bone = rig.data.bones.get(control_name(key, pole))
             if bone and not bone.get("aurora_control", False):
@@ -340,14 +340,14 @@ def setup(context, rig):
                 bone["aurora_control"] = True
         bpy.ops.object.mode_set(mode="OBJECT")
         if hasattr(rig.data, "collections"):
-            group = rig.data.collections.get("Aurora IK") or rig.data.collections.new("Aurora IK")
+            group = rig.data.collections.get("Block Viewer IK") or rig.data.collections.new("Block Viewer IK")
             group.is_visible = True
             for key in LIMBS:
                 for pole in (False, True):
                     group.assign(rig.data.bones[control_name(key, pole)])
         else:
             groups = rig.pose.bone_groups
-            group = groups.get("Aurora IK") or groups.new(name="Aurora IK")
+            group = groups.get("Block Viewer IK") or groups.new(name="Block Viewer IK")
             mask = list(rig.data.layers)
             mask[31] = True
             rig.data.layers = mask
@@ -387,7 +387,7 @@ def setup(context, rig):
 def set_ik(context, rig, key, enabled):
     editable(rig)
     if not ready(rig):
-        raise ValueError("Create Aurora IK controls first")
+        raise ValueError("Create Block Viewer IK controls first")
     if rig.data.pose_position != "POSE" or rig.mode == "EDIT":
         raise ValueError("Use Pose Position and leave Edit Mode to switch IK")
     context.view_layer.update()
@@ -413,7 +413,7 @@ def set_ik(context, rig, key, enabled):
 
 def select_control(context, rig, key, pole=False):
     if not ready(rig):
-        raise ValueError("Create Aurora IK controls first")
+        raise ValueError("Create Block Viewer IK controls first")
     select_named_control(context, rig, control_name(key, pole), "IK")
 
 

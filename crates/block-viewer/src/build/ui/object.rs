@@ -356,7 +356,7 @@ fn vec_block(
     const LETTER: f32 = super::common::SMALL;
     let row = ui.add_enabled_ui(enabled, |ui| {
         let (rect, _) = ui.allocate_exact_size(egui::vec2(ui.available_width(), HEIGHT), egui::Sense::hover());
-        let width = ((rect.width() - 2.0 * GAP) / 3.0).max(40.0);
+        let width = ((rect.width() - 2.0 * GAP) / 3.0).max(96.0);
         let radius = ui.visuals().window_corner_radius;
         for (axis, value) in v.iter_mut().enumerate() {
             let left = rect.left() + axis as f32 * (width + GAP);
@@ -471,7 +471,7 @@ fn legacy_vec_block(
                             .color(crate::build::draw::axis_color(p, axis)),
                     ),
                 );
-                let width = (ui.available_width() - 23.0).max(45.0);
+                let width = (ui.available_width() - 23.0).max(96.0);
                 edit = edit.or(super::common::spin_with_min_decimals(
                     ui,
                     value,
@@ -855,11 +855,13 @@ fn shape_pair(
                     .on_hover_text(title);
             },
         );
+        // Wider than the old 49 px spins so XYZ can be read and dragged easily.
+        let spin_w = ((ui.available_width() - 90.0) / 3.0).clamp(96.0, 140.0);
         for ((value, axis), range) in values.into_iter().zip(axes).zip(ranges) {
-            ui.allocate_ui_with_layout(Vec2::new(30.0, 26.0), egui::Layout::right_to_left(egui::Align::Center), |ui| {
+            ui.allocate_ui_with_layout(Vec2::new(22.0, 26.0), egui::Layout::right_to_left(egui::Align::Center), |ui| {
                 ui.label(RichText::new(axis).size(super::common::SMALL).color(p.muted));
             });
-            edit = edit.or(spin(ui, value, increment, range, decimals, 49.0, false));
+            edit = edit.or(spin(ui, value, increment, range, decimals, spin_w, false));
         }
     });
     edit

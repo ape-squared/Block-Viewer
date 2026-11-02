@@ -1,9 +1,9 @@
-"""Blender editing to Aurora's animated avatar, without uploading assets."""
+"""Blender editing to Block Viewer's animated avatar, without uploading assets."""
 
 bl_info = {
-    "name": "Aurora LiveMesh", "author": "Block Viewer contributors",
+    "name": "Block LiveMesh", "author": "Block Viewer contributors",
     "version": (0, 14, 7), "blender": (2, 93, 0),
-    "location": "View3D > Sidebar > Aurora", "category": "3D View",
+    "location": "View3D > Sidebar > Block", "category": "3D View",
     "description": "Preview rigged and static mesh edits live in Block Viewer",
 }
 
@@ -352,7 +352,7 @@ class AURORA_PG_live(bpy.types.PropertyGroup):
     ], default="BODY")
     starter_tshirt: BoolProperty(name="Add rigged test T-shirt", default=True,
                                 description="Create a weighted, editable T-shirt on the new SL skeleton")
-    port: IntProperty(name="Aurora port", default=17655, min=1024, max=65535)
+    port: IntProperty(name="Block Viewer port", default=17655, min=1024, max=65535)
     auto_update: BoolProperty(name="Automatic updates", default=True,
                               description="Send changed objects and materials at the chosen interval; disable for manual updates")
     interval: FloatProperty(name="Interval (seconds)", default=2.0, min=0.1, max=3600.0, soft_max=60.0, precision=2,
@@ -391,7 +391,7 @@ class AURORA_OT_starter(bpy.types.Operator):
 
 class AURORA_OT_connect(bpy.types.Operator):
     bl_idname = "aurora.live_connect"
-    bl_label = "Connect to Aurora"
+    bl_label = "Connect to Block Viewer"
 
     def execute(self, context):
         global _client, _force_capture
@@ -459,11 +459,11 @@ class AURORA_OT_refresh(bpy.types.Operator):
 
 
 class AURORA_PT_live(bpy.types.Panel):
-    bl_label = "Aurora"
+    bl_label = "Block"
     bl_idname = "AURORA_PT_live"
     bl_space_type = "VIEW_3D"
     bl_region_type = "UI"
-    bl_category = "Aurora"
+    bl_category = "Block"
 
     def draw(self, context):
         layout = self.layout
@@ -530,7 +530,7 @@ def _draw_live(layout, context):
     else:
         layout.label(text="Add selected meshes to start syncing.")
     lods.draw(layout, context)
-    layout.label(text="Enable LiveMesh in Aurora first.")
+    layout.label(text="Enable LiveMesh in Block Viewer first.")
     layout.label(text="Local preview · no asset upload")
 
 
@@ -563,7 +563,7 @@ _translations = {"fr_FR": {(context, key): value for context in ("*", "Operator"
         "Cet objet dépasse la limite de transfert LiveMesh ; réduisez sa géométrie ou ses textures",
     "LiveMesh update failed: {error}": "Échec de la mise à jour LiveMesh : {error}",
     "LiveMesh material check failed: {error}": "Échec de la vérification des matériaux LiveMesh : {error}",
-    "Connecting to Aurora…": "Connexion à Aurora…", "Connected to Aurora": "Connecté à Aurora",
+    "Connecting to Block Viewer…": "Connexion à Block Viewer…", "Connected to Block Viewer": "Connecté à Block Viewer",
     "Import / LOD": "Import / LOD", "LOD source": "Source du LOD", "LOD object": "Objet LOD",
     "Existing or automatic": "Existant sinon automatique", "Existing object": "Objet existant",
     "Automatic": "Automatique", "Name suffix": "Suffixe du nom", "Reduction target": "Objectif de réduction",
@@ -575,14 +575,14 @@ _translations = {"fr_FR": {(context, key): value for context in ("*", "Operator"
     "Generate a disposable reduced copy of the High mesh": "Générer une copie réduite temporaire du maillage High",
     "Percentage of High triangles": "Pourcentage des triangles du niveau High",
     "Maximum triangle target": "Objectif maximal de triangles",
-    "Sources stay unchanged; inspect each LOD in Aurora.": "Sources préservées ; vérifiez chaque LOD dans Aurora.",
+    "Sources stay unchanged; inspect each LOD in Block Viewer.": "Sources préservées ; vérifiez chaque LOD dans Block Viewer.",
     "Choose a different LOD mesh in the current scene": "Choisissez un autre maillage LOD dans la scène actuelle",
     "LOD objects must use the same avatar rig as High": "Les LOD doivent utiliser le même squelette que High",
     "LOD materials must match High's material slots": "Les matériaux des LOD doivent correspondre à ceux de High",
     "LOD bind matrices disagree with High": "Les matrices de liaison des LOD diffèrent de celles de High",
     "Import LODs exceed 110 avatar joints": "Les LOD de l’import dépassent 110 articulations",
     "The requested source is no longer in this scene's live list": "L’objet demandé ne figure plus dans la liste live de cette scène",
-    "Waiting for Aurora: Update Block Viewer to use live PBR materials":
+    "Waiting for Block Viewer: Update Block Viewer to use live PBR materials":
         "Mettez à jour Block Viewer pour utiliser les matériaux PBR live",
     "Live materials use the mesh's active UV map": "Les matériaux live utilisent la carte UV active du maillage",
     "Use UV coordinates for live image textures": "Utilisez les coordonnées UV pour les textures image live",
@@ -657,8 +657,8 @@ _translations = {"fr_FR": {(context, key): value for context in ("*", "Operator"
     "Leave Edit Mode before creating pose controls": "Quittez le mode Édition avant de créer les contrôles de pose",
     "Pose control names are already used; keep the existing rig unchanged":
         "Les noms des contrôles sont déjà utilisés ; le squelette existant est préservé",
-    "These joints already have constraints; use a simple SL rig for Aurora pose controls":
-        "Ces os ont déjà des contraintes ; utilisez un squelette SL simple pour les contrôles Aurora",
+    "These joints already have constraints; use a simple SL rig for Block Viewer pose controls":
+        "Ces os ont déjà des contraintes ; utilisez un squelette SL simple pour les contrôles Block Viewer",
     "Create the eye target first": "Créez d’abord la cible du regard",
     "The eye pair has no common forward direction": "Les deux yeux n’ont pas de direction commune vers l’avant",
     "Use Pose Position and leave Edit Mode to change eye focus":
@@ -700,7 +700,7 @@ _translations = {"fr_FR": {(context, key): value for context in ("*", "Operator"
     "Left hand IK": "IK main gauche", "Right hand IK": "IK main droite",
     "Left foot IK": "IK pied gauche", "Right foot IK": "IK pied droit", "Target": "Cible", "Pole": "Pôle",
     "IK poses stay in Blender.": "Les poses IK restent dans Blender.",
-    "Aurora animates the rest mesh.": "Aurora anime le maillage au repos.",
+    "Block Viewer animates the rest mesh.": "Block Viewer anime le maillage au repos.",
     "Transfer weights from source": "Transférer les poids du donneur",
     "Replace selected target bone weights from the source mesh, normalized to four influences":
         "Remplacer les poids des cibles sélectionnées depuis le donneur, normalisés à quatre influences",
@@ -712,10 +712,10 @@ _translations = {"fr_FR": {(context, key): value for context in ("*", "Operator"
     "This armature is missing the SL arm or leg chain": "Il manque une chaîne de bras ou de jambe SL dans cette armature",
     "The IK chain has zero length": "La chaîne IK a une longueur nulle",
     "Leave Edit Mode before creating IK controls": "Quittez le mode Édition avant de créer les contrôles IK",
-    "The limb already has constraints; use a simple SL rig for Aurora IK":
-        "Ce membre a déjà des contraintes ; utilisez un squelette SL simple pour l’IK Aurora",
+    "The limb already has constraints; use a simple SL rig for Block Viewer IK":
+        "Ce membre a déjà des contraintes ; utilisez un squelette SL simple pour l’IK Block Viewer",
     "An IK control name is already used by another bone": "Un nom de contrôle IK est déjà utilisé par un autre os",
-    "Create Aurora IK controls first": "Créez d’abord les contrôles IK Aurora",
+    "Create Block Viewer IK controls first": "Créez d’abord les contrôles IK Block Viewer",
     "Use Pose Position and leave Edit Mode to switch IK": "Utilisez la position de pose et quittez le mode Édition pour basculer l’IK",
     "Some vertices have no transferable deform weights; original weights were kept":
         "Certains sommets n’ont aucun poids de déformation transférable ; les poids précédents sont conservés",
@@ -744,7 +744,7 @@ _translations = {"fr_FR": {(context, key): value for context in ("*", "Operator"
         "Créer un T-shirt éditable et pondéré sur le nouveau squelette SL",
     "Switch to Object Mode to create a rig.": "Passez en mode Objet pour créer un squelette.",
     "Created 133 Bento bones and 26 Fitted Mesh bones": "133 os Bento et 26 os Fitted Mesh créés",
-    "Aurora LiveMesh": "Aurora LiveMesh", "Connect to Aurora": "Connecter à Aurora",
+    "Block LiveMesh": "Block LiveMesh", "Connect to Block Viewer": "Connecter à Block Viewer",
     "Disconnect": "Déconnecter", "Add selected meshes": "Ajouter la sélection",
     "Add the current selection without replacing listed objects or enabling paused entries":
         "Ajouter la sélection sans remplacer les objets listés ni réactiver les objets en pause",
@@ -763,16 +763,16 @@ _translations = {"fr_FR": {(context, key): value for context in ("*", "Operator"
     "Invalid LiveMesh grouping": "Groupement LiveMesh invalide",
     "Avatar bone weights must be finite": "Les poids des os de l’avatar doivent être finis",
     "Mesh positions must be finite": "Les positions du maillage doivent être finies",
-    "Include this object in Aurora's live preview": "Inclure cet objet dans l’aperçu live Aurora",
+    "Include this object in Block Viewer's live preview": "Inclure cet objet dans l’aperçu live Block Viewer",
     "Remove from synchronization": "Retirer de la synchronisation",
-    "Remove this entry from Aurora's preview list; keep the Blender object":
-        "Retirer cette entrée de la liste d’aperçu Aurora ; conserver l’objet Blender",
+    "Remove this entry from Block Viewer's preview list; keep the Blender object":
+        "Retirer cette entrée de la liste d’aperçu Block Viewer ; conserver l’objet Blender",
     "Missing object": "Objet manquant", "{enabled} / {total} enabled": "{enabled} / {total} actifs",
     "Add selected meshes to start syncing.": "Ajoutez la sélection pour commencer.",
     "Update Block Viewer to preview non-rigged meshes": "Mettez Block Viewer à jour pour prévisualiser les maillages non riggés",
     "Update Block Viewer to preview linked objects": "Mettez Block Viewer à jour pour prévisualiser les objets liés",
     "Select one or more rigged meshes first": "Sélectionnez d’abord un ou plusieurs maillages riggés",
-    "Update now": "Mettre à jour maintenant", "Aurora port": "Port Aurora",
+    "Update now": "Mettre à jour maintenant", "Block Viewer port": "Port Block Viewer",
     "Automatic updates": "Mise à jour automatique", "Interval (seconds)": "Intervalle (secondes)",
     "Only changed content is sent.": "Envoi uniquement si modification.",
     "Manual updates only.": "Mise à jour par bouton uniquement.",
@@ -786,7 +786,7 @@ _translations = {"fr_FR": {(context, key): value for context in ("*", "Operator"
     "Receive avatar shape": "Recevoir la shape de l’avatar",
     "Automatic (Avastar / SL)": "Automatique (Avastar / SL)",
     "Detect each rig's rest axes; create new rigs facing Blender -Y": "Détectez les axes de repos de chaque squelette ; les nouveaux rigs regardent vers −Y comme Avastar",
-    "Enable LiveMesh in Aurora first.": "Activez d’abord LiveMesh dans Aurora.",
+    "Enable LiveMesh in Block Viewer first.": "Activez d’abord LiveMesh dans Block Viewer.",
     "Local preview · no asset upload": "Aperçu local · sans import automatique",
 }.items()}}
 

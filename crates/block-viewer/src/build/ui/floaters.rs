@@ -60,7 +60,7 @@ pub fn secondary(ctx: &egui::Context, p: &Palette, tool: &mut BuildTool, world: 
 /// floater_build_options.xml, shared by the inline construction settings.
 pub(super) fn ruler_controls(ui: &mut egui::Ui, p: &Palette, s: &mut BuildSettings) {
     let label_width = (ui.available_width() - 80.0).max(30.0);
-    ui.spacing_mut().slider_width = (ui.available_width() - 80.0).clamp(40.0, 170.0);
+    ui.spacing_mut().slider_width = (ui.available_width() - 80.0).clamp(100.0, 220.0);
     row(ui, p, block_i18n::tr!("build-ui-floaters-unit-meters"), label_width, |ui| {
         spin(ui, &mut s.grid_resolution, 0.01, 0.01..=5.0, 3, 70.0, false);
     });
@@ -105,7 +105,7 @@ pub(super) fn ruler_controls(ui: &mut egui::Ui, p: &Palette, s: &mut BuildSettin
 /// Aurora: the size of the edit handles, in percent of the Legacy Viewer's
 /// fixed screen sizes (#1328).
 pub(super) fn handle_controls(ui: &mut egui::Ui, p: &Palette, s: &mut BuildSettings) {
-    ui.spacing_mut().slider_width = (ui.available_width() - 80.0).clamp(40.0, 170.0);
+    ui.spacing_mut().slider_width = (ui.available_width() - 80.0).clamp(100.0, 220.0);
     let range = crate::build::GIZMO_SCALE_RANGE;
     ui.horizontal(|ui| {
         label(ui, p, block_i18n::tr!("build-ui-floaters-handle-size"));

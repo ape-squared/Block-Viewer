@@ -167,7 +167,9 @@ pub fn extract(path: &Path, root: &Path, tag: &str, cancel: &Cancel) -> Result<P
         "package version mismatch"
     );
     ensure!(
-        root.join("block-viewer.exe").is_file() && root.join("assets").is_dir() && root.join("LICENSE").is_file(),
+        (root.join("block-viewer.exe").is_file() || root.join("BlockViewer.exe").is_file())
+            && root.join("assets").is_dir()
+            && root.join("LICENSE").is_file(),
         "incomplete viewer package"
     );
     Ok(root.to_path_buf())

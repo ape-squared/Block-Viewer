@@ -462,7 +462,7 @@ impl Glow {
     /// RenderGlowStrength.
     const STRENGTH: f32 = 0.325;
 
-    fn new(device: &wgpu::Device, post_layout: &wgpu::BindGroupLayout) -> Glow {
+    fn new(device: &wgpu::Device, queue: &wgpu::Queue, post_layout: &wgpu::BindGroupLayout) -> Glow {
         let usage = wgpu::TextureUsages::RENDER_ATTACHMENT | wgpu::TextureUsages::TEXTURE_BINDING;
         let fmt = wgpu::TextureFormat::Rgba8Unorm;
         let views = [0, 1, 2].map(|i| make_view(device, &format!("glow {i}"), Self::SIZE, Self::SIZE, fmt, 1, usage).1);
@@ -491,13 +491,12 @@ impl Glow {
                 strength: Self::STRENGTH,
                 _pad: 0.0,
             };
-            wgpu::util::DeviceExt::create_buffer_init(
+            crate::upload::create_buffer_data(
                 device,
-                &wgpu::util::BufferInitDescriptor {
-                    label: Some("glow params"),
-                    contents: bytemuck::bytes_of(&u),
-                    usage: wgpu::BufferUsages::UNIFORM,
-                },
+                queue,
+                "glow params",
+                bytemuck::bytes_of(&u),
+                wgpu::BufferUsages::UNIFORM,
             )
         };
         let h = ubuf([Self::DELTA, 0.0]);
@@ -2873,7 +2872,7 @@ impl Backend {
         let gtao = crate::gtao::Gtao::new(&device);
         let water_effects = crate::water_effects::WaterGpu::new(&device, 1);
         let contact = crate::contact_shadows::ContactShadows::new(&device);
-        let glow = Glow::new(&device, &post_layout);
+        let glow = Glow::new(&device, &queue, &post_layout);
         let smaa = Smaa::new(&device, &queue, [&post_layout, &bloom.post_layout], format);
         let targets = Self::make_targets(
             &device,
@@ -2892,13 +2891,12 @@ impl Backend {
         exposure.bind(&device, &targets.color, &targets.depth_ss, &glow.views[1]);
         let mut histogram = crate::histogram::Histogram::new(&device);
         histogram.bind(&device, &targets.color);
-        let stars = wgpu::util::DeviceExt::create_buffer_init(
+        let stars = crate::upload::create_buffer_data(
             &device,
-            &wgpu::util::BufferInitDescriptor {
-                label: Some("night sky stars"),
-                contents: &crate::stars::buffer_contents(),
-                usage: wgpu::BufferUsages::STORAGE,
-            },
+            &queue,
+            "night sky stars",
+            &crate::stars::buffer_contents(),
+            wgpu::BufferUsages::STORAGE,
         );
         let groups = Self::make_frame_groups(
             &device,
@@ -5287,6 +5285,7 @@ impl Backend {
             if !self.ui_blur.as_ref().is_some_and(|blur| blur.matches(size, ui.pixels_per_point)) {
                 self.ui_blur = Some(crate::ui_blur::Blur::new(
                     &self.device,
+                    &self.queue,
                     self.config.format,
                     size,
                     ui.pixels_per_point,
@@ -7707,6 +7706,7 @@ impl Backend {
                     }
                     self.ui_glass = Some(crate::ui_glass::Glass::new(
                         &self.device,
+                        &self.queue,
                         &mut self.egui,
                         self.config.format,
                         size,

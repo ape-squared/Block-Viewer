@@ -41,6 +41,31 @@ use std::sync::atomic::{AtomicBool, AtomicU32, Ordering};
 use std::sync::{Arc, Condvar, Mutex};
 use std::time::{Duration, Instant};
 
+/// Fill a buffer without `mapped_at_creation`. Some Windows / Intel drivers
+/// reject those ranges and panic inside `DeviceExt::create_buffer_init`
+/// (Iris Xe crash-on-open).
+pub(crate) fn create_buffer_data(
+    device: &wgpu::Device,
+    queue: &wgpu::Queue,
+    label: &str,
+    contents: &[u8],
+    usage: wgpu::BufferUsages,
+) -> wgpu::Buffer {
+    let unpadded = contents.len() as u64;
+    let align = wgpu::COPY_BUFFER_ALIGNMENT;
+    let size = ((unpadded + align - 1) & !(align - 1)).max(align);
+    let buffer = device.create_buffer(&wgpu::BufferDescriptor {
+        label: Some(label),
+        size,
+        usage: usage | wgpu::BufferUsages::COPY_DST,
+        mapped_at_creation: false,
+    });
+    if !contents.is_empty() {
+        queue.write_buffer(&buffer, 0, contents);
+    }
+    buffer
+}
+
 /// Chunks of the pool and their size: 8 × 32 MB (a 2048² texture with its
 /// mips is 22 MB), or 4 × 16 MB on a GPU with little memory. When those
 /// host-visible maps fail (some Windows drivers), [`StagingPool::new`]

@@ -130,8 +130,15 @@ fn target(
 }
 
 impl Glass {
-    pub fn new(device: &wgpu::Device, renderer: &mut egui_wgpu::Renderer, format: wgpu::TextureFormat, size: [u32; 2], scale: f32) -> Self {
-        let blur = super::ui_blur::Blur::new(device, format, size, scale);
+    pub fn new(
+        device: &wgpu::Device,
+        queue: &wgpu::Queue,
+        renderer: &mut egui_wgpu::Renderer,
+        format: wgpu::TextureFormat,
+        size: [u32; 2],
+        scale: f32,
+    ) -> Self {
+        let blur = super::ui_blur::Blur::new(device, queue, format, size, scale);
         let (output, texture) = target(device, renderer, "Window glass", format, size);
         Self {
             blur,

@@ -8,7 +8,6 @@ use std::sync::Arc;
 use std::sync::atomic::{AtomicBool, Ordering};
 
 use bytemuck::{Pod, Zeroable};
-use wgpu::util::DeviceExt;
 
 use crate::types::DrawIndexedIndirect;
 
@@ -198,10 +197,12 @@ impl Occlusion {
         let down_pipeline = pipeline(&down_layout, "cs_hiz_down");
         let prepare_pipeline = pipeline(&cull_layout, "cs_prepare");
         let cull_pipeline = pipeline(&cull_layout, "cs_cull");
-        let params = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
+        // Unmapped: filled by `write_buffer` before first cull (Iris Xe).
+        let params = device.create_buffer(&wgpu::BufferDescriptor {
             label: Some("occlusion params"),
-            contents: bytemuck::bytes_of(&CullParams::zeroed()),
+            size: std::mem::size_of::<CullParams>() as u64,
             usage: wgpu::BufferUsages::UNIFORM | wgpu::BufferUsages::COPY_DST,
+            mapped_at_creation: false,
         });
         let cap = 4096u64;
         let draws = device.create_buffer(&wgpu::BufferDescriptor {

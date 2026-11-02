@@ -1,4 +1,4 @@
-﻿<#
+<#
 .SYNOPSIS
     Entry point of the one-line installation command: downloads the Aurora
     tools (scripts/tools) from GitHub and runs the installation of the
@@ -8,10 +8,10 @@
 .DESCRIPTION
     The command, in a command prompt opened in the project folder:
 
-      powershell -NoProfile -ExecutionPolicy Bypass -Command "$f = Join-Path $env:TEMP 'aurora-setup.ps1'; irm https://raw.githubusercontent.com/Aurora-Viewer/Aurora-Viewer/main/scripts/setup.ps1 -OutFile $f; & $f"
+      powershell -NoProfile -ExecutionPolicy Bypass -Command "$f = Join-Path $env:TEMP 'block-setup.ps1'; irm https://raw.githubusercontent.com/Block-Viewer/Block-Viewer/main/scripts/setup.ps1 -OutFile $f; & $f"
 
 .EXAMPLE
-    ./scripts/setup.ps1 -Path D:\Dev\Aurora-Viewer -Yes   # no questions
+    ./scripts/setup.ps1 -Path D:\Dev\Block-Viewer -Yes   # no questions
 #>
 param(
     # project folder (asked for when not given)
@@ -21,7 +21,7 @@ param(
 )
 $ErrorActionPreference = 'Stop'
 
-$local = Join-Path $PSScriptRoot 'tools\aurora-tools.ps1'
+$local = Join-Path $PSScriptRoot 'tools\block-tools.ps1'
 if (Test-Path $local) {
     & $local -Action install @PSBoundParameters
     exit
@@ -29,12 +29,12 @@ if (Test-Path $local) {
 
 # Saved alone in %TEMP% by the one-liner: fetch every file of scripts/tools
 # from GitHub's main into a fresh folder, then run the installation.
-$dir = Join-Path $env:TEMP 'aurora-tools'
+$dir = Join-Path $env:TEMP 'block-tools'
 if (Test-Path $dir) { Remove-Item -LiteralPath $dir -Recurse -Force }
 New-Item -ItemType Directory -Path $dir | Out-Null
 Write-Host 'Downloading the Aurora tools…'
-$files = Invoke-RestMethod 'https://api.github.com/repos/Aurora-Viewer/Aurora-Viewer/contents/scripts/tools?ref=main'
+$files = Invoke-RestMethod 'https://api.github.com/repos/Block-Viewer/Block-Viewer/contents/scripts/tools?ref=main'
 foreach ($f in $files | Where-Object { $_.type -eq 'file' }) {
     Invoke-WebRequest -Uri $f.download_url -OutFile (Join-Path $dir $f.name) -UseBasicParsing
 }
-& (Join-Path $dir 'aurora-tools.ps1') -Action install @PSBoundParameters
+& (Join-Path $dir 'block-tools.ps1') -Action install @PSBoundParameters

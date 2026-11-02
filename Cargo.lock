@@ -26,7 +26,7 @@ checksum = "ad442f58ee04714aaa0ba0a2768c1ea1935b29507bb22ddece8cbbc76db02932"
 dependencies = [
  "enumn",
  "serde",
- "uuid",
+ "uuid 1.29.0",
 ]
 
 [[package]]
@@ -516,280 +516,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "aurora-assets"
-version = "0.1.0"
-dependencies = [
- "aurora-llsd",
- "base64 0.23.1",
- "cc",
- "crossbeam-channel",
- "flate2",
- "glam 0.34.1",
- "image",
- "log",
- "meshopt",
- "openjpeg-sys",
- "parking_lot 0.13.0",
- "parry3d",
- "rayon",
- "serde_json",
- "thiserror 2.0.21",
- "uuid",
- "vorbis_rs",
-]
-
-[[package]]
-name = "aurora-audio"
-version = "0.1.0"
-dependencies = [
- "aurora-version",
- "cpal",
- "crossbeam-channel",
- "log",
- "parking_lot 0.13.0",
- "rtrb",
- "rustls",
- "sonora",
- "symphonia",
- "thiserror 2.0.21",
- "url",
- "webpki-root-certs",
-]
-
-[[package]]
-name = "aurora-i18n"
-version = "0.1.0"
-dependencies = [
- "fluent-bundle",
- "fluent-syntax",
- "log",
- "sys-locale",
- "unic-langid",
-]
-
-[[package]]
-name = "aurora-llsd"
-version = "0.1.0"
-dependencies = [
- "base64 0.23.1",
- "chrono",
- "thiserror 2.0.21",
- "uuid",
-]
-
-[[package]]
-name = "aurora-media"
-version = "0.1.0"
-dependencies = [
- "aurora-llsd",
- "env_logger",
- "image",
- "libc",
- "log",
- "windows-sys 0.61.2",
-]
-
-[[package]]
-name = "aurora-msg"
-version = "0.1.0"
-dependencies = [
- "glam 0.34.1",
- "thiserror 2.0.21",
- "uuid",
-]
-
-[[package]]
-name = "aurora-net"
-version = "0.1.0"
-dependencies = [
- "aurora-assets",
- "aurora-i18n",
- "aurora-llsd",
- "aurora-msg",
- "aurora-prim",
- "aurora-version",
- "base64 0.23.1",
- "bitflags 2.13.2",
- "crossbeam-channel",
- "glam 0.34.1",
- "log",
- "md5",
- "parking_lot 0.13.0",
- "reqwest",
- "serde",
- "serde_json",
- "socket2",
- "thiserror 2.0.21",
- "tokio",
- "uuid",
- "webpki-root-certs",
-]
-
-[[package]]
-name = "aurora-prim"
-version = "0.1.0"
-dependencies = [
- "glam 0.34.1",
- "thiserror 2.0.21",
- "uuid",
-]
-
-[[package]]
-name = "aurora-render"
-version = "0.1.0"
-dependencies = [
- "ash",
- "aurora-assets",
- "aurora-llsd",
- "bcdec_rs",
- "bytemuck",
- "egui",
- "egui-wgpu",
- "glam 0.34.1",
- "intel_tex_2",
- "libc",
- "log",
- "naga",
- "objc2-metal 0.3.2",
- "parking_lot 0.13.0",
- "pollster 1.0.1",
- "rayon",
- "thiserror 2.0.21",
- "uuid",
- "wgpu",
- "windows-sys 0.61.2",
-]
-
-[[package]]
-name = "aurora-updater"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "aurora-version",
- "directories",
- "log",
- "reqwest",
- "semver",
- "serde",
- "serde_json",
- "sha2",
- "tokio",
- "uuid",
- "windows-sys 0.61.2",
- "zip",
-]
-
-[[package]]
-name = "aurora-version"
-version = "0.1.0"
-dependencies = [
- "semver",
-]
-
-[[package]]
-name = "aurora-viewer"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "arboard",
- "aurora-assets",
- "aurora-audio",
- "aurora-i18n",
- "aurora-llsd",
- "aurora-media",
- "aurora-net",
- "aurora-prim",
- "aurora-render",
- "aurora-updater",
- "aurora-version",
- "aurora-voice",
- "base64 0.23.1",
- "bevy_mikktspace",
- "chrono",
- "chrono-tz",
- "crossbeam-channel",
- "directories",
- "egui",
- "egui-wgpu",
- "egui-winit",
- "emojis",
- "encoding_rs",
- "env_logger",
- "fancy-regex",
- "flate2",
- "foldhash 0.2.0",
- "gilrs-core",
- "glam 0.34.1",
- "hidapi",
- "iana-time-zone",
- "image",
- "keyring",
- "libc",
- "libmimalloc-sys",
- "log",
- "md5",
- "memmap2",
- "mimalloc",
- "objc2 0.6.5",
- "objc2-app-kit 0.3.2",
- "parking_lot 0.13.0",
- "png",
- "pollster 1.0.1",
- "pulldown-cmark",
- "rayon",
- "regex",
- "reqwest",
- "resvg",
- "rfd",
- "ron",
- "serde",
- "serde_json",
- "serde_path_to_error",
- "sha2",
- "softbuffer",
- "spellbook",
- "sysinfo",
- "tokio",
- "ttf-parser",
- "unicode-bidi",
- "unicode-bidi-mirroring",
- "uuid",
- "wayland-client",
- "wgpu",
- "windows",
- "windows-sys 0.61.2",
- "winit",
- "winresource",
- "x11rb",
- "xkbcommon-dl",
- "zbus",
- "zip",
-]
-
-[[package]]
-name = "aurora-voice"
-version = "0.1.0"
-dependencies = [
- "async-trait",
- "aurora-audio",
- "aurora-llsd",
- "bytes",
- "glam 0.34.1",
- "log",
- "opus-decoder",
- "parking_lot 0.13.0",
- "reqwest",
- "rtc",
- "rustls",
- "rusty-opus",
- "serde_json",
- "thiserror 2.0.21",
- "tokio",
- "uuid",
- "webrtc",
-]
-
-[[package]]
 name = "autocfg"
 version = "1.5.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -891,6 +617,47 @@ dependencies = [
 ]
 
 [[package]]
+name = "block-assets"
+version = "0.1.0"
+dependencies = [
+ "base64 0.23.1",
+ "block-llsd",
+ "cc",
+ "crossbeam-channel",
+ "flate2",
+ "glam 0.34.1",
+ "image",
+ "log",
+ "meshopt",
+ "openjpeg-sys",
+ "parking_lot 0.13.0",
+ "parry3d",
+ "rayon",
+ "serde_json",
+ "thiserror 2.0.21",
+ "uuid 1.29.0",
+ "vorbis_rs",
+]
+
+[[package]]
+name = "block-audio"
+version = "0.1.0"
+dependencies = [
+ "block-version",
+ "cpal",
+ "crossbeam-channel",
+ "log",
+ "parking_lot 0.13.0",
+ "rtrb",
+ "rustls",
+ "sonora",
+ "symphonia",
+ "thiserror 2.0.21",
+ "url",
+ "webpki-root-certs",
+]
+
+[[package]]
 name = "block-buffer"
 version = "0.10.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -909,12 +676,246 @@ dependencies = [
 ]
 
 [[package]]
+name = "block-i18n"
+version = "0.1.0"
+dependencies = [
+ "fluent-bundle",
+ "fluent-syntax",
+ "log",
+ "sys-locale",
+ "unic-langid",
+]
+
+[[package]]
+name = "block-llsd"
+version = "0.1.0"
+dependencies = [
+ "base64 0.23.1",
+ "chrono",
+ "thiserror 2.0.21",
+ "uuid 1.29.0",
+]
+
+[[package]]
+name = "block-media"
+version = "0.1.0"
+dependencies = [
+ "block-llsd",
+ "env_logger",
+ "image",
+ "libc",
+ "log",
+ "windows-sys 0.61.2",
+]
+
+[[package]]
+name = "block-msg"
+version = "0.1.0"
+dependencies = [
+ "glam 0.34.1",
+ "thiserror 2.0.21",
+ "uuid 1.29.0",
+]
+
+[[package]]
+name = "block-net"
+version = "0.1.0"
+dependencies = [
+ "base64 0.23.1",
+ "bitflags 2.13.2",
+ "block-assets",
+ "block-i18n",
+ "block-llsd",
+ "block-msg",
+ "block-prim",
+ "block-version",
+ "crossbeam-channel",
+ "glam 0.34.1",
+ "log",
+ "md5",
+ "parking_lot 0.13.0",
+ "reqwest",
+ "serde",
+ "serde_json",
+ "socket2",
+ "thiserror 2.0.21",
+ "tokio",
+ "uuid 1.29.0",
+ "webpki-root-certs",
+]
+
+[[package]]
 name = "block-padding"
 version = "0.4.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "710f1dd022ef4e93f8a438b4ba958de7f64308434fa6a87104481645cc30068b"
 dependencies = [
  "hybrid-array",
+]
+
+[[package]]
+name = "block-prim"
+version = "0.1.0"
+dependencies = [
+ "glam 0.34.1",
+ "thiserror 2.0.21",
+ "uuid 1.29.0",
+]
+
+[[package]]
+name = "block-render"
+version = "0.1.0"
+dependencies = [
+ "ash",
+ "bcdec_rs",
+ "block-assets",
+ "block-llsd",
+ "bytemuck",
+ "egui",
+ "egui-wgpu",
+ "glam 0.34.1",
+ "intel_tex_2",
+ "libc",
+ "log",
+ "naga",
+ "objc2-metal 0.3.2",
+ "parking_lot 0.13.0",
+ "pollster 1.0.1",
+ "rayon",
+ "thiserror 2.0.21",
+ "uuid 1.29.0",
+ "wgpu",
+ "windows-sys 0.61.2",
+]
+
+[[package]]
+name = "block-updater"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "block-version",
+ "directories",
+ "log",
+ "reqwest",
+ "semver",
+ "serde",
+ "serde_json",
+ "sha2",
+ "tokio",
+ "uuid 1.29.0",
+ "windows-sys 0.61.2",
+ "zip",
+]
+
+[[package]]
+name = "block-version"
+version = "0.1.0"
+dependencies = [
+ "semver",
+]
+
+[[package]]
+name = "block-viewer"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "arboard",
+ "base64 0.23.1",
+ "bevy_mikktspace",
+ "block-assets",
+ "block-audio",
+ "block-i18n",
+ "block-llsd",
+ "block-media",
+ "block-net",
+ "block-prim",
+ "block-render",
+ "block-updater",
+ "block-version",
+ "block-voice",
+ "chrono",
+ "chrono-tz",
+ "crossbeam-channel",
+ "directories",
+ "discord-rich-presence",
+ "egui",
+ "egui-wgpu",
+ "egui-winit",
+ "emojis",
+ "encoding_rs",
+ "env_logger",
+ "fancy-regex",
+ "flate2",
+ "foldhash 0.2.0",
+ "gilrs-core",
+ "glam 0.34.1",
+ "hidapi",
+ "iana-time-zone",
+ "image",
+ "keyring",
+ "libc",
+ "libmimalloc-sys",
+ "log",
+ "md5",
+ "memmap2",
+ "mimalloc",
+ "objc2 0.6.5",
+ "objc2-app-kit 0.3.2",
+ "parking_lot 0.13.0",
+ "png",
+ "pollster 1.0.1",
+ "pulldown-cmark",
+ "rayon",
+ "regex",
+ "reqwest",
+ "resvg",
+ "rfd",
+ "ron",
+ "serde",
+ "serde_json",
+ "serde_path_to_error",
+ "sha2",
+ "softbuffer",
+ "spellbook",
+ "sysinfo",
+ "tokio",
+ "ttf-parser",
+ "unicode-bidi",
+ "unicode-bidi-mirroring",
+ "uuid 1.29.0",
+ "wayland-client",
+ "wgpu",
+ "windows",
+ "windows-sys 0.61.2",
+ "winit",
+ "winresource",
+ "x11rb",
+ "xkbcommon-dl",
+ "zbus",
+ "zip",
+]
+
+[[package]]
+name = "block-voice"
+version = "0.1.0"
+dependencies = [
+ "async-trait",
+ "block-audio",
+ "block-llsd",
+ "bytes",
+ "glam 0.34.1",
+ "log",
+ "opus-decoder",
+ "parking_lot 0.13.0",
+ "reqwest",
+ "rtc",
+ "rustls",
+ "rusty-opus",
+ "serde_json",
+ "thiserror 2.0.21",
+ "tokio",
+ "uuid 1.29.0",
+ "webrtc",
 ]
 
 [[package]]
@@ -1664,6 +1665,21 @@ dependencies = [
  "option-ext",
  "redox_users",
  "windows-sys 0.61.2",
+]
+
+[[package]]
+name = "discord-rich-presence"
+version = "1.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "90c55d69cab17c19677ce3a5f8face993a9e6eaf847fecac3547f3a3ff4a2494"
+dependencies = [
+ "log",
+ "serde",
+ "serde_derive",
+ "serde_json",
+ "serde_repr",
+ "thiserror 2.0.21",
+ "uuid 0.8.2",
 ]
 
 [[package]]
@@ -2448,7 +2464,7 @@ dependencies = [
  "nix",
  "objc2-core-foundation",
  "objc2-io-kit",
- "uuid",
+ "uuid 1.29.0",
  "vec_map",
  "wasm-bindgen",
  "web-sys",
@@ -4939,7 +4955,9 @@ checksum = "16a1cfa75cc186dd73d5818e510e042e40927bccc9c236b061cea97e1eb08029"
 dependencies = [
  "base64 0.23.1",
  "bytes",
+ "futures-channel",
  "futures-core",
+ "futures-util",
  "http",
  "http-body",
  "http-body-util",
@@ -4954,6 +4972,8 @@ dependencies = [
  "rustls",
  "rustls-pki-types",
  "rustls-platform-verifier",
+ "serde",
+ "serde_json",
  "sync_wrapper",
  "tokio",
  "tokio-rustls",
@@ -5050,7 +5070,7 @@ dependencies = [
  "rend",
  "rkyv_derive",
  "tinyvec",
- "uuid",
+ "uuid 1.29.0",
 ]
 
 [[package]]
@@ -5214,7 +5234,7 @@ dependencies = [
  "sansio",
  "serde",
  "url",
- "uuid",
+ "uuid 1.29.0",
 ]
 
 [[package]]
@@ -6837,6 +6857,15 @@ checksum = "06abde3611657adf66d383f00b093d7faecc7fa57071cce2578660c9f1010821"
 
 [[package]]
 name = "uuid"
+version = "0.8.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "bc5cf98d8186244414c848017f0e2676b3fcb46807f6668a97dfe67359a3c4b7"
+dependencies = [
+ "getrandom 0.2.17",
+]
+
+[[package]]
+name = "uuid"
 version = "1.29.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "4a0e2d11620c50695fe12bbbfde96b3477fe606e7284c22d505c12ce51214514"
@@ -7896,7 +7925,7 @@ dependencies = [
  "serde_repr",
  "tracing",
  "uds_windows",
- "uuid",
+ "uuid 1.29.0",
  "windows-sys 0.61.2",
  "winnow",
  "zbus_macros",

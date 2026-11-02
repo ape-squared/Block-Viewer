@@ -6,9 +6,9 @@
     runs it too (PowerShell 7), with the executable without extension.
 
 .EXAMPLE
-    ./scripts/package.ps1 -Exe target/release/aurora-viewer.exe -Out Aurora-Viewer
+    ./scripts/package.ps1 -Exe target/release/block-viewer.exe -Out Block-Viewer
 .EXAMPLE
-    ./scripts/package.ps1 -Exe target/release/aurora-viewer -Out Aurora-Viewer-v0.8.0-linux-x64
+    ./scripts/package.ps1 -Exe target/release/block-viewer -Out Block-Viewer-v0.8.0-linux-x64
 #>
 param(
     [Parameter(Mandatory)][string]$Exe,
@@ -25,7 +25,7 @@ Copy-Item -LiteralPath (Join-Path $Source 'assets/emoji/LICENSE-OFL.txt') -Desti
 # The spelling dictionaries are inside the exe too: their licences ship
 # (GPL, LGPL and MPL ask for the text), one per dictionary, with the list of
 # their sources.
-$dictionaries = Join-Path $Source 'crates/aurora-viewer/assets/dictionaries'
+$dictionaries = Join-Path $Source 'crates/block-viewer/assets/dictionaries'
 $dictionariesOut = Join-Path $Out 'assets/dictionaries'
 New-Item -ItemType Directory -Force -Path $dictionariesOut -ErrorAction Stop | Out-Null
 Copy-Item -LiteralPath (Join-Path $dictionaries 'README.md') -Destination $dictionariesOut -ErrorAction Stop
@@ -37,19 +37,27 @@ Get-ChildItem -LiteralPath $dictionaries -Directory -ErrorAction Stop | ForEach-
 }
 $docs = 'LICENSE', 'NOTICE.md', 'README.md' | ForEach-Object { Join-Path $Source $_ }
 Copy-Item -LiteralPath $docs -Destination $Out -ErrorAction Stop
+# Windows portable zip: double-click Uninstall.cmd next to the exe (does not
+# need the viewer to start — useful when GPU init fails). Listed in the
+# updater ALLOWED set so in-place updates keep accepting the folder.
+if ([IO.Path]::GetExtension($Exe) -ieq '.exe') {
+    $winPack = Join-Path $Source 'packaging/windows'
+    Copy-Item -LiteralPath (Join-Path $winPack 'Uninstall.cmd') -Destination $Out -ErrorAction Stop
+    Copy-Item -LiteralPath (Join-Path $winPack 'Uninstall.ps1') -Destination $Out -ErrorAction Stop
+}
 # Linux (an executable without extension): the desktop entry and its icon,
 # named after the viewer's Wayland app_id / X11 WM_CLASS (cli.rs DESKTOP_ID)
 # so the desktop matches the window to them. docs/LINUX.md installs them.
 # (macOS has its own bundle: package-macos.ps1; $IsMacOS is unset, so
 # false, in Windows PowerShell 5.1.)
 if (-not [IO.Path]::GetExtension($Exe) -and -not $IsMacOS) {
-    Copy-Item -LiteralPath (Join-Path $Source 'packaging/linux/aurora-viewer.desktop') -Destination $Out -ErrorAction Stop
-    Copy-Item -LiteralPath (Join-Path $Source 'assets/branding/aurora-logo.svg') -Destination (Join-Path $Out 'aurora-viewer.svg') -ErrorAction Stop
+    Copy-Item -LiteralPath (Join-Path $Source 'packaging/linux/block-viewer.desktop') -Destination $Out -ErrorAction Stop
+    Copy-Item -LiteralPath (Join-Path $Source 'assets/branding/block-logo.svg') -Destination (Join-Path $Out 'block-viewer.svg') -ErrorAction Stop
 }
 $taskExePath = (Resolve-Path -LiteralPath $Exe).Path
-$taskVersion = (& $taskExePath --version | Out-String).Trim() -replace '^Aurora Viewer ', ''
+$taskVersion = (& $taskExePath --version | Out-String).Trim() -replace '^Block Viewer ', ''
 if ($LASTEXITCODE -ne 0 -or $taskVersion -notmatch '^\d+\.\d+\.\d+([+-][0-9A-Za-z.+-]+)?$') { throw 'Invalid package version.' }
 $taskJson = @{ schema = 1; version = $taskVersion } | ConvertTo-Json
-$taskMetadataPath = Join-Path (Resolve-Path -LiteralPath $Out -ErrorAction Stop).Path 'aurora-install.json'
+$taskMetadataPath = Join-Path (Resolve-Path -LiteralPath $Out -ErrorAction Stop).Path 'block-install.json'
 # Windows PowerShell 5.1 does not support Set-Content -Encoding utf8NoBOM.
 [IO.File]::WriteAllText($taskMetadataPath, $taskJson, [Text.UTF8Encoding]::new($false))

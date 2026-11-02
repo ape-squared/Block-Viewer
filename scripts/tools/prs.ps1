@@ -1,6 +1,6 @@
-﻿# Aurora Tools: pull requests followed live — background refresh from GitHub,
+﻿# Block Tools: pull requests followed live — background refresh from GitHub,
 # footer summary, Windows notifications, full panel (dot-sourced by
-# aurora-tools.ps1).
+# block-tools.ps1).
 
 # One GraphQL query per refresh (one point of the 5000/hour quota the agents
 # share with the tools): open PRs with their CI, merge queue entry and review
@@ -427,7 +427,7 @@ function Show-PrPanel {
             # switch skips a null value entirely, default included: test it first
             $main = if (-not $mainState) { '…', 'muted' } else { switch ($mainState) { 'SUCCESS' { 'CI OK', 'success' } { $_ -in 'FAILURE', 'ERROR' } { 'CI FAIL', 'danger' } { $_ -in 'PENDING', 'EXPECTED' } { 'CI RUN', 'amber' } default { '?', 'muted' } } }
             $fresh = if ($GitHub.Updated) { Format-Ago $GitHub.Updated } else { 'loading…' }
-            $header = @(@(' Aurora · PR', 'violet_light'), @('   main  ', 'muted'), @("$StatusMark $($main[0])", $main[1]))
+            $header = @(@(' Block · PR', 'violet_light'), @('   main  ', 'muted'), @("$StatusMark $($main[0])", $main[1]))
             # the Windows downloads of the latest stable release, live
             $dl = Get-WindowsDownloads
             if ($dl) {

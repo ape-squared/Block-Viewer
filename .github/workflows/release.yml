@@ -27,7 +27,7 @@ on:
       - packaging/linux/**
       - packaging/macos/**
       - scripts/package-macos.ps1
-      - assets/branding/aurora.icns
+      - assets/branding/block.icns
       - scripts/verify-version.ps1
 
 # a new push to a pull request stops its previous dry run; a release (a
@@ -52,16 +52,16 @@ jobs:
         run: rustup update stable
       - uses: Swatinem/rust-cache@v2
       # the version comes from the tag; a dry run keeps the one Git describes
-      # (aurora-version refuses a tag that is not the checked-out commit's)
+      # (block-version refuses a tag that is not the checked-out commit's)
       - name: Build
         shell: pwsh
         run: |
           if ($env:TAG -ne 'dry-run') { $env:AURORA_VERSION_TAG = $env:TAG }
-          cargo build --release --locked -p aurora-viewer
+          cargo build --release --locked -p block-viewer
       - name: Verify compiled version
         if: env.TAG != 'dry-run'
         shell: pwsh
-        run: ./scripts/verify-version.ps1 -Exe target/release/aurora-viewer.exe -Tag $env:TAG
+        run: ./scripts/verify-version.ps1 -Exe target/release/block-viewer.exe -Tag $env:TAG
       # Breakpad symbols of the exe for the crash reports (docs/BUG_REPORTING.md):
       # the release profile's line-tables-only PDB, read through the path the
       # exe records, stored as <file>.pdb/<debug id>/<file>.sym, the layout
@@ -71,9 +71,9 @@ jobs:
       - name: Symbols
         shell: pwsh
         run: |
-          dump_syms target/release/aurora-viewer.exe --store symbols
+          dump_syms target/release/block-viewer.exe --store symbols
           if ($LASTEXITCODE -ne 0) { throw 'dump_syms failed' }
-          $zip = "Aurora-Viewer-$env:TAG-windows-x64-symbols.zip"
+          $zip = "Block-Viewer-$env:TAG-windows-x64-symbols.zip"
           & 7z a -tzip -mx=9 $zip ./symbols/* | Out-Null
           if ($LASTEXITCODE -ne 0) { throw '7z failed' }
           $hash = (Get-FileHash -LiteralPath $zip -Algorithm SHA256).Hash.ToLowerInvariant()
@@ -86,8 +86,8 @@ jobs:
         shell: pwsh
         run: |
           $v = $env:TAG
-          $dir = "Aurora-Viewer-$v-windows-x64"
-          ./scripts/package.ps1 -Exe target/release/aurora-viewer.exe -Out $dir
+          $dir = "Block-Viewer-$v-windows-x64"
+          ./scripts/package.ps1 -Exe target/release/block-viewer.exe -Out $dir
           Compress-Archive -Path $dir -DestinationPath "$dir.zip"
           $hash = (Get-FileHash -LiteralPath "$dir.zip" -Algorithm SHA256).Hash.ToLowerInvariant()
           "$hash  $dir.zip" | Set-Content -LiteralPath "$dir.zip.sha256" -Encoding utf8NoBOM
@@ -102,7 +102,7 @@ jobs:
           $v = $env:TAG
           # The header (Linden Lab disclaimer, support, privacy: Third-Party
           # Viewer Policy §1.c) comes before the generated notes.
-          $ghArgs = @($v, $env:ZIP, "$($env:ZIP).sha256", $env:SYMBOLS, "$($env:SYMBOLS).sha256", 'aurora-update-policy.json', '--title', "Aurora Viewer $v", '--notes-file', '.github/release-notes-header.md', '--generate-notes', '--verify-tag')
+          $ghArgs = @($v, $env:ZIP, "$($env:ZIP).sha256", $env:SYMBOLS, "$($env:SYMBOLS).sha256", 'block-update-policy.json', '--title', "Aurora Viewer $v", '--notes-file', '.github/release-notes-header.md', '--generate-notes', '--verify-tag')
           if ($v -match '-') { $ghArgs += '--prerelease' }   # v0.3.0-beta.1
           gh release create @ghArgs
       - name: Dry-run symbols
@@ -139,7 +139,7 @@ jobs:
         run: rustup update stable
       - uses: Swatinem/rust-cache@v2
       # the version comes from the tag; a dry run keeps the one Git describes
-      # (aurora-version refuses a tag that is not the checked-out commit's)
+      # (block-version refuses a tag that is not the checked-out commit's)
       # debug info stays out of the binary, as the Windows exe leaves it in a
       # .pdb that is not published (the binary is about 490 MB with it)
       - name: Build
@@ -147,18 +147,18 @@ jobs:
           CARGO_PROFILE_RELEASE_STRIP: debuginfo
         run: |
           if [ "$TAG" != dry-run ]; then export AURORA_VERSION_TAG="$TAG"; fi
-          cargo build --release --locked -p aurora-viewer
+          cargo build --release --locked -p block-viewer
       - name: Verify compiled version
         if: env.TAG != 'dry-run'
         shell: pwsh
-        run: ./scripts/verify-version.ps1 -Exe target/release/aurora-viewer -Tag $env:TAG
+        run: ./scripts/verify-version.ps1 -Exe target/release/block-viewer -Tag $env:TAG
       # tar keeps the executable bit
       - name: Package
         shell: pwsh
         run: |
           $v = $env:TAG
-          $dir = "Aurora-Viewer-$v-linux-x64"
-          ./scripts/package.ps1 -Exe target/release/aurora-viewer -Out $dir
+          $dir = "Block-Viewer-$v-linux-x64"
+          ./scripts/package.ps1 -Exe target/release/block-viewer -Out $dir
           & tar -czf "$dir.tar.gz" $dir
           if ($LASTEXITCODE -ne 0) { throw 'tar failed' }
           $hash = (Get-FileHash -LiteralPath "$dir.tar.gz" -Algorithm SHA256).Hash.ToLowerInvariant()
@@ -207,14 +207,14 @@ jobs:
           CARGO_PROFILE_RELEASE_STRIP: debuginfo
         run: |
           if [ "$TAG" != dry-run ]; then export AURORA_VERSION_TAG="$TAG"; fi
-          cargo build --release --locked -p aurora-viewer
+          cargo build --release --locked -p block-viewer
       - name: Verify compiled version
         if: env.TAG != 'dry-run'
         shell: pwsh
-        run: ./scripts/verify-version.ps1 -Exe target/release/aurora-viewer -Tag $env:TAG
+        run: ./scripts/verify-version.ps1 -Exe target/release/block-viewer -Tag $env:TAG
       - name: Application
         shell: pwsh
-        run: ./scripts/package-macos.ps1 -Exe target/release/aurora-viewer -Out $env:APP
+        run: ./scripts/package-macos.ps1 -Exe target/release/block-viewer -Out $env:APP
       # the certificate lives in a keychain of this run only; the hardened
       # runtime and a secure timestamp are what the notarization requires
       - name: Sign (Developer ID) and notarize
@@ -239,7 +239,7 @@ jobs:
           security list-keychains -d user -s "$keychain" $(security list-keychains -d user | tr -d '"')
           identity="$(security find-identity -v -p codesigning "$keychain" | awk -v team="($TEAM_ID)" '/Developer ID Application/ && index($0, team) { print $2; exit }')"
           if [ -z "$identity" ]; then echo "no Developer ID Application identity of team $TEAM_ID in the certificate"; exit 1; fi
-          codesign --force --options runtime --timestamp --entitlements packaging/macos/aurora-viewer.entitlements --sign "$identity" "$APP"
+          codesign --force --options runtime --timestamp --entitlements packaging/macos/block-viewer.entitlements --sign "$identity" "$APP"
           printf '%s' "$API_KEY" > "$RUNNER_TEMP/notary.p8"
           ditto -c -k --keepParent "$APP" "$RUNNER_TEMP/notarize.zip"
           xcrun notarytool submit "$RUNNER_TEMP/notarize.zip" --key "$RUNNER_TEMP/notary.p8" --key-id "$API_KEY_ID" --issuer "$API_ISSUER" --wait --timeout 1h --output-format json > "$RUNNER_TEMP/notary.json"
@@ -261,13 +261,13 @@ jobs:
       - name: Check the application
         run: |
           codesign --verify --strict --verbose=2 "$APP"
-          "$APP/Contents/MacOS/aurora-viewer" --version
+          "$APP/Contents/MacOS/block-viewer" --version
           if [ "$SIGNED" = true ]; then spctl --assess --type execute --verbose=2 "$APP"; fi
       # a compressed read-only image (UDZO); ditto copies the bundle with its
       # signature (and its stapled ticket)
       - name: Disk image
         run: |
-          dmg="Aurora-Viewer-$TAG-macos-arm64.dmg"
+          dmg="Block-Viewer-$TAG-macos-arm64.dmg"
           stage="$RUNNER_TEMP/dmg"
           mkdir -p "$stage"
           ditto "$APP" "$stage/$APP"

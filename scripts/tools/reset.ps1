@@ -1,7 +1,7 @@
-﻿# Aurora Tools: reset the repository to the state of a fresh clone of
-# GitHub's main (dot-sourced by aurora-tools.ps1). What would be lost is
+﻿# Block Tools: reset the repository to the state of a fresh clone of
+# GitHub's main (dot-sourced by block-tools.ps1). What would be lost is
 # listed first; nothing happens without typing the confirmation word.
-# $DryRun (aurora-tools.ps1 -DryRun) stops after the list.
+# $DryRun (block-tools.ps1 -DryRun) stops after the list.
 #
 # The folder itself is kept: the tools run from it, and Windows does not
 # delete a folder a program has open. A hard reset plus a clean of every
@@ -148,6 +148,6 @@ function Invoke-Reset {
     Invoke-Repair $Paths
     Write-Host ''
     Write-Aurora '  » Repository reset.'
-    Write-Color '    Close and reopen aurora-tools.cmd to use the tools of this main.' muted
+    Write-Color '    Close and reopen block-tools.cmd to use the tools of this main.' muted
     Wait-Back
 }

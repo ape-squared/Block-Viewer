@@ -1,4 +1,4 @@
-﻿# Aurora Tools: colours, layout and keyboard (dot-sourced by aurora-tools.ps1).
+﻿# Block Tools: colours, layout and keyboard (dot-sourced by block-tools.ps1).
 
 # True colours when the terminal understands them, the 16 console colours
 # otherwise, plain text when the output is redirected. Interactive: keys are
@@ -7,14 +7,14 @@ $Vt = $Host.UI.SupportsVirtualTerminal -and -not [Console]::IsOutputRedirected
 $Interactive = -not [Console]::IsInputRedirected -and -not [Console]::IsOutputRedirected
 $Esc = [char]27
 
-# Aurora palette (docs/BRANDING.md).
+# Block palette (docs/BRANDING.md / README): signal, data, dark surfaces.
 $Palette = @{
-    violet = '8B5CF6'; indigo = '4F46E5'; teal = '5EEAD4'; violet_light = 'A78BFA'
-    ink = 'E8EDFB'; muted = '9AA6C6'; muted_dim = '6F7BA0'; bar = '1C1C1C'; raised = '3A3A3A'
-    success = '4ADE80'; warn = 'FB923C'; danger = 'F87171'; amber = 'FCD34D'
+    violet = 'D4FF3F'; indigo = '5BE3E8'; teal = '5BE3E8'; violet_light = 'E8FF8A'
+    ink = 'ECEEF0'; muted = '9AA0A8'; muted_dim = '6F757E'; bar = '0B0C0E'; raised = '1B1D21'
+    success = '3DDC97'; warn = 'FFB547'; danger = 'FF6B6B'; amber = 'FFB547'
 }
 $BasicColors = @{
-    violet = 'Magenta'; indigo = 'Blue'; teal = 'Cyan'; violet_light = 'Magenta'
+    violet = 'Yellow'; indigo = 'Cyan'; teal = 'Cyan'; violet_light = 'Yellow'
     ink = 'White'; muted = 'Gray'; muted_dim = 'DarkGray'; bar = 'Black'; raised = 'DarkGray'
     success = 'Green'; warn = 'Yellow'; danger = 'Red'; amber = 'Yellow'
 }
@@ -30,16 +30,16 @@ function Write-Color([string]$Text, [string]$Color = 'ink', [switch]$NoNewline, 
         $bg = if ($Background) { Get-Ansi $Background -Background } else { '' }
         Write-Host "$bg$(Get-Ansi $Color)$Text$Esc[0m" -NoNewline:$NoNewline
     } elseif ($Background) {
-        Write-Host $Text -ForegroundColor $BasicColors[$Color] -BackgroundColor $(switch ($Background) { 'bar' { 'Black' } 'raised' { 'DarkGray' } default { 'DarkMagenta' } }) -NoNewline:$NoNewline
+        Write-Host $Text -ForegroundColor $BasicColors[$Color] -BackgroundColor $(switch ($Background) { 'bar' { 'Black' } 'raised' { 'DarkGray' } default { 'DarkYellow' } }) -NoNewline:$NoNewline
     } else {
         Write-Host $Text -ForegroundColor $BasicColors[$Color] -NoNewline:$NoNewline
     }
 }
 
-# The aurora of the logo: violet, then indigo, then teal, across the text.
-function Write-Aurora([string]$Text) {
-    if (-not $Vt) { Write-Host $Text -ForegroundColor Magenta; return }
-    $stops = @(@(139, 92, 246), @(79, 70, 229), @(94, 234, 212))
+# Signal to data gradient across the text (Block brand).
+function Write-Brand([string]$Text) {
+    if (-not $Vt) { Write-Host $Text -ForegroundColor Yellow; return }
+    $stops = @(@(212, 255, 63), @(91, 227, 232), @(91, 227, 232))
     $out = ''
     for ($i = 0; $i -lt $Text.Length; $i++) {
         $t = if ($Text.Length -gt 1) { $i / ($Text.Length - 1) } else { 0 }
@@ -52,6 +52,8 @@ function Write-Aurora([string]$Text) {
     Write-Host "$out$Esc[0m"
 }
 
+function Write-Aurora([string]$Text) { Write-Brand $Text }
+
 function Set-CursorVisible([bool]$Visible) {
     if (-not $Interactive) { return }
     try { [Console]::CursorVisible = $Visible } catch { }
@@ -62,8 +64,8 @@ function Clear-Screen { if ($Interactive) { Clear-Host; Set-CursorVisible $false
 function Show-Logo([string]$Subtitle) {
     Clear-Screen
     Write-Host ''
-    Write-Aurora '    ▄▀█ █ █ █▀█ █▀█ █▀█ ▄▀█'
-    Write-Aurora '    █▀█ █▄█ █▀▄ █▄█ █▀▄ █▀█'
+    Write-Brand '    █▄▄ █   █▀█ █▀▀ █▄▀'
+    Write-Brand '    █▄█ █▄▄ █▄█ █▄▄ █ █'
     Write-Color "    V  I  E  W  E  R    ·  $Subtitle" violet_light
     Write-Host ''
 }

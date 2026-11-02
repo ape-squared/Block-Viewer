@@ -1,7 +1,7 @@
-﻿# Aurora Tools: manage the GitHub releases — create one (a SemVer tag on the
+﻿# Block Tools: manage the GitHub releases — create one (a SemVer tag on the
 # latest main: the Release workflow builds and publishes it) or delete one
-# (dot-sourced by aurora-tools.ps1). Needs write access to the repository.
-# $DryRun (aurora-tools.ps1 -DryRun) prints the GitHub writes instead.
+# (dot-sourced by block-tools.ps1). Needs write access to the repository.
+# $DryRun (block-tools.ps1 -DryRun) prints the GitHub writes instead.
 
 # gh's JSON output as objects, one per array item: Windows PowerShell 5.1
 # passes a whole JSON array down the pipeline as a single object, so
@@ -151,7 +151,7 @@ function New-AuroraRelease($Repo) {
     Write-Color "  Settings: $(if ($policy.settings_reset_before) { 'reset for versions before ' + $policy.settings_reset_before } else { 'kept and migrated automatically if needed' })." ink
     if (-not (Read-YesNo "Create the release ${tag}?")) { return }
 
-    $message = "Aurora Viewer $($tag.TrimStart('v'))`n`nAurora-Update-Policy: $($policy | ConvertTo-Json -Compress -Depth 4)"
+    $message = "Block Viewer $($tag.TrimStart('v'))`n`nAurora-Update-Policy: $($policy | ConvertTo-Json -Compress -Depth 4)"
 
     if ($DryRun) {
         Write-Color "  [dry run] tag $tag on origin/main with policy: $($policy | ConvertTo-Json -Compress -Depth 4)" teal

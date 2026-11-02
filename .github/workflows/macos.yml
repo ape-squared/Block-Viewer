@@ -1,6 +1,6 @@
 name: macOS
 
-# The macOS build draws through Metal (aurora-render BACKENDS) and has paths
+# The macOS build draws through Metal (block-render BACKENDS) and has paths
 # of its own (Metal memory budget, the Cmd key…) that Windows and Linux
 # never build. Same two stages as the CI workflow: a pull request gets
 # clippy on macOS; the merge queue also runs the tests and one demo frame
@@ -74,7 +74,7 @@ jobs:
         if: steps.changes.outputs.code == 'true' && github.event_name == 'push' && steps.cache.outputs.cache-hit != 'true'
         run: |
           cargo test --profile ci --workspace --locked --no-run
-          cargo build --profile ci --locked -p aurora-viewer
+          cargo build --profile ci --locked -p block-viewer
       - name: Tests (rest)
         if: steps.changes.outputs.code == 'true' && github.event_name == 'merge_group'
         # every failure of the run at once: the Apple GPU is reached here only
@@ -98,9 +98,9 @@ jobs:
           AURORA_CAPTURE_FRAMES: '620'
           AURORA_CAPTURE_EXIT: '1'
         run: |
-          cargo run --profile ci --locked -p aurora-viewer -- --title "CI macOS"
+          cargo run --profile ci --locked -p block-viewer -- --title "CI macOS"
           test -s "$AURORA_CAPTURE"
-          log="$HOME/Library/Application Support/org.Aurora.AuroraViewer/logs/aurora-demo-ci-macos.log"
+          log="$HOME/Library/Application Support/org.Aurora.AuroraViewer/logs/block-demo-ci-macos.log"
           if ! grep -q "notice shown" "$log" || ! grep -q "the graphics card answered again" "$log"; then
             echo "::error::the GPU stall and its notice did not happen as expected (see the demo log)"
             exit 1
@@ -112,7 +112,7 @@ jobs:
           name: macos-demo
           path: |
             ${{ runner.temp }}/metal-demo.png
-            ~/Library/Application Support/org.Aurora.AuroraViewer/logs/aurora-demo-*.log
+            ~/Library/Application Support/org.Aurora.AuroraViewer/logs/block-demo-*.log
           if-no-files-found: warn
 
   macos-interface:

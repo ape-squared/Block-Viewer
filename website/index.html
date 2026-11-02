@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Block Viewer — build your look, block by block</title>
+  <meta name="description" content="Block Viewer is a modern open-source Second Life client for Windows. Vulkan renderer, GPLv3. Built on the Aurora Viewer foundation for a different audience.">
+  <link rel="canonical" href="https://ape-squared.github.io/Block-Viewer/">
+  <link rel="icon" href="assets/mark.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css?v=1">
+</head>
+<body>
+  <div class="atmosphere" aria-hidden="true"></div>
+
+  <header class="nav" data-nav>
+    <a class="brand" href="./" aria-label="Block Viewer home">
+      <img src="assets/mark.svg" width="28" height="28" alt="">
+      <span>BLOCK</span>
+    </a>
+    <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="site-nav" data-nav-toggle>
+      <span class="nav-toggle-bar"></span>
+      <span class="sr-only">Menu</span>
+    </button>
+    <nav id="site-nav" class="nav-links" aria-label="Primary">
+      <a href="download/">Download</a>
+      <a href="docs/">Docs</a>
+      <a href="foundation/">Foundation</a>
+    </nav>
+    <a class="btn btn-primary nav-cta" href="download/">Get Viewer</a>
+  </header>
+
+  <main id="top">
+    <section class="hero">
+      <div class="hero-stage">
+        <p class="eyebrow reveal" style="--d:0">open source · Vulkan · Windows · GPLv3</p>
+        <h1 class="reveal" style="--d:1">
+          <span class="brand-line">BLOCK VIEWER</span>
+          <span class="hero-title">Build your look,<br>block by block.</span>
+        </h1>
+        <p class="lede reveal" style="--d:2">
+          A modern Second Life client — Vulkan rendering, clean UI, open source.
+          Early 0.x for explore, chat, and testing. Releases on GitHub.
+        </p>
+        <div class="hero-actions reveal" style="--d:3">
+          <a class="btn btn-primary" href="download/">Download for Windows</a>
+          <a class="btn btn-ghost" href="foundation/">Foundation</a>
+        </div>
+      </div>
+    </section>
+
+    <section class="spec-band" aria-label="Highlights">
+      <ul class="spec-row">
+        <li class="reveal"><span class="spec-k">RENDER</span><strong>Vulkan</strong><span>Modern GPU path — not a legacy OpenGL port.</span></li>
+        <li class="reveal"><span class="spec-k">UI</span><strong>Block look</strong><span>Signal lime, flat glass, crisp controls.</span></li>
+        <li class="reveal"><span class="spec-k">GRID</span><strong>Second Life</strong><span>Login, chat, inventory, world — early but usable.</span></li>
+        <li class="reveal"><span class="spec-k">LICENCE</span><strong>GPLv3</strong><span>Open source. Credits in NOTICE.md.</span></li>
+      </ul>
+    </section>
+
+    <section id="why" class="section">
+      <div class="section-head reveal">
+        <h2>A viewer, not an injector.</h2>
+        <p>Block Viewer is its own client. Sister project <a href="https://ape-squared.github.io/Block-GPPI/">Block</a> is post-processing for other viewers — separate repo, separate job.</p>
+      </div>
+      <div class="feature-grid">
+        <article class="reveal"><h3>Vulkan first</h3><p>Built for a smooth frame rate and modern GPU work — culling, compute, less CPU wait in the frame loop.</p></article>
+        <article class="reveal"><h3>Block product identity</h3><p>Same brand language as Block: signal accent, dark surfaces, almost-square controls. Not another purple skin.</p></article>
+        <article class="reveal"><h3>Demo mode</h3><p>Offline plaza for UI and rendering checks without a grid login — ship features you can verify locally.</p></article>
+        <article class="reveal"><h3>Honest early build</h3><p>0.x means explore / chat / testing. Prefer clear bug reports over marketing claims.</p></article>
+        <article class="reveal"><h3>Open source</h3><p>GPLv3. Stands on the Aurora Viewer open-source codebase — we build on that foundation for a different audience.</p></article>
+        <article class="reveal"><h3>Private releases for now</h3><p>Windows zips on the private GitHub Releases feed. Unpack, run BlockViewer.bat.</p></article>
+      </div>
+    </section>
+
+    <section id="how" class="section">
+      <div class="section-head reveal">
+        <h2>Three blocks to the world.</h2>
+      </div>
+      <ol class="steps">
+        <li class="reveal" style="--i:0">
+          <span class="step-n">01</span>
+          <h3>Download</h3>
+          <p>Grab the Windows zip from Releases. One folder: exe, licences, README.</p>
+        </li>
+        <li class="reveal" style="--i:1">
+          <span class="step-n">02</span>
+          <h3>Launch</h3>
+          <p>Run <code>BlockViewer.bat</code> or <code>BlockViewer.exe</code>. Vulkan-capable GPU recommended.</p>
+        </li>
+        <li class="reveal" style="--i:2">
+          <span class="step-n">03</span>
+          <h3>Log in or demo</h3>
+          <p>Connect to the grid when you are ready, or use demo mode for offline checks.</p>
+        </li>
+      </ol>
+      <p class="footnote reveal"><a href="download/">Full download notes →</a></p>
+    </section>
+
+    <section id="status" class="section">
+      <div class="split">
+        <div class="section-head reveal">
+          <h2>Where things stand.</h2>
+          <p>Windows builds today. Linux and macOS paths exist in-tree and CI; packaged installs follow.</p>
+        </div>
+        <ul class="status-list reveal">
+          <li><span>Windows portable zip</span><span class="tag tag-now">ships</span></li>
+          <li><span>Vulkan world view</span><span class="tag tag-now">ships</span></li>
+          <li><span>Login · chat · inventory</span><span class="tag tag-now">early</span></li>
+          <li><span>Linux / macOS packages</span><span class="tag tag-dev">next</span></li>
+        </ul>
+      </div>
+    </section>
+
+    <section id="foundation" class="section">
+      <div class="section-head reveal">
+        <h2>Standing on good code.</h2>
+        <p>
+          Block Viewer uses the open-source <strong>Aurora Viewer</strong> codebase as its foundation —
+          engine, protocol work, and GPL lineage. We keep that credit and build on top for Block’s
+          look, tools, and audience. Not an official Aurora release. Details on the
+          <a href="foundation/">foundation page</a> and in <a href="https://github.com/ape-squared/Block-Viewer/blob/main/NOTICE.md">NOTICE.md</a>.
+        </p>
+      </div>
+    </section>
+
+    <section class="cta reveal">
+      <h2>Be first to open a block.</h2>
+      <p>Download the Windows build, or follow the private repo. Sister injector lives at <a href="https://ape-squared.github.io/Block-GPPI/">Block-GPPI</a> — do not mix the two.</p>
+      <div class="hero-actions">
+        <a class="btn btn-dark" href="download/">Download</a>
+        <a class="btn btn-dark-ghost" href="https://github.com/ape-squared/Block-Viewer">GitHub</a>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-row">
+      <a class="brand" href="./"><img src="assets/mark.svg" width="22" height="22" alt=""><span>BLOCK VIEWER</span></a>
+      <nav aria-label="Footer">
+        <a href="download/">Download</a>
+        <a href="docs/">Docs</a>
+        <a href="foundation/">Foundation</a>
+        <a href="https://github.com/ape-squared/Block-Viewer">GitHub</a>
+        <a href="https://github.com/ape-squared/Block-Viewer/blob/main/LICENSE">Licence</a>
+      </nav>
+    </div>
+    <p class="legal">Block Viewer is an independent project by ape-squared. Not affiliated with Linden Lab or Second Life. Not an official Aurora Viewer product. Sister site: <a href="https://ape-squared.github.io/Block-GPPI/">Block (GPPI)</a>.</p>
+  </footer>
+
+  <script src="site.js?v=1" defer></script>
+</body>
+</html>

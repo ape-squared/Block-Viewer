@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Privacy — Block Viewer</title>
+  <meta name="description" content="What Block Viewer sends, to whom, and what it keeps on this computer.">
+  <link rel="canonical" href="https://ape-squared.github.io/Block-Viewer/privacy/">
+  <link rel="icon" href="../assets/mark.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../styles.css?v=1">
+</head>
+<body>
+  <div class="atmosphere" aria-hidden="true"></div>
+  <header class="nav" data-nav>
+    <a class="brand" href="../" aria-label="Block Viewer home">
+      <img src="../assets/mark.svg" width="28" height="28" alt="">
+      <span>BLOCK</span>
+    </a>
+    <nav id="site-nav" class="nav-links" aria-label="Primary">
+      <a href="../download/">Download</a>
+      <a href="../docs/">Docs</a>
+      <a href="../foundation/">Foundation</a>
+    </nav>
+    <a class="btn btn-primary nav-cta" href="../download/">Get Viewer</a>
+  </header>
+  <main class="section">
+    <div class="section-head reveal">
+      <p class="eyebrow">your data</p>
+      <h1>Privacy</h1>
+      <p>Block Viewer has no project telemetry server of its own. Grid traffic goes to the Second Life (or other) grid you choose. Updates and crash symbols use GitHub Releases for this repository when enabled.</p>
+    </div>
+    <div class="feature-grid reveal">
+      <article>
+        <h3>Login &amp; world</h3>
+        <p>Credentials and session traffic go to the login URI and region you select. Device identifiers follow the Legacy Viewer login fields. We do not operate a proxy for that traffic.</p>
+      </article>
+      <article>
+        <h3>On this computer</h3>
+        <p>Settings, cache, chat logs (if enabled), and remembered login hashes live under <code>%LOCALAPPDATA%\ape-squared\BlockViewer\</code> (and the system credential store for passwords / MFA).</p>
+      </article>
+      <article>
+        <h3>Updates</h3>
+        <p>When “check for updates” is on, the viewer asks GitHub for <a href="https://github.com/ape-squared/Block-Viewer/releases">ape-squared/Block-Viewer releases</a> and may download a zip you accept.</p>
+      </article>
+      <article>
+        <h3>Sister products</h3>
+        <p><a href="https://ape-squared.github.io/Block-GPPI/">Block-GPPI</a> is a separate injector with its own site and issues. This policy is for the viewer only.</p>
+      </article>
+    </div>
+  </main>
+  <footer class="footer">
+    <p class="legal">Independent project by ape-squared. Not affiliated with Linden Lab.</p>
+  </footer>
+  <script src="../site.js?v=1" defer></script>
+</body>
+</html>

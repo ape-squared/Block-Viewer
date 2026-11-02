@@ -1,0 +1,13 @@
+schema_version = "1.0.0"
+id = "block_live_mesh"
+version = "0.14.7"
+name = "Block LiveMesh"
+tagline = "Preview rigged and static mesh edits live in Block Viewer"
+maintainer = "Block Viewer contributors"
+type = "add-on"
+blender_version_min = "4.2.0"
+license = ["SPDX:GPL-3.0-or-later"]
+tags = ["3D View", "Import-Export"]
+
+[permissions]
+network = "Exchange meshes and avatar shapes with Block Viewer on 127.0.0.1"

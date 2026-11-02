@@ -1,4 +1,4 @@
-﻿# Shared helpers for the scripts (dot-sourced: . "$PSScriptRoot\common.ps1").
+# Shared helpers for the scripts (dot-sourced: . "$PSScriptRoot\common.ps1").
 
 # Native tools (cargo, git, gh) write progress to stderr: Windows PowerShell 5.1
 # turns it into errors when the output is redirected. They are judged on their
@@ -11,7 +11,7 @@ $ErrorActionPreference = 'Continue'
 # folder, so a script works whatever the current folder (double-click…).
 function Get-AuroraPaths {
     $common = (git -C $PSScriptRoot rev-parse --path-format=absolute --git-common-dir).Trim()
-    if ($LASTEXITCODE -ne 0 -or -not $common) { throw "Not in an Aurora Viewer git repository." }
+    if ($LASTEXITCODE -ne 0 -or -not $common) { throw "Not in an Block Viewer git repository." }
     $main = Split-Path $common -Parent
     $root = Split-Path $main -Parent
     [pscustomobject]@{ Main = $main; Root = $root; Work = (Join-Path $root 'work') }
@@ -29,7 +29,7 @@ function Get-TaskSlug([string]$Name) {
 function Test-InUse([string]$Dir) {
     $full = [IO.Path]::GetFullPath($Dir).TrimEnd('\') + '\'
     $procs = Get-CimInstance Win32_Process -ErrorAction SilentlyContinue -Filter (
-        "Name='cargo.exe' OR Name='rustc.exe' OR Name='clippy-driver.exe' OR Name='aurora-viewer.exe'")
+        "Name='cargo.exe' OR Name='rustc.exe' OR Name='clippy-driver.exe' OR Name='block-viewer.exe'")
     [bool]($procs | Where-Object {
         ($_.ExecutablePath -and $_.ExecutablePath.StartsWith($full, [StringComparison]::OrdinalIgnoreCase)) -or
         ($_.CommandLine -and $_.CommandLine.IndexOf($full, [StringComparison]::OrdinalIgnoreCase) -ge 0)
@@ -45,7 +45,7 @@ function Test-InUse([string]$Dir) {
 # demo, tests). The scripts write that file while sccache is there and delete
 # it once it is gone: without sccache, Cargo builds as before.
 
-$BuildCacheMarker = '# Written by the Aurora Viewer scripts (Sync-BuildCache).'
+$BuildCacheMarker = '# Written by the Block Viewer scripts (Sync-BuildCache).'
 
 function Find-Sccache {
     $cmd = Get-Command sccache -CommandType Application -ErrorAction SilentlyContinue | Select-Object -First 1
@@ -100,7 +100,7 @@ function Sync-BuildCache([string]$Root) {
 function Enter-BuildSlot {
     $count = 2
     if ($env:AURORA_BUILD_SLOTS -match '^\d+$' -and [int]$env:AURORA_BUILD_SLOTS -ge 1) { $count = [int]$env:AURORA_BUILD_SLOTS }
-    $slots = [Threading.Mutex[]](1..$count | ForEach-Object { New-Object Threading.Mutex($false, "Local\AuroraViewerBuildSlot$_") })
+    $slots = [Threading.Mutex[]](1..$count | ForEach-Object { New-Object Threading.Mutex($false, "Local\BlockViewerBuildSlot$_") })
     # $IsWindows is unset on Windows PowerShell 5.1; that edition is Windows.
     $waitAny = ($PSVersionTable.PSEdition -eq 'Desktop') -or $IsWindows
     $waited = [Diagnostics.Stopwatch]::StartNew()

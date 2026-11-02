@@ -1,13 +1,13 @@
-﻿# Aurora Tools: what the development environment needs, what is missing or
-# out of date, and how to fix it (dot-sourced by aurora-tools.ps1).
+﻿# Block Tools: what the development environment needs, what is missing or
+# out of date, and how to fix it (dot-sourced by block-tools.ps1).
 
-$RepoUrl = 'https://github.com/Aurora-Viewer/Aurora-Viewer'
+$RepoUrl = 'https://github.com/Block-Viewer/Block-Viewer'
 $FirestormUrl = 'https://github.com/FirestormViewer/phoenix-firestorm'
 
 function Get-Paths([string]$Root) {
     [pscustomobject]@{
         Root = $Root
-        Repo = Join-Path $Root 'aurora-viewer'
+        Repo = Join-Path $Root 'block-viewer'
         Firestorm = Join-Path $Root 'phoenix-firestorm'
         Work = Join-Path $Root 'work'
         Release = Join-Path $Root 'RELEASE'
@@ -59,7 +59,7 @@ function Get-Checks($P, [switch]$Offline) {
 
     $hasRepo = Test-Path (Join-Path $P.Repo '.git')
     if (-not $hasRepo) {
-        & $add (New-Check repo 'aurora-viewer repository' $null todo 'cloned from GitHub')
+        & $add (New-Check repo 'block-viewer repository' $null todo 'cloned from GitHub')
     } else {
         $branch = (git -C $P.Repo rev-parse --abbrev-ref HEAD).Trim()
         $behind = 0
@@ -69,11 +69,11 @@ function Get-Checks($P, [switch]$Offline) {
         }
         $dirty = [bool](git -C $P.Repo status --porcelain --untracked-files=no)
         if ($branch -ne 'main' -or $dirty) {
-            & $add (New-Check repo 'aurora-viewer repository' "on $branch$(if ($dirty) { ', local changes' })" info 'left as is (your changes)')
+            & $add (New-Check repo 'block-viewer repository' "on $branch$(if ($dirty) { ', local changes' })" info 'left as is (your changes)')
         } elseif ($behind -gt 0) {
-            & $add (New-Check repo 'aurora-viewer repository' "main, $behind commit(s) behind" stale 'updated (git pull)')
+            & $add (New-Check repo 'block-viewer repository' "main, $behind commit(s) behind" stale 'updated (git pull)')
         } else {
-            & $add (New-Check repo 'aurora-viewer repository' 'main, up to date' ok 'nothing to do')
+            & $add (New-Check repo 'block-viewer repository' 'main, up to date' ok 'nothing to do')
         }
     }
 
@@ -120,7 +120,7 @@ function Get-Checks($P, [switch]$Offline) {
     & $add (New-Check identity 'Git identity' $email $(if ($email) { 'ok' } else { 'todo' }) $(if ($email) { 'nothing to do' } else { 'your GitHub username + noreply address' }))
 
     # the --release viewer of RELEASE\ (menu "Release viewer"): information only
-    $version = Join-Path $P.Release 'Aurora-Viewer\version.txt'
+    $version = Join-Path $P.Release 'Block-Viewer\version.txt'
     if ($hasRepo -and (Test-Path $version)) {
         # the line after the reported version: "main: <short sha> <subject> (<date>)",
         # or "PR #42: …" (files written before the switch to English: "main : …")
@@ -175,7 +175,7 @@ function Invoke-Repair($P) {
     }
     Write-Color '  Git, GitHub CLI, C++ tools and Rust: OK.' success
 
-    Write-Title 'Aurora Viewer repository'
+    Write-Title 'Block Viewer repository'
     New-Item -ItemType Directory -Force -Path $P.Root -ErrorAction Stop | Out-Null
     if (Test-Path (Join-Path $P.Repo '.git')) {
         $branch = (git -C $P.Repo rev-parse --abbrev-ref HEAD).Trim()

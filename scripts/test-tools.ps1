@@ -125,9 +125,9 @@ try {
 
     # Load the entry-point helpers without executing installation or its menu.
     $tokens = $null; $errors = $null
-    $ast = [Management.Automation.Language.Parser]::ParseFile((Join-Path $PSScriptRoot 'tools/aurora-tools.ps1'), [ref]$tokens, [ref]$errors)
+    $ast = [Management.Automation.Language.Parser]::ParseFile((Join-Path $PSScriptRoot 'tools/block-tools.ps1'), [ref]$tokens, [ref]$errors)
     Assert-ToolsTest (-not $errors) 'The tools entry point must parse.'
-    foreach ($name in 'Get-ToolsFingerprint', 'Invoke-ToolsRepair', 'Restart-AuroraTools') {
+    foreach ($name in 'Get-ToolsFingerprint', 'Invoke-ToolsRepair', 'Restart-BlockTools') {
         $definition = $ast.Find({ param($node) $node -is [Management.Automation.Language.FunctionDefinitionAst] -and $node.Name -eq $name }, $true)
         . ([scriptblock]::Create($definition.Extent.Text))
     }
@@ -145,7 +145,7 @@ try {
     Assert-ToolsTest (-not $ToolsRestartPath) 'Unchanged scripts must not restart.'
     function Invoke-Repair { 'new script' | Set-Content -LiteralPath $module }
     Invoke-ToolsRepair $p
-    Assert-ToolsTest ($ToolsRestartPath -eq (Join-Path $modules 'aurora-tools.ps1')) 'Changed scripts must request a reload from the updated repository.'
+    Assert-ToolsTest ($ToolsRestartPath -eq (Join-Path $modules 'block-tools.ps1')) 'Changed scripts must request a reload from the updated repository.'
     $ToolsFingerprint = Get-ToolsFingerprint $repo
     'new module' | Set-Content -LiteralPath (Join-Path $modules 'added.ps1')
     Assert-ToolsTest ($ToolsFingerprint -ne (Get-ToolsFingerprint $repo)) 'New modules must be detected.'
@@ -158,14 +158,14 @@ try {
     $failed = $false
     try { Invoke-ToolsRepair $p } catch { $failed = $true }
     Assert-ToolsTest ($failed -and $ToolsRestartPath) 'A partial repair failure must still request reload.'
-    $child = Join-Path $modules 'aurora-tools.ps1'
+    $child = Join-Path $modules 'block-tools.ps1'
     # The replacement is a harmless fixture that records its fresh process.
     @'
 param([string]$Action, [switch]$DryRun)
 @{ Action = $Action; DryRun = [bool]$DryRun; Process = $PID } | ConvertTo-Json | Set-Content -LiteralPath (Join-Path $PSScriptRoot 'reloaded.json')
 '@ | Set-Content -LiteralPath $child -Encoding UTF8
     $DryRun = $true
-    Restart-AuroraTools $child
+    Restart-BlockTools $child
     Assert-ToolsTest ($LASTEXITCODE -eq 0) 'The replacement process must succeed.'
     $result = Get-Content -Raw -LiteralPath (Join-Path $modules 'reloaded.json') | ConvertFrom-Json
     Assert-ToolsTest ($result.Process -ne $PID -and $result.Action -eq 'menu' -and $result.DryRun) 'Reload must use a fresh process, reopen the menu and preserve DryRun.'

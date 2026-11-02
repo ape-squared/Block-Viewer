@@ -1,0 +1,112 @@
+# Posts each published GitHub release to Discord #viewer-releases.
+# Webhook URL: repository secret DISCORD_RELEASES_WEBHOOK (never commit it).
+name: Discord release
+
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: read
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Post release embed
+        env:
+          WEBHOOK: ${{ secrets.DISCORD_RELEASES_WEBHOOK }}
+          RELEASE_JSON: ${{ toJson(github.event.release) }}
+        run: |
+          set -euo pipefail
+          if [ -z "${WEBHOOK:-}" ]; then
+            echo "DISCORD_RELEASES_WEBHOOK secret is missing" >&2
+            exit 1
+          fi
+
+          python3 - <<'PY'
+          import json, os, re, urllib.request
+
+          release = json.loads(os.environ["RELEASE_JSON"])
+          webhook = os.environ["WEBHOOK"].rstrip("/")
+          # Discord's GitHub formatter wants /github; plain embeds use the raw URL.
+          if webhook.endswith("/github"):
+              webhook = webhook[: -len("/github")]
+
+          tag = release.get("tag_name") or ""
+          name = (release.get("name") or tag or "Release").strip()
+          url = release.get("html_url") or ""
+          prerelease = bool(release.get("prerelease"))
+          body = (release.get("body") or "").strip()
+          # Drop the shared notes header / HTML comments / excessive blank lines.
+          body = re.sub(r"<!--.*?-->", "", body, flags=re.S)
+          body = re.sub(r"(?im)^#+\s*Block Viewer\s*$", "", body)
+          body = re.sub(r"(?im)^Support:.*$", "", body)
+          body = re.sub(r"(?im)^Sister project.*$", "", body)
+          body = re.sub(r"\n{3,}", "\n\n", body).strip()
+          if len(body) > 1800:
+              body = body[:1797].rstrip() + "…"
+          if not body:
+              body = "Release notes are on GitHub."
+
+          assets = release.get("assets") or []
+          windows = next(
+              (
+                  a
+                  for a in assets
+                  if a.get("name", "").endswith("-windows-x64.zip")
+                  and not a.get("name", "").endswith("-symbols.zip")
+              ),
+              None,
+          )
+          fields = []
+          if windows and windows.get("browser_download_url"):
+              fields.append(
+                  {
+                      "name": "Windows",
+                      "value": f"[Download zip]({windows['browser_download_url']})",
+                      "inline": True,
+                  }
+              )
+          fields.append(
+              {
+                  "name": "Tag",
+                  "value": f"[`{tag}`]({url})" if tag and url else (tag or "—"),
+                  "inline": True,
+              }
+          )
+
+          # Brand signal lime (#D4FF3F); beta gets a cooler teal.
+          color = 0x38BDF8 if prerelease else 0xD4FF3F
+          title = name if name.lower().startswith("block") else f"Block Viewer {name}"
+          embed = {
+              "title": title,
+              "url": url,
+              "description": body,
+              "color": color,
+              "fields": fields,
+              "thumbnail": {
+                  "url": "https://raw.githubusercontent.com/ape-squared/Block-Viewer/main/assets/branding/block-logo-bg.png"
+              },
+              "footer": {"text": "Block Viewer · GitHub Releases"},
+          }
+          if release.get("published_at"):
+              embed["timestamp"] = release["published_at"]
+
+          content = "New pre-release" if prerelease else "New release"
+          payload = {
+              "username": "Block Viewer",
+              "avatar_url": "https://raw.githubusercontent.com/ape-squared/Block-Viewer/main/assets/branding/block-logo-bg.png",
+              "content": content,
+              "embeds": [embed],
+              "allowed_mentions": {"parse": []},
+          }
+          req = urllib.request.Request(
+              webhook + "?wait=true",
+              data=json.dumps(payload).encode(),
+              headers={"Content-Type": "application/json", "User-Agent": "Block-Viewer-Release-Notify"},
+              method="POST",
+          )
+          with urllib.request.urlopen(req, timeout=30) as resp:
+              print(f"Discord {resp.status}")
+          PY

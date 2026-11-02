@@ -1,7 +1,7 @@
-﻿<#
+<#
 .SYNOPSIS
     Parses every PowerShell script of scripts/ with the parser of Windows
-    PowerShell 5.1, the one aurora-tools.cmd and the humans run. A syntax
+    PowerShell 5.1, the one block-tools.cmd and the humans run. A syntax
     error there stops every action of the Aurora tools, and PowerShell 7
     does not always see it (an unescaped apostrophe in a string, for example).
 #>

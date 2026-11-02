@@ -76,15 +76,15 @@ tried locally with `scripts/test-update.ps1 -Beta`
 
 The Release workflow publishes together:
 
-- `Aurora-Viewer-vX.Y.Z-windows-x64.zip`, with a single root folder of that name;
+- `Block-Viewer-vX.Y.Z-windows-x64.zip`, with a single root folder of that name;
 - its `.zip.sha256` file, in the format `hash  zip-name`;
-- `aurora-update-policy.json`: `schema: 1`, `version: X.Y.Z`,
+- `block-update-policy.json`: `schema: 1`, `version: X.Y.Z`,
   `minimum_supported_version`, `cache_invalidation_before` and
   `settings_reset_before`: `null` or a stable SemVer version ≤ X.Y.Z;
-- `Aurora-Viewer-vX.Y.Z-windows-x64-symbols.zip` and its `.zip.sha256`: the
+- `Block-Viewer-vX.Y.Z-windows-x64-symbols.zip` and its `.zip.sha256`: the
   exe's crash symbols ([crash reports](BUG_REPORTING.md#crash-symbols)),
   never downloaded by the viewer, which looks for the package's exact name;
-- then `Aurora-Viewer-vX.Y.Z-linux-x64.tar.gz` and its `.tar.gz.sha256`,
+- then `Block-Viewer-vX.Y.Z-linux-x64.tar.gz` and its `.tar.gz.sha256`,
   built on Ubuntu 24.04 by a second job once the release exists: a failed
   Linux build leaves the Windows release published.
 
@@ -93,7 +93,7 @@ On Linux the viewer checks the releases the same way, with the same policy
 "Open the release page" button leads to the archive, extracted by hand
 ([Installing on Linux](LINUX.md#updates)).
 
-`scripts/package.ps1` adds `aurora-install.json` (`schema: 1`, version read
+`scripts/package.ps1` adds `block-install.json` (`schema: 1`, version read
 by `--version`). The exe, the assets and the licence are mandatory in the
 package. The default thresholds come from `update-policy.json` at the root.
 `null` makes every update optional. Below a minimum version, the update is
@@ -102,7 +102,7 @@ update. The preferences and the skipped tag do not remove this check.
 Changing this policy is a release decision reviewed in a PR; it takes
 effect at the next release.
 
-In **aurora-tools.cmd → Manage releases → Create a release**, the Cache and
+In **block-tools.cmd → Manage releases → Create a release**, the Cache and
 Settings choices come before the confirmation. Keeping the cache and the
 settings is the usual choice; `Settings::sanitized` applies the migrations
 coded in the viewer. Forcing an action records the release version as the
@@ -141,21 +141,21 @@ errors offer the release page.
 
 Settings, layout, accounts and cache are outside the replaced folder. If the
 policy requires it, the helper moves the cache and/or `settings.json` to a
-sibling backup `*.aurora-before-update-<UUID>`, after the parent has closed.
+sibling backup `*.block-before-update-<UUID>`, after the parent has closed.
 This also works if the profile and the installation are on different disks.
 The new viewer recreates its cache and its default settings; the other files
 of the profile are kept. If the first start fails, the newly created data
 is removed and the backups are restored. On success, these backups are
 deleted; a clean-up error keeps them for recovery and does not trigger a
 rollback. A sudden interruption of the PC can prevent the automatic
-rollback; `.aurora-update-<UUID>/backup`, next to the installation, keeps
+rollback; `.block-update-<UUID>/backup`, next to the installation, keeps
 the old version. Do not delete it before having restored the installed
 folder. Failed transactions are kept for diagnosis; the new instance cleans
 up the successful transactions after the helper has finished.
 
 ## Validation
 
-`cargo test -p aurora-updater`: loopback HTTP server and throwaway packages
+`cargo test -p block-updater`: loopback HTTP server and throwaway packages
 for SemVer, required update, tampered hash, incomplete transfer,
 cancellation, dangerous ZIP, lock, backup and rollback of the package and of
 the data. `scripts/test-update-policy.ps1` checks the release choices, their

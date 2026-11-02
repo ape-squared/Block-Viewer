@@ -35,7 +35,7 @@ if ($isWorktree) {
 } else {
     # leftover of an interrupted clean-up: an empty folder or a copy of this repository
     $empty = -not (Get-ChildItem -LiteralPath $dir -Force | Select-Object -First 1)
-    $copy = (Test-Path -LiteralPath (Join-Path $dir 'Cargo.toml')) -and (Test-Path -LiteralPath (Join-Path $dir 'AGENTS.md'))
+    $copy = (Test-Path -LiteralPath (Join-Path $dir 'Cargo.toml')) -and (Test-Path -LiteralPath (Join-Path $dir 'README.md'))
     if (-not ($empty -or $copy)) {
         throw "$dir is neither a worktree nor a leftover of an Aurora task: nothing is deleted."
     }

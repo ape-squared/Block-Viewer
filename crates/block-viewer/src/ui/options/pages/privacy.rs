@@ -202,6 +202,33 @@ pub(super) fn page(cx: &mut Cx) {
             );
         });
     });
+    // Legacy Viewer Comm › Discord (FSDiscordConnect / rich presence).
+    cx.group(tr!("ui-options-discord"), |cx| {
+        cx.toggle(
+            tr!("ui-options-discord-enabled"),
+            tr!("ui-options-discord-enabled-help"),
+            &field!(discord.enabled),
+        );
+        let on = cx.s.discord.enabled;
+        cx.subs(!on, |cx| {
+            cx.toggle(
+                tr!("ui-options-discord-share-name"),
+                tr!("ui-options-discord-share-name-help"),
+                &field!(discord.share_name),
+            );
+            cx.choice(
+                tr!("ui-options-discord-maturity"),
+                tr!("ui-options-discord-maturity-help"),
+                &field!(discord.max_maturity),
+                &[
+                    (block_net::search::SIM_ACCESS_ADULT, tr!("ui-options-discord-maturity-all"), true),
+                    (block_net::search::SIM_ACCESS_MATURE, tr!("ui-options-discord-maturity-gm"), true),
+                    (block_net::search::SIM_ACCESS_PG, tr!("ui-options-discord-maturity-g"), true),
+                    (0, tr!("ui-options-discord-maturity-none"), false),
+                ],
+            );
+        });
+    });
     // Advanced › Quiet Snapshots of the Legacy Viewer (PlayModeUISndSnapshot):
     // no shutter heard around nor snapshot animation seen
     cx.group(tr!("ui-options-privacy-photos"), |cx| {

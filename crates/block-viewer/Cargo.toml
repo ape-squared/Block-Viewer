@@ -32,6 +32,8 @@ block-render = { version = "0.1.0", path = "../block-render" }
 block-voice = { version = "0.1.0", path = "../block-voice" }
 block-version = { version = "0.1.0", path = "../block-version" }
 crossbeam-channel = "0.5.17"
+# Discord Rich Presence over local IPC (Legacy Viewer FSDiscordConnect); MIT.
+discord-rich-presence = "1.1.0"
 directories = "6.0.0"
 # experimental: only makes egui::theme public (the text fields' size, theme.rs)
 egui = { version = "0.37.0", features = ["experimental", "monochrome_emoji_fonts", "persistence"] }

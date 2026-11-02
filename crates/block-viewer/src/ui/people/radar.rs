@@ -195,7 +195,9 @@ impl Default for RadarSettings {
             chat_leave: false,
             draw_enter: false,
             draw_leave: false,
-            region_enter: false,
+            // Feedback: show who entered the region in chat (off in Legacy until
+            // opted in; Block turns region enter on so arrivals are visible).
+            region_enter: true,
             region_leave: false,
             alert_sounds: false,
             enter_scripts: false,

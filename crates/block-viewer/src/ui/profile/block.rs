@@ -1,16 +1,7 @@
-//! The Aurora profile window (mock-up A of the profiles, asked for by the
-//! human on 2026-10-14, its head redrawn for #1089): a banner drawn from the
-//! profile picture, as tall as what it holds (`widgets::hero`), with the
-//! picture and its status dot, who it is (names, birth date and age,
-//! badges) and what to do (conversation, call, teleport, pay, block, more)
-//! centred on one line, the tabs along its bottom; then the Profile tab in
-//! cards, a friend's rights on the Info card. Under `COMPACT_W` the header
-//! shrinks, the actions keep their icons and the tabs go into a drop-down
-//! list.
-//!
-//! The data, requests and actions are those of the classic window (`super`,
-//! Firestorm's LLFloaterProfile), which Preferences › Aurora › Profiles
-//! brings back: only the drawing differs. The other tabs are in `tabs`.
+//! Block profile window: banner from the profile picture, who it is, actions
+//! and tabs — Legacy Viewer data (LLFloaterProfile) with a flatter Block look
+//! (neutral banner, squared photo, less violet chrome). Preferences › Block ›
+//! Profiles can switch back to the classic tabbed window. Other tabs: `tabs`.
 
 mod tabs;
 
@@ -750,9 +741,10 @@ fn paint_banner(ui: &egui::Ui, p: &Palette, rect: Rect, tex: Option<&egui::Textu
                 .paint_at(ui, rect);
         }
         None => {
+            // Flat navy/raised band — not the violet brand wash.
             ui.painter().rect_filled(rect, radius, p.navy);
             let mut m = egui::Mesh::default();
-            let (a, b) = (p.violet.gamma_multiply(0.55), p.indigo.gamma_multiply(0.45));
+            let (a, b) = (p.raised.gamma_multiply(0.55), p.navy.gamma_multiply(0.9));
             for (pos, c) in [
                 (rect.left_top(), a),
                 (rect.right_top(), b),
@@ -796,8 +788,7 @@ fn banner_chip(ui: &egui::Ui, p: &Palette, banner: Rect, icon: &str, text: &str)
     widgets::paint_ink_left(ui.painter(), galley, pos2(rect.left() + 24.0, rect.center().y), ink);
 }
 
-/// The round picture in its ring, with the status dot at its bottom right
-/// (round like the plates' and the conversations', docs/BRANDING.md).
+/// Squared profile photo (theme corner radius) with status at the bottom right.
 #[allow(clippy::too_many_arguments)]
 fn paint_photo(
     ui: &egui::Ui,
@@ -810,13 +801,25 @@ fn paint_photo(
     editing: bool,
 ) {
     let painter = ui.painter();
-    let r = rect.width() / 2.0;
-    painter.circle_filled(rect.center(), r, p.panel);
-    widgets::avatar_disc(ui, p, rect.shrink(ring), pic, name, false);
-    if editing {
-        painter.circle_stroke(rect.center(), r + 1.0, egui::Stroke::new(2.0, p.violet_light));
+    let radius = ui.visuals().window_corner_radius;
+    painter.rect_filled(rect, radius, p.panel);
+    let inner = rect.shrink(ring);
+    if let Some(tex) = pic {
+        egui::Image::from_texture(egui::load::SizedTexture::new(tex.id(), inner.size()))
+            .corner_radius(radius)
+            .paint_at(ui, inner);
+    } else {
+        widgets::avatar_disc(ui, p, inner, None, name, false);
     }
-    // the dot: 24 px with its ring in the large header, 16 in the compact one
+    painter.rect_stroke(
+        rect,
+        radius,
+        egui::Stroke::new(1.0, if editing { p.ink } else { p.raised }),
+        egui::StrokeKind::Inside,
+    );
+    if editing {
+        painter.rect_stroke(rect.expand(1.0), radius, egui::Stroke::new(2.0, p.ink), egui::StrokeKind::Outside);
+    }
     let dot = if rect.width() > 80.0 { 12.0 } else { 8.0 };
     let inset = if rect.width() > 80.0 { 4.0 } else { 0.0 };
     let c = rect.right_bottom() - Vec2::splat(inset + dot);
@@ -831,9 +834,9 @@ fn camera_button(ui: &mut egui::Ui, env: &mut Env, photo: Rect, profile: Option<
     let c = photo.min + Vec2::new(99.0, 101.0) * (photo.width() / 116.0);
     let rect = Rect::from_center_size(c, Vec2::splat(34.0));
     let resp = ui.interact(rect, ui.scope_id().with("profile-camera"), Sense::click());
-    let fill = if resp.hovered() { p.violet_light } else { p.violet };
+    let fill = if resp.hovered() { p.ink } else { p.raised };
     ui.painter().circle_filled(c, 17.0, fill);
-    paint_icon(ui, "camera-filled", c, 17.0, p.on_accent);
+    paint_icon(ui, "camera-filled", c, 17.0, if resp.hovered() { p.on_accent } else { p.ink });
     let resp = resp.on_hover_text(block_i18n::tr!("ui-profile-change-picture"));
     let image = profile.map(|pr| pr.sl_image).unwrap_or_default();
     let mut choose = false;
@@ -1165,7 +1168,7 @@ fn badge_widget(ui: &mut egui::Ui, env: &Env, id: Uuid, b: &Badge, is_friend: bo
             }
             pill(
                 ui,
-                Some(Lead::Icon("heart-filled")),
+                Some(Lead::Icon("user-filled")),
                 block_i18n::tr!("ui-profile-block-friend"),
                 None,
                 p.success,
@@ -1211,7 +1214,7 @@ fn badge_widget(ui: &mut egui::Ui, env: &Env, id: Uuid, b: &Badge, is_friend: bo
                 None,
                 block_i18n::tr!("ui-profile-block-view-in-people"),
                 Some("chevron-right"),
-                p.violet_light,
+                p.ink,
                 Color32::TRANSPARENT,
                 Sense::click(),
             );
@@ -1288,20 +1291,19 @@ const RECEIVED: [(i32, &str, &str); 3] = [
     (rights::MODIFY_OBJECTS, "pencil-filled", "ui-profile-block-their-objects"),
 ];
 
-/// A right of the bar: lit in violet when granted by us, in turquoise when
-/// received.
+/// A right of the bar: lit when granted by us, teal when received.
 fn right_icon(ui: &mut egui::Ui, p: &Palette, icon: &str, on: bool, ours: bool) -> Response {
     let (rect, resp) = ui.allocate_exact_size(Vec2::splat(19.0), if ours { Sense::click() } else { Sense::hover() });
     let radius = widgets::inner_radius(ui.visuals());
     if ours && on {
-        ui.painter().rect_filled(rect, radius, p.violet.gamma_multiply(0.15));
+        ui.painter().rect_filled(rect, radius, p.ink.gamma_multiply(0.12));
     }
     if ours && resp.hovered() {
         ui.painter().rect_filled(rect, radius, p.raised.gamma_multiply(0.6));
         ui.ctx().set_cursor_icon(egui::CursorIcon::PointingHand);
     }
     let tint = match (on, ours) {
-        (true, true) => p.violet_light,
+        (true, true) => p.ink,
         (true, false) => p.teal,
         _ => p.muted_dim,
     };
@@ -1499,7 +1501,7 @@ fn card(
                     if let Some(link) = link {
                         ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
                             ui.spacing_mut().item_spacing.x = 3.0;
-                            let color = if link.waiting.is_some() { p.muted_dim } else { p.violet_light };
+                            let color = if link.waiting.is_some() { p.muted_dim } else { p.ink };
                             let sense = if link.waiting.is_some() { Sense::hover() } else { Sense::click() };
                             // right to left: a chevron after the text, a
                             // leading icon before it

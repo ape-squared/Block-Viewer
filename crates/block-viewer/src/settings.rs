@@ -476,6 +476,9 @@ pub struct Settings {
     pub contacts: crate::ui::contacts::ContactsSettings,
     /// Radar of the People window.
     pub radar: crate::ui::people::RadarSettings,
+    /// Discord Rich Presence (Legacy Viewer Comm › Discord).
+    #[serde(default)]
+    pub discord: crate::discord_presence::Settings,
     /// Friends tab of the People window.
     pub friends_list: crate::ui::people::FriendsSettings,
     pub inventory: crate::ui::inventory::InventoryPreferences,
@@ -1074,8 +1077,16 @@ pub struct Settings {
     pub classic_region_estate: bool,
     /// The inventory as the Legacy Viewer's single tree with its tabs and
     /// footer instead of Aurora's window that widens from a compact tree to
-    /// an explorer (`ui/inventory/aurora`).
+    /// an explorer (`ui/inventory/aurora`). On by default for Block (Legacy
+    /// muscle memory).
     pub classic_inventory: bool,
+    /// Remember the active group per region and restore it on arrival
+    /// (feedback: auto-swap group title by region).
+    #[serde(default)]
+    pub auto_group_by_region: bool,
+    /// Lowercased region name → group UUID last activated there.
+    #[serde(default, skip_serializing_if = "std::collections::HashMap::is_empty")]
+    pub region_groups: std::collections::HashMap<String, uuid::Uuid>,
     /// "Places" as the Legacy Viewer's three tabs (`ui/places.rs`) instead
     /// of Aurora's list and preview (`ui/places/aurora.rs`).
     pub classic_places: bool,
@@ -1177,6 +1188,10 @@ pub struct Settings {
     pub background_fps_limit: u32,
     /// Maximum live particles (0 = particles off).
     pub max_particles: u32,
+    /// Animated selection halo / particle pulse around the edit selection
+    /// (off by default; outline still draws).
+    #[serde(default)]
+    pub selection_particles: bool,
     /// Avatars drawn (the nearest ones).
     pub max_avatars: u32,
     /// Ambient occlusion: 0 off, 1 low, 2 high (the levels of the Legacy
@@ -1672,6 +1687,7 @@ impl Default for Settings {
             hover_height_account: None,
             contacts: Default::default(),
             radar: Default::default(),
+            discord: Default::default(),
             friends_list: Default::default(),
             inventory: Default::default(),
             texture_library: Default::default(),
@@ -1911,7 +1927,9 @@ impl Default for Settings {
             classic_about_land: false,
             classic_search: false,
             classic_region_estate: false,
-            classic_inventory: false,
+            classic_inventory: true,
+            auto_group_by_region: true,
+            region_groups: Default::default(),
             classic_places: false,
             places_sort: PlacesSort::Visit,
             invert_mouse: false,
@@ -1947,6 +1965,7 @@ impl Default for Settings {
             background_fps_cap: true,
             background_fps_limit: 15,
             max_particles: 4096,
+            selection_particles: false,
             max_avatars: 16,
             ssao: 1,
             ao_method: 0,

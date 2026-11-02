@@ -224,6 +224,11 @@ pub fn page(cx: &mut Cx, tab: usize) {
                 classic,
                 &field!(classic_inventory),
             );
+            cx.toggle(
+                tr!("ui-options-auto-group-region"),
+                tr!("ui-options-auto-group-region-help"),
+                &field!(auto_group_by_region),
+            );
             look(
                 cx,
                 tr!("ui-options-block-build"),
@@ -439,8 +444,8 @@ mod tests {
         assert!(!s.classic_search && !fresh.classic_search, "the Aurora Search is the default");
         assert!(!s.classic_region_estate && !fresh.classic_region_estate);
         assert!(
-            !s.classic_inventory && !fresh.classic_inventory,
-            "the Aurora inventory is the default"
+            !s.classic_inventory && fresh.classic_inventory,
+            "Block defaults to the Legacy inventory tree; Aurora look turns it off"
         );
         assert!(!s.classic_places && !fresh.classic_places, "Aurora's Places is the default");
         assert!(!s.build.legacy_window && !fresh.build.legacy_window);

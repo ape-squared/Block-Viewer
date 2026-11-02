@@ -35,6 +35,7 @@ mod deep_profile;
 mod demo;
 mod dev_toolbox;
 mod disk_io;
+mod discord_presence;
 mod display_sleep;
 mod dof;
 mod external_url;

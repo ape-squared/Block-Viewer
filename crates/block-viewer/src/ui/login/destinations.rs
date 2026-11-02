@@ -1,6 +1,4 @@
-//! Login sidebar: destinations and a short Block message instead of Aurora news.
-//! Legacy Viewer shows grid MOTD / destinations beside the login form; keep that
-//! useful surface without shipping Aurora release notes.
+//! Login sidebar: start destinations (Legacy-style), without Aurora news.
 
 use crate::theme::Palette;
 use crate::ui::{icons::Icons, widgets};
@@ -13,24 +11,13 @@ const DESTINATIONS: &[(&str, &str, &str)] = &[
     ("region", "map-pin-filled", "ui-login-region"),
 ];
 
-/// Welcome / MOTD line for Block closed testing (not grid Halloween MOTD).
-pub fn block_test_message() -> &'static str {
-    "Block Viewer closed test — thank you for helping. Log in, try pie menus, nameplates, and teleport; report anything that breaks."
-}
-
-/// Right-hand login card: message + start destinations (replaces Aurora news).
+/// Right-hand login card: start destinations (replaces Aurora news).
 pub fn panel(ui: &mut egui::Ui, p: &Palette, icons: &Icons, start_location: &mut String, height: f32, on_region: &mut dyn FnMut()) {
     const MARGIN: i8 = 16;
     super::card(ui, p, MARGIN, false, |ui| {
         ui.set_width(ui.available_width());
         ui.set_height(height - 2.0 * f32::from(MARGIN));
         widgets::section_header(ui, p, "map-pin-filled", block_i18n::tr!("ui-login-destinations"));
-        ui.add_space(6.0);
-        ui.add(egui::Label::new(RichText::new(block_i18n::tr!("ui-login-block-test-motd")).size(12.5).color(p.ink)).wrap());
-        ui.add_space(4.0);
-        ui.label(RichText::new(block_test_message()).size(12.0).color(p.muted));
-        ui.add_space(10.0);
-        widgets::divider(ui, p);
         ui.add_space(8.0);
         ui.label(RichText::new(block_i18n::tr!("ui-login-start")).size(12.0).strong().color(p.muted));
         ui.add_space(6.0);

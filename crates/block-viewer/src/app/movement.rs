@@ -613,11 +613,20 @@ impl App {
         self.panels.ao = open;
         self.toolbar_ui.movement_active = prefs.swimming;
         self.toolbar_ui.water_walk_active = prefs.water_walk;
-        if actions.iter().any(|a| matches!(a, crate::ui::ao::Action::MovementPreferences)) {
+        let prefs_changed = actions
+            .iter()
+            .any(|a| matches!(a, crate::ui::ao::Action::MovementPreferences));
+        let ao_changed = actions.iter().any(|a| matches!(a, crate::ui::ao::Action::Preferences));
+        if prefs_changed {
             self.settings.movements.insert(self.world.agent_id, prefs);
         }
-        if actions.iter().any(|a| matches!(a, crate::ui::ao::Action::Preferences)) {
+        // Always write the account while the window is open so UseAO survives
+        // a restart even if the toggle ran without a later Preferences flush.
+        if !self.world.agent_id.is_nil() {
             self.settings.ao.accounts.insert(self.world.agent_id, account);
+        }
+        if ao_changed || prefs_changed {
+            self.settings.save();
         }
         for action in actions {
             self.apply_ao_action(action);

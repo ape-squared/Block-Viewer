@@ -320,14 +320,15 @@ pub fn show_real(
                     );
                     card(ui, p).show(ui, |ui| {
                         ui.set_width(width - 28.0);
-                        egui::ScrollArea::vertical().max_height(140.0).show(ui, |ui| {
+                        egui::ScrollArea::vertical().max_height(280.0).show(ui, |ui| {
                             let notes = updater
                                 .release
                                 .as_ref()
                                 .map(|r| r.notes.as_str())
                                 .filter(|s| !s.is_empty())
                                 .unwrap_or(block_i18n::tr!("update-no-notes"));
-                            ui.label(RichText::new(notes).size(13.0).color(p.muted));
+                            // Full release body (additions, removals, fixes) from GitHub.
+                            ui.label(RichText::new(notes).size(13.0).color(p.ink));
                         });
                     });
                 }

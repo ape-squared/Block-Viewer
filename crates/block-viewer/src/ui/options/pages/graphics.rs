@@ -316,6 +316,11 @@ fn quality(cx: &mut Cx) {
             },
         );
         cx.toggle(
+            tr!("ui-options-selection-particles"),
+            tr!("ui-options-selection-particles-help"),
+            &field!(selection_particles),
+        );
+        cx.toggle(
             tr!("ui-options-occlusion"),
             tr!("ui-options-objects-hidden-behind-others-walls-floors-are-not-drawn"),
             &field!(occlusion_culling),

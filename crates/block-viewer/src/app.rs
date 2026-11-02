@@ -806,6 +806,10 @@ pub struct App {
     ao_bootstrap: crate::ao::bootstrap::Bootstrap,
     ao_runtime: crate::ao::runtime::Runtime,
     ao_agent: uuid::Uuid,
+    /// Last region key used for Preferences › auto group-by-region.
+    region_group_key: String,
+    /// Discord Rich Presence (Legacy Viewer FSDiscordConnect).
+    discord_presence: crate::discord_presence::Presence,
     ao_missing: HashSet<uuid::Uuid>,
     ao_demo: Option<String>,
     ao_default_applied: bool,
@@ -1485,6 +1489,8 @@ impl App {
             ao_bootstrap: Default::default(),
             ao_runtime: Default::default(),
             ao_agent: uuid::Uuid::nil(),
+            region_group_key: String::new(),
+            discord_presence: Default::default(),
             ao_missing: Default::default(),
             ao_demo: std::env::var("AURORA_DEMO_AO").ok(),
             ao_default_applied: false,
@@ -2651,6 +2657,7 @@ impl App {
         self.history_ui = Default::default();
         self.chat_ui = ChatUi::from_settings(&self.settings);
         self.ao_agent = uuid::Uuid::nil();
+        self.discord_presence.clear();
         self.appearance_ui = Default::default();
         self.shape_ui = Default::default();
         self.shape_camera = None;
@@ -3403,11 +3410,6 @@ impl App {
                 self.loading_target = 0.0;
                 self.loading_stage = block_i18n::tr!("common-connecting-to-region").into();
                 l.message.trim().clone_into(&mut self.world.motd);
-                // Grid seasonal MOTDs (e.g. Halloween) are replaced for Block closed tests.
-                let seasonal = self.world.motd.to_ascii_lowercase();
-                if seasonal.contains("halloween") || seasonal.contains("happy halloween") {
-                    self.world.motd = block_i18n::tr!("app-block-test-motd").into();
-                }
                 if !self.world.motd.is_empty() {
                     self.world.system_message(self.world.motd.clone());
                 }
@@ -3451,6 +3453,7 @@ impl App {
                 self.scene.textures.mark_arrival();
                 self.loading_stage = block_i18n::tr!("app-loading-scene").into();
                 self.start_friend_join_flight();
+                self.sync_region_group();
             }
             NetEvent::SitResponse {
                 object,
@@ -5609,7 +5612,94 @@ impl App {
     /// Radar of the People window: one sweep a second (also with the
     /// window closed, for its alerts), the profiles its columns show and
     /// the crossings it reports (FSRadar::updateRadarList, fsradar.cpp).
+    /// Remember / restore the active group when the region name changes.
+    fn sync_region_group(&mut self) {
+        if !self.settings.auto_group_by_region || !self.in_world() {
+            return;
+        }
+        let name = self.world.region_name();
+        if name.is_empty() {
+            return;
+        }
+        let key = name.to_ascii_lowercase();
+        if self.region_group_key == key {
+            return;
+        }
+        if !self.region_group_key.is_empty() {
+            let previous = self.world.groups.active;
+            if !previous.is_nil() {
+                self.settings
+                    .region_groups
+                    .insert(self.region_group_key.clone(), previous);
+            }
+        }
+        self.region_group_key = key.clone();
+        if let Some(group) = self.settings.region_groups.get(&key).copied()
+            && !group.is_nil()
+            && group != self.world.groups.active
+        {
+            self.send(NetCommand::ActivateGroup(group));
+        }
+        self.settings.save();
+    }
+
+    /// Keep the region → group map when the user (or a restore) changes title.
+    fn remember_region_group(&mut self) {
+        if !self.settings.auto_group_by_region || self.region_group_key.is_empty() {
+            return;
+        }
+        let active = self.world.groups.active;
+        if active.is_nil() {
+            return;
+        }
+        let changed = self
+            .settings
+            .region_groups
+            .get(&self.region_group_key)
+            .copied()
+            .is_none_or(|g| g != active);
+        if changed {
+            self.settings
+                .region_groups
+                .insert(self.region_group_key.clone(), active);
+            self.settings.save();
+        }
+    }
+
+    fn update_discord_presence(&mut self) {
+        let in_world = self.in_world();
+        if in_world && self.discord_presence.started_unix == 0 {
+            self.discord_presence.session_start();
+        }
+        let snap = if in_world && self.settings.discord.enabled {
+            let share_loc = !self.world.rlva.has("showloc");
+            let share_name = self.world.rlva_can_name(self.world.agent_id);
+            let party_size = self.radar.entries().filter(|e| !e.left_behind).count() as i32;
+            let grid = crate::world::chat_log::grid_name(
+                &self.settings.grid,
+                &self.settings.custom_login_uri,
+                self.demo,
+            );
+            Some(crate::discord_presence::snapshot_from_world(
+                &self.settings.discord,
+                &self.world,
+                self.discord_presence.started_unix,
+                share_loc,
+                share_name,
+                party_size,
+                40,
+                &grid,
+            ))
+        } else {
+            None
+        };
+        self.discord_presence.sync(&self.settings.discord, in_world, snap);
+    }
+
     fn update_radar(&mut self) {
+        self.sync_region_group();
+        self.remember_region_group();
+        self.update_discord_presence();
         use crate::world::radar::Event;
         let now = self.radar_clock.elapsed().as_secs_f64();
         // not during a teleport: our position is still the one we had in
@@ -9343,11 +9433,14 @@ impl App {
                 g[1][3] = if self.scene.rez.enabled { 1.0 } else { 0.0 };
                 g
             },
-            selection_pulse: self
-                .imports
-                .local_status
-                .pulse(Instant::now(), self.settings.reduce_motion)
-                .unwrap_or_else(|| self.scene.selection_pulse(Instant::now())),
+            selection_pulse: if self.settings.selection_particles {
+                self.imports
+                    .local_status
+                    .pulse(Instant::now(), self.settings.reduce_motion)
+                    .unwrap_or_else(|| self.scene.selection_pulse(Instant::now()))
+            } else {
+                0.0
+            },
             selection_scale: self.egui_ctx.pixels_per_point(),
             view,
             proj,

@@ -75,6 +75,17 @@ pub fn page(cx: &mut Cx, tab: usize) {
                     tr!("ui-options-autohide-chat-bar-hint"),
                     &field!(autohide_chat_bar),
                 );
+                // RadarReportChatRangeEnter / Leave (also in People › Near you › Radar).
+                cx.toggle(
+                    tr!("ui-options-radar-chat-enter"),
+                    tr!("ui-options-radar-chat-enter-hint"),
+                    &field!(radar.chat_enter),
+                );
+                cx.toggle(
+                    tr!("ui-options-radar-chat-leave"),
+                    tr!("ui-options-radar-chat-leave-hint"),
+                    &field!(radar.chat_leave),
+                );
                 cx.slider(
                     tr!("ui-options-chat-bubble-duration"),
                     tr!("ui-options-0-no-chat-bubbles-above-the-chat-bar"),

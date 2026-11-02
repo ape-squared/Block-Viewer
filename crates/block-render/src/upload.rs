@@ -157,15 +157,25 @@ impl StagingPool {
     /// `small`: a GPU with little memory (integrated, or under 4 GB).
     pub fn new(device: &wgpu::Device, small: bool) -> Arc<Self> {
         let (count, chunk_bytes) = if small { CHUNKS_SMALL } else { CHUNKS };
+        // Create unmapped, then map_async + poll. Some Windows drivers reject
+        // get_mapped_range_mut on buffers created with mapped_at_creation
+        // ("failed to get mapped range for buffer created mapped at creation").
         let free = (0..count)
             .map(|_| {
+                let buffer = device.create_buffer(&wgpu::BufferDescriptor {
+                    label: Some("streaming staging"),
+                    size: chunk_bytes,
+                    usage: wgpu::BufferUsages::MAP_WRITE | wgpu::BufferUsages::COPY_SRC,
+                    mapped_at_creation: false,
+                });
+                let (tx, rx) = std::sync::mpsc::channel();
+                buffer.map_async(wgpu::MapMode::Write, .., move |r| {
+                    let _ = tx.send(r);
+                });
+                device.poll(wgpu::PollType::wait_indefinitely()).expect("map staging chunk");
+                rx.recv().expect("map callback").expect("map staging chunk");
                 Arc::new(Chunk {
-                    buffer: device.create_buffer(&wgpu::BufferDescriptor {
-                        label: Some("streaming staging"),
-                        size: chunk_bytes,
-                        usage: wgpu::BufferUsages::MAP_WRITE | wgpu::BufferUsages::COPY_SRC,
-                        mapped_at_creation: true,
-                    }),
+                    buffer,
                     writers: AtomicU32::new(0),
                     staged: AtomicU32::new(0),
                     unmapped: AtomicBool::new(false),

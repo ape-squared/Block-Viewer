@@ -215,16 +215,40 @@ fn caption(ui: &mut egui::Ui, p: &Palette, text: &str) {
 /// from outside (`slurl`) comes first and stays chosen until another entry
 /// is, as the Legacy Viewer's location combo shows the start SLURL
 /// (FSPanelLogin::onUpdateStartSLURL).
-pub(super) fn start_menu(ui: &mut egui::Ui, combo: egui::ComboBox, start: &mut String, slurl: &mut Option<crate::slurl::Location>) {
+/// Favourites cached for the account matching the typed username (feedback board).
+fn login_favorites_for(settings: &Settings) -> Vec<crate::login_favorites::Entry> {
+    let key = (settings.login_uri(), settings.username.trim().to_lowercase());
+    let agent = crate::login_accounts::load()
+        .into_iter()
+        .find(|a| a.key() == key)
+        .and_then(|a| a.agent);
+    crate::login_favorites::load(agent.as_ref())
+}
+
+pub(super) fn start_menu(
+    ui: &mut egui::Ui,
+    combo: egui::ComboBox,
+    start: &mut String,
+    slurl: &mut Option<crate::slurl::Location>,
+    favorites: &[crate::login_favorites::Entry],
+) {
     let place = slurl.as_ref().map(crate::external_url::place_label);
-    let selected = match (&place, start.as_str()) {
-        (Some(place), _) => place.clone(),
-        (None, "home") => block_i18n::tr!("common-home").to_owned(),
-        (None, "region") => block_i18n::tr!("ui-login-region").to_owned(),
+    let fav_label = favorites.iter().find_map(|f| {
+        let loc = crate::slurl::parse(&f.place)?;
+        (slurl.as_ref() == Some(&loc)).then(|| f.name.clone())
+    });
+    let selected = match (&fav_label, &place, start.as_str()) {
+        (Some(name), _, _) => name.clone(),
+        (None, Some(place), _) => place.clone(),
+        (None, None, "home") => block_i18n::tr!("common-home").to_owned(),
+        (None, None, "region") => block_i18n::tr!("ui-login-region").to_owned(),
+        (None, None, "favorite") => block_i18n::tr!("ui-login-favorites").to_owned(),
         _ => block_i18n::tr!("ui-login-last-location").to_owned(),
     };
     let shown = combo.selected_text(selected).show_ui(ui, |ui| {
-        if let Some(place) = &place {
+        if let Some(place) = &place
+            && fav_label.is_none()
+        {
             let _ = ui.selectable_label(true, place);
         }
         for (value, text) in [
@@ -237,9 +261,21 @@ pub(super) fn start_menu(ui: &mut egui::Ui, combo: egui::ComboBox, start: &mut S
                 *slurl = None;
             }
         }
+        if !favorites.is_empty() {
+            ui.separator();
+            ui.label(RichText::new(block_i18n::tr!("ui-login-favorites")).size(11.0).color(ui.visuals().weak_text_color()));
+            for fav in favorites {
+                let loc = crate::slurl::parse(&fav.place);
+                let selected = loc.as_ref().is_some_and(|l| slurl.as_ref() == Some(l));
+                if ui.selectable_label(selected, &fav.name).clicked() {
+                    *start = "favorite".into();
+                    *slurl = loc;
+                }
+            }
+        }
     });
     // a card's narrow menu cuts the place short
-    if let Some(place) = place {
+    if let Some(place) = fav_label.or(place) {
         shown.response.on_hover_text(place);
     }
 }
@@ -633,11 +669,13 @@ pub fn show(
                         }
                         caption(&mut cols[1], p, block_i18n::tr!("ui-login-start"));
                         let width = cols[1].available_width();
+                        let favorites = login_favorites_for(settings);
                         start_menu(
                             &mut cols[1],
                             egui::ComboBox::from_id_salt("start").width(width),
                             &mut settings.start_location,
                             &mut form.start_slurl,
+                            &favorites,
                         );
                     });
                     if settings.grid == GridChoice::Custom {
@@ -789,7 +827,19 @@ pub fn show(
 
     // ---- version + destinations (right)
     if wide {
-        if chrome::sidebar(&ctx, p, icons, info, login_card, 330.0, lowest, &mut settings.start_location) {
+        let favorites = login_favorites_for(settings);
+        if chrome::sidebar(
+            &ctx,
+            p,
+            icons,
+            info,
+            login_card,
+            330.0,
+            lowest,
+            &mut settings.start_location,
+            &mut form.start_slurl,
+            &favorites,
+        ) {
             action = LoginAction::CheckUpdates;
         }
     } else if info.can_check_updates {

@@ -62,6 +62,7 @@ mod link_trust;
 mod links;
 mod logging;
 mod login_accounts;
+mod login_favorites;
 mod login_places;
 mod login_wait;
 mod lsl_keywords;

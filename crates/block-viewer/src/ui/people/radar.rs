@@ -191,14 +191,16 @@ impl Default for RadarSettings {
             name_format: 0,
             color_names: false,
             toasts: false,
-            chat_enter: false,
-            chat_leave: false,
+            // Feedback / Legacy RadarReportChatRange*: on in Block so nearby
+            // chat range arrivals and departures show without hunting the menu.
+            chat_enter: true,
+            chat_leave: true,
             draw_enter: false,
             draw_leave: false,
             // Feedback: show who entered the region in chat (off in Legacy until
             // opted in; Block turns region enter on so arrivals are visible).
             region_enter: true,
-            region_leave: false,
+            region_leave: true,
             alert_sounds: false,
             enter_scripts: false,
             leave_scripts: false,

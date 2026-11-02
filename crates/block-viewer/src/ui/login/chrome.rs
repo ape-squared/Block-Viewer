@@ -18,6 +18,8 @@ pub fn sidebar(
     width: f32,
     lowest: f32,
     start_location: &mut String,
+    start_slurl: &mut Option<crate::slurl::Location>,
+    favorites: &[crate::login_favorites::Entry],
 ) -> bool {
     let left = ctx.content_rect().right() - 32.0 - width;
     egui::Area::new(Id::unique("login_destinations"))
@@ -25,7 +27,7 @@ pub fn sidebar(
         .show(ctx, |ui| {
             ui.set_width(width);
             let height = card.height().min(lowest - card.top()).max(120.0);
-            super::destinations::panel(ui, p, icons, start_location, height, &mut || {});
+            super::destinations::panel(ui, p, icons, start_location, start_slurl, favorites, height, &mut || {});
         });
     egui::Area::new(Id::unique("login_version"))
         .pivot(egui::Align2::LEFT_BOTTOM)

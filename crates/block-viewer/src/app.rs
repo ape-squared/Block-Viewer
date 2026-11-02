@@ -13678,6 +13678,13 @@ impl App {
                 let favorites_shown = ui::bars::favorites::take_shown(&ctx);
                 let here = parcel_landmark.as_ref().is_some_and(|lm| lm.favorite);
                 let favorites = self.favorites_view(favorites_shown, here);
+                // Cache resolved favourites for the login destination list.
+                if favorites_shown && !favorites.list.is_empty() && !self.world.agent_id.is_nil() {
+                    let entries = crate::login_favorites::from_view(&favorites.list);
+                    if !entries.is_empty() {
+                        crate::login_favorites::save(&self.world.agent_id, &entries);
+                    }
+                }
                 let location_landmarks = self.world.landmarks.named(&self.world.inventory);
                 let (classic_bars, islands) = self.bars_look();
                 self.poser_consent_ui(&ctx, &p);

@@ -1363,7 +1363,7 @@ pub(crate) const TONEMAP_MIX: f32 = 0.7;
 /// an S32 of seconds).
 pub(crate) const GROUP_SNOOZE_MAX_MINUTES: u32 = i32::MAX as u32 / 60;
 
-const SETTINGS_VERSION: u32 = 30;
+const SETTINGS_VERSION: u32 = 31;
 
 /// `settings.json` from a newer build: the document, what this build loaded
 /// from it, and the top-level keys to leave as they were unless changed here
@@ -2494,6 +2494,14 @@ impl Settings {
             // a rectangle drawn from a skybox took the ground's objects far
             // below. Every earlier file wrote the former default, off
             self.build.limit_select_distance = true;
+        }
+        if self.settings_version < 31 {
+            // Nearby chat-range enter/leave announcements (feedback board /
+            // RadarReportChatRange*): on so arrivals and departures in the
+            // 20 m bubble show without opening the radar menu.
+            self.radar.chat_enter = true;
+            self.radar.chat_leave = true;
+            self.radar.region_leave = true;
         }
         if !self.audio.mic_gain.is_finite() {
             self.audio.mic_gain = 1.0;

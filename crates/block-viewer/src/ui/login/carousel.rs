@@ -81,7 +81,8 @@ pub(super) fn controls(
         let combo = egui::ComboBox::from_id_salt("accounts_start")
             .width(ui.available_width())
             .truncate();
-        super::start_menu(ui, combo, &mut account.start_location, slurl);
+        let favorites = crate::login_favorites::load(account.agent.as_ref());
+        super::start_menu(ui, combo, &mut account.start_location, slurl, &favorites);
     });
     if account.start_location == "region" && slurl.is_none() {
         ui.add(
@@ -684,10 +685,33 @@ pub fn show(
         && {
             let lowest = screen.bottom() - 92.0;
             if let Some(account) = form.accounts.get_mut(form.page) {
-                super::chrome::sidebar(&ctx, p, icons, info, card_rect, width, lowest, &mut account.start_location)
+                let favorites = crate::login_favorites::load(account.agent.as_ref());
+                super::chrome::sidebar(
+                    &ctx,
+                    p,
+                    icons,
+                    info,
+                    card_rect,
+                    width,
+                    lowest,
+                    &mut account.start_location,
+                    &mut form.start_slurl,
+                    &favorites,
+                )
             } else {
                 let mut start = String::new();
-                super::chrome::sidebar(&ctx, p, icons, info, card_rect, width, lowest, &mut start)
+                super::chrome::sidebar(
+                    &ctx,
+                    p,
+                    icons,
+                    info,
+                    card_rect,
+                    width,
+                    lowest,
+                    &mut start,
+                    &mut form.start_slurl,
+                    &[],
+                )
             }
         }
     {

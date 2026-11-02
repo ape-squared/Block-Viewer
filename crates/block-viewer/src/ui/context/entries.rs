@@ -1057,8 +1057,8 @@ fn reset_skeleton_items(ui: &mut Builder, avatar: Uuid) {
 
 fn community_submenu(ui: &mut Builder, me: Uuid) {
     ui.submenu("users-group", block_i18n::tr!("ui-context-community"), true, |ui| {
-        ui.item("users", block_i18n::tr!("common-friends"), CtxAction::OpenPeople(1));
-        ui.item("users-group", block_i18n::tr!("common-groups"), CtxAction::OpenPeople(2));
+        ui.item("users", block_i18n::tr!("common-friends"), CtxAction::OpenPeople(1, None));
+        ui.item("users-group", block_i18n::tr!("common-groups"), CtxAction::OpenPeople(2, None));
         ui.item("user-filled", block_i18n::tr!("common-profile"), CtxAction::Profile(me));
         ui.item("id-filled", block_i18n::tr!("ui-context-display-name"), CtxAction::DisplayName);
     });

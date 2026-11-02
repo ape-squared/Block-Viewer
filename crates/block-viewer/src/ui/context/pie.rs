@@ -126,7 +126,7 @@ fn layout(target: &Target, entries: &[Entry]) -> Vec<Entry> {
                 _ => Vec::new(),
             };
             let profile = take_action(&mut community, |a| matches!(a, CtxAction::Profile(_)));
-            let groups = take_action(&mut community, |a| matches!(a, CtxAction::OpenPeople(2)));
+            let groups = take_action(&mut community, |a| matches!(a, CtxAction::OpenPeople(2, _)));
             rest.extend(community);
             let remove = take_icon(&mut rest, "shirt-filled");
             let sit = seated(&mut rest);

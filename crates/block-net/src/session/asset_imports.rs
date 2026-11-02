@@ -72,10 +72,9 @@ struct SettingsCreate {
 
 /// PERM_COPY (llpermissionsflags.h).
 const PERM_COPY: u32 = 0x8000;
-/// LLFloaterPerms::getNextOwnerPerms("Settings") with Firestorm's defaults:
-/// PERM_MOVE, plus SettingsNextOwnerModify and SettingsNextOwnerTransfer
-/// (on); SettingsNextOwnerCopy is not defined, so it reads as off.
-const SETTINGS_NEXT_OWNER: u32 = 0x0008_0000 | 0x4000 | 0x2000;
+/// LLSettingsVOBase::createInventoryItem: getNextOwnerPerms("Settings") then
+/// `|= PERM_COPY` (move + modify + transfer + copy).
+const SETTINGS_NEXT_OWNER: u32 = 0x0008_0000 | 0x4000 | 0x2000 | PERM_COPY;
 
 struct Pending {
     started: Instant,
@@ -523,10 +522,12 @@ impl Session<'_> {
     }
 
     /// onInventoryItemCreated: everyone may copy the new settings item, then its asset
-    /// goes up (updateInventoryItem).
+    /// goes up (updateInventoryItem). The server may place the item in the
+    /// Settings folder even when we asked for the inventory root, so the
+    /// parent is not compared (LLSettingsVOBase::onInventoryItemCreated).
     fn settings_created(&mut self, pending: SettingsCreate, item: &InvItem) {
         let owner = self.agent_id();
-        if item.id.is_nil() || item.asset_type != pending.asset_type || item.parent != pending.folder || item.owner != owner {
+        if item.id.is_nil() || item.asset_type != pending.asset_type || item.owner != owner {
             emit(
                 self.sh,
                 NetEvent::InventoryContentSaved {
@@ -536,6 +537,14 @@ impl Session<'_> {
                 },
             );
             return;
+        }
+        if item.parent != pending.folder {
+            log::debug!(
+                "settings item {} created in {} (asked for {})",
+                item.id,
+                item.parent,
+                pending.folder
+            );
         }
         if pending.asset_type == 56 && item.everyone_mask != PERM_COPY {
             let callback = self.inventory_callback(false);

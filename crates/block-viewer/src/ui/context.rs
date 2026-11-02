@@ -466,8 +466,9 @@ pub enum CtxAction {
         tab: usize,
         editing: bool,
     },
-    /// People floater on a tab (0 nearby, 1 friends, 2 groups).
-    OpenPeople(u8),
+    /// People floater on a tab (0 nearby, 1 friends, 2 groups, 4 blocked);
+    /// `select` opens that resident's row / sheet when set.
+    OpenPeople(u8, Option<Uuid>),
     /// Camera on an avatar of a list, following it (Avatar.ZoomIn).
     ZoomAvatar(Uuid),
     /// Open the local photo Poser on this avatar (Ask consent when needed).

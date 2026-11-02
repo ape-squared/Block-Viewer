@@ -491,13 +491,7 @@ impl Glow {
                 strength: Self::STRENGTH,
                 _pad: 0.0,
             };
-            crate::upload::create_buffer_data(
-                device,
-                queue,
-                "glow params",
-                bytemuck::bytes_of(&u),
-                wgpu::BufferUsages::UNIFORM,
-            )
+            crate::upload::create_buffer_data(device, queue, "glow params", bytemuck::bytes_of(&u), wgpu::BufferUsages::UNIFORM)
         };
         let h = ubuf([Self::DELTA, 0.0]);
         let v = ubuf([0.0, Self::DELTA]);

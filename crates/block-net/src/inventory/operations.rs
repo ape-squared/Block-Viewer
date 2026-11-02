@@ -675,9 +675,10 @@ pub async fn save_task_notecard(http: &reqwest::Client, cap: &str, object: Uuid,
 }
 
 async fn upload_content(http: &reqwest::Client, cap: &str, body: &Llsd, data: Vec<u8>) -> Result<Llsd, String> {
-    let answer = crate::caps::post_llsd(http, cap, body)
-        .await
-        .map_err(|_| block_i18n::tr!("inventory-operations-the-save-was-rejected").to_owned())?;
+    let answer = crate::caps::post_llsd(http, cap, body).await.map_err(|e| {
+        log::warn!("inventory content upload negotiate failed: {e}");
+        block_i18n::tr!("inventory-operations-the-save-was-rejected").to_owned()
+    })?;
     if answer["state"].as_str() != "upload" {
         return Err(block_i18n::tr!("inventory-operations-the-server-did-not-offer-an-upload").into());
     }

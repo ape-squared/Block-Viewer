@@ -305,6 +305,16 @@ impl PeopleUi {
         nearby::open_sheet(self, id);
     }
 
+    /// Open People on `tab` with `id` selected and their sheet open (profile
+    /// "View in People"). Pins `shown_tab` so the next `tab_shown` does not
+    /// clear the selection when the window was on another tab.
+    pub fn open_person(&mut self, tab: u8, id: Uuid) {
+        self.shown_tab = Some(tab);
+        self.radar_selected = vec![id];
+        self.select(vec![id]);
+        nearby::open_sheet(self, id);
+    }
+
     /// Return from a person's sheet to the list, as its cross does.
     pub fn close_sheet(&mut self) {
         nearby::close_sheet(self);

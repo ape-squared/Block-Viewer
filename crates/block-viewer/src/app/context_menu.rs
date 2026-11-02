@@ -784,9 +784,12 @@ impl App {
                     self.contacts_ui.ask_teleport_offer(vec![id], &self.world.rlva_region_label());
                 }
             }
-            CtxAction::OpenPeople(tab) => {
+            CtxAction::OpenPeople(tab, select) => {
                 self.panels.people = true;
                 self.panels.people_tab = tab;
+                if let Some(id) = select {
+                    self.people_ui.open_person(tab, id);
+                }
             }
             CtxAction::ZoomAvatar(id) => {
                 // a drawn avatar is followed; one only known by its map

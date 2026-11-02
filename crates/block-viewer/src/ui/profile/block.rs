@@ -1018,7 +1018,7 @@ fn more_menu(resp: &Response, env: &Env, w: &Window, f: &Facts, compact: bool) {
         // dropped anywhere on the window is given (`super::give_drop`)
         // Request TP is a header button; keep overflow for less common actions.
         if compact && menu::item(ui, p, "users", block_i18n::tr!("ui-profile-block-view-in-people")) {
-            act(CtxAction::OpenPeople(people_tab(f)));
+            act(CtxAction::OpenPeople(people_tab(f), Some(id)));
         }
         if f.friend && menu::item(ui, p, "user-minus", block_i18n::tr!("ui-profile-block-remove-friend")) {
             act(CtxAction::RemoveFriend(id));
@@ -1059,8 +1059,7 @@ fn more_menu(resp: &Response, env: &Env, w: &Window, f: &Facts, compact: bool) {
     });
 }
 
-/// The People tab that has the resident: Friends, Blocked, else Nearby
-/// (the People window does not select them yet).
+/// The People tab that has the resident: Friends, Blocked, else Nearby.
 fn people_tab(f: &Facts) -> u8 {
     if f.friend {
         1
@@ -1224,7 +1223,7 @@ fn badge_widget(ui: &mut egui::Ui, env: &Env, id: Uuid, b: &Badge, is_friend: bo
                     blocked: env.world.is_avatar_blocked(&id),
                     ..Facts::default()
                 };
-                context::request(ui.ctx(), CtxAction::OpenPeople(people_tab(&facts)));
+                context::request(ui.ctx(), CtxAction::OpenPeople(people_tab(&facts), Some(id)));
             }
         }
     }

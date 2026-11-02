@@ -3683,7 +3683,12 @@ impl World {
         if !own_attachment && !self.rlva.receive_chat(&mut c, self.agent_id) {
             return;
         }
-        if c.message.is_empty() || self.lsl_bridge.hides(&c) || self.chat_blocked(&c) || self.object_chat_filtered(&c) {
+        if c.message.is_empty()
+            || self.lsl_bridge.hides(&c)
+            || self.chat_blocked(&c)
+            || self.object_chat_filtered(&c)
+            || poseball_protocol_chat(&c)
+        {
             return;
         }
         if self.receive_hand_contacts(&c, Instant::now()) {
@@ -5144,6 +5149,18 @@ impl World {
             }
         }
     }
+}
+
+/// Object chat used as an animation / MLP / nPose protocol (often
+/// `||stopanimation`, `||start`, …). It is not meant for the nearby
+/// transcript; scripts that shout it on channel 0 still reach other
+/// listeners on the simulator. Dropped for every object source.
+fn poseball_protocol_chat(c: &ChatMessage) -> bool {
+    if c.source_type != ChatSourceType::Object {
+        return false;
+    }
+    let t = c.message.trim_start();
+    t.starts_with("||")
 }
 
 /// What becomes of an AvatarAppearance message.

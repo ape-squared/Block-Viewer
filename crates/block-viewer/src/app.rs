@@ -12225,7 +12225,10 @@ impl App {
             }
             BarAction::ToggleMouselook => self.toggle_mouselook(),
             BarAction::SitGround => self.toggle_ground_sit(),
-            BarAction::StandUp => self.send(NetCommand::OneShotControl(control::STAND_UP)),
+            BarAction::StandUp => {
+                self.send(NetCommand::OneShotControl(control::STAND_UP));
+                self.stop_current_animations();
+            }
             BarAction::ResetCamera => self.reset_camera_view(),
             BarAction::BanLines(v) => self.settings.maps.ban_lines = v,
             BarAction::WorldOverlays(overlays) => {

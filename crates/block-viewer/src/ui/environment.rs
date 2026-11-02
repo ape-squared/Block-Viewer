@@ -28,6 +28,8 @@ pub enum EnvAction {
     Shared,
     /// A time of day preset (1..=4).
     Preset(u8),
+    /// Open the Fixed Environment editor on a sky or water snapshot.
+    Edit(SettingsKind),
 }
 
 /// LLFloaterEnvironmentAdjust slider scales.
@@ -153,6 +155,18 @@ impl EnvironmentUi {
                     .clicked()
                 {
                     *lighting = !*lighting;
+                }
+                if widgets::flat_button(ui, p, block_i18n::tr!("ui-env-editor-edit-sky"))
+                    .on_hover_text(block_i18n::tr!("ui-environment-edit-sky-hint"))
+                    .clicked()
+                {
+                    out.push(EnvAction::Edit(SettingsKind::Sky));
+                }
+                if widgets::flat_button(ui, p, block_i18n::tr!("ui-env-editor-edit-water"))
+                    .on_hover_text(block_i18n::tr!("ui-environment-edit-water-hint"))
+                    .clicked()
+                {
+                    out.push(EnvAction::Edit(SettingsKind::Water));
                 }
                 ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
                     if widgets::icon_button(

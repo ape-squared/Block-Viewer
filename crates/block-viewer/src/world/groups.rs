@@ -223,26 +223,9 @@ fn line(from: String, text: String, kind: ChatKind, source: Uuid, time: SystemTi
     }
 }
 
-/// Split a message at character boundaries into IM-sized pieces.
+/// Split a message into IM-sized pieces (word-aware, 1023-byte parts).
 pub fn split_im(text: &str) -> Vec<&str> {
-    let mut out = Vec::new();
-    let mut rest = text;
-    while rest.len() > MAX_IM_BYTES {
-        let mut cut = MAX_IM_BYTES;
-        while !rest.is_char_boundary(cut) {
-            cut -= 1;
-        }
-        // prefer a space near the end
-        if let Some(sp) = rest[..cut].rfind(' ').filter(|&i| i > cut / 2) {
-            cut = sp + 1;
-        }
-        out.push(&rest[..cut]);
-        rest = &rest[cut..];
-    }
-    if !rest.is_empty() {
-        out.push(rest);
-    }
-    out
+    block_net::message_split::message_parts(text)
 }
 
 impl World {
@@ -1111,8 +1094,8 @@ mod tests {
         assert!(parts.iter().all(|p| p.len() <= MAX_IM_BYTES));
         assert_eq!(parts.concat(), long);
         let words = "mot ".repeat(400);
-        let parts = split_im(&words);
-        assert!(parts[0].ends_with(' '));
-        assert_eq!(parts.concat(), words);
+        let parts = split_im(words.trim_end());
+        assert!(parts.iter().all(|p| !p.starts_with(' ') && p.ends_with("mot")));
+        assert_eq!(parts.join(" "), words.trim_end());
     }
 }

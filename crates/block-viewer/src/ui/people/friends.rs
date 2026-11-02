@@ -201,13 +201,6 @@ fn list(ui: &mut egui::Ui, c: &mut Ctx, data: &super::RadarData, st: &mut People
         .auto_shrink([false, false])
         .show(ui, |ui| {
             ui.spacing_mut().item_spacing.y = RICH_GAP;
-            // Block developers float to the top when they are friends (sort_friends).
-            ui.label(
-                egui::RichText::new(block_i18n::tr!("people-friends-support-hint"))
-                    .size(11.5)
-                    .color(c.p.muted),
-            );
-            ui.add_space(6.0);
             if all.is_empty() {
                 rows::empty(ui, c.p, block_i18n::tr!("ui-contacts-no-friends"));
             }

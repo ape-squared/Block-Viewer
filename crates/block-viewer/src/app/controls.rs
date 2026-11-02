@@ -83,7 +83,12 @@ impl App {
                 self.set_always_run(action == ControlAction::Run);
             }
             ControlAction::Fly => self.toggle_fly(),
-            ControlAction::StandUp => self.send(NetCommand::OneShotControl(control::STAND_UP)),
+            ControlAction::StandUp => {
+                self.send(NetCommand::OneShotControl(control::STAND_UP));
+                // Pose / seat scripts often keep TRIGGER_ANIMATION after
+                // stand; clear them so the avatar does not keep posing.
+                self.stop_current_animations();
+            }
             ControlAction::UseShot(i) => {
                 if let Err(text) = self.apply_camera_preset(i) {
                     self.camera_preset_message(text);

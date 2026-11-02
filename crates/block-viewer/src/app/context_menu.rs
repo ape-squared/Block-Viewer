@@ -565,7 +565,10 @@ impl App {
                 self.panels.appearance = true;
                 self.appearance_ui.open(tab, editing);
             }
-            CtxAction::StandUp => self.send(NetCommand::OneShotControl(control::STAND_UP)),
+            CtxAction::StandUp => {
+                self.send(NetCommand::OneShotControl(control::STAND_UP));
+                self.stop_current_animations();
+            }
             CtxAction::SitGround => self.send(NetCommand::OneShotControl(control::SIT_ON_GROUND)),
             CtxAction::ToggleFly => self.toggle_fly(),
             CtxAction::ResetCamera => self.reset_camera_view(),

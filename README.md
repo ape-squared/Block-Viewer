@@ -33,6 +33,7 @@ Sibling project: the [Block](https://github.com/ape-squared/Block) post-processi
 - Immersion mode (Legacy Toggle UI), build XYZ, LiveMesh branding
 - Offline **demo plaza** for local testing without a grid login
 - Windows portable zip with `Uninstall.cmd`
+- Environment window: Personal lighting plus Edit Sky / Edit Water (Sun & Moon, atmosphere, clouds)
 
 Early **0.x** — usable for explore / chat / testing. Prefer clear bug reports over marketing claims.
 

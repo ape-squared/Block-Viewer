@@ -1527,18 +1527,14 @@ impl Session<'_> {
                 channel,
                 chat_type,
             } => {
-                // SL limits chat to 1023 bytes; split longer messages. The
-                // typing notices are empty lines, sent whole
-                // (send_chat_from_viewer: "Don't break null messages").
-                let mut rest = message.as_str();
-                let mut notice = matches!(chat_type, ChatType::StartTyping | ChatType::StopTyping);
-                while !rest.is_empty() || std::mem::take(&mut notice) {
-                    let mut cut = rest.len().min(1000);
-                    while !rest.is_char_boundary(cut) {
-                        cut -= 1;
-                    }
-                    let (part, r) = rest.split_at(cut);
-                    rest = r;
+                // SL limits chat to 1023 bytes; split longer messages at a
+                // word when possible. Typing notices are empty lines, sent
+                // whole (send_chat_from_viewer: "Don't break null messages").
+                let mut parts = crate::message_split::message_parts(&message);
+                if parts.is_empty() && matches!(chat_type, ChatType::StartTyping | ChatType::StopTyping) {
+                    parts.push("");
+                }
+                for part in parts {
                     // really_send_chat_from_viewer (fsnearbychathub.cpp): an
                     // avatar cannot speak on a negative channel, the
                     // simulator drops such a ChatFromViewer. The line goes
@@ -2096,7 +2092,12 @@ impl Session<'_> {
                     self.send_main(&packet, true);
                 }
             }
-            NetCommand::SendIm { to, message } => self.send_im(to, &message, 0),
+            NetCommand::SendIm { to, message } => {
+                // longer than one IM: several in a row (LLIMModel::sendMessage)
+                for part in crate::message_split::message_parts(&message) {
+                    self.send_im(to, part, 0);
+                }
+            }
             NetCommand::OfferTeleport { to, message } => {
                 let mut m = StartLure::default();
                 m.agent_data.agent_id = self.agent_id();

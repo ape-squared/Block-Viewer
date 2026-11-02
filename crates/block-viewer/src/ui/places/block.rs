@@ -73,6 +73,8 @@ pub enum Source {
 pub struct AuroraState {
     pub source: Source,
     selected: Option<Key>,
+    /// Wait for a possible double click before changing the narrow details.
+    pub(super) pending_click: Option<(Key, f64)>,
     /// The place profile asked for the preview (OpenProfile sent).
     previewed: Option<Profile>,
     /// The notes being typed, for that place.
@@ -99,6 +101,41 @@ impl AuroraState {
             _ => Source::All,
         };
         self.selected = None;
+        self.pending_click = None;
+    }
+
+    /// True when a narrow-row single click should expand/collapse details.
+    /// Wide selection stays immediate; a double click cancels the pending
+    /// toggle so teleport confirmation keeps the previous details.
+    fn row_clicked(&mut self, key: Key, response: &egui::Response, wide: bool) -> bool {
+        if response.double_clicked() {
+            self.pending_click = None;
+            return false;
+        }
+        if wide {
+            self.pending_click = None;
+            return response.clicked();
+        }
+        let now = response.ctx.input(|i| i.time);
+        if response.clicked() {
+            let delay = response.ctx.options(|o| o.input_options.max_double_click_delay);
+            self.pending_click = Some((key, now + delay));
+        }
+        if let Some((pending, deadline)) = self.pending_click
+            && pending == key
+        {
+            if response.drag_started() || response.secondary_clicked() || response.clicked_elsewhere() {
+                self.pending_click = None;
+            } else if now >= deadline {
+                self.pending_click = None;
+                return true;
+            } else {
+                response
+                    .ctx
+                    .request_repaint_after(std::time::Duration::from_secs_f64(deadline - now));
+            }
+        }
+        false
     }
 }
 
@@ -357,6 +394,7 @@ impl PlacesUi {
         if let Some(l) = &link
             && self.aurora.previewed.as_ref() != Some(l)
         {
+            self.aurora.pending_click = None;
             self.aurora.selected = None;
             self.aurora.previewed = Some(l.clone());
         }
@@ -401,6 +439,7 @@ impl PlacesUi {
 
     /// Select a line and ask for its profile.
     fn select(&mut self, key: Key, place: &Place, inv: &Inventory, history: &[HistoryItem], actions: &mut Vec<PlacesAction>) {
+        self.aurora.pending_click = None;
         self.aurora.selected = Some(key);
         if self.aurora.note.as_ref().is_some_and(|(k, _)| *k != key) {
             self.aurora.note = None;
@@ -666,6 +705,7 @@ impl PlacesUi {
 
     fn set_source(&mut self, source: Source) {
         if self.aurora.source != source {
+            self.aurora.pending_click = None;
             self.aurora.source = source;
             self.aurora.selected = None;
         }
@@ -720,6 +760,13 @@ impl PlacesUi {
             return;
         }
         let reorder = self.aurora.source == Source::Favorites && self.filter.trim().is_empty();
+        if self
+            .aurora
+            .pending_click
+            .is_some_and(|(key, _)| !lines.iter().any(|l| matches!(l, Line::Place(k, _) if *k == key)))
+        {
+            self.aurora.pending_click = None;
+        }
         let mut rects: Vec<(Rect, Uuid)> = Vec::new();
         for l in lines {
             let (key, place) = match l {
@@ -765,7 +812,7 @@ impl PlacesUi {
             if let Some(fav) = place.favorite.filter(|_| reorder) {
                 rects.push((out.resp.rect, fav));
             }
-            if out.resp.clicked() {
+            if self.aurora.row_clicked(key, &out.resp, wide) {
                 if !wide && selected {
                     // a second click folds the row back
                     self.aurora.selected = None;

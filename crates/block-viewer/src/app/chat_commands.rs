@@ -190,6 +190,7 @@ impl App {
             },
             Command::StandUp => {
                 self.send(NetCommand::OneShotControl(block_net::control::STAND_UP));
+                self.stop_current_animations();
                 self.report_command(block_i18n::tr!("app-chat-commands-standing"));
             }
             Command::OfferTeleport(to) => {

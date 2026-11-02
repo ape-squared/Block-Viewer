@@ -18,6 +18,8 @@ const ALLOWED: &[&str] = &[
     EXE,
     EXE_ALIAS,
     "BlockViewer.bat",
+    "Uninstall.cmd",
+    "Uninstall.ps1",
     "assets",
     "LICENSE",
     "NOTICE.md",

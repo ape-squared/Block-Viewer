@@ -2258,6 +2258,7 @@ The same questions an hour long, **the most rewarding first**. Reading taken by 
 
 ## Audio and voice
 
+- ✅ Block Viewer 0.0.7 (human request, 2026-11-02; task `staging-map-0.0.7`): staging pool creation tries `mapped_at_creation` then `map_async`, skips failed chunks, falls back to smaller layouts, never panics on `BufferAsyncError` (empty pool → main-thread writes); Windows package ships `Uninstall.cmd` / `Uninstall.ps1` (updater ALLOWED).
 - ✅ Block Viewer 0.0.6 (human request, 2026-11-01; task `ship-0.0.6`): nearby chat-range enter/leave on by default (Preferences › Chat + settings v31); login Destinations / Start menu pick cached favourite landmarks; updater accepts PowerShell backslash ZIP paths; staging buffers map without `mapped_at_creation` (GPU mapped-range crash); Discord release posts kept from 0.0.5.
 - ✅ Block Viewer 0.0.5 polish (human request, 2026-11-01; task `ship-0.0.5`): Discord Rich Presence activity name "Block Viewer"; check-for-updates accepts `block-viewer.exe` / `BlockViewer.exe` packages and ships a `.sha256` sidecar for auto-install; build XYZ spins enlarged (min ~96 px); Voice Morphing applies a mic pitch shift (Warm / Breathy / Robot / Deep); Alt+Shift+U (Legacy Toggle UI) enters immersion mode; LiveMesh Blender add-on UI says Block / Block Viewer (internal `aurora_*` identifiers kept).
 

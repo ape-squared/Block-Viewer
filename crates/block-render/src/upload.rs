@@ -42,9 +42,12 @@ use std::sync::{Arc, Condvar, Mutex};
 use std::time::{Duration, Instant};
 
 /// Chunks of the pool and their size: 8 × 32 MB (a 2048² texture with its
-/// mips is 22 MB), or 4 × 16 MB on a GPU with little memory.
+/// mips is 22 MB), or 4 × 16 MB on a GPU with little memory. When those
+/// host-visible maps fail (some Windows drivers), [`StagingPool::new`]
+/// retries with a tiny layout so the viewer still starts.
 const CHUNKS: (usize, u64) = (8, 32 << 20);
 const CHUNKS_SMALL: (usize, u64) = (4, 16 << 20);
+const CHUNKS_TINY: (usize, u64) = (2, 4 << 20);
 /// When every chunk is in use, a job waits this long for one to come back
 /// (they do within a few frames) before keeping its data for a main-thread
 /// write: under a burst (thousands of textures decoded at once) the jobs
@@ -59,6 +62,66 @@ pub const STAGING_ALIGN: u64 = wgpu::COPY_BYTES_PER_ROW_ALIGNMENT as u64;
 
 fn align(v: u64) -> u64 {
     v.div_ceil(STAGING_ALIGN) * STAGING_ALIGN
+}
+
+/// Create one persistently mapped staging buffer. Tries `mapped_at_creation`
+/// first (fast path), then `map_async` when that range is rejected; returns
+/// `None` when both fail so the pool can shrink or degrade instead of panicking.
+fn create_mapped_staging(device: &wgpu::Device, chunk_bytes: u64) -> Option<wgpu::Buffer> {
+    let usage = wgpu::BufferUsages::MAP_WRITE | wgpu::BufferUsages::COPY_SRC;
+    let label = Some("streaming staging");
+
+    // Path A: mapped at creation (original). Some drivers then reject
+    // get_mapped_range_mut ("failed to get mapped range for buffer created
+    // mapped at creation") — probe a tiny range and fall through.
+    {
+        let buffer = device.create_buffer(&wgpu::BufferDescriptor {
+            label,
+            size: chunk_bytes,
+            usage,
+            mapped_at_creation: true,
+        });
+        match buffer.get_mapped_range_mut(0..STAGING_ALIGN) {
+            Ok(view) => {
+                drop(view);
+                return Some(buffer);
+            }
+            Err(e) => {
+                log::warn!(
+                    "staging: mapped_at_creation range rejected ({e}); trying map_async"
+                );
+                drop(buffer);
+            }
+        }
+    }
+
+    // Path B: create unmapped, map_async + poll (0.0.6). Can itself fail with
+    // BufferAsyncError on host-visible heaps that refuse large MAP_WRITE maps.
+    let buffer = device.create_buffer(&wgpu::BufferDescriptor {
+        label,
+        size: chunk_bytes,
+        usage,
+        mapped_at_creation: false,
+    });
+    let (tx, rx) = std::sync::mpsc::channel();
+    buffer.map_async(wgpu::MapMode::Write, .., move |r| {
+        let _ = tx.send(r);
+    });
+    if let Err(e) = device.poll(wgpu::PollType::wait_indefinitely()) {
+        log::warn!("staging: poll while mapping chunk failed: {e}");
+        return None;
+    }
+    match rx.recv() {
+        Ok(Ok(())) => Some(buffer),
+        Ok(Err(e)) => {
+            log::warn!("staging: map_async failed: {e}");
+            None
+        }
+        Err(_) => {
+            log::warn!("staging: map_async callback missing");
+            None
+        }
+    }
 }
 
 struct Chunk {
@@ -155,33 +218,31 @@ impl StagingPool {
     }
 
     /// `small`: a GPU with little memory (integrated, or under 4 GB).
+    ///
+    /// Never panics on map failures: some Windows drivers reject either
+    /// `mapped_at_creation` ranges or a fresh `map_async`. Failed chunks are
+    /// skipped; if none map, the pool stays empty and uploads fall back to
+    /// main-thread `write_*` (slower, but the viewer still starts).
     pub fn new(device: &wgpu::Device, small: bool) -> Arc<Self> {
-        let (count, chunk_bytes) = if small { CHUNKS_SMALL } else { CHUNKS };
-        // Create unmapped, then map_async + poll. Some Windows drivers reject
-        // get_mapped_range_mut on buffers created with mapped_at_creation
-        // ("failed to get mapped range for buffer created mapped at creation").
-        let free = (0..count)
-            .map(|_| {
-                let buffer = device.create_buffer(&wgpu::BufferDescriptor {
-                    label: Some("streaming staging"),
-                    size: chunk_bytes,
-                    usage: wgpu::BufferUsages::MAP_WRITE | wgpu::BufferUsages::COPY_SRC,
-                    mapped_at_creation: false,
-                });
-                let (tx, rx) = std::sync::mpsc::channel();
-                buffer.map_async(wgpu::MapMode::Write, .., move |r| {
-                    let _ = tx.send(r);
-                });
-                device.poll(wgpu::PollType::wait_indefinitely()).expect("map staging chunk");
-                rx.recv().expect("map callback").expect("map staging chunk");
-                Arc::new(Chunk {
-                    buffer,
-                    writers: AtomicU32::new(0),
-                    staged: AtomicU32::new(0),
-                    unmapped: AtomicBool::new(false),
-                })
-            })
-            .collect();
+        let preferred = if small { CHUNKS_SMALL } else { CHUNKS };
+        let (count, chunk_bytes, free) = Self::build_free_chunks(device, preferred)
+            .or_else(|| Self::build_free_chunks(device, CHUNKS_SMALL))
+            .or_else(|| Self::build_free_chunks(device, CHUNKS_TINY))
+            .unwrap_or_else(|| {
+                log::error!(
+                    "staging: no host-visible MAP_WRITE chunk could be mapped; \
+                     streaming uploads disabled (main-thread writes only)"
+                );
+                (0, preferred.1, Vec::new())
+            });
+        if count > 0 && (count, chunk_bytes) != preferred {
+            log::warn!(
+                "staging: using {count}×{} MiB chunks (preferred was {}×{} MiB)",
+                chunk_bytes >> 20,
+                preferred.0,
+                preferred.1 >> 20
+            );
+        }
         Arc::new(StagingPool {
             state: Mutex::new(PoolState {
                 open: None,
@@ -193,6 +254,30 @@ impl StagingPool {
             returned: Default::default(),
             write_turn: Mutex::new(()),
         })
+    }
+
+    /// Build as many mapped chunks as the device accepts for `(count, size)`.
+    /// `None` when every attempt failed (caller may try a smaller layout).
+    fn build_free_chunks(
+        device: &wgpu::Device,
+        (count, chunk_bytes): (usize, u64),
+    ) -> Option<(usize, u64, Vec<Arc<Chunk>>)> {
+        let free: Vec<Arc<Chunk>> = (0..count)
+            .filter_map(|_| {
+                let buffer = create_mapped_staging(device, chunk_bytes)?;
+                Some(Arc::new(Chunk {
+                    buffer,
+                    writers: AtomicU32::new(0),
+                    staged: AtomicU32::new(0),
+                    unmapped: AtomicBool::new(false),
+                }))
+            })
+            .collect();
+        if free.is_empty() {
+            None
+        } else {
+            Some((free.len(), chunk_bytes, free))
+        }
     }
 
     fn lock(&self) -> std::sync::MutexGuard<'_, PoolState> {

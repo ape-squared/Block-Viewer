@@ -200,7 +200,10 @@ impl Default for RadarSettings {
             // Feedback: show who entered the region in chat (off in Legacy until
             // opted in; Block turns region enter on so arrivals are visible).
             region_enter: true,
-            region_leave: true,
+            // Region leave stays off by default: chat-range leave covers
+            // nearby departures; a separate "left the region" for far
+            // avatars is opt-in from the radar menu.
+            region_leave: false,
             alert_sounds: false,
             enter_scripts: false,
             leave_scripts: false,

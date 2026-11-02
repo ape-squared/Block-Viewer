@@ -10,7 +10,7 @@ use std::sync::Arc;
 use std::time::Instant;
 
 pub const NOTECARD: Uuid = Uuid::from_u128(0xd0d0_a000_0000_0000_0000_0000_0000_0010);
-pub const NOTECARD_TEXT: &str = "# Block AO\n[ Standing ]Aurora Stand A|Aurora Stand B\n[ Walking ]Aurora Walk\n[ Running ]Aurora Run\n[ Sitting ]Aurora Sit\n[ Hovering ]Aurora Fly\n[ Typing ]Aurora Type\n";
+pub const NOTECARD_TEXT: &str = "# Block AO\n[ Standing ]Block Stand A|Block Stand B\n[ Walking ]Block Walk\n[ Running ]Block Run\n[ Sitting ]Block Sit\n[ Hovering ]Block Fly\n[ Typing ]Block Type\n";
 const ASSETS: [Uuid; 7] = [
     Uuid::from_u128(0xd0d0_a000_0000_0000_0000_0000_0000_0001),
     Uuid::from_u128(0xd0d0_a000_0000_0000_0000_0000_0000_0002),
@@ -200,13 +200,13 @@ pub fn seed_interface(inv: &mut Inventory, owner: Uuid, mode: &str) -> Uuid {
     let original = inv
         .items
         .values()
-        .find(|a| a.name == "Aurora Stand A" && a.asset_type == 20)
+        .find(|a| a.name == "Block Stand A" && a.asset_type == 20)
         .cloned();
     if let Some(original) = original {
         for (index, letter) in ['C', 'D', 'E', 'F'].into_iter().enumerate() {
             let mut item = original.clone();
             item.id = Uuid::new_v4();
-            item.name = format!("Aurora Stand {letter}");
+            item.name = format!("Block Stand {letter}");
             item.asset_id = ASSETS[index % 2];
             let item_id = item.id;
             inv.add_items(vec![item]);
@@ -269,13 +269,13 @@ fn seed_options(inv: &mut Inventory, owner: Uuid, swimming: bool) -> Uuid {
     folder(inv, root, originals, block_i18n::tr!("ao-demo-folder"), -1);
     let mut animations = Vec::new();
     let mut names: Vec<String> = [
-        "Aurora Stand A",
-        "Aurora Stand B",
-        "Aurora Walk",
-        "Aurora Run",
-        "Aurora Sit",
-        "Aurora Fly",
-        "Aurora Type",
+        "Block Stand A",
+        "Block Stand B",
+        "Block Walk",
+        "Block Run",
+        "Block Sit",
+        "Block Fly",
+        "Block Type",
     ]
     .into_iter()
     .map(str::to_owned)
@@ -308,7 +308,7 @@ fn seed_options(inv: &mut Inventory, owner: Uuid, swimming: bool) -> Uuid {
     inv.add_items(vec![InvItem {
         id: NOTECARD,
         parent: originals,
-        name: "Aurora AO import".into(),
+        name: "Block AO import".into(),
         asset_type: 7,
         inv_type: 7,
         owner,

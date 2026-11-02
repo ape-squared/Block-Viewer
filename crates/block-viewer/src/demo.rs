@@ -909,7 +909,7 @@ pub fn flash_message(agent: Uuid, secs: f64) -> Option<NetEvent> {
 }
 
 /// AURORA_DEMO_SNOOZE=<seconds>[,auto][,ask]: a group chat's snooze
-/// (`world/groups.rs`). Tess writes in the Aurora Builders chat every 6
+/// (`world/groups.rs`). Tess writes in the Block Builders chat every 6
 /// seconds from the 10th in world; a snooze lasts `<seconds>` instead of
 /// the setting's minutes, to watch it end; `auto` snoozes that chat by
 /// itself at the 14th second; `ask` asks the duration first, as the setting
@@ -983,7 +983,7 @@ pub fn snooze_message(agent: Uuid) -> Option<NetEvent> {
         message: block_i18n::tr!("demo-snooze-message", n = due as i64),
         offline: false,
         from_group: false,
-        binary_bucket: b"Aurora Builders\0".to_vec(),
+        binary_bucket: b"Block Builders\0".to_vec(),
         timestamp: 0,
     }))
 }
@@ -1078,7 +1078,7 @@ pub fn bubbles_scenario() -> Option<Bubbles> {
 /// `bubbles…`): conversations in their own windows (#717).
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Popout {
-    /// The friend's IM and the Aurora Builders group popped out by hand.
+    /// The friend's IM and the Block Builders group popped out by hand.
     Hand,
     /// The option on, and the group opened as from a notification.
     Option,
@@ -1210,7 +1210,7 @@ pub fn chat_lines_events() -> Vec<NetEvent> {
         .into_iter()
         .flat_map(|(volume, text)| {
             [
-                say(DEMO_AGENT, "Aurora Demo", text, false, volume),
+                say(DEMO_AGENT, "Block Demo", text, false, volume),
                 say(object, block_i18n::tr!("common-demo-hud"), text, true, volume),
             ]
         })
@@ -1376,9 +1376,9 @@ pub fn bubbles_lines(world: &mut crate::world::World, view: Bubbles) {
                         ("flickr", "https://flic.kr/p/2nDemoAb"),
                         ("imgur", "https://imgur.com/a/DemoAlb"),
                         ("lightshot", "https://prnt.sc/demo42"),
-                        ("reddit", "https://www.reddit.com/r/AuroraDemo/comments/demo01/a_new_build/"),
+                        ("reddit", "https://www.reddit.com/r/BlockDemo/comments/demo01/a_new_build/"),
                         ("bluesky", "https://bsky.app/profile/block-demo.bsky.social/post/3demopost2abc"),
-                        ("x", "https://x.com/AuroraDemo/status/1850000000000000001"),
+                        ("x", "https://x.com/BlockDemo/status/1850000000000000001"),
                         ("bluesky", "https://bsky.app/profile/block-demo.bsky.social/post/3demolabelled"),
                         ("nextcloud", "https://cloud.example.org/s/DemoFolder3Pq9"),
                         ("nextcloud", "https://cloud.example.org/s/DemoShare7xKq2"),
@@ -1722,7 +1722,7 @@ pub fn block_lines(world: &mut crate::world::World, scene: AuroraScene) {
             block_i18n::tr!("demo-block-tess"),
         ),
     );
-    // a second group, with its insignia (Aurora Builders has none)
+    // a second group, with its insignia (Block Builders has none)
     let wolves = world.groups.sessions.entry(DEMO_GROUP2).or_default();
     wolves.name = block_i18n::tr!("demo-northern-wolves").to_owned();
     wolves.group = true;
@@ -1818,26 +1818,26 @@ pub fn block_events(scene: &AuroraScene) -> Vec<NetEvent> {
         // ours, whispered then shouted, tagged like anyone's (#1323)
         say(
             DEMO_AGENT,
-            "Aurora Demo",
+            "Block Demo",
             block_i18n::tr!("demo-block-local-own-whisper").to_owned(),
             ChatType::Whisper,
         ),
         say(
             DEMO_AGENT,
-            "Aurora Demo",
+            "Block Demo",
             block_i18n::tr!("demo-block-local-own-shout").to_owned(),
             ChatType::Shout,
         ),
         say(
             DEMO_AGENT,
-            "Aurora Demo",
+            "Block Demo",
             block_i18n::tr!("demo-block-local-emote").to_owned(),
             ChatType::Normal,
         ),
         say(
             DEMO_NOVA,
             block_i18n::tr!("demo-nova-example"),
-            block_i18n::tr!("demo-block-mention", name = "Aurora Demo"),
+            block_i18n::tr!("demo-block-mention", name = "Block Demo"),
             ChatType::Normal,
         ),
     ];
@@ -2047,7 +2047,7 @@ pub fn applinks_text(item: Option<(Uuid, String)>) -> String {
             "demo-applinks-preview",
             who = format!("{app}/agent/{DEMO_LOUP}/about"),
             group = format!("{app}/group/{DEMO_GROUP2}/about"),
-            place = format!("{app}/teleport/Aurora%20Demo/128/128/25")
+            place = format!("{app}/teleport/Block%20Demo/128/128/25")
         );
     }
     if applinks_actions_scene() {
@@ -2059,10 +2059,10 @@ pub fn applinks_text(item: Option<(Uuid, String)>) -> String {
             .map(|verb| format!("[{app}/agent/{DEMO_LOUP}/{verb} {resident}]"))
             .collect();
         links.extend([
-            format!("[{app}/group/{DEMO_GROUP1}/about Aurora Builders]"),
-            format!("[{app}/parcel/{}/about Aurora Demo]", land::PARCEL_UUID),
-            format!("[{app}/worldmap/Aurora%20Demo/128/128/25 Aurora Demo]"),
-            format!("[{app}/teleport/Aurora%20Demo/128/128/25 Aurora Demo]"),
+            format!("[{app}/group/{DEMO_GROUP1}/about Block Builders]"),
+            format!("[{app}/parcel/{}/about Block Demo]", land::PARCEL_UUID),
+            format!("[{app}/worldmap/Block%20Demo/128/128/25 Block Demo]"),
+            format!("[{app}/teleport/Block%20Demo/128/128/25 Block Demo]"),
             format!("[{app}/inventory/show inventory]"),
             format!("[{app}/search/people/Orion%20Exemple {resident}]"),
             format!("[{app}/frobnicate/1 {resident}]"),
@@ -2092,7 +2092,7 @@ pub fn applinks_text(item: Option<(Uuid, String)>) -> String {
         format!("[{app}/group/{DEMO_GROUP1}/about our group]"),
         format!("{app}/parcel/{}/about", land::PARCEL_UUID),
         format!(
-            "{app}/objectim/{}?name=Welcome%20Sign&owner={DEMO_LOUP}&slurl=Aurora%20Demo/140/120/25",
+            "{app}/objectim/{}?name=Welcome%20Sign&owner={DEMO_LOUP}&slurl=Block%20Demo/140/120/25",
             Uuid::from_u128(0x5106)
         ),
         format!("{app}/experience/{experience}/profile"),
@@ -2356,7 +2356,7 @@ fn demo_profile(id: Uuid) -> block_net::AvatarProfile {
     let groups = vec![
         block_net::ProfileGroup {
             id: DEMO_GROUP1,
-            name: "Aurora Builders".into(),
+            name: "Block Builders".into(),
             insignia: Uuid::nil(),
         },
         block_net::ProfileGroup {
@@ -2805,7 +2805,7 @@ pub fn demo_reply(cmd: &block_net::NetCommand) -> Vec<NetEvent> {
                     .map(|id| {
                         let glyphs = glyphs::resident(id);
                         let (first, last, dn) = if *id == DEMO_AGENT {
-                            ("Aurora", "Demo", "")
+                            ("Block", "Demo", "")
                         } else if let Some(long) = long_name(id) {
                             long
                         } else if let Some(resident) = people::name(id) {
@@ -2868,8 +2868,8 @@ pub fn demo_reply(cmd: &block_net::NetCommand) -> Vec<NetEvent> {
             let name = block_net::AvatarNameData {
                 id: DEMO_AGENT,
                 username: "aurora.demo".into(),
-                display_name: if reset { "Aurora Demo".into() } else { new.clone() },
-                legacy_first: "Aurora".into(),
+                display_name: if reset { "Block Demo".into() } else { new.clone() },
+                legacy_first: "Block".into(),
                 legacy_last: "Demo".into(),
                 is_default: reset,
                 next_update: now + 7.0 * 86400.0,
@@ -2970,7 +2970,7 @@ pub fn demo_reply(cmd: &block_net::NetCommand) -> Vec<NetEvent> {
                 block_net::GroupMembership {
                     powers: group::my_powers(),
                     contribution: group::MY_CONTRIBUTION,
-                    ..g(DEMO_GROUP1, "Aurora Builders", true)
+                    ..g(DEMO_GROUP1, "Block Builders", true)
                 },
                 // the one with an insignia (its search profile's): the
                 // lists show it, the others the group glyph
@@ -2990,7 +2990,7 @@ pub fn demo_reply(cmd: &block_net::NetCommand) -> Vec<NetEvent> {
                 NetEvent::Groups(groups),
                 NetEvent::ActiveGroup {
                     id: DEMO_GROUP1,
-                    name: "Aurora Builders".into(),
+                    name: "Block Builders".into(),
                     title: block_i18n::tr!("demo-builder").into(),
                 },
                 NetEvent::SessionInvite(block_net::SessionInvite {
@@ -2998,7 +2998,7 @@ pub fn demo_reply(cmd: &block_net::NetCommand) -> Vec<NetEvent> {
                     from: DEMO_NOVA,
                     from_name: block_i18n::tr!("demo-nova-example").into(),
                     message: block_i18n::tr!("demo-hi-everyone-we-re-building-the-plaza-tonight").into(),
-                    session_name: "Aurora Builders".into(),
+                    session_name: "Block Builders".into(),
                     offline: false,
                     timestamp: 0,
                 }),
@@ -3045,7 +3045,7 @@ pub fn demo_reply(cmd: &block_net::NetCommand) -> Vec<NetEvent> {
                         message: block_i18n::tr!("demo-message-from-a-blocked-resident").into(),
                         offline: false,
                         from_group: false,
-                        binary_bucket: b"Aurora Builders\0".to_vec(),
+                        binary_bucket: b"Block Builders\0".to_vec(),
                         timestamp: 0,
                     }));
                     ev.push(NetEvent::InstantMessage(block_net::InstantMessage {
@@ -3057,7 +3057,7 @@ pub fn demo_reply(cmd: &block_net::NetCommand) -> Vec<NetEvent> {
                         message: block_i18n::tr!("demo-arriving-with-textures").into(),
                         offline: false,
                         from_group: false,
-                        binary_bucket: b"Aurora Builders\0".to_vec(),
+                        binary_bucket: b"Block Builders\0".to_vec(),
                         timestamp: 0,
                     }));
                     ev
@@ -3167,7 +3167,7 @@ pub fn demo_reply(cmd: &block_net::NetCommand) -> Vec<NetEvent> {
         }
         // local chat echoes back like the simulator does
         block_net::NetCommand::Chat { message, chat_type, .. } => vec![NetEvent::Chat(block_net::ChatMessage {
-            from_name: "Aurora Demo".into(),
+            from_name: "Block Demo".into(),
             source_id: Uuid::from_u128(0xA0E0_A6E1_0000_0000_0000_0000_0000_0001),
             owner_id: Uuid::from_u128(0xA0E0_A6E1_0000_0000_0000_0000_0000_0001),
             source_type: block_net::ChatSourceType::Agent,
@@ -3501,7 +3501,7 @@ pub fn action_avatar(seated: bool) -> ObjectUpdate {
     o.full_id = DEMO_AGENT;
     o.pcode = LL_PCODE_LEGACY_AVATAR;
     o.parent_id = if seated { 970 } else { 0 };
-    o.name_values = "FirstName STRING RW SV Aurora\nLastName STRING RW SV Demo".into();
+    o.name_values = "FirstName STRING RW SV Block\nLastName STRING RW SV Demo".into();
     o
 }
 
@@ -4051,7 +4051,7 @@ pub fn events() -> Vec<NetEvent> {
         agent_id: agent,
         session_id: Uuid::nil(),
         secure_session_id: Uuid::nil(),
-        first_name: "Aurora".into(),
+        first_name: "Block".into(),
         last_name: "Demo".into(),
         sim_ip: std::net::Ipv4Addr::LOCALHOST,
         sim_port: 0,
@@ -5362,7 +5362,7 @@ pub fn events() -> Vec<NetEvent> {
     // our avatar + a second one
     let mut avatars = Vec::new();
     for (k, (pos, first, last)) in [
-        (Vec3::new(132.0, 126.0, 0.0), "Aurora", "Demo"),
+        (Vec3::new(132.0, 126.0, 0.0), "Block", "Demo"),
         (
             Vec3::new(136.0, 128.5, 0.0),
             block_i18n::tr!("demo-wolf"),
@@ -5390,7 +5390,7 @@ pub fn events() -> Vec<NetEvent> {
         } else {
             Uuid::from_u128(0xA0E0_A6E1_0000_0000_0000_0000_0000_0002)
         };
-        o.name_values = format!("FirstName STRING RW SV {first}\nLastName STRING RW SV {last}\nTitle STRING RW SV Aurora");
+        o.name_values = format!("FirstName STRING RW SV {first}\nLastName STRING RW SV {last}\nTitle STRING RW SV Block");
         avatars.push(o);
     }
     // Violet Wolf wears a hat (skull) and holds a glowing orb (right hand):
@@ -5678,7 +5678,7 @@ fn notification_samples(notifications: bool, inventory_offer: bool, menu: Option
     if menu == "links" {
         let message = format!(
             "{}\n#1 secondlife:///app/agent/{DEMO_FRIEND}/about\n#2 secondlife:///app/agent/{DEMO_GIVER}/about\n\
-             #3 secondlife:///app/group/{DEMO_GROUP1}/about\n#4 secondlife:///app/region/Aurora%20D%C3%A9mo/128/128/25",
+             #3 secondlife:///app/group/{DEMO_GROUP1}/about\n#4 secondlife:///app/region/Block%20Demo/128/128/25",
             block_i18n::tr!("demo-pick-a-resident")
         );
         ev.push(NetEvent::ScriptDialog {
@@ -8496,7 +8496,7 @@ pub fn sit_events(frame: u64) -> Vec<NetEvent> {
         o.pcode = LL_PCODE_LEGACY_AVATAR;
         o.full_id = DEMO_AGENT;
         o.parent_id = parent;
-        o.name_values = "FirstName STRING RW SV Aurora\nLastName STRING RW SV Demo\nTitle STRING RW SV Aurora".into();
+        o.name_values = "FirstName STRING RW SV Block\nLastName STRING RW SV Demo\nTitle STRING RW SV Block".into();
         o
     };
     let update = |objects: Vec<ObjectUpdate>| NetEvent::ObjectUpdates { handle: HANDLE, objects };

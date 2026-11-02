@@ -683,11 +683,13 @@ fn main_menus(ui: &mut egui::Ui, p: &Palette, panels: &mut Panels, st: &StatusIn
             *action = BarAction::TeleportHome;
         }
         menu::separator(ui, p);
-        if menu::item(ui, p, "armchair", block_i18n::tr!("ui-bars-sit-on-ground")) {
+        // Legacy: Sit while standing, Stand while seated (not both at once).
+        if st.seated {
+            if menu::item(ui, p, "man-filled", block_i18n::tr!("common-stand-up")) {
+                *action = BarAction::StandUp;
+            }
+        } else if menu::item(ui, p, "armchair", block_i18n::tr!("ui-bars-sit-on-ground")) {
             *action = BarAction::SitGround;
-        }
-        if menu::item(ui, p, "man-filled", block_i18n::tr!("common-stand-up")) {
-            *action = BarAction::StandUp;
         }
         let fly = if st.flying {
             block_i18n::tr!("ui-bars-stop-flying")
@@ -1480,6 +1482,19 @@ fn state_chip(ui: &mut egui::Ui, p: &Palette, text: &str) {
     super::widgets::paint_ink_centered(ui.painter(), galley, rect.center(), p.ink);
 }
 
+/// Legacy-style Stand control while seated: same chip look, clickable.
+fn stand_chip(ui: &mut egui::Ui, p: &Palette, text: &str) -> egui::Response {
+    let galley = ui
+        .painter()
+        .layout_no_wrap(text.to_owned(), egui::FontId::proportional(11.5), p.on_accent);
+    let (rect, response) = ui.allocate_exact_size(Vec2::new(galley.size().x + 14.0, CHIP_HEIGHT), egui::Sense::click());
+    let radius = ui.visuals().window_corner_radius;
+    let fill = if response.hovered() { p.violet } else { p.violet.gamma_multiply(0.85) };
+    ui.painter().rect_filled(rect, radius, fill);
+    super::widgets::paint_ink_centered(ui.painter(), galley, rect.center(), p.on_accent);
+    response.on_hover_cursor(egui::CursorIcon::PointingHand).on_hover_text(text)
+}
+
 /// The colour and the name of the voice connection's state.
 fn voice_state(p: &Palette, light: crate::voice::VoiceLight) -> (Color32, &'static str) {
     use crate::voice::VoiceLight as L;
@@ -1859,13 +1874,12 @@ pub fn top_bars(
                         let (rect, _) = ui.allocate_exact_size(Vec2::new(w, size), egui::Sense::hover());
                         super::chat::thumbnails::reserve_top(ui.ctx(), rect, size, false);
                     }
-                    for (on, text) in [
-                        (st.flying, block_i18n::tr!("ui-bars-flying")),
-                        (st.seated, block_i18n::tr!("ui-bars-sitting")),
-                    ] {
-                        if on {
-                            state_chip(ui, p, text);
-                        }
+                    if st.flying {
+                        state_chip(ui, p, block_i18n::tr!("ui-bars-flying"));
+                    }
+                    // Legacy Viewer: a Stand control while seated (not only Me › Stand up).
+                    if st.seated && stand_chip(ui, p, block_i18n::tr!("common-stand-up")).clicked() {
+                        action = BarAction::StandUp;
                     }
                     ui.add_space(4.0);
                     egui::Frame::new()

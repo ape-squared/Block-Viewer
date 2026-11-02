@@ -299,11 +299,10 @@ pub(super) fn strip(
     if clicked.double_clicked() {
         context::double_click(inv, id, st, prefs, facts, actions);
     }
-    let name = rules::name(inv, id);
-    let name = if id == inv.root || id == inv.lib_root {
+    let name = if inv.folders.contains_key(&id) {
         folder_name(inv, id)
     } else {
-        name
+        rules::name(inv, id)
     };
     body.add(egui::Label::new(sheet::semibold(&body, &name, 13.0, p.ink)).truncate());
     if let Some(folder) = inv.folders.get(&id) {

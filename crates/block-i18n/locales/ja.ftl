@@ -8502,6 +8502,7 @@ people-sheet-has-online = この人のオンライン状況が見える
 people-sheet-has-map = この人の居場所を確認できる
 people-sheet-gone = もう近くにいません。
 people-friends-add = 住人にフレンド登録を申し込む
+people-friends-support-hint = Blockチーム（Heard、4krazy）はフレンドのときリストの先頭に表示されます。サポート連絡用です。
 people-friends-sort-name = 名前で並べ替え
 people-friends-sort-username = ユーザ名で並べ替え
 people-friends-sort-status = ステータスで並べ替え

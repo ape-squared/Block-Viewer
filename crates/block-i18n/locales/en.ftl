@@ -8509,6 +8509,7 @@ people-sheet-has-online = I see when they are online
 people-sheet-has-map = I can locate them
 people-sheet-gone = No longer near you.
 people-friends-add = Offer friendship to a resident
+people-friends-support-hint = Block team (Heard, 4krazy) stay at the top when they are your friends — easy contact for support.
 people-friends-sort-name = Sort by name
 people-friends-sort-username = Sort by username
 people-friends-sort-status = Sort by status

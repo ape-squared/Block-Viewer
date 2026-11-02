@@ -220,10 +220,17 @@ const SORT_STATUS: u8 = 2;
 /// The friends in the order of the tab: by name as it is shown, by username,
 /// or online first then by name (LLAvatarItemNameComparator,
 /// LLAvatarItemUserNameComparator, LLAvatarItemStatusComparator).
-fn sort_friends(friends: &mut [Friend], sort: u8, name: impl Fn(&Uuid) -> String, username: impl Fn(&Uuid) -> String) {
+/// Block developers / team always float to the top for support contact.
+fn sort_friends(
+    friends: &mut [Friend],
+    sort: u8,
+    name: impl Fn(&Uuid) -> String,
+    username: impl Fn(&Uuid) -> String,
+    is_team: impl Fn(&Uuid) -> bool,
+) {
     friends.sort_by_cached_key(|f| {
         let key = if sort == SORT_USERNAME { username(&f.id) } else { name(&f.id) };
-        (sort == SORT_STATUS && !f.online, key.to_lowercase())
+        (!is_team(&f.id), sort == SORT_STATUS && !f.online, key.to_lowercase())
     });
 }
 
@@ -723,6 +730,7 @@ fn friends_tab(
         settings.sort,
         |id| world.social.name_of(id),
         |id| radar_name(world, id, 1),
+        |id| crate::world::staff::is_block_team(world, id),
     );
     let online = friends.iter().filter(|f| f.online).count();
     let l1 = block_i18n::tr!("ui-people-online", online = format!("{}", online));
@@ -1060,7 +1068,7 @@ mod tests {
         let username = |id: &Uuid| names[id.as_u128() as usize].1.to_owned();
         let order = |sort: u8| -> Vec<u128> {
             let mut friends = vec![friend(1, false), friend(2, true), friend(3, false)];
-            sort_friends(&mut friends, sort, name, username);
+            sort_friends(&mut friends, sort, name, username, |_| false);
             friends.iter().map(|f| f.id.as_u128()).collect()
         };
         // whatever the case
@@ -1068,6 +1076,10 @@ mod tests {
         assert_eq!(order(SORT_USERNAME), vec![1, 3, 2]);
         // online first, then by name
         assert_eq!(order(SORT_STATUS), vec![2, 3, 1]);
+        // team members float above status/name order
+        let mut pinned = vec![friend(1, true), friend(2, true), friend(3, false)];
+        sort_friends(&mut pinned, SORT_STATUS, name, username, |id| id.as_u128() == 3);
+        assert_eq!(pinned.iter().map(|f| f.id.as_u128()).collect::<Vec<_>>(), vec![3, 2, 1]);
         // online first (the contact list's order), pictures and rights shown
         let defaults = FriendsSettings::default();
         assert_eq!(defaults.sort, SORT_STATUS);

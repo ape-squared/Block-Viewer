@@ -36,9 +36,13 @@ pub fn normalize_username(raw: &str) -> String {
     s
 }
 
-/// The only Block developer for now: Heard (`heard` / `heard.resident`).
+/// Block developers recognised by username (legacy or modern form).
+const DEV_USERNAMES: &[&str] = &["heard", "4krazy"];
+
+/// Whether `raw` is a known Block developer username.
 pub fn is_block_dev_name(raw: &str) -> bool {
-    normalize_username(raw) == "heard"
+    let n = normalize_username(raw);
+    DEV_USERNAMES.iter().any(|d| n == *d)
 }
 
 /// Whether this avatar is Block team (by UUID and/or username).
@@ -81,13 +85,18 @@ mod tests {
     use super::*;
 
     #[test]
-    fn heard_is_block_dev() {
+    fn heard_and_4krazy_are_block_devs() {
         for name in ["heard", "Heard", "heard.resident", "Heard Resident", "HEARD.RESIDENT"] {
             assert!(is_block_dev_name(name), "{name}");
             assert_eq!(mark_named(&Uuid::from_u128(1), name), Some(Mark::Block));
         }
+        for name in ["4krazy", "4Krazy", "4krazy.resident", "4Krazy Resident"] {
+            assert!(is_block_dev_name(name), "{name}");
+            assert_eq!(mark_named(&Uuid::from_u128(2), name), Some(Mark::Block));
+        }
         assert!(!is_block_dev_name("hearing"));
         assert!(!is_block_dev_name("heardish"));
+        assert!(!is_block_dev_name("4krazyy"));
         assert_eq!(mark_named(&Uuid::from_u128(1), "Nova Example"), None);
     }
 

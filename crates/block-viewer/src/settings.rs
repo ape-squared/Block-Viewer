@@ -1363,7 +1363,7 @@ pub(crate) const TONEMAP_MIX: f32 = 0.7;
 /// an S32 of seconds).
 pub(crate) const GROUP_SNOOZE_MAX_MINUTES: u32 = i32::MAX as u32 / 60;
 
-const SETTINGS_VERSION: u32 = 31;
+const SETTINGS_VERSION: u32 = 32;
 
 /// `settings.json` from a newer build: the document, what this build loaded
 /// from it, and the top-level keys to leave as they were unless changed here
@@ -2502,6 +2502,12 @@ impl Settings {
             self.radar.chat_enter = true;
             self.radar.chat_leave = true;
             self.radar.region_leave = true;
+        }
+        if self.settings_version < 32 {
+            // 0.0.6 turned region_leave on with chat-range leave; toggling
+            // chat leave off still left "left the region" for nearby people.
+            // Region leave is opt-in again; chat-range leave covers nearby.
+            self.radar.region_leave = false;
         }
         if !self.audio.mic_gain.is_finite() {
             self.audio.mic_gain = 1.0;

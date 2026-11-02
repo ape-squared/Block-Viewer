@@ -1195,7 +1195,19 @@ pub(crate) fn folder_name(inv: &Inventory, id: Uuid) -> String {
     } else if inv.folders.get(&id).is_some_and(|f| f.info.type_default == 50) {
         block_i18n::tr!("received-marketplace-folder").to_owned()
     } else {
-        rules::name(inv, id)
+        display_branded_folder_name(&rules::name(inv, id))
+    }
+}
+
+/// Show Block names for folders that still carry the former Aurora label on
+/// the account (inventory is not renamed on the grid; display only).
+pub(crate) fn display_branded_folder_name(name: &str) -> String {
+    match name {
+        "#Aurora" => "#Block".into(),
+        "Aurora Library" => "Block Library".into(),
+        "Aurora AO" => "Block AO".into(),
+        "Aurora AO (Legacy Viewer import)" => "Block AO (Legacy Viewer import)".into(),
+        other => other.to_owned(),
     }
 }
 

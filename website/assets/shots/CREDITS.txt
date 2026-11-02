@@ -1,0 +1,13 @@
+Image credits for website/assets/shots/
+
+Block product screenshots (world.webp, login.webp)
+  Taken by the Block Viewer team / contributors. All rights reserved
+  for the capture; used here to document the client.
+
+Free-use Second Life landscapes (landscape-05.webp, landscape-16.webp)
+  Source: Wikimedia Commons — "Second Life Landscape 05.jpg" and
+  "Second Life Landscape 16.jpg" by User:Slick.
+  License: CC0 1.0 Universal (public domain dedication).
+  https://commons.wikimedia.org/wiki/File:Second_Life_Landscape_05.jpg
+  https://commons.wikimedia.org/wiki/File:Second_Life_Landscape_16.jpg
+  https://creativecommons.org/publicdomain/zero/1.0/

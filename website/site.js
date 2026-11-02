@@ -20,6 +20,26 @@
     reveals.forEach((el) => el.classList.add("is-in"));
   }
 
+  // Steps get the edge mark when they enter view
+  document.querySelectorAll(".steps li").forEach((li) => {
+    if (li.classList.contains("reveal")) return;
+    li.classList.add("reveal");
+    if (reduce) li.classList.add("is-in");
+    else if ("IntersectionObserver" in window) {
+      const io = new IntersectionObserver(
+        (entries) => {
+          for (const e of entries) {
+            if (!e.isIntersecting) continue;
+            e.target.classList.add("is-in");
+            io.unobserve(e.target);
+          }
+        },
+        { threshold: 0.2 }
+      );
+      io.observe(li);
+    }
+  });
+
   const nav = document.querySelector("[data-nav]");
   if (nav) {
     const onScroll = () => nav.classList.toggle("is-scrolled", window.scrollY > 8);
@@ -41,10 +61,10 @@
     });
   }
 
-  // latest.json → download CTA (resolve next to stylesheet so any Pages base works)
-  const verEl = document.querySelector("[data-latest-version]");
-  const dlEl = document.querySelector("[data-latest-download]");
-  if (verEl || dlEl) {
+  // latest.json → every [data-latest-version] / [data-latest-download]
+  const verEls = document.querySelectorAll("[data-latest-version]");
+  const dlEls = document.querySelectorAll("[data-latest-download]");
+  if (verEls.length || dlEls.length) {
     const css = document.querySelector('link[rel="stylesheet"]');
     const latestUrl = css
       ? new URL("latest.json", css.href).href
@@ -61,14 +81,20 @@
           encodeURIComponent(tag) +
           "/" +
           encodeURIComponent(zipName);
-        if (verEl) verEl.textContent = "latest " + tag;
-        if (dlEl) {
-          dlEl.href = assetUrl;
-          dlEl.textContent = "Download " + zipName;
-        }
+        verEls.forEach((el) => {
+          el.textContent = el.closest(".btn-download") ? tag : "latest " + tag;
+        });
+        dlEls.forEach((el) => {
+          el.href = assetUrl;
+          if (!el.classList.contains("btn-download")) {
+            el.textContent = "Download " + zipName;
+          }
+        });
       })
       .catch(() => {
-        if (verEl) verEl.textContent = "see GitHub Releases";
+        verEls.forEach((el) => {
+          el.textContent = "see GitHub Releases";
+        });
       });
   }
 })();

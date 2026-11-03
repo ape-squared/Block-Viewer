@@ -100,12 +100,28 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           $v = $env:TAG
-          # The header (Linden Lab disclaimer, support, privacy: Third-Party
-          # Viewer Policy §1.c) comes before the generated notes.
           # Title must say Block Viewer (not Aurora). GITHUB_TOKEN creates do
           # not fire other workflows' `release` events, so Discord is notified
           # by the notify-discord job below (DISCORD_RELEASES_WEBHOOK).
-          $ghArgs = @($v, $env:ZIP, "$($env:ZIP).sha256", $env:SYMBOLS, "$($env:SYMBOLS).sha256", 'block-update-policy.json', '--title', "Block Viewer $($v.TrimStart('v'))", '--notes-file', '.github/release-notes-header.md', '--generate-notes', '--verify-tag')
+          # Notes: header + commit subjects since the previous tag. Pure
+          # --generate-notes is empty on this fork (no labeled PRs), so the
+          # release page only showed a compare link; list the commits instead.
+          $header = Get-Content -LiteralPath .github/release-notes-header.md -Raw
+          $prev = git tag --list 'v*' --sort=-v:refname |
+            Where-Object { $_ -ne $v -and $_ -notmatch '-' } |
+            Select-Object -First 1
+          $range = if ($prev) { "$prev..$v" } else { $v }
+          $commits = @(git log --pretty=format:'- %s' $range)
+          if (-not $commits -or $commits.Count -eq 0) {
+            $commits = @('- See the repository history for this tag.')
+          }
+          $notesPath = Join-Path $env:RUNNER_TEMP "release-notes-$v.md"
+          $body = ($header.TrimEnd() + "`n`n## What's new`n`n" + ($commits -join "`n") + "`n")
+          if ($prev) {
+            $body += "`n**Full Changelog**: https://github.com/$($env:GITHUB_REPOSITORY)/compare/$prev...$v`n"
+          }
+          Set-Content -LiteralPath $notesPath -Value $body -Encoding utf8
+          $ghArgs = @($v, $env:ZIP, "$($env:ZIP).sha256", $env:SYMBOLS, "$($env:SYMBOLS).sha256", 'block-update-policy.json', '--title', "Block Viewer $($v.TrimStart('v'))", '--notes-file', $notesPath, '--verify-tag')
           if ($v -match '-') { $ghArgs += '--prerelease' }   # v0.3.0-beta.1
           gh release create @ghArgs
       - name: Dry-run symbols

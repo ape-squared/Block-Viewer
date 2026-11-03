@@ -483,7 +483,7 @@ pub(super) fn window_icon(id: &str) -> &'static str {
         "options" => "settings-filled",
         "worldmap" | "minimap" => "map",
         "beacons" => "radar-filled",
-        "environment_selector" | "personal_lighting" => "sun-filled",
+        "environment_selector" | "environment_selector_v13" | "personal_lighting" => "sun-filled",
         "perf" | "performance" => "gauge-filled",
         "photo" | "photo_classic" => "camera-filled",
         "controls" | "camera_controls" => "video-filled",

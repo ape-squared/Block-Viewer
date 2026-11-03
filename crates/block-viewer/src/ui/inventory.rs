@@ -77,7 +77,7 @@ const RECEIVED_TAB: usize = 1;
 
 /// Size of the window before the user resizes it: one folder tree, like
 /// Firestorm's (floater_my_inventory.xml, 333 x 570 with its smaller font).
-const DEFAULT_SIZE: Vec2 = Vec2::new(440.0, 570.0);
+const DEFAULT_SIZE: Vec2 = Vec2::new(520.0, 600.0);
 
 /// The shared editor and unsaved-changes confirmation, without an inventory
 /// tree. Object notecards keep their own item model and document state.

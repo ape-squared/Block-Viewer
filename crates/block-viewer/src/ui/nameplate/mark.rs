@@ -31,6 +31,7 @@ impl Look {
     pub fn label(&self) -> &'static str {
         match self.mark {
             Mark::Block => block_i18n::tr!("nameplate-block-staff"),
+            Mark::Mod => block_i18n::tr!("nameplate-block-mod"),
             Mark::Linden => block_i18n::tr!("nameplate-linden-lab"),
         }
     }
@@ -39,6 +40,7 @@ impl Look {
     pub fn tooltip(&self) -> &'static str {
         match self.mark {
             Mark::Block => block_i18n::tr!("nameplate-block-staff-tooltip"),
+            Mark::Mod => block_i18n::tr!("nameplate-block-mod-tooltip"),
             Mark::Linden => block_i18n::tr!("nameplate-linden-lab-tooltip"),
         }
     }
@@ -46,7 +48,7 @@ impl Look {
     /// The tag's icon: stacked cubes for Block team, verified rosette for Linden.
     pub fn icon(&self) -> &'static str {
         match self.mark {
-            Mark::Block => "box",
+            Mark::Block | Mark::Mod => "box",
             Mark::Linden => "rosette-discount-check-filled",
         }
     }
@@ -54,7 +56,7 @@ impl Look {
     /// The color of the `i`th of `n` letters of the tag at `t`.
     pub fn letter(&self, p: &Palette, i: usize, n: usize, t: f32) -> Color32 {
         match self.mark {
-            Mark::Block => block::letter_color(p, i, n, t),
+            Mark::Block | Mark::Mod => block::letter_color(p, i, n, t),
             Mark::Linden => linden::letter_color(p, self.linden, i, n, t),
         }
     }
@@ -67,7 +69,7 @@ impl Look {
     /// The border's color `s` of the way around (0..1) at `t`.
     pub fn edge(&self, p: &Palette, s: f32, t: f32) -> Color32 {
         match self.mark {
-            Mark::Block => block::border_color(p, s, t),
+            Mark::Block | Mark::Mod => block::border_color(p, s, t),
             Mark::Linden => linden::edge(p, self.linden, s, t),
         }
     }
@@ -75,7 +77,7 @@ impl Look {
     /// The light over a plate's top edge: Block cubes or rising Linden stars.
     pub fn above(&self, mesh: &mut Mesh, p: &Palette, rect: Rect, ppp: f32, t: f32, alpha: f32) {
         match self.mark {
-            Mark::Block => block::curtains(mesh, p, rect, ppp, t, alpha),
+            Mark::Block | Mark::Mod => block::curtains(mesh, p, rect, ppp, t, alpha),
             Mark::Linden => linden::stars(mesh, p, self.linden, rect, t, alpha),
         }
     }
@@ -96,7 +98,7 @@ impl Look {
     /// bottom edge, or stars twinkling all over it.
     pub fn banner(&self, mesh: &mut Mesh, p: &Palette, banner: Rect, ppp: f32, t: f32) {
         match self.mark {
-            Mark::Block => {
+            Mark::Block | Mark::Mod => {
                 let foot = Rect::from_min_size(egui::pos2(banner.left(), banner.bottom() - 1.0), banner.size());
                 block::curtains(mesh, p, foot, ppp, t, 1.0);
             }

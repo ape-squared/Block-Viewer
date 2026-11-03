@@ -9,18 +9,31 @@ use uuid::Uuid;
 /// Extra agent UUIDs for Block developers (optional; usernames below are enough).
 const TEAM_IDS: &[Uuid] = &[];
 
+/// Block moderators recognised by agent key (nameplate "Block Mod").
+const MOD_IDS: &[Uuid] = &[
+    // Fr3sh3r
+    uuid::uuid!("4250c4e6-4819-4b0e-a20e-44a3509bc4c5"),
+];
+
 /// Whose staff a resident is.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Mark {
     /// Block Viewer developer / team.
     Block,
+    /// Block Viewer moderator (community / support).
+    Mod,
     /// A Linden Lab employee: the last name "Linden".
     Linden,
 }
 
 /// Whether `id` is a known Block team agent key.
 pub fn is_staff(id: &Uuid) -> bool {
-    !id.is_nil() && (TEAM_IDS.contains(id) || crate::demo::staff::is_staff(id))
+    !id.is_nil() && (TEAM_IDS.contains(id) || is_mod(id) || crate::demo::staff::is_staff(id))
+}
+
+/// Whether `id` is a known Block moderator agent key.
+pub fn is_mod(id: &Uuid) -> bool {
+    !id.is_nil() && MOD_IDS.contains(id)
 }
 
 /// Normalize an SL username / legacy name for team checks:
@@ -39,10 +52,19 @@ pub fn normalize_username(raw: &str) -> String {
 /// Block developers recognised by username (legacy or modern form).
 const DEV_USERNAMES: &[&str] = &["heard", "4krazy"];
 
+/// Block moderators recognised by username.
+const MOD_USERNAMES: &[&str] = &["fr3sh3r"];
+
 /// Whether `raw` is a known Block developer username.
 pub fn is_block_dev_name(raw: &str) -> bool {
     let n = normalize_username(raw);
     DEV_USERNAMES.iter().any(|d| n == *d)
+}
+
+/// Whether `raw` is a known Block moderator username.
+pub fn is_block_mod_name(raw: &str) -> bool {
+    let n = normalize_username(raw);
+    MOD_USERNAMES.iter().any(|d| n == *d)
 }
 
 /// Whether this avatar is Block team (by UUID and/or username).
@@ -54,11 +76,25 @@ pub fn is_block_team(world: &World, id: &Uuid) -> bool {
         .social
         .avatar_names
         .get(id)
-        .is_some_and(|n| is_block_dev_name(&n.user_name()) || is_block_dev_name(&n.legacy_first))
+        .is_some_and(|n| {
+            is_block_dev_name(&n.user_name())
+                || is_block_dev_name(&n.legacy_first)
+                || is_block_mod_name(&n.user_name())
+                || is_block_mod_name(&n.legacy_first)
+        })
 }
 
 /// The mark of `id`, if any.
 pub fn mark(world: &World, id: &Uuid) -> Option<Mark> {
+    if is_mod(id)
+        || world
+            .social
+            .avatar_names
+            .get(id)
+            .is_some_and(|n| is_block_mod_name(&n.user_name()) || is_block_mod_name(&n.legacy_first))
+    {
+        return Some(Mark::Mod);
+    }
     if is_block_team(world, id) {
         return Some(Mark::Block);
     }
@@ -71,7 +107,9 @@ pub fn mark(world: &World, id: &Uuid) -> Option<Mark> {
 
 /// The mark of a resident whose legacy name is already known (name plates).
 pub fn mark_named(id: &Uuid, legacy: &str) -> Option<Mark> {
-    if is_staff(id) || is_block_dev_name(legacy) {
+    if is_mod(id) || is_block_mod_name(legacy) {
+        Some(Mark::Mod)
+    } else if (is_staff(id) && !is_mod(id)) || is_block_dev_name(legacy) {
         Some(Mark::Block)
     } else if super::mutes::is_linden(legacy) || crate::demo::staff::is_linden(id) {
         Some(Mark::Linden)
@@ -98,6 +136,17 @@ mod tests {
         assert!(!is_block_dev_name("heardish"));
         assert!(!is_block_dev_name("4krazyy"));
         assert_eq!(mark_named(&Uuid::from_u128(1), "Nova Example"), None);
+    }
+
+    #[test]
+    fn fr3sh3r_is_block_mod() {
+        let id = uuid::uuid!("4250c4e6-4819-4b0e-a20e-44a3509bc4c5");
+        assert!(is_mod(&id));
+        assert_eq!(mark_named(&id, "Someone Else"), Some(Mark::Mod));
+        for name in ["fr3sh3r", "Fr3sh3r", "fr3sh3r.resident", "Fr3sh3r Resident"] {
+            assert!(is_block_mod_name(name), "{name}");
+            assert_eq!(mark_named(&Uuid::from_u128(9), name), Some(Mark::Mod));
+        }
     }
 
     #[test]

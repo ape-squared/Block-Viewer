@@ -247,7 +247,7 @@ pub(crate) fn default_pos(work: egui::Rect) -> egui::Pos2 {
 /// font; here the map is hidden by default (`RadarSettings::show_minimap`):
 /// the width holds the ten columns of the radar and, after the profile
 /// picture, a name of some eighteen characters, the height a dozen avatars.
-pub(crate) const DEFAULT_SIZE: Vec2 = Vec2::new(462.0, 420.0);
+pub(crate) const DEFAULT_SIZE: Vec2 = Vec2::new(520.0, 560.0);
 
 /// Its size in Aurora's look, the mock-up's: a dozen rich rows.
 pub(crate) const AURORA_SIZE: Vec2 = Vec2::new(520.0, 560.0);

@@ -16,6 +16,7 @@ jobs:
       - name: Post release embed
         env:
           WEBHOOK: ${{ secrets.DISCORD_RELEASES_WEBHOOK }}
+          TESTER_ROLE: ${{ secrets.DISCORD_TESTER_ROLE_ID }}
           RELEASE_JSON: ${{ toJson(github.event.release) }}
         run: |
           set -euo pipefail
@@ -93,13 +94,20 @@ jobs:
           if release.get("published_at"):
               embed["timestamp"] = release["published_at"]
 
-          content = "New pre-release" if prerelease else "New release"
+          kind = "New pre-release" if prerelease else "New release"
+          role = (os.environ.get("TESTER_ROLE") or "").strip()
+          allowed = {"parse": []}
+          if role.isdigit():
+              content = f"{kind} <@&{role}>"
+              allowed = {"roles": [role]}
+          else:
+              content = f"{kind} — testers welcome"
           payload = {
               "username": "Block Viewer",
               "avatar_url": "https://raw.githubusercontent.com/ape-squared/Block-Viewer/main/assets/branding/block-logo-bg.png",
               "content": content,
               "embeds": [embed],
-              "allowed_mentions": {"parse": []},
+              "allowed_mentions": allowed,
           }
           req = urllib.request.Request(
               webhook + "?wait=true",

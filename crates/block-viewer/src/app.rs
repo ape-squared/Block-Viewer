@@ -16155,7 +16155,10 @@ impl ApplicationHandler for App {
             );
             level.apply(&mut self.settings);
             // One-time tip when the machine forced Potato or Low (Iris / low VRAM).
-            if matches!(level, crate::graphics_presets::Preset::Potato | crate::graphics_presets::Preset::Low) {
+            if matches!(
+                level,
+                crate::graphics_presets::Preset::Potato | crate::graphics_presets::Preset::Low
+            ) {
                 self.settings.graphics_machine_tip = Some(match level {
                     crate::graphics_presets::Preset::Potato => 0,
                     _ => 1,

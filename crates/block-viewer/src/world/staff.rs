@@ -72,16 +72,12 @@ pub fn is_block_team(world: &World, id: &Uuid) -> bool {
     if is_staff(id) {
         return true;
     }
-    world
-        .social
-        .avatar_names
-        .get(id)
-        .is_some_and(|n| {
-            is_block_dev_name(&n.user_name())
-                || is_block_dev_name(&n.legacy_first)
-                || is_block_mod_name(&n.user_name())
-                || is_block_mod_name(&n.legacy_first)
-        })
+    world.social.avatar_names.get(id).is_some_and(|n| {
+        is_block_dev_name(&n.user_name())
+            || is_block_dev_name(&n.legacy_first)
+            || is_block_mod_name(&n.user_name())
+            || is_block_mod_name(&n.legacy_first)
+    })
 }
 
 /// The mark of `id`, if any.

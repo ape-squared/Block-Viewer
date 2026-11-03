@@ -11,7 +11,7 @@
 use super::App;
 use crate::snapshot::looks::{self, Placement, Resolved};
 use crate::snapshot::luts::{Imported, LutLibrary};
-use crate::snapshot::{self, TilePass, gallery, inventory, profile, save};
+use crate::snapshot::{self, TilePass, gallery, inventory, profile, save, web_upload};
 use crate::ui::snapshot::{Action, Destination, EmailView, InventoryView, ProfileView};
 use crate::ui_sound::UiSound;
 use block_net::NetCommand;
@@ -55,6 +55,8 @@ enum Purpose {
     Profile,
     /// By e-mail.
     Postcard,
+    /// Anonymous host (catbox.moe).
+    Web,
 }
 
 /// A photo on its way to the inventory or the profile feed.
@@ -77,6 +79,11 @@ enum Upload {
         rx: crossbeam_channel::Receiver<PostcardStep>,
         encoded: bool,
     },
+    /// Encoded PNG posted to catbox.moe.
+    Web {
+        rx: crossbeam_channel::Receiver<WebStep>,
+        encoded: bool,
+    },
 }
 
 /// How a postcard goes.
@@ -89,6 +96,12 @@ enum PostcardStep {
 enum ProfileStep {
     Encoded(usize),
     Done(Result<(), profile::Error>),
+}
+
+/// How a Catbox upload goes.
+enum WebStep {
+    Encoded,
+    Done(Result<String, web_upload::Error>),
 }
 
 struct Job {
@@ -185,6 +198,9 @@ pub(super) struct Snapshots {
     confirm: Option<i32>,
     /// The price the balance cannot pay.
     short: Option<i32>,
+    /// "Photo quality" was switched on for the first time: held off until
+    /// its warning is answered (`Settings::quality_warned`).
+    quality_ask: bool,
     upload: Option<Upload>,
     /// The message tells of this item, saved to the inventory.
     message_item: Option<Uuid>,
@@ -346,6 +362,8 @@ struct DemoViewfinder {
     tilt: f32,
     /// The poser opened over the viewfinder (the dock's Poser, #1389).
     poser: bool,
+    /// The warning of a first "Photo quality" shown (`qualitywarn`).
+    quality_warning: bool,
 }
 
 /// AURORA_DEMO_SNAPSHOT=inventory…: the photo sent to the inventory.
@@ -383,6 +401,7 @@ impl Default for Snapshots {
             quiet: false,
             confirm: None,
             short: None,
+            quality_ask: false,
             upload: None,
             message_item: None,
             message_profile: false,
@@ -666,6 +685,7 @@ impl App {
             Purpose::Inventory(cost) => self.photo_encode(job.size, job.pixels, cost),
             Purpose::Profile => self.photo_post(job.size, job.pixels),
             Purpose::Postcard => self.photo_postcard(job.size, job.pixels),
+            Purpose::Web => self.photo_web(job.size, job.pixels),
         }
     }
 
@@ -676,7 +696,7 @@ impl App {
         match self.snapshots.ui.destination {
             Destination::Disk => s.size(window),
             Destination::Inventory => inventory::capture_size(s.aspect, s.inventory_size, window),
-            Destination::Profile => profile::capture_size(s.aspect, s.profile_size, window),
+            Destination::Profile | Destination::Web => profile::capture_size(s.aspect, s.profile_size, window),
             Destination::Email => profile::capture_size(s.aspect, s.postcard_size, window),
         }
     }
@@ -778,6 +798,87 @@ impl App {
         });
         self.snapshots.upload = Some(Upload::Profile { rx, bytes: None });
         self.photo_shutter();
+    }
+
+    /// "Catbox": the held photo or a new one, then a free anonymous host.
+    fn photo_to_web(&mut self, renderer: &Renderer) {
+        if self.photo_busy() {
+            return;
+        }
+        if let Some(held) = &self.snapshots.held {
+            let (size, rgba) = ((held.width, held.height), held.rgba.clone());
+            self.photo_web(size, rgba);
+            return;
+        }
+        self.photo_job(Purpose::Web, renderer);
+    }
+
+    /// Encode a PNG and POST it to catbox.moe off the main thread.
+    fn photo_web(&mut self, size: (u32, u32), rgba: Vec<u8>) {
+        self.photo_review_thumb(size, &rgba);
+        let (tx, rx) = crossbeam_channel::unbounded();
+        self.net.runtime().spawn(async move {
+            let encoded = tokio::task::spawn_blocking(move || web_upload::encode_png(size.0, size.1, &rgba)).await;
+            let png = match encoded {
+                Ok(Ok(png)) => png,
+                Ok(Err(e)) => {
+                    log::warn!("photo: Catbox PNG not encoded: {e}");
+                    let _ = tx.send(WebStep::Done(Err(web_upload::Error::BadReply)));
+                    return;
+                }
+                Err(_) => return,
+            };
+            let _ = tx.send(WebStep::Encoded);
+            let name = format!("block-{}.png", snapshot::local_stamp());
+            let result = web_upload::upload_png(png, &name).await;
+            let _ = tx.send(WebStep::Done(result));
+        });
+        self.snapshots.upload = Some(Upload::Web { rx, encoded: false });
+        self.photo_shutter();
+    }
+
+    /// Catbox upload progress and outcome.
+    fn photo_web_poll(&mut self) {
+        let Some(Upload::Web { rx, encoded }) = &mut self.snapshots.upload else {
+            return;
+        };
+        let mut done = None;
+        while let Ok(step) = rx.try_recv() {
+            match step {
+                WebStep::Encoded => *encoded = true,
+                WebStep::Done(result) => done = Some(result),
+            }
+        }
+        let Some(result) = done else {
+            return;
+        };
+        self.snapshots.upload = None;
+        self.snapshots.message_item = None;
+        self.snapshots.message_profile = false;
+        match result {
+            Ok(url) => {
+                log::info!("photo: uploaded to Catbox");
+                self.egui_ctx.copy_text(url.clone());
+                self.snapshots.message = Some((
+                    format!(
+                        "{} · {}",
+                        block_i18n::tr!("photo-web-uploaded"),
+                        block_i18n::tr!("photo-web-copied")
+                    ),
+                    false,
+                ));
+                self.photo_review_show(
+                    format!("{} · {url}", block_i18n::tr!("photo-destination-web")),
+                    crate::ui::viewfinder::Review::Web(url),
+                );
+            }
+            Err(e) => {
+                log::warn!("photo: Catbox upload failed: {e}");
+                let text = block_i18n::tr!("photo-web-failed").to_owned();
+                self.snapshots.message = Some((text.clone(), true));
+                self.photo_vf_error(&text);
+            }
+        }
     }
 
     /// What the window shows of a postcard: the region takes them
@@ -1370,6 +1471,7 @@ impl App {
         self.photo_quality(renderer);
         self.photo_light();
         self.photo_free_camera();
+        self.photo_web_poll();
         if let Some(t) = self.snapshots.detail_wait {
             let pending = self.scene.textures.pending_in_view();
             let off = self.settings.photo_held.is_none();
@@ -1584,6 +1686,7 @@ impl App {
                     Destination::Inventory => self.photo_to_inventory(renderer),
                     Destination::Profile => self.photo_to_profile(renderer),
                     Destination::Email => self.photo_to_postcard(renderer),
+                    Destination::Web => self.photo_to_web(renderer),
                 }
             }
             Action::Confirm(yes) => {
@@ -1594,6 +1697,23 @@ impl App {
                 }
             }
             Action::CloseAfford => self.snapshots.short = None,
+            Action::QualityWarning(yes) => {
+                self.snapshots.quality_ask = false;
+                if yes {
+                    log::info!("photo quality: warning accepted");
+                    self.settings.snapshot.quality = true;
+                    self.settings.snapshot.quality_warned = true;
+                    self.settings.save();
+                }
+            }
+            Action::OpenLink(url) => {
+                self.egui_ctx.open_url(egui::OpenUrl::new_tab(url));
+            }
+            Action::CopyText(text) => {
+                self.egui_ctx.copy_text(text);
+                let now = self.egui_ctx.input(|i| i.time);
+                self.snapshots.vf.say(block_i18n::tr!("photo-web-copied").to_owned(), false, now);
+            }
             Action::PersonalLighting => self.panels.personal_lighting = true,
             Action::KeepLight => {
                 if self.world.eep.keep_photo() {
@@ -1870,8 +1990,11 @@ LUT_3D_SIZE {n}
                 Upload::Sent(_) => (0.85, block_i18n::tr!("photo-uploading").to_owned()),
                 Upload::Profile { bytes: None, .. } => (0.6, block_i18n::tr!("photo-profile-encoding").to_owned()),
                 Upload::Profile { bytes: Some(_), .. } => (0.85, block_i18n::tr!("photo-profile-posting").to_owned()),
-                Upload::Postcard { encoded: false, .. } => (0.6, block_i18n::tr!("photo-profile-encoding").to_owned()),
+                Upload::Postcard { encoded: false, .. } | Upload::Web { encoded: false, .. } => {
+                    (0.6, block_i18n::tr!("photo-profile-encoding").to_owned())
+                }
                 Upload::Postcard { encoded: true, .. } => (0.85, block_i18n::tr!("photo-email-sending").to_owned()),
+                Upload::Web { encoded: true, .. } => (0.85, block_i18n::tr!("photo-uploading").to_owned()),
             })
         } else {
             s.job.as_ref().filter(|j| j.purpose != Purpose::Preview).map(|j| {
@@ -1977,6 +2100,13 @@ LUT_3D_SIZE {n}
         // (the panel shows it in its own line, the viewfinder once at the top)
         let quality_note = std::mem::take(&mut self.snapshots.fit_note) && quality_reduced;
         let mut actions = self.snapshots.ui.dialogs(ctx, p, self.snapshots.confirm, self.snapshots.short);
+        if self.snapshots.quality_ask
+            && let Some(yes) = self.snapshots.ui.quality_warning(ctx, p)
+        {
+            actions.push(Action::QualityWarning(yes));
+        }
+        // every switch of it (panel, viewfinder, its menu) goes through here
+        let quality_before = self.settings.snapshot.quality;
         if self.viewfinder_on() {
             // the held photo under the overlay
             if let Some(t) = self.snapshots.held.as_ref().and_then(|h| h.texture.as_ref()) {
@@ -2057,8 +2187,11 @@ LUT_3D_SIZE {n}
                     Upload::Sent(_) => (0.85, block_i18n::tr!("photo-uploading").to_owned()),
                     Upload::Profile { bytes: None, .. } => (0.6, block_i18n::tr!("photo-profile-encoding").to_owned()),
                     Upload::Profile { bytes: Some(_), .. } => (0.85, block_i18n::tr!("photo-profile-posting").to_owned()),
-                    Upload::Postcard { encoded: false, .. } => (0.6, block_i18n::tr!("photo-profile-encoding").to_owned()),
+                    Upload::Postcard { encoded: false, .. } | Upload::Web { encoded: false, .. } => {
+                        (0.6, block_i18n::tr!("photo-profile-encoding").to_owned())
+                    }
                     Upload::Postcard { encoded: true, .. } => (0.85, block_i18n::tr!("photo-email-sending").to_owned()),
+                    Upload::Web { encoded: true, .. } => (0.85, block_i18n::tr!("photo-uploading").to_owned()),
                 })
             } else {
                 s.job.as_ref().filter(|j| j.purpose != Purpose::Preview).map(|j| {
@@ -2108,10 +2241,15 @@ LUT_3D_SIZE {n}
             self.snapshots.ui = state;
             self.panels.snapshot = open;
         }
+        if !quality_before && self.settings.snapshot.quality && !self.settings.snapshot.quality_warned {
+            self.settings.snapshot.quality = false;
+            self.snapshots.quality_ask = true;
+        }
         for a in actions {
             self.photo_action(a, renderer);
         }
         if !self.panels.snapshot {
+            self.snapshots.quality_ask = false;
             self.snapshots.ui.full_frame = false;
             if self.snapshots.held.take().is_some() {
                 self.snapshots.ui.freeze = false;
@@ -2598,6 +2736,7 @@ LUT_3D_SIZE {n}
                         0.0
                     },
                     poser: has("poser"),
+                    quality_warning: has("qualitywarn"),
                 }
             });
             let style = if kind == "classic" {
@@ -2725,6 +2864,7 @@ LUT_3D_SIZE {n}
                 if v.poser && self.ik_editor.toggle_poser() {
                     crate::ui::widgets::open_floater(&self.egui_ctx, "poser", &mut self.ik_editor.open);
                 }
+                self.snapshots.quality_ask = v.quality_warning;
             }
         }
         // (once the window has its layout)

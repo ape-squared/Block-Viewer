@@ -63,6 +63,8 @@ pub enum Destination {
     Profile,
     /// A postcard (LLPanelSnapshotPostcard).
     Email,
+    /// Anonymous upload to catbox.moe (viewfinder destination cycle).
+    Web,
 }
 
 /// The e-mail of a postcard (panel_postcard_message.xml).
@@ -186,6 +188,12 @@ pub enum Action {
     Confirm(bool),
     /// The "cannot afford" message was closed.
     CloseAfford,
+    /// The first "Photo quality" warning was answered: go on (true) or not.
+    QualityWarning(bool),
+    /// Open a URL in the browser (Catbox link after a Web upload).
+    OpenLink(String),
+    /// Copy text to the clipboard (Catbox URL).
+    CopyText(String),
     /// Choose a .cube file to add to the tables of the photo's look.
     ImportLut,
     /// Delete one of the tables (its file name).
@@ -570,6 +578,7 @@ impl SnapshotUi {
             Destination::Inventory => 1,
             Destination::Profile => 2,
             Destination::Email => 3,
+            Destination::Web => 4,
         };
         if widgets::segmented(
             ui,
@@ -580,15 +589,20 @@ impl SnapshotUi {
                 (block_i18n::tr!("photo-destination-inventory"), true),
                 (block_i18n::tr!("photo-destination-profile"), true),
                 (block_i18n::tr!("photo-destination-email"), true),
+                (block_i18n::tr!("photo-destination-web"), true),
             ],
         ) {
             self.destination = match dest {
                 1 => Destination::Inventory,
                 2 => Destination::Profile,
                 3 => Destination::Email,
+                4 => Destination::Web,
                 _ => Destination::Disk,
             };
             out.push(Action::Changed);
+        }
+        if self.destination == Destination::Web {
+            ui.label(RichText::new(block_i18n::tr!("photo-web-hint")).size(12.0).color(p.muted));
         }
         match (&view.email, &view.inventory, &view.profile) {
             (Some(mail), _, _) => self.postcard_form(ui, p, s, mail),
@@ -766,6 +780,39 @@ impl SnapshotUi {
                 widgets::switch(ui, p, &mut s.sound);
             });
         });
+    }
+
+    /// The warning before "Photo quality" is first turned on: it raises
+    /// every graphics setting, which a modest PC or graphics card may not
+    /// survive (a frozen window or a crash). Some(true): go on.
+    pub fn quality_warning(&self, ctx: &egui::Context, p: &Palette) -> Option<bool> {
+        use widgets::{Modal, action_button};
+        let size = Vec2::new(0.0, 26.0);
+        let mut answer = None;
+        let response = Modal::new(egui::Id::unique("photo_quality_warning")).show(ctx, |ui| {
+            ui.set_width(380.0);
+            ui.label(
+                RichText::new(block_i18n::tr!("photo-quality-warning-title"))
+                    .size(17.0)
+                    .color(p.ink),
+            );
+            ui.add_space(8.0);
+            ui.label(block_i18n::tr!("photo-quality-warning-text"));
+            ui.add_space(8.0);
+            ui.horizontal(|ui| {
+                let ok = block_i18n::tr!("photo-quality-warning-ok");
+                if action_button(ui, p, "sparkles-filled", ok, ActionKind::Primary, size).clicked() {
+                    answer = Some(true);
+                }
+                if action_button(ui, p, "x", block_i18n::tr!("common-cancel"), ActionKind::Flat, size).clicked() {
+                    answer = Some(false);
+                }
+            });
+        });
+        if answer.is_none() && response.should_close() {
+            answer = Some(false);
+        }
+        answer
     }
 
     /// The price to confirm before a paid upload (`confirm`), or the price

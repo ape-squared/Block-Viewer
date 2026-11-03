@@ -1,6 +1,6 @@
 schema_version = "1.0.0"
 id = "block_live_mesh"
-version = "0.14.7"
+version = "0.14.8"
 name = "Block LiveMesh"
 tagline = "Preview rigged and static mesh edits live in Block Viewer"
 maintainer = "Block Viewer contributors"

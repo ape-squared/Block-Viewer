@@ -182,6 +182,8 @@ pub enum Review {
     Profile,
     /// Sent by e-mail.
     Email,
+    /// Hosted on catbox.moe: open or copy the URL.
+    Web(String),
 }
 
 /// What the viewfinder asks of the app.
@@ -389,8 +391,9 @@ fn next_destination(d: Destination) -> Destination {
     match d {
         Destination::Disk => Destination::Inventory,
         Destination::Inventory => Destination::Profile,
+        Destination::Profile => Destination::Web,
         // a postcard needs its e-mail, written in the panel
-        Destination::Profile | Destination::Email => Destination::Disk,
+        Destination::Web | Destination::Email => Destination::Disk,
     }
 }
 
@@ -426,6 +429,11 @@ fn next_size(s: &mut Settings, destination: Destination) {
             let i = all.iter().position(|r| *r == s.postcard_size).unwrap_or(0);
             s.postcard_size = all[(i + 1) % all.len()];
         }
+        Destination::Web => {
+            let all = crate::snapshot::profile::ProfileSize::ALL;
+            let i = all.iter().position(|r| *r == s.profile_size).unwrap_or(0);
+            s.profile_size = all[(i + 1) % all.len()];
+        }
     }
 }
 
@@ -449,6 +457,7 @@ fn destination_label(d: Destination) -> &'static str {
         Destination::Inventory => block_i18n::tr!("photo-destination-inventory"),
         Destination::Profile => block_i18n::tr!("photo-destination-profile"),
         Destination::Email => block_i18n::tr!("photo-destination-email"),
+        Destination::Web => block_i18n::tr!("photo-destination-web"),
     }
 }
 
@@ -773,7 +782,7 @@ impl Viewfinder {
                             }
                             dot(ui, p);
                         }
-                        Destination::Profile => {
+                        Destination::Profile | Destination::Web => {
                             text_button(ui, p, FileFormat::Png.label(), font.clone(), p.ink, "");
                             dot(ui, p);
                         }
@@ -2001,6 +2010,7 @@ fn review(ctx: &egui::Context, p: &Palette, screen: Rect, f: &Frame, out: &mut V
                             Review::Inventory => block_i18n::tr!("photo-uploaded"),
                             Review::Profile => block_i18n::tr!("photo-profile-posted"),
                             Review::Email => block_i18n::tr!("photo-email-sent"),
+                            Review::Web(_) => block_i18n::tr!("photo-web-uploaded"),
                         };
                         // one line each, like the message at the top
                         ui.add(egui::Label::new(egui::RichText::new(title).font(bold(ctx, 13.0)).color(p.ink)).extend());
@@ -2025,6 +2035,14 @@ fn review(ctx: &egui::Context, p: &Palette, screen: Rect, f: &Frame, out: &mut V
                                 }
                             }
                             Review::Email => {}
+                            Review::Web(url) => {
+                                if widgets::flat_button(ui, p, block_i18n::tr!("photo-web-open")).clicked() {
+                                    out.push(Out::Panel(Action::OpenLink(url.clone())));
+                                }
+                                if widgets::flat_button(ui, p, block_i18n::tr!("photo-web-copy")).clicked() {
+                                    out.push(Out::Panel(Action::CopyText(url.clone())));
+                                }
+                            }
                         });
                     });
                 });
@@ -2123,7 +2141,7 @@ fn tiles(s: &Settings, panel: &SnapshotUi, f: &Frame) -> Vec<(&'static str, Stri
             .inventory_size
             .side()
             .map_or_else(|| block_i18n::tr!("photo-resolution-window").to_owned(), |v| v.to_string()),
-        Destination::Profile | Destination::Email => {
+        Destination::Profile | Destination::Email | Destination::Web => {
             let (w, h) = f.photo;
             format!("{w} × {h}")
         }

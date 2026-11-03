@@ -279,8 +279,7 @@ impl App {
                     _ => None,
                 });
                 self.apply_inventory_action(crate::ui::inventory::InvAction::Edit(change));
-                self.env_editor.message =
-                    Some((block_i18n::tr!("env-editor-creating-settings-folder").into(), false));
+                self.env_editor.message = Some((block_i18n::tr!("env-editor-creating-settings-folder").into(), false));
                 id.unwrap_or(root)
             }
             Err(e) => {

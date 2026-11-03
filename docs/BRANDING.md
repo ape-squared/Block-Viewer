@@ -2,7 +2,7 @@
 
 Block Viewer’s interface is **clean, modular and slightly glassy**: deep
 surface neutrals, a signal-lime accent, readable text, crisp icons. Every
-screen must read as Block — not as another viewer’s purple aurora skin.
+screen must read as Block — not as another viewer’s purple gradient skin.
 
 ## Palette
 
@@ -295,7 +295,7 @@ Files in [`assets/branding/`](../assets/branding/):
 | File | Use |
 |---|---|
 | `block-logo.svg` / `.png` (720 px) | full logo in colour, transparent background: README, window icon, login and loading screens, About, system notifications (`LOGO_PNG` of `app.rs`), the Linux desktop icon (`block-viewer.svg` of the archive) |
-| `block-logo-white.svg` / `.png` (4096 px) | white silhouette: the Aurora menu button of the toolbars (tinted with the palette), monochrome uses on a dark background |
+| `block-logo-white.svg` / `.png` (4096 px) | white silhouette: the Block menu button of the toolbars (tinted with the palette), monochrome uses on a dark background |
 | `block-logo-black.svg` / `.png` (4096 px) | black silhouette: monochrome uses on a light background |
 | `block-logo-purple.png` / `block-logo-teal.png` (4096 px) | silhouette in violet or in turquoise |
 | `block-logo-bg.png` (4096 px) | full logo on a navy background (the only file with an opaque background): square icons that need one (website's Apple touch icon) |
@@ -303,7 +303,7 @@ Files in [`assets/branding/`](../assets/branding/):
 | `block.ico` | full logo as a Windows icon (16 to 256 px): icon of `block-viewer.exe` (embedded by its `build.rs`), "Block Tools" and "Block PR" shortcuts |
 
 The logo is a howling wolf's head in profile, facing up and to the right,
-its mane made of aurora ribbons, in a circle. Its colours: violet `#8B5CF6`
+its mane made of streaming ribbons, in a circle. Its colours: violet `#8B5CF6`
 and indigo `#4F46E5` for the head, turquoise `#5EEAD4` and a deeper
 turquoise `#56CAA9` for the ribbons. Do not distort it, recolour it or add
 an effect to it; the one-colour versions above are the only recolourings.

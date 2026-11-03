@@ -21,7 +21,7 @@ The starting motorcycle declaration contains `drive` (both wrists) and
 `gas_only` (right wrist). Both reuse the same binding data; changing profile
 does not duplicate offsets or restart a contact that is common to both.
 
-The viewer automatically installs a separate **#Aurora Bridge IK** script.
+The viewer automatically installs a separate `#Block Bridge IK` script.
 On region arrival it discovers occupied/worn publishers once using a negative
 regional channel. The motorcycle announces as soon as somebody sits and returns
 its definition even before the engine's IK profile is enabled. Full definitions
@@ -55,7 +55,7 @@ Use `EXTERNAL_CONTROL = FALSE` only to start the first profile automatically
 while seated/worn. IK Edit itself stays independent of these commands.
 
 Keep the main script's `llStartAnimation("accel_F")` at the existing throttle
-event. All viewers receive exactly the same animations. Aurora applies IK
+event. All viewers receive exactly the same animations. Block applies IK
 after normal animation blending; no fallback animation is filtered or stopped.
 Rotate `Right` at that same event so its bound wrist follows the moving grip.
 [motorcycle-throttle.lsl](../scripts/lsl/motorcycle-throttle.lsl) can consume

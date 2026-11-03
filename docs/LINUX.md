@@ -88,7 +88,7 @@ match it too (Hyprland: `class:^(block-viewer)$`; KDE: window class
 
 The first web page or video downloads the media plugins (about 200 MB) by
 itself, once; Preferences › Sound and voice › Media shows the progress. They
-go to `~/.local/share/auroraviewer/media-plugins`.
+go to `~/.local/share/blockviewer/media-plugins`.
 
 - **Video does not play:** check that the GStreamer packages of step 1 are
   installed (`gst-libav` / `gstreamer1.0-libav` for H.264 and AAC).
@@ -96,7 +96,7 @@ go to `~/.local/share/auroraviewer/media-plugins`.
   are missing; install their packages.
 
   ```bash
-  ldd ~/.local/share/auroraviewer/media-plugins/*/llplugin/libcef.so | grep "not found"
+  ldd ~/.local/share/blockviewer/media-plugins/*/llplugin/libcef.so | grep "not found"
   ```
 
 - The built-in browser runs without Chromium's sandbox, as in the Legacy
@@ -112,19 +112,19 @@ Your settings, cache and logs are kept: they are not in the viewer's folder.
 
 | What | Where |
 |---|---|
-| Settings | `~/.config/auroraviewer` |
-| Cache | `~/.cache/auroraviewer` |
-| Logs, media plugins | `~/.local/share/auroraviewer` |
+| Settings | `~/.config/blockviewer` |
+| Cache | `~/.cache/blockviewer` |
+| Logs, media plugins | `~/.local/share/blockviewer` |
 
 ## Second Life links
 
 Preferences › Language and updates › "Open SLURL and Hypergrid links in
-Aurora" makes Aurora the handler of `secondlife://`, `hop://` and
+Block" makes Block the handler of `secondlife://`, `hop://` and
 `x-grid-location-info://` links for the current user. It writes a hidden
 desktop entry, `~/.local/share/applications/block-viewer-slurl.desktop`,
 and makes it the default for the three schemes in `~/.config/mimeapps.list`;
 the rest of that file is kept. Turning it off removes both. A link opened
-while Aurora runs goes to that viewer over the session bus instead of
+while Block runs goes to that viewer over the session bus instead of
 starting a second one. Wayland does not let it bring its window to the
 front, so the window stays where it is (X11 is not tested yet).
 

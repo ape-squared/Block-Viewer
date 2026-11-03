@@ -161,7 +161,7 @@ that form, as it works once enabled, and its GitHub setup.
 `AURORA_DEMO_BUG_REPORT` has no effect while it is disabled.
 
 The shared form can be reached from the top bar, Help and the login screen.
-"Send from Aurora" is the first choice and the default mode of new reports.
+"Send from Block" is the first choice and the default mode of new reports.
 The sending options are independent of the report template.
 The browser mode is available without any application setup; both modes
 require the tester to have a GitHub account. Without an account, a local
@@ -253,7 +253,7 @@ The `public` subfolder contains the chosen text and, if included,
 local diagnostics and must never be attached to a public issue. Nothing
 leaves the PC besides the text of the issue: GitHub's API takes no
 attachment, so in both modes the viewer opens the `public` folder and the
-tester drags `screenshot.png` into the issue themselves. Aurora runs no
+tester drags `screenshot.png` into the issue themselves. The viewer runs no
 server of its own for the reports.
 
 ### Validation

@@ -2799,6 +2799,8 @@ pub(crate) fn toolbar_row(
         };
         let tip = if matches!(b.command.as_str(), "movelock" | "move_lock") {
             toolbar.movelock_status.clone()
+        } else if b.command == "ao" {
+            block_i18n::tr!("ao-quick-toggle-hint").into()
         } else {
             tip
         };

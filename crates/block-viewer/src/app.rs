@@ -15148,6 +15148,50 @@ impl App {
                         .region_message_prompt
                         .show(&ctx, &p, &self.skin.icons, &self.world.notifications, id, &env);
                 }
+                // First-run graphics tip (Iris / low VRAM) and friend kit checklist.
+                if let Some(level) = self.settings.graphics_machine_tip.take() {
+                    let body = if level == 0 {
+                        block_i18n::tr!("graphics-machine-tip-potato")
+                    } else {
+                        block_i18n::tr!("graphics-machine-tip-low")
+                    };
+                    self.world.notifications.push(
+                        crate::world::notifications::Kind::Info,
+                        block_i18n::tr!("graphics-machine-tip-title"),
+                        body,
+                        crate::world::notifications::Data::None,
+                    );
+                    self.settings.save();
+                }
+                if !self.settings.friend_kit_seen && self.world.notifications.started && !toasts_hidden && !dnd {
+                    match ui::friend_kit::show(&ctx, &p) {
+                        Some(ui::friend_kit::KitAction::People) => {
+                            self.panels.people = true;
+                            self.settings.friend_kit_seen = true;
+                            self.settings.save();
+                        }
+                        Some(ui::friend_kit::KitAction::Ao) => {
+                            self.panels.ao = true;
+                            self.settings.friend_kit_seen = true;
+                            self.settings.save();
+                        }
+                        Some(ui::friend_kit::KitAction::Blacklist) => {
+                            self.panels.asset_blacklist = true;
+                            self.settings.friend_kit_seen = true;
+                            self.settings.save();
+                        }
+                        Some(ui::friend_kit::KitAction::Updates) => {
+                            self.updater.check(self.net.runtime(), true);
+                            self.settings.friend_kit_seen = true;
+                            self.settings.save();
+                        }
+                        Some(ui::friend_kit::KitAction::Dismiss) => {
+                            self.settings.friend_kit_seen = true;
+                            self.settings.save();
+                        }
+                        None => {}
+                    }
+                }
                 let mut prompt_action = None;
                 let friend_allowed = prompt_allowed && region_shown.is_none();
                 if let Some((id, from)) = self.friend_prompt.next(&mut self.world.notifications, prompt_on, friend_allowed) {
@@ -16096,14 +16140,27 @@ impl ApplicationHandler for App {
                 let system = System::new_with_specifics(RefreshKind::nothing().with_memory(MemoryRefreshKind::nothing().with_ram()));
                 Some(system.total_memory() / 1024 / 1024).filter(|&mb| mb > 0)
             };
-            let level = crate::graphics_presets::Preset::for_machine(renderer.info.integrated, renderer.info.vram_mb, system_mb);
-            log::info!(
-                "new profile: graphics level {level:?} (integrated {}, video memory {:?} MB, system memory {:?} MB)",
+            let level = crate::graphics_presets::Preset::for_machine(
                 renderer.info.integrated,
+                renderer.info.vram_mb,
+                system_mb,
+                renderer.info.vendor_id,
+            );
+            log::info!(
+                "new profile: graphics level {level:?} (integrated {}, vendor {:#x}, video memory {:?} MB, system memory {:?} MB)",
+                renderer.info.integrated,
+                renderer.info.vendor_id,
                 renderer.info.vram_mb,
                 system_mb
             );
             level.apply(&mut self.settings);
+            // One-time tip when the machine forced Potato or Low (Iris / low VRAM).
+            if matches!(level, crate::graphics_presets::Preset::Potato | crate::graphics_presets::Preset::Low) {
+                self.settings.graphics_machine_tip = Some(match level {
+                    crate::graphics_presets::Preset::Potato => 0,
+                    _ => 1,
+                });
+            }
             apply_test_overrides(&mut self.settings);
             self.settings.save();
         }

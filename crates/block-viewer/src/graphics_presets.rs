@@ -221,20 +221,25 @@ impl Preset {
 
     /// The level of a new profile, from the graphics card, like Firestorm's
     /// first launch (LLFeatureManager::loadGPUClass then
-    /// applyRecommendedSettings): Medium on an integrated GPU or a dedicated
-    /// one under 2 GB of video memory (the threshold applyBaseMasks tests
-    /// for its VRAMLT2GB mask, a list Firestorm's table leaves empty today:
-    /// lowering the level there is Aurora's own rule), High otherwise; one
-    /// level lower with less than 8 GB of system memory, as Firestorm does on
-    /// Windows.
+    /// applyRecommendedSettings). Block lowers further than the Legacy
+    /// Viewer's Medium default for weak GPUs: Intel integrated (Iris Xe and
+    /// kin, PCI vendor `0x8086`) and under 1 GB of video memory start on
+    /// Potato; other integrated GPUs and dedicated cards under 2 GB start on
+    /// Low; everything else starts on High. One level lower with less than
+    /// 8 GB of system memory, as Firestorm does on Windows.
     /// Firestorm ranks the card by a memory-bandwidth benchmark; Aurora asks
-    /// wgpu for the kind of adapter and its memory instead. An unknown size
-    /// counts as enough.
-    pub fn for_machine(integrated: bool, vram_mb: Option<u64>, system_mb: Option<u64>) -> Preset {
+    /// wgpu for the kind of adapter, its vendor and its memory instead. An
+    /// unknown size counts as enough.
+    pub fn for_machine(integrated: bool, vram_mb: Option<u64>, system_mb: Option<u64>, vendor_id: u32) -> Preset {
         const SMALL_VRAM_MB: u64 = 2048;
+        const TINY_VRAM_MB: u64 = 1024;
+        const INTEL: u32 = 0x8086;
         const MIN_SYSTEM_MB: u64 = 8 * 1024;
-        let level = if integrated || vram_mb.is_some_and(|v| v < SMALL_VRAM_MB) {
-            Preset::Medium
+        let intel_igpu = integrated && vendor_id == INTEL;
+        let level = if intel_igpu || vram_mb.is_some_and(|v| v < TINY_VRAM_MB) {
+            Preset::Potato
+        } else if integrated || vram_mb.is_some_and(|v| v < SMALL_VRAM_MB) {
+            Preset::Low
         } else {
             Preset::High
         };
@@ -784,18 +789,24 @@ mod tests {
     #[test]
     fn a_new_profile_takes_its_level_from_the_graphics_card() {
         const GB: u64 = 1024;
+        const INTEL: u32 = 0x8086;
+        const NVIDIA: u32 = 0x10de;
         // a dedicated card with enough of everything
-        assert_eq!(Preset::for_machine(false, Some(24 * GB), Some(32 * GB)), Preset::High);
-        assert_eq!(Preset::for_machine(false, Some(2 * GB), Some(16 * GB)), Preset::High);
-        // integrated, or a small dedicated card
-        assert_eq!(Preset::for_machine(true, Some(4 * GB), Some(16 * GB)), Preset::Medium);
-        assert_eq!(Preset::for_machine(false, Some(1536), Some(16 * GB)), Preset::Medium);
+        assert_eq!(Preset::for_machine(false, Some(24 * GB), Some(32 * GB), NVIDIA), Preset::High);
+        assert_eq!(Preset::for_machine(false, Some(2 * GB), Some(16 * GB), NVIDIA), Preset::High);
+        // Intel Iris / UHD: Potato even with shared memory reported high
+        assert_eq!(Preset::for_machine(true, Some(4 * GB), Some(16 * GB), INTEL), Preset::Potato);
+        // other integrated, or a small dedicated card
+        assert_eq!(Preset::for_machine(true, Some(4 * GB), Some(16 * GB), NVIDIA), Preset::Low);
+        assert_eq!(Preset::for_machine(false, Some(1536), Some(16 * GB), NVIDIA), Preset::Low);
+        assert_eq!(Preset::for_machine(false, Some(512), Some(16 * GB), NVIDIA), Preset::Potato);
         // less than 8 GB of system memory: one level lower
-        assert_eq!(Preset::for_machine(false, Some(8 * GB), Some(7900)), Preset::Medium);
-        assert_eq!(Preset::for_machine(true, None, Some(4 * GB)), Preset::Low);
+        assert_eq!(Preset::for_machine(false, Some(8 * GB), Some(7900), NVIDIA), Preset::Medium);
+        assert_eq!(Preset::for_machine(true, None, Some(4 * GB), NVIDIA), Preset::Potato);
         // what could not be read does not lower the level
-        assert_eq!(Preset::for_machine(false, None, None), Preset::High);
-        assert_eq!(Preset::for_machine(true, None, None), Preset::Medium);
+        assert_eq!(Preset::for_machine(false, None, None, NVIDIA), Preset::High);
+        assert_eq!(Preset::for_machine(true, None, None, NVIDIA), Preset::Low);
+        assert_eq!(Preset::for_machine(true, None, None, INTEL), Preset::Potato);
     }
 
     #[test]

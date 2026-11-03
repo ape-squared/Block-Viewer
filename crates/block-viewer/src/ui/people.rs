@@ -297,6 +297,8 @@ pub struct PeopleUi {
     pub wanted_images: HashSet<Uuid>,
     /// The tab shown last frame: another one starts afresh.
     shown_tab: Option<u8>,
+    /// Scroll the friends / radar list to this resident once (View in People).
+    pub(crate) scroll_to: Option<Uuid>,
 }
 
 impl PeopleUi {
@@ -311,7 +313,9 @@ impl PeopleUi {
     pub fn open_person(&mut self, tab: u8, id: Uuid) {
         self.shown_tab = Some(tab);
         self.radar_selected = vec![id];
+        self.radar_anchor = Some(id);
         self.select(vec![id]);
+        self.scroll_to = Some(id);
         nearby::open_sheet(self, id);
     }
 

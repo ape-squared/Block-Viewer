@@ -190,7 +190,9 @@ impl Default for RadarSettings {
             show_muted: true,
             name_format: 0,
             color_names: false,
-            toasts: false,
+            // Toasts on with chat-range alerts so arrivals show even when the
+            // nearby chat console is scrolled away (settings version 33).
+            toasts: true,
             // Feedback / Legacy RadarReportChatRange*: on in Block so nearby
             // chat range arrivals and departures show without hunting the menu.
             chat_enter: true,
@@ -879,6 +881,10 @@ pub fn tab(
             // dragged onto a conversation, the resident joins it
             let (rect, resp) = ui.allocate_exact_size(Vec2::new(ui.available_width(), 22.0), Sense::click_and_drag());
             resp.dnd_set_drag_payload(crate::ui::call_invite::PersonDrag(row.id));
+            if st.scroll_to == Some(row.id) {
+                ui.scroll_to_rect(rect, Some(egui::Align::Center));
+                st.scroll_to = None;
+            }
             if !ui.is_rect_visible(rect) {
                 continue;
             }

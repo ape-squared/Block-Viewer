@@ -190,13 +190,19 @@ pub fn clean_name(name: &str) -> Result<String, String> {
     Ok(name.chars().take(63).collect())
 }
 pub fn create_folder(parent: Uuid, name: &str) -> Result<Mutation, String> {
+    create_folder_typed(parent, name, -1)
+}
+
+/// Create a folder with a system `type_default` (56 = Settings), so Save As
+/// for environment settings lands where the Legacy Viewer keeps them.
+pub fn create_folder_typed(parent: Uuid, name: &str, type_default: i32) -> Result<Mutation, String> {
     let id = Uuid::new_v4();
     Ok(Mutation {
         operations: vec![Operation::Folder {
             id,
             parent,
             name: clean_name(name)?,
-            type_default: -1,
+            type_default,
         }],
         refresh: vec![parent, id],
         ..Default::default()

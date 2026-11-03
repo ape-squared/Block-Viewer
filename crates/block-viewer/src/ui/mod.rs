@@ -43,6 +43,7 @@ pub mod experience_profile;
 pub mod find_shortcut;
 pub mod follow;
 pub mod fonts;
+pub mod friend_kit;
 pub mod friend_prompt;
 pub mod gestures;
 pub(crate) mod give_drop;

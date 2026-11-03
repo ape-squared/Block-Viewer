@@ -1,5 +1,5 @@
-//! "Asset blacklist": the derendered objects and residents, temporary and
-//! permanent, and the way back for them. Port of FSFloaterAssetBlacklist
+//! "Asset blacklist" (derender list): the derendered objects and residents,
+//! temporary and permanent, and the way back for them. Port of FSFloaterAssetBlacklist
 //! (indra/newview/fsfloaterassetblacklist.cpp, floater_fs_asset_blacklist.xml,
 //! menu_fs_asset_blacklist.xml) for the entries Aurora acts on: a filter,
 //! the list with its name, region, type, date and permanent columns,
@@ -275,6 +275,8 @@ impl BlacklistUi {
         floater.show(ctx, p, open, |ui| {
             const BUTTONS: f32 = 26.0;
             let w = ui.available_width();
+            ui.label(RichText::new(block_i18n::tr!("blacklist-subtitle")).size(12.0).color(p.muted));
+            ui.add_space(4.0);
             ui.allocate_ui_with_layout(Vec2::new(w, 30.0), egui::Layout::left_to_right(egui::Align::Center), |ui| {
                 widgets::search_box(ui, p, &mut self.filter, block_i18n::tr!("blacklist-filter"), w);
             });

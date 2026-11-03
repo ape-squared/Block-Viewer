@@ -97,13 +97,17 @@ fn cycle_buttons(
 #[derive(Default)]
 pub struct Quick {
     pub open: bool,
+    /// Right-click on the status-bar AO button flips enable without opening.
+    toggle_enable: bool,
     anchor: Option<(egui::Response, egui::RectAlign, u64)>,
     list_was_open: bool,
 }
 
 impl Quick {
     pub fn anchor(&mut self, response: &egui::Response, align: egui::RectAlign) {
-        if response.clicked() {
+        if response.secondary_clicked() {
+            self.toggle_enable = true;
+        } else if response.clicked() {
             self.open = !self.open;
         }
         self.anchor = Some((response.clone(), align, response.ctx.cumulative_frame_nr()));
@@ -123,6 +127,15 @@ impl Quick {
         busy: bool,
     ) -> Vec<Action> {
         let mut out = Vec::new();
+        if self.toggle_enable {
+            self.toggle_enable = false;
+            account.enabled = !account.enabled;
+            if account.enabled {
+                runtime.stands = true;
+                runtime.paused = false;
+            }
+            out.push(Action::Preferences);
+        }
         let Some((anchor, align, frame)) = &self.anchor else { return out };
         if *frame != ctx.cumulative_frame_nr() {
             self.open = false;

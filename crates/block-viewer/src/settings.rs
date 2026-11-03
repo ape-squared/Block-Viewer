@@ -1326,6 +1326,13 @@ pub struct Settings {
     /// graphics card once it is known (`graphics_presets::for_machine`).
     #[serde(skip)]
     pub new_profile: bool,
+    /// Pending one-time tip after a machine-picked Potato (0) or Low (1)
+    /// graphics level; cleared once shown.
+    #[serde(skip)]
+    pub graphics_machine_tip: Option<u8>,
+    /// First-run friend kit checklist already dismissed.
+    #[serde(default)]
+    pub friend_kit_seen: bool,
 }
 
 /// The default strength of GTAO's indirect light: at 1 (one physical
@@ -1363,7 +1370,7 @@ pub(crate) const TONEMAP_MIX: f32 = 0.7;
 /// an S32 of seconds).
 pub(crate) const GROUP_SNOOZE_MAX_MINUTES: u32 = i32::MAX as u32 / 60;
 
-const SETTINGS_VERSION: u32 = 32;
+const SETTINGS_VERSION: u32 = 33;
 
 /// `settings.json` from a newer build: the document, what this build loaded
 /// from it, and the top-level keys to leave as they were unless changed here
@@ -2016,6 +2023,8 @@ impl Default for Settings {
             settings_version: SETTINGS_VERSION,
             newer_file: None,
             new_profile: false,
+            graphics_machine_tip: None,
+            friend_kit_seen: false,
         }
     }
 }
@@ -2508,6 +2517,11 @@ impl Settings {
             // chat leave off still left "left the region" for nearby people.
             // Region leave is opt-in again; chat-range leave covers nearby.
             self.radar.region_leave = false;
+        }
+        if self.settings_version < 33 {
+            // Chat-range enter/leave as toasts too (not only nearby chat), so
+            // arrivals show when the chat console is scrolled away.
+            self.radar.toasts = true;
         }
         if !self.audio.mic_gain.is_finite() {
             self.audio.mic_gain = 1.0;

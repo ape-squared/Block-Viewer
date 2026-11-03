@@ -379,6 +379,10 @@ fn row(ui: &mut egui::Ui, c: &mut Ctx, data: &super::RadarData, st: &mut PeopleU
     let right = end.items.last().map_or(bounds.right(), |r| r.left()) - PARTS_GAP;
     let count = 4 + usize::from(f.online);
     let (rect, resp) = ui.allocate_exact_size(Vec2::new(width, RICH_H), Sense::click_and_drag());
+    if st.scroll_to == Some(f.id) {
+        ui.scroll_to_rect(rect, Some(egui::Align::Center));
+        st.scroll_to = None;
+    }
     if !ui.is_rect_visible(rect) {
         return;
     }

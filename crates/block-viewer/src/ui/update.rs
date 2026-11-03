@@ -360,6 +360,28 @@ pub fn show_real(
                 State::Checking => {
                     ui.spinner();
                 }
+                State::Current => {
+                    let channel = match settings.update_channel {
+                        block_updater::feed::Channel::Stable => block_i18n::tr!("update-channel-stable"),
+                        block_updater::feed::Channel::Beta => block_i18n::tr!("update-channel-beta"),
+                    };
+                    ui.label(
+                        RichText::new(block_i18n::tr!(
+                            "update-current-detail",
+                            version = block_version::version(),
+                            channel = channel
+                        ))
+                        .size(13.0)
+                        .color(p.muted),
+                    );
+                    if settings.update_channel == block_updater::feed::Channel::Stable {
+                        ui.label(
+                            RichText::new(block_i18n::tr!("update-stable-channel-hint"))
+                                .size(12.0)
+                                .color(p.muted),
+                        );
+                    }
+                }
                 State::Error(kind) => {
                     ui.label(RichText::new(failure_text(kind)).color(p.danger));
                 }

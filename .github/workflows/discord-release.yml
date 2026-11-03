@@ -1,5 +1,7 @@
-# Posts each published GitHub release to Discord #viewer-releases.
+# Posts each published GitHub release to Discord #viewer-releases
+# (closed tester Discord — invite-only from staff).
 # Webhook URL: repository secret DISCORD_RELEASES_WEBHOOK (never commit it).
+# Optional: DISCORD_TESTER_ROLE_ID to ping the tester role.
 name: Discord release
 
 on:
@@ -48,7 +50,7 @@ jobs:
           if len(body) > 1800:
               body = body[:1797].rstrip() + "…"
           if not body:
-              body = "Release notes are on GitHub."
+              body = "Closed tester build — full notes on GitHub."
 
           assets = release.get("assets") or []
           windows = next(
@@ -76,35 +78,44 @@ jobs:
                   "inline": True,
               }
           )
+          fields.append(
+              {
+                  "name": "Audience",
+                  "value": "Invite-only viewer testers",
+                  "inline": True,
+              }
+          )
 
-          # Brand signal lime (#D4FF3F); beta gets a cooler teal.
+          # Brand signal lime (#D4FF3F); pre-release gets a cooler teal.
           color = 0x38BDF8 if prerelease else 0xD4FF3F
           title = name if name.lower().startswith("block") else f"Block Viewer {name}"
+          thumb = (
+              "https://raw.githubusercontent.com/ape-squared/Block-Viewer/main/"
+              "assets/branding/block/01-logos/mark/block-mark-256.png"
+          )
           embed = {
               "title": title,
               "url": url,
               "description": body,
               "color": color,
               "fields": fields,
-              "thumbnail": {
-                  "url": "https://raw.githubusercontent.com/ape-squared/Block-Viewer/main/assets/branding/block-logo-bg.png"
-              },
-              "footer": {"text": "Block Viewer · GitHub Releases"},
+              "thumbnail": {"url": thumb},
+              "footer": {"text": "Block Viewer · closed tester Discord"},
           }
           if release.get("published_at"):
               embed["timestamp"] = release["published_at"]
 
-          kind = "New pre-release" if prerelease else "New release"
+          kind = "New tester pre-release" if prerelease else "New tester build"
           role = (os.environ.get("TESTER_ROLE") or "").strip()
           allowed = {"parse": []}
           if role.isdigit():
               content = f"{kind} <@&{role}>"
               allowed = {"roles": [role]}
           else:
-              content = f"{kind} — testers welcome"
+              content = f"{kind} — for invite-only testers"
           payload = {
               "username": "Block Viewer",
-              "avatar_url": "https://raw.githubusercontent.com/ape-squared/Block-Viewer/main/assets/branding/block-logo-bg.png",
+              "avatar_url": thumb,
               "content": content,
               "embeds": [embed],
               "allowed_mentions": allowed,

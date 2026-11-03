@@ -13,7 +13,7 @@ A Windows Second Life® client with a Vulkan renderer. Source and releases are p
 | **Site** | https://ape-squared.github.io/Block-Viewer/ |
 | **Releases** | https://github.com/ape-squared/Block-Viewer/releases |
 | **Feedback** | https://feedback.ape-squared.github.io/Block |
-| **Discord** | Release notes land in `#viewer-releases` |
+| **Discord** | Closed tester Discord — builds land in `#viewer-releases` (staff invite only) |
 
 ---
 

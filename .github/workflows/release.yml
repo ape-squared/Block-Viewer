@@ -102,7 +102,10 @@ jobs:
           $v = $env:TAG
           # The header (Linden Lab disclaimer, support, privacy: Third-Party
           # Viewer Policy §1.c) comes before the generated notes.
-          $ghArgs = @($v, $env:ZIP, "$($env:ZIP).sha256", $env:SYMBOLS, "$($env:SYMBOLS).sha256", 'block-update-policy.json', '--title', "Aurora Viewer $v", '--notes-file', '.github/release-notes-header.md', '--generate-notes', '--verify-tag')
+          # Title must say Block Viewer (not Aurora). GITHUB_TOKEN creates do
+          # not fire other workflows' `release` events, so Discord is notified
+          # by the notify-discord job below (DISCORD_RELEASES_WEBHOOK).
+          $ghArgs = @($v, $env:ZIP, "$($env:ZIP).sha256", $env:SYMBOLS, "$($env:SYMBOLS).sha256", 'block-update-policy.json', '--title', "Block Viewer $($v.TrimStart('v'))", '--notes-file', '.github/release-notes-header.md', '--generate-notes', '--verify-tag')
           if ($v -match '-') { $ghArgs += '--prerelease' }   # v0.3.0-beta.1
           gh release create @ghArgs
       - name: Dry-run symbols
@@ -114,6 +117,87 @@ jobs:
             ${{ env.SYMBOLS }}
             ${{ env.SYMBOLS }}.sha256
           compression-level: 0
+
+  # GITHUB_TOKEN release creates do not trigger discord-release.yml (`release`
+  # events from the default token are swallowed). Post here once Windows has
+  # published the zip the Stable updater installs.
+  notify-discord:
+    needs: windows
+    if: ${{ !cancelled() && needs.windows.result == 'success' && github.event_name != 'pull_request' }}
+    runs-on: ubuntu-latest
+    env:
+      TAG: ${{ inputs.tag || github.event_name == 'push' && github.ref_name || 'dry-run' }}
+    steps:
+      - name: Post release embed
+        env:
+          WEBHOOK: ${{ secrets.DISCORD_RELEASES_WEBHOOK }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          if [ -z "${WEBHOOK:-}" ]; then
+            echo "DISCORD_RELEASES_WEBHOOK secret is missing; skipping Discord notify" >&2
+            exit 0
+          fi
+          if [ "${TAG}" = dry-run ]; then
+            echo "dry-run: no Discord notify"
+            exit 0
+          fi
+          RELEASE_JSON=$(gh api "repos/${GITHUB_REPOSITORY}/releases/tags/${TAG}")
+          export RELEASE_JSON
+          python3 - <<'PY'
+          import json, os, re, urllib.request
+          release = json.loads(os.environ["RELEASE_JSON"])
+          webhook = os.environ["WEBHOOK"].rstrip("/")
+          if webhook.endswith("/github"):
+              webhook = webhook[: -len("/github")]
+          tag = release.get("tag_name") or ""
+          name = (release.get("name") or tag or "Release").strip()
+          url = release.get("html_url") or ""
+          prerelease = bool(release.get("prerelease"))
+          body = (release.get("body") or "").strip()
+          body = re.sub(r"<!--.*?-->", "", body, flags=re.S)
+          body = re.sub(r"(?im)^#+\s*Block Viewer\s*$", "", body)
+          body = re.sub(r"(?im)^Support:.*$", "", body)
+          body = re.sub(r"(?im)^Sister project.*$", "", body)
+          body = re.sub(r"\n{3,}", "\n\n", body).strip()
+          if len(body) > 1800:
+              body = body[:1797].rstrip() + "…"
+          if not body:
+              body = "Release notes are on GitHub."
+          assets = release.get("assets") or []
+          windows = next(
+              (a for a in assets if a.get("name", "").endswith("-windows-x64.zip") and not a.get("name", "").endswith("-symbols.zip")),
+              None,
+          )
+          fields = []
+          if windows and windows.get("browser_download_url"):
+              fields.append({"name": "Windows", "value": f"[Download zip]({windows['browser_download_url']})", "inline": True})
+          fields.append({"name": "Tag", "value": f"[`{tag}`]({url})" if tag and url else (tag or "—"), "inline": True})
+          color = 0x38BDF8 if prerelease else 0xD4FF3F
+          title = name if name.lower().startswith("block") else f"Block Viewer {name}"
+          embed = {
+              "title": title, "url": url, "description": body, "color": color, "fields": fields,
+              "thumbnail": {"url": "https://raw.githubusercontent.com/ape-squared/Block-Viewer/main/assets/branding/block-logo-bg.png"},
+              "footer": {"text": "Block Viewer · GitHub Releases"},
+          }
+          if release.get("published_at"):
+              embed["timestamp"] = release["published_at"]
+          payload = {
+              "username": "Block Viewer",
+              "avatar_url": "https://raw.githubusercontent.com/ape-squared/Block-Viewer/main/assets/branding/block-logo-bg.png",
+              "content": "New pre-release" if prerelease else "New release",
+              "embeds": [embed],
+              "allowed_mentions": {"parse": []},
+          }
+          req = urllib.request.Request(
+              webhook + "?wait=true",
+              data=json.dumps(payload).encode(),
+              headers={"Content-Type": "application/json", "User-Agent": "Block-Viewer-Release-Notify"},
+              method="POST",
+          )
+          with urllib.request.urlopen(req, timeout=30) as resp:
+              print(f"Discord {resp.status}")
+          PY
 
   # The Linux archive joins the release once it is published: a Linux build
   # that fails leaves the Windows release in place and the run red (re-run

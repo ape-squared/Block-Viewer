@@ -1,13 +1,10 @@
 name: Release
 
 # A version tag (SemVer: v0.2.0, v0.2.1…) pushed by a human builds the
-# viewer and publishes the release with notes grouped by PR label: the
-# Windows zip (the one the updater installs) and its crash symbols, then the
-# Linux archive and the macOS application. A pull request that changes these
-# release files gets a dry run of the three jobs (the version Git describes,
-# the symbols, the Linux archive and the macOS application kept as the run's
-# artifacts, nothing published): no agent can try the Linux or macOS build
-# on its PC, and the symbols need the release build.
+# viewer and publishes the release with notes: the Windows zip (the one the
+# updater installs) and its crash symbols. Linux and macOS builds stay off
+# public releases for now (Windows-first); their jobs still dry-run on PRs
+# that touch these files. Nightly may call this workflow with a beta tag.
 # The Nightly workflow calls it with the beta tag it has just pushed (a tag
 # pushed with the workflow token starts no workflow by itself); a tag with
 # a pre-release part is published as a GitHub pre-release.
@@ -215,14 +212,11 @@ jobs:
               print(f"Discord {resp.status}")
           PY
 
-  # The Linux archive joins the release once it is published: a Linux build
-  # that fails leaves the Windows release in place and the run red (re-run
-  # this job alone after a passing failure; a fix in the code needs a new
-  # version). Ubuntu 24.04: glibc 2.39, so current distributions (Arch,
-  # Fedora, Ubuntu 24.04 and later) run it.
+  # Linux is not published yet (Windows-first). Dry-run only on PRs that
+  # touch packaging / this workflow. Ubuntu 24.04: glibc 2.39.
   linux:
     needs: windows
-    if: ${{ !cancelled() && (needs.windows.result == 'success' || github.event_name == 'pull_request') }}
+    if: ${{ github.event_name == 'pull_request' }}
     runs-on: ubuntu-24.04
     env:
       TAG: ${{ inputs.tag || github.event_name == 'push' && github.ref_name || 'dry-run' }}
@@ -265,7 +259,8 @@ jobs:
           "$hash  $dir.tar.gz" | Set-Content -LiteralPath "$dir.tar.gz.sha256" -Encoding utf8NoBOM
           "ARCHIVE=$dir.tar.gz" >> $env:GITHUB_ENV
       - name: Publish
-        if: env.TAG != 'dry-run'
+        # Kept off public releases (Windows-first); dry-run PRs never hit this.
+        if: false
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: gh release upload "$TAG" "$ARCHIVE" "$ARCHIVE.sha256"
@@ -279,16 +274,11 @@ jobs:
             ${{ env.ARCHIVE }}.sha256
           compression-level: 0
 
-  # The macOS application (Apple Silicon) joins the release like the Linux
-  # archive: "Aurora Viewer.app" in a disk image, next to a link to
-  # Applications to drag it onto, as Mac applications are installed. Signed with the Developer ID, then notarized and stapled,
-  # when the repository has the Apple secrets (docs/MACOS.md, "Signing");
-  # signed ad hoc otherwise, which macOS opens only after "Open Anyway" in
-  # Privacy & Security. The updater does not install it: the viewer points
-  # to the release page, as on Linux.
+  # macOS is not published yet (Windows-first). Dry-run only on packaging PRs.
+  # App bundle + DMG; signing/notarization when Apple secrets exist (docs/MACOS.md).
   macos:
     needs: windows
-    if: ${{ !cancelled() && (needs.windows.result == 'success' || github.event_name == 'pull_request') }}
+    if: ${{ github.event_name == 'pull_request' }}
     runs-on: macos-15
     env:
       TAG: ${{ inputs.tag || github.event_name == 'push' && github.ref_name || 'dry-run' }}
@@ -376,7 +366,8 @@ jobs:
           shasum -a 256 "$dmg" > "$dmg.sha256"
           echo "ARCHIVE=$dmg" >> "$GITHUB_ENV"
       - name: Publish
-        if: env.TAG != 'dry-run'
+        # Kept off public releases (Windows-first); dry-run PRs never hit this.
+        if: false
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: gh release upload "$TAG" "$ARCHIVE" "$ARCHIVE.sha256"

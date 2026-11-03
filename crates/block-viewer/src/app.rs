@@ -8311,14 +8311,20 @@ impl App {
                 now: world_now(),
                 steering: self.mouse_mode == MouseMode::Steer,
                 build_mode: self.build.open,
-                edit_tracking: self
-                    .camera
-                    .focus_object_id()
-                    .filter(|id| self.build.edits_object(&self.world, id))
-                    .map(|_| self.settings.build.follow_edit_object),
+                // Object view always tracks its focus; otherwise follow an
+                // edited selection only when "follow edit object" is on.
+                edit_tracking: if self.object_view {
+                    Some(true)
+                } else {
+                    self.camera
+                        .focus_object_id()
+                        .filter(|id| self.build.edits_object(&self.world, id))
+                        .map(|_| self.settings.build.follow_edit_object)
+                },
                 eye_offset: None,
                 draw_distance: self.settings.draw_distance,
             };
+            self.object_view_sync();
             if frame.edit_tracking.is_some() || self.camera.needs_animated_eyes(&self.world.agent, &self.settings.camera) {
                 // Evaluate the focused edit selection after the local drag,
                 // and first-person eyes after this frame's animation.

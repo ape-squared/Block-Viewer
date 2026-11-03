@@ -6,6 +6,8 @@ use super::App;
 use crate::theme::Palette;
 use crate::ui::controls::{ControlAction, FreeView, View};
 use block_net::{NetCommand, control};
+use glam::Vec3;
+use std::time::Instant;
 
 impl App {
     pub(super) fn controls_window(&mut self, ctx: &egui::Context, p: &Palette) {
@@ -75,7 +77,14 @@ impl App {
             }
             ControlAction::Zoom(fraction) => self.camera.set_zoom_fraction(fraction),
             ControlAction::Mouselook => self.toggle_mouselook(),
-            ControlAction::ObjectView => self.object_view = !self.object_view,
+            ControlAction::ObjectView => {
+                self.object_view = !self.object_view;
+                if self.object_view {
+                    // Keep following the focused object while this mode is on.
+                    self.settings.camera.track_focus_object = true;
+                    self.object_view_attach_selection();
+                }
+            }
             ControlAction::Walk | ControlAction::Run => {
                 if self.world.agent.flying {
                     self.toggle_fly();
@@ -111,6 +120,36 @@ impl App {
             }
             ControlAction::DeleteShot(i) => self.delete_camera_preset(i),
         }
+    }
+
+    /// Object view: lock the camera on the build selection (and keep tracking
+    /// it as it moves). A click in the world still focuses as with Alt.
+    pub(super) fn object_view_sync(&mut self) {
+        if !self.object_view {
+            return;
+        }
+        self.object_view_attach_selection();
+    }
+
+    fn object_view_attach_selection(&mut self) {
+        let Some(idx) = self.build.sel_prims(&self.world).first().copied() else {
+            return;
+        };
+        let Some(object) = crate::camera::pick_focus_object(&self.world, idx, Instant::now()) else {
+            return;
+        };
+        if self.camera.focus_object_id() == Some(object.0) {
+            return;
+        }
+        let point = object.1.position;
+        let dir = (point - self.camera.position).normalize_or(Vec3::X);
+        self.camera.alt_focus(
+            point,
+            Some(object),
+            (self.camera.position, dir),
+            &mut self.world.agent,
+            &self.settings.camera,
+        );
     }
 
     /// AURORA_DEMO_CONTROLS=camera | movement | compact | classic | free |

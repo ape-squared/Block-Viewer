@@ -1994,7 +1994,7 @@ LUT_3D_SIZE {n}
                     (0.6, block_i18n::tr!("photo-profile-encoding").to_owned())
                 }
                 Upload::Postcard { encoded: true, .. } => (0.85, block_i18n::tr!("photo-email-sending").to_owned()),
-                Upload::Web { encoded: true, .. } => (0.85, block_i18n::tr!("photo-uploading").to_owned()),
+                Upload::Web { encoded: true, .. } => (0.85, block_i18n::tr!("photo-web-uploading").to_owned()),
             })
         } else {
             s.job.as_ref().filter(|j| j.purpose != Purpose::Preview).map(|j| {
@@ -2191,7 +2191,7 @@ LUT_3D_SIZE {n}
                         (0.6, block_i18n::tr!("photo-profile-encoding").to_owned())
                     }
                     Upload::Postcard { encoded: true, .. } => (0.85, block_i18n::tr!("photo-email-sending").to_owned()),
-                    Upload::Web { encoded: true, .. } => (0.85, block_i18n::tr!("photo-uploading").to_owned()),
+                    Upload::Web { encoded: true, .. } => (0.85, block_i18n::tr!("photo-web-uploading").to_owned()),
                 })
             } else {
                 s.job.as_ref().filter(|j| j.purpose != Purpose::Preview).map(|j| {

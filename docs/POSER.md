@@ -93,7 +93,7 @@ unlock and the priority. Load's menu holds the four modes, applied to the
 selected library entry while the library is shown or to a file chosen
 otherwise, and "Open a file".
 
-Load accepts Aurora pose documents, native `.anim` files and `.bvh` files,
+Load accepts Block pose documents, native `.anim` files and `.bvh` files,
 up to 4 MiB. Animation imports sample their first frame. The four load modes
 are All, Rotations only, Unedited joints and Selective rotations. Selective
 loads preserve joints already edited in the current pose. Loading finishes
@@ -103,7 +103,7 @@ World locks are reanchored to the destination subject.
 BVH export writes the actual skeleton hierarchy in inches and Y-up, with
 a reference frame and two identical posed frames. The pelvis-unlock setting
 controls root rotation and translation. Native animations and BVH have no
-scale tracks; BVH also omits collision volumes. The Aurora pose document
+scale tracks; BVH also omits collision volumes. The Block pose document
 retains those channels. **Upload as animation…** reuses the existing native
 encoder and opens the normal import preview. Upload and the simulator price
 confirmation still require the human's action; saving never uploads.
@@ -115,7 +115,7 @@ bridge. Ask needs the worn bridge (the request travels through its query
 service): until that service answers the button is disabled and the menu says
 why: the bridge is starting, it was taken off, it failed, or it is worn but
 its query script stays silent for 10 seconds. The last two offer **Repair
-Aurora bridge**, the Movelock window's Repair. Ask sends one explicit request, with Cancel while
+Block bridge**, the Movelock window's Repair. Ask sends one explicit request, with Cancel while
 pending. The target sees the requester, distance, the local-only photo use,
 the session lifetime, Refuse, Accept and a permanent-request-block checkbox.
 Accepted targets keep a reminder with Withdraw even when Poser is closed.
@@ -151,13 +151,13 @@ viewfinder's wand) loses the edited joints of every subject. When some are
 edited, a dialog asks first: **Minimize** keeps the pose in the window's bar,
 **Close anyway** closes, Escape or a click beside it cancels; "Don't ask
 again" turns the setting off. The Legacy Viewer closes at once
-(`FSFloaterPoser::onClose`); Aurora asks so that no pose is lost by mistake.
+(`FSFloaterPoser::onClose`); Block asks so that no pose is lost by mistake.
 
 Defaults were checked against the local Legacy Viewer source: stop on close,
 joint markers and natural alignment on; DoF in edit, additional BVH, pelvis
 unlock and overwrite confirmation off; trackball sensitivity 0.5. DoF while
 posing permits the normal configured DoF effect, without enabling it globally.
-Settings and privacy are saved through Aurora's existing settings store.
+Settings and privacy are saved through Block's existing settings store.
 
 Main integration validation on 2026-10-24: the script parser, formatting and Clippy
 pass; the complete workspace has 4,860 passing tests, zero failures and 29

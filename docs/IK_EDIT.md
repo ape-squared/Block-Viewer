@@ -11,7 +11,7 @@ pose. Contact authoring reads simulator objects and exports script source.
 **Animations > Create an animation from this pose** opens the related
 [native animation creator](ANIMATION_CREATION.md), with keyed posing and
 `.anim` save/import preparation.
-The `ik_edit` viewer command toggles the same tool. The shared Aurora tab
+The `ik_edit` viewer command toggles the same tool. The shared Block tab
 strip separates **Projects**, **Bindings**, **Virtual bones**, **Animations**,
 and **Display**, in that order. **Options** and the two export buttons stay in
 a shared bottom panel across the authoring tabs, outside their scrolling content.
@@ -127,7 +127,7 @@ inventory notecards. The project includes all profiles, binding calibrations,
 virtual controls, animation order/frames, suppression settings and selected
 profile. **Restore local draft** can recover an older unnamed draft; the
 adjacent cross keeps the current work instead. File exchange also provides
-portable snapshots. The notecard save icon creates an **Aurora IK - <project>**
+portable snapshots. The notecard save icon creates a **Block IK - <project>**
 card in the inventory's Notecards folder. File and notecard loading are in the
 new-project menu above the tabs. Both formats carry the same versioned project, bounded to
 64 KiB. Inventory writes happen only on request.
@@ -168,7 +168,7 @@ bindings. No animation-stop, script-stop or script-activation message is sent.
 designation. Click any prim of the source linkset, or use the single prim
 already selected in Edit. Sitting is unnecessary. Escape cancels designation;
 the pending-request cross cancels a transfer. The source must contain the
-current IK companion. The Aurora bridge updates to version 1.33 to relay this
+current IK companion. The Block bridge updates to version 1.33 to relay this
 explicit targeted request.
 
 The viewer requests a fresh full declaration using a dedicated nonce and zero
@@ -693,7 +693,7 @@ avatar using that PC's current animation, shape and object transforms.
 Unmodified viewers do not apply these corrections. The rider does not need
 to run a compatible viewer for observers to see the scripted effects.
 
-There is no simulator IK registry. The viewer installs **#Aurora Bridge IK**
+There is no simulator IK registry. The viewer installs `#Block Bridge IK`
 as a third script in its existing bridge attachment, independently of movement
 and read-only services. On an authenticated relay handshake after login, arrival,
 region crossing or relay restart, the viewer asks it to discover regional sources
@@ -846,7 +846,7 @@ and proposed first-profile name respectively. No implicit entry appears.
 `links-add`, `links-bone-pick`, `links-bone`, `links-prim` and `links-visible`
 show the guided target choices, the locked-source designation step, saved
 own-bone/prim associations and the visibility tab. `links-menu` opens the
-row's Aurora pencil menu; `links-pose` shows selected-source details in Bindings.
+row's Block pencil menu; `links-pose` shows selected-source details in Bindings.
 `links-multiple` binds one wrist independently to Left and Right with 40/60%
 weights and expands the second association's calibration.
 `links-offsets` selects the right wrist, binds Right and opens the offsets/contact

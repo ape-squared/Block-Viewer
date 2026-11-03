@@ -90,11 +90,11 @@ Japanese, beyond the plural:
   tools (J2, L1).
 - Terms: アバター, インベントリ, フレンド, グループ, 区画 (parcel),
   リージョン, 不動産 (estate), オブジェクト, 装着 (attach), アウトフィット,
-  容姿 (appearance), 初期設定 (Preferences), 設定 (Aurora's own settings),
+  容姿 (appearance), 初期設定 (Preferences), 設定 (Block's own settings),
   近くのチャット, テレポート, ランドマーク, スクリプト, テクスチャ, フォルダ,
   ごみ箱; look an existing one up in `ja.ftl` before choosing a new one.
   Second Life, L$ and product names (Blender) stay in Latin letters. The
-  viewers are Auroraビューア and レガシービューア: "Legacy" is レガシー, as in
+  viewers are Blockビューア and レガシービューア: "Legacy" is レガシー, as in
   the option labels the Legacy Viewer's Japanese interface already
   translates (昼間（レガシー）).
 - A label quoted in a hint (「…」) is the exact text of that label in
@@ -110,7 +110,7 @@ Dates are messages with named components. For visible decimals, use
 `number` or `number_text`, and `integer` to group thousands; the egui
 controls use the same separator, and `parse_number` accepts it on input.
 
-Translate only what Aurora writes for the user. Protocol fields, command or
+Translate only what Block writes for the user. Protocol fields, command or
 widget identifiers, UUIDs, font names and saved identifiers stay stable.
 Names, descriptions and messages written by residents or received from the
 server stay as they are.

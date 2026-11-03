@@ -17,7 +17,7 @@ click outside can close it. The login button stays disabled as long as this
 update is required.
 
 The modes take up the choices of the Legacy Viewer's `UpdaterServiceSetting`:
-required only, ask, download automatically. Aurora chooses "Ask before
+required only, ask, download automatically. Block chooses "Ask before
 downloading" by default, to meet the request for an offer at launch;
 The Legacy Viewer chooses 0. The automatic mode prepares the files and waits for
 the user's agreement before quitting and restarting their session.
@@ -116,12 +116,12 @@ A tag created by hand without this line uses the thresholds of the versioned
 file. To also keep the choices made earlier in the tools, use an annotated
 tag with this line (or copy the thresholds into the versioned file).
 The interface announces separately what happens to the cache and to the
-settings, both before the download and before "Install and restart Aurora".
+settings, both before the download and before "Install and restart Block".
 
 Old releases without a hash or a manifest go through their page for a manual
 installation. Platforms other than Windows remain out of scope. The current
 ZIP is kept: Velopack was studied, but its chain of packages and installers
-is not that of the Aurora releases.
+is not that of the Block releases.
 
 ## Replacement and rollback
 

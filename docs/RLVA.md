@@ -319,7 +319,7 @@ Before live scripts, inspect the offline viewer in both languages:
 
 For live validation the human logs in, using a disposable controller and a
 test outfit. Compare the same commands and preferences in the reference and
-Aurora, retaining issuer UUIDs and response channels when reporting a mismatch.
+Block, retaining issuer UUIDs and response channels when reporting a mismatch.
 Test both successful replies and malformed/empty options, release/clear from
 one of two issuers, then global disable while a response is pending.
 

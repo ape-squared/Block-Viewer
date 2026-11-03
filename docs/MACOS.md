@@ -43,7 +43,7 @@ Until the releases are notarized, macOS may also ask again, after an
 update, whether Block Viewer may use the keychain (your saved password:
 choose **Always Allow**) and the microphone.
 
-The first time voice chat opens the microphone, macOS asks whether Aurora
+The first time voice chat opens the microphone, macOS asks whether Block
 Viewer may use it: allow it to speak in voice chat (you can change it later
 in **System Settings › Privacy & Security › Microphone**).
 
@@ -73,7 +73,7 @@ item is answered here; Command+H stays Hide.
 
 Web pages and video in the world need the media plugins, which are not part
 of the application: the first time they are needed, the viewer downloads
-Aurora's media plugins pack (about 335 MB) into the `media-plugins` folder of
+Block's media plugins pack (about 335 MB) into the `media-plugins` folder of
 its settings (table below), once. A Legacy Viewer installed on the Mac can
 lend its plugins instead: in **Preferences › Media**, type the path of its
 application (its `.app` in `/Applications`) as the plugins folder.
@@ -87,8 +87,8 @@ cache and logs are kept: they are not inside the application.
 
 | What | Where |
 |---|---|
-| Settings, logs | `~/Library/Application Support/org.Aurora.BlockViewer` |
-| Cache | `~/Library/Caches/org.Aurora.BlockViewer` |
+| Settings, logs | `~/Library/Application Support/com.ape-squared.BlockViewer` |
+| Cache | `~/Library/Caches/com.ape-squared.BlockViewer` |
 | Saved passwords | the macOS keychain (Keychain Access) |
 
 To see these folders in the Finder: **Go › Go to Folder…** (Cmd+Shift+G) and

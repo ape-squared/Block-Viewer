@@ -69,8 +69,7 @@ main a few days before a stable version, to catch crashes before everyone.
 next tag, the pruning and the policy line; the Nightly workflow runs them on
 the pull requests that change these files. `./scripts/nightly-tag.ps1
 -DryRun` prints the tag the next nightly would create. A beta update is
-tried locally with `scripts/test-update.ps1 -Beta`
-([TESTING.md](TESTING.md#interface)).
+tried locally with `scripts/test-update.ps1 -Beta`.
 
 ## Package and release policy
 
@@ -161,5 +160,5 @@ cancellation, dangerous ZIP, lock, backup and rollback of the package and of
 the data. `scripts/test-update-policy.ps1` checks the release choices, their
 carry-over into an annotated tag and the refusal of an invalid threshold,
 without touching the current repository. The visual demo downloads nothing
-(`AURORA_DEMO_UPDATE`). The human test with two real executables is
-described in [TESTING.md](TESTING.md#interface).
+(`AURORA_DEMO_UPDATE`). For a human check, run two real executables and
+confirm the update prompt, download, and restart behave as expected.

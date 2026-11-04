@@ -76,6 +76,36 @@ Dev helpers: `block-tools.cmd` (Block Tools). Old `aurora-tools.cmd` still launc
 
 ---
 
+## Guides
+
+These live in `docs/` and publish to the
+[wiki](https://github.com/ape-squared/Block-Viewer/wiki).
+
+**Testers**
+
+- [Reporting bugs](docs/BUG_REPORTING.md)
+- [Installing on Linux](docs/LINUX.md)
+- [Installing on macOS](docs/MACOS.md)
+- [Updates](docs/UPDATES.md)
+- [Asset imports](docs/IMPORTS.md)
+- [LiveMesh](docs/BLENDER_LIVE.md)
+- [Motorcycle hand contacts](docs/HAND_CONTACTS.md)
+- [IK Edit and bone contacts](docs/IK_EDIT.md)
+- [Create native animations](docs/ANIMATION_CREATION.md)
+- [Local photo poser](docs/POSER.md)
+
+**Contributing**
+
+- [Translating the viewer](docs/TRANSLATING.md)
+- [Branding and interface](docs/BRANDING.md)
+
+**Technical**
+
+- [RLVa implementation status](docs/RLVA.md)
+- [Licences and notices](NOTICE.md)
+
+---
+
 ## Brand
 
 | Token | Hex |

@@ -131,5 +131,6 @@ cargo run -p block-viewer -- --language ja --title "Test langue-viewer"
 ```
 
 Remove `--language` to check the saved choice and its change while the
-viewer is running. Screenshots use the variables described in
-[TESTING.md](TESTING.md).
+viewer is running. For screenshots in demo mode, set `AURORA_DEMO=1` and
+any `AURORA_DEMO_*` scenario you need, then capture the window titled with
+`--title`.

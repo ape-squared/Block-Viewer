@@ -1,6 +1,6 @@
 # Local photo poser
 
-Local trial for [issue #727](https://github.com/Block-Viewer/Block-Viewer/issues/727),
+Local trial for [issue #727](https://github.com/ape-squared/Block-Viewer/issues/727),
 based on the merged IK workbench (PR #893) and the supplied Poser
 handoff and mockup. Issue #727 remains open while grid validation is pending.
 The human validated the local demo on 2026-10-23 and authorized main integration on 2026-10-24. Two-client grid validation remains required.

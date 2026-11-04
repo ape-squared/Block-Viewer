@@ -19,7 +19,7 @@
 param(
     [Parameter(Mandatory)][string]$Out,
     # owner/name on GitHub, for the links back to the repository
-    [string]$Repository = $(if ($env:GITHUB_REPOSITORY) { $env:GITHUB_REPOSITORY } else { 'Block-Viewer/Block-Viewer' }),
+    [string]$Repository = $(if ($env:GITHUB_REPOSITORY) { $env:GITHUB_REPOSITORY } else { 'ape-squared/Block-Viewer' }),
     [string]$Branch = 'main'
 )
 $ErrorActionPreference = 'Stop'

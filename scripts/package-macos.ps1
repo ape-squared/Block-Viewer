@@ -35,7 +35,13 @@ $plist = Get-Content -LiteralPath (Join-Path $Source 'packaging/macos/Info.plist
 Set-Content -LiteralPath (Join-Path $contents 'Info.plist') -Value $plist.Replace('@VERSION@', $Matches[1]) -Encoding utf8NoBOM -NoNewline
 Set-Content -LiteralPath (Join-Path $contents 'PkgInfo') -Value 'APPL????' -Encoding ascii -NoNewline
 
-Copy-Item -LiteralPath (Join-Path $Source 'assets/branding/aurora.icns') -Destination (Join-Path $resources 'Aurora.icns')
+$icnsSrc = Join-Path $Source 'assets/branding/block.icns'
+if (-not (Test-Path -LiteralPath $icnsSrc)) {
+    $icnsSrc = Join-Path $Source 'assets/branding/aurora.icns'
+}
+# Info.plist CFBundleIconFile is "Block" (or legacy "Aurora"); match the file stem.
+$icnsName = if ((Split-Path $icnsSrc -Leaf) -eq 'block.icns') { 'Block.icns' } else { 'Aurora.icns' }
+Copy-Item -LiteralPath $icnsSrc -Destination (Join-Path $resources $icnsName)
 Get-ChildItem -LiteralPath (Join-Path $Source 'packaging/macos') -Directory -Filter '*.lproj' | ForEach-Object {
     Copy-Item -LiteralPath $_.FullName -Destination $resources -Recurse
 }

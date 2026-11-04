@@ -2,15 +2,31 @@ name: Release
 
 # A version tag (SemVer: v0.2.0, v0.2.1…) pushed by a human builds the
 # viewer and publishes the release with notes: the Windows zip (the one the
-# updater installs) and its crash symbols. Linux and macOS builds stay off
-# public releases for now (Windows-first); their jobs still dry-run on PRs
-# that touch these files. Nightly may call this workflow with a beta tag.
+# updater installs), its crash symbols, and the macOS DMG. Linux still
+# dry-runs on packaging PRs only. Use workflow_dispatch with an existing
+# tag and only=macos to attach a Mac build to a release that already has
+# Windows. Nightly may call this workflow with a beta tag.
 # The Nightly workflow calls it with the beta tag it has just pushed (a tag
 # pushed with the workflow token starts no workflow by itself); a tag with
 # a pre-release part is published as a GitHub pre-release.
 on:
   push:
     tags: ['v[0-9]+.[0-9]+.[0-9]+*']
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Existing version tag to build for (e.g. v0.1.0)
+        required: true
+        type: string
+      only:
+        description: Build only this platform (empty = Windows + macOS)
+        required: false
+        type: choice
+        options:
+          - ''
+          - macos
+          - windows
+        default: ''
   workflow_call:
     inputs:
       tag:
@@ -38,6 +54,7 @@ permissions:
 
 jobs:
   windows:
+    if: ${{ !(github.event_name == 'workflow_dispatch' && inputs.only == 'macos') }}
     runs-on: windows-latest
     env:
       TAG: ${{ inputs.tag || github.event_name == 'push' && github.ref_name || 'dry-run' }}
@@ -183,9 +200,15 @@ jobs:
               (a for a in assets if a.get("name", "").endswith("-windows-x64.zip") and not a.get("name", "").endswith("-symbols.zip")),
               None,
           )
+          macos = next(
+              (a for a in assets if a.get("name", "").endswith("-macos-arm64.dmg")),
+              None,
+          )
           fields = []
           if windows and windows.get("browser_download_url"):
               fields.append({"name": "Windows", "value": f"[Download zip]({windows['browser_download_url']})", "inline": True})
+          if macos and macos.get("browser_download_url"):
+              fields.append({"name": "macOS", "value": f"[Download DMG]({macos['browser_download_url']})", "inline": True})
           fields.append({"name": "Tag", "value": f"[`{tag}`]({url})" if tag and url else (tag or "—"), "inline": True})
           color = 0x38BDF8 if prerelease else 0xD4FF3F
           title = name if name.lower().startswith("block") else f"Block Viewer {name}"
@@ -283,15 +306,20 @@ jobs:
             ${{ env.ARCHIVE }}.sha256
           compression-level: 0
 
-  # macOS is not published yet (Windows-first). Dry-run only on packaging PRs.
   # App bundle + DMG; signing/notarization when Apple secrets exist (docs/MACOS.md).
+  # Tag pushes and workflow_dispatch publish to the release; PRs only dry-run.
   macos:
     needs: windows
-    if: ${{ github.event_name == 'pull_request' }}
+    if: |
+      always() &&
+      (needs.windows.result == 'success' || needs.windows.result == 'skipped') &&
+      !(github.event_name == 'workflow_dispatch' && inputs.only == 'windows') &&
+      (github.event_name == 'pull_request' || github.event_name == 'push' ||
+       github.event_name == 'workflow_call' || github.event_name == 'workflow_dispatch')
     runs-on: macos-15
     env:
       TAG: ${{ inputs.tag || github.event_name == 'push' && github.ref_name || 'dry-run' }}
-      APP: Aurora Viewer.app
+      APP: Block Viewer.app
       SIGNED: ${{ secrets.MACOS_CERTIFICATE_P12 != '' && secrets.APPLE_API_KEY_P8 != '' }}
     steps:
       - uses: actions/checkout@v7
@@ -371,15 +399,17 @@ jobs:
           mkdir -p "$stage"
           ditto "$APP" "$stage/$APP"
           ln -s /Applications "$stage/Applications"
-          hdiutil create -volname "Aurora Viewer" -srcfolder "$stage" -fs HFS+ -format UDZO -ov "$dmg"
+          hdiutil create -volname "Block Viewer" -srcfolder "$stage" -fs HFS+ -format UDZO -ov "$dmg"
           shasum -a 256 "$dmg" > "$dmg.sha256"
           echo "ARCHIVE=$dmg" >> "$GITHUB_ENV"
       - name: Publish
-        # Kept off public releases (Windows-first); dry-run PRs never hit this.
-        if: false
+        if: env.TAG != 'dry-run'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: gh release upload "$TAG" "$ARCHIVE" "$ARCHIVE.sha256"
+        run: |
+          # Attach to the existing GitHub release for this tag (clobber if a
+          # previous Mac asset for the same name is already there).
+          gh release upload "$TAG" "$ARCHIVE" "$ARCHIVE.sha256" --clobber
       - name: Dry-run application
         if: github.event_name == 'pull_request'
         uses: actions/upload-artifact@v7

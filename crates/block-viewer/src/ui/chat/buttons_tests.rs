@@ -553,7 +553,7 @@ fn the_head_acts() {
             "{style:?}: find closed"
         );
         for (row, wanted) in [
-            (block_i18n::tr!("common-offer-teleport"), "teleport"),
+            (block_i18n::tr!("common-request-teleport"), "request-tp"),
             (block_i18n::tr!("ui-chat-give-from-inventory"), "give"),
             (block_i18n::tr!("ui-call-add-people"), "add"),
             (block_i18n::tr!("common-block"), "block"),
@@ -562,7 +562,9 @@ fn the_head_acts() {
             h.press_text(row);
             let actions = h.take();
             let ok = match wanted {
-                "teleport" => has(&actions, |a| matches!(a, ConvAction::OfferTeleport(id) if *id == BOB)),
+                "request-tp" => crate::ui::context::take_requests(&h.frames.ctx)
+                    .iter()
+                    .any(|a| matches!(a, crate::ui::context::CtxAction::RequestTeleport(id) if *id == BOB)),
                 "give" => has(&actions, |a| matches!(a, ConvAction::OpenInventory)),
                 "add" => has(&actions, |a| matches!(a, ConvAction::PickPeople(id) if *id == BOB)),
                 _ => has(&actions, |a| matches!(a, ConvAction::ToggleBlock(id) if *id == BOB)),

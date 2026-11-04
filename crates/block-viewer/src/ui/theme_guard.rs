@@ -156,6 +156,11 @@ const ALLOWED: &[(&str, &str, &str)] = &[
         "`ui` is the builder of the menu entries there: its separators are drawn by menu::separator",
     ),
     (
+        "ui/login.rs",
+        ".separator()",
+        "start-location combo: section break before the favorites list (no Palette on that builder)",
+    ),
+    (
         "ui/minimap.rs",
         COLOR,
         "content: Firestorm's colors of the mini-map (objects, avatars, tracking) and its marks over the map",

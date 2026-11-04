@@ -210,6 +210,7 @@ fn japanese_system_locales_select_the_japanese_catalog() {
     assert!(block_i18n::available_languages().any(|(code, _)| code == "es"));
     assert!(block_i18n::available_languages().any(|(code, _)| code == "de"));
     assert!(block_i18n::available_languages().any(|(code, _)| code == "pt-BR"));
+    assert!(block_i18n::available_languages().any(|(code, _)| code == "it"));
     assert_eq!(resolve_language("default", "de-DE", &["en", "fr", "de"]), "de");
     assert_eq!(resolve_language("default", "es-ES", &["en", "es"]), "es");
     assert_eq!(resolve_language("default", "pt-BR", &["en", "pt-BR", "pt"]), "pt-BR");

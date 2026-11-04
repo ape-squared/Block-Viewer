@@ -122,10 +122,18 @@ impl App {
         }
     }
 
-    /// Object view: lock the camera on the build selection (and keep tracking
-    /// it as it moves). A click in the world still focuses as with Alt.
+    /// Object view: keep tracking whatever was focused (click or selection).
+    /// Do not overwrite a world click with the build selection every frame —
+    /// that stole focus from trackpad Alt-style clicks when nothing was
+    /// selected, and fought the click when something else was.
     pub(super) fn object_view_sync(&mut self) {
         if !self.object_view {
+            return;
+        }
+        // Object view always means "follow the focused object".
+        self.settings.camera.track_focus_object = true;
+        // Already locked on an object: leave the click / prior attach alone.
+        if self.camera.focus_object_id().is_some() {
             return;
         }
         self.object_view_attach_selection();

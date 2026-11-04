@@ -3611,16 +3611,17 @@ impl App {
         } else {
             self.mouse_alt_ctrl()
         };
+        // Object view mirrors Alt for hover cursors and drag-to-orbit.
         if !matches!(self.screen, Screen::World)
             || self.mouse_mode != MouseMode::None
             || self.camera.mouselook()
-            || !(focus_tool || alt)
+            || !(focus_tool || alt || self.object_view)
             || ctx.is_pointer_over_egui()
             || ctx.egui_wants_pointer_input()
         {
             return None;
         }
-        Some(if focus_tool && !ctrl && !self.shift {
+        Some(if focus_tool && !ctrl && !self.shift && !self.object_view {
             match self.build.focus_mode {
                 crate::build::FocusMode::Zoom => ToolMode::Zoom,
                 crate::build::FocusMode::Orbit => ToolMode::Orbit,
@@ -6264,8 +6265,10 @@ impl App {
             self.particle_target_pick();
             return true;
         }
+        // Object view is Alt-camera: do not steal the click for build tools.
         if !self.build.open
             || self.alt
+            || self.object_view
             || (self.hud_drag_requested() && self.huds_shown() && self.scene.hud_move_pick(&self.world, self.cursor_pos).is_some())
         {
             return false;
@@ -6987,9 +6990,11 @@ impl App {
         };
         // moving brings the camera back to the avatar (LLAgent::moveAt & co ->
         // resetView, FSResetCameraOnMovement): after an orbit the agent turns
-        // to where the camera looks, the camera stays put
+        // to where the camera looks, the camera stays put. Object view keeps
+        // its tracked focus through walking (trackpad users release the click).
         let moving = i.resets_camera(self.crouch_toggle.latched());
-        if moving && self.mouse_mode != MouseMode::FocusOrbit {
+        let object_view_lock = self.object_view && self.camera.focus_object_id().is_some();
+        if moving && self.mouse_mode != MouseMode::FocusOrbit && !object_view_lock {
             // A stick held to look up/down keeps its aim while walking,
             // like held mouse steering, instead of fighting the pitch fade.
             let steering = self.mouse_mode == MouseMode::Steer || i.joystick_pitch != 0.0;

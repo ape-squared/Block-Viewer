@@ -11,6 +11,7 @@ pub mod bubble_chat;
 pub mod calling_cards;
 
 pub mod beacons;
+pub mod block_peers;
 pub mod bridge;
 pub mod calls;
 pub mod chat_log;

@@ -1,0 +1,49 @@
+{
+  "tips": [
+    {
+      "en": "Alt-drag or turn on Object view in Controls to lock the camera on a prim — it keeps tracking as it moves.",
+      "fr": "Alt-glissez ou activez Vue objet dans Contrôles pour verrouiller la caméra sur un prim — elle le suit en mouvement.",
+      "es": "Arrastra con Alt o activa Vista de objeto en Controles para fijar la cámara en un prim: sigue su movimiento.",
+      "de": "Mit Alt ziehen oder Objektansicht in Steuerung aktivieren, um die Kamera an ein Prim zu heften — sie folgt der Bewegung.",
+      "it": "Trascina con Alt o attiva Vista oggetto in Controlli per fissare la camera su un prim: la segue mentre si muove.",
+      "pt-BR": "Arraste com Alt ou ative Visão do objeto em Controles para travar a câmera num prim — ela acompanha o movimento.",
+      "ja": "Altドラッグ、または操作のオブジェクト表示でカメラをプリムに固定 — 動いても追従します。"
+    },
+    {
+      "en": "Preferences search finds every setting. Type a word, then jump straight to the match.",
+      "fr": "La recherche des Préférences trouve chaque réglage. Tapez un mot, puis allez directement au résultat.",
+      "es": "La búsqueda de Preferencias encuentra cada ajuste. Escribe una palabra y salta al resultado.",
+      "de": "Die Suche in den Einstellungen findet jede Option. Tippe ein Wort und springe zum Treffer.",
+      "it": "La ricerca delle Preferenze trova ogni impostazione. Digita una parola e vai al risultato.",
+      "pt-BR": "A busca das Preferências acha cada ajuste. Digite uma palavra e vá direto ao resultado.",
+      "ja": "環境設定の検索ですべての項目を探せます。単語を入れて該当へジャンプ。"
+    },
+    {
+      "en": "Nameplates show a Block badge when someone else is on Block Viewer too.",
+      "fr": "Les plaques affichent un badge Block quand quelqu’un d’autre utilise aussi Block Viewer.",
+      "es": "Las placas muestran una insignia Block cuando alguien más también usa Block Viewer.",
+      "de": "Namensschilder zeigen ein Block-Abzeichen, wenn jemand anderes auch Block Viewer nutzt.",
+      "it": "Le nameplate mostrano un badge Block quando anche qualcun altro usa Block Viewer.",
+      "pt-BR": "As nameplates mostram um distintivo Block quando outra pessoa também usa o Block Viewer.",
+      "ja": "他の人が Block Viewer を使っていると、ネームプレートに Block バッジが出ます。"
+    },
+    {
+      "en": "Photo › Web uploads a still without stuffing your inventory. Deluxe quality can lag on heavy scenes.",
+      "fr": "Photo › Web envoie une image sans remplir l’inventaire. La qualité Deluxe peut freiner les scènes lourdes.",
+      "es": "Foto › Web sube una imagen sin llenar el inventario. La calidad Deluxe puede ir lenta en escenas densas.",
+      "de": "Foto › Web lädt ein Standbild hoch, ohne das Inventar zu füllen. Deluxe kann in dichten Szenen ruckeln.",
+      "it": "Foto › Web carica uno scatto senza riempire l’inventario. Deluxe può andare a scatti nelle scene pesanti.",
+      "pt-BR": "Foto › Web envia uma imagem sem encher o inventário. Deluxe pode travar em cenas pesadas.",
+      "ja": "写真 › Web はインベントリを埋めずに静止画を送れます。Deluxe は重いシーンで遅くなることがあります。"
+    },
+    {
+      "en": "These tips update from GitHub — no rebuild needed when we refresh the list.",
+      "fr": "Ces conseils viennent de GitHub — pas besoin de reconstruire le viewer pour les rafraîchir.",
+      "es": "Estos consejos se actualizan desde GitHub: no hace falta recompilar el visor para cambiarlos.",
+      "de": "Diese Tipps kommen von GitHub — kein Neuaufbau nötig, wenn wir die Liste ändern.",
+      "it": "Questi suggerimenti si aggiornano da GitHub: non serve ricompilare il viewer per cambiarli.",
+      "pt-BR": "Estas dicas atualizam pelo GitHub — sem precisar recompilar o viewer para mudá-las.",
+      "ja": "このヒントは GitHub から更新されます。一覧を変えても再ビルドは不要です。"
+    }
+  ]
+}

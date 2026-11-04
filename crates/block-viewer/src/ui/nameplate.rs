@@ -249,6 +249,8 @@ pub enum Badge {
     /// Drawn as a silhouette by the resident's Never fully render setting.
     RenderNever,
     Blocked,
+    /// Another (or our) avatar is on Block Viewer.
+    BlockViewer,
 }
 
 /// The badges of a plate, in drawing order.
@@ -303,6 +305,8 @@ pub struct Content {
     /// A member of the Aurora team or a Linden Lab employee
     /// (`world::staff`): the plate has its light and its tag (`mark.rs`).
     pub mark: Option<crate::world::staff::Mark>,
+    /// Runs Block Viewer (peers list, staff, or self-advertise).
+    pub block_viewer: bool,
 }
 
 /// A live editor preview shares the live geometry, contrast and badge code.
@@ -328,6 +332,7 @@ pub fn preview(ui: &mut egui::Ui, p: &Palette, appearance: std::sync::Arc<crate:
         render_never: false,
         blocked: false,
         mark: None,
+        block_viewer: true,
     };
     let tag = Tag {
         id: Uuid::nil(),
@@ -392,6 +397,7 @@ pub fn badges(level: Level, c: &Content) -> Badges {
     for (on, badge) in [
         (c.in_voice, Badge::Voice),
         (c.typing, Badge::Typing),
+        (c.block_viewer, Badge::BlockViewer),
         (c.friend && !c.appearance.replace_friend, Badge::Friend),
         (c.too_complex, if c.render_never { Badge::RenderNever } else { Badge::TooComplex }),
         (c.blocked, Badge::Blocked),

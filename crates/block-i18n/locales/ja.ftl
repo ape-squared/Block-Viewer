@@ -1,4 +1,4 @@
-language-name = 日本語
+language-name = 🇯🇵 日本語
 joystick-title = ジョイスティックと３Ｄマウス
 joystick-enabled = ジョイスティック入力を有効にする
 joystick-enable-hint = ジョイスティック、ゲームパッド、またはSpaceMouseでアバターや飛行カメラを操作します。
@@ -1131,6 +1131,10 @@ language-system = システムの言語
 language-choice = 言語
 language-share = スクリプトに公開する言語
 language-share-help = llGetAgentLanguageでスクリプトがあなたの言語を取得できるようにします。
+advertise-block-viewer = Block Viewer を使っていることを示す
+advertise-block-viewer-help = ネームプレートに Block バッジを付けます。GitHub の peers に載った人も近くにいると同じバッジになります。
+loading-tip-label = ヒント
+prefs-sidebar-hint = 設定を検索、または一覧から選ぶ
 ui-options-content = 内容
 ui-options-content-rated = アクセスしたいコンテンツ
 ui-options-content-rated-help = このレーティングを超えるリージョン、場所、検索結果は非表示またはブロックされます。アカウントによって選択が制限される場合があります。

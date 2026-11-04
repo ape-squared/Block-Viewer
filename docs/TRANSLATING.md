@@ -1,11 +1,12 @@
 # Translating the viewer
 
 Each language has a Fluent catalogue in `crates/block-i18n/locales/`.
-English is in `en.ftl`, French in `fr.ftl` and Japanese in `ja.ftl`. The
-files are embedded at build time; adding `de.ftl`, for example, adds a
-language to the Preferences without changing the Rust code. The file name
-must be a language identifier, such as `de` or `pt-BR`, and `language-name`
-holds the name that its speakers recognise.
+Bundled today: `en`, `fr`, `ja`, `es`, `de`, and `pt-BR`. The files
+are embedded at build time; adding another `.ftl` adds a language to the
+Preferences without changing the Rust code. The file name must be a
+language identifier, such as `de` or `pt-BR`, and `language-name` holds the
+name that its speakers recognise, with a flag emoji so the switcher is easy
+to scan (for example `🇪🇸 Español`).
 
 The embedded fonts only cover European scripts. Other scripts, Japanese
 included, are drawn by the system fallback fonts (Meiryo UI or Yu Gothic UI
@@ -24,10 +25,9 @@ English. The language and its visibility to scripts are sent to the
 simulator through `UpdateAgentLanguage`, after login, a region change or a
 change to the preferences, following the Legacy Viewer's `LLAgentLanguage::update`.
 
-A new text uses an explicit key and its version in every catalogue
-(English, French and Japanese) in the same PR, at the same place as in
-`en.ftl`. A key missing from one catalogue fails the parity test, in
-`scripts/check.ps1` and in the merge queue.
+A new text uses an explicit key and its version in every catalogue in the
+same PR, at the same place as in `en.ftl`. A key missing from one catalogue
+fails the parity test, in `scripts/check.ps1` and in the merge queue.
 
 ```rust
 ui.label(block_i18n::tr!("inventory-empty"));

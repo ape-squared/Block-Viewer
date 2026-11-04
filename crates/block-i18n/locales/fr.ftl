@@ -1,4 +1,4 @@
-language-name = Français
+language-name = 🇫🇷 Français
 joystick-title = Joystick et souris 3D
 joystick-enabled = Activer le joystick
 joystick-enable-hint = Déplacez l’avatar ou la caméra libre avec un joystick, une manette ou une SpaceMouse.
@@ -1134,6 +1134,10 @@ language-system = Langue du système
 language-choice = Langue
 language-share = Langue visible aux scripts
 language-share-help = Autoriser les scripts à lire votre langue avec llGetAgentLanguage.
+advertise-block-viewer = Montrer que j'utilise Block Viewer
+advertise-block-viewer-help = Affiche un badge Block sur votre plaque. Les pairs du fichier GitHub du projet ont le même badge à proximité.
+loading-tip-label = Astuce
+prefs-sidebar-hint = Chercher ou parcourir chaque réglage
 ui-options-content = Contenu
 ui-options-content-rated = Accéder au contenu classé
 ui-options-content-rated-help = Les régions, lieux et résultats de recherche au-dessus de ce classement sont masqués ou bloqués. Votre compte peut limiter le choix.

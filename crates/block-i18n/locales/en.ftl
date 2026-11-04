@@ -1,4 +1,4 @@
-language-name = English
+language-name = 🇺🇸 English
 joystick-title = Joystick and 3D mouse
 joystick-enabled = Enable joystick input
 joystick-enable-hint = Move the avatar or the flycam with a joystick, gamepad or SpaceMouse.
@@ -1131,6 +1131,10 @@ language-system = System language
 language-choice = Language
 language-share = Language visible to scripts
 language-share-help = Let scripts see your language through llGetAgentLanguage.
+advertise-block-viewer = Show that I use Block Viewer
+advertise-block-viewer-help = Puts a Block badge on your nameplate. Peers listed in the project's GitHub peers file get the same badge when nearby.
+loading-tip-label = Tip
+prefs-sidebar-hint = Search or browse every setting
 ui-options-content = Content
 ui-options-content-rated = I want to access content rated
 ui-options-content-rated-help = Regions, places and search results above this rating are hidden or blocked. Your account may limit the choice.

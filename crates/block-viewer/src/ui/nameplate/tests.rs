@@ -17,6 +17,7 @@ fn content() -> Content {
         render_never: false,
         blocked: false,
         mark: None,
+        block_viewer: false,
     }
 }
 
@@ -320,6 +321,7 @@ fn badges_and_status_dot_by_state_and_level() {
         ..content()
     };
     let order = [Badge::Voice, Badge::Typing, Badge::Friend, Badge::TooComplex, Badge::Blocked];
+    // BlockViewer stays off unless content.block_viewer is set (see below).
     for level in [Level::Full, Level::Compact] {
         assert_eq!(badges(level, &everything).iter().collect::<Vec<_>>(), order);
     }

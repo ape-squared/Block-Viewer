@@ -74,6 +74,7 @@ pub mod menu;
 pub mod minimap;
 pub mod money_tracker;
 pub mod monitor;
+pub mod motd_tips;
 pub mod movelock;
 pub mod movement;
 pub mod nameplate;

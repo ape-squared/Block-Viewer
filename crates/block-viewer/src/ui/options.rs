@@ -617,8 +617,8 @@ pub enum FolderChoice {
 }
 
 /// Width of the sidebar, height of the footer.
-const SIDEBAR_W: f32 = 236.0;
-const FOOTER_H: f32 = 52.0;
+const SIDEBAR_W: f32 = 248.0;
+const FOOTER_H: f32 = 56.0;
 /// The controls' widths (a slider's rail, a drop-down list).
 const SLIDER_W: f32 = 150.0;
 const COMBO_W: f32 = 190.0;
@@ -1223,8 +1223,8 @@ fn sidebar(
     now: f64,
 ) {
     let _ = (s, d, r, now);
-    // the column of the Conversations workspace: the bar's colour at 75 %,
-    // a hairline at its right
+    // Block prefs chrome: quiet ink wash (not the Conversations bar tint),
+    // soft edge, roomy search card — distinct from the older Aurora layout.
     let corner = ui.visuals().window_corner_radius;
     ui.painter().rect_filled(
         side,
@@ -1232,23 +1232,51 @@ fn sidebar(
             sw: corner.sw,
             ..egui::CornerRadius::ZERO
         },
-        p.bar.gamma_multiply(0.75),
+        p.field.gamma_multiply(0.55),
     );
     ui.painter().vline(
         side.right() - 0.5,
         side.y_range(),
-        egui::Stroke::new(1.0, p.ink.gamma_multiply(0.04)),
+        egui::Stroke::new(1.0, p.ink.gamma_multiply(0.08)),
     );
     let mut ui = ui.new_child(
         egui::UiBuilder::new()
-            .max_rect(side.shrink2(vec2(10.0, 0.0)))
+            .max_rect(side.shrink2(vec2(12.0, 0.0)))
             .layout(egui::Layout::top_down(egui::Align::Min)),
     );
-    ui.add_space(12.0);
+    ui.add_space(14.0);
+    {
+        let font = egui::FontId::new(13.0, super::fonts::semibold(ui.ctx()));
+        ui.label(RichText::new(block_i18n::tr!("common-preferences")).font(font).color(p.ink));
+        ui.add_space(2.0);
+        ui.label(RichText::new(block_i18n::tr!("prefs-sidebar-hint")).size(11.5).color(p.muted));
+        ui.add_space(10.0);
+    }
     let width = ui.available_width();
+    let search_top = ui.cursor().top();
+    let search_rect = Rect::from_min_size(pos2(ui.min_rect().left(), search_top), vec2(width, 40.0));
+    ui.painter().rect_filled(
+        search_rect,
+        ui.visuals().widgets.inactive.corner_radius,
+        p.raised.gamma_multiply(0.9),
+    );
+    ui.painter().rect_stroke(
+        search_rect,
+        ui.visuals().widgets.inactive.corner_radius,
+        egui::Stroke::new(1.0, p.ink.gamma_multiply(0.06)),
+        egui::StrokeKind::Inside,
+    );
+    ui.add_space(6.0);
     ui.horizontal(|ui| {
+        ui.add_space(6.0);
         let clear_w = if st.query.is_empty() { 0.0 } else { 26.0 };
-        let field = super::widgets::search_box(ui, p, &mut st.query, block_i18n::tr!("ui-options-search-settings"), width - clear_w);
+        let field = super::widgets::search_box(
+            ui,
+            p,
+            &mut st.query,
+            block_i18n::tr!("ui-options-search-settings"),
+            width - clear_w - 12.0,
+        );
         if st.focus_search && !ui.is_sizing_pass() && ui.is_enabled() {
             st.focus_search = false;
             field.request_focus();
@@ -1264,7 +1292,7 @@ fn sidebar(
             st.query.clear();
         }
     });
-    ui.add_space(6.0);
+    ui.add_space(10.0);
     let searching = !st.query.trim().is_empty();
     let list_h = (side.bottom() - ui.cursor().top() - 4.0).max(0.0);
     egui::ScrollArea::vertical()
@@ -1309,11 +1337,11 @@ fn sidebar(
             }
             for page in Page::ALL.into_iter().skip(1) {
                 if let Some(title) = page.section() {
-                    ui.add_space(10.0);
-                    let font = egui::FontId::new(11.0, super::fonts::semibold(ui.ctx()));
-                    let galley = ui.painter().layout_no_wrap(title.to_uppercase(), font, p.violet_light);
-                    let (rect, _) = ui.allocate_exact_size(vec2(ui.available_width(), 20.0), Sense::hover());
-                    super::widgets::paint_row_text(ui.painter(), galley, rect.left() + 8.0, rect.center().y, p.violet_light);
+                    ui.add_space(12.0);
+                    let font = egui::FontId::new(10.5, super::fonts::semibold(ui.ctx()));
+                    let galley = ui.painter().layout_no_wrap(title.to_uppercase(), font, p.muted);
+                    let (rect, _) = ui.allocate_exact_size(vec2(ui.available_width(), 18.0), Sense::hover());
+                    super::widgets::paint_row_text(ui.painter(), galley, rect.left() + 8.0, rect.center().y, p.muted);
                 }
                 let on = !searching && !st.modified_view && st.page == page;
                 let dim = searching && st.counts.hits(page) == 0;
@@ -1383,14 +1411,14 @@ fn chip_room(ui: &egui::Ui, n: Option<usize>) -> f32 {
     n.map_or(0.0, |n| chip_width(&chip_galley(ui, n, egui::Color32::PLACEHOLDER)) + 12.0)
 }
 
-/// A count in a pill at the right end of a sidebar entry: violet for the
-/// modified settings, teal for the search's hits.
+/// A count in a pill at the right end of a sidebar entry: ink wash for
+/// modified settings, teal for search hits (calmer than the old Aurora chips).
 fn paint_chip(ui: &egui::Ui, p: &Palette, entry: Rect, n: Option<usize>, hit: bool) {
     let Some(n) = n else { return };
     let (ink, face) = if hit {
-        (p.bar, p.teal)
+        (p.bar, p.teal.gamma_multiply(0.85))
     } else {
-        (p.violet_pale, p.violet.gamma_multiply(0.24))
+        (p.ink, p.ink.gamma_multiply(0.10))
     };
     let galley = chip_galley(ui, n, ink);
     let w = chip_width(&galley);
@@ -1451,8 +1479,8 @@ fn page_area(
         (page.name().to_owned(), page.about().to_owned())
     };
 
-    // the head: title, its line, and the page's own buttons at the right
-    ui.add_space(18.0);
+    // Page head: larger title, airy subtitle — less dense than the old Aurora prefs.
+    ui.add_space(22.0);
     let head_w = ui.available_width();
     ui.horizontal_top(|ui| {
         ui.set_width(head_w);
@@ -1465,10 +1493,11 @@ fn page_area(
         };
         ui.vertical(|ui| {
             ui.set_width((head_w - buttons_w - 12.0).max(120.0));
-            let font = egui::FontId::new(20.0, super::fonts::semibold(ui.ctx()));
+            let font = egui::FontId::new(24.0, super::fonts::semibold(ui.ctx()));
             ui.label(RichText::new(&title).font(font).color(p.ink));
+            ui.add_space(4.0);
             if !about.is_empty() {
-                ui.add(egui::Label::new(RichText::new(&about).size(12.5).color(p.muted)).wrap());
+                ui.add(egui::Label::new(RichText::new(&about).size(13.0).color(p.muted)).wrap());
             }
         });
         if buttons_w > 0.0 {

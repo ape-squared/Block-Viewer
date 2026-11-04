@@ -90,6 +90,7 @@ fn saved_choice_system_locale_and_english_fallback() {
     assert_eq!(resolve_language("", "FR_fr", &languages), "fr");
     assert_eq!(resolve_language("fr", "en-US", &languages), "fr");
     assert_eq!(resolve_language("default", "de-DE", &languages), "en");
+    assert_eq!(resolve_language("default", "de-DE", &["en", "fr", "de"]), "de");
     assert_eq!(resolve_language("unknown", "fr", &languages), "en");
     assert_eq!(resolve_language("default", "", &languages), "en");
     assert_eq!(resolve_language("pt-BR", "fr", &["en", "pt-BR", "pt"]), "pt-BR");
@@ -205,7 +206,13 @@ fn japanese_system_locales_select_the_japanese_catalog() {
     assert_eq!(resolve_language("", "ja_JP", &languages), "ja");
     assert_eq!(resolve_language("ja", "en-US", &languages), "ja");
     assert_eq!(resolve_language("default", "ja-JP", &["en", "fr"]), "en");
-    assert!(block_i18n::available_languages().any(|language| language == ("ja", "日本語")));
+    assert!(block_i18n::available_languages().any(|language| language == ("ja", "🇯🇵 日本語")));
+    assert!(block_i18n::available_languages().any(|(code, _)| code == "es"));
+    assert!(block_i18n::available_languages().any(|(code, _)| code == "de"));
+    assert!(block_i18n::available_languages().any(|(code, _)| code == "pt-BR"));
+    assert_eq!(resolve_language("default", "de-DE", &["en", "fr", "de"]), "de");
+    assert_eq!(resolve_language("default", "es-ES", &["en", "es"]), "es");
+    assert_eq!(resolve_language("default", "pt-BR", &["en", "pt-BR", "pt"]), "pt-BR");
     // Region and underscore variants resolve without touching the global language.
     assert_eq!(block_i18n::text_in("ja_JP", "language-system"), "システムの言語");
     assert_eq!(block_i18n::text_in("JA-jp", "language-choice"), "言語");

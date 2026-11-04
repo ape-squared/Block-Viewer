@@ -732,6 +732,9 @@ pub struct Settings {
     /// classic tags (FSShowTypingStateInNameTag). On, unlike the Legacy
     /// Viewer's off: the plates have shown it since their redesign.
     pub typing_in_name_tags: bool,
+    /// Show the Block badge on our own nameplate, and prefer being listed as
+    /// a Block Viewer peer when others refresh the GitHub peers file.
+    pub advertise_block_viewer: bool,
     /// A "> " before "… is typing" in the tab of a conversation with one
     /// resident (FSTypingChevronPrefix, off).
     pub typing_chevron: bool,
@@ -1812,6 +1815,7 @@ impl Default for Settings {
             play_typing_anim: true,
             type_during_emote: false,
             typing_in_name_tags: true,
+            advertise_block_viewer: true,
             typing_chevron: false,
             chat_bubbles: false,
             chat_bubbles_hide_console: true,

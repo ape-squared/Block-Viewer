@@ -35,13 +35,41 @@ $plist = Get-Content -LiteralPath (Join-Path $Source 'packaging/macos/Info.plist
 Set-Content -LiteralPath (Join-Path $contents 'Info.plist') -Value $plist.Replace('@VERSION@', $Matches[1]) -Encoding utf8NoBOM -NoNewline
 Set-Content -LiteralPath (Join-Path $contents 'PkgInfo') -Value 'APPL????' -Encoding ascii -NoNewline
 
-$icnsSrc = Join-Path $Source 'assets/branding/block.icns'
-if (-not (Test-Path -LiteralPath $icnsSrc)) {
-    $icnsSrc = Join-Path $Source 'assets/branding/aurora.icns'
+# App icon: the Block mark in assets/branding/block/02-app-icon (not the
+# legacy aurora.icns copy that lived at assets/branding/block.icns). Prefer
+# iconutil on the Mac runner; fall back to a committed block.icns built from
+# the same PNGs. CFBundleIconFile is "Block".
+$icnsDest = Join-Path $resources 'Block.icns'
+$iconDir = Join-Path $Source 'assets/branding/block/02-app-icon'
+$iconutil = Get-Command iconutil -ErrorAction SilentlyContinue
+if ($iconutil -and (Test-Path -LiteralPath $iconDir)) {
+    $iconset = Join-Path ([System.IO.Path]::GetTempPath()) ("block-viewer-{0}.iconset" -f [guid]::NewGuid().ToString('N'))
+    New-Item -ItemType Directory -Force -Path $iconset | Out-Null
+    $pairs = @{
+        'icon_16x16.png'        = 'block-app-icon-16.png'
+        'diana.k@example.org'     = 'block-app-icon-32.png'
+        'icon_32x32.png'        = 'block-app-icon-32.png'
+        'ivan.p@example.net'     = 'block-app-icon-64.png'
+        'icon_128x128.png'      = 'block-app-icon-128.png'
+        'wendy.h@example.net'   = 'block-app-icon-256.png'
+        'icon_256x256.png'      = 'block-app-icon-256.png'
+        'wendy.h@example.net'   = 'block-app-icon-512.png'
+        'icon_512x512.png'      = 'block-app-icon-512.png'
+        'walt.e@example.net'   = 'block-app-icon-1024.png'
+    }
+    foreach ($name in $pairs.Keys) {
+        Copy-Item -LiteralPath (Join-Path $iconDir $pairs[$name]) -Destination (Join-Path $iconset $name)
+    }
+    & iconutil -c icns $iconset -o $icnsDest
+    if ($LASTEXITCODE -ne 0) { throw "iconutil failed ($LASTEXITCODE)" }
+    Remove-Item -LiteralPath $iconset -Recurse -Force
+} else {
+    $icnsSrc = Join-Path $Source 'assets/branding/block.icns'
+    if (-not (Test-Path -LiteralPath $icnsSrc)) {
+        throw "Missing Block.icns source (no iconutil and no assets/branding/block.icns)"
+    }
+    Copy-Item -LiteralPath $icnsSrc -Destination $icnsDest
 }
-# Info.plist CFBundleIconFile is "Block" (or legacy "Aurora"); match the file stem.
-$icnsName = if ((Split-Path $icnsSrc -Leaf) -eq 'block.icns') { 'Block.icns' } else { 'Aurora.icns' }
-Copy-Item -LiteralPath $icnsSrc -Destination (Join-Path $resources $icnsName)
 Get-ChildItem -LiteralPath (Join-Path $Source 'packaging/macos') -Directory -Filter '*.lproj' | ForEach-Object {
     Copy-Item -LiteralPath $_.FullName -Destination $resources -Recurse
 }

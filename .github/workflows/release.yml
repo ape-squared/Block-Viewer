@@ -336,7 +336,8 @@ jobs:
           git checkout "${{ github.sha }}" -- \
             packaging/macos/Info.plist \
             scripts/package-macos.ps1 \
-            assets/branding/block.icns
+            assets/branding/block.icns \
+            assets/branding/block/02-app-icon
       - name: Rust stable
         run: rustup update stable
       - uses: Swatinem/rust-cache@v2

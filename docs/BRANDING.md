@@ -299,8 +299,9 @@ Files in [`assets/branding/`](../assets/branding/):
 | `block-logo-black.svg` / `.png` (4096 px) | black silhouette: monochrome uses on a light background |
 | `block-logo-purple.png` / `block-logo-teal.png` (4096 px) | silhouette in violet or in turquoise |
 | `block-logo-bg.png` (4096 px) | full logo on a navy background (the only file with an opaque background): square icons that need one (website's Apple touch icon) |
-| `aurora.icns` | full logo on its navy background in Apple's rounded square (an 824 px body with 185 px corners on a 1024 px canvas, 16 to 1024 px, taken from `block-logo-bg.png`): icon of `Block Viewer.app` on macOS |
-| `block.ico` | full logo as a Windows icon (16 to 256 px): icon of `block-viewer.exe` (embedded by its `build.rs`), "Block Tools" and "Block PR" shortcuts |
+| `block.icns` | Block app mark (`block/02-app-icon/`, 16 to 1024 px): icon of `Block Viewer.app` on macOS (`package-macos.ps1` builds it with `iconutil` when available) |
+| `block/02-app-icon/` | source PNGs and `block.ico` for the app icon (diagonal lime / charcoal mark) |
+| `block.ico` | same mark as a Windows icon (16 to 256 px): icon of `block-viewer.exe` (embedded by its `build.rs`), "Block Tools" and "Block PR" shortcuts; prefer `block/02-app-icon/block.ico` when regenerating |
 
 The logo is a howling wolf's head in profile, facing up and to the right,
 its mane made of streaming ribbons, in a circle. Its colours: violet `#8B5CF6`

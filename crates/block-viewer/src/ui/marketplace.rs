@@ -30,7 +30,7 @@ pub fn home(grid: &crate::settings::GridChoice) -> Option<&'static str> {
     }
 }
 
-/// Open `url` in the system browser (Firestorm's loadURLExternal). Prefer this
+/// Open `url` in the system browser (Legacy loadURLExternal). Prefer this
 /// over `CtxAction::OpenUrl` for Marketplace pages: that path would reopen
 /// them inside this window.
 fn open_system_browser(url: &str) {

@@ -161,11 +161,6 @@ const ALLOWED: &[(&str, &str, &str)] = &[
         "start-location combo: section break before the favorites list (no Palette on that builder)",
     ),
     (
-        "ui/login.rs",
-        ".separator()",
-        "start-location combo: section break before the favorites list (no Palette on that builder)",
-    ),
-    (
         "ui/minimap.rs",
         COLOR,
         "content: Firestorm's colors of the mini-map (objects, avatars, tracking) and its marks over the map",

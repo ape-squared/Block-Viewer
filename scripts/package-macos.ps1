@@ -45,17 +45,19 @@ $iconutil = Get-Command iconutil -ErrorAction SilentlyContinue
 if ($iconutil -and (Test-Path -LiteralPath $iconDir)) {
     $iconset = Join-Path ([System.IO.Path]::GetTempPath()) ("block-viewer-{0}.iconset" -f [guid]::NewGuid().ToString('N'))
     New-Item -ItemType Directory -Force -Path $iconset | Out-Null
-    $pairs = @{
-        'icon_16x16.png'        = 'block-app-icon-16.png'
-        'diana.k@example.org'     = 'block-app-icon-32.png'
-        'icon_32x32.png'        = 'block-app-icon-32.png'
-        'ivan.p@example.net'     = 'block-app-icon-64.png'
-        'icon_128x128.png'      = 'block-app-icon-128.png'
-        'wendy.h@example.net'   = 'block-app-icon-256.png'
-        'icon_256x256.png'      = 'block-app-icon-256.png'
-        'wendy.h@example.net'   = 'block-app-icon-512.png'
-        'icon_512x512.png'      = 'block-app-icon-512.png'
-        'walt.e@example.net'   = 'block-app-icon-1024.png'
+    # iconutil retina names use "@2x"; build them so the literal is not mangled.
+    $r = [char]64 + '2x'
+    $pairs = [ordered]@{
+        'icon_16x16.png'                    = 'block-app-icon-16.png'
+        ("icon_16x16{0}.png" -f $r)         = 'block-app-icon-32.png'
+        'icon_32x32.png'                    = 'block-app-icon-32.png'
+        ("icon_32x32{0}.png" -f $r)         = 'block-app-icon-64.png'
+        'icon_128x128.png'                  = 'block-app-icon-128.png'
+        ("icon_128x128{0}.png" -f $r)       = 'block-app-icon-256.png'
+        'icon_256x256.png'                  = 'block-app-icon-256.png'
+        ("icon_256x256{0}.png" -f $r)       = 'block-app-icon-512.png'
+        'icon_512x512.png'                  = 'block-app-icon-512.png'
+        ("icon_512x512{0}.png" -f $r)       = 'block-app-icon-1024.png'
     }
     foreach ($name in $pairs.Keys) {
         Copy-Item -LiteralPath (Join-Path $iconDir $pairs[$name]) -Destination (Join-Path $iconset $name)

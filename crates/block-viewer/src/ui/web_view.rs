@@ -46,8 +46,9 @@ pub struct WebView {
     /// The profile of the running private browser.
     profile: Option<PrivateProfile>,
     texture: Option<egui::TextureHandle>,
-    /// Page to show (loaded once the plugin runs).
-    url: String,
+    /// Page to show (loaded once the plugin runs). Public so floaters can
+    /// show / open the requested address before CEF reports a location.
+    pub url: String,
     nav_pending: bool,
     size: (i32, i32),
     failed: Option<String>,
@@ -83,6 +84,9 @@ impl WebView {
     pub fn navigate(&mut self, url: &str) {
         if self.url != url {
             self.url = url.to_owned();
+            // Keep the address bar in sync even when media plugins are not
+            // installed yet (NavigateComplete never arrives without CEF).
+            self.location = url.to_owned();
             self.nav_pending = true;
         }
     }
@@ -128,6 +132,8 @@ impl WebView {
     /// were followed inside the page).
     pub fn navigate_again(&mut self, url: &str) {
         self.url = url.to_owned();
+        // Same as navigate: show the requested page before the plugin runs.
+        self.location = url.to_owned();
         self.nav_pending = true;
     }
 

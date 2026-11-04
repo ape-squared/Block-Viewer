@@ -840,7 +840,11 @@ impl SearchUi {
             }
             if widgets::action_button(ui, p, "external-link-filled", label, ActionKind::Flat, external).clicked() {
                 let url = external_address(&self.web.location, home, env.session);
-                super::context::request(ui.ctx(), super::context::CtxAction::OpenUrl(url));
+                // System browser: CtxAction::OpenUrl would keep Marketplace
+                // (and other in-viewer) sites inside a floater.
+                if let Err(err) = webbrowser::open(&url) {
+                    log::warn!("search: cannot open system browser for {url}: {err}");
+                }
             }
         });
         if env.anonymous {

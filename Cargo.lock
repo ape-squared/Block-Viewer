@@ -884,6 +884,7 @@ dependencies = [
  "unicode-bidi-mirroring",
  "uuid 1.29.0",
  "wayland-client",
+ "webbrowser",
  "wgpu",
  "windows",
  "windows-sys 0.61.2",

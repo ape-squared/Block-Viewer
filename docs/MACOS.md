@@ -1,9 +1,11 @@
 # Installing Block Viewer on macOS
 
-Every release of Block Viewer comes with a macOS application for Apple
-Silicon Macs (M1 and later). It draws through Metal, Apple's graphics API:
-nothing else to install. macOS support is new: tell us what does not work
-(below).
+Block’s published releases today are **Windows**. When a macOS build for
+Apple Silicon is attached to a
+[release](https://github.com/ape-squared/Block-Viewer/releases), it is a
+`.dmg` that draws through Metal — nothing else to install. You can also
+[build from source](#building-from-source). macOS packaging is early: tell us
+what does not work (below).
 
 ## Requirements
 
@@ -13,7 +15,7 @@ nothing else to install. macOS support is new: tell us what does not work
 
 ## 1. Download and install
 
-1. On the [latest release](https://github.com/Block-Viewer/Block-Viewer/releases/latest),
+1. On the [latest release](https://github.com/ape-squared/Block-Viewer/releases/latest),
    download `Block-Viewer-<version>-macos-arm64.dmg`.
 2. Open it (a double click in the Finder): a window shows **Block Viewer**
    next to your **Applications** folder.
@@ -107,7 +109,7 @@ Install Apple's command line tools and Rust, then build:
 ```bash
 xcode-select --install
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
-git clone https://github.com/Block-Viewer/Block-Viewer block-viewer
+git clone https://github.com/ape-squared/Block-Viewer block-viewer
 cd block-viewer
 cargo build --release --locked -p block-viewer
 ./target/release/block-viewer

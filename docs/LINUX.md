@@ -1,8 +1,10 @@
 # Installing Block Viewer on Linux
 
-Every release of Block Viewer comes with a Linux build: an archive to
-extract and run, with nothing to install as root. It is tested on Arch Linux
-and CachyOS; other recent distributions work the same way.
+Block’s published releases today are **Windows**. When a Linux archive is
+attached to a [release](https://github.com/ape-squared/Block-Viewer/releases),
+it is a portable tarball: extract and run, nothing to install as root. You
+can also [build from source](#building-from-source). The notes below match the
+upstream Linux packaging; tell us what breaks on your distro.
 
 ## Requirements
 
@@ -43,7 +45,7 @@ Plus the Vulkan driver of your graphics card if it is not there yet:
 
 ## 2. Download and extract
 
-From the [latest release](https://github.com/Block-Viewer/Block-Viewer/releases/latest),
+From the [latest release](https://github.com/ape-squared/Block-Viewer/releases/latest),
 download `Block-Viewer-vX.Y.Z-linux-x64.tar.gz` and its `.sha256` file into
 the same folder, then:
 
@@ -147,7 +149,7 @@ your desktop (GNOME, KDE and other GLib desktops read such paths).
 ```bash
 sudo pacman -S --needed git base-devel rustup cmake clang pkgconf alsa-lib libxkbcommon wayland libx11 libxcursor libxrandr libxi vulkan-icd-loader
 rustup default stable
-git clone https://github.com/Block-Viewer/Block-Viewer block-viewer
+git clone https://github.com/ape-squared/Block-Viewer block-viewer
 cd block-viewer
 cargo build --release -p block-viewer
 ./target/release/block-viewer

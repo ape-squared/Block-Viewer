@@ -8,8 +8,6 @@ on:
     branches: [main]
     paths:
       - 'README.md'
-      - 'HUMANS.md'
-      - 'ARCHITECTURE.md'
       - 'NOTICE.md'
       - 'docs/*.md'
       - 'scripts/build-wiki.ps1'
@@ -41,7 +39,7 @@ jobs:
           path: .wiki
       - name: Wiki not created yet
         if: steps.wiki.outcome != 'success'
-        run: echo "::warning::The wiki has no page yet. Create a first page in the Wiki tab (see HUMANS.md), then run this workflow again."
+        run: echo "::warning::The wiki has no page yet. Create a first page in the Wiki tab, then run this workflow again."
       - name: Generate the pages
         if: steps.wiki.outcome == 'success'
         shell: pwsh

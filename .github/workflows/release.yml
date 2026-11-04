@@ -322,9 +322,21 @@ jobs:
       APP: Block Viewer.app
       SIGNED: ${{ secrets.MACOS_CERTIFICATE_P12 != '' && secrets.APPLE_API_KEY_P8 != '' }}
     steps:
+      # Tag / dispatch must build the tagged commit (AURORA_VERSION_TAG refuses
+      # a tree ahead of the tag). PRs keep the PR head. A macos-only dispatch
+      # then overlays packaging from the workflow commit so Block.app branding
+      # shipped after the tag still applies to that release.
       - uses: actions/checkout@v7
         with:
           fetch-depth: 0
+          ref: ${{ github.event_name == 'pull_request' && github.ref || inputs.tag || github.ref }}
+      - name: Packaging from workflow commit
+        if: github.event_name == 'workflow_dispatch' && inputs.tag != ''
+        run: |
+          git checkout "${{ github.sha }}" -- \
+            packaging/macos/Info.plist \
+            scripts/package-macos.ps1 \
+            assets/branding/block.icns
       - name: Rust stable
         run: rustup update stable
       - uses: Swatinem/rust-cache@v2

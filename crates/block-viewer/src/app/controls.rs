@@ -10,6 +10,10 @@ use glam::Vec3;
 use std::time::Instant;
 
 impl App {
+    pub(crate) fn object_view_sync(&mut self) {}
+
+    pub(crate) fn object_view_attach_selection(&mut self) {}
+
     pub(super) fn controls_window(&mut self, ctx: &egui::Context, p: &Palette) {
         self.joystick_status(ctx, p);
         self.controls_demo();

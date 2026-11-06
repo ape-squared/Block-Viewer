@@ -300,6 +300,7 @@ impl StagingPool {
                 let buffer = create_mapped_staging(device, chunk_bytes)?;
                 Some(Arc::new(Chunk {
                     buffer,
+                    pool: 0,
                     writers: AtomicU32::new(0),
                     staged: AtomicU32::new(0),
                     unmapped: AtomicBool::new(false),

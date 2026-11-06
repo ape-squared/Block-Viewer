@@ -300,7 +300,7 @@ impl PlacesUi {
         if classic {
             self.tab == TAB_HISTORY
         } else {
-            self.aurora.source == aurora::Source::History
+            self.aurora.source == block::Source::History
         }
     }
 

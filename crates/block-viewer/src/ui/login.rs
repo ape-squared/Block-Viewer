@@ -336,6 +336,16 @@ pub(super) fn demo_open_start_menu(ui: &egui::Ui, salt: &str, favorites: &StartF
 /// comes first and stays chosen until another entry is, as the Legacy
 /// Viewer's location combo shows the start SLURL
 /// (FSPanelLogin::onUpdateStartSLURL).
+/// Favourites cached for the account matching the typed username.
+fn login_favorites_for(settings: &Settings) -> Vec<crate::login_favorites::Entry> {
+    let key = (settings.login_uri(), settings.username.trim().to_lowercase());
+    let agent = crate::login_accounts::load()
+        .into_iter()
+        .find(|a| a.key() == key)
+        .and_then(|a| a.agent);
+    crate::login_favorites::load(agent.as_ref())
+}
+
 pub(super) fn start_menu(
     ui: &mut egui::Ui,
     combo: egui::ComboBox,
@@ -359,9 +369,7 @@ pub(super) fn start_menu(
         combo.height(ui.spacing().combo_height.max(ui.ctx().content_rect().height() * 0.5))
     };
     let shown = combo.selected_text(selected).show_ui(ui, |ui| {
-        if let Some(place) = &place
-            && fav_label.is_none()
-        {
+        if let Some(place) = &place {
             let _ = ui.selectable_label(true, place);
         }
         let usual = place.is_none() && chosen.is_none();
@@ -391,25 +399,9 @@ pub(super) fn start_menu(
                 *slurl = None;
             }
         }
-        if !favorites.is_empty() {
-            ui.separator();
-            ui.label(
-                RichText::new(block_i18n::tr!("ui-login-favorites"))
-                    .size(11.0)
-                    .color(ui.visuals().weak_text_color()),
-            );
-            for fav in favorites {
-                let loc = crate::slurl::parse(&fav.place);
-                let selected = loc.as_ref().is_some_and(|l| slurl.as_ref() == Some(l));
-                if ui.selectable_label(selected, &fav.name).clicked() {
-                    *start = "favorite".into();
-                    *slurl = loc;
-                }
-            }
-        }
     });
     // a card's narrow menu cuts the place short
-    if let Some(place) = fav_label.or(place) {
+    if let Some(place) = place {
         shown.response.on_hover_text(place);
     } else if let Some(favorite) = &chosen {
         shown
@@ -834,6 +826,7 @@ pub fn show(
                         );
                     }
                     if settings.start_location == "region" && form.start_slurl.is_none() && !favorite_chosen {
+                        let before = settings.start_region.clone();
                         field(
                             ui,
                             p,

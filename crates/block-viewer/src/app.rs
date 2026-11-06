@@ -1499,6 +1499,7 @@ impl App {
             favorites_access_applied: None,
             favorite_images: Default::default(),
             history_ui: Default::default(),
+            conversation_log_ui: Default::default(),
             chat_import: Default::default(),
             perf: PerfData::default(),
             monitor: ui::monitor::Monitor::default(),
@@ -10829,7 +10830,7 @@ impl App {
             ));
             raw.events
                 .extend(ui::inventory::delete_demo_events(&ctx, self.frame_count, &self.inventory_ui));
-            ui::inventory::aurora_demo(&ctx, self.frame_count);
+            ui::inventory::block_demo(&ctx, self.frame_count);
             ui::inventory::folder_colors_demo_frame(&ctx, &mut self.inventory_ui, &self.settings.inventory, self.frame_count);
             ui::inventory::bulk_permissions_demo(self.frame_count, &mut self.inventory_ui);
             if std::env::var("AURORA_DEMO_INVENTORY").is_ok_and(|mode| matches!(mode.as_str(), "show-original" | "block-show-original")) {
@@ -17910,7 +17911,12 @@ impl ApplicationHandler for App {
                 let system = System::new_with_specifics(RefreshKind::nothing().with_memory(MemoryRefreshKind::nothing().with_ram()));
                 Some(system.total_memory() / 1024 / 1024).filter(|&mb| mb > 0)
             };
-            let level = crate::graphics_presets::Preset::for_machine(renderer.info.integrated, renderer.info.vram_mb, system_mb);
+            let level = crate::graphics_presets::Preset::for_machine(
+                renderer.info.integrated,
+                renderer.info.vram_mb,
+                system_mb,
+                renderer.info.vendor_id,
+            );
             log::info!(
                 "new profile: graphics level {level:?} (integrated {}, video memory {}, system memory {:?} MB)",
                 renderer.info.integrated,

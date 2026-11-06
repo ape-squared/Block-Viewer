@@ -7,6 +7,15 @@ use super::World;
 use std::sync::atomic::{AtomicBool, Ordering};
 use uuid::Uuid;
 
+/// The agent is on a Second Life grid: the only grids whose "Linden" last
+/// name is Linden Lab's. Set by the app (`set_second_life`); off until then.
+static SECOND_LIFE: AtomicBool = AtomicBool::new(false);
+
+/// The grid of the session is Second Life's, or not.
+pub fn set_second_life(on: bool) {
+    SECOND_LIFE.store(on, Ordering::Relaxed);
+}
+
 /// Extra agent UUIDs for Block developers (optional; usernames below are enough).
 const TEAM_IDS: &[Uuid] = &[];
 

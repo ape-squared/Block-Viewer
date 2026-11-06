@@ -813,6 +813,12 @@ pub struct Settings {
     /// yet, opens it with "Incoming message from <name>"
     /// (FSAnnounceIncomingIM, off).
     pub announce_incoming_im: bool,
+    /// Graphics level this machine was offered once, until the notice is dismissed.
+    #[serde(default)]
+    pub graphics_machine_tip: Option<u8>,
+    /// The friends notice has been dismissed.
+    #[serde(default)]
+    pub friend_kit_seen: bool,
     /// "(<unread>) " before the window title while IMs, group chats or
     /// conferences wait unread (FSShowMessageCountInWindowTitle, off).
     pub unread_ims_in_window_title: bool,
@@ -873,11 +879,6 @@ pub struct Settings {
     pub reopen_ims: bool,
     /// Show the end of a conversation's file when it opens (LogShowHistory).
     pub log_show_history: bool,
-    /// Announce an incoming private IM as soon as the sender starts typing,
-    /// before a session exists (Legacy FSAnnounceIncomingIM): a system line
-    /// in the conversation and a brief OS window title.
-    #[serde(default)]
-    pub announce_incoming_im: bool,
     /// Date in the names of these files (LogFileNamewithDate, off).
     pub log_dated_names: bool,
     /// Import the Legacy Viewer's transcripts at each login. On by default
@@ -1952,6 +1953,8 @@ impl Default for Settings {
             flash_conversations_button: true,
             flash_conversations_nearby: true,
             announce_incoming_im: false,
+            graphics_machine_tip: None,
+            friend_kit_seen: false,
             unread_ims_in_window_title: false,
             chat_thumbnails: ChatThumbnails::ChatBar,
             chat_thumbnails_flash: true,
@@ -1974,7 +1977,6 @@ impl Default for Settings {
             log_nearby: false,
             reopen_ims: false,
             log_show_history: true,
-            announce_incoming_im: true,
             log_dated_names: false,
             log_import_at_login: true,
             warn_external_links: true,

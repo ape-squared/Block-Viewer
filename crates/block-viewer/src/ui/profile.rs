@@ -377,7 +377,7 @@ impl ProfileUi {
     /// (unsaved edits still ask).
     pub fn toggle_mine(&mut self, ctx: &egui::Context, world: &mut World, classic: bool) {
         let me = world.agent_id;
-        let win_id = if classic { format!("profile-{me}") } else { aurora::window_id(me) };
+        let win_id = if classic { format!("profile-{me}") } else { block::window_id(me) };
         if let Some(w) = self.windows.iter_mut().find(|w| w.id == me && w.open) {
             if widgets::floater_minimized(ctx, &win_id) {
                 widgets::expand_floater(ctx, &win_id);
@@ -402,7 +402,7 @@ impl ProfileUi {
     /// second press with Picks shown closes it (unsaved edits still ask).
     pub fn toggle_picks(&mut self, ctx: &egui::Context, world: &mut World, classic: bool) {
         let me = world.agent_id;
-        let win_id = if classic { format!("profile-{me}") } else { aurora::window_id(me) };
+        let win_id = if classic { format!("profile-{me}") } else { block::window_id(me) };
         if let Some(w) = self.windows.iter_mut().find(|w| w.id == me && w.open) {
             if w.tab == TAB_PICKS && !widgets::floater_minimized(ctx, &win_id) {
                 close_or_confirm(w, false);
@@ -2443,7 +2443,7 @@ mod tests {
         let me = Uuid::from_u128(1);
         world.agent_id = me;
         for classic in [false, true] {
-            let win_id = if classic { format!("profile-{me}") } else { aurora::window_id(me) };
+            let win_id = if classic { format!("profile-{me}") } else { block::window_id(me) };
             let mut ui = ProfileUi::default();
             ui.toggle_picks(&ctx, &mut world, classic);
             assert!(ui.picks_shown(me), "classic {classic}: opens on Picks");

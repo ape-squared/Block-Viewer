@@ -3150,7 +3150,7 @@ impl Backend {
         let water_effects = crate::water_effects::WaterGpu::new(&device, 1);
         let contact = crate::contact_shadows::ContactShadows::new(&device);
         lost_at_start(&lost, &surface)?;
-        let glow = Glow::new(&device, &post_layout);
+        let glow = Glow::new(&device, &queue, &post_layout);
         let smaa = Smaa::new(&device, &queue, [&post_layout, &bloom.post_layout], format);
         let targets = Self::make_targets(
             &device,
@@ -3170,7 +3170,7 @@ impl Backend {
         let mut histogram = crate::histogram::Histogram::new(&device);
         histogram.bind(&device, &targets.color);
         lost_at_start(&lost, &surface)?;
-        let stars = wgpu::util::DeviceExt::create_buffer_init(
+        let stars = crate::upload::create_buffer_data(
             &device,
             &queue,
             "night sky stars",

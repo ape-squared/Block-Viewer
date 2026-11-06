@@ -1430,6 +1430,31 @@ fn gltf_offset(saved_offset: f32, saved_scale: f32, scale: f32) -> f32 {
 
 /// Write new world transforms to the objects (local echo). `targets` maps
 /// mover index -> (world pos, world rot, scale, uniform factor for children).
+fn scale_texture_entry(te: &mut block_prim::te::TextureEntry, old: Vec3, new: Vec3) {
+    let r = new / old.max(Vec3::splat(1e-6));
+    for (i, face) in te.faces.iter_mut().enumerate() {
+        let (fs, ft) = match i % 6 {
+            0 | 1 => (r.y, r.z),
+            2 | 3 => (r.x, r.z),
+            _ => (r.x, r.y),
+        };
+        face.scale_s = (face.scale_s * fs).clamp(0.01, 100.0);
+        face.scale_t = (face.scale_t * ft).clamp(0.01, 100.0);
+    }
+}
+
+fn push_set_textures(world: &World, idx: usize, out: &mut Vec<BuildCmd>) {
+    let Some(o) = world.objects.get(idx) else { return };
+    let Some(te) = o.te.as_deref() else { return };
+    let n = te.faces.len().clamp(1, 256);
+    out.push(BuildCmd::SetTextures {
+        handle: o.key.region,
+        local_id: o.key.local_id,
+        media_url: o.media_url.clone(),
+        texture_entry: block_prim::te::pack_texture_entry(te, n),
+    });
+}
+
 fn apply(world: &mut World, d: &Drag, targets: &[(Vec3, Quat, Vec3)], stretch_textures: bool, out: &mut Vec<BuildCmd>) {
     let new_world: HashMap<usize, (Vec3, Quat)> = d.movers.iter().zip(targets).map(|(m, t)| (m.idx, (t.0, t.1))).collect();
     let mut te_changed = Vec::new();
@@ -1680,7 +1705,7 @@ fn drag_update(
             EditMode::Stretch => scale_target(d, m),
         })
         .collect();
-    apply(world, d, &targets);
+    apply(world, d, &targets, d.stretch_textures, out);
     if d.mode == EditMode::Stretch && adjust_textures(world, &d.textures, d.stretch_textures) {
         d.te_due = true;
     }

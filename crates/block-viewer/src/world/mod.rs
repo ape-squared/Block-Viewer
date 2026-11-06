@@ -388,6 +388,8 @@ pub struct World {
     /// announcement (FSAnnounceIncomingIM, `im_announce.rs`), given every
     /// frame by the app.
     pub announce_incoming_im: bool,
+    /// Sender shown in the window title until the window is in front again.
+    pub incoming_im_title: Option<String>,
     /// Fly override (the Legacy Viewer's FSAlwaysFly, read by LLAgent::canFly
     /// in indra/newview/llagent.cpp): the parcel's and the region's no-fly
     /// no longer stop a takeoff nor land the avatar. Never saved, off at
@@ -915,7 +917,6 @@ impl World {
             fly_after_teleport: false,
             open_ims_path: None,
             reopen_ims: Vec::new(),
-            announce_incoming_im: false,
             incoming_im_title: None,
             cache_dir: None,
         }

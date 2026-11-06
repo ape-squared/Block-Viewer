@@ -2449,7 +2449,7 @@ mod tests {
                     if classic {
                         inventory_contents(ui, &p, &Icons::default(), &mut inv, st, &mut prefs, &Facts::default(), &mut vec![]);
                     } else {
-                        aurora::contents(
+                        block::contents(
                             ui,
                             &p,
                             &Icons::default(),

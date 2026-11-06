@@ -12,6 +12,7 @@ use super::App;
 use crate::snapshot::looks::{self, Placement, Resolved};
 use crate::snapshot::luts::{Imported, LutLibrary};
 use crate::snapshot::reel::Place;
+use crate::snapshot::web_upload;
 use crate::snapshot::{self, ContextPass, TilePass, gallery, inventory, profile, save};
 use crate::ui::snapshot::{Action, Destination, EmailView, InventoryView, ProfileView};
 use crate::ui_sound::UiSound;
@@ -749,6 +750,7 @@ impl App {
             Purpose::Inventory(cost) => self.photo_encode(job.size, job.pixels, cost, job.cutout),
             Purpose::Profile => self.photo_post(job.size, job.pixels, job.cutout),
             Purpose::Postcard => self.photo_postcard(job.size, job.pixels, job.cutout),
+            Purpose::Web => self.photo_web(job.size, job.pixels),
         }
     }
 
@@ -910,8 +912,7 @@ impl App {
     }
 
     /// Encode a PNG and POST it to catbox.moe off the main thread.
-    fn photo_web(&mut self, size: (u32, u32), rgba: Vec<u8>) {
-        self.photo_review_thumb(size, &rgba);
+    pub(crate) fn photo_web(&mut self, size: (u32, u32), rgba: Vec<u8>) {
         let (tx, rx) = crossbeam_channel::unbounded();
         self.net.runtime().spawn(async move {
             let encoded = tokio::task::spawn_blocking(move || web_upload::encode_png(size.0, size.1, &rgba)).await;
@@ -963,10 +964,7 @@ impl App {
                     ),
                     false,
                 ));
-                self.photo_review_show(
-                    format!("{} · {url}", block_i18n::tr!("photo-destination-web")),
-                    crate::ui::viewfinder::Review::Web(url),
-                );
+                self.photo_review_show();
             }
             Err(e) => {
                 log::warn!("photo: Catbox upload failed: {e}");

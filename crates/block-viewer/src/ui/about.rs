@@ -13,7 +13,8 @@ pub mod notice;
 use super::sheet;
 use super::widgets::{self, ActionKind, Floater};
 use crate::theme::Palette;
-use egui::{RichText, Sense, Vec2};
+use egui::{Rect, RichText, Sense, Shape, Vec2};
+use sheet::Tone;
 use notice::Block;
 use std::time::{Duration, Instant};
 

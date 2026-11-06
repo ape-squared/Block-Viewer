@@ -1,7 +1,7 @@
 //! Preferences › Language and updates: the interface's language, how the
 //! new versions come, whether the `secondlife:` links of web pages open
 //! in this viewer, the backup of the settings (`options/backup.rs`), and
-//! the removal of Aurora from this computer (`uninstall.rs`).
+//! the removal of Block Viewer from this computer (`uninstall.rs`).
 
 use super::super::COMBO_W;
 use super::super::cx::{Cx, Nothing, field};

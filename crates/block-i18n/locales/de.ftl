@@ -12860,3 +12860,6 @@ voice-morphing = Stimmmorphing
 voice-morphing-effect = Stimmwirkung
 voice-morphing-effect-hint = Legacy Voice Morphing: Wählen Sie eine Sprachschriftart, wenn Vivox sie anbietet. Off verlässt Ihre natürliche Stimme.
 voice-morphing-none = Keine Morphierung
+
+ui-options-block-building = Bauen
+ui-options-block-bridge = Block-Brücke

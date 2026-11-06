@@ -643,7 +643,7 @@ pub struct OptionsResult {
     pub friends_only_keep: Option<bool>,
     /// Open the Dev Toolbox (Network and cache › Logs and tools).
     pub open_dev_toolbox: bool,
-    /// "Remove Aurora from this computer" (Language and updates): the app
+    /// "Remove Block Viewer from this computer" (Language and updates): the app
     /// asks for the confirmation.
     pub uninstall: bool,
     /// Back up the settings to a file the user chooses.

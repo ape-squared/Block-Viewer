@@ -784,7 +784,7 @@ pub struct App {
     grid_status_listed: bool,
     grid_status_was_open: bool,
     about: about::About,
-    /// Preferences › Remove Aurora from this computer (`app/uninstall.rs`).
+    /// Preferences › Remove Block Viewer from this computer (`app/uninstall.rs`).
     uninstall: uninstall::Uninstall,
     /// The parcel radio's title and the ones before (World › Stream title).
     stream_titles: crate::stream_title::StreamTitles,

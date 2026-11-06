@@ -340,7 +340,7 @@ pub fn page(cx: &mut Cx, tab: usize) {
             });
         }
         _ => {
-            cx.group(tr!("ui-options-aurora-building"), |cx| {
+            cx.group(tr!("ui-options-block-building"), |cx| {
                 cx.wide().choice(
                     tr!("ui-options-aurora-move-hologram"),
                     tr!("ui-options-aurora-move-hologram-help"),
@@ -352,7 +352,7 @@ pub fn page(cx: &mut Cx, tab: usize) {
                     ],
                 );
             });
-            cx.group(tr!("ui-options-aurora-bridge"), |cx| {
+            cx.group(tr!("ui-options-block-bridge"), |cx| {
                 cx.toggle(
                     tr!("ui-options-aurora-use-bridge"),
                     tr!("ui-options-aurora-use-bridge-help"),
@@ -371,7 +371,7 @@ pub fn page(cx: &mut Cx, tab: usize) {
                     ],
                 );
             });
-            cx.group(tr!("ui-options-aurora-gaze"), |cx| {
+            cx.group(tr!("ui-options-block-gaze"), |cx| {
                 cx.wide().choice(
                     tr!("ui-options-block-aim"),
                     tr!("ui-options-block-aim-help"),

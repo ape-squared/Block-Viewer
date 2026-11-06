@@ -59,9 +59,12 @@ jobs:
     env:
       TAG: ${{ inputs.tag || github.event_name == 'push' && github.ref_name || 'dry-run' }}
     steps:
+      # Tag / dispatch must build the tagged commit (AURORA_VERSION_TAG refuses
+      # a tree ahead of the tag). PRs keep the PR head.
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
+          ref: ${{ github.event_name == 'pull_request' && github.ref || inputs.tag || github.ref }}
       - name: Rust stable
         run: rustup update stable
       - uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0 # v2.9.3
@@ -270,6 +273,7 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
+          ref: ${{ github.event_name == 'pull_request' && github.ref || inputs.tag || github.ref }}
       # ALSA for the sound, the rest for winit's X11 / Wayland back ends
       - name: System libraries
         run: |

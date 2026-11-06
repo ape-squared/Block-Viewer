@@ -2,7 +2,7 @@
 
 Input: the HYG database CSV (gzip), https://codeberg.org/astronexus/hyg,
 licensed CC BY-SA 4.0. Output: assets/stars/stars.bin, read by
-aurora-render/src/stars.rs (keep the two formats in step).
+block-render/src/stars.rs (keep the two formats in step).
 
 Keeps the stars visible to the naked eye under a dark sky (visual
 magnitude <= 6.5), brightest first, without the Sun. Standard library only;

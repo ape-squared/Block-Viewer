@@ -21,9 +21,10 @@ The starting motorcycle declaration contains `drive` (both wrists) and
 `gas_only` (right wrist). Both reuse the same binding data; changing profile
 does not duplicate offsets or restart a contact that is common to both.
 
-The viewer automatically installs a separate `#Block Bridge IK` script.
-On region arrival it discovers occupied/worn publishers once using a negative
-regional channel. The motorcycle announces as soon as somebody sits and returns
+The viewer automatically installs a separate **#Aurora Bridge IK** script.
+On region arrival it asks, once, the objects avatars sit on and your own
+attachments, each one directly, never the whole region; other avatars' worn
+publishers show at their next announcement. The motorcycle announces as soon as somebody sits and returns
 its definition even before the engine's IK profile is enabled. Full definitions
 are sent only to a requesting bridge; state changes are small regional events.
 There is no periodic observer search or 25-second renewal in live sessions.

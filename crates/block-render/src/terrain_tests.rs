@@ -1,5 +1,6 @@
 //! Exercise the production terrain material mixer with real GPU texture samples.
 use crate::DrawRecord;
+use crate::pipeline_cache::CachedPipelines;
 use wgpu::util::DeviceExt;
 
 #[test]
@@ -106,7 +107,7 @@ fn probe(@builtin(global_invocation_id) id: vec3<u32>) {{
         label: Some("production PBR terrain samples"),
         source: wgpu::ShaderSource::Wgsl(source.into()),
     });
-    let pipeline = device.create_compute_pipeline(&wgpu::ComputePipelineDescriptor {
+    let pipeline = device.create_compute_pipeline_cached(&wgpu::ComputePipelineDescriptor {
         label: Some("PBR terrain regression"),
         layout: None,
         module: &module,
@@ -557,8 +558,10 @@ fn shadow_surface(vi: u32, sample_index: u32) -> TerrainShadowOut {
         source.push('\n');
     }
     // The one-page binding substitution leaves both production fragment
-    // entry points and their alpha/gradient/material code unchanged.
+    // entry points and their alpha/gradient/material code unchanged; the
+    // frame's mip bias (sample_tex, unused here) is 0 without its uniform.
     let source = source
+        .replace("frame.tex_lod.x", "0.0")
         .replace("tex_pages[loc >> 16u]", "tex_pages")
         .replace("tex_pages[ramp_loc >> 16u]", "alpha_ramp")
         .replace("let ramp_loc = tex_loc[6u];", "let ramp_loc = 0u;");
@@ -770,7 +773,7 @@ fn shadow_surface(vi: u32, sample_index: u32) -> TerrainShadowOut {
     });
     let mut depth_maps = Vec::new();
     for (vs, fs) in [("shadow_vertex", "fs_shadow_terrain"), ("depth_vertex", "fs_terrain_depth")] {
-        let pipeline = device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
+        let pipeline = device.create_render_pipeline_cached(&wgpu::RenderPipelineDescriptor {
             label: Some(fs),
             layout: Some(if fs == "fs_shadow_terrain" {
                 &shadow_pipeline_layout

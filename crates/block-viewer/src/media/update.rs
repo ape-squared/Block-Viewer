@@ -208,7 +208,6 @@ impl MediaManager {
             e.idx = idx;
         }
         self.slot_ids.insert(idx, o.full_id);
-        e.owner = o.owner_id;
         e.hud = hud(idx);
         e.on_other_avatar = on_other_avatar;
         e.on_own_avatar = on_own_avatar;
@@ -280,6 +279,13 @@ impl MediaManager {
                 continue;
             }
             let from_self = om.changed_by == world.agent_id && !om.changed_by.is_nil();
+            // LLVOVolume::hasMediaPermission / LLViewerObject::permYouOwner:
+            // use the root's simulator flag. ObjectUpdate.OwnerID is only
+            // reliable for sounds/particles and may be null on owned HUDs.
+            let you_own = world
+                .objects
+                .get(crate::build::root_of(world, om.idx))
+                .is_some_and(|o| o.update_flags & crate::ui::context::flags::OBJECT_YOU_OWNER != 0);
             for (fi, entry) in data.faces.iter().enumerate() {
                 let Some(entry) = entry else {
                     continue;
@@ -292,7 +298,7 @@ impl MediaManager {
                     face: fi as u8,
                 };
                 desired.insert(key);
-                let may_navigate = entry.may_navigate(om.owner == world.agent_id);
+                let may_navigate = entry.may_navigate(you_own);
                 if let Some(m) = self.impls.iter_mut().find(|m| m.key == key) {
                     m.may_navigate = may_navigate;
                     if m.entry.as_ref() != Some(entry) {
@@ -347,19 +353,28 @@ impl MediaManager {
 
     /// The media filter (filterMediaUrl), before any plugin or type request
     /// reaches the site: a wanted media whose site has no answer yet waits
-    /// unloaded, a refused one is no longer wanted. Media on our own worn
-    /// items is not asked about (`filter_trust_own_worn`).
+    /// unloaded, a refused one is no longer wanted. Media on items we wear
+    /// and made ourselves is not asked about (`filter_trust_own_worn`). A
+    /// script, a file of this computer or a browser page never loads, with
+    /// the filter off too (`filter::refused_scheme`).
     fn apply_filter(&mut self, world: &mut World, f: &MediaFrame) {
         let objects = &self.objects;
         for m in &mut self.impls {
             m.filter_hold = false;
-            if !f.settings.filter || !m.wanted {
+            if !m.wanted {
                 continue;
             }
             let source = match m.key {
                 MediaKey::Parcel => Source::ParcelMedia,
                 MediaKey::Prim { .. } => Source::PrimMedia,
             };
+            if world.media_filter.refuse_scheme(&m.url, source) {
+                m.wanted = false;
+                continue;
+            }
+            if !f.settings.filter {
+                continue;
+            }
             let verdict = if trusted_by_filter(objects, m.key, f.settings) {
                 world.media_filter.check_trusted(&m.url, source)
             } else {
@@ -538,7 +553,7 @@ impl MediaManager {
                     continue;
                 };
                 self.last_create = now;
-                match MediaPlugin::launch(paths, plugin_name, m.width, m.height, &browser, "") {
+                match MediaPlugin::launch_in_world(paths, plugin_name, m.width, m.height, &browser, "") {
                     Ok(mut p) => {
                         p.set_auto_scale(m.auto_scale);
                         p.set_loop(m.looping);
@@ -685,11 +700,11 @@ impl MediaManager {
                         .timeout(Duration::from_secs(30))
                         .send()
                         .await
-                        .map_err(|e| e.to_string())?;
+                        .map_err(|e| e.without_url().to_string())?;
                     if !resp.status().is_success() {
                         return Err(format!("HTTP {}", resp.status()));
                     }
-                    let body = resp.bytes().await.map_err(|e| e.to_string())?;
+                    let body = resp.bytes().await.map_err(|e| e.without_url().to_string())?;
                     match block_llsd::from_xml(&body) {
                         Ok(v) if v.has("error") => Err(format!("error {}", v.get("error").get("code").as_i32())),
                         _ => Ok(()),
@@ -872,10 +887,15 @@ fn forget_slot(slot_ids: &mut HashMap<usize, Uuid>, idx: usize, id: &Uuid) {
     }
 }
 
-/// Whether the media filter loads a media without asking: on our own worn
-/// items (attachments and HUDs) when the option is on. Another avatar's
-/// attachments, objects in the world, the parcel media, and an item whose
-/// avatar has not arrived yet are asked about.
+/// Whether the media filter loads a media without asking: on items we wear
+/// (attachments and HUDs), whoever made them, when the option is on.
+/// Another avatar's attachments, objects in the world, the parcel media,
+/// and an item whose avatar has not arrived yet are asked about. The Legacy
+/// Viewer filters only the parcel media and music (filterMediaUrl,
+/// indra/newview/llviewerparcelmedia.cpp), never prim media: asking about
+/// the world's objects is already stricter, and asking about the HUDs one
+/// bought too would question every worn item, with nothing playing until
+/// answered.
 fn trusted_by_filter(objects: &HashMap<Uuid, ObjMedia>, key: MediaKey, settings: &MediaSettings) -> bool {
     settings.filter_trust_own_worn
         && match key {
@@ -911,7 +931,7 @@ fn probe_mime(rt: &tokio::runtime::Handle, http: reqwest::Client, url: String) -
                 .filter(|v| !v.is_empty())
                 .unwrap_or_else(|| "text/html".into()),
             Err(e) => {
-                log::info!("media: type probe of {} failed: {e}", sanitize(&url));
+                log::info!("media: type probe of {} failed: {}", sanitize(&url), e.without_url());
                 "text/html".into()
             }
         };
@@ -989,6 +1009,105 @@ mod tests {
 
     fn track(m: &mut MediaManager, w: &mut World) {
         m.track_objects(w, &|_| false, m.last_refresh);
+    }
+
+    fn reconcile(m: &mut MediaManager, w: &World) {
+        let view = CullView::new(Mat4::IDENTITY, Vec3::ZERO, 720.0, 1.0);
+        let settings = MediaSettings::default();
+        m.reconcile_prims(
+            w,
+            &MediaFrame {
+                view: &view,
+                camera: Vec3::ZERO,
+                settings: &settings,
+                autoplay: true,
+                channel_volume: 1.0,
+                agent_speed: 0.0,
+                window_focused: true,
+                net: None,
+                cache_dir: std::path::Path::new(""),
+                language: "en",
+            },
+        );
+    }
+
+    #[test]
+    fn prim_media_owner_navigation_uses_simulator_rights_not_owner_uuid_or_controls() {
+        use crate::ui::context::flags::OBJECT_YOU_OWNER;
+
+        let (mut w, screen) = world();
+        w.agent_id = crate::demo::DEMO_AGENT;
+        let idx = w.objects.index_of_uuid(&screen).expect("screen");
+        let key = MediaKey::Prim { object: screen, face: 0 };
+        let mut m = MediaManager::default();
+        for owned in [true, false] {
+            for owner in [Uuid::nil(), w.agent_id, Uuid::from_u128(42)] {
+                let o = w.objects.get_mut(idx).expect("screen");
+                o.owner_id = owner;
+                o.update_flags = if owned { OBJECT_YOU_OWNER } else { 0 };
+                for (interact, expected) in [(entry::PERM_OWNER, owned), (entry::PERM_ANYONE, true), (0, false)] {
+                    for controls in [0, 7] {
+                        m.set_object_media(
+                            screen,
+                            ObjectMediaData {
+                                version: 1,
+                                faces: vec![Some(MediaEntry {
+                                    current_url: "https://example.invalid/home".into(),
+                                    perms_interact: interact,
+                                    perms_control: controls,
+                                    ..Default::default()
+                                })],
+                            },
+                            true,
+                        );
+                        track(&mut m, &mut w);
+                        reconcile(&mut m, &w);
+                        assert_eq!(
+                            m.find(&key).expect("media").may_navigate,
+                            expected,
+                            "owned={owned}, owner={owner}, interact={interact}, controls={controls}"
+                        );
+                    }
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn prim_media_child_navigation_follows_current_root_rights_without_media_updates() {
+        use crate::ui::context::flags::OBJECT_YOU_OWNER;
+
+        let (mut w, screen) = world();
+        w.agent_id = crate::demo::DEMO_AGENT;
+        let idx = w.objects.index_of_uuid(&screen).expect("screen");
+        let (root, _) = plain(&w);
+        let own_avatar = w.objects.index_of_uuid(&w.agent_id).expect("our avatar");
+        let own_local = w.objects.get(own_avatar).expect("our avatar").key.local_id;
+        let root_local = w.objects.get(root).expect("root").key.local_id;
+        let key = MediaKey::Prim { object: screen, face: 0 };
+        let mut m = MediaManager::default();
+        m.demo_entry(screen, 0, "https://example.invalid/home");
+        let data = m.local_entries.get_mut(&screen).expect("local data");
+        let entry = data.faces[0].as_mut().expect("media entry");
+        entry.perms_interact = entry::PERM_OWNER;
+        entry.perms_control = 0;
+        let child = w.objects.get_mut(idx).expect("screen");
+        child.parent_id = root_local;
+        child.owner_id = Uuid::nil();
+        child.update_flags = 0;
+        w.objects.get_mut(own_avatar).expect("our avatar").update_flags = OBJECT_YOU_OWNER;
+        for worn in [false, true] {
+            w.objects.get_mut(root).expect("root").parent_id = if worn { own_local } else { 0 };
+            for owned in [true, false, true] {
+                let o = w.objects.get_mut(root).expect("root");
+                o.owner_id = Uuid::nil();
+                o.update_flags = if owned { OBJECT_YOU_OWNER } else { 0 };
+                w.objects.get_mut(idx).expect("screen").update_flags = if owned { 0 } else { OBJECT_YOU_OWNER };
+                track(&mut m, &mut w);
+                reconcile(&mut m, &w);
+                assert_eq!(m.find(&key).expect("media").may_navigate, owned, "worn={worn}, owned={owned}");
+            }
+        }
     }
 
     /// A demo object without media faces.
@@ -1168,9 +1287,39 @@ mod tests {
         // in the world
         track(&mut m, &mut w);
         assert!(!trusted_by_filter(&m.objects, key, &on));
-        // worn by us, as an attachment or a HUD
+        // worn by us, its item not known yet (or a temporary attachment,
+        // worn from no item): trusted
         parent_to(&mut w, own);
+        let item = Uuid::from_u128(0x17e3);
+        if let Some(o) = w.objects.get_mut(idx) {
+            o.name_values = format!("AttachItemID STRING RW SV {item}");
+        }
         track(&mut m, &mut w);
+        assert!(m.objects.get(&screen).is_some_and(|e| e.on_own_avatar));
+        assert!(trusted_by_filter(&m.objects, key, &on), "creator unknown");
+        // whoever made the item: a HUD bought from someone else is trusted
+        // as one we made
+        let made_by = |w: &mut World, creator: Uuid| {
+            w.inventory.add_items(vec![block_net::inventory::InvItem {
+                id: item,
+                name: "Screen".into(),
+                creator,
+                owner: w.agent_id,
+                ..Default::default()
+            }]);
+        };
+        // the item arrives later: seen at the next refresh
+        let refresh = |m: &mut MediaManager, w: &mut World| {
+            let later = m.last_refresh + Duration::from_millis(600);
+            m.track_objects(w, &|_| false, later);
+        };
+        made_by(&mut w, Uuid::from_u128(0x5747));
+        refresh(&mut m, &mut w);
+        assert!(trusted_by_filter(&m.objects, key, &on), "made by someone else");
+        assert!(!trusted_by_filter(&m.objects, key, &off), "the option off asks");
+        // made by us, as an attachment or a HUD
+        made_by(&mut w, crate::demo::DEMO_AGENT);
+        refresh(&mut m, &mut w);
         assert!(trusted_by_filter(&m.objects, key, &on));
         assert!(!trusted_by_filter(&m.objects, key, &off), "the option off asks again");
         m.track_objects(&mut w, &|_| true, m.last_refresh);

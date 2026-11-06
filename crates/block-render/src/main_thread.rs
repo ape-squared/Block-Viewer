@@ -57,8 +57,15 @@ pub struct GpuInfo {
     /// Elements a shader can bind in the array of texture pages: the pages
     /// the texture table can hold (its textures: `TextureTable::capacity`).
     pub max_textures: u32,
-    /// Dedicated video memory (MB) when it can be detected.
+    /// Device-local heap size (MB), retained for adapter selection and the
+    /// existing viewer-statistics protocol.
     pub vram_mb: Option<u64>,
+    /// Classified dedicated heap capacity (MB); unlike `vram_mb`, this is
+    /// zero when an integrated adapter exposes one unified shared heap.
+    pub dedicated_mb: Option<u64>,
+    /// Separate host-visible system memory (MB) available to an integrated
+    /// GPU, when Vulkan exposes a distinct shared heap.
+    pub shared_mb: Option<u64>,
     /// Integrated GPU (shares the system memory).
     pub integrated: bool,
     /// The PCI vendor id and the largest 2D texture side the adapter takes
@@ -71,6 +78,39 @@ pub struct GpuInfo {
     /// Why the dedicated GPU may not be the one drawing (shown under that
     /// choice too).
     pub notice: Option<crate::adapter_choice::Notice>,
+    /// The Vulkan driver's version and limits (Linden Lab's viewer
+    /// statistics); None on another backend.
+    pub vulkan: Option<VulkanLimits>,
+}
+
+impl GpuInfo {
+    /// Both independently reported heaps, without counting a unified heap twice.
+    pub fn memory_label(&self) -> String {
+        gpu_memory_label(self.dedicated_mb, self.shared_mb, self.integrated, self.vram_mb)
+    }
+}
+
+/// What Linden Lab's viewer statistics report of the Vulkan driver, in
+/// place of the Legacy Viewer's OpenGL limits (LLGLManager::asLLSD) and
+/// with its Vulkan probe (llviewerstats.cpp): read once, when the device
+/// opens.
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
+pub struct VulkanLimits {
+    /// The loader's instance version (vkEnumerateInstanceVersion; 1.0 for
+    /// a loader without it), as wgpu read it.
+    pub instance_version: u32,
+    /// The most samples both a colour and a depth framebuffer take
+    /// (GL_MAX_SAMPLES).
+    pub max_samples: u32,
+    /// maxPerStageDescriptorSampledImages (GL_MAX_TEXTURE_IMAGE_UNITS).
+    pub texture_units: u32,
+    /// maxSampleMaskWords (GL_MAX_SAMPLE_MASK_WORDS).
+    pub sample_mask_words: u32,
+    /// The most samples of a sampled colour, depth and integer image
+    /// (GL_MAX_COLOR_TEXTURE_SAMPLES, _DEPTH_, GL_MAX_INTEGER_SAMPLES).
+    pub color_samples: u32,
+    pub depth_samples: u32,
+    pub integer_samples: u32,
 }
 
 /// The part of a range of skin bindings to send that is in a list of `len`.
@@ -113,6 +153,7 @@ fn scene_gpu(
     textures: &TextureTable,
     geometry: &GeometryArena,
     palettes: &wgpu::Buffer,
+    prev_palettes: &wgpu::Buffer,
     skin_binds: &wgpu::Buffer,
     bind_generation: u64,
 ) -> SceneGpu {
@@ -120,6 +161,8 @@ fn scene_gpu(
         records: records.buffer.clone(),
         palettes: palettes.clone(),
         skin_binds: skin_binds.clone(),
+        prev_models: records.prev_models.clone(),
+        prev_palettes: prev_palettes.clone(),
         records_key: (records.generation, bind_generation),
         faces: records.faces.buffer().clone(),
         face_count: records.faces.len(),
@@ -138,6 +181,9 @@ pub struct Renderer {
     /// Where the backend runs. First field: dropped first, so the render
     /// thread has left before the scene's stores go.
     host: Host,
+    vr: Arc<crate::vr_control::Control>,
+    #[cfg(any(target_os = "linux", target_os = "windows", target_os = "macos"))]
+    _xr_graphics: Option<crate::xr_device::Graphics>,
     pub device: wgpu::Device,
     pub info: GpuInfo,
     pub geometry: GeometryArena,
@@ -156,6 +202,13 @@ pub struct Renderer {
     /// Queue writes of the frame being built (writes.rs).
     writes: GpuWrites,
     palette_buffer: wgpu::Buffer,
+    /// The palettes as the last frame drew them (the motion vectors): the
+    /// renderer copies `palette_buffer` into it at the end of each frame
+    /// (`motion_history.rs`). The same size, unless video memory was full
+    /// when the palettes grew.
+    prev_palette_buffer: wgpu::Buffer,
+    /// The next frame starts the motion history again (`cut_motion_history`).
+    motion_cut: bool,
     /// Palette bytes written since the last frame (AURORA_PROFILE).
     palettes_uploaded: u64,
     /// Bytes of vertices deformed in place this frame (profile).
@@ -175,6 +228,7 @@ pub struct Renderer {
     msaa_supported: Vec<u32>,
     /// The surface can be read back (captures).
     can_capture: bool,
+    output_format: wgpu::TextureFormat,
     /// Texture animation clock (tex_anim.rs), shared with the backend.
     anim_clock: crate::tex_anim::AnimClock,
     /// Inverse view-projection of the last frame built (cursor rays).
@@ -243,19 +297,33 @@ pub struct Renderer {
     lost: DeviceLost,
     /// AURORA_DEMO_GPU_LOST: the frame the device is taken as lost at.
     demo_lost: Option<u64>,
+    /// AURORA_DEMO_GPU_HANG: the frame a real GPU hang is submitted at, and
+    /// the queue it goes on.
+    demo_hang: Option<(u64, wgpu::Queue)>,
 }
 
 impl Renderer {
     /// Create the renderer on the native graphics backend for the given window, on
     /// the GPU `gpu` asks for (`adapter_choice::Wanted`: empty for the
     /// automatic choice).
-    pub fn new(
-        target: impl Into<wgpu::SurfaceTarget<'static>>,
-        width: u32,
-        height: u32,
-        vsync: bool,
-        gpu: &str,
-    ) -> Result<Renderer, RenderError> {
+    ///
+    /// The surface is made from the window's raw handles and does not keep
+    /// the window alive: after a device loss the surface is abandoned, never
+    /// dropped (`Backend::drop`), and an `Arc` of the window inside it kept
+    /// the old window open behind a new one. The renderer's host keeps
+    /// `window` instead, dropped after the backend, or kept by a render
+    /// thread left behind in the driver (`render_thread::KeepAlive`).
+    ///
+    /// `xr`: open the GPU device through the VR runtime (OpenXR), which VR
+    /// needs from the start. Off, the runtime is never loaded: some load a
+    /// driver of their own that crashes the start on PCs that never use VR
+    /// (#2309: SteamVR's `vrclient` into AMD's `amdlvr64`). VR then asks
+    /// for a restart (`VrState::Unavailable`).
+    pub fn new<W>(window: Arc<W>, width: u32, height: u32, vsync: bool, gpu: &str, xr: bool) -> Result<Renderer, RenderError>
+    where
+        W: wgpu::rwh::HasWindowHandle + wgpu::rwh::HasDisplayHandle + Send + Sync + 'static,
+    {
+        crate::start_progress::enter(crate::start_progress::Phase::GpuDevice);
         let desc = || {
             let mut desc = wgpu::InstanceDescriptor::new_without_display_handle();
             desc.backends = crate::BACKENDS;
@@ -266,18 +334,130 @@ impl Renderer {
             };
             desc
         };
+        #[cfg(any(target_os = "linux", target_os = "windows", target_os = "macos"))]
+        #[allow(unused_mut)] // reassigned only by the Windows AMD-layer fallback below
+        let mut xr_graphics = {
+            let demo_xr = std::env::var_os("AURORA_DEMO_XR_DEVICE").is_some() || std::env::var_os("AURORA_DEMO_XR_WORLD").is_some();
+            if !xr && !demo_xr {
+                log::info!("OpenXR not opened at start: VR is not set up at startup");
+                None
+            } else {
+                match crate::xr_device::Graphics::new(desc().flags) {
+                    Ok(graphics) => Some(graphics),
+                    Err(e) => {
+                        log::info!("OpenXR initialization unavailable: {e}");
+                        if demo_xr {
+                            return Err(RenderError::Device(e.to_string()));
+                        }
+                        None
+                    }
+                }
+            }
+        };
+        #[cfg(any(target_os = "linux", target_os = "windows", target_os = "macos"))]
+        #[allow(unused_mut)] // reassigned only by the Windows enumeration retries below
+        let mut instance = xr_graphics
+            .as_ref()
+            .map_or_else(|| wgpu::Instance::new(desc()), |g| g.instance.clone());
+        #[cfg(not(any(target_os = "linux", target_os = "windows", target_os = "macos")))]
+        let _ = xr; // no VR on the other systems
+        #[cfg(not(any(target_os = "linux", target_os = "windows", target_os = "macos")))]
+        #[allow(unused_mut)] // reassigned only by the Windows enumeration retries below
         let mut instance = wgpu::Instance::new(desc());
         // ---- the GPU: every adapter listed, then tried in our order
         // (adapter_choice.rs), the next one if one fails to open
         let mut adapters = pollster::block_on(instance.enumerate_adapters(crate::BACKENDS));
-        // Dozen, kept out at start (vulkan_drivers.rs), may be the only
-        // Vulkan driver of this PC: let it back in rather than draw nothing
-        if adapters.is_empty() && crate::vulkan_drivers::allow_again() {
-            log::warn!("GPU: no Vulkan adapter without Dozen (Vulkan on Direct3D 12): trying again with it");
-            instance = wgpu::Instance::new(desc());
-            adapters = pollster::block_on(instance.enumerate_adapters(crate::BACKENDS));
+        // Some AMD switchable-graphics layer versions return VK_INCOMPLETE
+        // from physical-device enumeration on hybrid laptops. Preserve the
+        // normal path, but try a fresh plain instance without the layer before
+        // allowing Dozen back in. These lines do not start with "GPU: ":
+        // the crash report takes the first such line for the card of the
+        // session and its notice (crash/summary.rs, gpu_in, gpu_notice_in).
+        #[cfg(windows)]
+        if adapters.is_empty() {
+            let keep = std::env::var("AURORA_VULKAN_LAYERS").ok();
+            let amd_allowed = crate::vulkan_layers::amd_retry_allowed(
+                keep.as_deref(),
+                std::env::var_os(crate::vulkan_layers::AMD_SWITCHABLE_DISABLE_VARIABLE).is_some(),
+            );
+            let retries = crate::vulkan_layers::retry_plan(true, amd_allowed, crate::vulkan_drivers::was_disabled());
+            for retry in retries {
+                if !adapters.is_empty() {
+                    break;
+                }
+                log::warn!(
+                    "Vulkan raw physical-device count before {retry:?}: {}",
+                    crate::vulkan_layers::physical_device_count_probe()
+                );
+                match retry {
+                    crate::vulkan_layers::EnumerationRetry::AmdSwitchableOff => {
+                        if !crate::vulkan_layers::disable_amd_switchable_for_retry(true) {
+                            continue;
+                        }
+                        log::info!(
+                            "Vulkan loader environment after AMD-layer override: {}",
+                            crate::vulkan_layers::loader_environment().join(", ")
+                        );
+                        log::warn!(
+                            "Vulkan listed no graphics card; trying again without {}",
+                            crate::vulkan_layers::AMD_SWITCHABLE_LAYER
+                        );
+                    }
+                    crate::vulkan_layers::EnumerationRetry::DozenIn => {
+                        if !crate::vulkan_drivers::allow_again() {
+                            continue;
+                        }
+                        log::info!(
+                            "Vulkan loader environment after Dozen override: {}",
+                            crate::vulkan_layers::loader_environment().join(", ")
+                        );
+                        log::warn!("GPU: no Vulkan adapter without Dozen (Vulkan on Direct3D 12): trying again with it");
+                    }
+                }
+                // Every retry uses a plain instance. OpenXR owns an instance
+                // and cannot later open an adapter from a different one.
+                drop(instance);
+                xr_graphics = None;
+                instance = wgpu::Instance::new(desc());
+                adapters = pollster::block_on(instance.enumerate_adapters(crate::BACKENDS));
+                if adapters.is_empty() {
+                    log::warn!(
+                        "Vulkan raw physical-device count after {retry:?}: {}",
+                        crate::vulkan_layers::physical_device_count_probe()
+                    );
+                } else if retry == crate::vulkan_layers::EnumerationRetry::AmdSwitchableOff {
+                    log::warn!(
+                        "Vulkan adapter enumeration recovered without AMD's switchable graphics layer; updating the AMD driver from amd.com may prevent this issue"
+                    );
+                } else {
+                    log::info!("Vulkan adapter enumeration recovered after allowing Dozen");
+                }
+            }
         }
-        let surface = instance.create_surface(target).map_err(|e| RenderError::Surface(e.to_string()))?;
+        if adapters.is_empty() {
+            #[cfg(windows)]
+            log::error!(
+                "Vulkan lists no graphics card after all retries; AMD switchable layer disabled={}; raw physical-device count: {}",
+                std::env::var_os(crate::vulkan_layers::AMD_SWITCHABLE_DISABLE_VARIABLE).is_some(),
+                crate::vulkan_layers::physical_device_count_probe()
+            );
+            // The raw count above says whether the call failed or found none
+            return Err(RenderError::NoAdapter(no_adapter_listed().into()));
+        }
+        // SAFETY: `window` goes to the host with the backend that owns the
+        // surface and drops after it (`Host`'s field order and join), or
+        // stays with a render thread left behind; an abandoned surface is
+        // never used again once its device is lost.
+        let surface = unsafe {
+            let target =
+                wgpu::SurfaceTargetUnsafe::from_display_and_window(&*window, &*window).map_err(|e| RenderError::Surface(e.to_string()))?;
+            instance.create_surface_unsafe(target)
+        }
+        .map_err(|e| RenderError::Surface(e.to_string()))?;
+        let memories: Vec<(Option<u64>, Option<u64>)> = adapters
+            .iter()
+            .map(|adapter| crate::vram::heap_sizes_mb(adapter).unwrap_or((detect_vram_mb(adapter), None)))
+            .collect();
         let candidates: Vec<crate::adapter_choice::Candidate> = adapters
             .iter()
             .map(|a| {
@@ -285,6 +465,8 @@ impl Renderer {
                 crate::adapter_choice::Candidate {
                     name: info.name,
                     kind: crate::adapter_choice::Kind::from_wgpu(info.device_type),
+                    // Keep adapter selection's existing device-local size
+                    // preference unchanged; shared RAM is reported separately.
                     vram_mb: detect_vram_mb(a),
                     surface: a.is_surface_supported(&surface),
                 }
@@ -295,7 +477,12 @@ impl Renderer {
                 "GPU adapter {i}: {} ({}, {}, {})",
                 c.name,
                 c.kind.label(),
-                c.vram_mb.map(|m| format!("{m} MB")).unwrap_or_else(|| "memory unknown".into()),
+                gpu_memory_label(
+                    memories[i].0,
+                    memories[i].1,
+                    c.kind == crate::adapter_choice::Kind::Integrated,
+                    c.vram_mb,
+                ),
                 if c.surface { "can present" } else { "cannot present to the window" }
             );
         }
@@ -309,16 +496,17 @@ impl Renderer {
         }
         let wanted = crate::adapter_choice::Wanted::parse(gpu);
         let plan = crate::adapter_choice::plan(&candidates, &wanted);
-        if plan.reason == crate::adapter_choice::Reason::WantedMissing {
-            log::warn!(
-                "GPU: \"{}\" asked for, not found among the adapters that can present: automatic choice",
-                gpu.trim()
-            );
+        if let Some(w) = plan.reason.warning(gpu.trim()) {
+            log::warn!("{w}");
         }
         let mut opened = None;
         let mut failure = RenderError::NoAdapter("no native GPU adapter can present to the window".into());
         for (n, &i) in plan.order.iter().enumerate() {
-            match open_device(&adapters[i]) {
+            #[cfg(any(target_os = "linux", target_os = "windows", target_os = "macos"))]
+            let opened_device = open_device(&adapters[i], xr_graphics.as_ref());
+            #[cfg(not(any(target_os = "linux", target_os = "windows", target_os = "macos")))]
+            let opened_device = open_device(&adapters[i]);
+            match opened_device {
                 Ok(o) => {
                     let why = match (n, plan.reason) {
                         (0, crate::adapter_choice::Reason::Wanted) => "the one asked for (AURORA_GPU or Preferences › Graphics)",
@@ -337,18 +525,21 @@ impl Renderer {
         }
         let (index, o) = opened.ok_or(failure)?;
         let adapter = adapters.swap_remove(index);
+        let (dedicated_mb, shared_mb) = memories[index];
         let vram_mb = candidates[index].vram_mb;
         let ainfo = adapter.get_info();
         log::info!(
-            "GPU: {} ({:?}, driver {} {})",
+            "GPU: {} ({:?}, driver {} {}, memory {})",
             ainfo.name,
             ainfo.backend,
             ainfo.driver,
-            ainfo.driver_info
-        );
-        log::info!(
-            "GPU memory: {}",
-            vram_mb.map(|m| format!("{m} MB")).unwrap_or_else(|| "unknown".into())
+            ainfo.driver_info,
+            gpu_memory_label(
+                dedicated_mb,
+                shared_mb,
+                ainfo.device_type == wgpu::DeviceType::IntegratedGpu,
+                vram_mb,
+            )
         );
         let OpenedDevice {
             device,
@@ -377,12 +568,22 @@ impl Renderer {
         // waits on the device any more (device_lost.rs). `Destroyed` is the
         // device's own end at shutdown.
         let lost = DeviceLost::default();
+        crate::device_lost::forget_details();
+        // AURORA_GPU_START_FAIL=lost: as if the driver lost the device now
+        if std::env::var("AURORA_GPU_START_FAIL").is_ok_and(|mode| mode == "lost") {
+            log::error!("GPU device lost (Unknown): AURORA_GPU_START_FAIL");
+            lost.set_by("start");
+        }
         let on_lost = lost.clone();
         device.set_device_lost_callback(move |reason, message| match reason {
             wgpu::DeviceLostReason::Destroyed => log::info!("GPU device released: {message}"),
             _ => {
-                on_lost.set();
+                crate::device_lost::note_reason(reason, &message);
+                on_lost.set_by("callback");
+                crate::pipeline_cache::device_lost();
                 log::error!("GPU device lost ({reason:?}): {message}");
+                // hang or fault, for the crash report (device_lost.rs)
+                log::error!("GPU work at the loss: {}", on_lost.work_at_loss());
             }
         });
         let info = GpuInfo {
@@ -393,11 +594,14 @@ impl Renderer {
             timestamps,
             max_textures,
             vram_mb,
+            dedicated_mb,
+            shared_mb,
             integrated: ainfo.device_type == wgpu::DeviceType::IntegratedGpu,
             vendor_id: ainfo.vendor,
             max_texture_size: alim.max_texture_dimension_2d,
             adapters,
             notice,
+            vulkan: vulkan_limits(&adapter),
         };
 
         // ---- the scene's stores; what they write at creation is replayed
@@ -406,11 +610,19 @@ impl Renderer {
         // (as many textures as the table has slots; `max_textures` bounds
         // the pages they are grouped in)
         let slots = crate::textures::slot_capacity(std::env::var("AURORA_TEXTURE_SLOTS").ok().as_deref());
-        let textures = TextureTable::new(&device, &mut writes, slots, max_textures, 8);
+        let textures = TextureTable::new_with_integrated(
+            &device,
+            &mut writes,
+            slots,
+            max_textures,
+            8,
+            ainfo.device_type == wgpu::DeviceType::IntegratedGpu,
+        );
         let geometry = GeometryArena::new(&device, alim.max_buffer_size.min(1 << 31));
         let records = RecordStore::new(&device);
         let cull = CullTables::new(&device);
         let palette_buffer = Self::make_palette_buffer(&device, 64 * 160);
+        let prev_palette_buffer = device.create_buffer(&Self::prev_palette_desc(64 * 160));
         let skin_bind_buffer = Self::make_skin_bind_buffer(&device, 256);
         // staging memory of the streamed uploads, created once here
         let uploads = UploadQueue::new(&device, info.integrated || info.vram_mb.is_some_and(|mb| mb < 4096));
@@ -428,11 +640,31 @@ impl Renderer {
         let pacing = std::env::var("AURORA_FRAME_PACING").ok();
         let gpu_frames = Arc::new(crate::pacing::GpuFrames::new(crate::pacing::wanted(pacing.as_deref())));
         let pace_gate = crate::pacing::Gate::new(crate::pacing::always(pacing.as_deref()));
+        #[cfg(any(target_os = "linux", target_os = "windows", target_os = "macos"))]
+        let vr = Arc::new(crate::vr_control::Control::new(xr_graphics.is_some()));
+        #[cfg(not(any(target_os = "linux", target_os = "windows", target_os = "macos")))]
+        let vr = Arc::new(crate::vr_control::Control::new(false));
+        // the compiled pipelines of the earlier starts (pipeline_cache.rs),
+        // before the first one is made
+        crate::pipeline_cache::open(&device, &ainfo);
+        crate::start_progress::enter(crate::start_progress::Phase::Pipelines);
+        // AURORA_DEMO_GPU_HANG: a real hang needs the queue on this thread
+        let demo_hang = crate::device_lost::demo_frame(
+            std::env::var_os("AURORA_DEMO").is_some(),
+            std::env::var("AURORA_DEMO_GPU_HANG").ok().as_deref(),
+        )
+        .filter(|_| !crate::device_lost::DEMO_HANG_TAKEN.swap(true, std::sync::atomic::Ordering::Relaxed))
+        .map(|frame| (frame, queue.clone()));
         let backend = Backend::new(BackendInit {
+            vr: vr.clone(),
             gpu_frames: gpu_frames.clone(),
             device: device.clone(),
             queue,
-            surface,
+            surface: Arc::new(surface),
+            external: false,
+            output_format: None,
+            #[cfg(any(target_os = "linux", target_os = "windows", target_os = "macos"))]
+            xr: xr_graphics.as_ref().map(|g| g.binding()),
             adapter,
             width,
             height,
@@ -441,13 +673,27 @@ impl Renderer {
             adapter_specific,
             gpu_cull,
             tex_layout: textures.layout.clone(),
-            scene: scene_gpu(&records, &cull, &textures, &geometry, &palette_buffer, &skin_bind_buffer, 0),
+            scene: scene_gpu(
+                &records,
+                &cull,
+                &textures,
+                &geometry,
+                &palette_buffer,
+                &prev_palette_buffer,
+                &skin_bind_buffer,
+                0,
+            ),
             anim_clock,
             lost: lost.clone(),
         })?;
         let msaa_supported = backend.msaa_supported().to_vec();
         let can_capture = backend.can_capture();
-        let host = Host::new(backend, thread_wanted(std::env::var("AURORA_RENDER_THREAD").ok().as_deref()));
+        let output_format = backend.output_format();
+        let host = Host::new(
+            backend,
+            window,
+            thread_wanted(std::env::var("AURORA_RENDER_THREAD").ok().as_deref()),
+        );
         log::info!(
             "renderer: {}",
             if host.threaded() {
@@ -456,8 +702,13 @@ impl Renderer {
                 "frames drawn on the main thread (AURORA_RENDER_THREAD=0)"
             }
         );
+        crate::start_progress::enter(crate::start_progress::Phase::Ready);
+        crate::pipeline_cache::log_start();
         Ok(Renderer {
             host,
+            vr,
+            #[cfg(any(target_os = "linux", target_os = "windows", target_os = "macos"))]
+            _xr_graphics: xr_graphics,
             device,
             info,
             geometry,
@@ -469,6 +720,8 @@ impl Renderer {
             cull,
             writes,
             palette_buffer,
+            prev_palette_buffer,
+            motion_cut: false,
             palettes_uploaded: 0,
             vertices_uploaded: 0,
             geometry_uploaded: 0,
@@ -480,6 +733,7 @@ impl Renderer {
             settings: RenderSettings::default(),
             msaa_supported,
             can_capture,
+            output_format,
             anim_clock,
             last_inv_vp: Mat4::IDENTITY,
             last_view: Mat4::IDENTITY,
@@ -512,10 +766,14 @@ impl Renderer {
             histogram_request: None,
             histogram: None,
             lost,
-            demo_lost: crate::device_lost::demo_frame(
+            // one of the list for each renderer of the run (a recovery's
+            // counts its frames from 0 again)
+            demo_lost: crate::device_lost::demo_frame_of(
                 std::env::var_os("AURORA_DEMO").is_some(),
                 std::env::var("AURORA_DEMO_GPU_LOST").ok().as_deref(),
+                crate::device_lost::DEMO_RENDERERS.fetch_add(1, std::sync::atomic::Ordering::Relaxed),
             ),
+            demo_hang,
         })
     }
 
@@ -527,6 +785,7 @@ impl Renderer {
             &self.textures,
             &self.geometry,
             &self.palette_buffer,
+            &self.prev_palette_buffer,
             &self.skin_bind_buffer,
             self.bind_generation,
         )
@@ -612,9 +871,45 @@ impl Renderer {
         wgpu::BufferDescriptor {
             label: Some("joint palettes"),
             size: (matrices.max(1) * 64) as u64,
+            // COPY_SRC: the previous palettes are copied from it
+            usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_DST | wgpu::BufferUsages::COPY_SRC,
+            mapped_at_creation: false,
+        }
+    }
+
+    fn prev_palette_desc(matrices: usize) -> wgpu::BufferDescriptor<'static> {
+        wgpu::BufferDescriptor {
+            label: Some("previous joint palettes"),
+            size: (matrices.max(1) * 64) as u64,
             usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_DST,
             mapped_at_creation: false,
         }
+    }
+
+    /// Palette slots given to new skeletons, after this frame's palette
+    /// uploads: each is written whole, as its pose and as its previous
+    /// pose, or it would seem to come from the last owner's (or from
+    /// nothing).
+    pub fn seed_palette_slots(&mut self, mats: &[[[f32; 4]; 4]], slots: &[usize], per: usize) {
+        let fits = mats.len().min(self.palette_buffer.size() as usize / 64);
+        let prev_fits = fits.min(self.prev_palette_buffer.size() as usize / 64);
+        for &slot in slots {
+            let a = slot * per;
+            for (buffer, end) in [(&self.palette_buffer, fits), (&self.prev_palette_buffer, prev_fits)] {
+                let b = ((slot + 1) * per).min(end);
+                if a < b {
+                    self.writes.write_buffer(buffer, (a * 64) as u64, bytemuck::cast_slice(&mats[a..b]));
+                }
+            }
+        }
+    }
+
+    /// The next frame has no motion: the scene moved as a whole (a new main
+    /// region shifts every position), so last frame's matrices are not
+    /// where this frame's things came from. The renderer takes the current
+    /// ones as the previous ones before drawing it.
+    pub fn cut_motion_history(&mut self) {
+        self.motion_cut = true;
     }
 
     /// Upload joint palettes (column-major matrices). Indices referenced by
@@ -632,6 +927,14 @@ impl Renderer {
             if let Some(b) = self.grow_table(&Self::palette_desc(n)) {
                 self.palette_buffer = b;
                 self.bind_generation += 1;
+                // (the whole set is written below: the previous palettes
+                // start from it, no skeleton moves in this frame)
+                match crate::gpu_alloc::try_buffer(&self.device, &Self::prev_palette_desc(n)) {
+                    Ok(prev) => self.prev_palette_buffer = prev,
+                    Err(e) => log::warn!("previous joint palettes not grown ({e}): the skeletons past them get no motion"),
+                }
+                let prev = &mats[..mats.len().min(self.prev_palette_buffer.size() as usize / 64)];
+                self.writes.write_buffer(&self.prev_palette_buffer, 0, bytemuck::cast_slice(prev));
             }
         }
         let mats = &mats[..mats.len().min(self.palette_buffer.size() as usize / 64)];
@@ -711,7 +1014,7 @@ impl Renderer {
 
     /// The draw lists can be culled on the GPU (`DrawLists::gpu`).
     pub fn gpu_culling(&self) -> bool {
-        self.gpu_cull
+        self.gpu_cull && GpuCull::fits(&self.device, self.records.faces.len(), self.cull.objects.len())
     }
 
     /// Supported MSAA sample counts (besides 1).
@@ -974,12 +1277,72 @@ impl Renderer {
     /// returns at once, with the statistics of that frame before; without,
     /// the frame is drawn here. A frame that carries a capture is waited
     /// for: `captured` holds it when this returns.
+    pub fn vr_state(&self) -> crate::VrState {
+        self.vr.state()
+    }
+    pub fn vr_engaged(&self) -> bool {
+        self.vr.state().engaged()
+    }
+    pub fn set_vr_enabled(&self, on: bool) -> bool {
+        self.vr.request(on)
+    }
+
     pub fn render(&mut self, params: FrameParams, lists: &DrawLists, ui: Option<crate::EguiFrame>) -> RenderStats {
+        self.render_output(params, lists, ui, None)
+    }
+
+    /// Draw a frame into a caller-owned texture instead of presenting the window.
+    /// The target must belong to this renderer's device and match its output size
+    /// and format. The texture stays alive until the render worker has submitted
+    /// the frame; this call alone is not a GPU completion or OpenXR release fence.
+    /// No egui shapes are drawn. World draw lists, including HUDs, are supplied
+    /// by the caller. Each independent view needs its own rendering history;
+    /// alternating eyes through this renderer would mix temporal state.
+    pub fn render_to_texture(&mut self, params: FrameParams, lists: &DrawLists, texture: wgpu::Texture) -> RenderStats {
+        self.render_output(params, lists, None, Some(texture))
+    }
+
+    /// Offline integration check of the complete world pass into an owned
+    /// texture. Used only on a requested demo capture, not every frame.
+    pub fn render_world_texture_capture(&mut self, params: FrameParams, lists: &DrawLists) -> RenderStats {
+        let texture = self.device.create_texture(&wgpu::TextureDescriptor {
+            label: Some("world output integration capture"),
+            size: wgpu::Extent3d {
+                width: self.size.0,
+                height: self.size.1,
+                depth_or_array_layers: 1,
+            },
+            mip_level_count: 1,
+            sample_count: 1,
+            dimension: wgpu::TextureDimension::D2,
+            format: self.output_format,
+            usage: wgpu::TextureUsages::RENDER_ATTACHMENT | wgpu::TextureUsages::COPY_SRC | wgpu::TextureUsages::TEXTURE_BINDING,
+            view_formats: &[],
+        });
+        let mut world = DrawLists::default();
+        world.copy_from(lists);
+        world.strip_viewer_overlays();
+        self.render_to_texture(params, &world, texture)
+    }
+
+    fn render_output(
+        &mut self,
+        params: FrameParams,
+        lists: &DrawLists,
+        ui: Option<crate::EguiFrame>,
+        output: Option<wgpu::Texture>,
+    ) -> RenderStats {
         let t0 = Instant::now();
         let mut ui = ui;
+        if let Some((frame, queue)) = &self.demo_hang
+            && *frame == self.frames
+        {
+            crate::device_lost::demo_hang(&self.device, queue);
+        }
         if self.demo_lost == Some(self.frames) && !self.lost.get() {
-            self.lost.set();
+            self.lost.set_by("demo");
             log::error!("GPU device lost (Unknown): AURORA_DEMO_GPU_LOST at frame {}", self.frames);
+            log::error!("GPU work at the loss: {}", self.lost.work_at_loss());
         }
         if self.lost.get() {
             // nothing reaches a lost device: no frame is built, the photo
@@ -1062,6 +1425,7 @@ impl Renderer {
         self.last_view = params.view;
         let index = self.frames;
         let packet = FramePacket {
+            output,
             index,
             writes: spent.writes,
             uploads,
@@ -1080,6 +1444,7 @@ impl Renderer {
             drawn: std::mem::take(&mut self.drawn_requests),
             capture,
             histogram: self.histogram_request.take(),
+            motion_cut: std::mem::take(&mut self.motion_cut),
             input_at: self.input_at.take(),
         };
         self.frames += 1;
@@ -1090,7 +1455,7 @@ impl Renderer {
         let mut waited = free_wait;
         let mut gone = false;
         match &mut self.host {
-            Host::Inline(backend) => results[0] = Some(Box::new(backend.render(packet))),
+            Host::Inline(backend, _) => results[0] = Some(Box::new(backend.render(packet))),
             Host::Thread { owner, .. } => {
                 match owner.submit(Job::Frame(Box::new(packet))) {
                     Ok(s) => {
@@ -1231,7 +1596,7 @@ impl Renderer {
                 self.gpu_frames.wait_finished(before, t + GPU_WAIT);
             }
             // alone on the device: the wait is this thread's
-            Host::Inline(backend) => backend.finish_frames_before(before + 1, GPU_WAIT),
+            Host::Inline(backend, _) => backend.finish_frames_before(before + 1, GPU_WAIT),
         }
         self.gpu_waited = t.elapsed();
         self.gpu_waited
@@ -1335,7 +1700,7 @@ impl Renderer {
         let mut frame = None;
         let mut gone = false;
         let hit = match &mut self.host {
-            Host::Inline(backend) => backend.pick_world(x, y),
+            Host::Inline(backend, _) => backend.pick_world(x, y),
             Host::Thread { owner, .. } => {
                 match owner.submit(Job::Pick { x, y }) {
                     Ok(s) => {
@@ -1431,9 +1796,27 @@ struct OpenedDevice {
     max_textures: u32,
 }
 
+/// The blocks of video memory wgpu's allocator carves resources out of
+/// (its `Performance` hint: 128 to 256 MB). Anything larger gets a block of
+/// its own, given back to the driver the moment it is destroyed; a smaller
+/// one only once its whole block is empty. With 16 MB blocks every render
+/// target of a 4K window (16 to 64 MB each) has its own: when they shrink
+/// (a window behind past its budget pauses its 3D drawing, #1808; a resize)
+/// the driver gets their memory back at once. Demo crowd at 3840 x 2054:
+/// the driver counted 2,585 MB for 1,772 MB of resources, 2,250 MB with
+/// 16 MB blocks, and 2,640 MB against 1,385 MB once the 3D drawing paused;
+/// the render thread's resource writes took 0.04 ms more a frame. Texture
+/// pages have memory of their own (dedicated.rs), so the cost of a new
+/// block under the allocator's lock, which ruled out 64 MB blocks for them,
+/// no longer falls on the pages.
+const MEMORY_BLOCK: u64 = 16 << 20;
+
 /// Open `adapter` with the features the renderer needs and the optional
 /// ones it has; an error when it lacks a needed one or the device fails.
-fn open_device(adapter: &wgpu::Adapter) -> Result<OpenedDevice, RenderError> {
+fn open_device(
+    adapter: &wgpu::Adapter,
+    #[cfg(any(target_os = "linux", target_os = "windows", target_os = "macos"))] xr: Option<&crate::xr_device::Graphics>,
+) -> Result<OpenedDevice, RenderError> {
     let afeat = adapter.features();
     let alim = adapter.limits();
     let bindless_feats =
@@ -1503,16 +1886,44 @@ fn open_device(adapter: &wgpu::Adapter) -> Result<OpenedDevice, RenderError> {
     if afeat.contains(wgpu::Features::MULTI_DRAW_INDIRECT_COUNT) {
         features |= wgpu::Features::MULTI_DRAW_INDIRECT_COUNT;
     }
-    let max_textures = texture_page_limit(&alim);
-    let (device, queue) = pollster::block_on(adapter.request_device(&wgpu::DeviceDescriptor {
+    // Aurora's own pipeline cache on disk (pipeline_cache.rs)
+    features |= crate::pipeline_cache::feature(afeat);
+    let in_all_pools = descriptors_in_all_pools(adapter);
+    let max_textures = texture_page_limit(&alim, in_all_pools);
+    if max_textures < texture_page_limit(&alim, None) {
+        log::info!(
+            "texture pages: {max_textures}, held to the driver's {} update-after-bind descriptors in all pools",
+            in_all_pools.unwrap_or_default()
+        );
+    }
+    // Before the device opens, which is where a driver that dislikes these
+    // numbers stops: read back from the crash report (crash/summary.rs).
+    log::info!(
+        "GPU descriptors: {} in an array, {} sampled per stage, {} in all pools, {max_textures} texture pages",
+        alim.max_binding_array_elements_per_shader_stage,
+        alim.max_sampled_textures_per_shader_stage,
+        in_all_pools.map_or_else(|| "unknown".to_string(), |n| n.to_string()),
+    );
+    let descriptor = wgpu::DeviceDescriptor {
         label: Some("aurora"),
         required_features: features,
         required_limits: alim.clone(),
         experimental_features: wgpu::ExperimentalFeatures::disabled(),
-        memory_hints: wgpu::MemoryHints::Performance,
+        memory_hints: wgpu::MemoryHints::Manual {
+            suballocated_device_memory_block_size: MEMORY_BLOCK..MEMORY_BLOCK,
+        },
         trace: wgpu::Trace::Off,
-    }))
-    .map_err(|e| RenderError::Device(e.to_string()))?;
+    };
+    #[cfg(any(target_os = "linux", target_os = "windows", target_os = "macos"))]
+    let (device, queue) = if let Some(xr) = xr {
+        let graphics = xr.open(adapter, &descriptor).map_err(|e| RenderError::Device(e.to_string()))?;
+        log::info!("OpenXR-compatible viewer graphics device: {}", adapter.get_info().name);
+        graphics
+    } else {
+        pollster::block_on(adapter.request_device(&descriptor)).map_err(|e| RenderError::Device(e.to_string()))?
+    };
+    #[cfg(not(any(target_os = "linux", target_os = "windows", target_os = "macos")))]
+    let (device, queue) = pollster::block_on(adapter.request_device(&descriptor)).map_err(|e| RenderError::Device(e.to_string()))?;
     Ok(OpenedDevice {
         device,
         queue,
@@ -1522,6 +1933,17 @@ fn open_device(adapter: &wgpu::Adapter) -> Result<OpenedDevice, RenderError> {
         adapter_specific,
         max_textures,
     })
+}
+
+/// The start error when the graphics API lists no adapter at all: Metal on
+/// macOS, Vulkan elsewhere. It does not say the call failed: an empty list
+/// may also be a success with no driver installed.
+fn no_adapter_listed() -> &'static str {
+    if cfg!(target_os = "macos") {
+        "Metal lists no graphics card"
+    } else {
+        "Vulkan lists no graphics card"
+    }
 }
 
 /// Size of the largest device-local memory heap (the GPU's own VRAM on a
@@ -1542,6 +1964,45 @@ fn detect_vram_mb(adapter: &wgpu::Adapter) -> Option<u64> {
         .max()
 }
 
+fn gpu_memory_label(dedicated: Option<u64>, shared: Option<u64>, integrated: bool, fallback_mb: Option<u64>) -> String {
+    match (dedicated, shared) {
+        (Some(dedicated), Some(shared)) => format!("{dedicated} MB dedicated + {shared} MB shared"),
+        (_, None) if integrated => fallback_mb.map_or_else(|| "memory unknown".into(), |mb| format!("{mb} MB video memory")),
+        (Some(dedicated), None) => format!("{dedicated} MB dedicated"),
+        (None, Some(shared)) => format!("0 MB dedicated + {shared} MB shared"),
+        (None, None) => "memory unknown".into(),
+    }
+}
+
+/// The Vulkan driver's version and limits the viewer statistics report.
+#[cfg(not(target_os = "macos"))]
+fn vulkan_limits(adapter: &wgpu::Adapter) -> Option<VulkanLimits> {
+    use ash::vk;
+    // SAFETY: the hal adapter is only borrowed for this call; the physical
+    // device query does not change any state.
+    let hal = unsafe { adapter.as_hal::<wgpu::hal::api::Vulkan>() }?;
+    let shared = hal.shared_instance();
+    // SAFETY: as above.
+    let limits = unsafe { shared.raw_instance().get_physical_device_properties(hal.raw_physical_device()) }.limits;
+    // the highest sample count of a set (each flag is its own count)
+    let most = |counts: vk::SampleCountFlags| 1u32 << (31 - counts.as_raw().max(1).leading_zeros());
+    Some(VulkanLimits {
+        instance_version: shared.instance_api_version(),
+        max_samples: most(limits.framebuffer_color_sample_counts & limits.framebuffer_depth_sample_counts),
+        texture_units: limits.max_per_stage_descriptor_sampled_images,
+        sample_mask_words: limits.max_sample_mask_words,
+        color_samples: most(limits.sampled_image_color_sample_counts),
+        depth_samples: most(limits.sampled_image_depth_sample_counts),
+        integer_samples: most(limits.sampled_image_integer_sample_counts),
+    })
+}
+
+/// Metal: no Vulkan driver.
+#[cfg(target_os = "macos")]
+fn vulkan_limits(_adapter: &wgpu::Adapter) -> Option<VulkanLimits> {
+    None
+}
+
 /// Memory the GPU can use well, read from Metal: the recommended working
 /// set of the device (a share of the unified memory on Apple Silicon), the
 /// figure the Legacy Viewer reads as `kCGLRPVideoMemoryMegabytes`
@@ -1556,15 +2017,81 @@ fn detect_vram_mb(adapter: &wgpu::Adapter) -> Option<u64> {
     (bytes > 0).then_some(bytes / (1024 * 1024))
 }
 
-// Binding-array entries have their own limit; they do not consume the
-// ordinary sampled-texture slots used by frame attachments.
-fn texture_page_limit(limits: &wgpu::Limits) -> u32 {
-    limits.max_binding_array_elements_per_shader_stage.clamp(64, 16384)
+/// `maxUpdateAfterBindDescriptorsInAllPools`, which bounds the pools of the
+/// binding arrays: wgpu keeps it to itself. `None` without the query
+/// (a Vulkan 1.0 instance or device) or another backend.
+#[cfg(not(target_os = "macos"))]
+fn descriptors_in_all_pools(adapter: &wgpu::Adapter) -> Option<u32> {
+    use ash::vk;
+    // SAFETY: the hal adapter is only borrowed for this call; the physical
+    // device queries do not change any state.
+    let hal = unsafe { adapter.as_hal::<wgpu::hal::api::Vulkan>() }?;
+    let shared = hal.shared_instance();
+    let instance = shared.raw_instance();
+    let pd = hal.raw_physical_device();
+    // vkGetPhysicalDeviceProperties2 is core from Vulkan 1.1 only: ash
+    // would panic on the missing entry point of a 1.0 instance.
+    // SAFETY: as above.
+    let device_version = unsafe { instance.get_physical_device_properties(pd) }.api_version;
+    if shared.instance_api_version() < vk::API_VERSION_1_1 || device_version < vk::API_VERSION_1_1 {
+        return None;
+    }
+    // Same structure for VK_EXT_descriptor_indexing and Vulkan 1.2; left
+    // at 0 by a driver that has neither.
+    let mut indexing = vk::PhysicalDeviceDescriptorIndexingProperties::default();
+    let mut properties = vk::PhysicalDeviceProperties2::default().push_next(&mut indexing);
+    // SAFETY: as above; the entry point exists (checked just before).
+    unsafe { instance.get_physical_device_properties2(pd, &mut properties) };
+    Some(indexing.max_update_after_bind_descriptors_in_all_pools)
+}
+
+#[cfg(target_os = "macos")]
+fn descriptors_in_all_pools(_adapter: &wgpu::Adapter) -> Option<u32> {
+    None
+}
+
+/// Sets wgpu-hal makes the first descriptor pool of a layout for, as soon
+/// as the layout is created (`POOL_MIN_SETS`, wgpu-hal 30
+/// src/vulkan/descriptor.rs). Check it again when wgpu is updated.
+const WGPU_POOL_MIN_SETS: u32 = 64;
+
+/// Texture pages, the length of the "textures" binding array.
+///
+/// Binding-array entries have their own limit; they do not consume the
+/// ordinary sampled-texture slots used by frame attachments. Their pool
+/// does count against `descriptors_in_all_pools`: wgpu-hal sizes it for
+/// `WGPU_POOL_MIN_SETS` sets of the layout without checking that total,
+/// and a driver may refuse a larger pool. wgpu then loses the device as
+/// out of memory. Intel's Windows driver (Iris Xe, 101.7092) allows
+/// 1,048,576: 16384 pages made a pool of 1,048,704 and the viewer stopped
+/// before the login screen (#1892). The pages are held to what fits.
+fn texture_page_limit(limits: &wgpu::Limits, descriptors_in_all_pools: Option<u32>) -> u32 {
+    let array = limits.max_binding_array_elements_per_shader_stage.clamp(64, 16384);
+    // 0: a driver that did not fill the structure, not a real limit
+    match descriptors_in_all_pools.filter(|&n| n > 0) {
+        Some(total) => {
+            let fit = (total / WGPU_POOL_MIN_SETS).saturating_sub(crate::textures::OTHER_DESCRIPTORS);
+            array.min(fit).max(64)
+        }
+        None => array,
+    }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn memory_summary_reports_distinct_heaps_without_fabricating_a_second_pool() {
+        assert_eq!(
+            gpu_memory_label(Some(512), Some(7800), true, Some(8312)),
+            "512 MB dedicated + 7800 MB shared"
+        );
+        assert_eq!(gpu_memory_label(None, Some(16_000), true, None), "0 MB dedicated + 16000 MB shared");
+        assert_eq!(gpu_memory_label(Some(8192), None, false, Some(8192)), "8192 MB dedicated");
+        assert_eq!(gpu_memory_label(Some(16_000), None, true, Some(16_000)), "16000 MB video memory");
+        assert_eq!(gpu_memory_label(None, None, false, None), "memory unknown");
+    }
 
     #[test]
     fn bindless_pages_are_not_limited_by_ordinary_texture_slots() {
@@ -1573,9 +2100,29 @@ mod tests {
             max_binding_array_elements_per_shader_stage: 1_000_000,
             ..Default::default()
         };
-        assert_eq!(texture_page_limit(&limits), 16384);
+        assert_eq!(texture_page_limit(&limits, None), 16384);
         limits.max_binding_array_elements_per_shader_stage = 512;
-        assert_eq!(texture_page_limit(&limits), 512);
+        assert_eq!(texture_page_limit(&limits, None), 512);
+    }
+
+    #[test]
+    fn texture_pages_fit_the_update_after_bind_pool() {
+        let limits = wgpu::Limits {
+            max_binding_array_elements_per_shader_stage: 1_048_576,
+            ..Default::default()
+        };
+        // Intel Iris Xe on Windows: 64 sets of the layout fill the total
+        let pages = texture_page_limit(&limits, Some(1_048_576));
+        assert_eq!(pages, 16382);
+        assert!(u64::from(WGPU_POOL_MIN_SETS) * u64::from(pages + crate::textures::OTHER_DESCRIPTORS) <= 1_048_576);
+        // NVIDIA (u32::MAX) and RADV (67,108,863): unchanged
+        assert_eq!(texture_page_limit(&limits, Some(u32::MAX)), 16384);
+        assert_eq!(texture_page_limit(&limits, Some(67_108_863)), 16384);
+        // unknown or not filled in: unchanged
+        assert_eq!(texture_page_limit(&limits, Some(0)), 16384);
+        // a smaller total, and never under the 64 pages of the bindless minimum
+        assert_eq!(texture_page_limit(&limits, Some(262_144)), 4094);
+        assert_eq!(texture_page_limit(&limits, Some(1000)), 64);
     }
 
     #[test]

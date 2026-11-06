@@ -357,16 +357,20 @@ pub struct MediaSettings {
     /// MediaEnableFilter: media and music ask before a site not in the
     /// account's list (on by default, as there).
     pub filter: bool,
-    /// Aurora's own: media on our own worn items (attachments and HUDs)
-    /// loads without the filter's question; a site the list refuses stays
-    /// refused. On by default: wearing a media earring should not raise a
-    /// question.
+    /// Aurora's own: media on our own worn items (attachments and HUDs),
+    /// whoever made them, loads without the filter's question; a site the
+    /// list refuses stays refused. On by default: wearing a media earring
+    /// or a HUD should not raise a question (the Legacy Viewer never
+    /// filters prim media).
     pub filter_trust_own_worn: bool,
     /// FirstMediaFilter, inverted: the filter's first question was
     /// answered, its explanation is no longer shown.
     pub filter_explained: bool,
     /// Folder with SLPlugin and llplugin\ (empty: automatic).
     pub plugin_dir: String,
+    /// Aurora's own: the answer to the download of the media plugins pack
+    /// (`pack.rs`); asked once, the first time it is needed.
+    pub pack_consent: pack::Consent,
 }
 
 impl Default for MediaSettings {
@@ -383,6 +387,7 @@ impl Default for MediaSettings {
             filter_trust_own_worn: true,
             filter_explained: false,
             plugin_dir: String::new(),
+            pack_consent: pack::Consent::Unasked,
         }
     }
 }
@@ -398,7 +403,6 @@ struct ObjMedia {
     /// Worn by us (an attachment or a HUD), its avatar already known: false
     /// while a parent has not arrived.
     on_own_avatar: bool,
-    owner: Uuid,
     /// Agent of the last media change ("x-mv:<version>/<agent>").
     changed_by: Uuid,
 }
@@ -650,6 +654,17 @@ fn sanitize(url: &str) -> String {
 }
 
 impl MediaManager {
+    /// After a GPU recovery (app/gpu_recovery.rs): the media slots were the
+    /// lost renderer's. Each one is made again, black, and its next frame
+    /// fills it (`update`: a slot 0 is fresh).
+    pub fn gpu_reset(&mut self) {
+        for m in &mut self.impls {
+            m.texture.slot = 0;
+            m.texture.ready = false;
+        }
+        self.pending_free.clear();
+    }
+
     /// SLPlugin / llplugin (searched once per configured folder and per state
     /// of Aurora's pack).
     pub fn plugins(&mut self, settings: &MediaSettings) -> Option<&PluginPaths> {

@@ -149,6 +149,8 @@ fn create_mapped_staging(device: &wgpu::Device, chunk_bytes: u64) -> Option<wgpu
 
 struct Chunk {
     buffer: wgpu::Buffer,
+    /// The pool it belongs to ([`StagingPool::id`]).
+    pool: u64,
     /// Jobs writing in this chunk right now (counted at allocation, under
     /// the pool lock, released when their view is dropped).
     writers: AtomicU32,
@@ -187,6 +189,10 @@ type Returned = Arc<(Mutex<Vec<(Arc<Chunk>, bool)>>, Condvar)>;
 
 /// Mapped staging memory shared by the background jobs and the renderer.
 pub struct StagingPool {
+    /// Unique to the pool: data a job staged before the GPU device was lost
+    /// belongs to the old device's pool and is never copied with the new one
+    /// (`Staged::is_from`, the viewer's GPU recovery).
+    id: u64,
     state: Mutex<PoolState>,
     /// Memory of the pool (bytes) and size of its chunks.
     total: u64,
@@ -209,6 +215,12 @@ pub struct Staged {
 impl Staged {
     pub fn size(&self) -> u64 {
         self.size
+    }
+
+    /// Staged in `pool`: false for data of a pool made for a device since
+    /// lost.
+    pub fn is_from(&self, pool: &StagingPool) -> bool {
+        self.chunk.pool == pool.id
     }
 
     /// The data can be copied: its chunk is closed and unmapped.
@@ -247,26 +259,27 @@ impl StagingPool {
     /// skipped; if none map, the pool stays empty and uploads fall back to
     /// main-thread `write_*` (slower, but the viewer still starts).
     pub fn new(device: &wgpu::Device, small: bool) -> Arc<Self> {
-        let preferred = if small { CHUNKS_SMALL } else { CHUNKS };
-        let (count, chunk_bytes, free) = Self::build_free_chunks(device, preferred)
-            .or_else(|| Self::build_free_chunks(device, CHUNKS_SMALL))
-            .or_else(|| Self::build_free_chunks(device, CHUNKS_TINY))
-            .unwrap_or_else(|| {
-                log::error!(
-                    "staging: no host-visible MAP_WRITE chunk could be mapped; \
-                     streaming uploads disabled (main-thread writes only)"
-                );
-                (0, preferred.1, Vec::new())
-            });
-        if count > 0 && (count, chunk_bytes) != preferred {
-            log::warn!(
-                "staging: using {count}×{} MiB chunks (preferred was {}×{} MiB)",
-                chunk_bytes >> 20,
-                preferred.0,
-                preferred.1 >> 20
-            );
-        }
+        static NEXT: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(1);
+        let id = NEXT.fetch_add(1, Ordering::Relaxed);
+        let (count, chunk_bytes) = if small { CHUNKS_SMALL } else { CHUNKS };
+        let free = (0..count)
+            .map(|_| {
+                Arc::new(Chunk {
+                    buffer: device.create_buffer(&wgpu::BufferDescriptor {
+                        label: Some("streaming staging"),
+                        size: chunk_bytes,
+                        usage: wgpu::BufferUsages::MAP_WRITE | wgpu::BufferUsages::COPY_SRC,
+                        mapped_at_creation: true,
+                    }),
+                    pool: id,
+                    writers: AtomicU32::new(0),
+                    staged: AtomicU32::new(0),
+                    unmapped: AtomicBool::new(false),
+                })
+            })
+            .collect();
         Arc::new(StagingPool {
+            id,
             state: Mutex::new(PoolState {
                 open: None,
                 free,
@@ -287,6 +300,7 @@ impl StagingPool {
                 let buffer = create_mapped_staging(device, chunk_bytes)?;
                 Some(Arc::new(Chunk {
                     buffer,
+                    pool: 0,
                     writers: AtomicU32::new(0),
                     staged: AtomicU32::new(0),
                     unmapped: AtomicBool::new(false),
@@ -780,6 +794,15 @@ pub struct FrameUploads {
 }
 
 impl FrameUploads {
+    /// Another view shares the submitted scene and uploads no assets a second time.
+    #[cfg(any(target_os = "linux", target_os = "windows", target_os = "macos"))]
+    pub(crate) fn empty_sibling(&self) -> Self {
+        Self {
+            encoder: None,
+            recycle: Vec::new(),
+            returned: self.returned.clone(),
+        }
+    }
     /// The recorded copies: first command buffer of the frame's submit.
     pub fn take_commands(&mut self) -> Option<wgpu::CommandBuffer> {
         self.encoder.take().map(|e| e.finish())
@@ -799,6 +822,24 @@ impl FrameUploads {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    /// After a device loss the viewer makes a new pool: what a job staged in
+    /// the old one is told apart (GPU test).
+    #[test]
+    #[ignore]
+    fn data_staged_in_another_pool_is_told_apart() {
+        let _gpu = crate::test_gpu::lock();
+        let instance = wgpu::Instance::default();
+        let Ok(adapter) = pollster::block_on(instance.request_adapter(&wgpu::RequestAdapterOptions::default())) else {
+            eprintln!("no GPU adapter: skipped");
+            return;
+        };
+        let (device, _queue) = pollster::block_on(adapter.request_device(&wgpu::DeviceDescriptor::default())).expect("GPU device");
+        let (old, new) = (StagingPool::new(&device, true), StagingPool::new(&device, true));
+        let staged = old.stage(64, |_| {}).expect("staged");
+        assert!(staged.is_from(&old));
+        assert!(!staged.is_from(&new));
+    }
 
     /// GPU round trip of the staging pool: regions staged from several
     /// threads at once, copied into a buffer and read back, over enough

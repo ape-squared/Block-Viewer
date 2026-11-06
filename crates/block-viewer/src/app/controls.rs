@@ -10,12 +10,17 @@ use glam::Vec3;
 use std::time::Instant;
 
 impl App {
+    pub(crate) fn object_view_sync(&mut self) {}
+
+    pub(crate) fn object_view_attach_selection(&mut self) {}
+
     pub(super) fn controls_window(&mut self, ctx: &egui::Context, p: &Palette) {
         self.joystick_status(ctx, p);
         self.controls_demo();
         let flight = self.snapshots.ui.free;
         let view = View {
             zoom: self.camera.zoom_fraction(),
+            roll: self.camera.roll,
             preset: self.settings.camera.preset,
             shots: &self.settings.camera_shots,
             flying: self.world.agent.flying,
@@ -48,6 +53,20 @@ impl App {
         }
     }
 
+    /// The toolbar's Move and View, the View menu, the shortcut
+    /// (`ui::controls::request`; the free camera keeps Aurora's window).
+    pub(super) fn request_controls(&mut self, movement: bool, toggle: bool) {
+        let classic = self.settings.classic_controls && self.camera.free().is_none();
+        crate::ui::controls::request(
+            &self.egui_ctx,
+            &mut self.panels.camera_controls,
+            &mut self.panels.movement_controls,
+            classic,
+            movement,
+            toggle,
+        );
+    }
+
     fn control_action(&mut self, action: ControlAction) {
         if self.world.rlva.camera_preset_locked(uuid::Uuid::nil())
             && matches!(
@@ -75,6 +94,12 @@ impl App {
                 self.reset_camera_all();
                 self.settings.save();
             }
+            ControlAction::RollBy(delta) => {
+                if self.in_world() && !self.camera.mouselook() && self.camera.free().is_none() && self.camera.flycam.is_none() {
+                    self.camera.roll += delta;
+                }
+            }
+            ControlAction::LevelRoll => self.camera.roll = 0.0,
             ControlAction::Zoom(fraction) => self.camera.set_zoom_fraction(fraction),
             ControlAction::Mouselook => self.toggle_mouselook(),
             ControlAction::ObjectView => {
@@ -122,46 +147,10 @@ impl App {
         }
     }
 
-    /// Object view: keep tracking whatever was focused (click or selection).
-    /// Do not overwrite a world click with the build selection every frame —
-    /// that stole focus from trackpad Alt-style clicks when nothing was
-    /// selected, and fought the click when something else was.
-    pub(super) fn object_view_sync(&mut self) {
-        if !self.object_view {
-            return;
-        }
-        // Object view always means "follow the focused object".
-        self.settings.camera.track_focus_object = true;
-        // Already locked on an object: leave the click / prior attach alone.
-        if self.camera.focus_object_id().is_some() {
-            return;
-        }
-        self.object_view_attach_selection();
-    }
-
-    fn object_view_attach_selection(&mut self) {
-        let Some(idx) = self.build.sel_prims(&self.world).first().copied() else {
-            return;
-        };
-        let Some(object) = crate::camera::pick_focus_object(&self.world, idx, Instant::now()) else {
-            return;
-        };
-        if self.camera.focus_object_id() == Some(object.0) {
-            return;
-        }
-        let point = object.1.position;
-        let dir = (point - self.camera.position).normalize_or(Vec3::X);
-        self.camera.alt_focus(
-            point,
-            Some(object),
-            (self.camera.position, dir),
-            &mut self.world.agent,
-            &self.settings.camera,
-        );
-    }
-
-    /// AURORA_DEMO_CONTROLS=camera | movement | compact | classic | free |
-    /// free-compact: the window open (minimized for `compact`); `free` the
+    /// AURORA_DEMO_CONTROLS=camera | movement | compact | compact-move |
+    /// classic | free | free-compact: the window open (minimized for
+    /// `compact`; `compact-move` also, then Move pressed 40 frames later as
+    /// the toolbar does, #1815); `free` the
     /// photo window's free camera on, which opens it, `free-compact` the
     /// same minimized; 40 frames later the free camera has flown 2 m to the
     /// left and 1 m up and turned toward the avatar, which stayed.
@@ -178,6 +167,10 @@ impl App {
             cam.turn(-0.35, -0.15);
             log::info!("demo free camera: flown to {:.1?}", cam.position);
         }
+        if self.frame_count == 640 && std::env::var("AURORA_DEMO_CONTROLS").as_deref() == Ok("compact-move") {
+            self.request_controls(true, true);
+            log::info!("demo controls: Move pressed on the minimized window");
+        }
         if self.frame_count != 600 {
             return;
         }
@@ -192,8 +185,12 @@ impl App {
                 }
             }
             Ok("camera") => self.panels.camera_controls = true,
+            Ok("roll") => {
+                self.panels.camera_controls = true;
+                self.camera.roll = 15.0_f32.to_radians();
+            }
             Ok("movement") => self.panels.movement_controls = true,
-            Ok("compact") => {
+            Ok("compact" | "compact-move") => {
                 self.panels.camera_controls = true;
                 crate::ui::widgets::minimize_floater(&self.egui_ctx, crate::ui::controls::WINDOW);
             }

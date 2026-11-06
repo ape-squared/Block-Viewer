@@ -22,6 +22,7 @@ mod lovense;
 // mod bug_report;
 mod build;
 mod cache;
+mod cache_key;
 mod cache_location;
 mod camera;
 mod cli;
@@ -45,6 +46,7 @@ mod frame_profile;
 mod gestures;
 mod gif_search;
 mod gpu_driver;
+mod gpu_load;
 mod graphics_presets;
 mod grid_status;
 mod grids;
@@ -52,14 +54,17 @@ mod high_contrast;
 mod hover_tips;
 mod ik_edit;
 mod imports;
+mod instances;
 mod interaction;
 mod interface_colors;
 mod joystick;
 mod keybinds;
 mod keywords;
+mod legacy_profile;
 mod link_preview;
 mod link_trust;
 mod links;
+mod local_bakes;
 mod logging;
 mod login_accounts;
 mod login_favorites;
@@ -73,6 +78,7 @@ mod media;
 mod movement;
 mod net_adapters;
 mod net_profile;
+mod open_path;
 mod overlay_hooks;
 mod own_motion;
 mod physics_editor;
@@ -91,10 +97,12 @@ mod stream_title;
 mod sys_probe;
 mod system_info;
 mod system_notify;
+mod text_validation;
 mod theme;
 mod tolerant;
 mod ui;
 mod ui_sound;
+mod uninstall;
 mod updater;
 mod url_scheme;
 mod voice;
@@ -132,6 +140,11 @@ fn main() -> anyhow::Result<()> {
         return Ok(());
     }
     cli::get();
+    // without a window: before the crash watcher, the logs and the link
+    // hand-off
+    if cli::get().uninstall {
+        std::process::exit(uninstall::command_line());
+    }
     anyhow::ensure!(
         std::env::var_os("AURORA_UPDATE_TEST_ROOT").is_none() || block_updater::test_environment().is_some(),
         "invalid isolated update test installation"
@@ -154,6 +167,31 @@ fn main() -> anyhow::Result<()> {
     block_i18n::select("default", cli::get().language.as_deref());
     crash::start();
     logging::init();
+    // The loader scans the layer manifests (and may call their pre-instance
+    // hooks): on a thread of its own, like the crash report's list of layers
+    // (crash/mod.rs), so the window never waits for this log line
+    let spawned = std::thread::Builder::new().name("aurora-vulkan-facts".into()).spawn(|| {
+        let vulkan_layers = block_render::vulkan_layers::offered_descriptions();
+        let variables = block_render::vulkan_layers::loader_environment();
+        log::info!(
+            "Vulkan startup: loader {}; layers offered: {}; process elevated: {}; loader environment: {}",
+            block_render::vulkan_layers::loader_version(),
+            if vulkan_layers.is_empty() {
+                "none or unavailable".to_owned()
+            } else {
+                vulkan_layers.join(", ")
+            },
+            process_elevation(),
+            if variables.is_empty() {
+                "none set".to_owned()
+            } else {
+                variables.join(", ")
+            }
+        );
+    });
+    if let Err(error) = spawned {
+        log::warn!("the Vulkan startup details are not logged: {error}");
+    }
     if !vulkan_layers_off.is_empty() {
         let names: Vec<_> = vulkan_layers_off.iter().map(|l| format!("{} ({})", l.name, l.program)).collect();
         log::info!(
@@ -177,8 +215,52 @@ fn main() -> anyhow::Result<()> {
     if let Err(error) = &result {
         crash::failure(&format!("Viewer startup / event loop error: {error:#}"));
     }
+    // the log writer thread ends with the process: its queue first
+    logging::drain(logging::DRAIN_WAIT);
     crash::finished(result.is_ok());
     result
+}
+
+#[cfg(windows)]
+fn process_elevation() -> &'static str {
+    use windows_sys::Win32::{
+        Foundation::CloseHandle,
+        Security::{GetTokenInformation, TOKEN_ELEVATION, TOKEN_QUERY, TokenElevation},
+        System::Threading::{GetCurrentProcess, OpenProcessToken},
+    };
+
+    let mut token = std::ptr::null_mut();
+    // SAFETY: GetCurrentProcess returns a pseudo-handle; OpenProcessToken
+    // writes a token handle into the valid output pointer.
+    if unsafe { OpenProcessToken(GetCurrentProcess(), TOKEN_QUERY, &mut token) } == 0 {
+        return "unknown";
+    }
+    let mut elevation = TOKEN_ELEVATION::default();
+    let mut returned = 0;
+    // SAFETY: the output buffer is correctly sized for TOKEN_ELEVATION.
+    let ok = unsafe {
+        GetTokenInformation(
+            token,
+            TokenElevation,
+            (&mut elevation as *mut TOKEN_ELEVATION).cast(),
+            std::mem::size_of::<TOKEN_ELEVATION>() as u32,
+            &mut returned,
+        )
+    } != 0;
+    // SAFETY: token was created by OpenProcessToken above.
+    unsafe { CloseHandle(token) };
+    if !ok {
+        "unknown"
+    } else if elevation.TokenIsElevated != 0 {
+        "yes"
+    } else {
+        "no"
+    }
+}
+
+#[cfg(not(windows))]
+fn process_elevation() -> &'static str {
+    "not applicable"
 }
 
 fn run_viewer() -> anyhow::Result<()> {
@@ -231,6 +313,16 @@ fn run_viewer() -> anyhow::Result<()> {
     }
     let mut app = app::App::new()?;
     let result = event_loop.run_app(app.as_mut());
+    // a graphics card box still shown would outlive the viewer on macOS and
+    // Linux (app/gpu_stall.rs)
+    app::withdraw_gpu_notices(std::time::Duration::from_secs(1));
+    // later launches no longer hand their link to this closing viewer
+    slurl_handoff::release();
+    // the pipelines compiled since the last save (made after the start:
+    // another anti-aliasing, the photo passes…)
+    block_render::pipeline_cache::flush(std::time::Duration::from_secs(2));
+    // a save asked on a way out other than `shutdown` (settings/saver.rs)
+    settings::Settings::wait_saved(std::time::Duration::from_secs(5));
     // the browsers stop with the app; their private profiles are removed
     // while the plugins let go of their files
     drop(app);

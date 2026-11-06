@@ -6,7 +6,7 @@
 //! (indra/newview/llimview.cpp) and FSNearbyChat::sendChatFromViewer
 //! (indra/newview/fsnearbychathub.cpp), originally LGPL 2.1. The Legacy
 //! Viewer sends the space it cut at as the first character of the next
-//! part; here it is dropped, so the recipient sees no stray leading space.
+//! part; here it is dropped, the recipient sees no stray leading space.
 
 /// Largest text of one chat or IM message, in bytes.
 pub const MAX_MESSAGE_BYTES: usize = 1023;

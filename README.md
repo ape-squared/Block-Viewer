@@ -21,12 +21,12 @@ A Windows Second Life® client with a Vulkan renderer. Source and releases are p
 
 Block Viewer is a **hobby fork** for friends and engineers who like open source. We ship builds when something useful lands; we are **not** trying to replace or compete with other viewers.
 
-### Built on Aurora Viewer
+### Built on Block Viewer
 
-This codebase starts from the open-source **[Aurora Viewer](https://github.com/Aurora-Viewer/Aurora-Viewer)** project (engine, protocol work, GPL lineage). We are grateful for that work.
+This codebase starts from the open-source **[Block Viewer](https://github.com/Aurora-Viewer/Aurora-Viewer)** project (engine, protocol work, GPL lineage). We are grateful for that work.
 
 - Block is a **separate product and brand** — skins, packaging, and direction of our own.
-- It is **not** an official Aurora release and is **not** affiliated with the Aurora Viewer team.
+- It is **not** an official Aurora release and is **not** affiliated with the Block Viewer team.
 - We keep source and releases public because that is how GPL and good open-source practice work, and because Aurora’s openness is what made a fork like this possible.
 
 Licence text and third-party credits: [LICENSE.md](LICENSE.md), [LICENSE](LICENSE), [NOTICE.md](NOTICE.md).

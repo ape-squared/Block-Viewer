@@ -16,6 +16,6 @@ with zipfile.ZipFile(args.output, "w", zipfile.ZIP_DEFLATED) as archive:
         archive.write(source / name, prefix + name)
     if not args.legacy:
         archive.write(source / "blender_manifest.toml", "blender_manifest.toml")
-    archive.write(source.parents[1] / "crates/aurora-viewer/assets/character/avatar_skeleton.xml", prefix + "avatar_skeleton.xml")
+    archive.write(source.parents[1] / "crates/block-viewer/assets/character/avatar_skeleton.xml", prefix + "avatar_skeleton.xml")
     archive.write(source.parents[1] / "LICENSE", prefix + "LICENSE")
 print(args.output.resolve())

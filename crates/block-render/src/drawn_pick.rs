@@ -71,12 +71,15 @@ pub struct Drawn {
     pub blend: Option<DrawnFace>,
 }
 
-/// Touch/build includes invisible Blend texels; the camera follows visible
-/// surfaces (LLToolCamera::handleMouseDown: pick_transparent = false).
+/// Button-specific alpha rules. Interaction/Visible retain the menu and
+/// worn-object behavior; left variants skip world Blend texels with alpha <= 32/255.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum DrawnMode {
     Interaction,
     Visible,
+    /// Left button: legacy alpha > 32/255 threshold on world Blend objects only.
+    Left,
+    LeftVisible,
 }
 
 /// A request: its ticket, pixel and transparency rule.

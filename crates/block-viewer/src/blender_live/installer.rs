@@ -568,7 +568,7 @@ enum Operation {
     Probe,
     Install,
     /// Disables and deletes Aurora's package (`--uninstall`, Preferences ›
-    /// Remove Aurora from this computer); install's backups stay.
+    /// Remove Block Viewer from this computer); install's backups stay.
     Uninstall,
 }
 

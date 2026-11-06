@@ -12860,3 +12860,6 @@ voice-morphing = Morfização da voz
 voice-morphing-effect = Efeito de voz
 voice-morphing-effect-hint = Legacy Voice Morphing: escolha uma fonte de voz quando Vivox oferecer. Fora deixa sua voz natural.
 voice-morphing-none = Sem transformação
+
+ui-options-block-building = Construção
+ui-options-block-bridge = Ponte Block

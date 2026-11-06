@@ -176,14 +176,32 @@ impl EnvironmentUi {
         }
         ui.add_space(6.0);
         widgets::divider(ui, p);
+        // Restore sits on the right with a reserved slot so Edit Water is
+        // never drawn under its tooltip / hit target.
         ui.horizontal(|ui| {
-            ui.add_space(label_w + 4.0);
-            if widgets::flat_button(ui, p, block_i18n::tr!("common-personal-lighting"))
-                .on_hover_text(block_i18n::tr!("ui-environment-adjust-the-current-sky-for-your-view-only"))
-                .clicked()
-            {
-                *lighting = !*lighting;
-            }
+            const RESTORE: f32 = 28.0;
+            let left = (ui.available_width() - RESTORE - ui.spacing().item_spacing.x).max(0.0);
+            ui.allocate_ui_with_layout(Vec2::new(left, 28.0), egui::Layout::left_to_right(egui::Align::Center), |ui| {
+                ui.spacing_mut().item_spacing.x = 6.0;
+                if widgets::flat_button(ui, p, block_i18n::tr!("common-personal-lighting"))
+                    .on_hover_text(block_i18n::tr!("ui-environment-adjust-the-current-sky-for-your-view-only"))
+                    .clicked()
+                {
+                    *lighting = !*lighting;
+                }
+                if widgets::flat_button(ui, p, block_i18n::tr!("ui-env-editor-edit-sky"))
+                    .on_hover_text(block_i18n::tr!("ui-environment-edit-sky-hint"))
+                    .clicked()
+                {
+                    out.push(EnvAction::Edit(SettingsKind::Sky));
+                }
+                if widgets::flat_button(ui, p, block_i18n::tr!("ui-env-editor-edit-water"))
+                    .on_hover_text(block_i18n::tr!("ui-environment-edit-water-hint"))
+                    .clicked()
+                {
+                    out.push(EnvAction::Edit(SettingsKind::Water));
+                }
+            });
             ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
                 if widgets::icon_button(
                     ui,

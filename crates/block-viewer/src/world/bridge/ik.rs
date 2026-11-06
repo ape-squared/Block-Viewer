@@ -5,7 +5,6 @@ pub(super) const NAME: &str = "#Block Bridge IK";
 #[allow(dead_code)] // matched when renaming leftover inventory scripts
 pub(super) const OLD_NAMES: &[&str] = &["#Aurora Bridge IK"];
 pub(super) const SOURCE: &str = include_str!("ik.lsl");
-pub(crate) const CONTROL: i32 = -190018106;
 
 #[derive(Default)]
 pub(super) struct Service {

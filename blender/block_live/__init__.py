@@ -1,9 +1,9 @@
 """Blender editing to Block Viewer's animated avatar, without uploading assets."""
 
 bl_info = {
-    "name": "Block LiveMesh", "author": "Block Viewer contributors",
-    "version": (0, 14, 8), "blender": (2, 93, 0),
-    "location": "View3D > Sidebar > Block", "category": "3D View",
+    "name": "Aurora LiveMesh", "author": "Block Viewer contributors",
+    "version": (0, 14, 10), "blender": (2, 93, 0),
+    "location": "View3D > Sidebar > Aurora", "category": "3D View",
     "description": "Preview rigged and static mesh edits live in Block Viewer",
 }
 

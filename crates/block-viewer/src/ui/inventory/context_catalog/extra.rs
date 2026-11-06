@@ -164,7 +164,7 @@ pub(super) fn build(c: &mut Catalog, inv: &Inventory, id: Uuid, st: &InventoryUi
             }
         }
     }
-    let outfit_parent = folder && rules::in_type(inv, id, 48) && !rules::in_type(inv, id, 47) && rules::mutable(inv, id, &prefs.protected);
+    let outfit_parent = folder && rules::in_type(inv, id, 48) && !rules::in_type(inv, id, 47) && rules::mutable(inv, id);
     if outfit_parent || all {
         c.add(
             "new-outfit",
@@ -275,7 +275,7 @@ pub(super) fn build(c: &mut Catalog, inv: &Inventory, id: Uuid, st: &InventoryUi
             TEXT,
             "link-off",
             block_i18n::tr!("inventory-clean-broken-links"),
-            ready && single && rules::mutable(inv, id, &prefs.protected),
+            ready && single && rules::mutable(inv, id),
             super::Command::Extra(Command::CleanLinks(id)),
         );
     }
@@ -293,7 +293,8 @@ pub(super) fn build(c: &mut Catalog, inv: &Inventory, id: Uuid, st: &InventoryUi
         let permitted = complete_selection
             && selected.iter().all(|item| {
                 !item.asset_id.is_nil()
-                    && item.owner_mask & (rules::COPY | rules::MODIFY | rules::TRANSFER) == rules::COPY | rules::MODIFY | rules::TRANSFER
+                    && rules::held(inv, item) & (rules::COPY | rules::MODIFY | rules::TRANSFER)
+                        == rules::COPY | rules::MODIFY | rules::TRANSFER
             });
         let formats = c.group(
             "save-textures",
@@ -518,9 +519,12 @@ pub(super) fn build(c: &mut Catalog, inv: &Inventory, id: Uuid, st: &InventoryUi
             c,
             "rez-previous",
             complete_selection
-                && selected
-                    .iter()
-                    .all(|item| item.asset_type == 6 && !facts.worn.contains(&item.id) && rules::mutable(inv, item.id, &prefs.protected)),
+                && selected.iter().all(|item| {
+                    item.asset_type == 6
+                        && !facts.worn.contains(&item.id)
+                        && rules::mutable(inv, item.id)
+                        && rules::restorable(item, facts.opensim)
+                }),
             super::Command::Batch(selected.iter().map(|item| InvAction::Restore(item.id)).collect()),
         );
     }
@@ -745,7 +749,7 @@ pub(super) fn execute(
             }
         }
         Command::NewOutfit(parent) => {
-            if rules::in_type(inv, parent, 48) && !rules::in_type(inv, parent, 47) && rules::mutable(inv, parent, &prefs.protected) {
+            if rules::in_type(inv, parent, 48) && !rules::in_type(inv, parent, 47) && rules::mutable(inv, parent) {
                 let id = Uuid::new_v4();
                 actions.push(InvAction::Edit(Mutation {
                     operations: vec![Operation::Folder {
@@ -907,7 +911,7 @@ mod tests {
     }
 
     #[test]
-    fn empty_lost_and_found_obeys_the_same_worn_and_protection_rules_as_delete() {
+    fn empty_lost_and_found_obeys_the_same_worn_and_lock_rules_as_delete() {
         let mut inv = seed();
         let lost = Uuid::from_u128(9400);
         let item = Uuid::from_u128(8100);
@@ -935,7 +939,8 @@ mod tests {
                     .find(|entry| entry.id == "empty-lost-found")
                     .expect("empty command")
                     .enabled,
-                blocked == 0
+                blocked != 1,
+                "worn contents block it; a lock holds only the folder itself"
             );
         }
     }

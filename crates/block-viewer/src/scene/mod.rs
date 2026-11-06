@@ -12,13 +12,14 @@ pub mod banlines;
 pub mod blend_order;
 mod blender_live;
 pub mod body_physics;
+pub mod build_hologram;
 pub mod complexity;
 pub mod creation_preview;
 pub(crate) mod default_motions;
 pub mod describe;
 pub mod drawn;
 pub mod fetch_priority;
-mod flexible;
+pub(crate) mod flexible;
 mod foot_scope;
 mod foot_support;
 pub mod geometry_need;
@@ -56,6 +57,8 @@ pub mod settings;
 pub mod shape;
 mod shown_bakes;
 mod skin_binds;
+pub mod sound_occlusion;
+pub mod sound_reverb;
 pub mod sounds;
 pub mod still_check;
 mod sync_check;
@@ -196,6 +199,21 @@ struct GeomEntry {
 
 /// Frames an unused geometry is kept (an object may want it back soon).
 const GEOM_KEEP_FRAMES: u32 = 600;
+/// `AURORA_DEBUG_GEOM_DELAY=<seconds>`: every built geometry reaches the
+/// arena that long after its job ended, as on a slow PC in a busy region
+/// (a geometry pending longer than `GEOM_KEEP_FRAMES` is collected and
+/// built a second time).
+fn geom_arrival_delay() -> Option<std::time::Duration> {
+    static DELAY: std::sync::OnceLock<Option<std::time::Duration>> = std::sync::OnceLock::new();
+    *DELAY.get_or_init(|| {
+        std::env::var("AURORA_DEBUG_GEOM_DELAY")
+            .ok()
+            .and_then(|v| v.trim().parse::<f32>().ok())
+            .filter(|s| *s > 0.0)
+            .map(std::time::Duration::from_secs_f32)
+    })
+}
+
 /// Unused geometries looked at per frame once their time has come.
 const GEOM_FREED_PER_FRAME: usize = 256;
 /// Frames between two looks at what an avatar's attachments show of its
@@ -692,10 +710,17 @@ pub struct SceneStats {
     pub posed: usize,
     /// Worn objects placed by the GPU (anchors.rs): not visited by the sync.
     pub anchored: usize,
+    /// Flexible prims whose mesh was swept again this frame, and those
+    /// simulated with their mesh held because no view shows them
+    /// (flexible.rs).
+    pub flexies: usize,
+    pub flexies_held: usize,
+    /// Objects that move by themselves placed from a mover (anchors.rs).
+    pub movers: usize,
     /// Skeletons built again this frame (a shape, an attachment or their
     /// age changed), out of `posed` (AURORA_PROFILE).
     pub skeletons_rebuilt: usize,
-    /// How the avatars of the last lists are drawn (AURORA_PROFILE).
+    /// How the avatars of the last lists are drawn.
     pub avatars: AvatarCounts,
 }
 
@@ -758,6 +783,9 @@ pub struct Scene {
     job_rx: crossbeam_channel::Receiver<JobResult>,
     geoms: FastMap<GeomKey, GeomEntry>,
     flexibles: FastMap<usize, flexible::State>,
+    /// The plane (point, normal) of the mirror the last frame drew, for the
+    /// flexible prims only it shows (flexible.rs).
+    pub mirror_plane: Option<(Vec3, Vec3)>,
     /// Grass tufts drawn, and the terrain they were placed on (plants.rs).
     grass: HashMap<usize, plants::GrassBuilt>,
     pub textures: TextureStreamer,
@@ -963,6 +991,7 @@ pub struct Scene {
     rlva_render_state: (Option<Uuid>, bool, bool),
     pub lists: DrawLists,
     pub creation_preview: creation_preview::CreationPreview,
+    pub build_hologram: build_hologram::BuildHologram,
     pub physics_shapes: physics_shapes::PhysicsShapes,
     pub stats: SceneStats,
     /// AURORA_STILL_CHECK: what changes while the picture should stand still.
@@ -987,6 +1016,10 @@ pub struct Scene {
     object_signals: FastMap<Uuid, animesh::Signals>,
     /// World and interface sounds.
     pub sounds: sounds::SoundManager,
+    /// How muffled each world sound is behind walls (sound_occlusion.rs).
+    sound_occlusion: sound_occlusion::SoundOcclusion,
+    /// The reverb of the surroundings (sound_reverb.rs).
+    sound_reverb: sound_reverb::SoundReverb,
     /// Environment settings assets (the EEP default day).
     pub settings: settings::SettingsStreamer,
     /// Landmark asset fetches done, for `World::landmarks` (the app passes
@@ -994,6 +1027,9 @@ pub struct Scene {
     pub landmark_results: Vec<block_net::FetchResult>,
     palette_slots: FastMap<Uuid, u32>,
     palette_free: Vec<u32>,
+    /// Palette slots handed out since the last upload: their first pose is
+    /// also their previous one (`Renderer::seed_palette_slots`).
+    palette_fresh: Vec<usize>,
     palette_count: u32,
     palettes: Vec<[[f32; 4]; 4]>,
     pub live_morphs: live_morphs::LiveMorphs,
@@ -1013,6 +1049,8 @@ pub struct Scene {
     /// system allocator, that growth queued the main thread behind the
     /// jobs during bursts of results).
     geom_waiting_spare: Vec<(GeomKey, jobs::PreparedGeom, f32)>,
+    /// Geometry held back by `AURORA_DEBUG_GEOM_DELAY` until its time.
+    geom_delayed: VecDeque<(Instant, GeomKey, jobs::PreparedGeom, f32)>,
     /// Streaming time of the frame by part (AURORA_PROFILE `s_*`), taken by
     /// the frame profile at the end of the frame.
     pub parts: crate::frame_profile::Parts,
@@ -1379,12 +1417,21 @@ impl Scene {
         }
     }
 
-    pub fn selection_pulse(&self, now: Instant) -> f32 {
+    pub fn selection_pulse(&self, now: Instant, repeat: bool) -> f32 {
         if self.selection_faces.is_empty() {
             return 0.0;
         }
         self.selection_changed.map_or(0.0, |at| {
-            let remaining = (1.0 - now.saturating_duration_since(at).as_secs_f32() / 0.7).clamp(0.0, 1.0);
+            let period = std::time::Duration::from_millis(700);
+            let elapsed = now.saturating_duration_since(at);
+            // Drag feedback repeats the ordinary selection flash without
+            // changing its mask or rebuilding invisible-face records.
+            let elapsed = if repeat {
+                std::time::Duration::from_nanos((elapsed.as_nanos() % period.as_nanos()) as u64)
+            } else {
+                elapsed
+            };
+            let remaining = (1.0 - elapsed.as_secs_f32() / period.as_secs_f32()).clamp(0.0, 1.0);
             0.18 * remaining * remaining
         })
     }
@@ -1406,6 +1453,7 @@ impl Scene {
             sculpt_watch: sculpt_watch::SculptWatch::from_env(),
             geoms: Default::default(),
             flexibles: Default::default(),
+            mirror_plane: None,
             grass: HashMap::new(),
             textures: TextureStreamer::new(cache_dir.clone()),
             meshes: MeshStreamer::new(cache_dir.clone()),
@@ -1514,6 +1562,7 @@ impl Scene {
             rlva_render_state: (None, false, false),
             lists: DrawLists::default(),
             creation_preview: creation_preview::CreationPreview::default(),
+            build_hologram: build_hologram::BuildHologram::default(),
             physics_shapes: physics_shapes::PhysicsShapes::default(),
             stats: SceneStats::default(),
             still: still_check::StillCheck::from_env(),
@@ -1528,12 +1577,15 @@ impl Scene {
             last_origin: None,
             blend_tmp: Vec::new(),
             sounds: sounds::SoundManager::new(cache_dir_anim.clone()),
+            sound_occlusion: Default::default(),
+            sound_reverb: Default::default(),
             settings: settings::SettingsStreamer::new(cache_dir_anim.clone()),
             landmark_results: Vec::new(),
             anims,
             object_signals: Default::default(),
             palette_slots: Default::default(),
             palette_free: Vec::new(),
+            palette_fresh: Vec::new(),
             palette_count: lips.slots,
             palettes: lips.matrices.clone(),
             live_morphs: lips,
@@ -1545,6 +1597,7 @@ impl Scene {
             staging: None,
             geom_waiting: Vec::new(),
             geom_waiting_spare: Vec::new(),
+            geom_delayed: VecDeque::new(),
             parts: Default::default(),
             skeletons: Default::default(),
             rig_extents: Default::default(),
@@ -1761,6 +1814,10 @@ impl Scene {
     /// Put a prepared geometry in the arena: staged faces are copied by the
     /// GPU (their regions must be ready), the others written from here.
     fn upload_geom(&mut self, renderer: &mut Renderer, key: GeomKey, geom: jobs::PreparedGeom) {
+        if self.geom_drawn(&key) {
+            log::debug!("{key:?} built twice: the copy is dropped, the geometry drawn stays");
+            return;
+        }
         let gfaces = geom
             .faces
             .into_iter()
@@ -1780,20 +1837,28 @@ impl Scene {
             pick_faces: geom.pick_faces,
         });
         match self.geoms.get_mut(&key) {
-            Some(e) => match std::mem::replace(&mut e.state, GeomState::Ready(g)) {
-                GeomState::Ready(old) => {
-                    for f in old.faces.iter().flatten() {
-                        renderer.free_mesh(*f);
-                    }
-                    self.joint_boxes.release(&key);
-                    self.geom_trash.push(old);
+            Some(e) => {
+                if matches!(std::mem::replace(&mut e.state, GeomState::Ready(g)), GeomState::Pending) {
+                    self.geom_pending = self.geom_pending.saturating_sub(1);
                 }
-                GeomState::Pending => self.geom_pending = self.geom_pending.saturating_sub(1),
-                GeomState::Failed => {}
-            },
+            }
             None => self.geom_insert(key, GeomState::Ready(g)),
         }
         self.sets.geometry_changed(sync_plan::wait_token(&key));
+    }
+
+    /// A geometry arriving for `key` while the one there is already drawn
+    /// comes from a second job for the same key: the entry, pending longer
+    /// than `GEOM_KEEP_FRAMES` with no object bound to it yet, was collected
+    /// by `geom_gc` and asked for again while the first job still ran. The
+    /// objects drawing the first one keep the draw commands written when
+    /// they bound it, which point into its arena ranges: replacing it freed
+    /// those ranges under them, the next uploads took them, and these
+    /// objects drew another mesh's vertices (long stretched triangles
+    /// across the scene, on rigged and static objects alike). The copy is
+    /// dropped instead, the geometry drawn stays.
+    fn geom_drawn(&self, key: &GeomKey) -> bool {
+        matches!(self.geoms.get(key).map(|e| &e.state), Some(GeomState::Ready(_)))
     }
 
     fn ensure_avatar_parts(&mut self, renderer: &mut Renderer) {
@@ -1831,24 +1896,7 @@ impl Scene {
         // what the jobs staged so far becomes copyable (once a frame, before
         // the geometry here and the textures in `stream`)
         renderer.prepare_uploads();
-        if self.staging.is_none() {
-            let pool = renderer.staging_pool();
-            self.textures.staging = Some(pool.clone());
-            // (AURORA_TEXTURE_BC7=0: every texture stays RGBA8, to compare)
-            let wanted = std::env::var("AURORA_TEXTURE_BC7").map_or(true, |v| v != "0");
-            self.textures.bc7 = wanted && renderer.textures.bc7();
-            // (AURORA_TEXTURE_BC7_CACHE=0: BC7 without its disk cache, every
-            // texture decoded from its JPEG 2000 data as before)
-            let cached = std::env::var("AURORA_TEXTURE_BC7_CACHE").map_or(true, |v| v != "0");
-            self.textures.bc7_cache = self.textures.bc7 && cached;
-            log::info!(
-                "textures: BC7 compression {} (GPU support: {})",
-                if self.textures.bc7 { "on" } else { "off" },
-                renderer.textures.bc7()
-            );
-            self.meshes.staging = Some(pool.clone());
-            self.staging = Some(pool);
-        }
+        self.take_staging(renderer);
         // Three kinds of results share the budget, each with a part of it so
         // that none starves the others, and each at least one a frame:
         // geometry whose staging chunk became copyable (the first half),
@@ -1856,6 +1904,12 @@ impl Scene {
         // Before, only the jobs were bounded: a chunk that became copyable
         // put all its geometry in the arena in the same frame.
         let mut placed = 0;
+        let now = Instant::now();
+        while self.geom_delayed.front().is_some_and(|d| d.0 <= now) {
+            if let Some((_, key, geom, area)) = self.geom_delayed.pop_front() {
+                self.geom_waiting.push((key, geom, area));
+            }
+        }
         let mut waiting = std::mem::replace(&mut self.geom_waiting, std::mem::take(&mut self.geom_waiting_spare));
         for (key, geom, area) in waiting.drain(..) {
             if geom.ready() && (placed == 0 || t0.elapsed() < budget / 2) {
@@ -1904,6 +1958,9 @@ impl Scene {
                 Part::Decoded
             };
             match r {
+                // staged in the pool of a GPU device lost since (`forget_gpu`):
+                // dropped, the next sync asks for it again
+                JobResult::Geometry { geom, .. } if !geom.staged_in(self.staging.as_deref()) => {}
                 JobResult::Geometry { key, geom, area } => self.finish_geometry(renderer, key, geom, area),
                 JobResult::GeometryFailed { key } => {
                     if let GeomKey::Mesh { id, lod } = key {
@@ -1929,6 +1986,10 @@ impl Scene {
     /// A geometry built by a job goes to the GPU, or waits for a coming
     /// frame while another job still writes in its staging chunk.
     fn finish_geometry(&mut self, renderer: &mut Renderer, key: GeomKey, geom: jobs::PreparedGeom, area: f32) {
+        if let Some(delay) = geom_arrival_delay() {
+            self.geom_delayed.push_back((Instant::now() + delay, key, geom, area));
+            return;
+        }
         if geom.ready() {
             self.place_geometry(renderer, key, geom, area);
         } else {
@@ -2070,6 +2131,7 @@ impl Scene {
         self.banlines.clear(renderer);
         self.portals.clear(renderer);
         self.creation_preview.clear(renderer);
+        self.build_hologram.clear(renderer);
         self.physics_shapes.clear(renderer);
         self.land_overlays.clear(renderer);
         self.particles.clear(&mut self.textures);
@@ -2084,8 +2146,81 @@ impl Scene {
         self.palette_slots.clear();
         self.motions.clear();
         self.palette_free.clear();
+        self.palette_fresh.clear();
         self.palette_count = self.live_morphs.slots;
         self.live_morphs.uploaded = false;
+    }
+
+    /// The GPU device is lost (app/gpu_recovery.rs): what the scene holds on
+    /// `old` is released through `clear`'s bookkeeping (CPU only: nothing
+    /// waits on the lost device), with what a logout keeps besides: the
+    /// geometry cache, the environment and projector textures, the
+    /// impostors. The world stays: `clear` forgets the render origin, whose
+    /// change at the next `sync` marks every object and terrain chunk dirty,
+    /// and all of it is built again on the new renderer ([`Self::adopt_gpu`]).
+    pub fn forget_gpu(&mut self, old: &mut Renderer) {
+        for (id, _) in std::mem::take(&mut self.env_tex) {
+            if !id.is_nil() {
+                self.textures.release(&id);
+            }
+        }
+        for (_, (id, _)) in std::mem::take(&mut self.light_textures) {
+            self.textures.release(&id);
+        }
+        self.clear(old);
+        // every GpuGeom holds allocations of the lost device's arena
+        self.geoms.clear();
+        self.geom_zero.clear();
+        self.geom_pending = 0;
+        self.geom_waiting.clear();
+        self.geom_waiting_spare.clear();
+        self.geom_delayed.clear();
+        self.geom_trash = Default::default();
+        self.joint_boxes = Default::default();
+        self.skin_binds = Default::default();
+        self.sculpt_area.clear();
+        self.grass.clear();
+        self.impostors = Default::default();
+        self.far_avatars.clear();
+        // Blender Live's images: installed again from its snapshot
+        self.preview_images.clear();
+        self.preview_appearances.clear();
+        self.meshes.gpu_reset();
+        // set again from the new renderer at the next `sync`
+        self.staging = None;
+    }
+
+    /// The renderer's staging pool for the streamers' jobs, taken once (and
+    /// again for the renderer of a GPU recovery, `adopt_gpu`).
+    fn take_staging(&mut self, renderer: &mut Renderer) {
+        if self.staging.is_some() {
+            return;
+        }
+        let pool = renderer.staging_pool();
+        self.textures.staging = Some(pool.clone());
+        // (AURORA_TEXTURE_BC7=0: every texture stays RGBA8, to compare)
+        let wanted = std::env::var("AURORA_TEXTURE_BC7").map_or(true, |v| v != "0");
+        self.textures.bc7 = wanted && renderer.textures.bc7();
+        // (AURORA_TEXTURE_BC7_CACHE=0: BC7 without its disk cache, every
+        // texture decoded from its JPEG 2000 data as before)
+        let cached = std::env::var("AURORA_TEXTURE_BC7_CACHE").map_or(true, |v| v != "0");
+        self.textures.bc7_cache = self.textures.bc7 && cached;
+        log::info!(
+            "textures: BC7 compression {} (GPU support: {})",
+            if self.textures.bc7 { "on" } else { "off" },
+            renderer.textures.bc7()
+        );
+        self.meshes.staging = Some(pool.clone());
+        self.staging = Some(pool);
+    }
+
+    /// The new renderer of a GPU recovery: every texture held gets a slot of
+    /// it and is uploaded again from memory or the disk cache, and the jobs
+    /// stage into its pool from now on (the imports published again at once
+    /// need it).
+    pub fn adopt_gpu(&mut self, new: &mut Renderer) {
+        self.textures.gpu_reset(new);
+        self.take_staging(new);
     }
 
     /// The nearest avatar the ray `(origin, dir)` meets before `far`, and
@@ -2554,6 +2689,7 @@ impl Scene {
                 }
             }
             self.last_origin = origin;
+            renderer.cut_motion_history();
             for (idx, o) in world.objects.slots.iter_mut().enumerate() {
                 if let Some(o) = o {
                     o.render.needs_records = true;
@@ -2619,6 +2755,9 @@ impl Scene {
                     .is_some_and(|g| self.mat_changes.stale(&g.material_ids, g.mat_generation, mat_gen))
                 {
                     self.sets.dirty.insert(idx);
+                    if let Some((_, wearer)) = Self::wearer_avatar(world, idx) {
+                        self.bom_stale.insert(wearer);
+                    }
                 }
             }
         }
@@ -2812,6 +2951,7 @@ impl Scene {
         step(&mut slow, "anchors");
         self.sync_flexibles(renderer, world, &synced, now, view);
         self.sync_grass_ground(renderer, world, now, &mut synced);
+        let t_part = self.parts.lap(Part::SyncFlexibles, t_part);
         step(&mut slow, "flexibles");
         self.sync_photo_isolation(renderer, world, &synced);
         // GPU object table: bounds and flags of what was synced (unchanged
@@ -3499,6 +3639,7 @@ impl Scene {
             self.palette_count - 1
         });
         self.palette_slots.insert(owner, slot);
+        self.palette_fresh.push(slot as usize);
         slot * anim::PALETTE_JOINTS as u32
     }
 
@@ -3592,8 +3733,15 @@ impl Scene {
                     .get(&o.key)
                     .and_then(|s| s.iter().rev().find(|(f, _)| *f as usize == fi))
                     .map(|(_, ov)| ov)
-                    .filter(|_| o.local_appearance(fi).is_none());
-                let m = meshes::render_material(&self.materials.resolve(&mid), ov);
+                    .filter(|_| {
+                        o.local_appearance(fi)
+                            .and_then(crate::world::objects::LocalAppearance::surface)
+                            .is_none()
+                    });
+                let mut m = meshes::render_material(&self.materials.resolve(&mid), ov);
+                if let Some(appearance) = o.local_appearance(fi) {
+                    appearance.apply_pbr(&mut m);
+                }
                 // glTF materials replace the legacy shininess
                 rec.flags[0] &= !flags::LEGACY_MAT;
                 rec.flags[0] |= flags::PBR;
@@ -3615,23 +3763,22 @@ impl Scene {
                 rec.spec_color = so(te_);
                 rec.legacy = [tn.rotation, tmr.rotation, te_.rotation, 0.0];
                 base_tex = m.base_color_texture.unwrap_or(Uuid::nil());
-                let mut slot_of = |id: Option<Uuid>, default: u32, g: &mut ObjGpu, s: &mut Self| -> u32 {
+                let mut slot_of = |id: Option<Uuid>, default: u32, g: &mut ObjGpu, s: &mut Self| -> (Uuid, u32) {
                     match id {
                         Some(id) if !id.is_nil() => {
+                            let (id, source) = s.face_texture(renderer, world, id, bake_wearer);
+                            if id.is_nil() {
+                                return (id, default);
+                            }
                             g.tex_ids.push(id);
-                            s.textures.acquire(renderer, id, TexSource::Asset)
+                            (id, s.textures.acquire(renderer, id, source))
                         }
-                        _ => default,
+                        _ => (Uuid::nil(), default),
                     }
                 };
-                aux_tex = [
-                    m.normal_texture.unwrap_or_default(),
-                    m.metallic_roughness_texture.unwrap_or_default(),
-                    m.emissive_texture.unwrap_or_default(),
-                ];
-                rec.tex[1] = slot_of(m.normal_texture, block_render::textures::FLAT_NORMAL, &mut g, self);
-                rec.tex[2] = slot_of(m.metallic_roughness_texture, block_render::textures::WHITE, &mut g, self);
-                rec.tex[3] = slot_of(m.emissive_texture, block_render::textures::WHITE, &mut g, self);
+                (aux_tex[0], rec.tex[1]) = slot_of(m.normal_texture, block_render::textures::FLAT_NORMAL, &mut g, self);
+                (aux_tex[1], rec.tex[2]) = slot_of(m.metallic_roughness_texture, block_render::textures::WHITE, &mut g, self);
+                (aux_tex[2], rec.tex[3]) = slot_of(m.emissive_texture, block_render::textures::WHITE, &mut g, self);
                 pbr_alpha = Some(match m.alpha_mode {
                     block_assets::AlphaMode::Opaque => 0,
                     block_assets::AlphaMode::Blend => 1,
@@ -3644,7 +3791,9 @@ impl Scene {
             }
             // legacy material (LLMaterial) of the texture entry
             let mut legacy_alpha = plant.map(|_| legacy_mat::alpha_mode::MASK);
-            if mat_id.is_none() && !tf.material_id.is_nil() {
+            let local_normal = o.local_texture(fi, crate::world::objects::LocalTextureSlot::Normal);
+            let local_specular = o.local_texture(fi, crate::world::objects::LocalTextureSlot::Specular);
+            if mat_id.is_none() && (!tf.material_id.is_nil() || local_normal.is_some() || local_specular.is_some()) {
                 g.material_ids.push(tf.material_id);
                 let cap = world.regions.get(&o.key.region).and_then(|r| {
                     r.caps.get("RenderMaterials").map(|url| legacy_mat::RegionCap {
@@ -3652,7 +3801,23 @@ impl Scene {
                         limits: r.materials_limits,
                     })
                 });
-                if let Some(lm) = self.legacy_mats.get(&tf.material_id, cap) {
+                let loaded = (!tf.material_id.is_nil())
+                    .then(|| self.legacy_mats.get(&tf.material_id, cap))
+                    .flatten();
+                let material = loaded.map(|m| (*m).clone()).or_else(|| {
+                    (local_normal.is_some() || local_specular.is_some()).then(|| legacy_mat::LegacyMaterial {
+                        diffuse_alpha_mode: if self.textures.has_alpha(&tf.texture).unwrap_or(false) {
+                            legacy_mat::alpha_mode::BLEND
+                        } else {
+                            legacy_mat::alpha_mode::NONE
+                        },
+                        ..Default::default()
+                    })
+                });
+                if let Some(mut lm) = material {
+                    if let Some(appearance) = o.local_appearance(fi) {
+                        appearance.apply_legacy(&mut lm);
+                    }
                     rec.flags[0] |= flags::LEGACY_MAT;
                     aux_tex[0] = lm.normal_map;
                     aux_tex[1] = lm.specular_map;
@@ -3692,18 +3857,8 @@ impl Scene {
             }
             // texture (with bake-on-mesh redirection); without a bake wearer
             // the placeholder stays, an ordinary texture asset
-            let mut source = TexSource::Asset;
-            if let Some((bake_te, bake)) = avatar::bake_slot_for(&base_tex)
-                && let Some((aid, a)) = bake_wearer
-            {
-                match self.shown_bake(renderer, world, a, bake_te) {
-                    Some(tid) => {
-                        base_tex = tid;
-                        source = world.bake_source(aid, bake, tid);
-                    }
-                    None => base_tex = Uuid::nil(),
-                }
-            }
+            let (texture, mut source) = self.face_texture(renderer, world, base_tex, bake_wearer);
+            base_tex = texture;
             // media replaces the diffuse texture (LLViewerMediaTexture::switchTexture)
             if let Some(media_tex) = world.media.face_texture(&o.full_id, fi as u8, &base_tex) {
                 base_tex = media_tex;
@@ -3745,6 +3900,12 @@ impl Scene {
                 }
             }
             rec.set_hud_zoom(hud_zoom);
+            rec.set_world_blend_pick(
+                !g.hud
+                    && wearer.is_none()
+                    && matches!(pbr_alpha, None | Some(1))
+                    && matches!(legacy_alpha, None | Some(legacy_mat::alpha_mode::BLEND)),
+            );
             rec.set_anchor(anchor.map(|a| a.matrix));
             let record = renderer.records.alloc(rec);
             g.faces.push(FaceDraw {
@@ -3854,17 +4015,51 @@ impl Scene {
     }
 
     /// Bake slots (texture-entry index bits) shown by the avatar's attachments
-    /// and their child prims.
-    pub(crate) fn bom_mask(world: &World, avatar_idx: usize) -> u64 {
+    /// and their child prims. Preserve the texture-entry rule of
+    /// LLVOAvatar::updateMeshVisibility and also count rendered PBR maps so
+    /// a body using only PBR BOM does not overlap the system body.
+    pub(crate) fn bom_mask(&self, world: &World, avatar_idx: usize) -> u64 {
         let Some(av) = world.objects.get(avatar_idx) else {
             return 0;
         };
         let mut mask = 0u64;
         let mut scan = |i: usize| {
-            if let Some(te) = world.objects.get(i).and_then(|o| o.te.as_ref()) {
-                for f in &te.faces {
-                    if let Some((slot, _)) = avatar::bake_slot_for(&f.texture) {
-                        mask |= 1u64 << slot.min(63);
+            if let Some(o) = world.objects.get(i)
+                && let Some(te) = &o.te
+            {
+                for (fi, _) in te.faces.iter().enumerate() {
+                    let mut maps = [Some(o.visual_texture_face(fi).texture), None, None, None, None];
+                    if let Some(mid) = o.visual_material(fi) {
+                        let ov = world
+                            .gltf_overrides
+                            .get(&o.key)
+                            .and_then(|s| s.iter().rev().find(|(face, _)| *face as usize == fi))
+                            .map(|(_, ov)| ov)
+                            .filter(|_| {
+                                o.local_appearance(fi)
+                                    .and_then(crate::world::objects::LocalAppearance::surface)
+                                    .is_none()
+                            });
+                        let status = self
+                            .materials
+                            .peek(&mid)
+                            .map_or(meshes::MaterialStatus::Pending, meshes::MaterialStatus::Loaded);
+                        let mut m = meshes::render_material(&status, ov);
+                        if let Some(appearance) = o.local_appearance(fi) {
+                            appearance.apply_pbr(&mut m);
+                        }
+                        maps = [
+                            maps[0],
+                            m.base_color_texture,
+                            m.normal_texture,
+                            m.metallic_roughness_texture,
+                            m.emissive_texture,
+                        ];
+                    }
+                    for id in maps.into_iter().flatten() {
+                        if let Some((slot, _)) = avatar::bake_slot_for(&id) {
+                            mask |= 1u64 << slot.min(63);
+                        }
                     }
                 }
             }
@@ -3906,7 +4101,7 @@ impl Scene {
         // BOM_SWEEP_FRAMES in case (each time it walks every prim worn)
         let bom_mask =
             if !self.gpu[idx].is_avatar || self.bom_stale.remove(&idx) || (self.frame as usize + idx).is_multiple_of(BOM_SWEEP_FRAMES) {
-                Self::bom_mask(world, idx)
+                self.bom_mask(world, idx)
             } else {
                 self.gpu[idx].bom_mask
             };
@@ -4243,33 +4438,33 @@ impl Scene {
             if since.elapsed().as_secs() >= 10 {
                 let (kept, wrong) = std::mem::take(&mut self.anchors.kept_centres);
                 let (anchors, wrong_anchors) = std::mem::take(&mut self.anchors.kept_anchors);
+                let (moved, wrong_moved) = std::mem::take(&mut self.anchors.mover_placed);
                 log::info!(
-                    "impostor pictures: {taken} taken, {stale} with the pose of an earlier frame | anchored centres kept: {kept}, {wrong} not where their anchor puts them | anchors kept: {anchors}, {wrong_anchors} not what their wearer gives"
+                    "impostor pictures: {taken} taken, {stale} with the pose of an earlier frame | anchored centres kept: {kept}, {wrong} not where their anchor puts them | anchors kept: {anchors}, {wrong_anchors} not what their wearer gives | placed from a mover: {moved}, {wrong_moved} not where the sync would put them"
                 );
                 self.picture_check = (0, 0, Some(Instant::now()));
             }
         }
         self.stats.avatars_hidden = imp_avatars.len();
-        if block_net::probe::enabled() {
-            let full: Vec<usize> = avatars.iter().filter(|(_, i)| avatar_ok[*i]).map(|(_, i)| *i).collect();
-            self.stats.avatars = AvatarCounts {
-                total: avatars.len(),
-                full: full.len(),
-                full_in_view: full
-                    .iter()
-                    .filter(|&&i| self.gpu.get(i).is_some_and(|g| view.sphere_visible(g.center, 1.6)))
-                    .count(),
-                impostors: imp_avatars.len(),
-                impostors_in_view: imp_avatars.iter().filter(|a| a.in_view).count(),
-                pictured: plan.capture.len(),
-                silhouettes: avatars.iter().filter(|(_, i)| self.too_complex.contains(i)).count(),
-                loading: if self.hide_loading {
-                    avatars.iter().filter(|(_, i)| self.loading.indices.contains(i)).count()
-                } else {
-                    0
-                },
-            };
-        }
+        // every frame, not only with the probes: the crash report's last state
+        // and the grid's viewer statistics read these too
+        self.stats.avatars = AvatarCounts {
+            total: avatars.len(),
+            full: avatars.iter().filter(|(_, i)| avatar_ok[*i]).count(),
+            full_in_view: avatars
+                .iter()
+                .filter(|(_, i)| avatar_ok[*i] && self.gpu.get(*i).is_some_and(|g| view.sphere_visible(g.center, 1.6)))
+                .count(),
+            impostors: imp_avatars.len(),
+            impostors_in_view: imp_avatars.iter().filter(|a| a.in_view).count(),
+            pictured: plan.capture.len(),
+            silhouettes: avatars.iter().filter(|(_, i)| self.too_complex.contains(i)).count(),
+            loading: if self.hide_loading {
+                avatars.iter().filter(|(_, i)| self.loading.indices.contains(i)).count()
+            } else {
+                0
+            },
+        };
         // avatar states of the GPU object table (few avatars: every frame)
         for &(_, i) in &avatars {
             let mut st = 0;
@@ -4371,6 +4566,9 @@ impl Scene {
         let selection_faces = &self.selection_faces;
         let photo_marks = &self.photo_marks;
         let give_marks = &self.give_marks.1;
+        // the water's plane while the camera is above it: the blended
+        // faces under it are drawn before the water (blend_order::water_sides)
+        let under_water_plane = self.water.height.filter(|h| view.eye.z >= *h);
         struct Local {
             water_exclusion: Vec<DrawCmd>,
             opaque: Vec<DrawCmd>,
@@ -4378,6 +4576,8 @@ impl Scene {
             mask: Vec<DrawCmd>,
             mask2: Vec<DrawCmd>,
             blend: Vec<blend_order::BlendEntry>,
+            /// Blended faces under the water, drawn before it.
+            blend_under: Vec<blend_order::BlendEntry>,
             glow: Vec<DrawCmd>,
             glow_alpha: Vec<DrawCmd>,
             /// Draws of the avatars pictured for their impostor: (capture slot, draw, blended).
@@ -4402,6 +4602,7 @@ impl Scene {
             mask: Vec::new(),
             mask2: Vec::new(),
             blend: Vec::new(),
+            blend_under: Vec::new(),
             glow: Vec::new(),
             glow_alpha: Vec::new(),
             impostor: Vec::new(),
@@ -4596,15 +4797,25 @@ impl Scene {
                     continue;
                 }
                 match pass {
-                    Pass::Blend => l.blend.push(blend_order::BlendEntry {
-                        distance: blend_d,
-                        cmd,
-                        glow: f.glow,
-                        rigged: g.rigged,
-                        object: idx as u32,
-                        face: f.te_index,
-                        rig,
-                    }),
+                    Pass::Blend => {
+                        let entry = blend_order::BlendEntry {
+                            distance: blend_d,
+                            cmd,
+                            glow: f.glow,
+                            double_sided: f.two_sided,
+                            rigged: g.rigged,
+                            object: idx as u32,
+                            face: f.te_index,
+                            rig,
+                        };
+                        let (after, before) = blend_order::water_sides(sc.z, sr, under_water_plane);
+                        if before {
+                            l.blend_under.push(entry);
+                        }
+                        if after {
+                            l.blend.push(entry);
+                        }
+                    }
                     _ if !full => {}
                     Pass::Opaque => l.opaque.push(cmd),
                     Pass::OpaqueTwoSided => l.opaque2.push(cmd),
@@ -4623,6 +4834,7 @@ impl Scene {
             a.mask.append(&mut b.mask);
             a.mask2.append(&mut b.mask2);
             a.blend.append(&mut b.blend);
+            a.blend_under.append(&mut b.blend_under);
             a.glow.append(&mut b.glow);
             a.glow_alpha.append(&mut b.glow_alpha);
             a.impostor.append(&mut b.impostor);
@@ -4649,19 +4861,23 @@ impl Scene {
         self.lists.mask_two_sided = result.mask2;
         self.blend_tmp = result.blend;
         self.blend_tmp.extend(
-            [(self.banlines.cmds.as_slice(), false), (self.portals.cmds.as_slice(), true)]
-                .into_iter()
-                .flat_map(|(cmds, glow)| {
-                    cmds.iter().map(move |(d, c)| blend_order::BlendEntry {
-                        distance: *d,
-                        cmd: *c,
-                        glow,
-                        rigged: false,
-                        object: u32::MAX,
-                        face: 0,
-                        rig: None,
-                    })
-                }),
+            [
+                (self.banlines.cmds.as_slice(), false, false),
+                (self.portals.cmds.as_slice(), true, true),
+            ]
+            .into_iter()
+            .flat_map(|(cmds, glow, double_sided)| {
+                cmds.iter().map(move |(d, c)| blend_order::BlendEntry {
+                    distance: *d,
+                    cmd: *c,
+                    glow,
+                    double_sided,
+                    rigged: false,
+                    object: u32::MAX,
+                    face: 0,
+                    rig: None,
+                })
+            }),
         );
         self.lists.blend_depth = blend_order::sort(&mut self.blend_tmp, blend_order::rigged_apart());
         self.lists.blend_depth_mode = blend_order::depth_mode();
@@ -4672,7 +4888,15 @@ impl Scene {
         };
         runs(&self.blend_tmp, self.lists.blend_depth, &mut self.lists.blend_depth_runs);
         self.lists.blend.extend(self.blend_tmp.iter().map(|e| e.cmd));
+        // under the water: back to front, the rigged first
+        // (LLDrawPoolAlpha::renderPostDeferred: forwardRender(true), then
+        // forwardRender()), all writing depth and without glow
+        let mut under = result.blend_under;
+        blend_order::sort(&mut under, true);
+        self.lists.blend_under_water.extend(under.iter().map(|e| e.cmd));
+        self.lists.blend_under_double_sided.extend(under.iter().map(|e| e.double_sided));
         self.lists.blend_glow.extend(self.blend_tmp.iter().map(|e| e.glow));
+        self.lists.blend_double_sided.extend(self.blend_tmp.iter().map(|e| e.double_sided));
         self.lists.shadow_casters.extend(result.casters);
         self.lists.reflection = result.refl;
         self.lists.probe = result.probe;
@@ -4722,9 +4946,12 @@ impl Scene {
         if usage_phase == 0 {
             // LLTerrainMaterials::boost: TERRAIN_DECODE_PRIORITY = 2048²,
             // for every material map too. A 512 px cap loses terrain relief.
+            // BOOST_TERRAIN is under BOOST_HIGH: the maximum texture
+            // resolution chosen in Preferences still caps it.
+            let px = terrain_surface::DECODE_PIXELS.min(self.textures.max_resolution() as f32);
             for r in self.regions.values() {
                 for id in &r.surface.texture_ids {
-                    self.textures.note_usage_fixed(id, terrain_surface::DECODE_PIXELS);
+                    self.textures.note_usage_fixed(id, px);
                 }
             }
             self.textures.recompute_wants();
@@ -5044,7 +5271,8 @@ impl Scene {
                 } else {
                     world.animations_of(&owner)
                 };
-                let stopped = motions.sync(signals, pose_now, |id| anims.get(id));
+                let male = self.avatar_lib.shape_params.is_male(world.visual_params(&owner).unwrap_or(&[]));
+                let stopped = motions.sync_avatar(signals, male, pose_now, |id| anims.get(id));
                 if owner == world.agent_id {
                     completed.extend(stopped);
                 }
@@ -5699,6 +5927,40 @@ mod tests {
     }
 
     #[test]
+    fn a_geometry_built_twice_keeps_the_one_drawn() {
+        let mut scene = Scene::new(Default::default(), Arc::new(AvatarLibrary::load()));
+        let key = GeomKey::Tree { species: 3, lod: 1 };
+        // a first arrival is uploaded: nothing there, or still pending
+        // (asked for again after `geom_gc` collected it), or failed before
+        assert!(!scene.geom_drawn(&key));
+        for state in [GeomState::Pending, GeomState::Failed] {
+            scene.geom_insert(key, state);
+            assert!(!scene.geom_drawn(&key));
+        }
+        // the second job's copy is dropped: the objects bound to the first
+        // one draw from its arena ranges, which must stay theirs
+        let drawn = MeshAlloc {
+            vertex_offset: 40,
+            vertex_count: 8,
+            index_offset: 96,
+            index_count: 12,
+        };
+        scene.geom_insert(
+            key,
+            GeomState::Ready(Arc::new(GpuGeom {
+                faces: vec![Some(drawn)],
+                min: Vec3::ZERO,
+                max: Vec3::ONE,
+                joint_bounds: Vec::new(),
+                pick_faces: Vec::new(),
+            })),
+        );
+        assert!(scene.geom_drawn(&key));
+        let kept = scene.geom_ready(&key).expect("the geometry drawn stays");
+        assert_eq!(kept.faces, vec![Some(drawn)]);
+    }
+
+    #[test]
     fn bakes_replace_placeholders_only_on_worn_non_hud_non_animesh_objects() {
         let mut w = World::new(Arc::new(AvatarLibrary::load()));
         for e in crate::demo::events().into_iter().chain(crate::demo::animesh_events()) {
@@ -5728,6 +5990,54 @@ mod tests {
             .map(|(i, _)| i)
             .expect("ground object");
         assert_eq!(Scene::bake_wearer(&w, ground, false), None);
+    }
+
+    #[test]
+    fn pbr_bom_mask_uses_material_maps_and_face_overrides() {
+        let avatars = Arc::new(AvatarLibrary::load());
+        let mut world = World::new(avatars.clone());
+        for event in crate::demo::events() {
+            world.apply(event);
+        }
+        let att = world.objects.iter().find(|(_, o)| o.key.local_id == 9100).map(|(i, _)| i).unwrap();
+        let (_, avatar) = Scene::wearer_avatar(&world, att).unwrap();
+        let asset = Uuid::from_u128(1793);
+        let object = world.objects.get_mut(att).unwrap();
+        object.extra.render_materials = (0..block_prim::te::MAX_TES).map(|face| (face as u8, asset)).collect();
+        let mut te = object.te.as_deref().unwrap().clone();
+        for face in &mut te.faces {
+            face.texture = avatar::BAKES[3].2;
+        }
+        object.te = Some(Arc::new(te));
+        let key = object.key;
+        let mut scene = Scene::new(std::env::temp_dir(), avatars);
+        let maps = [avatar::BAKES[0], avatar::BAKES[1], avatar::BAKES[2], avatar::BAKES[8]];
+        scene.materials.insert(
+            asset,
+            block_assets::PbrMaterial {
+                base_color_texture: Some(maps[0].2),
+                normal_texture: Some(maps[1].2),
+                metallic_roughness_texture: Some(maps[2].2),
+                emissive_texture: Some(maps[3].2),
+                ..Default::default()
+            },
+        );
+        let legacy_mask = 1u64 << avatar::BAKES[3].0;
+        let expected = maps.iter().fold(legacy_mask, |mask, (slot, _, _)| mask | (1u64 << slot));
+        assert_eq!(scene.bom_mask(&world, avatar), expected);
+        let override_ = block_assets::material::PbrOverride {
+            textures: [block_assets::material::OVERRIDE_NULL_UUID; 4],
+            ..Default::default()
+        };
+        let faces = world.objects.get(att).unwrap().te.as_ref().unwrap().faces.len();
+        world
+            .gltf_overrides
+            .insert(key, (0..faces).map(|face| (face as u8, override_.clone())).collect());
+        assert_eq!(
+            scene.bom_mask(&world, avatar),
+            legacy_mask,
+            "removed PBR maps preserve the legacy texture-entry visibility"
+        );
     }
 
     #[test]
@@ -6021,6 +6331,7 @@ mod tests {
                 edit_tracking: None,
                 eye_offset: scene.eyes_offset(&world, &owner),
                 draw_distance: 128.0,
+                region_width: 256.0,
                 aspect: 1.0,
             };
             camera.update(&mut world, &settings, &input);
@@ -6084,6 +6395,7 @@ mod tests {
             edit_tracking: None,
             eye_offset: scene.eyes_offset(&world, &owner),
             draw_distance: 128.0,
+            region_width: 256.0,
             aspect: 1.0,
         };
         camera.update(&mut world, &settings, &input);
@@ -6750,15 +7062,34 @@ mod tests {
         let selected = HashMap::from([(7, 1 << 3)]);
         scene.set_face_selection(&mut world, selected.clone());
         let at = scene.selection_changed.unwrap();
-        assert!((scene.selection_pulse(at) - 0.18).abs() < 1e-6);
-        assert!(scene.selection_pulse(at + std::time::Duration::from_millis(350)) < 0.05);
+        assert!((scene.selection_pulse(at, false) - 0.18).abs() < 1e-6);
+        assert!(scene.selection_pulse(at + std::time::Duration::from_millis(350), false) < 0.05);
         scene.set_face_selection(&mut world, selected);
         assert_eq!(scene.selection_changed, Some(at));
-        assert_eq!(scene.selection_pulse(at + std::time::Duration::from_millis(700)), 0.0);
+        assert_eq!(scene.selection_pulse(at + std::time::Duration::from_millis(700), false), 0.0);
         scene.reveal_selected_faces();
-        assert!(scene.selection_pulse(Instant::now()) > 0.17);
+        assert!(scene.selection_pulse(Instant::now(), false) > 0.17);
         scene.set_face_selection(&mut world, HashMap::new());
-        assert_eq!(scene.selection_pulse(Instant::now()), 0.0);
+        assert_eq!(scene.selection_pulse(Instant::now(), false), 0.0);
+    }
+
+    #[test]
+    fn face_drop_hover_repeats_the_selection_flash_until_feedback_ends() {
+        use std::time::Duration;
+        let lib = Arc::new(AvatarLibrary::load());
+        let mut world = World::new(lib.clone());
+        let mut scene = Scene::new(Default::default(), lib);
+        scene.set_face_selection(&mut world, HashMap::from([(7, 1 << 3)]));
+        let at = scene.selection_changed.unwrap();
+        for cycle in 0..10 {
+            let start = at + Duration::from_millis(cycle * 700);
+            assert!((scene.selection_pulse(start, true) - 0.18).abs() < 1e-6);
+            assert!(scene.selection_pulse(start + Duration::from_millis(600), true) < 0.01);
+        }
+        let later = at + Duration::from_secs(7);
+        assert_eq!(scene.selection_pulse(later, false), 0.0, "ordinary selection must not keep looping");
+        scene.set_face_selection(&mut world, HashMap::new());
+        assert_eq!(scene.selection_pulse(later, true), 0.0, "leaving the face removes the effect");
     }
 
     /// The GPU culling (reference of cull.wgsl, `gpu_cull::face_bins`) takes
@@ -6866,7 +7197,7 @@ mod tests {
             &[block_render::shadow_cull::CASTER_PLANES_ALL; 3],
             0.0,
             [Mat4::IDENTITY; 3],
-            [None; 2],
+            [None; block_render::projector_shadows::MAX_PROJECTOR_SHADOWS],
             flags,
         );
         frame.water = [[0.0, 0.0, 0.0, 1.0]; 6];

@@ -25,18 +25,27 @@ use std::sync::atomic::{AtomicU64, Ordering};
 
 const MAGIC: &[u8; 4] = b"AUTX";
 /// Bumped when the layout, the encoder profile or its quality check change:
-/// older files are ignored (and rewritten by the next decode). 2: the
+/// incompatible files are rewritten by the next decode. 2: the
 /// colour of the mips is the plain average of the texels (`build_mips`). 3:
 /// the ends of alpha stay exact (`block_render::bc7::encode_chain`).
-const VERSION: u8 = 3;
+/// 4: retain the legacy pick mask and an exact alpha > 0 plane together.
+/// 5: the exact plane uses the Legacy Viewer's alpha > 32 threshold.
+const VERSION: u8 = 5;
 const KIND_KEEP_RGBA: u8 = 0;
 const KIND_BC7: u8 = 1;
 /// Fixed part of the header, then 8 bytes per level.
 const HEADER: usize = 32;
 const MAX_LEVELS: usize = 16;
 const MAX_DIM: u32 = 16384;
-/// A pick mask is one bit per 2 × 2 texels.
-const MAX_MASK_BYTES: usize = (MAX_DIM as usize / 2) * (MAX_DIM as usize / 2) / 8;
+/// Legacy 2 × 2 mask plus one bit per texel for world Blend left clicks.
+const MAX_MASK_BYTES: usize = (MAX_DIM as usize / 2) * (MAX_DIM as usize / 2) / 8 + MAX_DIM as usize * MAX_DIM as usize / 8;
+
+pub(super) fn pick_mask_bytes(width: u32, height: u32) -> Option<usize> {
+    if width == 0 || height == 0 || width > MAX_DIM || height > MAX_DIM {
+        return None;
+    }
+    Some((width.div_ceil(2) as usize * height.div_ceil(2) as usize).div_ceil(8) + (width as usize * height as usize).div_ceil(8))
+}
 
 /// Files waiting to be written may hold this much; past it, new ones are
 /// dropped (their texture is decoded again next time).
@@ -85,7 +94,7 @@ impl Writer {
     }
 }
 
-/// A pick mask as stored: (width, height, bits).
+/// A pick mask: full texel dimensions, then legacy and exact bit planes.
 pub type MaskParts = (u32, u32, Vec<u8>);
 
 /// What a decode leaves in the cache besides the levels.
@@ -211,9 +220,21 @@ pub fn preview_discard(mut width: u32, mut height: u32) -> u8 {
     }
     discard
 }
+
+/// Dimensions of a texture level at `discard`.
+pub fn discard_size(width: u32, height: u32, discard: u8) -> (u32, u32) {
+    let divisor = 1u32 << discard.min(31);
+    (width.div_ceil(divisor), height.div_ceil(divisor))
+}
+
+/// Whether cached preview pixels meet the currently resident UI level.
+pub fn preview_is_fine_enough(cached: (u32, u32), wanted: (u32, u32)) -> bool {
+    cached.0 >= wanted.0 && cached.1 >= wanted.1
+}
 fn read_for(path: &Path, want: impl FnOnce(&[u8]) -> u8) -> Option<Transcoded> {
-    let mut file = std::fs::File::open(path).ok()?;
-    let file_len = file.metadata().ok()?.len();
+    // (sealed: only the chunks of the levels read are decrypted)
+    let mut file = crate::cache::reader(path).ok()?;
+    let file_len = file.len();
     let mut head = vec![0u8; (HEADER + MAX_LEVELS * 8).min(file_len as usize)];
     file.read_exact(&mut head).ok()?;
     let parsed = parse(&head, file_len, want(&head))?;
@@ -254,7 +275,7 @@ enum Parsed {
 /// The header checked against the length of the file, and where to read
 /// the levels from `want` on.
 fn parse(head: &[u8], file_len: u64, want: u8) -> Option<Parsed> {
-    if head.get(..4)? != MAGIC || *head.get(4)? != VERSION {
+    if head.get(..4)? != MAGIC || !matches!(*head.get(4)?, 3 | 4 | VERSION) {
         return None;
     }
     let kind = head[5];
@@ -282,7 +303,9 @@ fn parse(head: &[u8], file_len: u64, want: u8) -> Option<Parsed> {
         return None;
     }
     let (mw, mh, mlen) = (u32_at(head, 20)?, u32_at(head, 24)?, u32_at(head, 28)? as usize);
-    if mlen > MAX_MASK_BYTES || (mlen > 0 && (mw as usize * mh as usize).div_ceil(8) != mlen) {
+    // Old chains without masks remain usable. Alpha masks need a fresh
+    // decode: v3 lacks the exact plane and v4 uses the old alpha > 0 rule.
+    if mlen > MAX_MASK_BYTES || (mlen > 0 && (head[4] != VERSION || pick_mask_bytes(mw, mh) != Some(mlen))) {
         return None;
     }
     let mut sizes = Vec::with_capacity(count);
@@ -362,7 +385,7 @@ mod tests {
 
     #[test]
     fn a_chain_comes_back_whole_at_its_level() {
-        let mask = vec![0b1010_1010u8; 4];
+        let mask = vec![0b1010_1010u8; pick_mask_bytes(8, 4).unwrap()];
         let bytes = encode(&meta(2), Some((8, 4, &mask)), &chain()).expect("file");
         let path = file("whole.bc7", &bytes);
         let Some(Transcoded::Bc7(c)) = read(&path, 2) else {
@@ -391,6 +414,45 @@ mod tests {
         assert_eq!((c.discard, c.levels.len()), (5, 1));
     }
 
+    /// Sealed like every cache file: a chain over several chunks reads back
+    /// whole, and from its end, the same as a plain one.
+    #[test]
+    fn a_sealed_file_reads_like_a_clear_one() {
+        let big = Meta {
+            info: J2kInfo {
+                width: 512,
+                height: 256,
+                components: 4,
+                levels: 5,
+            },
+            ..meta(0)
+        };
+        let chain: Vec<_> = (0..6u32)
+            .map(|l| {
+                let (w, h) = (512 >> l, 256 >> l);
+                (
+                    w,
+                    h,
+                    (0..TexelFormat::Bc7.level_bytes(w, h)).map(|i| (i * 7 + l as u64) as u8).collect(),
+                )
+            })
+            .collect();
+        let bytes = encode(&big, None, &chain).expect("file");
+        assert!(bytes.len() > 2 * block_assets::sealed::CHUNK, "spans several chunks");
+        let clear = file("big-clear.bc7", &bytes);
+        let sealed = clear.with_file_name("big-sealed.bc7");
+        crate::cache::write(&sealed, &bytes).expect("sealed");
+        assert!(block_assets::sealed::is_sealed(&std::fs::read(&sealed).expect("file")));
+        for want in [0, 3, 5] {
+            assert_eq!(read(&sealed, want), read(&clear, want), "level {want}");
+        }
+        let Some(Transcoded::Bc7(c)) = read(&sealed, 3) else {
+            panic!("a BC7 chain");
+        };
+        assert_eq!(c.levels, chain[3..]);
+        assert_eq!(read_preview(&sealed), read_preview(&clear));
+    }
+
     #[test]
     fn a_harmed_texture_leaves_a_file_without_levels() {
         let path = file("keep.bc7", &encode_keep_rgba(&meta(0)));
@@ -398,8 +460,25 @@ mod tests {
     }
 
     #[test]
+    fn old_opaque_chains_survive_but_old_alpha_masks_are_decoded_again() {
+        let opaque_meta = Meta {
+            alpha: AlphaKind::Opaque,
+            ..meta(0)
+        };
+        let mut opaque = encode(&opaque_meta, None, &chain()).unwrap();
+        let mut masked = encode(&meta(0), Some((8, 4, &[0; 5])), &chain()).unwrap();
+        for version in [3, 4] {
+            opaque[4] = version;
+            masked[4] = version;
+            assert!(matches!(read(&file("old-opaque.bc7", &opaque), 0), Some(Transcoded::Bc7(_))));
+            assert_eq!(read(&file("old-mask.bc7", &masked), 0), None, "version {version}");
+        }
+        assert_eq!(pick_mask_bytes(u32::MAX, u32::MAX), None);
+    }
+
+    #[test]
     fn damaged_files_are_ignored() {
-        let good = encode(&meta(0), Some((8, 4, &[0u8; 4])), &chain()).expect("file");
+        let good = encode(&meta(0), Some((8, 4, &[0u8; 5])), &chain()).expect("file");
         let check = |name: &str, change: &dyn Fn(&mut Vec<u8>)| {
             let mut bytes = good.clone();
             change(&mut bytes);
@@ -417,7 +496,7 @@ mod tests {
         check("short", &|b| b.truncate(b.len() - 1));
         check("long", &|b| b.push(0));
         check("header-only", &|b| b.truncate(20));
-        check("mask-size", &|b| b[28] = 5);
+        check("mask-size", &|b| b[28] = 6);
         check("level-size", &|b| b[HEADER + 8] = 9);
         check("odd-size", &|b| b[HEADER] = 18);
         check("huge", &|b| b[HEADER + 2] = 0xFF);
@@ -425,5 +504,12 @@ mod tests {
         // what cannot be stored is refused when writing
         assert!(encode(&meta(0), None, &[]).is_none());
         assert!(encode(&meta(0), None, &[(16, 8, vec![0; 3])]).is_none());
+    }
+
+    #[test]
+    fn a_coarse_cached_preview_cannot_replace_a_finer_resident_level() {
+        assert!(!preview_is_fine_enough((256, 128), (512, 256)));
+        assert!(preview_is_fine_enough((512, 256), (256, 128)));
+        assert_eq!(discard_size(1024, 512, 2), (256, 128));
     }
 }

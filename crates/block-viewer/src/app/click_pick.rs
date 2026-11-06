@@ -29,7 +29,8 @@
 //!
 //! With the depth, a click asks what the next frame draws under its pixel
 //! (`Renderer::request_drawn`): the object of a rigged mesh, which only the
-//! GPU poses, is designated from that answer (scene/drawn.rs). Camera picks
+//! GPU poses, a worn mesh, and for a left click a worn prim with an action,
+//! are designated from that answer (scene/drawn.rs). Camera picks
 //! reject transparent texture holes unless the transparency overlay shows
 //! their surface; interactions retain invisible Blend surfaces. The answer
 //! comes a frame after the depth.
@@ -111,6 +112,11 @@ pub(super) struct Picked {
 }
 
 impl Picked {
+    /// The diagnostic synchronous read has no drawn-face identity.
+    pub(super) fn depth_only(&self) -> bool {
+        pick_mode() == PickMode::Wait
+    }
+
     pub(super) fn visible_point(&self) -> Option<Vec3> {
         match self.drawn.blend.or(self.drawn.opaque) {
             Some(face) => Some(face.point),
@@ -198,6 +204,12 @@ pub(super) struct ClickWait {
 }
 
 impl ClickWait {
+    /// After a GPU recovery: the lost renderer will never answer the
+    /// waiting click's picks (gpu_recovery.rs).
+    pub(super) fn forget_pending(&mut self) {
+        self.pending = None;
+    }
+
     /// A click waits for its depth: what comes now goes behind it.
     pub(super) fn waiting(&self) -> bool {
         self.pending.is_some()
@@ -303,6 +315,7 @@ impl App {
     /// cursor without having it (`click_pick`), it asks for it and returns:
     /// `resolve_clicks` runs it again with the answer.
     fn run_click(&mut self, click: Click) {
+        let started = Instant::now();
         self.clicks.running = Some(click);
         match click {
             Click::Press => {
@@ -318,6 +331,17 @@ impl App {
             Click::Gun { at_cursor } => self.gun_press(at_cursor),
         }
         self.clicks.running = None;
+        // what the click costs the main thread, each time it runs: when it
+        // asks for the depth, then with the answer
+        let ms = started.elapsed().as_secs_f32() * 1000.0;
+        let run = if self.clicks.in_hand.is_some() {
+            "run with the depth"
+        } else if self.clicks.waiting() {
+            "asked for the depth"
+        } else {
+            "run"
+        };
+        self.note_pick(format_args!("{click:?} {run} in {ms:.2} ms"));
     }
 
     /// The cursor ray and the depth under the cursor for the click being
@@ -379,17 +403,20 @@ impl App {
             (depth, t.elapsed())
         });
         let ticket = g.renderer.request_pick(x, y);
+        self.frame_profile.trace_click();
         // LLToolCamera::handleMouseDown: displayed surfaces, including the
         // transparency overlay. Posed geometry avoids an attachment's bind pose.
         // (Alt in mouselook frees the cursor for the grab tool, not the camera.)
         let camera = (self.alt && !matches!(click, Click::Gun { .. }))
             || self.object_view
             || (self.build.open && self.build.tool == crate::build::Tool::Focus);
-        let mode = if camera {
-            block_render::DrawnMode::Visible
-        } else {
-            block_render::DrawnMode::Interaction
+        let mode = match (click == Click::Menu, camera) {
+            (true, true) => block_render::DrawnMode::Visible,
+            (true, false) => block_render::DrawnMode::Interaction,
+            (false, true) => block_render::DrawnMode::LeftVisible,
+            (false, false) => block_render::DrawnMode::Left,
         };
+        self.hover_drawn.cancel(&mut g.renderer);
         let drawn = Some(g.renderer.request_drawn(x, y, mode));
         let tags = self.name_tag_candidates(ray);
         let check = check.map(|(depth, waited)| Check {
@@ -553,6 +580,19 @@ impl App {
             // aimed at (`rigged`), and the posed bounds of the object
             // designated, which must hold the point read from the GPU
             let local = |idx: usize| self.world.objects.get(idx).map(|o| o.key.local_id);
+            if self.demo {
+                let clicker = self.world.objects.index_of_uuid(&crate::demo::action_id(975));
+                if let (Some(idx), Some(ray), Some(body)) = (clicker, picked.ray, picked.drawn.opaque)
+                    && let Some(surface) = self.scene.left_touch_surface(&self.world, idx, ray)
+                    && let Some(offset) = self.world.objects.get(idx).and_then(|o| self.world.region_offset(o.key.region))
+                {
+                    log::info!(
+                        "demo attachment clearance: body={:?}, gap={:.6}m",
+                        self.scene.record_object(body.record).and_then(|(i, _)| local(i)),
+                        (surface.position + offset - body.point).dot(ray.1)
+                    );
+                }
+            }
             let got = shown.and_then(|d| local(d.idx));
             let raw = |f: Option<block_render::DrawnFace>| f.and_then(|f| self.scene.record_object(f.record)).and_then(|(i, _)| local(i));
             let aimed = match self.clicks.demo.expected.take() {
@@ -670,9 +710,15 @@ impl App {
         let now = Instant::now();
         let build = self.build.open;
         let tools = build && !self.alt && matches!(click, Click::Press | Click::Build);
+        let selection_pick = if click == Click::Menu {
+            Scene::selection_pick
+        } else {
+            Scene::left_selection_pick
+        };
         let (point, idx) =
             if click == Click::Menu || tools && matches!(self.build.tool, crate::build::Tool::Edit | crate::build::Tool::Grab) {
-                self.scene.selection_pick(
+                selection_pick(
+                    &self.scene,
                     &self.world,
                     ray,
                     depth,

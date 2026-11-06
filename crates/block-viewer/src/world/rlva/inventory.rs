@@ -694,6 +694,9 @@ impl World {
                     (!moved || self.rlva_inventory_move_allowed(*id, body["parent_id"].as_uuid(), actor))
                         && (!renamed || !*folder || !self.rlva_explicit_folder_descendant(&FolderLocks::default(), *id, actor))
                 }
+                // LLInventoryModel::emptyFolderType does not apply RLVa locks.
+                // The Trash dialog still refuses to purge worn items.
+                Operation::Purge(id) if self.inventory.folders.get(id).is_some_and(|folder| folder.info.type_default == 14) => true,
                 Operation::Delete { id, folder: true } | Operation::Purge(id) => self.rlva_inventory_tree_unlocked(*id, actor),
                 Operation::Delete { id, folder: false } => {
                     let target = super::super::inventory::actions::original(&self.inventory, *id).unwrap_or(*id);
@@ -770,6 +773,8 @@ impl World {
     }
     /// Resolve forced wear through the same COF planner as the native UI.
     /// Requests remain queued while folders or originals are still loading.
+    /// The removals and wears join the source's open `Action::Force` batch
+    /// (`force_wear`), applied as one COF update.
     pub fn rlva_inventory_force(&mut self, source: Uuid, c: &Command) -> bool {
         let Some(name) = force_kind(&c.behaviour) else { return false };
         let context = c.behaviour.contains("this");
@@ -790,10 +795,10 @@ impl World {
         }
         let worn = self.rlva_worn_attachment_points();
         let group = GROUPS.contains(&c.option.as_str()) && resolve(&self.inventory, &c.option).is_none();
-        let action = if name == "detachme" {
+        let removal = if name == "detachme" {
             self.rlva_attachment_item(source).map(|item| {
                 self.rlva.self_detach = Some((source, item));
-                appearance::Action::Remove(item)
+                vec![item]
             })
         } else if !context
             && matches!(name, "detach" | "remattach")
@@ -811,7 +816,7 @@ impl World {
                 .map(|(id, _)| *id)
                 .filter(|id| self.rlva_can_remove(*id, source))
                 .collect();
-            Some(appearance::Action::RemoveItems(ids))
+            Some(ids)
         } else if name == "remoutfit" && (c.option.is_empty() || layer(&c.option).is_some()) {
             let ids = appearance::cof(&self.inventory)
                 .map(|cof| appearance::folder_links(&self.inventory, cof))
@@ -822,7 +827,7 @@ impl World {
                 .filter(|it| self.rlva_can_remove(it.id, source))
                 .map(|it| it.id)
                 .collect();
-            Some(appearance::Action::RemoveItems(ids))
+            Some(ids)
         } else {
             if !self.rlva_shared_ready() {
                 return false;
@@ -859,7 +864,7 @@ impl World {
             ids.dedup();
             if matches!(name, "detach" | "detachall" | "remattach" | "remoutfit") {
                 ids.retain(|id| self.inventory.items.get(id).is_some_and(|it| it.asset_type != 13) && self.rlva_can_remove(*id, source));
-                Some(appearance::Action::RemoveItems(ids))
+                Some(ids)
             } else {
                 ids.sort_by(|a, b| {
                     modes
@@ -906,20 +911,20 @@ impl World {
                         continue;
                     }
                     replaced.insert(key);
-                    self.rlva.appearance.push((
+                    self.rlva_force_wear(
                         source,
-                        appearance::Action::WearItem {
+                        appearance::WearRequest {
                             item,
                             replace: replace_item,
                             point,
                         },
-                    ));
+                    );
                 }
                 None
             }
         };
-        if let Some(action) = action {
-            self.rlva.appearance.push((source, action));
+        if let Some(items) = removal {
+            self.rlva_force_remove(source, items);
         }
         true
     }

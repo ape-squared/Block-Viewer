@@ -130,6 +130,24 @@ pub struct CameraSettings {
     /// mouselook; otherwise they go (LLAgent::changeCameraToMouselook) and
     /// the chat bar only shows with text in it.
     pub show_interface_in_mouselook: bool,
+    /// Where the headset view starts when VR is entered (Aurora-specific).
+    pub vr_view: VrView,
+    /// Set up VR at each start (Preferences › Camera › VR), so the VR
+    /// button enters it at once. Off by default: loading a VR runtime at
+    /// every start crashed PCs that never use VR (#2309); the first
+    /// "Restart in VR" turns it on.
+    pub vr_at_start: bool,
+}
+
+/// Where the headset view starts on VR entry (Preferences › Camera › VR).
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Serialize, Deserialize)]
+pub enum VrView {
+    /// At the avatar's eyes, as in mouselook: the head and what is worn on
+    /// it are hidden the same way.
+    #[default]
+    FirstPerson,
+    /// Where the desktop camera was when VR was entered.
+    DesktopCamera,
 }
 
 impl Default for CameraSettings {
@@ -144,10 +162,13 @@ impl Default for CameraSettings {
             zoom_time: 0.4,
             smoothing: 1.0,
             dynamic_strength: 2.0,
-            // both on, unlike the Legacy Viewer (human choice of 2026-10-16):
-            // the camera goes where it is put, walls and objects included
-            disable_constraints: true,
-            ignore_sim_constraints: true,
+            // both off, as DisableCameraConstraints and
+            // FSIgnoreSimulatorCameraConstraints in the Legacy Viewer: the
+            // camera keeps within the draw distance and in front of walls.
+            // They were on from 2026-10-16; version 33 of the settings turns
+            // them off once (`Settings::sanitized`)
+            disable_constraints: false,
+            ignore_sim_constraints: false,
             disable_wheel_zoom: false,
             click_avatar_keeps_camera: false,
             reset_on_movement: true,
@@ -165,6 +186,8 @@ impl Default for CameraSettings {
             mouselook_alt_right_menu: false,
             show_mouselook_instructions: true,
             show_interface_in_mouselook: false,
+            vr_view: VrView::FirstPerson,
+            vr_at_start: false,
         }
     }
 }

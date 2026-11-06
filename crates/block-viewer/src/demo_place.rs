@@ -636,6 +636,7 @@ pub fn session() -> Vec<TpEntry> {
         position,
         parcel: parcel.to_owned(),
         at: now - minutes_ago * 60,
+        grid: None,
     };
     vec![
         entry((999, 999), block_i18n::tr!("common-sandbox"), "", Vec3::new(128.0, 128.0, 25.0), 95),

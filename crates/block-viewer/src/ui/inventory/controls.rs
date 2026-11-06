@@ -15,11 +15,7 @@ fn check(ui: &mut egui::Ui, p: &Palette, label: &str, value: &mut bool) -> bool 
 
 pub(super) fn preferences_for_tab(ui: &mut egui::Ui, p: &Palette, prefs: &mut InventoryPreferences, tab: usize) -> bool {
     let mut changed = false;
-    let sort = if tab == super::RECEIVED_TAB {
-        &mut prefs.received_sort
-    } else {
-        &mut prefs.sort
-    };
+    let sort = prefs.sort_for_mut(tab);
     ui.label(RichText::new(block_i18n::tr!("ui-inventory-controls-display-order")).color(p.muted));
     ui.horizontal(|ui| {
         changed |= ui
@@ -50,6 +46,7 @@ pub(super) fn preferences_for_tab(ui: &mut egui::Ui, p: &Palette, prefs: &mut In
         &mut prefs.show_library,
     );
     changed |= check(ui, p, block_i18n::tr!("inventory-hover-pictures"), &mut prefs.thumbnail_tooltips);
+    changed |= check(ui, p, block_i18n::tr!("inventory-folder-colors"), &mut prefs.folder_colors_enabled);
     changed |= check(ui, p, block_i18n::tr!("ui-inventory-controls-recent-tab"), &mut prefs.show_recent);
     if prefs.show_recent {
         ui.horizontal(|ui| {
@@ -162,10 +159,11 @@ pub fn toolbar(ui: &mut egui::Ui, p: &Palette, st: &mut InventoryUi, prefs: &mut
     });
 }
 
-/// A window starts with the filters kept by default.
+/// Each tab starts with its own saved finder defaults.
 pub fn init_filters(st: &mut InventoryUi, prefs: &InventoryPreferences) {
     if !st.filters_initialized {
-        st.filters.clone_from(&prefs.filter_defaults);
+        st.filters.clone_from(prefs.filters_for(st.tab));
+        st.advanced = st.filters.smart.is_some();
         st.filters_initialized = true;
     }
 }
@@ -524,7 +522,7 @@ pub fn dialogs(ctx: &egui::Context, p: &Palette, st: &mut InventoryUi, prefs: &m
                         *f = Filters::default();
                     }
                     if flat_button(ui, p, block_i18n::tr!("ui-inventory-controls-keep-by-default")).clicked() {
-                        prefs.filter_defaults.clone_from(f);
+                        prefs.filters_for_mut(st.tab).clone_from(f);
                     }
                 });
                 let note = match prefs.recent_hours {

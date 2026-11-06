@@ -113,6 +113,10 @@ pub fn slot_capacity(forced: Option<&str>) -> u32 {
 fn page_capacity(bindable: u32, partial: bool) -> u32 {
     if partial { bindable } else { bindable.min(UNPARTIAL_PAGES) }.clamp(1, MAX_PAGES)
 }
+/// Descriptors of the "textures" layout besides its pages: the sampler and
+/// the storage buffer (`TextureTable::new`). A set of the layout holds the
+/// pages plus these.
+pub(crate) const OTHER_DESCRIPTORS: u32 = 2;
 /// Without partially bound arrays every element of the page array is bound
 /// in every pass (holes repeat page 0), so the array is kept shorter.
 const UNPARTIAL_PAGES: u32 = 2048;
@@ -200,7 +204,7 @@ struct PageWorker {
 }
 
 impl PageWorker {
-    fn new(device: &wgpu::Device) -> Self {
+    fn new(device: &wgpu::Device, integrated: bool) -> Self {
         let (tx, rx) = std::sync::mpsc::channel::<PageJob>();
         let (made_tx, made) = std::sync::mpsc::channel::<MadePage>();
         let device = device.clone();
@@ -211,7 +215,7 @@ impl PageWorker {
                 match job {
                     PageJob::Make { key, layers } => {
                         let t0 = Instant::now();
-                        let (texture, view) = match make_page(&device, key, layers) {
+                        let (texture, view) = match make_page(&device, key, layers, integrated) {
                             Ok(page) => page,
                             Err(e) => {
                                 // (nothing comes back: once the request times
@@ -311,7 +315,7 @@ fn log_slow_page(key: PageKey, layers: u32, ms: f32, by: &str) {
 }
 
 /// A page, or why video memory could not hold it.
-fn make_page(device: &wgpu::Device, key: PageKey, layers: u32) -> Result<DeadPage, String> {
+fn make_page(device: &wgpu::Device, key: PageKey, layers: u32, integrated: bool) -> Result<DeadPage, String> {
     let desc = wgpu::TextureDescriptor {
         label: Some("texture page"),
         size: wgpu::Extent3d {
@@ -332,7 +336,7 @@ fn make_page(device: &wgpu::Device, key: PageKey, layers: u32) -> Result<DeadPag
         dimension: Some(wgpu::TextureViewDimension::D2Array),
         ..Default::default()
     };
-    crate::gpu_alloc::try_texture(device, &desc, &view, layers as u64 * key.layer_bytes())
+    crate::gpu_alloc::try_texture(device, &desc, &view, layers as u64 * key.layer_bytes(), integrated)
 }
 
 const NO_SLOT: u32 = u32::MAX;
@@ -579,6 +583,7 @@ struct PageStore {
     /// Emptied pages the current bind group may still hold: taken by
     /// `TextureTable::maintain` once it is rebuilt.
     retired: Vec<DeadPage>,
+    integrated: bool,
 }
 
 /// Pages created since the start: by the caller (the main thread) and by
@@ -596,7 +601,12 @@ pub struct PagesMade {
 }
 
 impl PageStore {
+    #[cfg(test)]
     fn new(capacity: u32, page_capacity: u32, max_layers: u32, max_dim: u32) -> Self {
+        Self::new_with_integrated(capacity, page_capacity, max_layers, max_dim, false)
+    }
+
+    fn new_with_integrated(capacity: u32, page_capacity: u32, max_layers: u32, max_dim: u32, integrated: bool) -> Self {
         Self {
             slots: Vec::with_capacity(capacity as usize),
             free_slots: BinaryHeap::new(),
@@ -622,6 +632,7 @@ impl PageStore {
             made: PagesMade::default(),
             spares: Vec::new(),
             retired: Vec::new(),
+            integrated,
         }
     }
 
@@ -747,7 +758,7 @@ impl PageStore {
                 }
                 let layers = self.next_page_layers(key);
                 let t0 = Instant::now();
-                match make_page(device, key, layers) {
+                match make_page(device, key, layers, self.integrated) {
                     Ok((texture, view)) => {
                         self.page_backoff.succeeded();
                         let ms = t0.elapsed().as_secs_f32() * 1000.0;
@@ -1212,6 +1223,18 @@ impl TextureTable {
     /// `capacity`: slots (textures) of the table; `bindable`: elements the
     /// device lets a shader bind in one array, which bounds the pages.
     pub fn new(device: &wgpu::Device, writes: &mut GpuWrites, capacity: u32, bindable: u32, anisotropy: u16) -> Self {
+        Self::new_with_integrated(device, writes, capacity, bindable, anisotropy, false)
+    }
+
+    /// As [`Self::new`], with the selected adapter class for page allocation.
+    pub fn new_with_integrated(
+        device: &wgpu::Device,
+        writes: &mut GpuWrites,
+        capacity: u32,
+        bindable: u32,
+        anisotropy: u16,
+        integrated: bool,
+    ) -> Self {
         let partial = device.features().contains(wgpu::Features::PARTIALLY_BOUND_BINDING_ARRAY);
         let limits = device.limits();
         let capacity = capacity.max(RESERVED + 1);
@@ -1230,6 +1253,7 @@ impl TextureTable {
                     },
                     count: NonZeroU32::new(page_capacity),
                 },
+                // the entries after the pages: `OTHER_DESCRIPTORS`
                 wgpu::BindGroupLayoutEntry {
                     binding: 1,
                     visibility: wgpu::ShaderStages::FRAGMENT,
@@ -1254,7 +1278,7 @@ impl TextureTable {
             usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_DST,
             mapped_at_creation: false,
         });
-        let mut store = PageStore::new(capacity, page_capacity, max_layers, limits.max_texture_dimension_2d);
+        let mut store = PageStore::new_with_integrated(capacity, page_capacity, max_layers, limits.max_texture_dimension_2d, integrated);
         store.bc7 = device.features().contains(wgpu::Features::TEXTURE_COMPRESSION_BC);
         for (slot, rgba) in [
             (WHITE, [255u8, 255, 255, 255]),
@@ -1310,7 +1334,7 @@ impl TextureTable {
             last_rebuild: Instant::now(),
             last_compact: Instant::now(),
             doomed: Default::default(),
-            worker: PageWorker::new(device),
+            worker: PageWorker::new(device, integrated),
             requests: PageRequests::default(),
             last_destroy: Instant::now(),
             shrinks: Vec::new(),
@@ -1837,6 +1861,7 @@ pub fn preserve_alpha_coverage(mips: &mut [(u32, u32, Vec<u8>)], cutoff: u8) {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::pipeline_cache::CachedPipelines;
     use crate::writes::QueueSink;
 
     /// A 64 × 64 grid of one-texel opaque lines every 4 texels (a fence or
@@ -3158,7 +3183,7 @@ mod tests {
             bind_group_layouts: &[Some(&table.layout)],
             immediate_size: 0,
         });
-        let pipeline = device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
+        let pipeline = device.create_render_pipeline_cached(&wgpu::RenderPipelineDescriptor {
             label: None,
             layout: Some(&layout),
             vertex: wgpu::VertexState {

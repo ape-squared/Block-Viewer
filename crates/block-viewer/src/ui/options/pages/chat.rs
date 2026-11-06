@@ -14,7 +14,19 @@ pub fn page(cx: &mut Cx, tab: usize) {
     match tab {
         0 => {
             cx.group(tr!("common-nearby-chat"), |cx| {
-                cx.toggle(tr!("ui-options-show-time"), "", &field!(chat_timestamps));
+                // ChatFontSize (Chat › Visuals, Medium): the nearby chat's
+                // and the conversations' text on its own, apart from
+                // Appearance › Text size
+                cx.slider(
+                    tr!("ui-options-chat-text-size"),
+                    tr!("ui-options-chat-text-size-hint"),
+                    &field!(chat_font_scale),
+                    crate::settings::FONT_SCALE_MIN..=crate::settings::FONT_SCALE_MAX,
+                    "×",
+                );
+                // FSShowTimestampsNearbyChat (on): the lines and the cards
+                // over the world
+                cx.toggle(tr!("ui-options-show-time"), "", &field!(chat_timestamps_nearby));
                 // FSShowChatChannel: the "/0" chip of the field (off, as in
                 // the Legacy Viewer)
                 cx.toggle(
@@ -123,6 +135,8 @@ pub fn page(cx: &mut Cx, tab: usize) {
             });
             script_errors(cx);
             cx.group(tr!("ui-options-conversations"), |cx| {
+                // FSShowTimestampsIM (on): private and group conversations
+                cx.toggle(tr!("ui-options-show-time"), "", &field!(chat_timestamps_im));
                 cx.toggle(
                     tr!("ui-options-show-contacts-tab"),
                     tr!("ui-options-show-contacts-tab-hint"),
@@ -177,6 +191,20 @@ pub fn page(cx: &mut Cx, tab: usize) {
                         &field!(flash_conversations_nearby),
                     );
                 });
+                // "Show number of unread IMs in the window title"
+                // (FSShowMessageCountInWindowTitle)
+                cx.toggle(
+                    tr!("ui-options-unread-ims-in-window-title"),
+                    tr!("ui-options-unread-ims-in-window-title-hint"),
+                    &field!(unread_ims_in_window_title),
+                );
+                // "Announce incoming IMs as soon as the sender starts typing"
+                // (FSAnnounceIncomingIM)
+                cx.toggle(
+                    tr!("ui-options-announce-incoming-im"),
+                    tr!("ui-options-announce-incoming-im-hint"),
+                    &field!(announce_incoming_im),
+                );
                 // the Legacy Viewer's IM chiclets (FSDisableIMChiclets off):
                 // beside the chat bar by default, the human's choice (#1134)
                 use crate::settings::ChatThumbnails;
@@ -847,6 +875,11 @@ fn history(cx: &mut Cx) {
             tr!("ui-options-chat-logs-dated-help"),
             &field!(log_dated_names),
         );
+        cx.toggle(
+            tr!("ui-options-chat-logs-import-login"),
+            tr!("ui-options-chat-logs-import-login-help"),
+            &field!(log_import_at_login),
+        );
     });
     cx.group(tr!("ui-options-folder"), |cx| {
         cx.note(tr!("ui-options-chat-logs-note"));
@@ -863,8 +896,10 @@ fn history(cx: &mut Cx) {
                 ui.vertical(|ui| {
                     path_label(ui, &p, &dir, ui.available_width());
                     ui.horizontal(|ui| {
-                        use crate::ui::widgets::{ActionKind, action_button};
+                        use crate::ui::widgets::{ActionKind, action_button, action_button_if};
                         let size = Vec2::new(0.0, 24.0);
+                        // the files stay where they are while they are merged
+                        let idle = st.chat_log_importing.is_none();
                         if action_button(
                             ui,
                             &p,
@@ -879,27 +914,63 @@ fn history(cx: &mut Cx) {
                         }
                         // Legacy Viewer › Network & Files (InstantMessageLogPath):
                         // the files move with the folder
-                        if action_button(ui, &p, "folder-filled", tr!("ui-options-change-folder"), ActionKind::Flat, size).clicked() {
+                        if action_button_if(
+                            ui,
+                            &p,
+                            "folder-filled",
+                            tr!("ui-options-change-folder"),
+                            ActionKind::Flat,
+                            size,
+                            idle,
+                        )
+                        .clicked()
+                        {
                             r.folder = Some((Folder::ChatLogs, FolderChoice::Pick));
                         }
                         if st.chat_log_custom
-                            && action_button(ui, &p, "restore", tr!("ui-options-default-folder"), ActionKind::Flat, size).clicked()
+                            && action_button_if(ui, &p, "restore", tr!("ui-options-default-folder"), ActionKind::Flat, size, idle).clicked()
                         {
                             r.folder = Some((Folder::ChatLogs, FolderChoice::Default));
                         }
-                        if action_button(
+                        if action_button_if(
                             ui,
                             &p,
                             "trash-filled",
                             tr!("ui-options-chat-logs-erase"),
                             ActionKind::FlatDanger,
                             size,
+                            idle,
                         )
                         .clicked()
                         {
                             st.confirm_erase_logs = true;
                         }
                     });
+                    if crate::ui::widgets::action_button_if(
+                        ui,
+                        &p,
+                        "file-import",
+                        tr!("ui-options-chat-logs-import"),
+                        crate::ui::widgets::ActionKind::Flat,
+                        Vec2::new(0.0, 24.0),
+                        st.chat_log_importing.is_none(),
+                    )
+                    .clicked()
+                    {
+                        r.find_legacy_logs = true;
+                    }
+                    if let Some((done, total)) = st.chat_log_importing {
+                        let fraction = if total == 0 { 0.0 } else { done as f32 / total as f32 };
+                        crate::ui::widgets::progress(
+                            ui,
+                            &p,
+                            "chat_import",
+                            fraction,
+                            ui.available_width().min(360.0),
+                            &tr!("ui-options-chat-logs-importing", done = done, total = total),
+                            None,
+                        );
+                    }
                     if !st.chat_log_status.is_empty() {
                         ui.label(RichText::new(&st.chat_log_status).size(11.5).color(p.muted));
                     }
@@ -971,7 +1042,11 @@ fn away_and_replies(cx: &mut Cx) {
     }
     cx.group(tr!("ui-options-auto-replies"), |cx| {
         cx.note(tr!("ui-options-enable-these-modes-in-communicate-online-status"));
+        // LLFloaterPreference::refreshEnabledState greys do_not_disturb_response under
+        // RLVa @sendim, and only that response.
+        cx.greyed(cx.st.rlva_sendim_locked);
         text(cx, tr!("ui-options-in-do-not-disturb-mode"), &field!(autoresponse.dnd_text));
+        cx.greyed(false);
         text(
             cx,
             tr!("ui-options-to-everyone-in-auto-reply-mode"),

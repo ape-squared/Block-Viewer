@@ -1,6 +1,6 @@
 enable wgpu_binding_array;
 
-// Shared declarations for Aurora Viewer shaders.
+// Shared declarations for Block Viewer shaders.
 //
 // The atmospheric sky and water fog functions are ports of the Second Life
 // viewer shaders (skyV.glsl, cloudsV/F.glsl, waterFogF.glsl), Copyright (C)
@@ -72,7 +72,7 @@ struct Frame {
     sky_misc: vec4<f32>,        // dome offset, dome radius, moon brightness, star brightness
     tex_slots: vec4<u32>,       // cloud, sun, moon, water normal map
     sky_ll: vec4<f32>,          // x classic sky (1 = no reflection probe ambiance), y distance multiplier, z 1 = PBR materials' occlusion applied, w 1 = specular occlusion from GTAO's bent normal (in ao_tex.gba)
-    sky_obj_light: vec4<f32>,   // rgb sun / moon color lighting objects (mSunDiffuse, max component <= 1)
+    sky_obj_light: vec4<f32>,   // rgb sun / moon color lighting objects (mSunDiffuse, max component <= 1), w colored sky ambient
     sky_optics: vec4<f32>,      // x moisture level (rainbow), y droplet radius, z ice level (22° halo)
     sky_optics_tex: vec4<u32>,  // x rainbow texture slot, y halo texture slot (0: none)
     // night sky (stars.rs StarFrame): region directions of the catalogue's
@@ -97,14 +97,23 @@ struct Frame {
     // `light_projectors` (x: lights 0..31, y: lights 32..63)
     projectors: array<ProjectorLight, 64>,
     light_projectors: vec4<u32>,
-    // shadow maps of the two projectors that cast shadows: world to the
+    // shadow maps of the projectors within the configured budget: world to the
     // clip space of each, its light (-1: none), and what it leaves unlit
     // of its shadows (1 - fade)
-    spot_vp: array<mat4x4<f32>, 2>,
-    spot_lights: vec4<i32>,
-    spot_fade: vec4<f32>,
+    spot_vp: array<mat4x4<f32>, 16>,
+    spot_lights: array<vec4<i32>, 4>,
+    spot_fade: array<vec4<f32>, 4>,
     contact: vec4<f32>,         // x: 1 = the contact shadows' mask is read (main view), y: 1 = blended faces opaque enough cast it
     features: vec4<u32>,        // x: FEATURE_* bits, in every pass (main view, reflections, probes)
+    // Motion vectors (main view; zero in the other passes), without the TAA
+    // jitter: this frame's view-projection for positions relative to `eye`,
+    // the last frame's for the same positions, and this frame's clip space
+    // to the last frame's (a point the depth places, where nothing drew).
+    motion_vp: mat4x4<f32>,
+    motion_prev_vp: mat4x4<f32>,
+    motion_reproj: mat4x4<f32>,
+    photo: vec4<f32>,           // the main view of a photo tile: its part of the photo (left, top, width, height); zero otherwise
+    tex_lod: vec4<f32>,         // x: the material textures' mip bias (FSR drawing the world smaller than the window, fsr.rs mip_bias); 0 otherwise
 };
 
 // frame.features.x: "HDR and Emissive" off, the Legacy Viewer's G-buffer has
@@ -138,6 +147,7 @@ struct DrawRecord {
 const FLAG_FULLBRIGHT: u32 = 1u;
 const FLAG_PORTAL_CLIP: u32 = 16384u;
 const FLAG_PORTAL_EFFECT: u32 = 32768u;
+const FLAG_WORLD_BLEND_PICK: u32 = 2147483648u; // flags.w, above texture animation
 const PORTAL_HALF_WIDTH: f32 = 1.0;
 const PORTAL_HALF_HEIGHT: f32 = 1.5;
 const PORTAL_SURFACE_SCALE: f32 = 1.16;
@@ -220,6 +230,10 @@ struct SkinBind {
     joint: vec4<u32>,
 };
 @group(1) @binding(2) var<storage, read> skin_binds: array<SkinBind>;
+// What the last frame drew with (motion_history.rs): the joint palettes and
+// each record's model matrix.
+@group(1) @binding(3) var<storage, read> prev_palettes: array<mat4x4<f32>>;
+@group(1) @binding(4) var<storage, read> prev_models: array<mat4x4<f32>>;
 
 // Bindless textures pooled in pages (textures.rs): a slot's location packs
 // the page (high 16 bits) and its layer (low 16 bits).
@@ -359,6 +373,13 @@ fn srgb_to_linear(c: vec3<f32>) -> vec3<f32> {
 }
 
 fn sample_tex(idx: u32, uv: vec2<f32>) -> vec4<f32> {
+    let loc = tex_loc[idx];
+    return textureSampleBias(tex_pages[loc >> 16u], tex_sampler, uv, loc & 0xffffu, frame.tex_lod.x);
+}
+
+// Without the frame's mip bias: the shadow maps have their own size, and
+// their pass binds no frame uniform
+fn sample_tex_unbiased(idx: u32, uv: vec2<f32>) -> vec4<f32> {
     let loc = tex_loc[idx];
     return textureSample(tex_pages[loc >> 16u], tex_sampler, uv, loc & 0xffffu);
 }
@@ -1230,6 +1251,8 @@ fn cascade_shadow(world_pos: vec3<f32>, n: vec3<f32>, cascade: u32) -> f32 {
     let step = span / f32(taps - 1u);
     let center = 0.5 * f32(taps - 1u);
     let tile = vec2<f32>(f32(cascade % 2u), f32(cascade / 2u));
+    let atlas = vec2<f32>(textureDimensions(shadow_map));
+    let tile_scale = vec2<f32>(0.5, atlas.x / (2.0 * atlas.y));
     // Receiver bias in metres along the light: two texels of the cascade.
     // The depth range of a cascade is its square plus CASCADE_DEPTH_PAD on
     // each side (about 810 m for the finest), so a fixed 0.0005 of it was
@@ -1255,10 +1278,21 @@ fn cascade_shadow(world_pos: vec3<f32>, n: vec3<f32>, cascade: u32) -> f32 {
             // result as the clamp-to-edge of a separate texture, never a
             // texel of the neighbouring tile
             let t = clamp(uv + o, vec2<f32>(0.5 * texel), vec2<f32>(1.0 - 0.5 * texel));
-            sum += textureSampleCompareLevel(shadow_map, shadow_sampler, (t + tile) * 0.5, ndc.z - receiver_bias);
+            sum += textureSampleCompareLevel(shadow_map, shadow_sampler, (t + tile) * tile_scale, ndc.z - receiver_bias);
         }
     }
     return sum / f32(taps * taps);
+}
+
+// The motion of a pixel on the screen from its clip positions, this frame's
+// and the last frame's: in uv units (y down), what to take from its uv to
+// find where the last frame drew it. None for a point that was behind the
+// camera.
+fn screen_motion(cur: vec4<f32>, prev: vec4<f32>) -> vec2<f32> {
+    if (prev.w <= 1e-6 || cur.w <= 1e-6) {
+        return vec2<f32>(0.0);
+    }
+    return (cur.xy / cur.w - prev.xy / prev.w) * vec2<f32>(0.5, -0.5);
 }
 
 // The view shown instead of the image (frame.light_mode.z, Preferences ›
@@ -1796,8 +1830,7 @@ fn ssr_trace(origin: vec3<f32>, dir: vec3<f32>, steps: i32) -> vec4<f32> {
                         lo = mid;
                     }
                 }
-                let edge = min(min(huv.x, 1.0 - huv.x), min(huv.y, 1.0 - huv.y));
-                let conf = clamp(edge * 10.0, 0.0, 1.0) * (1.0 - f32(i) / f32(steps));
+                let conf = ssr_edge_fade(huv) * (1.0 - f32(i) / f32(steps));
                 let col = textureSampleLevel(scene_tex, lin_clamp, huv, 0.0).rgb;
                 return vec4<f32>(col, conf);
             }
@@ -1806,6 +1839,44 @@ fn ssr_trace(origin: vec3<f32>, dir: vec3<f32>, steps: i32) -> vec4<f32> {
         t = t * 1.18 + 0.1;
     }
     return vec4<f32>(0.0);
+}
+
+// Pixels of a photo tile's inner edges over which a reflection's hit fades:
+// past them the ray finds nothing, the scene beyond is not drawn. Within
+// the guard band (at least 128 pixels, `snapshot::TILE_GUARD`), so the
+// pixels the tile keeps read their hits whole.
+const SSR_TILE_FADE: f32 = 64.0;
+
+// How much of a reflection's hit at `uv` is kept: it fades over the last
+// tenth of the image towards its edges. A photo tile fades at the photo's
+// edges, as the photo in one pass does, and at its inner edges only over
+// `SSR_TILE_FADE`: fading over a tenth of the tile took the reflections
+// out along every seam.
+fn ssr_edge_fade(uv: vec2<f32>) -> f32 {
+    if (frame.photo.z <= 0.0) {
+        let edge = min(min(uv.x, 1.0 - uv.x), min(uv.y, 1.0 - uv.y));
+        return clamp(edge * 10.0, 0.0, 1.0);
+    }
+    let p = frame.photo.xy + uv * frame.photo.zw;
+    let edge = min(min(p.x, 1.0 - p.x), min(p.y, 1.0 - p.y));
+    // in this tile's pixels from each side; a side on the photo's edge
+    // fades with the photo
+    let px = uv * frame.screen.xy;
+    let to_end = frame.screen.xy - px;
+    var inner = 1.0;
+    if (frame.photo.x > 1e-6) {
+        inner = min(inner, px.x / SSR_TILE_FADE);
+    }
+    if (frame.photo.y > 1e-6) {
+        inner = min(inner, px.y / SSR_TILE_FADE);
+    }
+    if (frame.photo.x + frame.photo.z < 1.0 - 1e-6) {
+        inner = min(inner, to_end.x / SSR_TILE_FADE);
+    }
+    if (frame.photo.y + frame.photo.w < 1.0 - 1e-6) {
+        inner = min(inner, to_end.y / SSR_TILE_FADE);
+    }
+    return clamp(edge * 10.0, 0.0, 1.0) * clamp(inner, 0.0, 1.0);
 }
 
 // calcLegacyDistanceAttenuation (deferredUtil.glsl): `d` is the distance
@@ -1872,14 +1943,15 @@ fn projector_specular(slot: u32, tc: vec2<f32>, blur: f32) -> vec4<f32> {
 
 // Light left by the shadow map of projector `i` (1: lit, or no map), as
 // spotLightF.glsl with sampleSpotShadow / pcfSpotShadow (shadowUtil.glsl):
-// the two projectors that weigh most on screen have a map, in the halves of
-// the top row of the shadow atlas's fourth tile. Like Firestorm's, these
-// shadows stop with the sun's (the last tenth of its shadow distance).
+// the configured budget extends the Legacy Viewer's two-map limit without
+// reducing each map's resolution (projector_shadows.rs). These shadows stop
+// with the sun's (the last tenth of its shadow distance).
 fn projector_shadow(i: i32, world_pos: vec3<f32>, n: vec3<f32>) -> f32 {
-    if (frame.params.z < 0.5 || (i != frame.spot_lights.x && i != frame.spot_lights.y)) {
+    let slot = frame.projectors[i].tex.y;
+    if (frame.params.z < 0.5 || slot == 0u) {
         return 1.0;
     }
-    let k = select(0u, 1u, i == frame.spot_lights.y);
+    let k = slot - 1u;
     let far = frame.cascade_splits.z;
     let depth = distance(world_pos, frame.camera_pos.xyz);
     if (depth >= far) {
@@ -1897,18 +1969,26 @@ fn projector_shadow(i: i32, world_pos: vec3<f32>, n: vec3<f32>) -> f32 {
     }
     // a map is a quarter of the atlas wide: its texel in map coordinates
     let texel = 4.0 / f32(textureDimensions(shadow_map).x);
-    let origin = vec2<f32>(0.5 + 0.25 * f32(k), 0.5);
+    let dims = vec2<f32>(textureDimensions(shadow_map));
+    let size = dims.x * 0.5;
+    let half = size * 0.5;
+    var origin: vec2<f32>;
+    if (k < 4u) {
+        origin = vec2<f32>(size + f32(k % 2u) * half, size + f32(k / 2u) * half);
+    } else {
+        origin = vec2<f32>(f32((k - 4u) % 4u) * half, 2.0 * size + f32((k - 4u) / 4u) * half);
+    }
     var sum = 0.0;
     // pcfSpotShadow's five taps
     let taps = array<vec2<f32>, 5>(
         vec2<f32>(0.0, 0.0), vec2<f32>(2.0, 1.5), vec2<f32>(1.0, -1.5), vec2<f32>(-1.0, 1.5), vec2<f32>(-2.0, -1.5));
     for (var t = 0; t < 5; t++) {
         let at = clamp(uv + taps[t] * texel, vec2<f32>(0.5 * texel), vec2<f32>(1.0 - 0.5 * texel));
-        sum += textureSampleCompareLevel(shadow_map, shadow_sampler, origin + at * 0.25, ndc.z - 0.0002);
+        sum += textureSampleCompareLevel(shadow_map, shadow_sampler, (origin + at * half) / dims, ndc.z - 0.0002);
     }
     var s = sum * 0.2;
     // the map fades in and out as its projector takes or loses it
-    s = clamp(s + select(frame.spot_fade.x, frame.spot_fade.y, k == 1u), 0.0, 1.0);
+    s = clamp(s + frame.spot_fade[k / 4u][k % 4u], 0.0, 1.0);
     return mix(1.0, s, clamp((far - depth) / (far * 0.1), 0.0, 1.0));
 }
 
@@ -2080,18 +2160,50 @@ struct LLAtmos {
 
 // calcAtmosphericVars: `rel` = point minus camera (world, z up).
 fn ll_atmos(rel_in: vec3<f32>) -> LLAtmos {
+    return ll_atmos_core(rel_in, vec3<f32>(0.0, 0.0, 1.0), frame.sky_light.xyz, frame.sun_dir.xyz);
+}
+
+// calcAtmosphericVars as hazeF.glsl runs it over a surface: the point in
+// eye space (rebuilt from the depth), `lightnorm` in world GL axes
+// (LLEnvironment::toLightNorm: x north, y up, z east) and `light_dir` in eye
+// space. The haze glow's first factor thus mixes eye and world axes: its
+// hotspot is not along the sun for rays down to the water, where the
+// world-space ll_atmos put a second sun on the sea (the Legacy Viewer shows
+// none). `rel_world` = point minus camera (world, z up).
+fn ll_atmos_eye(rel_world: vec3<f32>) -> LLAtmos {
+    let forward = normalize((frame.inv_view_proj_rot * vec4<f32>(0.0, 0.0, 0.5, 1.0)).xyz);
+    let up = normalize(frame.cam_up.xyz - forward * dot(frame.cam_up.xyz, forward));
+    let right = cross(forward, up);
+    let ln = frame.sky_light.xyz;
+    return ll_atmos_core(
+        ll_eye_axes(rel_world, right, up, forward),
+        vec3<f32>(0.0, 1.0, 0.0),
+        vec3<f32>(ln.y, ln.z, ln.x),
+        ll_eye_axes(frame.sun_dir.xyz, right, up, forward),
+    );
+}
+
+// A world vector in eye axes (x right, y up, z backward).
+fn ll_eye_axes(v: vec3<f32>, right: vec3<f32>, up: vec3<f32>, forward: vec3<f32>) -> vec3<f32> {
+    return vec3<f32>(dot(v, right), dot(v, up), -dot(v, forward));
+}
+
+// The body of calcAtmosphericVars: `rel_in` the point in the frame of
+// `up_axis` (the altitude limit and the direction's nudge), `glow_norm` and
+// `glow_light` the two vectors of the haze glow.
+fn ll_atmos_core(rel_in: vec3<f32>, up_axis: vec3<f32>, glow_norm: vec3<f32>, glow_light: vec3<f32>) -> LLAtmos {
     var rel_pos = rel_in;
     let max_y = frame.sky_glow.w;
-    if (abs(rel_pos.z) > max_y) {
-        rel_pos *= max_y / abs(rel_pos.z);
+    let rel_up = dot(rel_pos, up_axis);
+    if (abs(rel_up) > max_y) {
+        rel_pos *= max_y / abs(rel_up);
     }
-    let rel_pos_norm = normalize(rel_pos + vec3<f32>(0.0, 0.0, 1e-6));
+    let rel_pos_norm = normalize(rel_pos + up_axis * 1e-6);
     let rel_pos_len = length(rel_pos);
     let blue_density = frame.sky_blue_density.rgb;
     let haze_density = frame.sky_blue_density.w;
     let density_multiplier = frame.sky_ambient.w;
     let lightnorm = frame.sky_light.xyz;
-    let light_dir = frame.sun_dir.xyz;
     // sunlight_color / moonlight_color as LLPipeline::bindDeferredShader sets
     // them: normalized, and the moon without skyV's 0.7
     var sunlight = frame.sky_obj_light.rgb;
@@ -2103,8 +2215,8 @@ fn ll_atmos(rel_in: vec3<f32>) -> LLAtmos {
     sunlight *= exp(-light_atten * (1.0 / max(1e-6, lightnorm.z)));
     let density_dist = rel_pos_len * density_multiplier;
     let atten = exp(-combined * density_dist * frame.sky_ll.y);
-    var haze_glow = dot(rel_pos_norm, lightnorm);
-    haze_glow *= max(0.0, dot(light_dir, rel_pos_norm));
+    var haze_glow = dot(rel_pos_norm, glow_norm);
+    haze_glow *= max(0.0, dot(glow_light, rel_pos_norm));
     haze_glow = max(1.0 - haze_glow, 0.001) * frame.sky_glow.x;
     haze_glow = clamp(pow(haze_glow, frame.sky_glow.z), -100000.0, 100000.0) + 0.25;
     haze_glow *= frame.sky_light.w;
@@ -2116,9 +2228,22 @@ fn ll_atmos(rel_in: vec3<f32>) -> LLAtmos {
     var o: LLAtmos;
     o.sunlit = sunlight;
     o.amblit = pow(max(tmp_ambient, vec3<f32>(0.0)), vec3<f32>(0.9)) * 0.57;
+    if (colored_sky_ambient()) {
+        o.amblit = max(tmp_ambient, vec3<f32>(0.0)) * 0.7;
+    }
     o.additive = min(additive * (vec3<f32>(1.0) - atten), vec3<f32>(10.0));
     o.atten = atten;
     return o;
+}
+
+// The experimental colored sky ambient: the first PBR release lit with the
+// sky's ambient colour x RenderSkyAmbientScale 0.7, neither softened (pow
+// 0.9, x 0.57) nor turned grey in linear mode (atmosphericsFuncs.glsl
+// calcAtmosphericVarsLinear, settings.xml, tag
+// Second_Life_Release#843866d-DRTVWR-559). It had no classic branch: a
+// classic sky keeps its colour either way and only takes the 0.7 curve.
+fn colored_sky_ambient() -> bool {
+    return frame.sky_obj_light.w > 0.5;
 }
 
 // ambientLighting: a touch of light opposite the sun.
@@ -2169,7 +2294,8 @@ fn ll_classic_sun_ambient(base: vec3<f32>, n: vec3<f32>, shadow: f32, frag: vec2
     }
     // linear mode: grey sky ambient, linear sunlight, plain lambert
     let amb_lin = srgb_to_linear(a.amblit * ll_ambient_lighting(n));
-    let irr = ll_ssao(vec3<f32>(dot(amb_lin, vec3<f32>(0.2126, 0.7152, 0.0722))), frag);
+    let amb_grey = vec3<f32>(dot(amb_lin, vec3<f32>(0.2126, 0.7152, 0.0722)));
+    let irr = ll_ssao(select(amb_grey, amb_lin, colored_sky_ambient()), frag);
     return (irr + min(nl_sun, shadow) * srgb_to_linear(a.sunlit) + screen_indirect(frag)) * base;
 }
 

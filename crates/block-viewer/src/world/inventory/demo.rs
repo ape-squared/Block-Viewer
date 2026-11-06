@@ -200,7 +200,24 @@ pub fn seed(inv: &mut Inventory, agent: Uuid) {
         owner_mask: 0x7fffffff,
         ..Default::default()
     }]);
-    if std::env::var("AURORA_DEMO_INVENTORY").is_ok_and(|mode| matches!(mode.as_str(), "link-icons" | "block-link-icons")) {
+    // A calling card made by a viewer (create_inventory_callingcard): ours,
+    // naming the wolf by key in its description. Opening it shows his profile,
+    // named Orion Example by the demo's name service.
+    inv.add_items(vec![InvItem {
+        id: Uuid::from_u128(8114),
+        parent: personal,
+        name: block_i18n::tr!("demo-orion-example").into(),
+        desc: crate::demo::DEMO_LOUP.to_string(),
+        asset_type: 2,
+        inv_type: 2,
+        creator: agent,
+        owner: agent,
+        created_at: now,
+        base_mask: actions::MOVE | actions::TRANSFER,
+        owner_mask: actions::MOVE | actions::TRANSFER,
+        ..Default::default()
+    }]);
+    if std::env::var("AURORA_DEMO_INVENTORY").is_ok_and(|mode| matches!(mode.as_str(), "link-icons" | "aurora-link-icons")) {
         for (kind, &name) in super::super::appearance::wearables().iter().enumerate() {
             inv.add_items(vec![InvItem {
                 id: Uuid::from_u128(82_000 + kind as u128),

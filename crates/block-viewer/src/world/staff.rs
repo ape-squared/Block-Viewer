@@ -4,6 +4,7 @@
 //! "Linden" last name rule.
 
 use super::World;
+use std::sync::atomic::{AtomicBool, Ordering};
 use uuid::Uuid;
 
 /// Extra agent UUIDs for Block developers (optional; usernames below are enough).
@@ -95,9 +96,10 @@ pub fn mark(world: &World, id: &Uuid) -> Option<Mark> {
         return Some(Mark::Block);
     }
     let names = &world.social.avatar_names;
-    let linden = names
-        .get(id)
-        .is_some_and(|n| super::mutes::is_linden(&n.user_name_for_display(&names.options)));
+    let linden = SECOND_LIFE.load(Ordering::Relaxed)
+        && names
+            .get(id)
+            .is_some_and(|n| super::mutes::is_linden(&n.user_name_for_display(&names.options)));
     (linden || crate::demo::staff::is_linden(id)).then_some(Mark::Linden)
 }
 

@@ -19,7 +19,7 @@ def _definition():
     path = Path(__file__).with_name("avatar_skeleton.xml")
     if not path.is_file():
         # Source checkout; the packagers embed the same file beside this module.
-        path = Path(__file__).resolve().parents[2] / "crates/aurora-viewer/assets/character/avatar_skeleton.xml"
+        path = Path(__file__).resolve().parents[2] / "crates/block-viewer/assets/character/avatar_skeleton.xml"
     return ET.parse(path).getroot()
 
 

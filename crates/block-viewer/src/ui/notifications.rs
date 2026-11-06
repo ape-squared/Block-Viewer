@@ -215,6 +215,16 @@ fn message_excerpt(world: &World, body: &str) -> String {
     text
 }
 
+/// The width of a card's time ("20:41", or "8:41 PM" in 12 hours), so its
+/// title is cut before it.
+pub(super) fn time_width(ui: &egui::Ui, time: &str) -> f32 {
+    ui.fonts_mut(|f| {
+        f.layout_no_wrap(time.to_owned(), egui::FontId::proportional(10.5), Color32::PLACEHOLDER)
+            .size()
+            .x
+    })
+}
+
 /// The card of a friend online / offline or of the messages of a
 /// conversation: their picture, the name, the start of the last message.
 /// Clicking the card opens the conversation (`Notification::opens`), its
@@ -251,7 +261,8 @@ pub(super) fn person_card(
             }
             ui.vertical(|ui| {
                 ui.horizontal(|ui| {
-                    let w = (ui.available_width() - 62.0).max(40.0);
+                    let time = super::chat::hhmm(n.time);
+                    let w = (ui.available_width() - 34.0 - time_width(ui, &time)).max(40.0);
                     let title = if count > 1 {
                         format!("{} ({count})", n.title)
                     } else {
@@ -274,7 +285,7 @@ pub(super) fn person_card(
                                 if resp.hovered() { p.ink } else { p.muted },
                             );
                         }
-                        ui.label(RichText::new(super::chat::hhmm(n.time)).size(10.5).color(p.muted_dim));
+                        ui.label(RichText::new(time).size(10.5).color(p.muted_dim));
                     });
                 });
                 if !n.body.is_empty() {
@@ -400,7 +411,8 @@ pub(super) fn card(
                     super::widgets::maturity_badge_of(ui, p, n.maturity, 14.0);
                 }
                 // keep room for the time and the close button
-                let w = (ui.available_width() - 62.0).max(40.0);
+                let time = super::chat::hhmm(n.time);
+                let w = (ui.available_width() - 34.0 - time_width(ui, &time)).max(40.0);
                 ui.allocate_ui(Vec2::new(w, 18.0), |ui| {
                     text::show(ui, p, &n.title, &n.name_links, 12.5, p.ink, true, true);
                 });
@@ -429,7 +441,7 @@ pub(super) fn card(
                     if resp.on_hover_text(tip).clicked() {
                         out = Some(Response::Dismiss);
                     }
-                    ui.label(RichText::new(super::chat::hhmm(n.time)).size(10.5).color(p.muted_dim));
+                    ui.label(RichText::new(time).size(10.5).color(p.muted_dim));
                 });
             });
             if !n.body.is_empty() {
@@ -554,6 +566,20 @@ pub(super) fn card(
                     buttons.push((block_i18n::tr!("rlva-im-share-always").into(), Response::Button(1), false));
                     buttons.push((block_i18n::tr!("ui-notifications-decline").into(), Response::Decline, false));
                 }
+                // JoinGroupCanAfford: Join (the cost was named) or Cancel
+                Data::Group { confirming: true, .. } => {
+                    buttons.push((block_i18n::tr!("ui-group-profile-join").into(), Response::Accept, true));
+                    buttons.push((block_i18n::tr!("common-cancel").into(), Response::Decline, false));
+                }
+                // an invitation with a fee names it on its button
+                Data::Group { fee, .. } if *fee > 0 => {
+                    buttons.push((
+                        block_i18n::tr!("ui-group-profile-join-fee", fee = block_i18n::integer(i64::from(*fee))),
+                        Response::Accept,
+                        true,
+                    ));
+                    buttons.push((block_i18n::tr!("ui-notifications-decline").into(), Response::Decline, false));
+                }
                 Data::Friend { .. } | Data::Group { .. } | Data::CallingCard { .. } => {
                     buttons.push((block_i18n::tr!("ui-notifications-accept").into(), Response::Accept, true));
                     buttons.push((block_i18n::tr!("ui-notifications-decline").into(), Response::Decline, false));
@@ -606,6 +632,12 @@ pub(super) fn card(
                         Response::BlockExperience,
                         false,
                     ));
+                }
+                // ScriptQuestionCaution: Deny is the default, Allow access
+                // a plain choice beside it
+                Data::Permissions { caution: Some(_), .. } => {
+                    buttons.push((block_i18n::tr!("ui-notifications-deny").into(), Response::Decline, true));
+                    buttons.push((block_i18n::tr!("ui-notifications-allow-access").into(), Response::Accept, false));
                 }
                 Data::Permissions { .. } => {
                     buttons.push((block_i18n::tr!("ui-notifications-allow").into(), Response::Accept, true));

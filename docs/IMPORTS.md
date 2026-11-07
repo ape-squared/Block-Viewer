@@ -6,8 +6,8 @@ the errors, before the human validation on the grid. A window that is
 displayed is not enough to consider its import finished.
 
 Scope confirmed on 2026-10-12: textures, materials, meshes, sounds,
-animations, bulk uploads and local previews. The imports of linksets, EEP
-and Windlight are listed for later tasks in `TASKS.md`.
+animations, bulk uploads and local previews. Linksets, EEP and Windlight
+imports are still later work.
 
 Reference consulted: the Legacy Viewer `d942e1118d01c3383ef7d6b64f248af77452b0dc`
 (2026-10-12). The visible choices follow this revision of the sources.

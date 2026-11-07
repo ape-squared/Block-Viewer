@@ -39,8 +39,8 @@ unfinished.
 
 ## Build and CI
 
-Use the normal Windows environment described in `HUMANS.md`; build in the task
-worktree with its default target directory and dev profile:
+Build with the usual Windows toolchain (Rust stable, MSVC, Vulkan) in a
+normal checkout with the default target directory and a dev profile:
 
 ```powershell
 cargo build --locked -p block-render --example xr_spike

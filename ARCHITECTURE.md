@@ -1487,13 +1487,12 @@ modern rendering (wgpu on Vulkan, on Metal on macOS), sound, voice, media and in
 
 **Reference behaviour: Firestorm.** Every feature reproduces what Firestorm
 does (and the Linden Lab viewer it derives from): same network messages,
-same rules, same defaults, unless an explicit choice is noted in `TASKS.md`.
-The interface, for its part, is Aurora's own (see
+same rules, same defaults, unless an explicit product choice says otherwise.
+The interface, for its part, follows Block branding (see
 [docs/BRANDING.md](docs/BRANDING.md)). Firestorm is the reference for the
 result, not for the implementation: the rendering must be the same or
 better, but the engine is designed for Vulkan and the modern GPU, without
-taking over the techniques inherited from OpenGL (see
-[AGENTS.md](AGENTS.md#2-reference-behaviour-firestorm)).
+taking over the techniques inherited from OpenGL.
 
 Grid management and Hypergrid navigation are implemented in `grids.rs` and
 `ui/grids.rs` (#659). The saved catalogue contains discovery/login services,
@@ -1542,30 +1541,26 @@ block-viewer/                  git repository (GitHub: Aurora-Viewer/Aurora-View
 ├─ rust-toolchain.toml          stable Rust (always the latest version)
 ├─ rustfmt.toml                 formatting (140-character lines)
 ├─ README.md                    overview, differences from Firestorm, build
-├─ AGENTS.md                    rules for AI agents (Claude, Codex…)
-├─ CLAUDE.md                    points to AGENTS.md
-├─ HUMANS.md                    guide for humans: PRs, merge, build
 ├─ ARCHITECTURE.md              this file
-├─ TASKS.md                     task tracking: in progress / to do / finished since the last release (older: docs/TASKS_ARCHIVE.md)
 ├─ LICENSE, NOTICE.md           GPLv3, copyright notice, third-party licences
 ├─ TRADEMARKS.md                use of the name and logo by modified versions, official downloads
-├─ aurora-tools.cmd             development tools (double-click): scripts/tools
+├─ block-tools.cmd              development tools (double-click): scripts/tools
 ├─ assets/
-│  ├─ branding/                 logos (colour, white, black, violet, teal, on navy), SVG + PNG, aurora.ico
+│  ├─ branding/                 logos and lockups for Block Viewer
 │  ├─ hrtf/                     head-related filters of the 3D sound for headphones (MIT KEMAR; `scripts/generate-hrtf.py`, built into the exe)
-│  ├─ models/                   self-contained Aurora 3D GLB for material previews
+│  ├─ models/                   self-contained 3D GLB for material previews
 │  ├─ stars/                    night sky star table (HYG database, CC BY-SA 4.0; `scripts/generate-star-catalog.py`)
 │  ├─ tabler-icons/             full Tabler library (SVG: outline, filled)
 │  └─ emoji/                    Noto Color Emoji font and its licence (built into the exe)
 ├─ crates/                      the code (see below)
-├─ docs/                        BRANDING.md, TESTING.md (`AURORA_*` test options, profiling), README screenshots (`screenshots/`), README buttons and "Soon" pill (`readme/`)
+├─ docs/                        product guides (branding, installs, imports, VR, …), README buttons (`readme/`)
 ├─ fuzz/                        fuzzing of the readers of untrusted data (its own workspace, outside the build): targets (`src/lib.rs`), stable runner `fuzz-local` (`src/main.rs`), libFuzzer binaries (`fuzz_targets/`), run nightly by `.github/workflows/fuzz.yml`
 ├─ news/                        news of the login screen, written by hand: fr.md, en.md (read on `main` by the viewer, and compiled into it)
 ├─ packaging/linux/            desktop entry of the Linux archive (`block-viewer.desktop`; its icon is the colour logo of `assets/branding/`)
 ├─ packaging/macos/            `Info.plist` of `Block Viewer.app` (its texts translated in `*.lproj/InfoPlist.strings`) and the entitlements of its hardened runtime; `scripts/package-macos.ps1` builds the bundle, the release signs it
-├─ scripts/                     tools for agents and humans (PowerShell)
+├─ scripts/                     build, package, and maintainer tools (PowerShell)
 │  ├─ automation-window-border.ps1 dashed yellow outline of the automated-test windows (Windows)
-│  └─ tools/                    aurora-tools: menu, interface (ui), checks and repair (checks), actions, live PRs (prs), releases, reset (reset), Claude Code permissions (claude)
+│  └─ tools/                    Block Tools menu: interface (ui), checks, actions, PRs, releases, reset
 └─ .github/                     CI and wiki publication (workflows/, actions/), release and nightly betas, PR template, Dependabot
 ```
 
@@ -1573,11 +1568,11 @@ Next to the repository (outside git), in the project folder installed by the
 one-line command (`scripts/setup.ps1`, then the tools):
 
 ```
-<project folder>\               for example C:\Aurora-Viewer
+<project folder>\               for example a local Block Viewer workspace
 ├─ block-viewer\               the repository
 ├─ phoenix-firestorm\           official Firestorm sources (read-only)
 ├─ RELEASE\                     --release build of the latest main (scripts/build-release.ps1)
-└─ work\                        one git worktree per agent task
+└─ work\                        optional local worktrees
 ```
 
 ## The crates
@@ -2676,7 +2671,7 @@ Scripts use a shared editor (`ui/scripts.rs`, actions in `app/scripts.rs`) for i
 | `ui/close_key.rs` | Ctrl+W closes the frontmost window, as File › Close Window, and on macOS Command+W does too (both are the keyboard Control mask). Ctrl+Shift+W, and Command+Shift+W on macOS, closes every window, as File › Close All Windows, including the mini-map (`shown_extra`). Taken at the start of the interface's frame, before a text field reads it (`begin`), only when a window is there; every `widgets::Floater` declares itself (`shown`) and closes as its cross when the key is for it (`take`); the Conversations window takes a single close first for its conversation shown, and Close All closes that window |
 | `ui/widgets.rs`, `ui/widgets/resize.rs`, `ui/widgets/cascade.rs`, `ui/widgets/demo.rs`, `ui/widgets/scroll_offset.rs`, `ui/widgets/hero.rs` | Shared widgets and floating windows; the head shared by the Aurora avatar and group profiles, a banner as tall as what it holds with the picture, who it is and the actions centred on one line and the tabs along its bottom, laid out again when its height changes (`hero`); Construction and inventory menu customization share organization typography, headings, close controls and drag previews in `ui/widgets/workspace.rs`; a scroll offset decided after a scroll area is shown (rows above that changed height, automatic scrolling) given back to it at its next show, egui keeping the offset private (`scroll_offset`); the capitals of every text field centred on its face, the field keeping its height (`field_text_margin`, used by `theme.rs` for the theme's fields and by the bare fields laid on their own face); Firestorm inventory preview/editor cascades by type and creation order; collapsing by double-clicking the title or by a button, expanded size kept and collapsed bar movable; offline gestures on the real title; resize handles bounded before the move, opposite edge fixed, limits of the content and of the visible area; position and size kept by egui; names longer than their space cut with "…" with the whole name on hover (`elided_label`, `paint_elided`) for the lists of residents, groups and conversations |
 | `ui/layout.rs`, `ui/layout/anchor.rs`, `ui/layout/gesture.rs` | Interface layout: egui's memory (positions, sizes, collapsed windows) written to `ui_layout.ron` on exit and read back at startup; work area left by the bars (`work_area`) and common gap `GAP` of the default layout and of snapping (none: the windows touch); `Slot`, through which `widgets::Floater` and the minimap (`widgets::bare_window`) go, records each measured window and its movement room; `anchor.rs` converts existing default positions/sizes and older layouts directly into the closest of eight corresponding perimeter points and its signed offset. A window can supply an explicit first-opening point. Completed moves/resizes recompute the closest pair among four corners and four side midpoints. Its invisible point and signed offset persist across viewer resizing and sessions, including closed windows and migration of older layouts; glued windows share a point chosen from their block bounds. `gesture.rs`: the gestures of the frame (`layout::frame`, `layout::resizing`): window dragged by its title together with those stuck to it, block kept within the screen, snapping proposed then applied on release (under the pointer for a resize), sticking links created, saved with the layout and removed when they no longer hold (window closed, collapsed, moved apart, Alt) |
-| `ui/theme_guard.rs` | Test only: reads the interface sources (`ui/`, `build/ui/`, `imports/ui*`, `crash/window.rs`) and fails if a window directly uses an egui widget replaced by a shared widget of `ui/widgets.rs`, or itself writes a radius or a colour instead of those of the theme (AGENTS.md, section 7); list of the rules, of their replacement and of the exceptions (files of `ALLOWED`, lines marked `// theme-guard:`), themselves checked |
+| `ui/theme_guard.rs` | Test only: reads the interface sources (`ui/`, `build/ui/`, `imports/ui*`, `crash/window.rs`) and fails if a window directly uses an egui widget replaced by a shared widget of `ui/widgets.rs`, or itself writes a radius or a colour instead of those of the theme; list of the rules, of their replacement and of the exceptions (files of `ALLOWED`, lines marked `// theme-guard:`), themselves checked |
 | `ui/snap.rs`, `ui/snap/overlay.rs` | Window snapping, geometry only: which moving edges stick to what (edge facing another window, same-side edge of a neighbour, work area; 10 px margin, edges that touch (`layout::GAP`, no gap), size limits of a resize, holding of the displayed snap), guide to draw, side-by-side windows (`touching`), groups (`group`, `block_limits`). `layout/gesture.rs` only snaps and attaches moved windows while Alt is held, and Alt also detaches the dragged window from its group; resize snapping retains its separate behavior. `overlay.rs`: the guide and the "Alt" pill drawn above the windows |
 | `ui/text_menu.rs`, `ui/text_menu/tests.rs` | Right-click menu of every text field, like the Legacy Viewer's text editors (menu_text_editor.xml: Cut, Copy, Paste, Delete, Select All, greyed by canCut / canCopy / canPaste / canDoDelete): one hook around the interface pass, no change at the fields. It finds the focused field with a `TextEditState` under the right click, reads editable / password from the IME request egui makes for it, keeps a selection right-clicked inside it, and plays the chosen entry into the field at the next frame as egui events (the clipboard's text for Paste). A field with its own right-click menu (script editor, notecards) keeps it. On a misspelled word of a spell-checked field (`ui/spelling.rs`), up to five suggestions, Add to Dictionary and Add to Ignore come first (LLSpellCheckMenuHandler); a suggestion selects its word and is pasted over it, only if the field still holds it. Demo `AURORA_DEMO_TEXT_MENU`, `AURORA_DEMO_SPELLING=menu` |
 | `ui/spelling.rs`, `ui/spelling/tests.rs`, `ui/options/pages/spelling.rs` | Spelling in a field, called after the fields the Legacy Viewer checks (chat bars, Conversations inputs, notecards, group notices, landmark notes, About Land description, postcard and profile photo texts): the auto-replace of a typed space (chat and notecards only), then the misspelled words (cached per field id with the text's hash and the checker's revision) drawn as the Legacy red zigzag over the galley, none under the word being typed for half a second; `marked` gives them to `ui/text_menu.rs`. Preferences › Chat › Spelling: the dictionaries (main, extra, import / remove) and the auto-replace lists and keywords. |

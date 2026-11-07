@@ -35,7 +35,7 @@ query($o: String!, $r: String!) {
 }
 '@
 
-# A PR a human put on hold carries this label (AGENTS.md section 9): the
+# A PR a human put on hold carries this label: the
 # tools hide it until the label is removed, unless it is in the merge queue.
 $OnHoldLabel = 'on-hold'
 

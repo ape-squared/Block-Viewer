@@ -7816,7 +7816,7 @@ hud-move-locked = Verrouiller le déplacement rapide
 hud-local-scale-reset = Revenir à 100 %
 hud-local-scale-forget = Oublier le réglage mémorisé
 hud-local-scale-help = Maintenez la touche des HUDs : clic gauche pour déplacer, molette pour changer la taille, Maj pour affiner. La taille est mémorisée sur ce PC par nom et créateur, pour ce compte. En édition d’un HUD, la molette sans cette touche zoome la vue de tous les HUDs.
-cli-help = { "Block Viewer\u000A\u000AUsage : block-viewer [--title <texte>] [--fps-limit <fps>] [--vr] [--language <code>] [--grid <nom>]\u000A                      [--login <prénom> <nom> <mot de passe>] [--version] [--uninstall] [<slurl>]\u000A\u000A  --title <texte>  Nomme cette fenêtre et son journal (aurora-<texte>.log,\u000A                  aurora-demo-<texte>.log en démo)\u000A  --fps-limit <fps>  Limite cette instance à 1..500 FPS sans enregistrer le réglage\u000A  --language <code>  Force la langue de cette instance (" }{ $languages }{ ")\u000A  --grid <nom>    Démarre sur agni, aditi, une grille enregistrée ou une adresse de connexion (aussi --loginuri <uri>)\u000A  --login <prénom> <nom> <mot de passe>  Se connecte tout de suite avec ce compte\u000A  <slurl>, --url <slurl>  Démarre à ce lieu ; rien n'est lu après. Un viewer déjà\u000A                  ouvert le reçoit à la place\u000A  --vr             Passer en VR dès que le monde s'affiche (casque connecté)\u000A  -V, --version   Affiche la version compilée puis quitte\u000A  --uninstall     Retire ce que Block Viewer a enregistré hors de ses dossiers (liens,\u000A                  coffre d'identifiants, module Blender), l'affiche avec les dossiers restants, puis quitte\u000A  -h, --help      Affiche cette aide\u000A\u000ALes scénarios de test utilisent des variables (AURORA_DEMO=1, AURORA_CAPTURE=...) :\u000Avoir README.md." }
+cli-help = { "Block Viewer\u000A\u000AUsage : block-viewer [--title <texte>] [--fps-limit <fps>] [--vr] [--language <code>] [--grid <nom>]\u000A                      [--login <prénom> <nom> <mot de passe>] [--version] [--uninstall] [<slurl>]\u000A\u000A  --title <texte>  Nomme cette fenêtre et son journal (block-<texte>.log,\u000A                  block-demo-<texte>.log en démo)\u000A  --fps-limit <fps>  Limite cette instance à 1..500 FPS sans enregistrer le réglage\u000A  --language <code>  Force la langue de cette instance (" }{ $languages }{ ")\u000A  --grid <nom>    Démarre sur agni, aditi, une grille enregistrée ou une adresse de connexion (aussi --loginuri <uri>)\u000A  --login <prénom> <nom> <mot de passe>  Se connecte tout de suite avec ce compte\u000A  <slurl>, --url <slurl>  Démarre à ce lieu ; rien n'est lu après. Un viewer déjà\u000A                  ouvert le reçoit à la place\u000A  --vr             Passer en VR dès que le monde s'affiche (casque connecté)\u000A  -V, --version   Affiche la version compilée puis quitte\u000A  --uninstall     Retire ce que Block Viewer a enregistré hors de ses dossiers (liens,\u000A                  coffre d'identifiants, module Blender), l'affiche avec les dossiers restants, puis quitte\u000A  -h, --help      Affiche cette aide\u000A\u000ALes scénarios de test utilisent des variables (AURORA_DEMO=1, AURORA_CAPTURE=...) :\u000Avoir README.md." }
 demo-media-page = { "data:text/html;charset=utf-8,<html><body style='margin:0;height:100vh;background:linear-gradient(135deg,%232a1f4a,%230f6d6d);color:white;font:56px sans-serif;text-align:center'><h1 style='margin:40px 0 10px'>Block Viewer media</h1><p id='t' style='font-size:90px;margin:10px'>--</p><button onclick=\"document.body.style.background='%237a3b9c';this.textContent='Cliqu%C3%A9 !'\" style='font-size:48px;padding:10px 40px'>Cliquer</button><br><input placeholder='Taper ici' style='font-size:44px;margin-top:30px;width:70%'><script>setInterval(function(){document.getElementById('t').textContent=new Date().toLocaleTimeString()},250)</script></body></html>" }
 
 # Secondary labels and status messages
@@ -13433,3 +13433,57 @@ ui-options-block-animation-clock-legacy = Legacy
 ui-options-block-avatar-plates = Plaques des avatars
 ui-options-block-building = Construction
 ui-options-block-bridge = Bridge Block Viewer
+
+# Restored Block keys dropped during the Aurora sync
+
+common-height = Hauteur
+
+common-width = Largeur
+
+photo-light-sun-reset = Revenir au soleil de votre environnement
+
+photo-vf-folder = Dossier
+
+photo-vf-last-photo = Dernière photo
+
+photo-vf-saved = Photo enregistrée
+
+shape-t-pose = T-pose
+
+ui-options-force-window-size = Forcer la taille de la fenêtre
+
+ui-options-force-window-size-hint = Taille logique fixe pour l’enregistrement ou les tests. Largeur et hauteur à 0 = taille mémorisée.
+
+ui-options-lovense = Lovense
+
+ui-options-lovense-chat = Commandes de chat
+
+ui-options-lovense-chat-help = Autoriser /blocktoy vibrate|stop|list (et /lovense) dans le chat local et les MI que vous écrivez
+
+ui-options-lovense-enable = Activer Lovense
+
+ui-options-lovense-enable-help = Autoriser Block Viewer à envoyer des commandes aux jouets via Lovense Connect
+
+ui-options-lovense-endpoint = URL Connect
+
+ui-options-lovense-endpoint-help = Vide : http://127.0.0.1:20010/command puis l’URL HTTPS par défaut
+
+ui-options-lovense-help = Dialogue uniquement avec Lovense Connect / Remote sur ce PC (localhost). Désactivé par défaut. Nécessite l’appli Lovense avec le mode LAN / Game activé.
+
+ui-options-lovense-max = Intensité max
+
+ui-options-lovense-max-help = Plafonne l’intensité de vibration de 1 à 20
+
+ui-options-prevent-display-sleep = Empêcher la mise en veille de l’écran
+
+ui-options-prevent-display-sleep-hint = Garde l’écran allumé (utile en vocal sans souris ni clavier).
+
+update-check-from-github = Vérifie les versions sur GitHub Releases ({ $page }). Aide › Vérifier les mises à jour, ou le contrôle de mise à jour à la connexion / barre du haut.
+
+voice-morphing = Morphing vocal
+
+voice-morphing-effect = Effet vocal
+
+voice-morphing-effect-hint = Morphing vocal du Legacy Viewer : police Vivox quand elle est disponible. Désactivé = voix naturelle.
+
+voice-morphing-none = Pas de morphing

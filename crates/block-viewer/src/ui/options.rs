@@ -282,7 +282,7 @@ pub fn demo(st: &mut OptionsUi, value: &str) {
         "joystick-zoom" => row(Page::Controls, 1, tr!("joystick-zoom-mode")),
         "recent" | "recent-period" => row(Page::Inventory, 0, tr!("ui-inventory-recent-period")),
         "auto-accept" => row(Page::Inventory, 0, tr!("received-auto-accept")),
-        "animations" | "animations-sync" => row(Page::Aurora, 2, tr!("ui-options-aurora-animation-clock")),
+        "animations" | "animations-sync" => row(Page::Aurora, 2, tr!("ui-options-block-animation-clock")),
         "remove-aurora" => row(Page::System, 0, tr!("ui-options-remove-aurora")),
         _ => None,
     };

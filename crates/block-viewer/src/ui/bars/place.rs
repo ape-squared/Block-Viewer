@@ -649,7 +649,10 @@ fn place_menu(ui: &mut egui::Ui, p: &Palette, icons: &Icons, panels: &mut Panels
         menu::heading(ui, p, block_i18n::tr!("ui-bars-recent-places"));
         for r in &st.recent {
             if menu::item_keys(ui, p, "arrow-back-up", &r.name, &r.region) {
-                action = Some(BarAction::TeleportTo(r.slurl.clone()));
+                action = Some(BarAction::TeleportRecent {
+                    slurl: r.slurl.clone(),
+                    global: r.global,
+                });
             }
         }
     }

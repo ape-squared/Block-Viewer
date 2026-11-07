@@ -974,10 +974,10 @@ impl World {
             })
             .unwrap_or(Vec3::ZERO);
         let grid = self.main_region.and_then(|h| self.grid_of(h));
-        let slurl = match &grid {
-            Some(grid) => crate::slurl::make_on(Some(grid), &region, local),
-            None => String::new(),
-        };
+        // Second Life: maps.secondlife.com SLURL so Recent places / Places can
+        // teleport by text. OpenSim: hop:// naming the place's grid. Empty only
+        // while waiting for the region's grid (set_slurl fills it later).
+        let slurl = crate::slurl::make_on(grid.as_deref(), &region, local);
         self.tp_slurl_pending = (grid.is_none() && self.home_grid.is_some()).then(|| (global, region.clone(), local));
         self.tp_storage.add(&title, global, now, slurl);
     }

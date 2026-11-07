@@ -13611,6 +13611,13 @@ impl App {
                 self.teleport_history(dest);
             }
             BarAction::TeleportTo(text) => self.teleport_to_text(&text),
+            BarAction::TeleportRecent { slurl, global } => {
+                if !slurl.trim().is_empty() && crate::slurl::parse(&slurl).is_some() {
+                    self.teleport_to_text(&slurl);
+                } else {
+                    self.teleport_saved_place(global);
+                }
+            }
             // the location field's suggestions (LLNavigationBar::onLocationSelection):
             // a landmark as the favourites go to one, a place of the history
             // by its position, the history left where it is
@@ -14185,6 +14192,7 @@ impl App {
                     name,
                     region,
                     slurl: item.slurl.clone(),
+                    global: item.global,
                 }
             })
             .collect()

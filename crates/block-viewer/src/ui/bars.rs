@@ -100,6 +100,9 @@ pub enum BarAction {
     VoicePrefs,
     /// Location typed or pasted in the navigation bar (SLURL, Region/x/y/z...).
     TeleportTo(String),
+    /// A recent place from the place menu: prefer its SLURL, else its saved
+    /// global position (LLTeleportHistoryStorage::goToItem).
+    TeleportRecent { slurl: String, global: glam::DVec3 },
     /// A landmark chosen in the location field's suggestions, by its asset.
     TeleportLandmark(uuid::Uuid),
     /// A place of the teleport history chosen in the location field's
@@ -207,6 +210,9 @@ pub struct RecentPlace {
     pub name: String,
     pub region: String,
     pub slurl: String,
+    /// Global position for teleports when the saved SLURL is empty (older
+    /// Second Life history rows written before maps URLs were stored).
+    pub global: glam::DVec3,
 }
 
 pub struct StatusInfo<'a> {

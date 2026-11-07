@@ -1558,9 +1558,9 @@ block-viewer/                  git repository (GitHub: Aurora-Viewer/Aurora-View
 ├─ news/                        news of the login screen, written by hand: fr.md, en.md (read on `main` by the viewer, and compiled into it)
 ├─ packaging/linux/            desktop entry of the Linux archive (`block-viewer.desktop`; its icon is the colour logo of `assets/branding/`)
 ├─ packaging/macos/            `Info.plist` of `Block Viewer.app` (its texts translated in `*.lproj/InfoPlist.strings`) and the entitlements of its hardened runtime; `scripts/package-macos.ps1` builds the bundle, the release signs it
-├─ scripts/                     tools for agents and humans (PowerShell)
+├─ scripts/                     build, package, and maintainer tools (PowerShell)
 │  ├─ automation-window-border.ps1 dashed yellow outline of the automated-test windows (Windows)
-│  └─ tools/                    aurora-tools: menu, interface (ui), checks and repair (checks), actions, live PRs (prs), releases, reset (reset), Claude Code permissions (claude)
+│  └─ tools/                    Block Tools menu: interface (ui), checks, actions, PRs, releases, reset
 └─ .github/                     CI and wiki publication (workflows/, actions/), release and nightly betas, PR template, Dependabot
 ```
 
@@ -1568,11 +1568,11 @@ Next to the repository (outside git), in the project folder installed by the
 one-line command (`scripts/setup.ps1`, then the tools):
 
 ```
-<project folder>\               for example C:\Aurora-Viewer
+<project folder>\               for example a local Block Viewer workspace
 ├─ block-viewer\               the repository
 ├─ phoenix-firestorm\           official Firestorm sources (read-only)
 ├─ RELEASE\                     --release build of the latest main (scripts/build-release.ps1)
-└─ work\                        one git worktree per agent task
+└─ work\                        optional local worktrees
 ```
 
 ## The crates

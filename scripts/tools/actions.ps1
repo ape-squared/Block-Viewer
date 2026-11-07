@@ -56,15 +56,14 @@ function Invoke-DebugViewer {
     }
 }
 
-# Demo scenarios switched on with "=1", configured via AURORA_DEMO_* environment variables.
+# Demo scenarios switched on with "=1" via AURORA_DEMO_* environment variables.
+# Labels are hardcoded here; the old docs/TESTING.md catalogue was removed.
 function Get-DemoScenarios {
-    $switches = Join-Path $Paths.Repo 'docs\TESTING.md'
-    if (-not (Test-Path $switches)) { return @() }
-    Get-Content $switches -Encoding UTF8 | ForEach-Object {
-        if ($_ -match '^\| `(AURORA_DEMO_[A-Z_]+)=1`[^|]*\| ([^|]+)\|') {
-            [pscustomobject]@{ Var = $Matches[1]; Label = $Matches[2].Trim() }
-        }
-    }
+    @(
+        [pscustomobject]@{ Var = 'AURORA_DEMO_OPTIONS'; Label = 'Preferences / options' }
+        [pscustomobject]@{ Var = 'AURORA_DEMO_MAP'; Label = 'Map' }
+        [pscustomobject]@{ Var = 'AURORA_DEMO_UPDATE'; Label = 'Updater (no download)' }
+    )
 }
 
 function Invoke-Demo {

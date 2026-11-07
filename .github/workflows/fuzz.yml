@@ -2,7 +2,7 @@ name: Fuzz
 
 # Coverage-guided fuzzing (libFuzzer, through cargo-fuzz on nightly Rust) of
 # the readers of untrusted data: assets and messages any resident or
-# simulator can send (fuzz/, docs/TESTING.md "Fuzzing"). Every night, each
+# simulator can send (fuzz/). Every night, each
 # target runs for a fixed time from its corpus, kept between runs; an input
 # that panics, hangs, overflows memory or trips AddressSanitizer (OpenJPEG
 # is C) fails the job and is uploaded as an artifact. Never a check of pull

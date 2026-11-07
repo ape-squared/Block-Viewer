@@ -56,7 +56,7 @@ function Invoke-DebugViewer {
     }
 }
 
-# Demo scenarios switched on with "=1", read from the tables of docs/TESTING.md.
+# Demo scenarios switched on with "=1", configured via AURORA_DEMO_* environment variables.
 function Get-DemoScenarios {
     $switches = Join-Path $Paths.Repo 'docs\TESTING.md'
     if (-not (Test-Path $switches)) { return @() }

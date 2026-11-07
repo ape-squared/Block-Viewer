@@ -1,5 +1,5 @@
 # Fuzzing of the readers of untrusted data: assets and messages that any
-# resident or simulator can send (docs/TESTING.md, "Fuzzing"). Its own
+# resident or simulator can send (fuzz/). Its own
 # workspace, outside the viewer's: normal builds and check.ps1 never compile
 # it. The `fuzz-local` runner works on stable Rust (Windows included); the
 # libFuzzer targets of fuzz_targets/ need nightly and `cargo fuzz`

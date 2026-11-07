@@ -108,7 +108,7 @@ function New-AuroraRelease($Repo) {
     foreach ($p in $ctx.Prs) { $t = Get-PrType $p; $types[$t] = 1 + [int]$types[$t] }
     $summary = (($types.GetEnumerator() | Sort-Object Name | ForEach-Object { "$($_.Value) $($_.Name)" }) -join ', ')
     if (-not $summary) { $summary = 'no PR' }
-    # SemVer before 1.0 (AGENTS.md): a new feature or a break bumps MINOR, the rest PATCH
+    # SemVer before 1.0: a new feature or a break bumps MINOR, the rest PATCH
     $minor = "v$($base.Major).$($base.Minor + 1).0"
     $patch = "v$($base.Major).$($base.Minor).$($base.Patch + 1)"
     $major = "v$($base.Major + 1).0.0"

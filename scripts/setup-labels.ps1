@@ -3,7 +3,7 @@
     Creates (or updates) the labels on GitHub: types, for PRs only, areas,
     for PRs and issues, on-hold, for PRs only, and crash-triaged, set on
     issues by the Crash triage workflow. The nature of an issue is its issue type (Bug,
-    Feature, Task, Epic; AGENTS.md section 15). Keeps the other labels and
+    Feature, Task, Epic). Keeps the other labels and
     their history. A
     label still under its former French name (Was) is renamed, so the PRs
     that carry it keep it. Run again when the list changes.
@@ -43,7 +43,7 @@ $labels = @(
     @{ Name = 'inventory'; Color = 'AAAAAA'; Desc = 'Inventory window, folders and items' },
     @{ Name = 'build-tools'; Was = 'construction'; Color = 'FCD34D'; Desc = 'In-world building and editing tools' },
     @{ Name = 'tooling'; Was = 'outillage'; Color = '6F7BA0'; Desc = 'GitHub repository, CI, scripts and development environment' },
-    # state of a PR (AGENTS.md section 9): hidden from the Aurora Tools PR panel
+    # state of a PR: hidden from the Aurora Tools PR panel
     @{ Name = 'on-hold'; Color = '94A3B8'; Desc = 'PR paused by a maintainer: not reviewed nor merged until the label is removed' },
     # crash report signed by the Crash triage workflow (docs/BUG_REPORTING.md)
     @{ Name = 'crash-triaged'; Color = '94A3B8'; Desc = 'Crash report signed by the Crash triage workflow (set by the workflow)' }

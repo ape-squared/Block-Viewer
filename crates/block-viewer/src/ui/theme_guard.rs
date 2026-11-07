@@ -1,4 +1,4 @@
-//! Guard of the interface rules (AGENTS.md, section 7): the sources of the
+//! Guard of the interface rules (theme rules): the sources of the
 //! interface are read by a test, which fails when a window styles itself
 //! instead of taking the Aurora theme:
 //!
@@ -406,8 +406,8 @@ fn windows_take_their_appearance_from_the_theme() {
     }
     assert!(
         violations.is_empty(),
-        "the interface styles itself instead of taking the Aurora theme (AGENTS.md, section 7 \"Interface et branding\", \
-         and docs/BRANDING.md: shared widgets of ui/widgets.rs, radii of the theme, colors of the Palette):\n{}\n\
+        "the interface styles itself instead of taking the theme (docs/BRANDING.md: shared widgets of ui/widgets.rs, \
+         radii of the theme, colors of the Palette):\n{}\n\
          If a shared widget itself must wrap the stock one, or a file paints content by nature (a map), add the file to \
          ALLOWED in ui/theme_guard.rs with the reason. If one radius or color is content rather than chrome (a legend, \
          a fixed badge color), end its line with `{MARKER} content — the reason`, or put that comment alone on the line above.",

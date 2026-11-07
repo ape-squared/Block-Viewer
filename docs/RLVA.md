@@ -342,7 +342,7 @@ one of two issuers, then global disable while a response is pending.
   reattachment across crossings, and relogin from a locked session. Verify
   disabling releases every restriction and cancels the next-login override.
 
-Keep these checks open in TASKS.md and #687 after integration. No grid
+Keep these checks open against #687 after integration. No grid
 connection or credentials are needed for offline tests.
 
 ## Offline validation

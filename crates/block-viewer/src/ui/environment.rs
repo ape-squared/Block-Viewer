@@ -40,8 +40,8 @@ const SLIDER_SCALE_GLOW_B: f32 = -5.0;
 /// F_APPROXIMATELY_ZERO (llmath.h).
 const APPROXIMATELY_ZERO: f32 = 0.00001;
 
-const LABEL_W: f32 = 74.0;
-const COMBO_W: f32 = 216.0;
+const LABEL_W: f32 = 118.0;
+const COMBO_W: f32 = 200.0;
 /// Height of a list's entries under its search field.
 const LIST_H: f32 = 420.0;
 

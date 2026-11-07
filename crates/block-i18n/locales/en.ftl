@@ -7814,7 +7814,7 @@ hud-move-locked = Lock quick movement
 hud-local-scale-reset = Reset to 100%
 hud-local-scale-forget = Forget saved size
 hud-local-scale-help = Hold the HUD key: left drag to move, wheel to resize, Shift for finer steps. Size is saved on this PC by name and creator, for this account. While editing a HUD, the wheel without this key zooms the view of all HUDs.
-cli-help = { "Block Viewer\u000A\u000AUsage: block-viewer [--title <text>] [--fps-limit <fps>] [--vr] [--language <code>] [--grid <name>]\u000A                     [--login <first> <last> <password>] [--version] [--uninstall] [<slurl>]\u000A\u000A  --title <text>   Name this window (\"Block Viewer <version> - <text>\") and its log\u000A                   file (aurora-<text>.log, aurora-demo-<text>.log in demo mode)\u000A  --fps-limit <fps>  Cap this process at 1..500 FPS without saving preferences\u000A  --language <code>  Override this process's UI language (" }{ $languages }{ ")\u000A  --grid <name>    Start on agni, aditi, a saved grid name or a login URI (also --loginuri <uri>)\u000A  --login <first> <last> <password>  Log in with this account at once\u000A  <slurl>, --url <slurl>  Start at this place; nothing after it is read. A viewer\u000A                   already running receives it instead\u000A  --vr             Enter VR once the world shows (headset connected)\u000A  -V, --version   Show the compiled viewer version without starting it\u000A  --uninstall      Remove what Block Viewer registered outside its folders (link handler,\u000A                   credential store, Blender add-on), print it and the folders left, then exit\u000A  -h, --help       Show this help\u000A\u000ATest switches are environment variables (AURORA_DEMO=1, AURORA_CAPTURE=...):\u000Asee README.md." }
+cli-help = { "Block Viewer\u000A\u000AUsage: block-viewer [--title <text>] [--fps-limit <fps>] [--vr] [--language <code>] [--grid <name>]\u000A                     [--login <first> <last> <password>] [--version] [--uninstall] [<slurl>]\u000A\u000A  --title <text>   Name this window (\"Block Viewer <version> - <text>\") and its log\u000A                   file (block-<text>.log, block-demo-<text>.log in demo mode)\u000A  --fps-limit <fps>  Cap this process at 1..500 FPS without saving preferences\u000A  --language <code>  Override this process's UI language (" }{ $languages }{ ")\u000A  --grid <name>    Start on agni, aditi, a saved grid name or a login URI (also --loginuri <uri>)\u000A  --login <first> <last> <password>  Log in with this account at once\u000A  <slurl>, --url <slurl>  Start at this place; nothing after it is read. A viewer\u000A                   already running receives it instead\u000A  --vr             Enter VR once the world shows (headset connected)\u000A  -V, --version   Show the compiled viewer version without starting it\u000A  --uninstall      Remove what Block Viewer registered outside its folders (link handler,\u000A                   credential store, Blender add-on), print it and the folders left, then exit\u000A  -h, --help       Show this help\u000A\u000ATest switches are environment variables (AURORA_DEMO=1, AURORA_CAPTURE=...):\u000Asee README.md." }
 demo-media-page = { "data:text/html;charset=utf-8,<html><body style='margin:0;height:100vh;background:linear-gradient(135deg,%232a1f4a,%230f6d6d);color:white;font:56px sans-serif;text-align:center'><h1 style='margin:40px 0 10px'>Block Viewer media</h1><p id='t' style='font-size:90px;margin:10px'>--</p><button onclick=\"document.body.style.background='%237a3b9c';this.textContent='Clicked!'\" style='font-size:48px;padding:10px 40px'>Click</button><br><input placeholder='Type here' style='font-size:44px;margin-top:30px;width:70%'><script>setInterval(function(){document.getElementById('t').textContent=new Date().toLocaleTimeString()},250)</script></body></html>" }
 
 # Secondary labels and status messages
@@ -13437,3 +13437,57 @@ ui-options-block-animation-clock-legacy = Legacy
 ui-options-block-avatar-plates = Avatar plates
 ui-options-block-building = Building
 ui-options-block-bridge = Block bridge
+
+# Restored Block keys dropped during the Aurora sync
+
+common-height = Height
+
+common-width = Width
+
+photo-light-sun-reset = Back to the sun of your environment
+
+photo-vf-folder = Folder
+
+photo-vf-last-photo = Last photo
+
+photo-vf-saved = Photo saved
+
+shape-t-pose = T-pose
+
+ui-options-force-window-size = Force window size
+
+ui-options-force-window-size-hint = Fixed logical size for recording or tests. Set width and height to 0 to use the normal remembered size.
+
+ui-options-lovense = Lovense
+
+ui-options-lovense-chat = Chat commands
+
+ui-options-lovense-chat-help = Allow /blocktoy vibrate|stop|list (and /lovense) in nearby chat and IMs you type
+
+ui-options-lovense-enable = Enable Lovense
+
+ui-options-lovense-enable-help = Allow Block Viewer to send commands to toys through Lovense Connect
+
+ui-options-lovense-endpoint = Connect URL
+
+ui-options-lovense-endpoint-help = Blank uses http://127.0.0.1:20010/command then the HTTPS default
+
+ui-options-lovense-help = Talks to Lovense Connect / Remote on this PC only (localhost). Off by default. Requires the Lovense app with LAN / Game Mode enabled.
+
+ui-options-lovense-max = Max strength
+
+ui-options-lovense-max-help = Cap vibrate strength from 1 to 20
+
+ui-options-prevent-display-sleep = Prevent display sleep
+
+ui-options-prevent-display-sleep-hint = Keep the screen awake (useful during long voice sessions without mouse or keyboard input).
+
+update-check-from-github = Checks GitHub Releases at { $page }. Use Help › Check for updates, or the login / top-bar update control.
+
+voice-morphing = Voice morphing
+
+voice-morphing-effect = Voice effect
+
+voice-morphing-effect-hint = Legacy Voice Morphing: choose a voice font when Vivox offers it. Off leaves your natural voice.
+
+voice-morphing-none = No morphing

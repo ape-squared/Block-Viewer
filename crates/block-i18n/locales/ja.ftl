@@ -7804,7 +7804,7 @@ hud-move-locked = クイック移動をロック
 hud-local-scale-reset = １００％にリセット
 hud-local-scale-forget = 保存したサイズを消去
 hud-local-scale-help = ＨＵＤでキーを押したまま、左ドラッグで移動、ホイールでサイズ変更、Shiftでより細かく調整します。サイズは名前と制作者ごとに、このアカウント用としてこのＰＣに保存されます。ＨＵＤの編集中は、このキーを押さずにホイールを回すとすべてのＨＵＤの表示がズームします。
-cli-help = { "Block Viewer\u000A\u000A使い方：block-viewer [--title <text>] [--fps-limit <fps>] [--vr] [--language <code>] [--grid <name>]\u000A                     [--login <first> <last> <password>] [--version] [--uninstall] [<slurl>]\u000A\u000A  --title <text>   このウィンドウ（\"Block Viewer <version> - <text>\"）とログファイル\u000A                   （aurora-<text>.log、デモモードでは aurora-demo-<text>.log）に名前を付ける\u000A  --fps-limit <fps>  初期設定を保存せずに、このプロセスを1～500 ＦＰＳに制限する\u000A  --language <code>  このプロセスのＵＩ言語を上書きする（" }{ $languages }{ "）\u000A  --grid <name>    agni、aditi、保存されたグリッド名、またはログインＵＲＩで起動する（--loginuri <uri> も可）\u000A  --login <first> <last> <password>  このアカウントですぐにログインする\u000A  <slurl>, --url <slurl>  この場所から開始する。以降の引数は読み込まれない。すでに\u000A                   起動しているビューアがあれば、そちらが受け取る\u000A  --vr             ワールドが表示されたらVRに入ります（ヘッドセット接続時）\u000A  -V, --version   起動せずにコンパイルされたビューアのバージョンを表示する\u000A  --uninstall      Block Viewerがフォルダの外に登録したもの（リンクハンドラ、資格情報ストア、\u000A                   Blenderアドオン）を削除し、その内容と残りのフォルダを表示して終了する\u000A  -h, --help       このヘルプを表示する\u000A\u000Aテスト用のスイッチは環境変数です（AURORA_DEMO=1、AURORA_CAPTURE=...）：\u000AREADME.md を参照してください。" }
+cli-help = { "Block Viewer\u000A\u000A使い方：block-viewer [--title <text>] [--fps-limit <fps>] [--vr] [--language <code>] [--grid <name>]\u000A                     [--login <first> <last> <password>] [--version] [--uninstall] [<slurl>]\u000A\u000A  --title <text>   このウィンドウ（\"Block Viewer <version> - <text>\"）とログファイル\u000A                   （block-<text>.log、デモモードでは block-demo-<text>.log）に名前を付ける\u000A  --fps-limit <fps>  初期設定を保存せずに、このプロセスを1～500 ＦＰＳに制限する\u000A  --language <code>  このプロセスのＵＩ言語を上書きする（" }{ $languages }{ "）\u000A  --grid <name>    agni、aditi、保存されたグリッド名、またはログインＵＲＩで起動する（--loginuri <uri> も可）\u000A  --login <first> <last> <password>  このアカウントですぐにログインする\u000A  <slurl>, --url <slurl>  この場所から開始する。以降の引数は読み込まれない。すでに\u000A                   起動しているビューアがあれば、そちらが受け取る\u000A  --vr             ワールドが表示されたらVRに入ります（ヘッドセット接続時）\u000A  -V, --version   起動せずにコンパイルされたビューアのバージョンを表示する\u000A  --uninstall      Block Viewerがフォルダの外に登録したもの（リンクハンドラ、資格情報ストア、\u000A                   Blenderアドオン）を削除し、その内容と残りのフォルダを表示して終了する\u000A  -h, --help       このヘルプを表示する\u000A\u000Aテスト用のスイッチは環境変数です（AURORA_DEMO=1、AURORA_CAPTURE=...）：\u000AREADME.md を参照してください。" }
 demo-media-page = { "data:text/html;charset=utf-8,<html><body style='margin:0;height:100vh;background:linear-gradient(135deg,%232a1f4a,%230f6d6d);color:white;font:56px sans-serif;text-align:center'><h1 style='margin:40px 0 10px'>Blockメディア</h1><p id='t' style='font-size:90px;margin:10px'>--</p><button onclick=\"document.body.style.background='%237a3b9c';this.textContent='クリックされました！'\" style='font-size:48px;padding:10px 40px'>クリック</button><br><input placeholder='ここに記入' style='font-size:44px;margin-top:30px;width:70%'><script>setInterval(function(){document.getElementById('t').textContent=new Date().toLocaleTimeString()},250)</script></body></html>" }
 
 # Secondary labels and status messages
@@ -13410,3 +13410,57 @@ ui-options-block-animation-clock-legacy = レガシー
 ui-options-block-avatar-plates = アバターのプレート
 ui-options-block-building = 建築
 ui-options-block-bridge = Blockブリッジ
+
+# Restored Block keys dropped during the Aurora sync
+
+common-height = 高さ
+
+common-width = 幅
+
+photo-light-sun-reset = 自分の環境の太陽に戻す
+
+photo-vf-folder = フォルダ
+
+photo-vf-last-photo = 最後の写真
+
+photo-vf-saved = 写真を保存しました
+
+shape-t-pose = Ｔポーズ
+
+ui-options-force-window-size = ウィンドウサイズを固定
+
+ui-options-force-window-size-hint = 録画やテスト用の論理サイズ。幅と高さを 0 にすると通常の記憶サイズです。
+
+ui-options-lovense = Lovense
+
+ui-options-lovense-chat = チャットコマンド
+
+ui-options-lovense-chat-help = 近隣チャットと自分のＩＭで /blocktoy vibrate|stop|list（および /lovense）を許可します
+
+ui-options-lovense-enable = Lovense を有効にする
+
+ui-options-lovense-enable-help = Lovense Connect 経由で Block Viewer からおもちゃへ命令を送ることを許可します
+
+ui-options-lovense-endpoint = Connect の URL
+
+ui-options-lovense-endpoint-help = 空欄だと http://127.0.0.1:20010/command、その後デフォルトの HTTPS を使います
+
+ui-options-lovense-help = このＰＣ上の Lovense Connect／Remote（localhost）にだけ接続します。既定はオフ。LAN／Game Mode を有効にした Lovense アプリが必要です。
+
+ui-options-lovense-max = 最大強度
+
+ui-options-lovense-max-help = バイブ強度を 1〜20 に制限します
+
+ui-options-prevent-display-sleep = ディスプレイのスリープを防ぐ
+
+ui-options-prevent-display-sleep-hint = 画面を起こしたままにします（音声通話中など、マウスやキーボードを使わないとき向け）。
+
+update-check-from-github = GitHub Releases（{ $page }）を確認します。ヘルプの「更新を確認」、またはログイン／上部バーの更新から。
+
+voice-morphing = ボイスモーフィング
+
+voice-morphing-effect = ボイス効果
+
+voice-morphing-effect-hint = Legacy の Voice Morphing。Vivox のボイスフォントがあるとき選べます。オフは地声のままです。
+
+voice-morphing-none = モーフィングなし

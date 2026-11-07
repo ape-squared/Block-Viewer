@@ -308,7 +308,7 @@ pub fn page(cx: &mut Cx, tab: usize) {
                     tr!("ui-options-colored-sky-ambient"),
                     tr!("ui-options-colored-sky-ambient-help"),
                     &field!(colored_sky_ambient),
-                    &[(true, aurora, true), (false, tr!("ui-options-aurora-classic"), false)],
+                    &[(true, aurora, true), (false, tr!("ui-options-block-classic"), false)],
                 );
             });
             cx.group(tr!("common-interface"), |cx| {

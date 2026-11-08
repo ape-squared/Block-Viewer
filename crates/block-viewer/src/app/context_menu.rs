@@ -813,7 +813,9 @@ impl App {
                 }
             }
             CtxAction::PoseAvatar(id) => {
-                self.ik_editor.pose_avatar_from_menu(&self.world, id);
+                if let Some(key) = self.ik_editor.pose_avatar_from_menu(&self.world, id) {
+                    self.world.system_message(block_i18n::text(key));
+                }
             }
             CtxAction::TeleportToAvatar(id) | CtxAction::ShowOnMap(id) => {
                 let teleport = matches!(act, CtxAction::TeleportToAvatar(_));

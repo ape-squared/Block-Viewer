@@ -22,13 +22,14 @@ const OLD_NAMES: &[&str] = &["#Aurora Bridge v1.0"];
 pub const NAME: &str = "#Block Bridge v1.0";
 // Stable inventory/script names let upgrades replace the existing controller
 // instead of wearing two bridges with competing physics.
-const VERSION: &str = "1.41";
+const VERSION: &str = "1.42";
 /// The controller's and query script's owner-say tags, never shown in chat.
-const PRIVATE_TAGS: [&str; 7] = [
+const PRIVATE_TAGS: [&str; 8] = [
     "<auroraBridge>",
     "<auroraBridgeQuery>",
     "<auroraPose>",
     "<auroraPortal>",
+    "<auroraBlock>",
     "<auroraMoveLock>",
     "<auroraBridgeError>",
     "<auroraBridgeStatus>",
@@ -1450,6 +1451,20 @@ impl Bridge {
                             consent.sync(world, now);
                             consent.receive(world, &chat.message, now);
                             world.poser_consent = consent;
+                        }
+                        if let Some(peer) = chat
+                            .message
+                            .strip_prefix("<auroraBlock>")
+                            .and_then(|s| s.strip_suffix("</auroraBlock>"))
+                            .and_then(|s| Uuid::parse_str(s.trim()).ok())
+                            .filter(|peer| !peer.is_nil() && *peer != world.agent_id)
+                            && world
+                                .objects
+                                .index_of_uuid(&self.object)
+                                .and_then(|i| world.objects.get(i))
+                                .is_some_and(|o| Some(o.key.region) == world.main_region)
+                        {
+                            crate::world::block_peers::note_live(peer, now);
                         }
                         if let Some(boot) = boot_status(&chat.message, self.folder)
                             && world

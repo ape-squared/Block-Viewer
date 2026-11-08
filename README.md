@@ -21,9 +21,9 @@ A Windows Second Life® client with a Vulkan renderer. Source and releases are p
 
 Block Viewer is a **hobby fork** for friends and engineers who like open source. We ship builds when something useful lands; we are **not** trying to replace or compete with other viewers.
 
-### Built on Block Viewer
+### Built on Aurora Viewer
 
-This codebase starts from the open-source **[Block Viewer](https://github.com/Aurora-Viewer/Aurora-Viewer)** project (engine, protocol work, GPL lineage). We are grateful for that work.
+This codebase starts from the open-source **[Aurora Viewer](https://github.com/Aurora-Viewer/Aurora-Viewer)** project (engine, protocol work, GPL lineage). We are grateful for that work.
 
 - Block is a **separate product and brand** — skins, packaging, and direction of our own.
 - It is **not** an official Aurora release and is **not** affiliated with the Block Viewer team.
@@ -81,22 +81,31 @@ Dev helpers: `block-tools.cmd` (Block Tools). Old `aurora-tools.cmd` still launc
 Readable on the site: [Docs](https://ape-squared.github.io/Block-Viewer/docs/).
 Markdown sources stay in `docs/` (and refresh the site + wiki on push).
 
-**Testers** — [Reporting bugs](https://ape-squared.github.io/Block-Viewer/docs/reporting-bugs/),
-[Linux](https://ape-squared.github.io/Block-Viewer/docs/linux/),
-[macOS](https://ape-squared.github.io/Block-Viewer/docs/macos/),
-[Updates](https://ape-squared.github.io/Block-Viewer/docs/updates/),
-[Imports](https://ape-squared.github.io/Block-Viewer/docs/imports/),
-[LiveMesh](https://ape-squared.github.io/Block-Viewer/docs/livemesh/),
-[Hand contacts](https://ape-squared.github.io/Block-Viewer/docs/hand-contacts/),
-[IK Edit](https://ape-squared.github.io/Block-Viewer/docs/ik-edit/),
-[Animations](https://ape-squared.github.io/Block-Viewer/docs/animation-creation/),
-[Poser](https://ape-squared.github.io/Block-Viewer/docs/poser/)
+**Testers**
 
-**Contributing** — [Translating](https://ape-squared.github.io/Block-Viewer/docs/translating/),
-[Branding](https://ape-squared.github.io/Block-Viewer/docs/branding/)
+- [Reporting bugs](https://ape-squared.github.io/Block-Viewer/docs/reporting-bugs/)
+- [Installing on Linux](https://ape-squared.github.io/Block-Viewer/docs/linux/)
+- [Experimental VR](https://ape-squared.github.io/Block-Viewer/docs/vr/)
+- [Experimental Windows VR](https://ape-squared.github.io/Block-Viewer/docs/windows-vr/)
+- [Installing on macOS](https://ape-squared.github.io/Block-Viewer/docs/macos/)
+- [Updates](https://ape-squared.github.io/Block-Viewer/docs/updates/)
+- [Asset imports](https://ape-squared.github.io/Block-Viewer/docs/imports/)
+- [LiveMesh](https://ape-squared.github.io/Block-Viewer/docs/livemesh/)
+- [Motorcycle hand contacts](https://ape-squared.github.io/Block-Viewer/docs/hand-contacts/)
+- [IK Edit and bone contacts](https://ape-squared.github.io/Block-Viewer/docs/ik-edit/)
+- [Create native animations](https://ape-squared.github.io/Block-Viewer/docs/animation-creation/)
+- [Local photo poser](https://ape-squared.github.io/Block-Viewer/docs/poser/)
+- [Dev Toolbox](https://ape-squared.github.io/Block-Viewer/docs/dev-toolbox/)
 
-**Technical** — [RLVa](https://ape-squared.github.io/Block-Viewer/docs/rlva/),
-[Licences](https://ape-squared.github.io/Block-Viewer/docs/licences/)
+**Contributing**
+
+- [Translating the viewer](https://ape-squared.github.io/Block-Viewer/docs/translating/)
+- [Branding and interface](https://ape-squared.github.io/Block-Viewer/docs/branding/)
+
+**Technical**
+
+- [RLVa implementation status](https://ape-squared.github.io/Block-Viewer/docs/rlva/)
+- [Licences and notices](https://ape-squared.github.io/Block-Viewer/docs/licences/)
 
 ---
 

@@ -38,6 +38,7 @@ $pages = @(
     @{ Section = 'For testers'; Page = 'IK-Edit'; Title = 'IK Edit and bone contacts'; Source = 'docs/IK_EDIT.md' }
     @{ Section = 'For testers'; Page = 'Animation-creation'; Title = 'Create native animations'; Source = 'docs/ANIMATION_CREATION.md' }
     @{ Section = 'For testers'; Page = 'Poser'; Title = 'Local photo poser'; Source = 'docs/POSER.md' }
+    @{ Section = 'For testers'; Page = 'Dev-Toolbox'; Title = 'Dev Toolbox'; Source = 'docs/DEV_TOOLBOX.md' }
     @{ Section = 'Contributing'; Page = 'Translating'; Title = 'Translating the viewer'; Source = 'docs/TRANSLATING.md' }
     @{ Section = 'Contributing'; Page = 'Branding'; Title = 'Branding and interface'; Source = 'docs/BRANDING.md' }
     @{ Section = 'Technical'; Page = 'RLVa'; Title = 'RLVa implementation status'; Source = 'docs/RLVA.md' }

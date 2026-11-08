@@ -252,6 +252,85 @@ pub(super) fn page(cx: &mut Cx) {
             );
         });
     });
+    // Medal.tv Auto Clipping (local desktop app on 127.0.0.1:12665).
+    cx.group(tr!("ui-options-medal-tv"), |cx| {
+        cx.note(tr!("ui-options-medal-tv-help"));
+        cx.toggle(
+            tr!("ui-options-medal-tv-enabled"),
+            tr!("ui-options-medal-tv-enabled-help"),
+            &field!(medal.enabled),
+        );
+        let off = !cx.s.medal.enabled;
+        cx.subs(off, |cx| {
+            cx.row(
+                tr!("ui-options-medal-tv-public-key"),
+                tr!("ui-options-medal-tv-public-key-help"),
+                &field!(medal.public_key),
+                |ui, s| {
+                    ui.add(
+                        egui::TextEdit::singleline(&mut s.medal.public_key)
+                            .hint_text("publicKey")
+                            .password(true)
+                            .desired_width(280.0),
+                    )
+                    .changed()
+                },
+            );
+            cx.row(
+                tr!("ui-options-medal-tv-event-id"),
+                tr!("ui-options-medal-tv-event-id-help"),
+                &field!(medal.event_id),
+                |ui, s| {
+                    ui.add(egui::TextEdit::singleline(&mut s.medal.event_id).desired_width(80.0))
+                        .changed()
+                },
+            );
+            cx.row(
+                tr!("ui-options-medal-tv-event-name"),
+                tr!("ui-options-medal-tv-event-name-help"),
+                &field!(medal.event_name),
+                |ui, s| {
+                    ui.add(
+                        egui::TextEdit::singleline(&mut s.medal.event_name)
+                            .desired_width(200.0)
+                            .char_limit(40),
+                    )
+                    .changed()
+                },
+            );
+            cx.row(
+                tr!("ui-options-medal-tv-duration"),
+                tr!("ui-options-medal-tv-duration-help"),
+                &field!(medal.duration_secs),
+                |ui, s| {
+                    let mut n = s.medal.duration_secs;
+                    let ch = ui
+                        .add(egui::Slider::new(&mut n, 5..=120).suffix(" s").trailing_fill(true))
+                        .changed();
+                    s.medal.duration_secs = n;
+                    ch
+                },
+            );
+            cx.row(
+                tr!("ui-options-medal-tv-delay"),
+                tr!("ui-options-medal-tv-delay-help"),
+                &field!(medal.capture_delay_ms),
+                |ui, s| {
+                    let mut n = s.medal.capture_delay_ms;
+                    let ch = ui
+                        .add(egui::Slider::new(&mut n, 0..=10_000).suffix(" ms").trailing_fill(true))
+                        .changed();
+                    s.medal.capture_delay_ms = n;
+                    ch
+                },
+            );
+            cx.toggle(
+                tr!("ui-options-medal-tv-clip-on-photo"),
+                tr!("ui-options-medal-tv-clip-on-photo-help"),
+                &field!(medal.clip_on_photo),
+            );
+        });
+    });
     // Advanced › Quiet Snapshots of the Legacy Viewer (PlayModeUISndSnapshot):
     // no shutter heard around nor snapshot animation seen
     cx.group(tr!("ui-options-privacy-photos"), |cx| {

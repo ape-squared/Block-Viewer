@@ -483,6 +483,9 @@ pub struct Settings {
     /// Discord Rich Presence (Legacy Viewer Comm › Discord).
     #[serde(default)]
     pub discord: crate::discord_presence::Settings,
+    /// Medal.tv Auto Clipping (local desktop app).
+    #[serde(default)]
+    pub medal: crate::medal_tv::Settings,
     /// Friends tab of the People window.
     pub friends_list: crate::ui::people::FriendsSettings,
     pub inventory: crate::ui::inventory::InventoryPreferences,
@@ -1816,6 +1819,7 @@ impl Default for Settings {
             contacts: Default::default(),
             radar: Default::default(),
             discord: Default::default(),
+            medal: Default::default(),
             friends_list: Default::default(),
             inventory: Default::default(),
             texture_library: Default::default(),

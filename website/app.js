@@ -1,23 +1,30 @@
 (() => {
   const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
+  // Tall blocks (full docs articles) can never meet a fractional threshold while
+  // only a slice of them fits the viewport — they would stay opacity:0 forever.
   const reveals = document.querySelectorAll(".reveal");
+  const show = (el) => el.classList.add("is-in");
   if (reduce) {
-    reveals.forEach((el) => el.classList.add("is-in"));
+    reveals.forEach(show);
   } else if ("IntersectionObserver" in window) {
+    const vh = () => window.innerHeight || document.documentElement.clientHeight || 800;
     const io = new IntersectionObserver(
       (entries) => {
         for (const e of entries) {
           if (!e.isIntersecting) continue;
-          e.target.classList.add("is-in");
+          show(e.target);
           io.unobserve(e.target);
         }
       },
-      { rootMargin: "0px 0px -8% 0px", threshold: 0.12 }
+      { rootMargin: "0px 0px -8% 0px", threshold: 0 }
     );
-    reveals.forEach((el) => io.observe(el));
+    reveals.forEach((el) => {
+      if (el.getBoundingClientRect().height > vh() * 0.85) show(el);
+      else io.observe(el);
+    });
   } else {
-    reveals.forEach((el) => el.classList.add("is-in"));
+    reveals.forEach(show);
   }
 
   // Steps get the edge mark when they enter view

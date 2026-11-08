@@ -22,7 +22,7 @@ PAGES: list[dict] = [
     {"section": "For testers", "page": "Installing-on-macOS", "title": "Installing on macOS", "source": "docs/MACOS.md"},
     {"section": "For testers", "page": "Updates", "title": "Updates", "source": "docs/UPDATES.md"},
     {"section": "For testers", "page": "Asset-imports", "title": "Asset imports", "source": "docs/IMPORTS.md"},
-    {"section": "For testers", "page": "Blender-Live", "title": "LiveMesh", "source": "docs/BLENDER_LIVE.md"},
+    {"section": "For testers", "page": "LiveMesh", "title": "LiveMesh", "source": "docs/BLENDER_LIVE.md"},
     {"section": "For testers", "page": "Hand-contacts", "title": "Motorcycle hand contacts", "source": "docs/HAND_CONTACTS.md"},
     {"section": "For testers", "page": "IK-Edit", "title": "IK Edit and bone contacts", "source": "docs/IK_EDIT.md"},
     {"section": "For testers", "page": "Animation-creation", "title": "Create native animations", "source": "docs/ANIMATION_CREATION.md"},

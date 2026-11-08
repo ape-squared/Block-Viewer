@@ -1170,8 +1170,10 @@ const SPECULAR_AA: u32 = 0x8000u;
 // variance a normal map's coarser mips lose (their averaged normals are
 // shorter than 1: Toksvig) joins it; a normal a few percent short at its
 // finest level is the map's own quantization and is left out.
-const SPECULAR_AA_VARIANCE: f32 = 0.15;
-const SPECULAR_AA_THRESHOLD: f32 = 0.2;
+// Slightly stronger than the first ship so jewellery / metal shimmer is
+// visibly calmer when the preference is on (still capped by THRESHOLD).
+const SPECULAR_AA_VARIANCE: f32 = 0.22;
+const SPECULAR_AA_THRESHOLD: f32 = 0.28;
 const SPECULAR_AA_FLOOR: f32 = 0.001;
 const SPECULAR_AA_TOKSVIG_FROM: f32 = 0.985;
 

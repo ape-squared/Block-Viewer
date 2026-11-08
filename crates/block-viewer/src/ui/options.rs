@@ -661,6 +661,8 @@ pub enum Folder {
     ChatLogs,
     /// A Legacy Viewer's transcripts, to import.
     LegacyLogs,
+    /// Photos and in-viewer camera videos (Preferences › Graphics › Camera).
+    Photos,
 }
 
 /// The window that shows what will be imported.
@@ -687,7 +689,7 @@ const SLIDER_W: f32 = 150.0;
 const COMBO_W: f32 = 190.0;
 
 /// A path as shown in the preferences: elided to the width, whole on hover.
-fn path_label(ui: &mut egui::Ui, p: &Palette, dir: &std::path::Path, width: f32) {
+pub(super) fn path_label(ui: &mut egui::Ui, p: &Palette, dir: &std::path::Path, width: f32) {
     // without the verbatim prefix Windows gives a canonical path
     let path = dir.display().to_string();
     let path = path.strip_prefix(r"\\?\").unwrap_or(&path).to_owned();

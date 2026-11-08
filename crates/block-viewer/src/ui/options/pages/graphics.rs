@@ -4,8 +4,9 @@
 //! depth of field), smoothness and parcel visibility.
 
 use super::super::cx::{Cx, Nothing, field};
-use super::super::{COMBO_W, preset_choice, stepped, toggle};
-use egui::RichText;
+use super::super::{COMBO_W, Folder, FolderChoice, path_label, preset_choice, stepped, toggle};
+use crate::ui::widgets::{ActionKind, action_button};
+use egui::{RichText, Vec2};
 
 pub fn page(cx: &mut Cx, tab: usize) {
     use block_i18n::tr;
@@ -507,7 +508,7 @@ fn quality(cx: &mut Cx) {
             );
         });
     });
-    // the photo window's own switch, also here: a PC that crashes as soon
+    // the camera window's own switch, also here: a PC that crashes as soon
     // as the window opens with it on can still turn it off
     cx.group(tr!("photo-title"), |cx| {
         cx.toggle(tr!("photo-quality"), tr!("photo-quality-hint"), &field!(snapshot.quality));
@@ -515,6 +516,29 @@ fn quality(cx: &mut Cx) {
             tr!("photo-quality-off-after-crash"),
             tr!("photo-quality-off-after-crash-help"),
             &field!(snapshot.quality_off_after_crash),
+        );
+        let p = cx.p;
+        cx.below().row_with(
+            tr!("photo-folder"),
+            tr!("ui-options-photos-folder-help"),
+            &Nothing,
+            |ui, s, _, r| {
+                let dir = s.snapshot.folder();
+                let custom = s.snapshot.folder.is_some();
+                ui.vertical(|ui| {
+                    path_label(ui, &p, &dir, ui.available_width());
+                    ui.horizontal(|ui| {
+                        let size = Vec2::new(0.0, 24.0);
+                        if action_button(ui, &p, "folder-filled", tr!("ui-options-change-folder"), ActionKind::Flat, size).clicked() {
+                            r.folder = Some((Folder::Photos, FolderChoice::Pick));
+                        }
+                        if custom && action_button(ui, &p, "restore", tr!("ui-options-default-folder"), ActionKind::Flat, size).clicked() {
+                            r.folder = Some((Folder::Photos, FolderChoice::Default));
+                        }
+                    });
+                });
+                false
+            },
         );
     });
 }

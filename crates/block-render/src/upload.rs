@@ -261,23 +261,16 @@ impl StagingPool {
     pub fn new(device: &wgpu::Device, small: bool) -> Arc<Self> {
         static NEXT: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(1);
         let id = NEXT.fetch_add(1, Ordering::Relaxed);
-        let (count, chunk_bytes) = if small { CHUNKS_SMALL } else { CHUNKS };
-        let free = (0..count)
-            .map(|_| {
-                Arc::new(Chunk {
-                    buffer: device.create_buffer(&wgpu::BufferDescriptor {
-                        label: Some("streaming staging"),
-                        size: chunk_bytes,
-                        usage: wgpu::BufferUsages::MAP_WRITE | wgpu::BufferUsages::COPY_SRC,
-                        mapped_at_creation: true,
-                    }),
-                    pool: id,
-                    writers: AtomicU32::new(0),
-                    staged: AtomicU32::new(0),
-                    unmapped: AtomicBool::new(false),
-                })
+        let preferred = if small { CHUNKS_SMALL } else { CHUNKS };
+        let (count, chunk_bytes, free) = Self::build_free_chunks(device, id, preferred)
+            .or_else(|| {
+                log::warn!("staging: {}×{} MiB maps failed; trying tiny layout", preferred.0, preferred.1 >> 20);
+                Self::build_free_chunks(device, id, CHUNKS_TINY)
             })
-            .collect();
+            .unwrap_or_else(|| {
+                log::warn!("staging: no host-visible MAP_WRITE chunks; uploads use write_* fallback");
+                (0, preferred.1, Vec::new())
+            });
         Arc::new(StagingPool {
             id,
             state: Mutex::new(PoolState {
@@ -294,13 +287,13 @@ impl StagingPool {
 
     /// Build as many mapped chunks as the device accepts for `(count, size)`.
     /// `None` when every attempt failed (caller may try a smaller layout).
-    fn build_free_chunks(device: &wgpu::Device, (count, chunk_bytes): (usize, u64)) -> Option<(usize, u64, Vec<Arc<Chunk>>)> {
+    fn build_free_chunks(device: &wgpu::Device, pool: u64, (count, chunk_bytes): (usize, u64)) -> Option<(usize, u64, Vec<Arc<Chunk>>)> {
         let free: Vec<Arc<Chunk>> = (0..count)
             .filter_map(|_| {
                 let buffer = create_mapped_staging(device, chunk_bytes)?;
                 Some(Arc::new(Chunk {
                     buffer,
-                    pool: 0,
+                    pool,
                     writers: AtomicU32::new(0),
                     staged: AtomicU32::new(0),
                     unmapped: AtomicBool::new(false),

@@ -948,6 +948,11 @@ a.doc-link span {
   border-left-color: var(--signal);
 }
 .docs-article { max-width: 44rem; }
+/* Docs body must never wait on scroll-reveal — long guides exceed the viewport. */
+.docs-article.reveal {
+  opacity: 1;
+  transform: none;
+}
 .docs-article > h1 {
   font-size: clamp(1.85rem, 3.5vw, 2.6rem);
   margin: 0 0 1.25rem;

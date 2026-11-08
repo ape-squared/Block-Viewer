@@ -52,3 +52,6 @@ Thumbs.db
 
 # Per-task scratch files (agents)
 /.scratch/
+
+__pycache__/
+*.py[cod]

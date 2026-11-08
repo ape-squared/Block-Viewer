@@ -96,8 +96,8 @@ def rewrite_md_links(source: str, text: str) -> str:
 def chrome(title: str, active: str, body: str, *, hub: bool = False) -> str:
     # Hub lives at website/docs/; guides live one folder deeper.
     root = ".." if hub else "../.."
-    css = f"{root}/site.css?v=10"
-    js = f"{root}/app.js?v=9"
+    css = f"{root}/site.css?v=11"
+    js = f"{root}/app.js?v=10"
     mark = f"{root}/assets/mark.svg"
     home = f"{root}/"
     download = f"{root}/download/"
@@ -218,7 +218,7 @@ def guide_page(page: dict) -> str:
     body_html = re.sub(r"^<h1[^>]*>.*?</h1>\s*", "", body_html, count=1, flags=re.I | re.S)
     content = f"""    <div class="docs-with-side">
       {sidebar_html(page["slug"])}
-      <article class="prose docs-article reveal">
+      <article class="prose docs-article">
         <p class="eyebrow">{html.escape(page["section"] or "Guide")}</p>
         <h1>{html.escape(page["title"])}</h1>
         {body_html}

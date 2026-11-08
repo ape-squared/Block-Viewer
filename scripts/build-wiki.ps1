@@ -33,7 +33,7 @@ $pages = @(
     @{ Section = 'For testers'; Page = 'Installing-on-macOS'; Title = 'Installing on macOS'; Source = 'docs/MACOS.md' }
     @{ Section = 'For testers'; Page = 'Updates'; Title = 'Updates'; Source = 'docs/UPDATES.md' }
     @{ Section = 'For testers'; Page = 'Asset-imports'; Title = 'Asset imports'; Source = 'docs/IMPORTS.md' }
-    @{ Section = 'For testers'; Page = 'Blender-Live'; Title = 'LiveMesh'; Source = 'docs/BLENDER_LIVE.md' }
+    @{ Section = 'For testers'; Page = 'LiveMesh'; Title = 'LiveMesh'; Source = 'docs/BLENDER_LIVE.md' }
     @{ Section = 'For testers'; Page = 'Hand-contacts'; Title = 'Motorcycle hand contacts'; Source = 'docs/HAND_CONTACTS.md' }
     @{ Section = 'For testers'; Page = 'IK-Edit'; Title = 'IK Edit and bone contacts'; Source = 'docs/IK_EDIT.md' }
     @{ Section = 'For testers'; Page = 'Animation-creation'; Title = 'Create native animations'; Source = 'docs/ANIMATION_CREATION.md' }

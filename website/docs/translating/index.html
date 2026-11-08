@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Translating the viewer — Block Viewer</title>
+  <meta name="description" content="Translating the viewer — Block Viewer documentation.">
+  <link rel="canonical" href="https://ape-squared.github.io/Block-Viewer/docs/translating/">
+  <link rel="icon" href="../../assets/mark.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../../styles.css?v=8">
+</head>
+<body>
+  <a class="skip" href="#main">Skip to content</a>
+  <div class="atmosphere" aria-hidden="true"></div>
+  <header class="nav" data-nav>
+    <a class="brand" href="../../" aria-label="Block Viewer home">
+      <img src="../../assets/mark.svg" width="28" height="28" alt="">
+      <span>BLOCK</span>
+    </a>
+    <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="site-nav" data-nav-toggle>
+      <span class="nav-toggle-bar"></span>
+      <span class="sr-only">Menu</span>
+    </button>
+    <nav id="site-nav" class="nav-links" aria-label="Primary">
+      <a href="../../download/">Download</a>
+      <a href="../../#features">Features</a>
+      <a class="is-active" href="../../docs/">Docs</a>
+      <a href="../../foundation/">Foundation</a>
+    </nav>
+    <a class="btn btn-primary nav-cta" href="../../download/">Download</a>
+  </header>
+  <main id="main" class="section page-shell docs-layout">
+    <div class="docs-with-side">
+      <aside class="docs-side" aria-label="Guides">
+<p class="docs-side-title"><a href="../">All guides</a></p>
+<p class="docs-side-section">For testers</p>
+<a href="../reporting-bugs/">Reporting bugs</a>
+<a href="../linux/">Installing on Linux</a>
+<a href="../vr/">Experimental VR scene viewing</a>
+<a href="../windows-vr/">Experimental Windows VR</a>
+<a href="../macos/">Installing on macOS</a>
+<a href="../updates/">Updates</a>
+<a href="../imports/">Asset imports</a>
+<a href="../livemesh/">LiveMesh</a>
+<a href="../hand-contacts/">Motorcycle hand contacts</a>
+<a href="../ik-edit/">IK Edit and bone contacts</a>
+<a href="../animation-creation/">Create native animations</a>
+<a href="../poser/">Local photo poser</a>
+<p class="docs-side-section">Contributing</p>
+<a class="is-active" href="../translating/">Translating the viewer</a>
+<a href="../branding/">Branding and interface</a>
+<p class="docs-side-section">Technical</p>
+<a href="../rlva/">RLVa implementation status</a>
+<a href="../licences/">Licences and notices</a>
+</aside>
+      <article class="prose docs-article reveal">
+        <p class="eyebrow">Contributing</p>
+        <h1>Translating the viewer</h1>
+        <p>Each language has a Fluent catalogue in <code>crates/block-i18n/locales/</code>.
+Bundled today: <code>en</code>, <code>fr</code>, <code>ja</code>, <code>es</code>, <code>de</code>, and <code>pt-BR</code>. The files
+are embedded at build time; adding another <code>.ftl</code> adds a language to the
+Preferences without changing the Rust code. The file name must be a
+language identifier, such as <code>de</code> or <code>pt-BR</code>, and <code>language-name</code> holds the
+name that its speakers recognise, with a flag emoji so the switcher is easy
+to scan (for example <code>🇪🇸 Español</code>).</p>
+<p>The embedded fonts only cover European scripts. Other scripts, Japanese
+included, are drawn by the system fallback fonts (Meiryo UI or Yu Gothic UI
+for Japanese on Windows, see <code>ui/fonts/fallback.rs</code>), found before the first
+frame. egui breaks Japanese and Chinese lines between characters. A date is
+a message with named components (<code>date-day-month</code>), never an order written
+in the code. Japanese has no plural: a plural select of the English becomes
+plain text (<code>{ $count }件</code>), while a select on anything else keeps its
+variants. Japanese uses the official Second Life terms of the Legacy
+Viewer&rsquo;s <code>xui/ja</code> interface (インベントリ, 区画, リージョン, 初期設定…).</p>
+<p>The saved choice takes precedence over the OS; &ldquo;System language&rdquo; follows the
+OS. Regional variants use the exact catalogue if it exists, then the one of
+the main language. An unavailable language or a missing message uses
+English. The language and its visibility to scripts are sent to the
+simulator through <code>UpdateAgentLanguage</code>, after login, a region change or a
+change to the preferences, following the Legacy Viewer&rsquo;s <code>LLAgentLanguage::update</code>.</p>
+<p>A new text uses an explicit key and its version in every catalogue in the
+same PR, at the same place as in <code>en.ftl</code>. A key missing from one catalogue
+fails the parity test, in <code>scripts/check.ps1</code> and in the merge queue.</p>
+<pre><code class="language-rust">ui.label(block_i18n::tr!(&quot;inventory-empty&quot;));
+let message = block_i18n::tr!(&quot;resident-online&quot;, name = name.as_str());
+</code></pre>
+<pre><code class="language-ftl"># en.ftl
+inventory-empty = Inventory is empty.
+resident-online = { $name } is online.
+
+# fr.ftl
+inventory-empty = L'inventaire est vide.
+resident-online = { $name } est en ligne.
+
+# ja.ftl
+inventory-empty = インベントリは空です。
+resident-online = { $name }さんがオンラインになりました。
+</code></pre>
+<p>Variable names must be identical in every language.
+Passing a number directly lets Fluent choose the plural:</p>
+<pre><code class="language-rust">let label = block_i18n::tr!(&quot;inventory-count&quot;, count = items.len());
+</code></pre>
+<pre><code class="language-ftl"># en.ftl: 0 and 2 are plural
+inventory-count = { $count -&gt;
+    [one] { $count } item
+   *[other] { $count } items
+    }
+
+# fr.ftl: 0 and 1 are singular
+inventory-count = { $count -&gt;
+    [one] { $count } élément
+   *[other] { $count } éléments
+    }
+
+# ja.ftl: no plural, plain text
+inventory-count = { $count }個のアイテム
+</code></pre>
+<p>Japanese, beyond the plural:</p>
+<ul>
+<li>Buttons, menu items, titles and short labels are concise nouns or verb
+  stems (保存, 削除, フレンドに追加), without です／ます nor a final 。;
+  sentences, hints and errors use the polite です／ます form.</li>
+<li>Japanese punctuation is full width (、。「」（）！？：); no space between
+  Japanese text and a placeable, a number or a unit (<code>{ $seconds }秒</code>,
+  <code>{ $distance }ｍ</code>).</li>
+<li>Abbreviations, units and digits written in the Japanese text are full
+  width (ＵＵＩＤ, ＬＳＬ, ＨＵＤ, ＵＲＬ, ３Ｄ, ｍ, ＭＢ, ％, １つ):
+  half-width capitals look squashed next to kana and kanji, and the Legacy
+  Viewer&rsquo;s Japanese interface writes them the same way. The value of a
+  placeable is formatted by the code and stays as it is, and so does what
+  the user types or compares with another text: key names (Ctrl, WASD), chat
+  commands, file names and extensions, the identifiers of the Dev Toolbox
+  tools (J2, L1).</li>
+<li>Terms: アバター, インベントリ, フレンド, グループ, 区画 (parcel),
+  リージョン, 不動産 (estate), オブジェクト, 装着 (attach), アウトフィット,
+  容姿 (appearance), 初期設定 (Preferences), 設定 (Block&rsquo;s own settings),
+  近くのチャット, テレポート, ランドマーク, スクリプト, テクスチャ, フォルダ,
+  ごみ箱; look an existing one up in <code>ja.ftl</code> before choosing a new one.
+  Second Life, L$ and product names (Blender) stay in Latin letters. The
+  viewers are Blockビューア and レガシービューア: &ldquo;Legacy&rdquo; is レガシー, as in
+  the option labels the Legacy Viewer&rsquo;s Japanese interface already
+  translates (昼間（レガシー）).</li>
+<li>A label quoted in a hint (「…」) is the exact text of that label in
+  <code>ja.ftl</code>.</li>
+<li>A continuation line of a multi-line message cannot start with <code>*</code>, <code>[</code>
+  or <code>.</code>: Fluent reads it as a variant. Reword it (Japanese often starts
+  with the Markdown bold of the English, <code>**…**</code>).</li>
+</ul>
+<p><code>tr!</code> borrows labels without variables from the cache; a message with
+variables returns a <code>String</code>. <code>Localized&lt;T&gt;</code> caches an array of labels for
+each language, so that a change also applies to the menus already open.
+Dates are messages with named components. For visible decimals, use
+<code>number</code> or <code>number_text</code>, and <code>integer</code> to group thousands; the egui
+controls use the same separator, and <code>parse_number</code> accepts it on input.</p>
+<p>Translate only what Block writes for the user. Protocol fields, command or
+widget identifiers, UUIDs, font names and saved identifiers stay stable.
+Names, descriptions and messages written by residents or received from the
+server stay as they are.</p>
+<p><code>cargo test -p block-i18n</code> checks the syntax, the uniqueness of the keys and
+the parity of the keys and variables with English, as well as selection,
+fallback and plurals. <code>scripts/check.ps1</code> also runs the viewer and network
+tests.</p>
+<p>To compare the languages without changing the preferences:</p>
+<pre><code class="language-powershell">$env:AURORA_DEMO = '1'
+$env:AURORA_DEMO_OPTIONS = '1'
+cargo run -p block-viewer -- --language en --title &quot;Test langue-viewer&quot;
+cargo run -p block-viewer -- --language fr --title &quot;Test langue-viewer&quot;
+cargo run -p block-viewer -- --language ja --title &quot;Test langue-viewer&quot;
+</code></pre>
+<p>Remove <code>--language</code> to check the saved choice and its change while the
+viewer is running. For screenshots in demo mode, set <code>AURORA_DEMO=1</code> and
+any <code>AURORA_DEMO_*</code> scenario you need, then capture the window titled with
+<code>--title</code>.</p>
+      </article>
+    </div>
+  </main>
+  <footer class="footer">
+    <div class="footer-row">
+      <a class="brand" href="../../"><img src="../../assets/mark.svg" width="22" height="22" alt=""><span>BLOCK VIEWER</span></a>
+      <nav class="footer-links" aria-label="Footer">
+        <a href="../../download/">Download</a>
+        <a href="../../docs/">Docs</a>
+        <a href="../../foundation/">Foundation</a>
+        <a href="../../privacy/">Privacy</a>
+        <a href="https://github.com/ape-squared/Block-Viewer">GitHub</a>
+      </nav>
+    </div>
+    <p class="legal">Guides are hosted on this site. Source of truth is the Markdown in the repository.</p>
+  </footer>
+  <script src="../../site.js?v=8" defer></script>
+</body>
+</html>

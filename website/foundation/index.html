@@ -4,13 +4,13 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Foundation — Block Viewer</title>
-  <meta name="description" content="Block Viewer stands on the open-source Block Viewer codebase and builds on it for a different product audience.">
+  <meta name="description" content="Block Viewer stands on the open-source Aurora Viewer codebase and builds on it for a different product audience.">
   <link rel="canonical" href="https://ape-squared.github.io/Block-Viewer/foundation/">
   <link rel="icon" href="../assets/mark.svg" type="image/svg+xml">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="../styles.css?v=5">
+  <link rel="stylesheet" href="../styles.css?v=8">
 </head>
 <body>
   <a class="skip" href="#main">Skip to content</a>
@@ -35,35 +35,41 @@
   </header>
 
   <main id="main" class="section page-shell">
-    <div class="section-head reveal">
+    <header class="page-hero reveal">
       <p class="eyebrow">credit · lineage · GPLv3</p>
       <h1>Foundation</h1>
-      <p>
-        Block Viewer stands on the open-source <strong>Block Viewer</strong> codebase as its foundation.
-        We keep that engine, protocol work, and GPL lineage, and build on top of it for a
-        <strong>different audience</strong> — Block’s look, tools, and product direction —
-        rather than shipping Aurora under another name.
+      <p class="lede">
+        Block Viewer stands on the open-source
+        <a href="https://github.com/Aurora-Viewer/Aurora-Viewer">Aurora Viewer</a>
+        codebase. We keep that engine, protocol work, and GPL lineage, and build
+        on top of it for a <strong>different audience</strong> — Block’s look,
+        tools, and product direction — rather than shipping Aurora under another name.
       </p>
-    </div>
+    </header>
 
-    <div class="feature-grid reveal">
-      <article>
+    <ul class="capability-grid reveal">
+      <li>
         <h3>What we keep</h3>
-        <p>GPL-compatible lineage, protocol expectations, and the hard-won viewer engineering Aurora published as open source. Full credit lives in <a href="https://github.com/ape-squared/Block-Viewer/blob/main/NOTICE.md">NOTICE.md</a>.</p>
-      </article>
-      <article>
+        <p>GPL-compatible lineage, protocol expectations, and the hard-won viewer engineering published as open source. Full credit lives in NOTICE and the licences guide.</p>
+      </li>
+      <li style="--d:1">
         <h3>What we change</h3>
         <p>Product name, branding, UI chrome, packaging, and the roadmap aimed at Block users — not a drop-in Aurora rebadge.</p>
-      </article>
-      <article>
+      </li>
+      <li style="--d:2">
         <h3>Not affiliated</h3>
-        <p>Not an official Block Viewer release. Not affiliated with Linden Lab or Second Life.</p>
-      </article>
-      <article>
+        <p>Not an official Aurora Viewer release. Not affiliated with Linden Lab or Second Life.</p>
+      </li>
+      <li style="--d:3">
         <h3>Sister project</h3>
         <p><a href="https://ape-squared.github.io/Block-GPPI/">Block (GPPI)</a> is the post-processing injector for other viewers. Separate repository — do not conflate downloads or issues.</p>
-      </article>
-    </div>
+      </li>
+    </ul>
+
+    <p class="footnote reveal" style="margin-top:2rem">
+      Read <a href="../docs/licences/">Licences and notices</a> on this site, or
+      <a href="../docs/">all guides</a>.
+    </p>
   </main>
 
   <footer class="footer">
@@ -77,9 +83,9 @@
         <a href="https://github.com/ape-squared/Block-Viewer">GitHub</a>
       </nav>
     </div>
-    <p class="legal">See NOTICE.md in the repository for upstream licences and attributions.</p>
+    <p class="legal">See the licences guide on this site for upstream attributions.</p>
   </footer>
 
-  <script src="../site.js?v=5" defer></script>
+  <script src="../site.js?v=8" defer></script>
 </body>
 </html>

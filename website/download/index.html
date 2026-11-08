@@ -10,7 +10,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="../styles.css?v=5">
+  <link rel="stylesheet" href="../styles.css?v=8">
 </head>
 <body>
   <a class="skip" href="#main">Skip to content</a>
@@ -59,7 +59,7 @@
 
     <div class="section-head reveal">
       <h2>Before you install</h2>
-      <p>Same checklist every solid viewer site puts next to the button.</p>
+      <p>What you need before you unpack the zip.</p>
     </div>
     <dl class="req-list reveal" style="max-width:36rem;margin-bottom:2.5rem">
       <div><dt>OS</dt><dd>Windows 10 or 11, 64-bit</dd></div>
@@ -86,24 +86,25 @@
       </li>
     </ol>
 
-    <div class="feature-grid reveal">
-      <article>
+    <ul class="capability-grid reveal">
+      <li>
         <h3>What’s in the zip</h3>
-        <p>Executable, licences (<code>LICENSE</code>, <code>NOTICE.md</code>), README, and asset licences. Optional <code>Uninstall.cmd</code>. No installer required.</p>
-      </article>
-      <article>
+        <p>Executable, licences, README, and asset licences. Optional <code>Uninstall.cmd</code>. No installer required.</p>
+      </li>
+      <li style="--d:1">
         <h3>Config location</h3>
         <p><code>%LOCALAPPDATA%\ape-squared\BlockViewer\</code> and <code>%APPDATA%\ape-squared\BlockViewer\</code></p>
-      </article>
-      <article>
+      </li>
+      <li style="--d:2">
         <h3>Not Block (GPPI)</h3>
         <p>This is the <strong>viewer</strong>. Post-processing for other clients lives at <a href="https://ape-squared.github.io/Block-GPPI/">Block-GPPI</a> — different download.</p>
-      </article>
-      <article>
+      </li>
+      <li style="--d:3">
         <h3>Privacy</h3>
         <p>No project telemetry server of our own. Grid traffic goes to the grid you choose. See the <a href="../privacy/">privacy page</a>.</p>
-      </article>
-    </div>
+      </li>
+    </ul>
+    <p class="footnote reveal" style="margin-top:2rem">More detail in <a href="../docs/">Docs</a> — Linux, macOS, updates, and creator tools live on this site.</p>
   </main>
 
   <footer class="footer">
@@ -120,6 +121,6 @@
     <p class="legal">Independent project by ape-squared. Not affiliated with Linden Lab. Second Life® is a trademark of Linden Research, Inc.</p>
   </footer>
 
-  <script src="../site.js?v=5" defer></script>
+  <script src="../site.js?v=8" defer></script>
 </body>
 </html>

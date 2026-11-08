@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Installing on macOS — Block Viewer</title>
+  <meta name="description" content="Installing on macOS — Block Viewer documentation.">
+  <link rel="canonical" href="https://ape-squared.github.io/Block-Viewer/docs/macos/">
+  <link rel="icon" href="../../assets/mark.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../../styles.css?v=8">
+</head>
+<body>
+  <a class="skip" href="#main">Skip to content</a>
+  <div class="atmosphere" aria-hidden="true"></div>
+  <header class="nav" data-nav>
+    <a class="brand" href="../../" aria-label="Block Viewer home">
+      <img src="../../assets/mark.svg" width="28" height="28" alt="">
+      <span>BLOCK</span>
+    </a>
+    <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="site-nav" data-nav-toggle>
+      <span class="nav-toggle-bar"></span>
+      <span class="sr-only">Menu</span>
+    </button>
+    <nav id="site-nav" class="nav-links" aria-label="Primary">
+      <a href="../../download/">Download</a>
+      <a href="../../#features">Features</a>
+      <a class="is-active" href="../../docs/">Docs</a>
+      <a href="../../foundation/">Foundation</a>
+    </nav>
+    <a class="btn btn-primary nav-cta" href="../../download/">Download</a>
+  </header>
+  <main id="main" class="section page-shell docs-layout">
+    <div class="docs-with-side">
+      <aside class="docs-side" aria-label="Guides">
+<p class="docs-side-title"><a href="../">All guides</a></p>
+<p class="docs-side-section">For testers</p>
+<a href="../reporting-bugs/">Reporting bugs</a>
+<a href="../linux/">Installing on Linux</a>
+<a href="../vr/">Experimental VR scene viewing</a>
+<a href="../windows-vr/">Experimental Windows VR</a>
+<a class="is-active" href="../macos/">Installing on macOS</a>
+<a href="../updates/">Updates</a>
+<a href="../imports/">Asset imports</a>
+<a href="../livemesh/">LiveMesh</a>
+<a href="../hand-contacts/">Motorcycle hand contacts</a>
+<a href="../ik-edit/">IK Edit and bone contacts</a>
+<a href="../animation-creation/">Create native animations</a>
+<a href="../poser/">Local photo poser</a>
+<p class="docs-side-section">Contributing</p>
+<a href="../translating/">Translating the viewer</a>
+<a href="../branding/">Branding and interface</a>
+<p class="docs-side-section">Technical</p>
+<a href="../rlva/">RLVa implementation status</a>
+<a href="../licences/">Licences and notices</a>
+</aside>
+      <article class="prose docs-article reveal">
+        <p class="eyebrow">For testers</p>
+        <h1>Installing on macOS</h1>
+        <p>Block’s published releases today are <strong>Windows</strong>. When a macOS build for
+Apple Silicon is attached to a
+<a href="https://github.com/ape-squared/Block-Viewer/releases">release</a>, it is a
+<code>.dmg</code> that draws through Metal — nothing else to install. You can also
+<a href="#building-from-source">build from source</a>. macOS packaging is early: tell us
+what does not work (below).</p>
+<h2 id="requirements">Requirements</h2>
+<ul>
+<li>A Mac with Apple Silicon (M1, M2, M3, M4 or later). Intel Macs are not
+  supported.</li>
+<li>macOS 13 Ventura or later. The renderer draws every texture through
+  Metal 3, which Apple ships from macOS 13 on: on macOS 12 Monterey the
+  viewer cannot start, even on Apple Silicon. Every Apple Silicon Mac can
+  be updated to a newer macOS, free of charge.</li>
+</ul>
+<h2 id="1-download-and-install">1. Download and install</h2>
+<ol>
+<li>On the <a href="https://github.com/ape-squared/Block-Viewer/releases/latest">latest release</a>,
+   download <code>Block-Viewer-&lt;version&gt;-macos-arm64.dmg</code>.</li>
+<li>Open it (a double click in the Finder): a window shows <strong>Block Viewer</strong>
+   next to your <strong>Applications</strong> folder.</li>
+<li>Drag <strong>Block Viewer</strong> onto <strong>Applications</strong>, then eject the disk image
+   (the eject button next to &ldquo;Block Viewer&rdquo; in the Finder&rsquo;s sidebar).</li>
+</ol>
+<h2 id="2-start-the-viewer">2. Start the viewer</h2>
+<p>Open <strong>Block Viewer</strong> from Applications or the Launchpad.</p>
+<p>If macOS says that it cannot check the application or its developer, the
+release you downloaded is not notarized by Apple yet. Open it once this way:</p>
+<ol>
+<li>Click <strong>Done</strong> (or <strong>OK</strong>) on that message.</li>
+<li>Open <strong>System Settings › Privacy &amp; Security</strong>, scroll down to the
+   message about Block Viewer and click <strong>Open Anyway</strong>, then confirm with
+   your password or Touch ID.</li>
+</ol>
+<p>macOS remembers the choice: the next starts are normal. In the Terminal,
+this command does the same, once the application is in Applications:</p>
+<pre><code class="language-bash">xattr -dr com.apple.quarantine &quot;/Applications/Block Viewer.app&quot;
+</code></pre>
+<p>Until the releases are notarized, macOS may also ask again, after an
+update, whether Block Viewer may use the keychain (your saved password:
+choose <strong>Always Allow</strong>) and the microphone.</p>
+<p>The first time voice chat opens the microphone, macOS asks whether Block
+Viewer may use it: allow it to speak in voice chat (you can change it later
+in <strong>System Settings › Privacy &amp; Security › Microphone</strong>).</p>
+<h2 id="game-mode">Game Mode</h2>
+<p>Block Viewer declares itself as a game to macOS, so macOS turns on its
+Game Mode automatically when the viewer is in native full screen on Apple
+Silicon with macOS 14 Sonoma or later. To enter full screen, move the
+pointer over the green button in the title bar and choose <strong>Enter Full
+Screen</strong>; maximizing the window (double-clicking the title bar, or the
+<strong>Zoom</strong> command) does not enter full screen. The Game Mode notice and the
+game controller icon in the menu bar confirm that it is on; the icon&rsquo;s menu
+also turns it off for the game. Game Mode gives the viewer priority over
+background work and lowers the latency of Bluetooth controllers and
+headphones.</p>
+<p>Game Mode belongs to the installed application: running a bare
+<code>block-viewer</code> executable from a terminal has no application bundle, so
+macOS cannot offer it there.</p>
+<h2 id="keyboard">Keyboard</h2>
+<p>Keyboard shortcuts follow the Legacy Viewer. <strong>Command and Control both
+trigger them</strong> (Command+S and Control+S; Command+W and Control+W close the
+front window; Command+Shift+W and Control+Shift+W close every window).
+The mouse keeps the two keys apart: Control-click is not Command-click,
+and Command does not change the camera wheel.</p>
+<p>A few shortcuts are labeled with the Control key (⌃), the same list as the
+Legacy Viewer: Nearby Chat (⌃H), Conversations (⌃T), the World Map (⌃M),
+Highlight Transparent (⌃⌥T), Snapshot to Disk (⌃`). Command runs those too,
+except Nearby Chat. Command+H hides the application, as it does in the
+Legacy Viewer, and Control+H opens Nearby Chat (or brings it forward, or
+closes it when it is already in front). The others are labeled with
+Command (⌘), then Option (⌥) and Shift (⇧).
+Text fields accept both keys for copy, paste, undo and the rest.
+Select All is Command+A (or Control+A). Command+Shift+A still opens People,
+as in the Legacy Viewer, even while a field is focused.
+<strong>Command+Q</strong> asks before quitting, like the close button of the window.
+macOS takes Command+Q and Command+H before the viewer sees them. The Quit
+item is answered here; Command+H stays Hide.</p>
+<h2 id="web-pages-and-video">Web pages and video</h2>
+<p>Web pages and video in the world need the media plugins, which are not part
+of the application: the first time they are needed, the viewer asks before
+it downloads Aurora&rsquo;s media plugins pack (about 335 MB) into the
+<code>media-plugins</code> folder of its settings (table below), once. &ldquo;Not now&rdquo; leaves
+a Download button in Preferences › Sound and voice › Media and where the page
+would show. A Legacy Viewer installed on the Mac can
+lend its plugins instead: in <strong>Preferences › Media</strong>, type the path of its
+application (its <code>.app</code> in <code>/Applications</code>) as the plugins folder.</p>
+<h2 id="updates">Updates</h2>
+<p>The viewer tells you when a new version is out, but it cannot replace
+itself on macOS yet: its &ldquo;Open the release page&rdquo; button leads to the new
+disk image. Install it as in step 1, replacing the old application. Your settings,
+cache and logs are kept: they are not inside the application.</p>
+<table>
+<thead>
+<tr>
+<th>What</th>
+<th>Where</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Settings, logs</td>
+<td><code>~/Library/Application Support/com.ape-squared.BlockViewer</code></td>
+</tr>
+<tr>
+<td>Cache</td>
+<td><code>~/Library/Caches/com.ape-squared.BlockViewer</code></td>
+</tr>
+<tr>
+<td>Saved passwords</td>
+<td>the macOS keychain (Keychain Access)</td>
+</tr>
+</tbody>
+</table>
+<p>To see these folders in the Finder: <strong>Go › Go to Folder…</strong> (Cmd+Shift+G) and
+paste the path.</p>
+<h2 id="not-on-macos-yet">Not on macOS yet</h2>
+<ul>
+<li>Automatic installation of updates (above).</li>
+<li>Opening <code>secondlife://</code> links from a web browser.</li>
+<li>The crash report window.</li>
+</ul>
+<h2 id="building-from-source">Building from source</h2>
+<p>Install Apple&rsquo;s command line tools and Rust, then build:</p>
+<pre><code class="language-bash">xcode-select --install
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+git clone https://github.com/ape-squared/Block-Viewer block-viewer
+cd block-viewer
+cargo build --release --locked -p block-viewer
+./target/release/block-viewer
+</code></pre>
+<p><code>AURORA_DEMO=1 ./target/release/block-viewer</code> starts the offline demo,
+without the network. To build the application itself as the release does,
+run <code>pwsh ./scripts/package-macos.ps1 -Exe target/release/block-viewer -Out "Block Viewer.app"</code>
+(PowerShell 7: <code>brew install powershell</code>). The same PowerShell runs the local
+checks: <code>pwsh -File ./scripts/check.ps1</code> (formatting, clippy, tests).</p>
+<h2 id="signing-for-the-maintainers">Signing (for the maintainers)</h2>
+<p>The macOS job of the release workflow signs the application with the
+project&rsquo;s Developer ID, then has Apple notarize it, when the repository has
+these Actions secrets; without them it is signed ad hoc and opens as in
+step 2:</p>
+<table>
+<thead>
+<tr>
+<th>Secret</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>MACOS_CERTIFICATE_P12</code></td>
+<td>the Developer ID Application certificate and its key, a <code>.p12</code> in base64</td>
+</tr>
+<tr>
+<td><code>MACOS_CERTIFICATE_PASSWORD</code></td>
+<td>the password of that <code>.p12</code></td>
+</tr>
+<tr>
+<td><code>APPLE_TEAM_ID</code></td>
+<td>the team of the Apple Developer account</td>
+</tr>
+<tr>
+<td><code>APPLE_API_KEY_ID</code></td>
+<td>an App Store Connect API key (Developer role): its id</td>
+</tr>
+<tr>
+<td><code>APPLE_API_ISSUER_ID</code></td>
+<td>the issuer id of that key</td>
+</tr>
+<tr>
+<td><code>APPLE_API_KEY_P8</code></td>
+<td>the content of the key&rsquo;s <code>.p8</code> file</td>
+</tr>
+</tbody>
+</table>
+<h2 id="reporting-a-problem">Reporting a problem</h2>
+<p>See <a href="../reporting-bugs/">Reporting bugs</a>, and say that you are on macOS, with
+your Mac&rsquo;s chip (Apple menu › About This Mac) and macOS version.</p>
+      </article>
+    </div>
+  </main>
+  <footer class="footer">
+    <div class="footer-row">
+      <a class="brand" href="../../"><img src="../../assets/mark.svg" width="22" height="22" alt=""><span>BLOCK VIEWER</span></a>
+      <nav class="footer-links" aria-label="Footer">
+        <a href="../../download/">Download</a>
+        <a href="../../docs/">Docs</a>
+        <a href="../../foundation/">Foundation</a>
+        <a href="../../privacy/">Privacy</a>
+        <a href="https://github.com/ape-squared/Block-Viewer">GitHub</a>
+      </nav>
+    </div>
+    <p class="legal">Guides are hosted on this site. Source of truth is the Markdown in the repository.</p>
+  </footer>
+  <script src="../../site.js?v=8" defer></script>
+</body>
+</html>

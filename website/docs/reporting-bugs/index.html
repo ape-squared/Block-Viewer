@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Reporting bugs — Block Viewer</title>
+  <meta name="description" content="Reporting bugs — Block Viewer documentation.">
+  <link rel="canonical" href="https://ape-squared.github.io/Block-Viewer/docs/reporting-bugs/">
+  <link rel="icon" href="../../assets/mark.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../../styles.css?v=8">
+</head>
+<body>
+  <a class="skip" href="#main">Skip to content</a>
+  <div class="atmosphere" aria-hidden="true"></div>
+  <header class="nav" data-nav>
+    <a class="brand" href="../../" aria-label="Block Viewer home">
+      <img src="../../assets/mark.svg" width="28" height="28" alt="">
+      <span>BLOCK</span>
+    </a>
+    <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="site-nav" data-nav-toggle>
+      <span class="nav-toggle-bar"></span>
+      <span class="sr-only">Menu</span>
+    </button>
+    <nav id="site-nav" class="nav-links" aria-label="Primary">
+      <a href="../../download/">Download</a>
+      <a href="../../#features">Features</a>
+      <a class="is-active" href="../../docs/">Docs</a>
+      <a href="../../foundation/">Foundation</a>
+    </nav>
+    <a class="btn btn-primary nav-cta" href="../../download/">Download</a>
+  </header>
+  <main id="main" class="section page-shell docs-layout">
+    <div class="docs-with-side">
+      <aside class="docs-side" aria-label="Guides">
+<p class="docs-side-title"><a href="../">All guides</a></p>
+<p class="docs-side-section">For testers</p>
+<a class="is-active" href="../reporting-bugs/">Reporting bugs</a>
+<a href="../linux/">Installing on Linux</a>
+<a href="../vr/">Experimental VR scene viewing</a>
+<a href="../windows-vr/">Experimental Windows VR</a>
+<a href="../macos/">Installing on macOS</a>
+<a href="../updates/">Updates</a>
+<a href="../imports/">Asset imports</a>
+<a href="../livemesh/">LiveMesh</a>
+<a href="../hand-contacts/">Motorcycle hand contacts</a>
+<a href="../ik-edit/">IK Edit and bone contacts</a>
+<a href="../animation-creation/">Create native animations</a>
+<a href="../poser/">Local photo poser</a>
+<p class="docs-side-section">Contributing</p>
+<a href="../translating/">Translating the viewer</a>
+<a href="../branding/">Branding and interface</a>
+<p class="docs-side-section">Technical</p>
+<a href="../rlva/">RLVa implementation status</a>
+<a href="../licences/">Licences and notices</a>
+</aside>
+      <article class="prose docs-article reveal">
+        <p class="eyebrow">For testers</p>
+        <h1>Reporting bugs</h1>
+        <p>&ldquo;Report a bug&rdquo;, in the top bar, the Help menu and on the login screen, opens
+the project&rsquo;s
+<a href="https://github.com/ape-squared/Block-Viewer/issues/new/choose">GitHub issue forms</a>
+in the browser. The tester needs a GitHub account, chooses the bug report
+template and fills it in on GitHub. &ldquo;Copy trace&rdquo; and &ldquo;Open report folder&rdquo;,
+in the crash window, give the full technical details, to review before
+sharing them (the full trace may contain personal paths).</p>
+<h2 id="crash-reports">Crash reports</h2>
+<p>After a crash, &ldquo;Send a crash report&rdquo; in the standalone window shows the
+issue to publish: exactly <code>public-report.md</code> (below), preceded by what the
+tester writes in &ldquo;What were you doing when it happened?&rdquo; (at least a few
+words: publishing waits for them, since a stack alone rarely says what led
+to it) and their answer to &ldquo;My graphics card drivers are up to date&rdquo; (the
+driver found is shown beside it). Nothing is published without those
+words, whatever the Preferences say. &ldquo;Connect to
+GitHub&rdquo; starts the GitHub App&rsquo;s Device Flow (<code>crash/github.rs</code>): the tester
+enters the code shown on github.com, in their browser; the viewer never sees
+a password. &ldquo;Publish on GitHub&rdquo; then creates the issue in the tester&rsquo;s
+name, with no label (the crash triage below sets the type). &ldquo;Open in the
+browser&rdquo; opens a new issue with the same title and text instead (text in
+the clipboard when the link would be too long).</p>
+<p>The authorization is kept in the system credential store (Windows
+Credential Manager, entry &ldquo;Block Viewer GitHub&rdquo;), never in the settings,
+the reports or the logs: an expiring user token and its refresh token,
+refreshed without any client secret (allowed for the Device Flow) and
+replaced at each refresh. &ldquo;Forget the GitHub connection&rdquo;, in the crash
+window or Preferences › Privacy, deletes it; the tester can also revoke the
+app on github.com. A revoked or expired authorization is forgotten at the
+next attempt. A creation is never retried automatically (a lost reply may
+mean the issue exists); <code>sent.txt</code>, in the session folder, keeps the issue
+number so a reopened window never sends twice. No server of our own and no
+file upload: nothing else leaves the PC.</p>
+<p>Preferences › Privacy › Crash reports chooses Ask (the default), Always or
+Never. Always opens the crash window straight on the report to publish; it
+still waits for the tester&rsquo;s words (a report without them could rarely be
+reproduced), so nothing is ever sent by itself. Never removes the send
+button: the report stays on the PC. The Legacy Viewer always sends by
+default, to its own server; here a report is a public issue in the
+tester&rsquo;s name, hence Ask.</p>
+<p>Each crash session folder also holds <code>public-report.md</code>: what an automatic
+crash report would publish (version, commit, crash kind, system, GPU, the
+stack as <code>module+0xoffset</code> with the modules&rsquo; PDB identities, the panic
+location inside the sources, recognised warning categories). It never
+contains raw addresses, panic messages, paths or log lines; the
+<code>&lt;!-- block-crash v1 --&gt;</code> marker at its top is for the repository&rsquo;s crash
+triage.</p>
+<p>What each part tells the one who fixes it:</p>
+<ul>
+<li><strong>Crash</strong>: <code>Rust panic</code>, <code>Native exception 0x…</code>, <code>Startup or event loop
+  failure</code>, <code>GPU not responding</code> (the graphics card still held a frame when
+  the session ended, the window answering: closed from the stall notice or
+  by other means; the stack is the render thread&rsquo;s, waiting in the driver,
+  and the row &ldquo;GPU not responding&rdquo; says for how long), <code>Freeze</code> (the window
+  was not answering when the session ended: the stacks are those of the main
+  thread, then of the render thread, read while it was frozen),
+  <code>Out of memory (N bytes)</code> (an allocation failed and the process failed
+  fast: the size asked for and the stack of the allocation, written by the
+  allocator itself before the abort) or <code>Unexpected shutdown</code> (the process
+  vanished with no word: killed, or a fast fail other than out of memory).
+  A stack overflow is a <code>Native exception 0xC00000FD</code> with its stack,
+  written by a vectored handler on the stack Windows keeps for it.</li>
+<li><strong>Thread</strong>, when a long-lived background thread the session cannot do
+  without panicked (network runtime, texture pages, frees, disk caches,
+  chat history): the viewer ends the session at its next frame instead of
+  going on without it, and the report adds the thread&rsquo;s name to the
+  panic&rsquo;s stack.</li>
+<li><strong>Exit code</strong>, when the watcher saw the end, with its usual meaning:
+  <code>0x00000001</code> is what Task Manager&rsquo;s End task gives (often after a
+  freeze), <code>0xC0000409</code> a fast fail (abort, out of memory), <code>0xC00000FD</code>
+  a stack overflow.</li>
+<li><strong>End of session</strong>, when the watcher did not see it (it stopped with the
+  viewer): the duration then comes from the last sign of life (<code>alive.txt</code>,
+  every 5 s), and a Windows start right after it says the system went down
+  (system crash, power loss). A shutdown or restart of Windows itself is
+  heard by the watcher and never reported. On Linux, a viewer stopped by
+  SIGTERM, SIGHUP or SIGINT (log out, shutdown, a closed terminal, Ctrl+C)
+  is not reported either.</li>
+<li><strong>Window</strong>: answering until the end, or not answering for the last N s.</li>
+<li><strong>GPU device lost</strong>: the renderer&rsquo;s device-lost callback fired (driver
+  reset, GPU removed).</li>
+<li><strong>GPU work at the loss</strong>: the frame last submitted to the card and the
+  last one it finished, each with its age at the loss, and what that says:
+  a hang (the last frame not finished 0.5 s or more after its submission:
+  the driver reset the card; a real hang on an RTX 5070 Ti was declared
+  1.1 s after), a fault the driver found in a frame&rsquo;s work (the loss within
+  0.1 s of the submission, or after the frame ended), or undecided between
+  the two. Frame numbers and ages only.</li>
+<li><strong>GPU recoveries</strong>: the graphics card resets the viewer recovered from
+  during the session (<code>AURORA_GPU_RECOVERY=1</code>), how many, and for the first
+  five when in the session, how long the recovery took and whether it came
+  back with the safe graphics. Only shown when the session ended badly later.</li>
+<li><strong>Overlay hooks</strong>: the overlay or capture programs that injected their
+  hook into the viewer during the session (Discord, Steam, RivaTuner, OBS
+  game capture), named from the viewer&rsquo;s fixed list only.</li>
+<li><strong>Vulkan layers on offer</strong>: the <code>VK_LAYER_*</code> names the Vulkan loader offers
+  to the viewer, noted at the very start, so a crash while Vulkan starts has
+  them too.</li>
+<li><strong>GPU errors</strong>: the errors wgpu reported, first of each in the order they
+  came: <code>out-of-memory</code> or the wgpu operation that failed
+  (<code>Queue::write_buffer</code>). Their messages stay in the local log.</li>
+<li><strong>Last state</strong>: screen, frame rate, frame time, window size, graphics
+  preset, memory, video memory used / budget, texture memory pressure,
+  objects, avatars, regions, as noted every 2 seconds, and the swapchain
+  recreations of the last 10 seconds (window resizes among them), frozen
+  when the graphics card is lost. It also tells the cause of a GPU loss
+  apart from another: the graphics switches on (shadows level, contact
+  shadows, ambient occlusion, SSR, anti-aliasing, bloom, indirect light,
+  probes, render scale, draw distance, VR, and photo when one was drawn in
+  the last 10 seconds), the window state
+  (focused, background, minimized, occluded), the latest GPU frame time,
+  the longest one of the last 10 seconds with the pass that took most of it
+  and its ambient occlusion and contact shadows,
+  the texture uploads (count, MB), the seconds since the login began, in
+  the world and since the region changed, what was still loading, how the
+  loss was seen (the
+  reason wgpu gave, the class of its message, the first place that saw it),
+  how long the GPU held the render thread past 2 seconds (no row otherwise:
+  a reset that comes sooner shows in <strong>GPU work at the loss</strong>), the other Aurora viewers on the card (from the viewer registry, not in demo),
+  and the card&rsquo;s memory in use by all programs and by the others (Windows). Fixed words and numbers only.</li>
+<li><strong>Recent warnings and errors</strong>: the last 20, as
+  <code>-&lt;seconds before the end&gt; s | level | Rust module | kind</code>, repeats folded
+  (<code>(x3)</code>); the messages themselves stay in the local log.</li>
+</ul>
+<h3 id="crash-symbols">Crash symbols</h3>
+<p>Each Windows release carries <code>Block-Viewer-vX.Y.Z-windows-x64-symbols.zip</code>:
+the Breakpad symbol file of the exe, made by <code>dump_syms</code> from the release
+build&rsquo;s PDB (line tables only) and stored as
+<code>block_viewer.pdb/&lt;debug id&gt;/block_viewer.sym</code>. The debug id is the
+<code>id=</code> of the <code>block_viewer</code> line in a report&rsquo;s modules: the file of the
+version that crashed turns each <code>block_viewer+0xoffset</code> into a function
+and a source line. A pull request that changes the Release workflow keeps
+the file of its dry run as the run&rsquo;s artifact. The PDB itself is not
+published. To resolve a stack by hand, unzip the file and look up, for
+<code>offset - 1</code> (a return address follows its call), the <code>FUNC</code> record that
+contains it and the line record under it; or use the triage script below.</p>
+<h3 id="crash-triage">Crash triage</h3>
+<p>The Crash triage workflow (<code>.github/workflows/crash-triage.yml</code>) runs on
+every new issue whose body carries the <code>&lt;!-- block-crash v1 --&gt;</code> marker.
+<code>scripts/crash-triage.ps1</code> reads the issue through the API and validates
+each value again (anyone can write an issue). For a released version whose
+symbol file has the report&rsquo;s debug id, it resolves the viewer&rsquo;s frames,
+inlined functions included, to functions and source lines. It then:</p>
+<ul>
+<li>appends a &ldquo;Symbolized stack&rdquo; section between
+  <code>&lt;!-- crash-triage:start --&gt;</code> and <code>&lt;!-- crash-triage:end --&gt;</code> (a new run
+  replaces it), ending with the crash&rsquo;s signature;</li>
+<li>computes the signature from the crash kind (panic, freeze, GPU stall, or
+  the exception code) and the first three meaningful frames by name (for a
+  freeze, those of the main thread), without generic arguments
+  or closure numbers. The panic and exception machinery, the crash handler,
+  the process start and the system modules are skipped, so the same crash
+  keeps its signature across versions and offsets. Without symbols
+  (development build, release older than the symbols), the signature is the
+  build&rsquo;s debug id and its first offsets;</li>
+<li>when an open issue already has the same signature, comments there with
+  the new occurrence (version, system, GPU) and closes the new issue as its
+  duplicate; otherwise renames the issue <code>Crash: &lt;kind&gt; in &lt;function&gt;</code> and
+  sets the Bug type;</li>
+<li>adds the <code>crash-triaged</code> label to the issue it signed.</li>
+</ul>
+<p>The signature lives in a hidden comment, the last line of the triage
+section. An open issue is a reference only when it carries the
+<code>crash-triaged</code> label (the workflow or a maintainer sets it; a reporter
+cannot) and that line of its own triage section has the same signature: a
+<code>crash-signature</code> comment written anywhere else in a body is not read. An
+issue signed before the label existed becomes a reference again once
+&ldquo;Run workflow&rdquo; triages it again. A
+closed issue is not a reference: a crash that comes back after its fix
+opens a new issue. &ldquo;Run workflow&rdquo; with an issue number triages it again,
+for example once the symbols of its version are published. Locally, on a
+crash session&rsquo;s <code>public-report.md</code> and an unzipped symbol file:
+<code>./scripts/crash-triage.ps1 -ReportFile &lt;public-report.md&gt; -SymbolFile &lt;block_viewer.sym&gt;</code>
+prints the section, title and signature without writing to GitHub.
+<code>scripts/test-crash-triage.ps1</code> holds the fixture tests; the workflow runs
+them on the pull requests that change the triage.</p>
+<p>The issue templates are in <code>.github/ISSUE_TEMPLATE/</code>; they set the issue
+type (Bug or Feature); the area labels (<code>chat</code>, <code>ui</code>, <code>avatar</code>…) are added
+during triage. The disabled form below
+still sends the former <code>bug</code> and <code>alpha</code> labels (<code>bug_report/github.rs</code>):
+switch it to the Bug type when it is brought back.</p>
+<h2 id="the-built-in-form-disabled">The built-in form (disabled)</h2>
+<p>Until 2026-10-15 these buttons opened a report form inside the viewer. It is
+disabled for now; its code stays in the tree, out of the build, to be
+brought back later: uncomment every line marked &ldquo;Bug report form (disabled,
+see main.rs)&rdquo; (<code>main.rs</code> lists its files). The rest of this page describes
+that form, as it works once enabled, and its GitHub setup.
+<code>AURORA_DEMO_BUG_REPORT</code> has no effect while it is disabled.</p>
+<p>The shared form can be reached from the top bar, Help and the login screen.
+&ldquo;Send from Block&rdquo; is the first choice and the default mode of new reports.
+The sending options are independent of the report template.
+The browser mode is available without any application setup; both modes
+require the tester to have a GitHub account. Without an account, a local
+copy remains possible.</p>
+<p>After a crash, the standalone window offers &ldquo;Send a crash report&rdquo;. This
+button opens the same form with a title and the data kept from the stopped
+session. The tester states what they were doing, chooses the information to
+publish, then authorises the sending. The language, the version and the log
+come from the session that crashed, even when the window is recovered at the
+next launch. The public diagnostics are unticked at first; the full traces
+stay in the local <code>private-do-not-upload</code> folder of the saved copy.
+An image can be attached from a file. As the viewer&rsquo;s GitHub authorisation
+is kept in memory only, sending directly from the crash window requires a
+new authorisation from the tester.</p>
+<h3 id="setting-up-direct-sending">Setting up direct sending</h3>
+<p>Create a <strong>GitHub App</strong>, in the developer settings of the Block-Viewer
+organisation, then:</p>
+<ul>
+<li>turn on <strong>Enable Device Flow</strong>, keep the expiry of the authorisations;</li>
+<li>leave the callback and setup URLs empty and disable the webhook;</li>
+<li>repository permissions: <strong>Issues — Read and write</strong>, read-only metadata,
+  no other permission;</li>
+<li>public application (<strong>Any account</strong>) for the testers; install it on the
+  organisation with only the Block-Viewer repository selected;</li>
+<li>copy the <strong>public Client ID</strong> into <code>bug_report/github.rs::CLIENT_ID</code>.
+  The numeric App ID is not suitable. No Client secret and no private key
+  may be added to the viewer.</li>
+</ul>
+<p><a href="https://docs.github.com/en/apps/creating-github-apps/registering-a-github-app/registering-a-github-app">Creating a GitHub App</a>
+and <a href="https://docs.github.com/en/apps/creating-github-apps/authenticating-with-a-github-app/generating-a-user-access-token-for-a-github-app#using-the-device-flow-to-generate-a-user-access-token">Device Flow</a>.</p>
+<p>The tester clicks Connect to GitHub, copies the code and authorises it
+themselves on GitHub in their browser. The viewer never asks for their
+password. The authorisation stays in memory for this session, eight hours at
+most; it is written neither to the settings nor to the logs. An
+authorisation does not trigger the sending: the tester then clicks Send
+public report. Cancellation, refusal, expiry and a slow-down requested by
+GitHub are handled. The creation of an issue is never retried automatically
+after a lost response, to avoid duplicates.</p>
+<h3 id="data-and-files">Data and files</h3>
+<p>The form has two steps: prepare the report, then choose how to send it.
+The window offers three tabs: Description, Picture and Data. It is larger
+to leave room for the input fields; its dimensions stay limited to the
+space available on the screen.
+The four fields of Description stay visible together without scrolling the
+form at the normal size. Long texts scroll in their own input area. In
+Picture, the controls are on the left and the preview on the right.
+The tabs stay visible while scrolling. The Data tab lets the tester read
+and untick each piece of automatic information. The labels and the
+diagnostics follow the interface language each time they are displayed. The
+typed text is kept as it is. The headings and technical values of the
+exported file stay in English for the tools that read the reports. The copy
+and save actions are in &ldquo;More actions&rdquo;.
+A new report starts on Description. Closing the window keeps in memory the
+text, the tab, the scroll position, the checkboxes, the image and the
+sending mode, including the GitHub authorisation in progress, until the end
+of the viewer session.
+A sending error also keeps the draft. After the issue has been published,
+the link of the report and its folder stay available;
+reopening the window or choosing &ldquo;New report&rdquo; then prepares a fresh form.
+The browser does not confirm the publication to the viewer: the tester
+clicks &ldquo;I have published the report&rdquo; after sending on GitHub to clear the
+draft. Opening GitHub or saving a local copy does not clear it.
+The location, the avatar name and the diagnostics are unticked at first. No SL login
+state and no full settings are serialised. The public diagnostics keep only
+the recognised warning / error categories: simply removing the URLs or
+UUIDs would not be enough to remove the names and the free texts coming
+from the network.</p>
+<p>Screenshots are limited to the world, with or without the interface; the
+login screen cannot be captured with this button. The chosen files are
+limited to 16 MiB, decoded with dimension/memory limits and re-encoded as a
+PNG of at most 1920 pixels a side. Metadata, path and name of the original
+file are never attached. A screenshot can still contain visible names and
+chat: the tester must review it.
+After a first screenshot, changing &ldquo;Include the interface in the picture&rdquo;
+takes the screenshot again automatically, without re-ticking its inclusion
+if the tester had excluded it.
+This option never replaces an image imported from a file.</p>
+<p>Each save creates a folder under <code>data/bug-reports/</code>, next to <code>data/logs/</code>.
+The <code>public</code> subfolder contains the chosen text and, if included,
+<code>screenshot.png</code>. The <code>private-do-not-upload</code> folder contains the private
+local diagnostics and must never be attached to a public issue. Nothing
+leaves the PC besides the text of the issue: GitHub&rsquo;s API takes no
+attachment, so in both modes the viewer opens the <code>public</code> folder and the
+tester drags <code>screenshot.png</code> into the issue themselves. The viewer runs no
+server of its own for the reports.</p>
+<h3 id="validation">Validation</h3>
+<p><code>AURORA_DEMO_BUG_REPORT=1</code> with demo mode opens a sample report. Both
+sending modes stay local, without GitHub authorisation and without opening
+the browser. The <code>details</code>, <code>image</code>, <code>image-ui</code> and <code>direct</code> modes show
+respectively the information with the location unticked, a screenshot of
+the scene, a screenshot with the interface and the direct sending choice.
+The form opens after the scene has loaded (frame 550).
+<code>refresh</code> takes a screenshot without the interface then enables the option
+at frame 700 and disables it at frame 900. <code>language</code> switches the already
+open window to English at frame 700, then to French at frame 900, without
+changing the saved preferences. To test the language manually in
+Preferences, launch without the <code>--language</code> argument, which would force
+the language of the process.
+Test the unticked fields, the copy, the export, an image with removal then
+re-adding, a screenshot with and without the interface, the resizing and
+both languages. Change the text, choose Picture or Data, close then reopen
+from Report a bug: check that the text, the checkboxes, the image and the
+tab are kept. Also test the entry from the login screen and the Help menu.</p>
+<p>The real authorisation and the publication of a test report on GitHub are
+validated by the human, with their account. Also check the cancellation and
+the refusal of the authorisation. The automated tests open no real issue.</p>
+      </article>
+    </div>
+  </main>
+  <footer class="footer">
+    <div class="footer-row">
+      <a class="brand" href="../../"><img src="../../assets/mark.svg" width="22" height="22" alt=""><span>BLOCK VIEWER</span></a>
+      <nav class="footer-links" aria-label="Footer">
+        <a href="../../download/">Download</a>
+        <a href="../../docs/">Docs</a>
+        <a href="../../foundation/">Foundation</a>
+        <a href="../../privacy/">Privacy</a>
+        <a href="https://github.com/ape-squared/Block-Viewer">GitHub</a>
+      </nav>
+    </div>
+    <p class="legal">Guides are hosted on this site. Source of truth is the Markdown in the repository.</p>
+  </footer>
+  <script src="../../site.js?v=8" defer></script>
+</body>
+</html>

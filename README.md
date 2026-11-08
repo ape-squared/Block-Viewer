@@ -78,31 +78,25 @@ Dev helpers: `block-tools.cmd` (Block Tools). Old `aurora-tools.cmd` still launc
 
 ## Guides
 
-These live in `docs/` and publish to the
-[wiki](https://github.com/ape-squared/Block-Viewer/wiki).
+Readable on the site: [Docs](https://ape-squared.github.io/Block-Viewer/docs/).
+Markdown sources stay in `docs/` (and refresh the site + wiki on push).
 
-**Testers**
+**Testers** — [Reporting bugs](https://ape-squared.github.io/Block-Viewer/docs/reporting-bugs/),
+[Linux](https://ape-squared.github.io/Block-Viewer/docs/linux/),
+[macOS](https://ape-squared.github.io/Block-Viewer/docs/macos/),
+[Updates](https://ape-squared.github.io/Block-Viewer/docs/updates/),
+[Imports](https://ape-squared.github.io/Block-Viewer/docs/imports/),
+[LiveMesh](https://ape-squared.github.io/Block-Viewer/docs/livemesh/),
+[Hand contacts](https://ape-squared.github.io/Block-Viewer/docs/hand-contacts/),
+[IK Edit](https://ape-squared.github.io/Block-Viewer/docs/ik-edit/),
+[Animations](https://ape-squared.github.io/Block-Viewer/docs/animation-creation/),
+[Poser](https://ape-squared.github.io/Block-Viewer/docs/poser/)
 
-- [Reporting bugs](docs/BUG_REPORTING.md)
-- [Installing on Linux](docs/LINUX.md)
-- [Installing on macOS](docs/MACOS.md)
-- [Updates](docs/UPDATES.md)
-- [Asset imports](docs/IMPORTS.md)
-- [LiveMesh](docs/BLENDER_LIVE.md)
-- [Motorcycle hand contacts](docs/HAND_CONTACTS.md)
-- [IK Edit and bone contacts](docs/IK_EDIT.md)
-- [Create native animations](docs/ANIMATION_CREATION.md)
-- [Local photo poser](docs/POSER.md)
+**Contributing** — [Translating](https://ape-squared.github.io/Block-Viewer/docs/translating/),
+[Branding](https://ape-squared.github.io/Block-Viewer/docs/branding/)
 
-**Contributing**
-
-- [Translating the viewer](docs/TRANSLATING.md)
-- [Branding and interface](docs/BRANDING.md)
-
-**Technical**
-
-- [RLVa implementation status](docs/RLVA.md)
-- [Licences and notices](NOTICE.md)
+**Technical** — [RLVa](https://ape-squared.github.io/Block-Viewer/docs/rlva/),
+[Licences](https://ape-squared.github.io/Block-Viewer/docs/licences/)
 
 ---
 

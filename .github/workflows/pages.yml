@@ -5,6 +5,9 @@ on:
     branches: [main]
     paths:
       - "website/**"
+      - "docs/**"
+      - "NOTICE.md"
+      - "scripts/build-site-docs.py"
       - ".github/workflows/pages.yml"
   workflow_dispatch:
 
@@ -25,6 +28,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install Markdown
+        run: pip install markdown
+      - name: Build docs into the site
+        run: python3 scripts/build-site-docs.py
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:

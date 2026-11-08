@@ -110,7 +110,7 @@ impl VideoRecorder {
         let fps = clamp_fps(fps);
         #[cfg(not(windows))]
         {
-            let _ = folder;
+            let _ = (folder, fps);
             Err("in-viewer video recording is only available on Windows".into())
         }
         #[cfg(windows)]

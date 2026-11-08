@@ -13,8 +13,15 @@ const MAX_REPLY: usize = 4096;
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum Query {
-    Portal { target: Uuid, message: super::portal::Message },
-    Pose { request: Uuid, kind: PoseKind, target: Uuid },
+    Portal {
+        target: Uuid,
+        message: super::portal::Message,
+    },
+    Pose {
+        request: Uuid,
+        kind: PoseKind,
+        target: Uuid,
+    },
     /// Region-local Block Viewer presence ping (nameplate badge for peers).
     PeerAnnounce,
     Altitudes(Vec<Uuid>),

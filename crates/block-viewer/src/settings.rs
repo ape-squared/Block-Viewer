@@ -1238,10 +1238,13 @@ pub struct Settings {
     /// World resolution as a percentage of the window; HUDs and UI stay native.
     pub render_scale_percent: u32,
     /// Geometric specular anti-aliasing (common.wgsl `specular_aa_roughness`):
-    /// highlights widened where the shading normal turns faster than a
-    /// pixel, so they stop shimmering as the camera moves. An Aurora
-    /// improvement, on by default.
+    /// jewellery / metal shimmer calmed when the camera moves. On by default.
     pub specular_aa: bool,
+    /// Medal / sheer attachment depth sorting (`RiggedBlendDepth::Layers`):
+    /// keeps chest medals and sheer mesh layers from clipping through the
+    /// body. On by default; off uses Legacy write-depth. Overridden by
+    /// `AURORA_RIGGED_BLEND` when that variable is set.
+    pub medal_clip_layers: bool,
     /// The sky ambient keeps its colour at full strength (x 0.7), as the
     /// first PBR release lit it (tag Second_Life_Release#843866d-DRTVWR-559),
     /// instead of a softened ambient (pow 0.9, x 0.57) turned grey under
@@ -2104,6 +2107,7 @@ impl Default for Settings {
             fsr_sharpness: 80,
             render_scale_percent: 100,
             specular_aa: true,
+            medal_clip_layers: true,
             colored_sky_ambient: false,
             tonemapper: 1,
             tonemap_mix: TONEMAP_MIX,

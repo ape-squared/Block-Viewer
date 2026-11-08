@@ -351,6 +351,11 @@ pub fn page(cx: &mut Cx, tab: usize) {
                         (MoveHologram::Start, tr!("ui-options-aurora-move-hologram-start"), true),
                     ],
                 );
+                cx.toggle(
+                    tr!("ui-options-live-decor"),
+                    tr!("ui-options-live-decor-help"),
+                    &field!(build.live_decor),
+                );
             });
             cx.group(tr!("ui-options-block-bridge"), |cx| {
                 cx.toggle(

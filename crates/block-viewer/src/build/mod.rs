@@ -151,6 +151,9 @@ pub struct BuildSettings {
     /// selection itself, or where it began); Preferences › Aurora. Off by
     /// default: a move looks as the Legacy Viewer's.
     pub move_hologram: MoveHologram,
+    /// LiveDecor: hologram where an inventory object will rez while dragging
+    /// it onto the world (Preferences › Block). On by default.
+    pub live_decor: bool,
     /// RotationStep (degrees) outside the snap ring.
     pub rotation_step: f32,
     /// EditLinkedParts.
@@ -623,6 +626,7 @@ impl Default for BuildSettings {
             place_side: place::Side::Bottom,
             place_offset: 0.0,
             move_hologram: MoveHologram::Off,
+            live_decor: true,
             rotation_step: 1.0,
             edit_linked: false,
             scale_uniform: false,

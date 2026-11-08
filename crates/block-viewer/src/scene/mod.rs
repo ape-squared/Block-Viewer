@@ -15,6 +15,7 @@ pub mod body_physics;
 pub mod build_hologram;
 pub mod complexity;
 pub mod creation_preview;
+pub mod live_decor;
 pub(crate) mod default_motions;
 pub mod describe;
 pub mod drawn;
@@ -991,6 +992,9 @@ pub struct Scene {
     rlva_render_state: (Option<Uuid>, bool, bool),
     pub lists: DrawLists,
     pub creation_preview: creation_preview::CreationPreview,
+    pub live_decor: live_decor::LiveDecor,
+    /// Medal / sheer attachment depth: Layers when true (see blend_order).
+    pub medal_clip_layers: bool,
     pub build_hologram: build_hologram::BuildHologram,
     pub physics_shapes: physics_shapes::PhysicsShapes,
     pub stats: SceneStats,
@@ -1562,6 +1566,8 @@ impl Scene {
             rlva_render_state: (None, false, false),
             lists: DrawLists::default(),
             creation_preview: creation_preview::CreationPreview::default(),
+            live_decor: live_decor::LiveDecor::default(),
+            medal_clip_layers: true,
             build_hologram: build_hologram::BuildHologram::default(),
             physics_shapes: physics_shapes::PhysicsShapes::default(),
             stats: SceneStats::default(),
@@ -2131,6 +2137,7 @@ impl Scene {
         self.banlines.clear(renderer);
         self.portals.clear(renderer);
         self.creation_preview.clear(renderer);
+        self.live_decor.clear(renderer);
         self.build_hologram.clear(renderer);
         self.physics_shapes.clear(renderer);
         self.land_overlays.clear(renderer);
@@ -4880,7 +4887,7 @@ impl Scene {
             }),
         );
         self.lists.blend_depth = blend_order::sort(&mut self.blend_tmp, blend_order::rigged_apart());
-        self.lists.blend_depth_mode = blend_order::depth_mode();
+        self.lists.blend_depth_mode = blend_order::depth_mode_prefer(self.medal_clip_layers);
         let runs = match self.lists.blend_depth_mode {
             block_render::RiggedBlendDepth::Layers => blend_order::each_object,
             block_render::RiggedBlendDepth::Split => blend_order::rig_objects,

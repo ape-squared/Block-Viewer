@@ -10072,6 +10072,7 @@ impl App {
                     .then_some(self.settings.camera.show_avatar_in_mouselook),
             );
             self.scene.update_portal_clipping(&mut gfx.renderer, &self.world);
+            self.scene.medal_clip_layers = self.settings.medal_clip_layers;
             self.scene.build_lists(&mut gfx.renderer, &cull, self.settings.shadows);
             let preview = if (self.focused || self.demo && self.capture.is_some())
                 && !covered
@@ -10095,6 +10096,17 @@ impl App {
             };
             self.scene.creation_preview.update(&mut gfx.renderer, preview);
             self.scene.creation_preview.append(&mut self.scene.lists);
+            // LiveDecor: inventory object rez hologram (one frame behind the
+            // drag surface refresh in inventory_drag_input — same as aiming).
+            let decor = self.inventory_drag.live_decor.and_then(|point| {
+                crate::scene::live_decor::Placement::new(
+                    &self.world,
+                    point,
+                    Vec3::from_array(self.settings.build.new_prim_size),
+                )
+            });
+            self.scene.live_decor.update(&mut gfx.renderer, decor);
+            self.scene.live_decor.append(&mut self.scene.lists);
             // the build tools' holograms: where Place on surface would put
             // the selection, or a move's (scene/build_hologram.rs)
             {

@@ -783,6 +783,11 @@ fn image(cx: &mut Cx) {
             tr!("ui-options-specular-aa-help"),
             &field!(specular_aa),
         );
+        cx.toggle(
+            tr!("ui-options-medal-clip"),
+            tr!("ui-options-medal-clip-help"),
+            &field!(medal_clip_layers),
+        );
     });
     // FSR's own settings (block_render fsr.rs), greyed under another
     // anti-aliasing

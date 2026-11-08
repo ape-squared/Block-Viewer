@@ -6,8 +6,6 @@ use super::App;
 use crate::theme::Palette;
 use crate::ui::controls::{ControlAction, FreeView, View};
 use block_net::{NetCommand, control};
-use glam::Vec3;
-use std::time::Instant;
 
 impl App {
     pub(crate) fn object_view_sync(&mut self) {}

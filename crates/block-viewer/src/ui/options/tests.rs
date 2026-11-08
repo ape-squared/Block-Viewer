@@ -101,6 +101,7 @@ const BEFORE: &[&str] = &[
     "colored_sky_ambient",
     "antialiasing",
     "specular_aa",
+    "medal_clip_layers",
     "tonemapper",
     "tonemap_mix",
     "dof",

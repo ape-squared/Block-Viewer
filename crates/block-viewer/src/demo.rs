@@ -663,6 +663,29 @@ pub fn outfit_attachment(item: &block_net::AttachRequest) -> ObjectUpdate {
     o
 }
 
+/// AURORA_DEMO_MEDAL=1: a semi-transparent gold disc on the chest (attach
+/// point 1) so medal / sheer attachment depth sorting can be checked offline
+/// (`medal_clip_layers`, Preferences › Graphics).
+pub fn medal_clip_events() -> Vec<NetEvent> {
+    let volume = shape(LL_PCODE_PATH_CIRCLE, LL_PCODE_PROFILE_CIRCLE, 100, 0, 0);
+    let mut medal = prim(
+        29_100,
+        Vec3::new(0.0, 0.12, 0.05),
+        Quat::from_rotation_x(std::f32::consts::FRAC_PI_2),
+        Vec3::new(0.18, 0.18, 0.02),
+        volume,
+        te([0.95, 0.78, 0.25, 0.55], 3, false, 0.15),
+        ExtraParams::default(),
+        "",
+    );
+    medal.parent_id = 9000;
+    medal.state = 1u8.rotate_right(4); // Chest
+    vec![NetEvent::ObjectUpdates {
+        handle: HANDLE,
+        objects: vec![medal],
+    }]
+}
+
 /// Own chest and facial attachments, including a linked skull child, for
 /// the first-person visibility scenarios. No grid assets are requested.
 pub fn first_person_visibility_events() -> Vec<NetEvent> {
@@ -4976,12 +4999,13 @@ pub fn events() -> Vec<NetEvent> {
             id += 1;
         }
     }
-    // AURORA_DEMO_SHIMMER=1: a long glossy plate ahead of the start position,
-    // its fine normal map repeated many times, seen at a grazing angle: far
-    // away its relief is smaller than a pixel and its highlights shimmer as
-    // the camera moves, unless the specular anti-aliasing widens them
-    // (AURORA_SPECULAR_AA)
-    if std::env::var_os("AURORA_DEMO_SHIMMER").is_some() {
+    // AURORA_DEMO_SHIMMER=1 or AURORA_DEMO_JEWELRY=1: a long glossy plate
+    // ahead of the start position, its fine normal map repeated many times,
+    // seen at a grazing angle: far away its relief is smaller than a pixel
+    // and its highlights shimmer as the camera moves, unless the specular
+    // anti-aliasing (Preferences › Graphics › Jewelry / metal shimmer) widens
+    // them. JEWELRY also drops a chrome torus "ring" on the plate.
+    if std::env::var_os("AURORA_DEMO_SHIMMER").is_some() || std::env::var_os("AURORA_DEMO_JEWELRY").is_some() {
         let floor = height(cx, cy) + 0.35;
         let mut t = TextureEntry::default();
         for f in t.faces.iter_mut() {
@@ -5000,6 +5024,27 @@ pub fn events() -> Vec<NetEvent> {
             "",
         ));
         id += 1;
+        if std::env::var_os("AURORA_DEMO_JEWELRY").is_some() {
+            let torus = shape(LL_PCODE_PATH_CIRCLE, LL_PCODE_PROFILE_CIRCLE, 100, 0, 0);
+            let mut jewel = TextureEntry::default();
+            for f in jewel.faces.iter_mut() {
+                f.texture = BLANK_TEXTURE;
+                f.color = [0.85, 0.82, 0.7, 1.0];
+                f.material_id = MAT_SHIMMER;
+                f.bump_shiny_fullbright = 3 << 6; // high shiny
+            }
+            add(prim(
+                id,
+                Vec3::new(142.0, 127.0, floor + 0.2),
+                Quat::from_rotation_x(std::f32::consts::FRAC_PI_2),
+                Vec3::new(0.35, 0.35, 0.08),
+                torus,
+                Arc::new(jewel),
+                ExtraParams::default(),
+                "",
+            ));
+            id += 1;
+        }
     }
     // AURORA_DEMO_BOUNCE=1: a white floor between a red wall and a green
     // one, with a white box against them, left of the start position: with
@@ -5893,6 +5938,9 @@ pub fn events() -> Vec<NetEvent> {
     ev.extend(bom_rezzed::events());
     ev.extend(land_beside_events());
     ev.extend(object_snap::events());
+    if std::env::var_os("AURORA_DEMO_MEDAL").is_some() {
+        ev.extend(medal_clip_events());
+    }
     ev
 }
 

@@ -339,7 +339,7 @@ pub fn create_folder_typed(parent: Uuid, name: &str, type_default: i32) -> Resul
             // Names can come from translated defaults or object/file labels,
             // rather than an edit. Keep creation usable after prevalidation.
             name: crate::text_validation::generated_name(&clean_name(name)?, 63),
-            type_default: -1,
+            type_default,
         }],
         refresh: vec![parent, id],
         ..Default::default()

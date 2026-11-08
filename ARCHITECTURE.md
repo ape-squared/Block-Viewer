@@ -1,5 +1,14 @@
 # Block Viewer architecture
 
+`scene/live_decor.rs` draws a Create-tool-style hologram where an inventory
+object will rez while it is dragged onto the world (LiveDecor). Inventory drag
+stores the surface point; the frame loop updates and appends the ghost into
+`lists.creation_preview`. Preferences › Block › LiveDecor rez preview
+(`build.live_decor`, on by default). Jewelry shimmer is Preferences › Graphics ›
+Jewelry / metal shimmer (`specular_aa`). Medal / sheer attachment depth is
+Preferences › Graphics › Medal / sheer attachment depth (`medal_clip_layers`,
+`RiggedBlendDepth::Layers` via `blend_order::depth_mode_prefer`).
+
 `ui/inventory.rs::TabFilters` keeps each window's finder state per tab, including
 advanced searches and the temporary filters of Find links / Find similar.
 Both layouts use `set_tab` to swap that state. `InventoryPreferences` retains

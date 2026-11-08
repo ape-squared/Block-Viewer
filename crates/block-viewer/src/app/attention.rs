@@ -223,6 +223,7 @@ impl App {
             self.attention.behind = !window_in_front(&g.window);
         }
         self.unread_title();
+        self.sync_incoming_im_title();
         if std::mem::take(&mut self.attention.flash)
             && let Some(g) = &self.gfx
         {

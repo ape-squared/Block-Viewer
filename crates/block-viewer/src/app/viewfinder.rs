@@ -1126,11 +1126,13 @@ impl App {
             return;
         }
         let folder = self.settings.snapshot.folder();
-        match self.video_record.start(&folder) {
-            Ok(()) => self
-                .snapshots
-                .vf
-                .say(block_i18n::tr!("camera-vf-record-started").to_owned(), false, now),
+        let fps = u32::from(self.settings.snapshot.video_fps);
+        match self.video_record.start(&folder, fps) {
+            Ok(()) => self.snapshots.vf.say(
+                block_i18n::tr!("camera-vf-record-started", fps = crate::video_record::clamp_fps(fps)).to_owned(),
+                false,
+                now,
+            ),
             Err(e) => {
                 log::warn!("camera video: {e}");
                 self.snapshots.vf.say(e, true, now);

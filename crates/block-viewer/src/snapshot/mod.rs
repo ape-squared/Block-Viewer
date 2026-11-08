@@ -230,6 +230,8 @@ pub struct Settings {
     pub folder: Option<PathBuf>,
     /// Keep the folder chosen in "Save as" for the next sessions.
     pub remember_folder: bool,
+    /// Target capture rate for in-viewer camera video (MP4), frames per second.
+    pub video_fps: u8,
     /// First part of the file name (SnapshotBaseName, "Snapshot").
     pub base_name: String,
     pub guide: Guide,
@@ -283,6 +285,7 @@ impl Default for Settings {
             timestamp_names: true,
             folder: None,
             remember_folder: true,
+            video_fps: crate::video_record::DEFAULT_FPS as u8,
             base_name: "Snapshot".into(),
             guide: Guide::Thirds,
             sound: true,
@@ -306,6 +309,7 @@ impl Settings {
     pub fn sanitize(&mut self) {
         self.custom = [clamp_side(self.custom[0]), clamp_side(self.custom[1])];
         self.jpeg_quality = self.jpeg_quality.min(100);
+        self.video_fps = crate::video_record::clamp_fps(u32::from(self.video_fps)) as u8;
         if self.base_name.trim().is_empty() {
             self.base_name = "Snapshot".into();
         }

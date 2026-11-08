@@ -862,9 +862,23 @@ impl Viewfinder {
                         next_size(s, panel.destination);
                     }
                     dot(ui, p);
-                    if text_button(ui, p, aspect_label(s.aspect), font, p.ink, block_i18n::tr!("photo-vf-format-tip")).clicked() {
+                    if text_button(
+                        ui,
+                        p,
+                        aspect_label(s.aspect),
+                        font.clone(),
+                        p.ink,
+                        block_i18n::tr!("photo-vf-format-tip"),
+                    )
+                    .clicked()
+                    {
                         let i = Aspect::ALL.iter().position(|a| *a == s.aspect).unwrap_or(0);
                         s.set_aspect(Aspect::ALL[(i + 1) % Aspect::ALL.len()], f.window);
+                    }
+                    dot(ui, p);
+                    let fps_label = block_i18n::tr!("camera-vf-fps-label", fps = u32::from(s.video_fps));
+                    if text_button(ui, p, &fps_label, font, p.ink, block_i18n::tr!("camera-vf-fps-tip")).clicked() {
+                        s.video_fps = crate::video_record::next_fps_preset(u32::from(s.video_fps)) as u8;
                     }
                 });
             });

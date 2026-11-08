@@ -13520,6 +13520,10 @@ voice-morphing-none = Pas de morphing
 prefs-sidebar-brand = BLOCK
 camera-vf-record-tip = Enregistrer une video (MP4)
 camera-vf-record-stop-tip = Arreter l enregistrement
-camera-vf-record-started = Enregistrement…
+camera-vf-record-started = Enregistrement a { $fps } img/s…
 camera-vf-record-stopping = Enregistrement de la video…
 camera-vf-record-saved = Video enregistree : { $path }
+camera-vf-fps-label = { $fps } img/s
+camera-vf-fps-tip = Cadence video — clic pour 15 / 24 / 30 / 60
+camera-video-fps = Cadence video
+camera-video-fps-help = Frequence de capture pendant l enregistrement. Plus haute = PC plus rapide ; la duree du fichier suit toujours le temps d enregistrement.

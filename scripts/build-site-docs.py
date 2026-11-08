@@ -40,6 +40,7 @@ PAGES: list[dict] = [
     {"section": "For testers", "slug": "ik-edit", "title": "IK Edit and bone contacts", "source": "docs/IK_EDIT.md"},
     {"section": "For testers", "slug": "animation-creation", "title": "Create native animations", "source": "docs/ANIMATION_CREATION.md"},
     {"section": "For testers", "slug": "poser", "title": "Local photo poser", "source": "docs/POSER.md"},
+    {"section": "For testers", "slug": "dev-toolbox", "title": "Dev Toolbox", "source": "docs/DEV_TOOLBOX.md"},
     {"section": "Contributing", "slug": "translating", "title": "Translating the viewer", "source": "docs/TRANSLATING.md"},
     {"section": "Contributing", "slug": "branding", "title": "Branding and interface", "source": "docs/BRANDING.md"},
     {"section": "Technical", "slug": "rlva", "title": "RLVa implementation status", "source": "docs/RLVA.md"},
@@ -92,8 +93,8 @@ def rewrite_md_links(source: str, text: str) -> str:
 def chrome(title: str, active: str, body: str, *, hub: bool = False) -> str:
     # Hub lives at website/docs/; guides live one folder deeper.
     root = ".." if hub else "../.."
-    css = f"{root}/styles.css?v=8"
-    js = f"{root}/site.js?v=8"
+    css = f"{root}/site.css?v=9"
+    js = f"{root}/app.js?v=9"
     mark = f"{root}/assets/mark.svg"
     home = f"{root}/"
     download = f"{root}/download/"

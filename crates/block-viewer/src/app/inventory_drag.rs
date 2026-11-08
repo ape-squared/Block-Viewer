@@ -446,11 +446,7 @@ impl App {
         self.scene
             .mark_give_target(&self.world, outline.and_then(|idx| self.contents_outline(idx)));
         // LiveDecor hologram while aiming an object rez (not contents / landmark).
-        self.inventory_drag.live_decor = if self.settings.build.live_decor
-            && !landmark
-            && !released
-            && result.is_ok()
-            && outline.is_none()
+        self.inventory_drag.live_decor = if self.settings.build.live_decor && !landmark && !released && result.is_ok() && outline.is_none()
         {
             self.inventory_drag.surface.map(|(point, _)| point)
         } else {

@@ -10099,11 +10099,7 @@ impl App {
             // LiveDecor: inventory object rez hologram (one frame behind the
             // drag surface refresh in inventory_drag_input — same as aiming).
             let decor = self.inventory_drag.live_decor.and_then(|point| {
-                crate::scene::live_decor::Placement::new(
-                    &self.world,
-                    point,
-                    Vec3::from_array(self.settings.build.new_prim_size),
-                )
+                crate::scene::live_decor::Placement::new(&self.world, point, Vec3::from_array(self.settings.build.new_prim_size))
             });
             self.scene.live_decor.update(&mut gfx.renderer, decor);
             self.scene.live_decor.append(&mut self.scene.lists);

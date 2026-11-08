@@ -19,8 +19,6 @@
 
 use super::social::ImSession;
 use super::{ChatKind, ChatLine, Origin, World};
-#[cfg(test)]
-use block_net::message_split::MAX_MESSAGE_BYTES as MAX_IM_BYTES;
 use block_net::{GroupMembership, NetCommand, NetEvent, SessionAgent, SessionMethod};
 use std::collections::{BTreeSet, HashMap, HashSet};
 use std::path::PathBuf;

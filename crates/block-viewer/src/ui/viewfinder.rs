@@ -1,4 +1,4 @@
-//! The photo viewfinder (Preferences › Aurora › Photo mode › Viewfinder):
+//! The camera viewfinder (Preferences › Block › Camera window › Viewfinder):
 //! the world full screen under a camera's overlay, like an electronic
 //! viewfinder. Its three display levels (DISP), the AF point that hunts,
 //! turns green and beeps, the distance scale with the zone kept sharp, the
@@ -178,6 +178,10 @@ pub struct Frame<'a> {
     pub posing: bool,
     /// The session's photos (`ui::photo_reel`).
     pub reel: &'a crate::ui::photo_reel::ReelView<'a>,
+    /// In-viewer video is recording (REC indicator + stop affordance).
+    pub recording: bool,
+    /// Elapsed recording time for the REC readout.
+    pub record_elapsed: std::time::Duration,
 }
 
 /// The keys the help and the hints name.
@@ -216,7 +220,9 @@ pub enum Out {
     Poser,
     /// The reel's stack or quick view.
     Reel(crate::ui::photo_reel::ReelAction),
-    /// Out of the photo mode.
+    /// Start or stop in-viewer video recording.
+    RecordToggle,
+    /// Out of camera mode.
     Exit,
 }
 
@@ -725,6 +731,19 @@ impl Viewfinder {
                     }
                     if self.ae_lock {
                         text_button(ui, p, "AE-L", bold(ctx, 13.0), p.teal, block_i18n::tr!("photo-vf-ael-on"));
+                    }
+                    if f.recording {
+                        let secs = f.record_elapsed.as_secs();
+                        let text = format!("REC {:02}:{:02}", secs / 60, secs % 60);
+                        // theme-guard: content — recording status uses danger red
+                        icon_text_button(
+                            ui,
+                            p,
+                            "player-record-filled",
+                            &text,
+                            p.danger,
+                            block_i18n::tr!("camera-vf-record-tip"),
+                        );
                     }
                     if f.free_camera {
                         icon_text_button(ui, p, "video-filled", block_i18n::tr!("photo-free-camera"), p.teal, "");
@@ -1580,6 +1599,8 @@ impl Viewfinder {
                     // left, `reel_tray`)
                     ui.add_space(6.0);
                     self.shutter_button(ui, p, out);
+                    ui.add_space(4.0);
+                    self.record_button(ui, p, f.recording, out);
                     ui.add_space(6.0);
                     let isolating = self.isolate || f.isolation.mode != crate::snapshot::isolate::Mode::Off;
                     if dock_button(ui, p, Face::Icon("user-scan"), block_i18n::tr!("photo-isolate-tip"), isolating) {
@@ -1767,6 +1788,31 @@ impl Viewfinder {
         ui.painter().circle_filled(c, if self.pressed { 25.0 * 0.86 } else { 25.0 }, fill);
         keep_keys(&resp);
         resp.on_hover_text(block_i18n::tr!("photo-vf-shutter-tip"));
+    }
+
+    /// Record / stop: a smaller control under the shutter for in-viewer MP4.
+    fn record_button(&mut self, ui: &mut egui::Ui, p: &Palette, recording: bool, out: &mut Vec<Out>) {
+        let (rect, resp) = ui.allocate_exact_size(Vec2::splat(40.0), Sense::click());
+        let c = rect.center();
+        ui.painter().circle_filled(c, 18.0, p.navy.gamma_multiply(0.4));
+        ui.painter().circle_stroke(c, 17.0, Stroke::new(2.0, p.ink.gamma_multiply(0.85)));
+        // theme-guard: content — record control uses danger red
+        if recording {
+            let stop = Rect::from_center_size(c, Vec2::splat(12.0));
+            ui.painter()
+                .rect_filled(stop, ui.visuals().widgets.inactive.corner_radius, p.danger);
+        } else {
+            ui.painter().circle_filled(c, 7.5, p.danger);
+        }
+        keep_keys(&resp);
+        if resp.clicked() {
+            out.push(Out::RecordToggle);
+        }
+        resp.on_hover_text(if recording {
+            block_i18n::tr!("camera-vf-record-stop-tip")
+        } else {
+            block_i18n::tr!("camera-vf-record-tip")
+        });
     }
 
     /// The quick menu: a tile per setting, a click for the next value.

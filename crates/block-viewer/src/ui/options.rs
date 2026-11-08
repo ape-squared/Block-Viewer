@@ -1406,8 +1406,8 @@ fn sidebar(
     now: f64,
 ) {
     let _ = (s, d, r, now);
-    // Block prefs chrome: quiet ink wash (not the Conversations bar tint),
-    // soft edge, roomy search card — distinct from the older Aurora layout.
+    // Block prefs chrome: deep field rail, signal-lime brand strip, quiet
+    // search card — reads as Block, not the older Aurora prefs shell.
     let corner = ui.visuals().window_corner_radius;
     ui.painter().rect_filled(
         side,
@@ -1415,38 +1415,44 @@ fn sidebar(
             sw: corner.sw,
             ..egui::CornerRadius::ZERO
         },
-        p.field.gamma_multiply(0.55),
+        p.field,
+    );
+    // Brand accent bar along the sidebar's outer edge.
+    ui.painter().rect_filled(
+        Rect::from_min_max(side.left_top(), pos2(side.left() + 3.0, side.bottom())),
+        egui::CornerRadius::ZERO,
+        p.violet,
     );
     ui.painter().vline(
         side.right() - 0.5,
         side.y_range(),
-        egui::Stroke::new(1.0, p.ink.gamma_multiply(0.08)),
+        egui::Stroke::new(1.0, p.ink.gamma_multiply(0.10)),
     );
     let mut ui = ui.new_child(
         egui::UiBuilder::new()
-            .max_rect(side.shrink2(vec2(12.0, 0.0)))
+            .max_rect(side.shrink2(vec2(14.0, 0.0)))
             .layout(egui::Layout::top_down(egui::Align::Min)),
     );
-    ui.add_space(14.0);
+    ui.add_space(16.0);
     {
-        let font = egui::FontId::new(13.0, super::fonts::semibold(ui.ctx()));
+        let brand = egui::FontId::new(11.0, super::fonts::semibold(ui.ctx()));
+        ui.label(RichText::new(block_i18n::tr!("prefs-sidebar-brand")).font(brand).color(p.violet));
+        ui.add_space(4.0);
+        let font = egui::FontId::new(18.0, super::fonts::semibold(ui.ctx()));
         ui.label(RichText::new(block_i18n::tr!("common-preferences")).font(font).color(p.ink));
         ui.add_space(2.0);
         ui.label(RichText::new(block_i18n::tr!("prefs-sidebar-hint")).size(11.5).color(p.muted));
-        ui.add_space(10.0);
+        ui.add_space(12.0);
     }
     let width = ui.available_width();
     let search_top = ui.cursor().top();
-    let search_rect = Rect::from_min_size(pos2(ui.min_rect().left(), search_top), vec2(width, 40.0));
-    ui.painter().rect_filled(
-        search_rect,
-        ui.visuals().widgets.inactive.corner_radius,
-        p.raised.gamma_multiply(0.9),
-    );
+    let search_rect = Rect::from_min_size(pos2(ui.min_rect().left(), search_top), vec2(width, 42.0));
+    ui.painter()
+        .rect_filled(search_rect, ui.visuals().widgets.inactive.corner_radius, p.raised);
     ui.painter().rect_stroke(
         search_rect,
         ui.visuals().widgets.inactive.corner_radius,
-        egui::Stroke::new(1.0, p.ink.gamma_multiply(0.06)),
+        egui::Stroke::new(1.0, p.violet.gamma_multiply(0.35)),
         egui::StrokeKind::Inside,
     );
     ui.add_space(6.0);
@@ -1662,7 +1668,7 @@ fn page_area(
         (page.name().to_owned(), page.about().to_owned())
     };
 
-    // Page head: larger title, airy subtitle — less dense than the old Aurora prefs.
+    // Page head: Block signal underline, larger title, airy subtitle.
     ui.add_space(22.0);
     let head_w = ui.available_width();
     ui.horizontal_top(|ui| {
@@ -1676,9 +1682,13 @@ fn page_area(
         };
         ui.vertical(|ui| {
             ui.set_width((head_w - buttons_w - 12.0).max(120.0));
-            let font = egui::FontId::new(24.0, super::fonts::semibold(ui.ctx()));
+            let font = egui::FontId::new(26.0, super::fonts::semibold(ui.ctx()));
             ui.label(RichText::new(&title).font(font).color(p.ink));
-            ui.add_space(4.0);
+            ui.add_space(6.0);
+            let mark = Rect::from_min_size(ui.cursor().left_top(), vec2(36.0, 3.0));
+            ui.painter()
+                .rect_filled(mark, ui.visuals().widgets.inactive.corner_radius, p.violet);
+            ui.add_space(10.0);
             if !about.is_empty() {
                 ui.add(egui::Label::new(RichText::new(&about).size(13.0).color(p.muted)).wrap());
             }

@@ -62,35 +62,38 @@ pub fn set_all(s: &mut Settings, look: Look) {
     s.colored_sky_ambient = aurora;
 }
 
-/// The entry of the page in the sidebar: signal-lime edge and label.
+/// The entry of the Block page in the sidebar: solid signal face when
+/// selected (on_accent ink), quiet raised hover otherwise.
 pub fn nav_entry(ui: &mut egui::Ui, p: &Palette, label: &str, icon: &str, selected: bool) -> egui::Response {
-    let (rect, response) = ui.allocate_exact_size(Vec2::new(ui.available_width(), 34.0), Sense::click());
+    let (rect, response) = ui.allocate_exact_size(Vec2::new(ui.available_width(), 36.0), Sense::click());
     let radius = ui.visuals().widgets.inactive.corner_radius;
-    let face = if selected {
-        p.violet.gamma_multiply(0.24)
+    let (face, ink, glyph) = if selected {
+        (p.violet, p.on_accent, p.on_accent)
     } else if response.hovered() {
-        p.raised
+        (p.raised, p.ink, p.violet)
     } else {
-        p.raised.gamma_multiply(0.3)
+        (p.raised.gamma_multiply(0.45), p.ink, p.violet.gamma_multiply(0.85))
     };
     ui.painter().rect_filled(rect, radius, face);
-    ui.painter().rect_filled(
-        Rect::from_min_max(rect.left_top(), Pos2::new(rect.left() + 3.0, rect.bottom())),
-        egui::CornerRadius::ZERO,
-        p.violet,
-    );
+    if !selected {
+        ui.painter().rect_filled(
+            Rect::from_min_max(rect.left_top(), Pos2::new(rect.left() + 3.0, rect.bottom())),
+            egui::CornerRadius::ZERO,
+            p.violet,
+        );
+    }
     if let Some(texture) = crate::ui::icons::global(icon) {
         ui.painter().image(
             texture.id(),
             Rect::from_center_size(rect.left_center() + Vec2::new(17.0, 0.0), Vec2::splat(17.0)),
             Rect::from_min_max(Pos2::ZERO, Pos2::new(1.0, 1.0)),
-            p.violet,
+            glyph,
         );
     }
-    let font = FontId::new(12.0, crate::ui::fonts::semibold(ui.ctx()));
-    let galley = ui.painter().layout_no_wrap(label.to_owned(), font, p.violet);
+    let font = FontId::new(12.5, crate::ui::fonts::semibold(ui.ctx()));
+    let galley = ui.painter().layout_no_wrap(label.to_owned(), font, ink);
     ui.painter()
-        .galley(rect.left_center() + Vec2::new(34.0, -galley.size().y / 2.0), galley, p.ink);
+        .galley(rect.left_center() + Vec2::new(34.0, -galley.size().y / 2.0), galley, ink);
     response.widget_info(|| egui::WidgetInfo::selected(egui::Role::Button, true, selected, label));
     response.on_hover_text(label)
 }

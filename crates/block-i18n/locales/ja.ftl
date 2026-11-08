@@ -13490,3 +13490,11 @@ voice-morphing-effect = ボイス効果
 voice-morphing-effect-hint = Legacy の Voice Morphing。Vivox のボイスフォントがあるとき選べます。オフは地声のままです。
 
 voice-morphing-none = モーフィングなし
+
+# Camera mode video + Block prefs brand
+prefs-sidebar-brand = BLOCK
+camera-vf-record-tip = 動画を録画（MP4）
+camera-vf-record-stop-tip = 録画を停止
+camera-vf-record-started = 録画中…
+camera-vf-record-stopping = 動画を保存中…
+camera-vf-record-saved = 動画を保存しました: { $path }

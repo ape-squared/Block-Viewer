@@ -1040,6 +1040,8 @@ impl App {
             preset_object,
             posing: self.ik_editor.open && self.ik_editor.posing(),
             reel: &reel,
+            recording: self.video_record.recording(),
+            record_elapsed: self.video_record.elapsed().unwrap_or_default(),
         };
         // the demo aims at the own avatar's face, then shoots
         let (aim, shoot) = self.photo_demo_viewfinder();
@@ -1102,7 +1104,36 @@ impl App {
                     }
                 }
                 Out::Reel(a) => self.photo_reel_action(a, renderer),
-                Out::Exit => self.panels.snapshot = false,
+                Out::RecordToggle => self.vf_record_toggle(),
+                Out::Exit => {
+                    if self.video_record.recording() {
+                        self.video_record.stop();
+                    }
+                    self.panels.snapshot = false;
+                }
+            }
+        }
+    }
+
+    /// Start or stop in-viewer video from the camera viewfinder.
+    fn vf_record_toggle(&mut self) {
+        let now = self.vf_now();
+        if self.video_record.recording() {
+            self.video_record.stop();
+            self.snapshots
+                .vf
+                .say(block_i18n::tr!("camera-vf-record-stopping").to_owned(), false, now);
+            return;
+        }
+        let folder = self.settings.snapshot.folder();
+        match self.video_record.start(&folder) {
+            Ok(()) => self
+                .snapshots
+                .vf
+                .say(block_i18n::tr!("camera-vf-record-started").to_owned(), false, now),
+            Err(e) => {
+                log::warn!("camera video: {e}");
+                self.snapshots.vf.say(e, true, now);
             }
         }
     }

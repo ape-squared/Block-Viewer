@@ -13513,3 +13513,11 @@ voice-morphing-effect = Effet vocal
 voice-morphing-effect-hint = Morphing vocal du Legacy Viewer : police Vivox quand elle est disponible. Désactivé = voix naturelle.
 
 voice-morphing-none = Pas de morphing
+
+# Camera mode video + Block prefs brand
+prefs-sidebar-brand = BLOCK
+camera-vf-record-tip = Enregistrer une video (MP4)
+camera-vf-record-stop-tip = Arreter l enregistrement
+camera-vf-record-started = Enregistrement…
+camera-vf-record-stopping = Enregistrement de la video…
+camera-vf-record-saved = Video enregistree : { $path }

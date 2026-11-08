@@ -106,6 +106,7 @@ mod ui_sound;
 mod uninstall;
 mod updater;
 mod url_scheme;
+mod video_record;
 mod voice;
 mod wearable_editor;
 mod window_hold;

@@ -14041,3 +14041,11 @@ world-outfit-paste-already-worn = Already worn.
 
 world-outfit-paste-cannot-be-used-in-outfits = One or more items can't be used inside outfits.
 
+
+# Camera mode video + Block prefs brand
+prefs-sidebar-brand = BLOCK
+camera-vf-record-tip = Record video (MP4)
+camera-vf-record-stop-tip = Stop recording
+camera-vf-record-started = Recording…
+camera-vf-record-stopping = Saving video…
+camera-vf-record-saved = Video saved: { $path }

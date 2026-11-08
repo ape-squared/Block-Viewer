@@ -4,7 +4,7 @@
 //! start / stop; the app asks `capture_scene` on a cadence and feeds RGBA.
 
 use std::path::{Path, PathBuf};
-use std::sync::mpsc::{self, Receiver, Sender, TryRecvError};
+use std::sync::mpsc::{Receiver, Sender, TryRecvError};
 use std::time::{Duration, Instant};
 
 /// Target frames written per second (capture requests follow this).
@@ -81,15 +81,15 @@ impl VideoRecorder {
         #[cfg(not(windows))]
         {
             let _ = folder;
-            return Err("in-viewer video recording is only available on Windows".into());
+            Err("in-viewer video recording is only available on Windows".into())
         }
         #[cfg(windows)]
         {
             std::fs::create_dir_all(folder).map_err(|e| format!("video folder: {e}"))?;
             let stamp = chrono::Local::now().format("%Y%m%d-%H%M%S");
             let path = folder.join(format!("Block-{stamp}.mp4"));
-            let (tx, rx) = mpsc::channel::<WorkerMsg>();
-            let (done_tx, done_rx) = mpsc::channel();
+            let (tx, rx) = std::sync::mpsc::channel::<WorkerMsg>();
+            let (done_tx, done_rx) = std::sync::mpsc::channel();
             let path_worker = path.clone();
             std::thread::Builder::new()
                 .name("video-record".into())

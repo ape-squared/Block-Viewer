@@ -1,20 +1,26 @@
 //! Who else runs Block Viewer — for the nameplate badge.
 //!
-//! The grid does not broadcast viewer names to peers, so detection is local:
-//! a curated JSON list on GitHub (`peers/block-peers.json`), plus the user's
-//! own "advertise" preference for their plate, and known staff / mods.
+//! The grid does not broadcast viewer names to peers. Detection is:
+//! a curated JSON list on GitHub (`peers/block-peers.json`), known staff /
+//! mods, the user's own "advertise" preference for their plate, and — when
+//! Advertise is on and the worn bridge is Ready — live region-local pings
+//! through the query script (`<auroraBlock>` / `Query::PeerAnnounce`).
 
 use serde::Deserialize;
-use std::collections::HashSet;
+use std::collections::{HashMap, HashSet};
 use std::path::PathBuf;
 use std::sync::{Mutex, OnceLock};
-use std::time::Duration;
+use std::time::{Duration, Instant};
 use uuid::Uuid;
 
 use super::staff;
 
 const MAX_DOWNLOAD: usize = 256 * 1024;
 const BUILTIN: &str = include_str!("../../../../peers/block-peers.json");
+/// How long a live bridge ping keeps another avatar's badge lit.
+const LIVE_TTL: Duration = Duration::from_secs(45);
+/// How often we ask our bridge to RegionSay a presence ping.
+pub const ANNOUNCE_INTERVAL: Duration = Duration::from_secs(12);
 
 #[derive(Debug, Clone, Deserialize, Default)]
 struct PeerFile {
@@ -28,6 +34,8 @@ struct PeerFile {
 struct PeerSet {
     ids: HashSet<Uuid>,
     names: HashSet<String>,
+    /// Avatars whose worn bridge recently announced Block presence.
+    live: HashMap<Uuid, Instant>,
     started: bool,
 }
 
@@ -137,6 +145,40 @@ fn listed(id: &Uuid, legacy: &str) -> bool {
     !n.is_empty() && guard.names.contains(&n)
 }
 
+fn live(id: &Uuid, now: Instant) -> bool {
+    let Ok(mut guard) = store().lock() else {
+        return false;
+    };
+    guard.live.retain(|_, at| now.duration_since(*at) < LIVE_TTL);
+    guard.live.get(id).is_some_and(|at| now.duration_since(*at) < LIVE_TTL)
+}
+
+/// A nearby Block bridge announced this avatar (OwnerSay `<auroraBlock>`).
+pub fn note_live(id: Uuid, now: Instant) {
+    if id.is_nil() {
+        return;
+    }
+    if let Ok(mut guard) = store().lock() {
+        guard.live.insert(id, now);
+        if guard.live.len() > 256 {
+            // Drop the oldest entries if the map grows without bound.
+            let mut ages: Vec<_> = guard.live.iter().map(|(k, v)| (*k, *v)).collect();
+            ages.sort_by_key(|(_, at)| *at);
+            for (k, _) in ages.into_iter().take(64) {
+                guard.live.remove(&k);
+            }
+        }
+    }
+}
+
+/// Offline / unit-test helper: clear live detections.
+#[cfg(test)]
+pub fn clear_live() {
+    if let Ok(mut guard) = store().lock() {
+        guard.live.clear();
+    }
+}
+
 /// Whether this avatar should get the Block Viewer nameplate badge.
 pub fn is_block_viewer(world: &super::World, id: &Uuid, legacy: &str, advertise_self: bool) -> bool {
     if id.is_nil() {
@@ -147,6 +189,9 @@ pub fn is_block_viewer(world: &super::World, id: &Uuid, legacy: &str, advertise_
     }
     if staff::is_block_team(world, id) || staff::mark_named(id, legacy).is_some_and(|m| matches!(m, staff::Mark::Block | staff::Mark::Mod))
     {
+        return true;
+    }
+    if live(id, Instant::now()) {
         return true;
     }
     listed(id, legacy)
@@ -161,5 +206,16 @@ mod tests {
         let set = parse(BUILTIN).expect("builtin peers");
         assert!(set.names.contains("heard"));
         assert!(set.ids.contains(&uuid::uuid!("4250c4e6-4819-4b0e-a20e-44a3509bc4c5")));
+    }
+
+    #[test]
+    fn live_ping_marks_a_peer_until_it_expires() {
+        clear_live();
+        let id = uuid::uuid!("aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee");
+        let now = Instant::now();
+        note_live(id, now);
+        assert!(live(&id, now));
+        assert!(!live(&id, now + LIVE_TTL + Duration::from_secs(1)));
+        clear_live();
     }
 }

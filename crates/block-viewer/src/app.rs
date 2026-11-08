@@ -1039,6 +1039,8 @@ pub struct App {
     medal_tv: crate::medal_tv::Client,
     /// In-viewer camera mode video (Media Foundation H.264 on Windows).
     video_record: crate::video_record::VideoRecorder,
+    /// Last time we asked the bridge to RegionSay a Block presence ping.
+    peer_announce_at: Option<Instant>,
     ao_missing: HashSet<uuid::Uuid>,
     ao_demo: Option<String>,
     ao_default_applied: bool,
@@ -1854,6 +1856,7 @@ impl App {
             discord_presence: Default::default(),
             medal_tv: Default::default(),
             video_record: Default::default(),
+            peer_announce_at: None,
             ao_missing: Default::default(),
             ao_demo: std::env::var("AURORA_DEMO_AO").ok(),
             ao_default_applied: false,

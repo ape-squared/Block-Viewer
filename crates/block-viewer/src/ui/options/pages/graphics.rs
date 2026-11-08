@@ -517,6 +517,13 @@ fn quality(cx: &mut Cx) {
             tr!("photo-quality-off-after-crash-help"),
             &field!(snapshot.quality_off_after_crash),
         );
+        cx.slider(
+            tr!("camera-video-fps"),
+            tr!("camera-video-fps-help"),
+            &field!(snapshot.video_fps),
+            crate::video_record::MIN_FPS as u8..=crate::video_record::MAX_FPS as u8,
+            tr!("status-fps"),
+        );
         let p = cx.p;
         cx.below().row_with(
             tr!("photo-folder"),

@@ -9,12 +9,29 @@ use std::path::{Path, PathBuf};
 use std::sync::mpsc::{Receiver, Sender, TryRecvError};
 use std::time::{Duration, Instant};
 
-/// Target capture cadence (requests follow this; timestamps use wall clock).
-pub const TARGET_FPS: u32 = 24;
+/// Default capture cadence when the setting is unset.
+pub const DEFAULT_FPS: u32 = 24;
+/// Lowest / highest rates the Camera setting accepts.
+pub const MIN_FPS: u32 = 8;
+pub const MAX_FPS: u32 = 60;
+/// Quick steps on the viewfinder badge (Preferences still allows any in range).
+pub const FPS_PRESETS: [u32; 4] = [15, 24, 30, 60];
 /// Long edge cap before encode (keeps bitrate and GPU readback sane).
 pub const MAX_EDGE: u32 = 1280;
 /// Hard stop so a forgotten REC cannot fill the disk.
 pub const MAX_SECONDS: u32 = 10 * 60;
+
+/// Keep a requested rate inside the supported band.
+pub fn clamp_fps(fps: u32) -> u32 {
+    fps.clamp(MIN_FPS, MAX_FPS).max(1)
+}
+
+/// Cycle the viewfinder badge through the common presets.
+pub fn next_fps_preset(current: u32) -> u32 {
+    let cur = clamp_fps(current);
+    let i = FPS_PRESETS.iter().position(|&f| f == cur).unwrap_or(1);
+    FPS_PRESETS[(i + 1) % FPS_PRESETS.len()]
+}
 
 /// What the app should do for recording this frame.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -51,6 +68,7 @@ enum Phase {
 struct Live {
     started: Instant,
     frames: u32,
+    fps: u32,
     capture_pending: bool,
     next_due: Instant,
     tx: Sender<WorkerMsg>,
@@ -84,10 +102,12 @@ impl VideoRecorder {
     }
 
     /// Begin a session that writes under `folder` (created if needed).
-    pub fn start(&mut self, folder: &Path) -> Result<(), String> {
+    /// `fps` is the capture cadence (clamped); sample times still follow wall clock.
+    pub fn start(&mut self, folder: &Path, fps: u32) -> Result<(), String> {
         if !matches!(self.phase, Phase::Idle) {
             return Err("already recording".into());
         }
+        let fps = clamp_fps(fps);
         #[cfg(not(windows))]
         {
             let _ = folder;
@@ -104,15 +124,16 @@ impl VideoRecorder {
             std::thread::Builder::new()
                 .name("video-record".into())
                 .spawn(move || {
-                    let result = run_worker(path_worker, rx);
+                    let result = run_worker(path_worker, rx, fps);
                     let _ = done_tx.send(result);
                 })
                 .map_err(|e| format!("video worker: {e}"))?;
             let now = Instant::now();
-            log::info!("camera video: recording to {}", path.display());
+            log::info!("camera video: recording {fps} fps to {}", path.display());
             self.phase = Phase::Live(Live {
                 started: now,
                 frames: 0,
+                fps,
                 capture_pending: false,
                 next_due: now,
                 tx,
@@ -200,7 +221,7 @@ impl VideoRecorder {
             return;
         };
         live.capture_pending = false;
-        let interval = Duration::from_secs_f64(1.0 / f64::from(TARGET_FPS));
+        let interval = Duration::from_secs_f64(1.0 / f64::from(live.fps.max(1)));
         live.next_due = Instant::now() + interval;
         if width < 2 || height < 2 || rgba.len() < (width as usize) * (height as usize) * 4 {
             return;
@@ -231,8 +252,8 @@ impl VideoRecorder {
 }
 
 #[cfg(windows)]
-fn run_worker(path: PathBuf, rx: Receiver<WorkerMsg>) -> Result<PathBuf, String> {
-    windows_encode::encode(path, rx)
+fn run_worker(path: PathBuf, rx: Receiver<WorkerMsg>, fps: u32) -> Result<PathBuf, String> {
+    windows_encode::encode(path, rx, fps)
 }
 
 /// Centre-crop RGBA to `aspect` (width/height), then return the sub-image.
@@ -263,7 +284,7 @@ pub fn crop_rgba(width: u32, height: u32, rgba: &[u8], aspect: f32) -> (u32, u32
 
 #[cfg(windows)]
 mod windows_encode {
-    use super::{MAX_EDGE, TARGET_FPS, WorkerMsg, crop_rgba};
+    use super::{MAX_EDGE, WorkerMsg, crop_rgba};
     use std::os::windows::ffi::OsStrExt;
     use std::path::PathBuf;
     use std::sync::mpsc::Receiver;
@@ -296,7 +317,8 @@ mod windows_encode {
         }
     }
 
-    pub(super) fn encode(path: PathBuf, rx: Receiver<WorkerMsg>) -> Result<PathBuf, String> {
+    pub(super) fn encode(path: PathBuf, rx: Receiver<WorkerMsg>, fps: u32) -> Result<PathBuf, String> {
+        let fps = fps.max(1);
         // SAFETY: COM + MF on this dedicated worker thread only.
         unsafe {
             let com_ok = CoInitializeEx(None, COINIT_MULTITHREADED).is_ok();
@@ -321,7 +343,7 @@ mod windows_encode {
                         };
                         let (w, h, pixels) = fit_frame(cw, ch, &cropped);
                         if writer.is_none() {
-                            writer = Some(Writer::open(&path, w, h)?);
+                            writer = Some(Writer::open(&path, w, h, fps)?);
                         }
                         let wtr = writer.as_mut().expect("opened");
                         if (w, h) != (wtr.width, wtr.height) {
@@ -356,7 +378,8 @@ mod windows_encode {
     }
 
     impl Writer {
-        fn open(path: &std::path::Path, width: u32, height: u32) -> Result<Self, String> {
+        fn open(path: &std::path::Path, width: u32, height: u32, fps: u32) -> Result<Self, String> {
+            let fps = fps.max(1);
             let wide: Vec<u16> = path.as_os_str().encode_wide().chain(std::iter::once(0)).collect();
             // SAFETY: COM/MF already started on this worker; `wide` is NUL-terminated
             // and lives for the call; media types are released with the writer.
@@ -364,7 +387,7 @@ mod windows_encode {
                 let sink = MFCreateSinkWriterFromURL(PCWSTR(wide.as_ptr()), None, None).map_err(|e| format!("SinkWriter: {e}"))?;
 
                 let out_type = MFCreateMediaType().map_err(|e| format!("media type: {e}"))?;
-                set_video_common(&out_type, width, height)?;
+                set_video_common(&out_type, width, height, fps)?;
                 out_type
                     .SetGUID(&MF_MT_SUBTYPE, &MFVideoFormat_H264)
                     .map_err(|e| format!("H264: {e}"))?;
@@ -374,7 +397,7 @@ mod windows_encode {
                 let stream = sink.AddStream(&out_type).map_err(|e| format!("AddStream: {e}"))?;
 
                 let in_type = MFCreateMediaType().map_err(|e| format!("input type: {e}"))?;
-                set_video_common(&in_type, width, height)?;
+                set_video_common(&in_type, width, height, fps)?;
                 in_type
                     .SetGUID(&MF_MT_SUBTYPE, &MFVideoFormat_RGB32)
                     .map_err(|e| format!("RGB32: {e}"))?;
@@ -390,7 +413,7 @@ mod windows_encode {
                     stream,
                     width,
                     height,
-                    frame_duration: 10_000_000 / i64::from(TARGET_FPS),
+                    frame_duration: 10_000_000 / i64::from(fps),
                     last_time: -1,
                 })
             }
@@ -441,14 +464,14 @@ mod windows_encode {
         }
     }
 
-    fn set_video_common(ty: &IMFMediaType, width: u32, height: u32) -> Result<(), String> {
+    fn set_video_common(ty: &IMFMediaType, width: u32, height: u32, fps: u32) -> Result<(), String> {
         // SAFETY: `ty` is a live IMFMediaType from MFCreateMediaType on this thread.
         unsafe {
             ty.SetGUID(&MF_MT_MAJOR_TYPE, &MFMediaType_Video)
                 .map_err(|e| format!("major: {e}"))?;
             let size = ((width as u64) << 32) | u64::from(height);
             ty.SetUINT64(&MF_MT_FRAME_SIZE, size).map_err(|e| format!("frame size: {e}"))?;
-            let rate = ((u64::from(TARGET_FPS)) << 32) | 1;
+            let rate = ((u64::from(fps.max(1))) << 32) | 1;
             ty.SetUINT64(&MF_MT_FRAME_RATE, rate).map_err(|e| format!("frame rate: {e}"))?;
             ty.SetUINT64(&MF_MT_PIXEL_ASPECT_RATIO, (1u64 << 32) | 1)
                 .map_err(|e| format!("PAR: {e}"))?;
@@ -501,6 +524,20 @@ mod tests {
         let mut r = VideoRecorder::default();
         r.push_frame(4, 4, vec![0; 64], None);
         assert!(!r.recording());
+    }
+
+    #[test]
+    fn clamp_fps_stays_in_band() {
+        assert_eq!(clamp_fps(0), MIN_FPS);
+        assert_eq!(clamp_fps(24), 24);
+        assert_eq!(clamp_fps(120), MAX_FPS);
+    }
+
+    #[test]
+    fn next_fps_preset_cycles() {
+        assert_eq!(next_fps_preset(24), 30);
+        assert_eq!(next_fps_preset(60), 15);
+        assert_eq!(next_fps_preset(20), 30); // nearest preset index falls to 24's slot
     }
 
     #[test]

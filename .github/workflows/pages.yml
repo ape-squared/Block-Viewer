@@ -8,6 +8,7 @@ on:
       - "docs/**"
       - "NOTICE.md"
       - "scripts/build-site-docs.py"
+      - "scripts/guide_public.py"
       - ".github/workflows/pages.yml"
   workflow_dispatch:
 

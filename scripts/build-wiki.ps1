@@ -85,9 +85,15 @@ if (-not (Test-Path -LiteralPath $Out)) { New-Item -ItemType Directory -Path $Ou
 # every page is generated: a page that is no longer in the table disappears
 Get-ChildItem -LiteralPath $Out -Filter *.md -File | Remove-Item -Force
 
+$guidePublic = Join-Path $PSScriptRoot 'guide_public.py'
 foreach ($p in $pages) {
     $source = $p.Source
-    $lines = [IO.File]::ReadAllText((Join-Path $repo $source), $utf8) -replace "`r`n", "`n" -split "`n"
+    # Shorten long guides for the wiki the same way the site does.
+    $tmpPublic = Join-Path ([IO.Path]::GetTempPath()) ("bv-wiki-public-" + [guid]::NewGuid().ToString() + ".md")
+    & python3 $guidePublic --source $source --repo $repo --write $tmpPublic
+    if ($LASTEXITCODE -ne 0) { throw "guide_public.py failed for $source" }
+    $lines = [IO.File]::ReadAllText($tmpPublic, $utf8) -replace "`r`n", "`n" -split "`n"
+    Remove-Item -LiteralPath $tmpPublic -Force
     $fenced = $false
     $body = foreach ($line in $lines) {
         if ($line -match '^\s*```') { $fenced = -not $fenced; $line; continue }

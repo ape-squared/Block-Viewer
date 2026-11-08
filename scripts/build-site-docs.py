@@ -23,6 +23,9 @@ except ImportError:
     raise SystemExit(1)
 
 ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT / "scripts"))
+from guide_public import public_markdown  # noqa: E402
+
 OUT = ROOT / "website" / "docs"
 
 # Keep in sync with scripts/build-wiki.ps1 page table (site slugs are lowercase).
@@ -207,7 +210,7 @@ def hub_page() -> str:
 
 def guide_page(page: dict) -> str:
     source = page["source"]
-    raw = (ROOT / source).read_text(encoding="utf-8")
+    raw = public_markdown(source, (ROOT / source).read_text(encoding="utf-8"))
     raw = rewrite_md_links(source, raw)
     MD.reset()
     body_html = MD.convert(raw)

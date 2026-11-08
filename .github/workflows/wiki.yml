@@ -11,6 +11,8 @@ on:
       - 'NOTICE.md'
       - 'docs/*.md'
       - 'scripts/build-wiki.ps1'
+      - 'scripts/build-wiki.py'
+      - 'scripts/guide_public.py'
       - '.github/workflows/wiki.yml'
   workflow_dispatch:
 
@@ -42,8 +44,7 @@ jobs:
         run: echo "::warning::The wiki has no page yet. Create a first page in the Wiki tab, then run this workflow again."
       - name: Generate the pages
         if: steps.wiki.outcome == 'success'
-        shell: pwsh
-        run: ./scripts/build-wiki.ps1 -Out .wiki
+        run: python3 scripts/build-wiki.py --out .wiki
       - name: Publish
         if: steps.wiki.outcome == 'success'
         working-directory: .wiki

@@ -334,27 +334,8 @@ leaves the PC besides the text of the issue: GitHub&rsquo;s API takes no
 attachment, so in both modes the viewer opens the <code>public</code> folder and the
 tester drags <code>screenshot.png</code> into the issue themselves. The viewer runs no
 server of its own for the reports.</p>
-<h3 id="validation">Validation</h3>
-<p><code>AURORA_DEMO_BUG_REPORT=1</code> with demo mode opens a sample report. Both
-sending modes stay local, without GitHub authorisation and without opening
-the browser. The <code>details</code>, <code>image</code>, <code>image-ui</code> and <code>direct</code> modes show
-respectively the information with the location unticked, a screenshot of
-the scene, a screenshot with the interface and the direct sending choice.
-The form opens after the scene has loaded (frame 550).
-<code>refresh</code> takes a screenshot without the interface then enables the option
-at frame 700 and disables it at frame 900. <code>language</code> switches the already
-open window to English at frame 700, then to French at frame 900, without
-changing the saved preferences. To test the language manually in
-Preferences, launch without the <code>--language</code> argument, which would force
-the language of the process.
-Test the unticked fields, the copy, the export, an image with removal then
-re-adding, a screenshot with and without the interface, the resizing and
-both languages. Change the text, choose Picture or Data, close then reopen
-from Report a bug: check that the text, the checkboxes, the image and the
-tab are kept. Also test the entry from the login screen and the Help menu.</p>
-<p>The real authorisation and the publication of a test report on GitHub are
-validated by the human, with their account. Also check the cancellation and
-the refusal of the authorisation. The automated tests open no real issue.</p>
+<hr />
+<p><em>Deeper protocol, offline-validation, and contributor-depth sections are omitted here so this page stays readable.</em></p>
       </article>
     </div>
   </main>

@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Updates — Block Viewer</title>
+  <meta name="description" content="Updates — Block Viewer documentation.">
+  <link rel="canonical" href="https://ape-squared.github.io/Block-Viewer/docs/updates/">
+  <link rel="icon" href="../../assets/mark.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../../styles.css?v=8">
+</head>
+<body>
+  <a class="skip" href="#main">Skip to content</a>
+  <div class="atmosphere" aria-hidden="true"></div>
+  <header class="nav" data-nav>
+    <a class="brand" href="../../" aria-label="Block Viewer home">
+      <img src="../../assets/mark.svg" width="28" height="28" alt="">
+      <span>BLOCK</span>
+    </a>
+    <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="site-nav" data-nav-toggle>
+      <span class="nav-toggle-bar"></span>
+      <span class="sr-only">Menu</span>
+    </button>
+    <nav id="site-nav" class="nav-links" aria-label="Primary">
+      <a href="../../download/">Download</a>
+      <a href="../../#features">Features</a>
+      <a class="is-active" href="../../docs/">Docs</a>
+      <a href="../../foundation/">Foundation</a>
+    </nav>
+    <a class="btn btn-primary nav-cta" href="../../download/">Download</a>
+  </header>
+  <main id="main" class="section page-shell docs-layout">
+    <div class="docs-with-side">
+      <aside class="docs-side" aria-label="Guides">
+<p class="docs-side-title"><a href="../">All guides</a></p>
+<p class="docs-side-section">For testers</p>
+<a href="../reporting-bugs/">Reporting bugs</a>
+<a href="../linux/">Installing on Linux</a>
+<a href="../vr/">Experimental VR scene viewing</a>
+<a href="../windows-vr/">Experimental Windows VR</a>
+<a href="../macos/">Installing on macOS</a>
+<a class="is-active" href="../updates/">Updates</a>
+<a href="../imports/">Asset imports</a>
+<a href="../livemesh/">LiveMesh</a>
+<a href="../hand-contacts/">Motorcycle hand contacts</a>
+<a href="../ik-edit/">IK Edit and bone contacts</a>
+<a href="../animation-creation/">Create native animations</a>
+<a href="../poser/">Local photo poser</a>
+<p class="docs-side-section">Contributing</p>
+<a href="../translating/">Translating the viewer</a>
+<a href="../branding/">Branding and interface</a>
+<p class="docs-side-section">Technical</p>
+<a href="../rlva/">RLVa implementation status</a>
+<a href="../licences/">Licences and notices</a>
+</aside>
+      <article class="prose docs-article reveal">
+        <p class="eyebrow">For testers</p>
+        <h1>Updates</h1>
+        <p>The viewer queries the public releases in the background and shows the login
+screen immediately. Its button stays disabled during the initial check
+(eight seconds at most), then if the update is required. The reason is
+shown under the button and also applies to Enter and to accepting the terms.
+Only stable SemVer tags are considered, plus the betas on the Beta channel
+(below); drafts, other pre-releases and <code>assets-1</code> are ignored. The Git
+metadata after a tag does not change its SemVer priority. Without a
+network, the automatic check logs the failure without a window and releases
+this login check. Development builds and the demo do not check the
+releases. The manual check shows its result and bypasses the skipped tag.</p>
+<p>The dialog stays sharp in front of a background blurred on the GPU, without
+a grey veil. A required offer shows only Quit and Update; neither Esc nor a
+click outside can close it. The login button stays disabled as long as this
+update is required.</p>
+<p>The modes take up the choices of the Legacy Viewer&rsquo;s <code>UpdaterServiceSetting</code>:
+required only, ask, download automatically. Block chooses &ldquo;Ask before
+downloading&rdquo; by default, to meet the request for an offer at launch;
+The Legacy Viewer chooses 0. The automatic mode prepares the files and waits for
+the user&rsquo;s agreement before quitting and restarting their session.</p>
+<h2 id="beta-channel">Beta channel</h2>
+<p>Preferences › Language and updates › Versions chooses <strong>Stable</strong> (the
+default) or <strong>Beta</strong> (<code>update_channel</code>). Beta testers get the changes of
+main a few days before a stable version, to catch crashes before everyone.</p>
+<ul>
+<li><strong>Builds.</strong> The Nightly workflow (<code>.github/workflows/nightly.yml</code>) runs
+  every 12 hours, at 11:00 and 23:00 UTC: noon and midnight in France in
+  winter (CET), 1 pm and 1 am in summer (CEST), since a GitHub schedule is
+  in UTC only; and on demand (&ldquo;Run workflow&rdquo; on main). A run whose commit
+  already has a version tag (nothing new since the last beta or release)
+  does nothing. When main has a commit without a version tag, <code>scripts/nightly-tag.ps1</code> pushes
+  the next beta tag on it and the Release workflow builds and publishes it
+  (it is called by the Nightly workflow: a tag pushed with the workflow
+  token starts no workflow by itself), as a GitHub pre-release with the
+  same files as a stable release: the Windows zip, its symbols (crash
+  reports of betas are symbolized like the others), the update policy and
+  the Linux archive.</li>
+<li><strong>Versions.</strong> The patch after the newest stable version, then
+  <code>beta.&lt;UTC date&gt;.&lt;n&gt;</code>: after v0.7.6, <code>v0.7.7-beta.20261025.1</code> at 11:00
+  UTC, <code>.2</code> at 23:00 UTC the same day. SemVer ranks every beta above the earlier ones and
+  below the stable version of its number, so a beta tester moves on to
+  v0.7.7 (or any later stable) once it is out, then to the next betas.
+  The beta&rsquo;s update policy takes over the thresholds of the newest stable
+  tag (<code>Aurora-Update-Policy</code> line), under its own version, raised to those
+  of <code>update-policy.json</code> at the tagged commit, as a release does; a
+  minimum the beta itself does not reach is left out.</li>
+<li><strong>Retention.</strong> <code>scripts/nightly-prune.ps1</code> keeps the ten newest betas and
+  deletes the older ones with their tags; stable releases and other
+  pre-releases are never touched.</li>
+<li><strong>What follows the channel.</strong> The Stable channel, the website and the
+  login news read stable releases only (GitHub&rsquo;s pre-release flag must
+  agree with the version: a stable number marked pre-release is skipped).
+  A beta build keeps checking for updates; a development build (Git
+  distance after the tag) never does.</li>
+<li><strong>Back to Stable.</strong> The installed beta stays until a stable version newer
+  than it is out, usually the stable of the same number a few days later:
+  no downgrade, since a beta may already have migrated the settings or the
+  cache in a way the older stable does not read. Switching channel checks
+  again at once.</li>
+<li><strong>Signing.</strong> Betas are not signed: code signing (SignPath, not set up
+  yet) asks for a manual approval of every release, which a build every
+  12 hours cannot wait for. Its step must skip the tags with a pre-release
+  part (<code>-</code>). Beta testers are told to expect an unknown-publisher warning.</li>
+</ul>
+<p><code>scripts/test-nightly.ps1</code> holds the fixture tests of the versions, the
+next tag, the pruning and the policy line; the Nightly workflow runs them on
+the pull requests that change these files. <code>./scripts/nightly-tag.ps1
+-DryRun</code> prints the tag the next nightly would create. A beta update is
+tried locally with <code>scripts/test-update.ps1 -Beta</code>.</p>
+<h2 id="package-and-release-policy">Package and release policy</h2>
+<p>The Release workflow publishes together:</p>
+<ul>
+<li><code>Block-Viewer-vX.Y.Z-windows-x64.zip</code>, with a single root folder of that name;</li>
+<li>its <code>.zip.sha256</code> file, in the format <code>hash  zip-name</code>;</li>
+<li><code>block-update-policy.json</code>: <code>schema: 1</code>, <code>version: X.Y.Z</code>,
+  <code>minimum_supported_version</code>, <code>cache_invalidation_before</code> and
+  <code>settings_reset_before</code>: <code>null</code> or a stable SemVer version ≤ X.Y.Z;</li>
+<li><code>Block-Viewer-vX.Y.Z-windows-x64-symbols.zip</code> and its <code>.zip.sha256</code>: the
+  exe&rsquo;s crash symbols (<a href="../reporting-bugs/#crash-symbols">crash reports</a>),
+  never downloaded by the viewer, which looks for the package&rsquo;s exact name;</li>
+<li>then <code>Block-Viewer-vX.Y.Z-linux-x64.tar.gz</code> and its <code>.tar.gz.sha256</code>,
+  built on Ubuntu 24.04 by a second job once the release exists: a failed
+  Linux build leaves the Windows release published.</li>
+</ul>
+<p>On Linux the viewer checks the releases the same way, with the same policy
+(a required update still blocks the login), but does not install them: its
+&ldquo;Open the release page&rdquo; button leads to the archive, extracted by hand
+(<a href="../linux/#updates">Installing on Linux</a>).</p>
+<p><code>scripts/package.ps1</code> adds <code>block-install.json</code> (<code>schema: 1</code>, version read
+by <code>--version</code>). The exe, the assets and the licence are mandatory in the
+package. The default thresholds come from <code>update-policy.json</code> at the root.
+<code>null</code> makes every update optional. Below a minimum version, the update is
+required: neither &ldquo;Skip this version&rdquo; nor Later, login blocked until the
+update. The preferences and the skipped tag do not remove this check.
+Changing this policy is a release decision reviewed in a PR; it takes
+effect at the next release.</p>
+<p>In <strong>aurora-tools.cmd → Manage releases → Create a release</strong>, the Minimum
+version, Cache and Settings choices come before the confirmation. The
+minimum keeps the current one by default (the higher of <code>update-policy.json</code>
+and the last stable tag), can require the release&rsquo;s own version (every
+earlier installation must update) or take an earlier X.Y.Z typed by hand,
+never below the current minimum. A pre-release is never offered its own
+number: <code>0.9.2-beta.1</code> comes before <code>0.9.2</code>, so its users would be refused
+it, and an inherited minimum it does not reach is left out, as in the
+nightly. Keeping the cache and the
+settings is the usual choice; <code>Settings::sanitized</code> applies the migrations
+coded in the viewer. Forcing an action records the release version as the
+threshold: every earlier installation will have to apply it. The previous
+thresholds are taken over from the last annotated stable tag, including for
+a user who skips releases. They no longer apply once this version is
+installed.
+The tag contains an <code>Aurora-Update-Policy: {…}</code> line; the workflow validates
+it with <code>scripts/write-update-policy.ps1</code> before publishing the policy file.
+A tag created by hand without this line uses the thresholds of the versioned
+file. To also keep the choices made earlier in the tools, use an annotated
+tag with this line (or copy the thresholds into the versioned file).
+The interface announces separately what happens to the cache and to the
+settings, both before the download and before &ldquo;Install and restart Block&rdquo;.</p>
+<p>Old releases without a hash or a manifest go through their page for a manual
+installation. Platforms other than Windows remain out of scope. The current
+ZIP is kept: Velopack was studied, but its chain of packages and installers
+is not that of the Block releases.</p>
+<h2 id="replacement-and-rollback">Replacement and rollback</h2>
+<p>Download, hash and extraction run in the background. Extraction refuses
+path traversals, links, Windows duplicates, reserved files and archives
+exceeding the size limits. The staging is done next to the installation, on
+the same volume. The installation refuses repositories, build trees, folder
+links and folders containing files foreign to the package.</p>
+<p>After the agreement to restart, a copy of the viewer acts as a helper
+outside the installed folder. It waits for the end of the parent with a
+Windows handle, takes a lock, backs up the old folder and puts the new one
+in place. The arguments are kept. The new instance signals a presented
+frame; the backup is then deleted. If it exits or shows nothing for
+90 seconds, the old version is restored and restarted with a message. The
+errors offer the release page.</p>
+<p>Settings, layout, accounts and cache are outside the replaced folder. If the
+policy requires it, the helper moves the cache and/or <code>settings.json</code> to a
+sibling backup <code>*.block-before-update-&lt;UUID&gt;</code>, after the parent has closed.
+This also works if the profile and the installation are on different disks.
+The new viewer recreates its cache and its default settings; the other files
+of the profile are kept. If the first start fails, the newly created data
+is removed and the backups are restored. On success, these backups are
+deleted; a clean-up error keeps them for recovery and does not trigger a
+rollback. A sudden interruption of the PC can prevent the automatic
+rollback; <code>.block-update-&lt;UUID&gt;/backup</code>, next to the installation, keeps
+the old version. Do not delete it before having restored the installed
+folder. Failed transactions are kept for diagnosis; the new instance cleans
+up the successful transactions after the helper has finished.</p>
+<h2 id="validation">Validation</h2>
+<p><code>cargo test -p block-updater</code>: loopback HTTP server and throwaway packages
+for SemVer, required update, tampered hash, incomplete transfer,
+cancellation, dangerous ZIP, lock, backup and rollback of the package and of
+the data. <code>scripts/test-update-policy.ps1</code> checks the release choices (minimum
+version included, typed or refused), their carry-over into an annotated tag and the refusal of an invalid threshold,
+without touching the current repository. The visual demo downloads nothing
+(<code>AURORA_DEMO_UPDATE</code>). For a human check, run two real executables and
+confirm the update prompt, download, and restart behave as expected.</p>
+      </article>
+    </div>
+  </main>
+  <footer class="footer">
+    <div class="footer-row">
+      <a class="brand" href="../../"><img src="../../assets/mark.svg" width="22" height="22" alt=""><span>BLOCK VIEWER</span></a>
+      <nav class="footer-links" aria-label="Footer">
+        <a href="../../download/">Download</a>
+        <a href="../../docs/">Docs</a>
+        <a href="../../foundation/">Foundation</a>
+        <a href="../../privacy/">Privacy</a>
+        <a href="https://github.com/ape-squared/Block-Viewer">GitHub</a>
+      </nav>
+    </div>
+    <p class="legal">Guides are hosted on this site. Source of truth is the Markdown in the repository.</p>
+  </footer>
+  <script src="../../site.js?v=8" defer></script>
+</body>
+</html>

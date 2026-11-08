@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Licences and notices — Block Viewer</title>
+  <meta name="description" content="Licences and notices — Block Viewer documentation.">
+  <link rel="canonical" href="https://ape-squared.github.io/Block-Viewer/docs/licences/">
+  <link rel="icon" href="../../assets/mark.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../../styles.css?v=8">
+</head>
+<body>
+  <a class="skip" href="#main">Skip to content</a>
+  <div class="atmosphere" aria-hidden="true"></div>
+  <header class="nav" data-nav>
+    <a class="brand" href="../../" aria-label="Block Viewer home">
+      <img src="../../assets/mark.svg" width="28" height="28" alt="">
+      <span>BLOCK</span>
+    </a>
+    <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="site-nav" data-nav-toggle>
+      <span class="nav-toggle-bar"></span>
+      <span class="sr-only">Menu</span>
+    </button>
+    <nav id="site-nav" class="nav-links" aria-label="Primary">
+      <a href="../../download/">Download</a>
+      <a href="../../#features">Features</a>
+      <a class="is-active" href="../../docs/">Docs</a>
+      <a href="../../foundation/">Foundation</a>
+    </nav>
+    <a class="btn btn-primary nav-cta" href="../../download/">Download</a>
+  </header>
+  <main id="main" class="section page-shell docs-layout">
+    <div class="docs-with-side">
+      <aside class="docs-side" aria-label="Guides">
+<p class="docs-side-title"><a href="../">All guides</a></p>
+<p class="docs-side-section">For testers</p>
+<a href="../reporting-bugs/">Reporting bugs</a>
+<a href="../linux/">Installing on Linux</a>
+<a href="../vr/">Experimental VR scene viewing</a>
+<a href="../windows-vr/">Experimental Windows VR</a>
+<a href="../macos/">Installing on macOS</a>
+<a href="../updates/">Updates</a>
+<a href="../imports/">Asset imports</a>
+<a href="../livemesh/">LiveMesh</a>
+<a href="../hand-contacts/">Motorcycle hand contacts</a>
+<a href="../ik-edit/">IK Edit and bone contacts</a>
+<a href="../animation-creation/">Create native animations</a>
+<a href="../poser/">Local photo poser</a>
+<p class="docs-side-section">Contributing</p>
+<a href="../translating/">Translating the viewer</a>
+<a href="../branding/">Branding and interface</a>
+<p class="docs-side-section">Technical</p>
+<a href="../rlva/">RLVa implementation status</a>
+<a class="is-active" href="../licences/">Licences and notices</a>
+</aside>
+      <article class="prose docs-article reveal">
+        <p class="eyebrow">Technical</p>
+        <h1>Licences and notices</h1>
+        <p>Block Viewer is free software: you can redistribute it and/or modify it under
+the terms of the <strong>GNU General Public License, version 3 or (at your option) any
+later version</strong> (see <a href="https://github.com/ape-squared/Block-Viewer/blob/main/LICENSE">LICENSE</a> and <a href="https://github.com/ape-squared/Block-Viewer/blob/main/LICENSE.md">LICENSE.md</a>).</p>
+<p>Block Viewer is a hobby fork built on the open-source Block Viewer codebase.
+It is not an official Aurora release, is not affiliated with the Block Viewer
+project, and is not positioned as a competitor to it.</p>
+<p>Block Viewer is not provided, endorsed or supported by Linden Research, Inc.
+(&ldquo;Linden Lab&rdquo;) or The Phoenix Firestorm Project, Inc. Second Life® is a
+trademark of Linden Research, Inc.</p>
+<h2 id="code-derived-from-the-second-life-viewer-and-firestorm">Code derived from the Second Life viewer and Firestorm</h2>
+<p>Many parts of this program are Rust ports of the Second Life viewer
+(Copyright © Linden Research, Inc.) and of the Firestorm viewer
+(Copyright © The Phoenix Firestorm Project, Inc.), both distributed under the
+GNU Lesser General Public License, version 2.1. Each ported file says which
+original sources it follows (&ldquo;originally LGPL 2.1&rdquo;).</p>
+<p>As permitted by section 3 of the LGPL 2.1, the copy of that code included in
+this program is distributed under the GNU General Public License, version 3 or
+any later version. The original code remains available under the LGPL 2.1 from
+its authors:</p>
+<ul>
+<li>Second Life viewer — <a href="https://github.com/secondlife/viewer">https://github.com/secondlife/viewer</a></li>
+<li>Firestorm — <a href="https://github.com/FirestormViewer/phoenix-firestorm">https://github.com/FirestormViewer/phoenix-firestorm</a></li>
+</ul>
+<p>The Second Life message template (<code>crates/block-msg/message_template.msg</code>) and
+the avatar definition files (<code>crates/block-viewer/assets/character/</code>) come from
+the Second Life viewer sources (originally LGPL 2.1).
+The <code>character/bake/</code> subdirectory contains the same sources&rsquo; TGA skin,
+clothing and visibility masks, used by the local wearable preview.
+The Blender extension bundles the same <code>avatar_skeleton.xml</code> and retains its
+provenance in <code>blender/block_live/SKELETON-NOTICE.txt</code>.</p>
+<p>The terrain alpha ramp (<code>crates/block-render/src/terrain_alpha_ramp.r8</code>) is the
+decoded 256-square linear grayscale image from the Legacy Viewer&rsquo;s
+<code>indra/newview/skins/default/textures/alpha_gradient_2d.j2c</code> (source revision
+<code>003e22b6</code>), Copyright Linden Research, Inc., originally LGPL 2.1 and distributed
+here under GPL-3.0-or-later as described above. Rows are retained top-down.</p>
+<p>The RLVa command parser, restriction rules, inventory conventions and camera
+behaviors in <code>crates/block-viewer/src/world/rlva/</code> and <code>world/rlva.rs</code> follow
+the Legacy Viewer&rsquo;s <code>indra/newview/rlv*.cpp</code> and <code>rlv*.h</code>: Copyright ©
+2009-2020 Kitty Barnett, originally LGPL 2.1, distributed here under
+GPL-3.0-or-later as described above.</p>
+<h2 id="bundled-assets">Bundled assets</h2>
+<table>
+<thead>
+<tr>
+<th>Asset</th>
+<th>Location</th>
+<th>License</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Tabler Icons — Copyright © 2020-2026 Paweł Kuna</td>
+<td><code>assets/tabler-icons/</code>, <code>crates/block-viewer/assets/icons/tabler/</code></td>
+<td>MIT (<a href="https://github.com/ape-squared/Block-Viewer/blob/main/assets/tabler-icons/LICENSE">LICENSE</a>)</td>
+</tr>
+<tr>
+<td>Inter typeface, Regular and SemiBold, version 4.001</td>
+<td><code>crates/block-viewer/assets/fonts/</code></td>
+<td>SIL Open Font License 1.1 (<a href="https://github.com/ape-squared/Block-Viewer/blob/main/crates/block-viewer/assets/fonts/LICENSE-Inter.txt">LICENSE-Inter.txt</a>)</td>
+</tr>
+<tr>
+<td>Noto Sans, Regular and SemiBold, version 2.015 (notofonts/latin-greek-cyrillic, hinted)</td>
+<td><code>crates/block-viewer/assets/fonts/</code></td>
+<td>SIL Open Font License 1.1 (<a href="https://github.com/ape-squared/Block-Viewer/blob/main/crates/block-viewer/assets/fonts/LICENSE-NotoSans.txt">LICENSE-NotoSans.txt</a>)</td>
+</tr>
+<tr>
+<td>Roboto, Regular and Medium, version 3.011 (googlefonts/roboto-3-classic, hinted)</td>
+<td><code>crates/block-viewer/assets/fonts/</code></td>
+<td>SIL Open Font License 1.1 (<a href="https://github.com/ape-squared/Block-Viewer/blob/main/crates/block-viewer/assets/fonts/LICENSE-Roboto.txt">LICENSE-Roboto.txt</a>)</td>
+</tr>
+<tr>
+<td>OpenDyslexic, Regular and Bold, version 0.910.12 — Copyright 2012-2019 Abbie Gonzalez, Reserved Font Name OpenDyslexic (antijingoist/opendyslexic, release <code>v0.91.12</code>, unmodified)</td>
+<td><code>crates/block-viewer/assets/fonts/</code></td>
+<td>SIL Open Font License 1.1 (<a href="https://github.com/ape-squared/Block-Viewer/blob/main/crates/block-viewer/assets/fonts/LICENSE-OpenDyslexic.txt">LICENSE-OpenDyslexic.txt</a>)</td>
+</tr>
+<tr>
+<td>Noto Color Emoji font, version 2.057 — Copyright 2022 Google Inc. (googlefonts/noto-emoji, tag <code>v2026-09-24-unicode18_0</code>, built into the executable)</td>
+<td><code>assets/emoji/</code></td>
+<td>SIL Open Font License 1.1 (<a href="https://github.com/ape-squared/Block-Viewer/blob/main/assets/emoji/LICENSE-OFL.txt">LICENSE-OFL.txt</a>)</td>
+</tr>
+<tr>
+<td>MIT KEMAR HRTF measurements, diffuse-field equalized set — Copyright 1994 MIT Media Laboratory, by Bill Gardner and Keith Martin (https://sound.media.mit.edu/resources/KEMAR.html: &ldquo;provided free with no restrictions on use, provided the authors are cited&rdquo;); turned into minimum-phase filters by <code>scripts/generate-hrtf.py</code> (built into the executable; origin, citation and changes in <a href="https://github.com/ape-squared/Block-Viewer/blob/main/assets/hrtf/README.md">README.md</a>)</td>
+<td><code>assets/hrtf/kemar.bin</code></td>
+<td>Free use with credit to the authors (their terms, quoted in the README)</td>
+</tr>
+<tr>
+<td>HYG star database v4.4 — David Nash (astronexus, https://codeberg.org/astronexus/hyg); the stars of magnitude 6.5 and brighter, rounded to fixed point by <code>scripts/generate-star-catalog.py</code> (built into the executable; origin and changes in <a href="https://github.com/ape-squared/Block-Viewer/blob/main/assets/stars/README.md">README.md</a>)</td>
+<td><code>assets/stars/stars.bin</code></td>
+<td>CC BY-SA 4.0 (<a href="https://github.com/ape-squared/Block-Viewer/blob/main/assets/stars/LICENSE-HYG.md">LICENSE-HYG.md</a>); the derived table is shared under the same licence</td>
+</tr>
+<tr>
+<td>Block mark / app icon</td>
+<td><code>assets/branding/</code></td>
+<td>Block brand assets (see sibling Block injector repo)</td>
+</tr>
+<tr>
+<td>Upstream viewer codebase</td>
+<td>whole tree</td>
+<td>Derived from <a href="https://github.com/Aurora-Viewer/Aurora-Viewer">Block Viewer</a> (GPL-3.0-or-later); product branding here is independent</td>
+</tr>
+<tr>
+<td>Photo filters of the Second Life viewer <code>indra/newview/app_settings/filters</code> (the 30 XML files unchanged, from the Legacy Viewer&rsquo;s sources at commit <code>8ffe7065</code>), made by Linden Lab</td>
+<td><code>crates/block-render/src/looks/legacy/</code> (built into the executable)</td>
+<td>Originally LGPL 2.1, distributed here under GPL-3.0-or-later as described above</td>
+</tr>
+<tr>
+<td>LSL keyword names, signatures and help from Firestorm <code>indra/newview/app_settings/keywords_lsl_default.xml</code></td>
+<td><code>crates/block-viewer/assets/lsl/keywords.json</code>, <code>reference.json</code></td>
+<td>Originally LGPL 2.1, distributed here under GPL-3.0-or-later as described above</td>
+</tr>
+<tr>
+<td>Windlight presets of Firestorm <code>indra/newview/app_settings/windlight</code> (<code>days</code>, <code>skies</code>, <code>water</code>; XML files unchanged, commit <code>c33bfee2</code>), made by Linden Lab and by Second Life residents for the Phoenix / Firestorm viewers (their names and tags are in the preset names); the files carry no notice of their own and are distributed in the Firestorm sources under its LGPL 2.1 (<code>LICENSE</code>, <code>doc/LICENSE-source.txt</code>)</td>
+<td><code>crates/block-viewer/assets/windlight/windlight.zip</code> (built into the executable)</td>
+<td>Originally LGPL 2.1, distributed here under GPL-3.0-or-later as described above</td>
+</tr>
+<tr>
+<td>Hunspell spelling dictionaries of ten languages (wooorm/dictionaries, commit <code>8cfea406</code>, unchanged; built into the executable, the list and the origin of each in <a href="https://github.com/ape-squared/Block-Viewer/blob/main/crates/block-viewer/assets/dictionaries/README.md">README.md</a>)</td>
+<td><code>crates/block-viewer/assets/dictionaries/</code></td>
+<td>Their own licences, each next to its dictionary (<code>LICENSE.txt</code>) and shipped in <code>assets/dictionaries/</code>: MIT AND BSD (English), MPL-2.0 (French), GPL-2.0 OR GPL-3.0 (German), GPL-3.0 OR LGPL-3.0 OR MPL-1.1 (Spanish), GPL-3.0 OR LGPL-3.0 OR MPL-2.0 (Polish), LGPL-3.0 OR MPL-2.0 (Portuguese), BSD-3-Clause (Russian), GPL-2.0 OR LGPL-2.1 OR MPL-1.1 (Danish)</td>
+</tr>
+<tr>
+<td>Second Life glossary of the Legacy Viewer&rsquo;s dictionaries (<code>sl.dic</code>) and its auto-replace lists (<code>indra/newview/app_settings/autoreplace.xml</code>, unchanged)</td>
+<td><code>crates/block-viewer/assets/dictionaries/sl/</code>, <code>crates/block-viewer/assets/autoreplace.xml</code></td>
+<td>Originally LGPL 2.1, distributed here under GPL-3.0-or-later as described above</td>
+</tr>
+<tr>
+<td>LSL preprocessor rules from Modular Systems / Firestorm <code>indra/newview/fslslpreproc.cpp</code></td>
+<td><code>crates/block-viewer/src/ui/scripts/preprocessor/</code></td>
+<td>BSD-3-Clause (<a href="https://github.com/ape-squared/Block-Viewer/blob/main/crates/block-viewer/assets/lsl/PREPROCESSOR-LICENSE.txt">notice</a>), retained alongside this GPL-3.0-or-later adaptation</td>
+</tr>
+<tr>
+<td>Colour and dithering code of egui-wgpu&rsquo;s <code>egui.wgsl</code> — Copyright © Emil Ernerfeldt and the egui contributors</td>
+<td><code>crates/block-render/src/shaders/labels.wgsl</code></td>
+<td>MIT OR Apache-2.0, retained alongside this GPL-3.0-or-later adaptation</td>
+</tr>
+<tr>
+<td>Screen space shadows of Bend Studio (<code>bend_sss_gpu.h</code>, <code>bend_sss_cpu.h</code>, as shipped in Days Gone) — Copyright © 2023 Sony Interactive Entertainment, ported to WGSL and Rust</td>
+<td><code>crates/block-render/src/shaders/contact_shadows.wgsl</code>, <code>crates/block-render/src/contact_shadows.rs</code></td>
+<td>Apache-2.0, notice retained at the top of <code>contact_shadows.wgsl</code></td>
+</tr>
+<tr>
+<td>Ground-truth ambient occlusion of Intel&rsquo;s XeGTAO (<code>XeGTAO.hlsli</code>, <code>vaGTAO.hlsl</code>, GameTechDev/XeGTAO), with its bent normals — Copyright © 2016-2021 Intel Corporation, ported to WGSL</td>
+<td><code>crates/block-render/src/shaders/gtao.wgsl</code>, <code>crates/block-render/src/gtao.rs</code></td>
+<td>MIT, notice retained at the top of <code>gtao.wgsl</code></td>
+</tr>
+<tr>
+<td>Spherical caps&rsquo; intersection and cone specular occlusion of Google&rsquo;s Filament (<code>sphericalCapsIntersection</code>, <code>specularAO_Cones</code>, google/filament) — Copyright © 2018 The Android Open Source Project, rewritten in WGSL</td>
+<td><code>crates/block-render/src/shaders/common.wgsl</code> (<code>spherical_caps_intersection</code>, <code>cone_specular_occlusion</code>)</td>
+<td>Apache-2.0, retained alongside this GPL-3.0-or-later adaptation</td>
+</tr>
+</tbody>
+</table>
+<p>Fonts keep their own license (the OFL allows bundling them with software under
+any license). The license texts of the fonts are next to them.</p>
+<h2 id="media-plugins">Media plugins</h2>
+<p>Web pages and video on media faces go through a separate pack, built by the
+&ldquo;Media plugins&rdquo; workflow (<code>.github/workflows/media-plugins.yml</code>) and published
+as the GitHub releases <code>media-plugins-&lt;n&gt;</code>. The viewer downloads it when media
+need it and installs it in the user&rsquo;s data folder. Each release attaches the
+license texts (<code>LICENSES\</code> in the archive) and the corresponding source of the
+Linden Lab code. On Linux, video plays through the system&rsquo;s GStreamer, which
+the pack does not include.</p>
+<table>
+<thead>
+<tr>
+<th>Component</th>
+<th>License</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>SLPlugin.exe</code>, <code>media_plugin_cef.dll</code>, <code>media_plugin_libvlc.dll</code> (Windows), <code>SLPlugin</code>, <code>libmedia_plugin_cef.so</code>, <code>libmedia_plugin_gstreamer.so</code> (Linux), built unmodified from a pinned commit of the Firestorm sources</td>
+<td>LGPL 2.1 (the commit is named in the pack&rsquo;s <code>block-media-plugins.json</code> and in the release notes)</td>
+</tr>
+<tr>
+<td>Chromium Embedded Framework, Dullahan (Linden Lab&rsquo;s prebuilt package)</td>
+<td>BSD-3-Clause and the licenses of Chromium&rsquo;s third-party code</td>
+</tr>
+<tr>
+<td>LibVLC and its modules (Linden Lab&rsquo;s prebuilt package of VLC 3.0)</td>
+<td>LGPL 2.1 or later; some modules GPL 2 or later</td>
+</tr>
+<tr>
+<td>Microsoft Visual C++ runtime (<code>msvcp140.dll</code>, <code>vcruntime140*.dll</code>)</td>
+<td>Redistributable under the Visual Studio license terms</td>
+</tr>
+</tbody>
+</table>
+<h2 id="rust-dependencies">Rust dependencies</h2>
+<p>The crates used by Block Viewer (see <code>Cargo.lock</code>) are under licenses
+compatible with the GPL version 3 (mostly MIT and/or Apache-2.0).</p>
+<h2 id="hidapi">HIDAPI</h2>
+<p>The MIT-licensed <code>hidapi</code> Rust crate bundles native HIDAPI for SpaceMouse
+input. That native code is distributed here under its BSD-style license
+option. Source: https://github.com/libusb/hidapi (vendored by the crate
+version recorded in <code>Cargo.lock</code>).</p>
+<p>Copyright (c) 2010, Alan Ott, Signal 11 Software
+All rights reserved.</p>
+<p>Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are met:</p>
+<pre><code>* Redistributions of source code must retain the above copyright notice,
+  this list of conditions and the following disclaimer.
+* Redistributions in binary form must reproduce the above copyright
+  notice, this list of conditions and the following disclaimer in the
+  documentation and/or other materials provided with the distribution.
+* Neither the name of Signal 11 Software nor the names of its
+  contributors may be used to endorse or promote products derived from
+  this software without specific prior written permission.
+</code></pre>
+<p>THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS &ldquo;AS IS&rdquo;
+AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+POSSIBILITY OF SUCH DAMAGE.</p>
+<h2 id="v-hacd">V-HACD</h2>
+<p>The unmodified V-HACD 4.1 header in <code>crates/block-assets/native/vhacd/</code>
+is distributed under BSD-3-Clause. Its source revision and checksum are
+recorded alongside it. The following notice also applies to its compiled
+code included in Block Viewer:</p>
+<p>BSD 3-Clause License</p>
+<p>Copyright (c) 2011, Khaled Mamou (kmamou at gmail dot com)
+All rights reserved.</p>
+<p>Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are met:</p>
+<ol>
+<li>
+<p>Redistributions of source code must retain the above copyright notice, this
+   list of conditions and the following disclaimer.</p>
+</li>
+<li>
+<p>Redistributions in binary form must reproduce the above copyright notice,
+   this list of conditions and the following disclaimer in the documentation
+   and/or other materials provided with the distribution.</p>
+</li>
+<li>
+<p>Neither the name of the copyright holder nor the names of its
+   contributors may be used to endorse or promote products derived from
+   this software without specific prior written permission.</p>
+</li>
+</ol>
+<p>THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS &ldquo;AS IS&rdquo;
+AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.</p>
+<h2 id="sonora-audio-processing">Sonora audio processing</h2>
+<p>Sonora 0.2 and its sonora-* components provide the pure Rust WebRTC audio
+processing pipeline (AEC3, noise suppression, AGC2 and high-pass filtering).
+Source: https://github.com/dignifiedquire/sonora (BSD-3-Clause).</p>
+<p>Copyright (c) 2011, The WebRTC Project Authors. All rights reserved.
+Copyright (c) 2016, Arun Raghavan and contributors. All rights reserved.
+Copyright (c) 2026, dignifiedquire. All rights reserved.</p>
+<p>Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are
+met:</p>
+<ul>
+<li>
+<p>Redistributions of source code must retain the above copyright
+    notice, this list of conditions and the following disclaimer.</p>
+</li>
+<li>
+<p>Redistributions in binary form must reproduce the above copyright
+    notice, this list of conditions and the following disclaimer in
+    the documentation and/or other materials provided with the
+    distribution.</p>
+</li>
+<li>
+<p>Neither the name of Google nor the names of its contributors may
+    be used to endorse or promote products derived from this software
+    without specific prior written permission.</p>
+</li>
+</ul>
+<p>THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+&ldquo;AS IS&rdquo; AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.</p>
+      </article>
+    </div>
+  </main>
+  <footer class="footer">
+    <div class="footer-row">
+      <a class="brand" href="../../"><img src="../../assets/mark.svg" width="22" height="22" alt=""><span>BLOCK VIEWER</span></a>
+      <nav class="footer-links" aria-label="Footer">
+        <a href="../../download/">Download</a>
+        <a href="../../docs/">Docs</a>
+        <a href="../../foundation/">Foundation</a>
+        <a href="../../privacy/">Privacy</a>
+        <a href="https://github.com/ape-squared/Block-Viewer">GitHub</a>
+      </nav>
+    </div>
+    <p class="legal">Guides are hosted on this site. Source of truth is the Markdown in the repository.</p>
+  </footer>
+  <script src="../../site.js?v=8" defer></script>
+</body>
+</html>

@@ -1,0 +1,649 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Branding and interface — Block Viewer</title>
+  <meta name="description" content="Branding and interface — Block Viewer documentation.">
+  <link rel="canonical" href="https://ape-squared.github.io/Block-Viewer/docs/branding/">
+  <link rel="icon" href="../../assets/mark.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../../styles.css?v=8">
+</head>
+<body>
+  <a class="skip" href="#main">Skip to content</a>
+  <div class="atmosphere" aria-hidden="true"></div>
+  <header class="nav" data-nav>
+    <a class="brand" href="../../" aria-label="Block Viewer home">
+      <img src="../../assets/mark.svg" width="28" height="28" alt="">
+      <span>BLOCK</span>
+    </a>
+    <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="site-nav" data-nav-toggle>
+      <span class="nav-toggle-bar"></span>
+      <span class="sr-only">Menu</span>
+    </button>
+    <nav id="site-nav" class="nav-links" aria-label="Primary">
+      <a href="../../download/">Download</a>
+      <a href="../../#features">Features</a>
+      <a class="is-active" href="../../docs/">Docs</a>
+      <a href="../../foundation/">Foundation</a>
+    </nav>
+    <a class="btn btn-primary nav-cta" href="../../download/">Download</a>
+  </header>
+  <main id="main" class="section page-shell docs-layout">
+    <div class="docs-with-side">
+      <aside class="docs-side" aria-label="Guides">
+<p class="docs-side-title"><a href="../">All guides</a></p>
+<p class="docs-side-section">For testers</p>
+<a href="../reporting-bugs/">Reporting bugs</a>
+<a href="../linux/">Installing on Linux</a>
+<a href="../vr/">Experimental VR scene viewing</a>
+<a href="../windows-vr/">Experimental Windows VR</a>
+<a href="../macos/">Installing on macOS</a>
+<a href="../updates/">Updates</a>
+<a href="../imports/">Asset imports</a>
+<a href="../livemesh/">LiveMesh</a>
+<a href="../hand-contacts/">Motorcycle hand contacts</a>
+<a href="../ik-edit/">IK Edit and bone contacts</a>
+<a href="../animation-creation/">Create native animations</a>
+<a href="../poser/">Local photo poser</a>
+<p class="docs-side-section">Contributing</p>
+<a href="../translating/">Translating the viewer</a>
+<a class="is-active" href="../branding/">Branding and interface</a>
+<p class="docs-side-section">Technical</p>
+<a href="../rlva/">RLVa implementation status</a>
+<a href="../licences/">Licences and notices</a>
+</aside>
+      <article class="prose docs-article reveal">
+        <p class="eyebrow">Contributing</p>
+        <h1>Branding and interface</h1>
+        <p>Block Viewer’s interface is <strong>clean, modular and slightly glassy</strong>: deep
+surface neutrals, a signal-lime accent, readable text, crisp icons. Every
+screen must read as Block — not as another viewer’s purple gradient skin.</p>
+<h2 id="palette">Palette</h2>
+<p>The colours come from <code>crates/block-viewer/src/theme.rs</code> (<code>Theme::default</code>).
+In the code, always use the resolved <code>Palette</code> (<code>p.violet</code>, <code>p.ink</code>…),
+<strong>never a hard-coded colour</strong>: a skin can change them, and so can the user,
+from Preferences › Appearance › Skin › Interface colours
+(<code>interface_colors.rs</code>): they pick the accent (<code>violet</code> role → signal), the
+windows&rsquo; background (<code>panel</code>) and the text (<code>ink</code>), and the other accent,
+surface and text roles follow from those three. Field names like <code>violet</code> /
+<code>indigo</code> are historical role ids; hex values are Block brand tokens.</p>
+<h3 id="brand-colours">Brand colours</h3>
+<table>
+<thead>
+<tr>
+<th>Role id</th>
+<th>Hex</th>
+<th>Block token / use</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>violet</td>
+<td><code>#D4FF3F</code></td>
+<td><strong>signal</strong> — main accent: selection, active button, focus</td>
+</tr>
+<tr>
+<td>indigo</td>
+<td><code>#5BE3E8</code></td>
+<td><strong>data</strong> — secondary accent, brand gradients</td>
+</tr>
+<tr>
+<td>teal</td>
+<td><code>#5BE3E8</code></td>
+<td>active / online, links in chat and profiles</td>
+</tr>
+<tr>
+<td>navy</td>
+<td><code>#0B0C0E</code></td>
+<td><strong>surface-0</strong> — deep background (login, loading)</td>
+</tr>
+<tr>
+<td>violet_light</td>
+<td><code>#E2FF7A</code></td>
+<td>signal on dark (accent text, hover)</td>
+</tr>
+<tr>
+<td>violet_pale</td>
+<td><code>#F0FFB0</code></td>
+<td>soft signal details</td>
+</tr>
+<tr>
+<td>indigo_light</td>
+<td><code>#8EF0F4</code></td>
+<td>light data variant</td>
+</tr>
+</tbody>
+</table>
+<h3 id="interface-neutrals">Interface neutrals</h3>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Hex</th>
+<th>Use</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>panel</td>
+<td><code>#1B1D21</code></td>
+<td>window background (opacity <code>panel_alpha</code> = 235)</td>
+</tr>
+<tr>
+<td>bar</td>
+<td><code>#131417</code></td>
+<td>top and bottom bars</td>
+</tr>
+<tr>
+<td>field</td>
+<td><code>#0B0C0E</code></td>
+<td>input fields, sunken areas</td>
+</tr>
+<tr>
+<td>raised</td>
+<td><code>#25282D</code></td>
+<td>buttons, hovered surfaces</td>
+</tr>
+<tr>
+<td>ink</td>
+<td><code>#ECEEF0</code></td>
+<td>main text</td>
+</tr>
+<tr>
+<td>muted</td>
+<td><code>#9AA0A8</code></td>
+<td>secondary text, labels</td>
+</tr>
+<tr>
+<td>muted_dim</td>
+<td><code>#6B717A</code></td>
+<td>tertiary text, disabled</td>
+</tr>
+<tr>
+<td>on_accent</td>
+<td><code>#0B0C0E</code></td>
+<td>text/icons on a signal face (lime needs dark ink)</td>
+</tr>
+</tbody>
+</table>
+<h3 id="states">States</h3>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Hex</th>
+<th>Use</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>success</td>
+<td><code>#4ADE80</code></td>
+<td>success, validated</td>
+</tr>
+<tr>
+<td>warn</td>
+<td><code>#FB923C</code></td>
+<td>warning</td>
+</tr>
+<tr>
+<td>danger</td>
+<td><code>#F87171</code></td>
+<td>error, destructive action</td>
+</tr>
+<tr>
+<td>amber</td>
+<td><code>#FCD34D</code></td>
+<td>soft highlight (favourites, ratings)</td>
+</tr>
+<tr>
+<td>rose</td>
+<td><code>#F472B6</code></td>
+<td>rare: categories, playful accents</td>
+</tr>
+</tbody>
+</table>
+<p>The build axes take three of these colours, wherever an axis is shown (edit
+gizmo, X / Y / Z boxes of &ldquo;Transform&rdquo;, value readout): X <code>danger</code>,
+Y <code>success</code>, Z <code>indigo_light</code> (<code>build::draw::axis_color</code>). Hovering and
+dragging a handle switch to <code>violet_light</code>, like any selection.</p>
+<h2 id="design-rules">Design rules</h2>
+<ul>
+<li><strong>The look comes from the theme.</strong> A window writes no colour, no radius
+  and no stroke: it takes the roles of the <code>Palette</code>, the radii of the theme
+  and the shared widgets of <code>ui/widgets.rs</code>. What a window draws with its
+  own values is content, not dressing: colours of a map and of its legend,
+  maturity rating colours, inside of a colour swatch, image shown as it is
+  (<code>widgets::PICTURE_TINT</code>). A test checks it (<code>ui/theme_guard.rs</code>, run by
+  <code>check.ps1</code>); a content line is declared there with a comment
+  <code>// theme-guard: content — the reason</code>.</li>
+<li><strong>Discreet glass.</strong> A shared GPU blur appears in the windows, the
+  dialogs, the top and bottom bars and everything laid over the world
+  (notifications, volume, emoji, media controls, local chat bubbles, pie
+  menu), under a dark tint. A soft shadow and a thin border separate the
+  surface from the world; the fields stay calm and readable. A skin with
+  <code>panel_alpha = 255</code> keeps opaque surfaces without this blur. The high
+  contrast palette of Preferences › Accessibility (<code>high_contrast.rs</code>) is
+  opaque too, and gives buttons, fields, windows, islands and dividers a
+  light border: a new border goes through <code>widgets::border_stroke</code> so that
+  it follows. Outside a
+  window, a surface is drawn with <code>widgets::overlay</code>. An already positioned
+  scene label uses <code>widgets::paint_world_label</code>, with a lighter tint and
+  shaded scene blur to keep its text readable. With no world behind, as on
+  the login screen, use <code>widgets::overlay_frame</code>. Never write a background,
+  border or radius by hand. The bars
+  keep the <code>bar</code> colour as their tint (<code>widgets::finish_bar_glass</code>); the
+  minimap keeps the Legacy Viewer&rsquo;s opacity with the border and the shadow of the
+  windows. Menus, submenus, right-click menus and drop-down lists get this
+  glass from a single place (<code>menu::glaze</code>, at the end of the frame, in the
+  world): a new menu has nothing to do to get it.
+  Gradients are reserved for brand elements (login background, grid wash,
+  fill of the progress bar).</li>
+<li><strong>Preferences › Block.</strong> The page of what Block does differently from
+  the Legacy Viewer carries the brand in two places only: its entry in the
+  category list (edge mark and name in the brand gradient, from <code>success</code>
+  through <code>teal</code>, <code>indigo_light</code> and <code>violet_light</code> to <code>rose</code>) and the head
+  of the page (signal/data wash over the <code>navy</code> sky, a hairline of the same
+  gradient along its bottom edge). The settings below keep the cards and
+  controls of the other pages; the choices between Block&rsquo;s look and
+  the Legacy Viewer&rsquo;s are a <code>widgets::segmented</code> track, Block&rsquo;s segment lit in the
+  accent and the Legacy Viewer&rsquo;s in <code>raised</code>. It is not a precedent for the other
+  pages (human&rsquo;s choice, 2026-10-14).</li>
+<li><strong>Login screen.</strong> It is the viewer&rsquo;s showcase. The window blur only
+  knows the 3D scene, which is absent here: each card (<code>login::card</code>)
+  therefore redraws under its tint the sky it covers, out of focus
+  (<code>block_bg::frosted</code>: no stars, soft brand blooms, modular grid softened,
+  ridges feathered), with signal and data glows that spill around it. Its
+  top edge catches the light; the login card carries the hairline with the
+  brand gradient. The news sits next to the login card, on its row and at
+  its height (the list scrolls), the version above it. The bottom buttons
+  and the version number share the same line.</li>
+<li><strong>Progress bars.</strong> <code>widgets::progress</code>: a flat track (that of the
+  sliders) filled with the brand gradient, which slides to its value
+  instead of jumping; the percentage written below slides with it. The
+  loading and teleport banners slide in the same way. An instantaneous
+  level (microphone) goes through <code>widgets::level</code>, which only smooths the
+  jitter between two measurements. Never <code>egui::ProgressBar</code>.</li>
+<li><strong>Microphone button and panel.</strong> The microphone stays in the centre of
+  its button, like the neighbouring icons; the arrow that follows it points
+  to the panel it opens above the bar. The panel (window glass) gives the
+  state of the voice, the two ways of talking as cards (the current one lit
+  like an active button of the bar and ticked, the key to hold drawn as a
+  key), then the microphone and the audio output one under the other, and
+  the access to the preferences.</li>
+<li><strong>Loading and teleport.</strong> A &ldquo;cinema banner&rdquo; without a panel
+  (<code>ui/loading.rs</code>): the last view, blurred, fills the whole screen, the
+  name of the region is written large at the bottom left with what is known
+  about it (maturity rating, arrival point, residents present) and the
+  current step; at the bottom right, the tile of the region on the world map
+  with the arrival point, and the progress in figures; the progress itself
+  is a luminous hairline with the brand gradient along the whole bottom
+  edge. The brand (wolf and name) stays discreet at the top left.</li>
+<li><strong>Discreet rounding.</strong> Flat design, almost square corners. Buttons:
+  radius 5; windows, cards and pills of the toolbar: radius 3, with corners
+  close to those of the build tools, including when collapsed.
+  The radii come from the theme, never from a number in the code:
+  <code>ui.visuals().window_corner_radius</code> for cards, pills, list highlights and
+  image or colour frames,
+  <code>ui.visuals().widgets.inactive.corner_radius</code> for buttons,
+  <code>widgets::inner_radius</code> (one pixel less than the windows) for a small
+  mark inside a control or a row: knob of a switch, key, status square,
+  maturity rating letter. Left as they are: the deliberate right angles
+  (radius 0), the circles (status dots, notification dot) and the thin bars
+  (track of a progress bar or of a level, marker on a rail), whose 2 px
+  ends come from a single constant, <code>widgets::TRACK_RADIUS</code>.</li>
+<li><strong>Name plate.</strong> The tag above an avatar (<code>ui/nameplate.rs</code>) is the
+  <strong>only exception</strong> to the almost square corners: a glass plate with fully
+  rounded ends. It is not a precedent: nothing else in the interface is
+  rounder, but for the residents&rsquo; pictures (below).</li>
+<li><strong>Residents&rsquo; pictures.</strong> The profile pictures of the residents are round:
+  on the name plates, and in the Conversations window (bubbles, head of a
+  conversation, list), drawn by <code>widgets::avatar_disc</code>, with their status
+  dot on the edge (<code>ui/presence.rs</code>). Only these pictures and the name
+  plates are round; groups, places and objects keep square tiles. The
+  bubbles of the conversations themselves keep the buttons&rsquo; radius, and
+  the user&rsquo;s own bubbles carry the accent gradient (violet to indigo), the
+  one gradient outside the brand elements, chosen by the human
+  (2026-10-14).</li>
+<li><em>Glass</em>: the tint of the plate (halfway between <code>navy</code> and <code>bar</code>, at
+    52%) over the window blur, a light one-pixel border (<code>ink</code> at 14%), a
+    soft shadow below. The blur goes to the 16 nearest plates; the others,
+    and the distant pills, only have the tint, denser. An opaque skin
+    (<code>panel_alpha = 255</code>) has no blur.</li>
+<li><em>Three levels depending on the distance to the camera</em>: up to 15 m, the
+    full plate (profile picture in a circle, status dot, display name in
+    semi-bold, user name in <code>muted</code>, group title in <code>teal</code>, round badges
+    floating on the top right edge); up to 40 m, a compact pill (name and
+    badges on one line); beyond, the name alone. A plate only changes level
+    1.5 m beyond a threshold and slides from one level to the other in
+    0.18 s. In a crowd, only the eight nearest plates are full, the next
+    ones are compact pills. A line hidden by the preferences is absent:
+    never an empty line.</li>
+<li><em>Status</em>: dot at the bottom right of the picture, <code>success</code> (present),
+    <code>amber</code> (away), <code>danger</code> (do not disturb); none for a blocked
+    resident.</li>
+<li><em>Badges</em>: <code>success</code> microphone (in the voice channel), three animated
+    dots (typing), <code>success</code> heart (friend), <code>amber</code> triangle (avatar too
+    complex, shown as a silhouette), <code>danger</code> no-entry sign (blocked).</li>
+<li><em>Voice</em>: in the voice channel, the outline of the plate takes the
+    <code>success</code> colour, at every level; while the person is speaking, a tight
+    halo around the plate follows the level of their voice (fast rise,
+    slower fall, no halo in silence).</li>
+<li><em>Name colour.</em> Every display name in <code>ink</code>, ours too; a blocked
+    resident&rsquo;s in italics on a plate at 62%. Preferences › Colors ›
+    &ldquo;Color the names by relation&rdquo; (off by default) colours the names of
+    the plates and of the classic name tags alike, with the colours of that
+    page (me, friends, blocked, Linden Lab, from the palette by default).</li>
+<li><em>Size</em>: the display name keeps the size of the classic name tags
+    (13 points) on the full plate; everything else follows from it through
+    the proportions of the mock-up.</li>
+<li><strong>Solid buttons.</strong> All buttons and drop-down lists are solid faces
+  without a visible border: the theme (<code>theme.rs</code>) gives their border the
+  colour of the face, only input fields and checkboxes keep an outline. A
+  button therefore sets neither a background nor a radius itself, except for
+  the main action (violet) or a destructive one (<code>danger</code>). An action with
+  an icon uses <code>widgets::action_button</code>. The bottom toolbar has no
+  separator lines: the spacing and the pill of the hovered or active button
+  are enough.</li>
+<li><strong>Switches and checkboxes.</strong> The switch (<code>widgets::switch</code>) is almost
+  square: track with the theme radius, square knob that slides. It is used
+  for a standalone setting (alone with its label:
+  <code>widgets::switch_labeled</code>); lists of flags (rights, data of a report,
+  cells of a table) keep checkboxes, drawn by <code>widgets::checkbox</code> (flat
+  square, violet and ticked when it is active), never by <code>ui.checkbox</code>.</li>
+<li><strong>Radio buttons.</strong> A choice among several goes through <code>widgets::radio</code>
+  (<code>radio_value</code> for a value), never through <code>ui.radio</code>: the row of the
+  checkbox (same size, same label, same hover), but round so that it is not
+  taken for a checkbox: thin ring at rest, violet around a dot when the
+  choice is made. It is the only round control of the interface; the other
+  circles are marks (status dots, notification dot).</li>
+<li><strong>Collapsible sections.</strong> <code>widgets::collapsing</code>: a full-width row with a
+  Tabler chevron and the title of the section, lit as a pill on hover,
+  without a line; never <code>egui::CollapsingHeader</code>.</li>
+<li><strong>Colours.</strong> A colour is chosen with <code>widgets::color_button</code>: the swatch
+  opens a small glass panel (saturation / value field, hue bar, new colour
+  above the old one, R G B and hexadecimal fields, eyedropper), never
+  egui&rsquo;s <code>color_edit_button_*</code>. The colour palette of the build tools stays
+  a separate window.</li>
+<li><strong>Scroll bars.</strong> Thin and solid, in a strip of their own at the right of
+  what scrolls, faint at rest: the theme sets them for every scroll area
+  (<code>widgets::reserved_scroll_style</code>). Never egui&rsquo;s floating bar, which
+  covers the switches, buttons and values of the right edge; a window
+  does not set its own scroll style.</li>
+<li><strong>Shared hierarchy.</strong> Window title and controls at the top, stable
+  navigation, content grouped by function and accessible actions.
+  The inventory keeps a large list and a single status line at the bottom,
+  without a details sheet for the selection.
+  Lists scroll within their area and do not make the window grow.
+  The build tools use a compact inspector with a rail of sections.</li>
+<li><strong>Light navigation.</strong> The tabs and navigation controls of the inventory
+  are underlined in grey at rest, in violet when activated, without an
+  outline. Hover stays discreet. The secondary actions of dialogs keep
+  their dark surface. The command bar directly follows the title;
+  the clear cross is built into the filter, without moving the controls.</li>
+<li><strong>A single accent colour per area.</strong> Violet signals what is active or
+  important; the rest is neutral.</li>
+<li><strong>Contrast and readability.</strong> <code>ink</code> text on <code>panel</code>; secondary text in
+  <code>muted</code>. Never dark violet text on a dark background (use
+  <code>violet_light</code>). On a solid violet face, text and icons in <code>on_accent</code>
+  (neither hard-coded white, nor <code>ink</code>, which a skin can darken); on a
+  <code>danger</code> or <code>amber</code> face, which are light, the text stays in <code>navy</code>.
+  Signed height sliders use <code>widgets::height_slider</code>: a visible neutral
+  track, zero marker, violet fill from zero and a solid rectangular handle
+  in the theme&rsquo;s radius. Secondary controls can be grey while retaining
+  their interaction; the hover-height manual controls switch automatic
+  mode off when edited. The surrounding shared floater keeps its glass.</li>
+<li><strong>Very subtle but visible separators.</strong> A thin line of a neutral barely
+  lighter than the background, so that one can see where each element starts
+  and ends without weighing things down. Between two areas of a window:
+  <code>widgets::divider</code> (horizontal in a column, vertical in a row); between
+  two groups of entries of a menu: <code>menu::separator</code>; a line placed by hand
+  (edge of a rail, boundary between two panes) takes
+  <code>widgets::divider_stroke</code>. Never <code>ui.separator()</code>, and no line between
+  buttons or the elements of a toolbar.</li>
+<li><strong>Typography.</strong> Inter (regular, semi-bold) by default; Noto Sans,
+  Roboto and OpenDyslexic (an accessibility choice for readers with
+  dyslexia), each with its own semi-bold or bold face, as the other
+  embedded choices of Preferences › Fonts. No other font without a reason. Every text
+  follows the chosen font: semi-bold through <code>fonts::semibold</code>, monospace
+  only for code-like text (script editor, UUIDs, keys, colour codes, URLs,
+  paths, versions), and an arrow or a caret is a Tabler icon, never a
+  character (<code>widgets::disclosure_caret</code>, <code>sort_caret</code>). The characters they lack
+  (display names and messages in Georgian, Japanese, Arabic, mathematical
+  letters…) are drawn with the system fonts, which are never chosen for a
+  text of the interface itself.</li>
+<li><strong>Text size.</strong> Preferences › Fonts and the skin&rsquo;s font scale apply to all
+  font faces, including explicit rich text, painter fonts and monospace.
+  Keep font sizes in unscaled points; shaping supplies the scaled advances
+  and row heights. Size custom text containers from their laid-out text.</li>
+<li><strong>Regular spacing.</strong> Reuse the existing widgets (<code>ui/widgets.rs</code>: flat
+  buttons, switches, help badges, warning triangle…) rather than recreating
+  them.</li>
+<li><strong>Interface texts are short and clear</strong>, in English and French through
+  <code>block_i18n::tr!</code> (see <a href="../translating/">TRANSLATING.md</a>); English is the
+  fallback. A tooltip explains every option whose effect is not obvious.</li>
+<li><strong>Snapping windows.</strong> A window moved near another one, a bar or an edge
+  follows the pointer without a jump. Moving without Alt creates no snap
+  or attachment. With Alt held, what will happen on release is shown
+  by a guide: a 2 px line in <code>violet_light</code> along the edges that are going
+  to touch (over the length they share) or to align, and the very light
+  outline of the place where the window will land, with the window radius.
+  No guide, no snapping. Snapped windows touch, edge to edge, with each
+  other as with the bars and the edges, with no gap, like those of the
+  first-launch layout (<code>layout::GAP</code>, at 0). During the gesture, a small
+  pill on the window glass recalls Alt&rsquo;s role: the keycap (<code>widgets::keycap</code>)
+  followed by &ldquo;snap and attach&rdquo; for a free move, &ldquo;detach this window&rdquo; for
+  a grouped move, or &ldquo;do not snap&rdquo; for a snapped resize. Alt detaches a
+  moved window from its group and enables attachment to a new target;
+  resizing keeps automatic snapping, disabled by Alt. The pill uses <code>muted</code>
+  text, placed near the window, away from the guide and
+  the pointer, after a short delay. No button and no permanent decoration
+  for snapped windows.</li>
+</ul>
+<h2 id="logos">Logos</h2>
+<p>Files in <a href="https://github.com/ape-squared/Block-Viewer/blob/main/assets/branding"><code>assets/branding/</code></a>:</p>
+<table>
+<thead>
+<tr>
+<th>File</th>
+<th>Use</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>block-logo.svg</code> / <code>.png</code> (720 px)</td>
+<td>full logo in colour, transparent background: README, window icon, login and loading screens, About, system notifications (<code>LOGO_PNG</code> of <code>app.rs</code>), the Linux desktop icon (<code>block-viewer.svg</code> of the archive)</td>
+</tr>
+<tr>
+<td><code>block-logo-white.svg</code> / <code>.png</code> (4096 px)</td>
+<td>white silhouette: the Block menu button of the toolbars (tinted with the palette), monochrome uses on a dark background</td>
+</tr>
+<tr>
+<td><code>block-logo-black.svg</code> / <code>.png</code> (4096 px)</td>
+<td>black silhouette: monochrome uses on a light background</td>
+</tr>
+<tr>
+<td><code>block-logo-purple.png</code> / <code>block-logo-teal.png</code> (4096 px)</td>
+<td>silhouette in violet or in turquoise</td>
+</tr>
+<tr>
+<td><code>block-logo-bg.png</code> (4096 px)</td>
+<td>full logo on a navy background (the only file with an opaque background): square icons that need one (website&rsquo;s Apple touch icon)</td>
+</tr>
+<tr>
+<td><code>block.icns</code></td>
+<td>Block app mark (<code>block/02-app-icon/</code>, 16 to 1024 px): icon of <code>Block Viewer.app</code> on macOS (<code>package-macos.ps1</code> builds it with <code>iconutil</code> when available)</td>
+</tr>
+<tr>
+<td><code>block/02-app-icon/</code></td>
+<td>source PNGs and <code>block.ico</code> for the app icon (diagonal lime / charcoal mark)</td>
+</tr>
+<tr>
+<td><code>block.ico</code></td>
+<td>same mark as a Windows icon (16 to 256 px): icon of <code>block-viewer.exe</code> (embedded by its <code>build.rs</code>), &ldquo;Block Tools&rdquo; and &ldquo;Block PR&rdquo; shortcuts; prefer <code>block/02-app-icon/block.ico</code> when regenerating</td>
+</tr>
+</tbody>
+</table>
+<p>The logo is a howling wolf&rsquo;s head in profile, facing up and to the right,
+its mane made of streaming ribbons, in a circle. Its colours: violet <code>#8B5CF6</code>
+and indigo <code>#4F46E5</code> for the head, turquoise <code>#5EEAD4</code> and a deeper
+turquoise <code>#56CAA9</code> for the ribbons. Do not distort it, recolour it or add
+an effect to it; the one-colour versions above are the only recolourings.</p>
+<h2 id="readme-buttons">README buttons</h2>
+<p>The buttons of the README header and its &ldquo;Soon&rdquo; pill are small SVG files in
+<a href="https://github.com/ape-squared/Block-Viewer/blob/main/docs/readme"><code>docs/readme/</code></a>, drawn like the viewer&rsquo;s own: flat face, radius of
+4, a Tabler icon and Inter SemiBold.</p>
+<table>
+<thead>
+<tr>
+<th>File</th>
+<th>Use</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>button-download.svg</code></td>
+<td>main action (violet face, <code>on_accent</code> text): latest release</td>
+</tr>
+<tr>
+<td><code>button-discord.svg</code> / <code>button-website.svg</code></td>
+<td>flat buttons (<code>raised</code> face, <code>ink</code> text): the Discord and website links of the login screen (<code>links.rs</code>)</td>
+</tr>
+<tr>
+<td><code>pill-soon.svg</code></td>
+<td>marks a planned feature in a list (teal face, navy text), 18 px high</td>
+</tr>
+</tbody>
+</table>
+<p>The text is live text, not outlines. Its <code>textLength</code> is the width of the
+label in Inter SemiBold at the file&rsquo;s font size, so that the layout holds
+with the fallback fonts of a machine without Inter. For another button, copy
+a file, change the icon paths, the label and that width, then the width of
+the <code>svg</code> and of its <code>rect</code> (18 + 20 + 9 + text + 18).</p>
+<h2 id="icons-tabler">Icons: Tabler</h2>
+<p>All the icons of the interface are <a href="https://tabler.io/icons">Tabler Icons</a>
+(MIT), drawn in white then tinted with the palette.
+Do not mix them with another icon set.</p>
+<ul>
+<li>The full library (version 3.49.0) is in
+  <a href="https://github.com/ape-squared/Block-Viewer/blob/main/assets/tabler-icons"><code>assets/tabler-icons/</code></a>: <code>outline/</code> (5,184
+  outline icons) and <code>filled/</code> (1,054 filled icons). This is where an icon
+  is chosen; the Tabler site lets you search by keyword.</li>
+<li>Only the icons in use are embedded in the viewer:
+  <code>crates/block-viewer/assets/icons/tabler/outline/&lt;name&gt;.svg</code> and
+  <code>…/tabler/filled/&lt;name&gt;.svg</code>.</li>
+<li>In the code, an icon bears its Tabler name: <code>eye-off</code> for the outline
+  version, <code>eye-filled</code> for the filled version.</li>
+</ul>
+<p><strong>The filled version first.</strong> Tabler only offers a filled version for one
+icon in five: we take it whenever it exists and expresses the function
+well. The outline version is used in three cases:</p>
+<ul>
+<li><strong>linear glyphs</strong>, which have no surface to fill: cross, plus, minus,
+  tick, arrows, undo / redo, refresh, rotate, <code>&lt;/&gt;</code>;</li>
+<li><strong>struck-through icons</strong> (<code>eye-off</code>, <code>microphone-off</code>, <code>volume-off</code>,
+  <code>message-off</code>, <code>ban</code> for blocking): Tabler only draws them as outlines;</li>
+<li><strong>functions with no suitable filled icon</strong>: object (<code>box</code>), people in the
+  plural (<code>users</code>, <code>users-group</code>, <code>user-plus</code>), loudspeaker (<code>volume</code>), map
+  (<code>map</code>), hands (<code>hand-grab</code>, <code>hand-stop</code>), sitting (<code>armchair</code>), walking /
+  running (<code>walk</code>, <code>run</code>)…</li>
+</ul>
+<p>Do not force a filled icon that does not express the function. Two icons
+that go as a pair (link / unlink, plus / minus) stay in the same style.
+A function keeps the same icon everywhere (script = <code>code</code>, object = <code>box</code>,
+outfit = <code>hanger-2-filled</code>, profile = <code>user-filled</code>, block = <code>ban</code>, a
+friend&rsquo;s right to modify our objects = <code>pencil-filled</code>…): look for the icon
+already in use before adding one.</p>
+<p><strong>Adding an icon:</strong></p>
+<ol>
+<li>Choose the name in <code>assets/tabler-icons/filled/</code>, otherwise in
+   <code>assets/tabler-icons/outline/</code> (e.g. <code>microphone.svg</code>).</li>
+<li>Copy it into <code>crates/block-viewer/assets/icons/tabler/filled/</code> (or
+   <code>outline/</code>).</li>
+<li>Add its name to the <code>FILLED</code> (or <code>OUTLINE</code>) list of
+   <code>crates/block-viewer/src/ui/icons.rs</code>.</li>
+<li>Use it with <code>icons.get("microphone-filled")</code> (or <code>icons.get("volume")</code>
+   for an outline icon), tinted by the palette.</li>
+</ol>
+<p>The icons of the parcel permissions (right end of the location field) are
+coloured green / red; a bar drawn by the code strikes through those that
+are forbidden. The icon in front of the web links of the chat and of the
+profiles is <code>circle-check-filled</code> in <code>success</code> (trusted site),
+<code>alert-triangle-filled</code> in <code>amber</code> (external link) or <code>circle-x-filled</code> in
+<code>danger</code> (dangerous link), also in their warnings.</p>
+<h2 id="cursors">Cursors</h2>
+<p>The world cursors are drawn from the same Tabler outline icons, in the
+<code>ink</code> colour outlined with <code>bar</code> to stay readable over any scenery
+(<code>crates/block-viewer/src/cursors.rs</code>). The rules are those of the Legacy Viewer,
+only the drawings change:</p>
+<table>
+<thead>
+<tr>
+<th>Situation</th>
+<th>Cursor</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Object to touch</td>
+<td><code>hand-finger</code> alone, the fingertip is the clicked point</td>
+</tr>
+<tr>
+<td>Sit, buy, pay, open</td>
+<td>arrow + badge <code>armchair</code>, <code>shopping-cart</code>, <code>coin</code>, <code>package</code></td>
+</tr>
+<tr>
+<td>Media: play, pause, open</td>
+<td>arrow + badge <code>player-play</code>, <code>player-pause</code>, <code>device-tv</code></td>
+</tr>
+<tr>
+<td>Zoom on the object</td>
+<td>arrow + badge <code>zoom-in</code></td>
+</tr>
+<tr>
+<td>Grab a physical object, move a HUD</td>
+<td><code>hand-grab</code> alone</td>
+</tr>
+<tr>
+<td>Camera: Alt, Ctrl + Alt, Ctrl + Alt + Shift</td>
+<td><code>focus-centered</code>, <code>view-360</code>, <code>arrows-move</code>, centred on the targeted point</td>
+</tr>
+<tr>
+<td>Eyedropper of the colour picker</td>
+<td><code>color-picker</code>, the tip is the sampled point</td>
+</tr>
+</tbody>
+</table>
+<p>With the arrow + badge, the tip of the arrow is the clicked point.</p>
+<h2 id="shortcut-keys">Shortcut keys</h2>
+<p>In Preferences › Shortcuts, each key of a shortcut is a light capsule on
+the dark button, without a &ldquo;+&rdquo; between them. Letters, digits, F1 to F9 and
+the arrows use Tabler&rsquo;s key icons (<code>square-letter-w-filled</code>,
+<code>square-number-1-filled</code>, <code>square-f5-filled</code>, <code>square-arrow-up-filled</code>).
+The other keys (Ctrl, Alt, Shift, Esc, F10 to F12, numeric keypad, accented
+letters…) are a capsule of the same shape around their name; a mouse button
+adds the <code>mouse-filled</code> icon before its name, as Tabler has no icon per
+button.</p>
+      </article>
+    </div>
+  </main>
+  <footer class="footer">
+    <div class="footer-row">
+      <a class="brand" href="../../"><img src="../../assets/mark.svg" width="22" height="22" alt=""><span>BLOCK VIEWER</span></a>
+      <nav class="footer-links" aria-label="Footer">
+        <a href="../../download/">Download</a>
+        <a href="../../docs/">Docs</a>
+        <a href="../../foundation/">Foundation</a>
+        <a href="../../privacy/">Privacy</a>
+        <a href="https://github.com/ape-squared/Block-Viewer">GitHub</a>
+      </nav>
+    </div>
+    <p class="legal">Guides are hosted on this site. Source of truth is the Markdown in the repository.</p>
+  </footer>
+  <script src="../../site.js?v=8" defer></script>
+</body>
+</html>

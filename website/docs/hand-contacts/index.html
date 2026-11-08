@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Motorcycle hand contacts — Block Viewer</title>
+  <meta name="description" content="Motorcycle hand contacts — Block Viewer documentation.">
+  <link rel="canonical" href="https://ape-squared.github.io/Block-Viewer/docs/hand-contacts/">
+  <link rel="icon" href="../../assets/mark.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../../styles.css?v=8">
+</head>
+<body>
+  <a class="skip" href="#main">Skip to content</a>
+  <div class="atmosphere" aria-hidden="true"></div>
+  <header class="nav" data-nav>
+    <a class="brand" href="../../" aria-label="Block Viewer home">
+      <img src="../../assets/mark.svg" width="28" height="28" alt="">
+      <span>BLOCK</span>
+    </a>
+    <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="site-nav" data-nav-toggle>
+      <span class="nav-toggle-bar"></span>
+      <span class="sr-only">Menu</span>
+    </button>
+    <nav id="site-nav" class="nav-links" aria-label="Primary">
+      <a href="../../download/">Download</a>
+      <a href="../../#features">Features</a>
+      <a class="is-active" href="../../docs/">Docs</a>
+      <a href="../../foundation/">Foundation</a>
+    </nav>
+    <a class="btn btn-primary nav-cta" href="../../download/">Download</a>
+  </header>
+  <main id="main" class="section page-shell docs-layout">
+    <div class="docs-with-side">
+      <aside class="docs-side" aria-label="Guides">
+<p class="docs-side-title"><a href="../">All guides</a></p>
+<p class="docs-side-section">For testers</p>
+<a href="../reporting-bugs/">Reporting bugs</a>
+<a href="../linux/">Installing on Linux</a>
+<a href="../vr/">Experimental VR scene viewing</a>
+<a href="../windows-vr/">Experimental Windows VR</a>
+<a href="../macos/">Installing on macOS</a>
+<a href="../updates/">Updates</a>
+<a href="../imports/">Asset imports</a>
+<a href="../livemesh/">LiveMesh</a>
+<a class="is-active" href="../hand-contacts/">Motorcycle hand contacts</a>
+<a href="../ik-edit/">IK Edit and bone contacts</a>
+<a href="../animation-creation/">Create native animations</a>
+<a href="../poser/">Local photo poser</a>
+<p class="docs-side-section">Contributing</p>
+<a href="../translating/">Translating the viewer</a>
+<a href="../branding/">Branding and interface</a>
+<p class="docs-side-section">Technical</p>
+<a href="../rlva/">RLVa implementation status</a>
+<a href="../licences/">Licences and notices</a>
+</aside>
+      <article class="prose docs-article reveal">
+        <p class="eyebrow">For testers</p>
+        <h1>Motorcycle hand contacts</h1>
+        <p>The motorcycle uses the same <a href="../ik-edit/">IK Edit rig system</a> as every other
+creation. The driver and compatible observing viewers receive definitions
+and solve them locally for the rider&rsquo;s own shape and animation. Ordinary
+viewers continue displaying the underlying animation.</p>
+<h2 id="install-and-calibrate">Install and calibrate</h2>
+<ol>
+<li>Name the target links <strong>Left</strong> and <strong>Right</strong>, with one of each name.</li>
+<li>In <strong>Build &gt; IK Edit &gt; Bindings</strong>, select each wrist, bind it to its grip,
+   and position/rotate the bone to author its target-relative offsets.</li>
+<li>Click <strong>Copy complete IK script</strong> and replace the contact companion&rsquo;s
+   entire source in the motorcycle root. Keep the vehicle&rsquo;s main script.
+   <a href="https://github.com/ape-squared/Block-Viewer/blob/main/scripts/lsl/motorcycle-hand-ik.lsl">motorcycle-hand-ik.lsl</a> provides
+   a starting configuration; the editor export contains your calibration.</li>
+<li>Keep <code>EXTERNAL_CONTROL = TRUE</code> and have the main script respond to <code>sync</code>
+   on channel <code>-190018108</code> with its current profile or <code>off</code>.</li>
+</ol>
+<p>The starting motorcycle declaration contains <code>drive</code> (both wrists) and
+<code>gas_only</code> (right wrist). Both reuse the same binding data; changing profile
+does not duplicate offsets or restart a contact that is common to both.</p>
+<p>The viewer automatically installs a separate <strong>#Aurora Bridge IK</strong> script.
+On region arrival it asks, once, the objects avatars sit on and your own
+attachments, each one directly, never the whole region; other avatars&rsquo; worn
+publishers show at their next announcement. The motorcycle announces as soon as somebody sits and returns
+its definition even before the engine&rsquo;s IK profile is enabled. Full definitions
+are sent only to a requesting bridge; state changes are small regional events.
+There is no periodic observer search or 25-second renewal in live sessions.
+Replace the complete motorcycle companion with a new export for this transport,
+preserving the calibrated <code>RIG</code>. The main script&rsquo;s profile commands stay the same.
+To recover an editor project without sitting, choose <strong>Create a new IK project &gt;
+From an object or attachment</strong> and click the motorcycle. The current companion
+answers that explicit request even while unused; the viewer creates a separate
+project without changing the motorcycle&rsquo;s active profile. Existing companions
+need the updated source for this authoring request.</p>
+<pre><code class="language-lsl">// Ready and riding:
+llMessageLinked(LINK_THIS, -190018108, &quot;profile drive&quot;, NULL_KEY);
+// After choosing a one-handed pose:
+llMessageLinked(LINK_THIS, -190018108, &quot;profile gas_only&quot;, NULL_KEY);
+// End of the round:
+llMessageLinked(LINK_THIS, -190018108, &quot;off&quot;, NULL_KEY);
+</code></pre>
+<p>The main script chooses its IK mode independently of any animation. It does
+not look up animation asset UUIDs or require animation inventory permissions.
+On <code>drive</code> -&gt; <code>gas_only</code>, the left hand fades out and the right hand stays
+attached. On return, only the left hand begins fresh entry conditions. A
+source counter per binding also covers intermediate switches missed by an
+observer. Repeating the same keyword retains current contacts. A complete
+off/on starts a fresh global lifetime. Static data remains cached across modes.
+Use <code>EXTERNAL_CONTROL = FALSE</code> only to start the first profile automatically
+while seated/worn. IK Edit itself stays independent of these commands.</p>
+<p>Keep the main script&rsquo;s <code>llStartAnimation("accel_F")</code> at the existing throttle
+event. All viewers receive exactly the same animations. Block applies IK
+after normal animation blending; no fallback animation is filtered or stopped.
+Rotate <code>Right</code> at that same event so its bound wrist follows the moving grip.
+<a href="https://github.com/ape-squared/Block-Viewer/blob/main/scripts/lsl/motorcycle-throttle.lsl">motorcycle-throttle.lsl</a> can consume
+the existing engine <code>tap</code>/<code>stop</code> messages on channel 17001. Use it only if the
+main script does not already embed the throttle helpers. It applies an
+absolute local rotation from a saved rest pose, pulses for 0.46 seconds,
+and restores the rest pose on stop or reset. <code>THROTTLE_DEGREES</code> controls the
+angle; zero <code>THROTTLE_AXIS</code> selects the longest local prim axis. A helper
+prim may need an explicit axis. The rest rotation is stored per prim UUID
+in linkset data; remove its <code>aurora.throttle.rest.&lt;UUID&gt;</code> entry before a
+reset if intentionally recalibrating the grip&rsquo;s neutral rotation.</p>
+<p>Offsets are metric in the target prim&rsquo;s axes; prim scale does not resize
+them. The optional contact point is bone-local before avatar hand scaling.
+Zero targets the wrist pivot. Follow rotation uses the calibrated quaternion;
+position-only follows the grip while retaining animated wrist articulation.
+The solve respects shaped/mesh-overridden bone lengths and can use the
+selected chain root for torso assistance. Finger closure remains animated.</p>
+<p>Standing, losing/deleting the source, detaching, teleporting, region changes
+and logout release the applicable sessions without a final off message.
+Unused creations cannot populate a rig catalog: only occupied seats and worn
+attachments are queried, with definitions held temporarily during that use.
+Each definition is limited to 8 KiB; aggregate data, including partial transfers,
+is limited to 32 KiB per avatar and 128 KiB for the current region. Inactive
+announcements, unsolicited data and excess traffic are discarded. Leaving the
+seat, removing the source or relay and changing region drop negotiated data.
+The <a href="../ik-edit/#compatible-observers-and-lifecycle">shared protocol contract</a>
+describes event discovery, nonce/revision validation and the limits of detecting
+a silent stopped script without polling. There is one supported wire protocol,
+<code>auroraIK/5</code>.</p>
+<p>Offline checks use <code>AURORA_DEMO_HAND_IK=1|moving|release|observer|observer-release</code>.
+Real LSL compilation and two-viewer motorcycle behaviour require human
+validation; agents never connect to a grid.</p>
+      </article>
+    </div>
+  </main>
+  <footer class="footer">
+    <div class="footer-row">
+      <a class="brand" href="../../"><img src="../../assets/mark.svg" width="22" height="22" alt=""><span>BLOCK VIEWER</span></a>
+      <nav class="footer-links" aria-label="Footer">
+        <a href="../../download/">Download</a>
+        <a href="../../docs/">Docs</a>
+        <a href="../../foundation/">Foundation</a>
+        <a href="../../privacy/">Privacy</a>
+        <a href="https://github.com/ape-squared/Block-Viewer">GitHub</a>
+      </nav>
+    </div>
+    <p class="legal">Guides are hosted on this site. Source of truth is the Markdown in the repository.</p>
+  </footer>
+  <script src="../../site.js?v=8" defer></script>
+</body>
+</html>

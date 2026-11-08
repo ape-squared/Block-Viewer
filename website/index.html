@@ -13,11 +13,10 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=7">
+  <link rel="stylesheet" href="styles.css?v=8">
 </head>
 <body>
   <a class="skip" href="#top">Skip to content</a>
-  <div class="atmosphere" aria-hidden="true"></div>
 
   <header class="nav" data-nav>
     <a class="brand" href="./" aria-label="Block Viewer home">
@@ -38,35 +37,34 @@
   </header>
 
   <main id="top">
-    <section class="hero hero-viewer">
+    <section class="hero hero-viewer" aria-label="Block Viewer">
+      <div class="hero-media" aria-hidden="true">
+        <img
+          class="hero-media-shot"
+          src="assets/shots/landscape-05.webp"
+          width="2400"
+          height="642"
+          alt=""
+          decoding="async"
+          fetchpriority="high">
+        <div class="hero-media-scrim"></div>
+        <div class="hero-media-grain"></div>
+      </div>
       <div class="hero-stage">
-        <p class="brand-line reveal" style="--d:0">BLOCK VIEWER</p>
-        <h1 class="hero-title reveal" style="--d:1">Build your look,<br>block by block.</h1>
-        <p class="lede reveal" style="--d:2">
+        <p class="brand-line">BLOCK VIEWER</p>
+        <h1 class="hero-title">Build your look,<br>block by block.</h1>
+        <p class="lede">
           A Windows Second Life® client with a Vulkan renderer.
-          Open source under GPLv3 — early 0.x for explore, chat, and testing.
+          Open source under GPLv3 — early 0.x for friends and testers.
         </p>
-        <div class="hero-actions reveal" style="--d:3">
+        <div class="hero-actions">
           <a class="btn btn-primary btn-download" data-latest-download href="download/">
             <span class="btn-main">Download for Windows</span>
             <span class="btn-sub" data-latest-version>latest release</span>
           </a>
           <a class="btn btn-ghost" href="#features">What’s inside</a>
         </div>
-        <p class="hero-meta reveal" style="--d:4">
-          Portable zip · auto-update from GitHub Releases ·
-          <a href="https://github.com/ape-squared/Block-Viewer/releases">all releases</a>
-        </p>
       </div>
-    </section>
-
-    <section class="strip" aria-label="At a glance">
-      <ul class="strip-row">
-        <li class="reveal"><span class="strip-k">Renderer</span><strong>Vulkan</strong></li>
-        <li class="reveal" style="--d:1"><span class="strip-k">Platform</span><strong>Windows x64</strong></li>
-        <li class="reveal" style="--d:2"><span class="strip-k">Licence</span><strong>GPLv3+</strong></li>
-        <li class="reveal" style="--d:3"><span class="strip-k">Status</span><strong>Early 0.x</strong></li>
-      </ul>
     </section>
 
     <section id="features" class="section">
@@ -108,13 +106,17 @@
           <h3>Auto-update</h3>
           <p>Checks GitHub Releases for a new zip + <code>.sha256</code> when you allow it.</p>
         </li>
+        <li class="reveal" style="--d:7">
+          <h3>Six UI languages</h3>
+          <p>English, Français, 日本語, Español, Deutsch, and Português (Brasil) in Preferences.</p>
+        </li>
       </ul>
     </section>
 
     <section class="world-band" aria-label="The world">
       <img
         class="world-band-shot"
-        src="assets/shots/landscape-05.webp"
+        src="assets/shots/landscape-16.webp"
         width="2400"
         height="642"
         alt=""
@@ -135,8 +137,7 @@
           <h2>Download Block Viewer</h2>
           <p>
             Windows x64 portable zip. Unpack anywhere, run
-            <code>block-viewer.exe</code> (or the launcher in the folder).
-            Optional <code>Uninstall.cmd</code> ships in the package.
+            <code>block-viewer.exe</code>. Optional <code>Uninstall.cmd</code> ships in the package.
           </p>
           <dl class="req-list">
             <div><dt>OS</dt><dd>Windows 10 / 11 · 64-bit</dd></div>
@@ -188,12 +189,12 @@
       <div class="section-head reveal">
         <p class="eyebrow">Community</p>
         <h2>Feedback, releases, source.</h2>
-        <p>Release notes land in Discord. Bugs and ideas go to the feedback board. Code stays on GitHub.</p>
+        <p>Release notes land in Discord. Bugs and ideas go to the feedback board. Guides live on the wiki.</p>
       </div>
       <ul class="support-links reveal">
         <li><a href="https://feedback.ape-squared.github.io/Block"><strong>Feedback</strong><span>Report bugs and ideas</span></a></li>
         <li><a href="https://github.com/ape-squared/Block-Viewer/releases"><strong>Releases</strong><span>Zips and changelogs</span></a></li>
-        <li><a href="docs/"><strong>Docs</strong><span>README, brand, build</span></a></li>
+        <li><a href="docs/"><strong>Docs</strong><span>Guides for testers</span></a></li>
         <li><a href="privacy/"><strong>Privacy</strong><span>What stays on your PC</span></a></li>
       </ul>
     </section>
@@ -201,13 +202,13 @@
     <section class="section foundation-brief">
       <div class="section-head reveal">
         <p class="eyebrow">Lineage</p>
-        <h2>Standing on Aurora’s open code.</h2>
+        <h2>Standing on open code.</h2>
         <p>
           Block Viewer starts from the open-source
-          <a href="https://github.com/Aurora-Viewer/Aurora-Viewer">Block Viewer</a>
+          <a href="https://github.com/Aurora-Viewer/Aurora-Viewer">Aurora Viewer</a>
           codebase. Separate product and brand — not an official Aurora release.
           Details on the <a href="foundation/">foundation page</a> and in
-          <a href="https://github.com/ape-squared/Block-Viewer/blob/main/NOTICE.md">NOTICE.md</a>.
+          <a href="docs/licences/">Licences and notices</a>.
         </p>
       </div>
     </section>
@@ -239,7 +240,7 @@
     <p class="legal">
       Block Viewer is an independent project by ape-squared.
       Not affiliated with Linden Lab or Second Life®.
-      Not an official Block Viewer product.
+      Not an official Aurora Viewer product.
       Second Life is a trademark of Linden Research, Inc.
       Sister site: <a href="https://ape-squared.github.io/Block-GPPI/">Block (GPPI)</a>.
       Landscape backgrounds from Wikimedia Commons (CC0) —
@@ -247,6 +248,6 @@
     </p>
   </footer>
 
-  <script src="site.js?v=7" defer></script>
+  <script src="site.js?v=8" defer></script>
 </body>
 </html>

@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Create native animations — Block Viewer</title>
+  <meta name="description" content="Create native animations — Block Viewer documentation.">
+  <link rel="canonical" href="https://ape-squared.github.io/Block-Viewer/docs/animation-creation/">
+  <link rel="icon" href="../../assets/mark.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../../styles.css?v=8">
+</head>
+<body>
+  <a class="skip" href="#main">Skip to content</a>
+  <div class="atmosphere" aria-hidden="true"></div>
+  <header class="nav" data-nav>
+    <a class="brand" href="../../" aria-label="Block Viewer home">
+      <img src="../../assets/mark.svg" width="28" height="28" alt="">
+      <span>BLOCK</span>
+    </a>
+    <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="site-nav" data-nav-toggle>
+      <span class="nav-toggle-bar"></span>
+      <span class="sr-only">Menu</span>
+    </button>
+    <nav id="site-nav" class="nav-links" aria-label="Primary">
+      <a href="../../download/">Download</a>
+      <a href="../../#features">Features</a>
+      <a class="is-active" href="../../docs/">Docs</a>
+      <a href="../../foundation/">Foundation</a>
+    </nav>
+    <a class="btn btn-primary nav-cta" href="../../download/">Download</a>
+  </header>
+  <main id="main" class="section page-shell docs-layout">
+    <div class="docs-with-side">
+      <aside class="docs-side" aria-label="Guides">
+<p class="docs-side-title"><a href="../">All guides</a></p>
+<p class="docs-side-section">For testers</p>
+<a href="../reporting-bugs/">Reporting bugs</a>
+<a href="../linux/">Installing on Linux</a>
+<a href="../vr/">Experimental VR scene viewing</a>
+<a href="../windows-vr/">Experimental Windows VR</a>
+<a href="../macos/">Installing on macOS</a>
+<a href="../updates/">Updates</a>
+<a href="../imports/">Asset imports</a>
+<a href="../livemesh/">LiveMesh</a>
+<a href="../hand-contacts/">Motorcycle hand contacts</a>
+<a href="../ik-edit/">IK Edit and bone contacts</a>
+<a class="is-active" href="../animation-creation/">Create native animations</a>
+<a href="../poser/">Local photo poser</a>
+<p class="docs-side-section">Contributing</p>
+<a href="../translating/">Translating the viewer</a>
+<a href="../branding/">Branding and interface</a>
+<p class="docs-side-section">Technical</p>
+<a href="../rlva/">RLVa implementation status</a>
+<a href="../licences/">Licences and notices</a>
+</aside>
+      <article class="prose docs-article reveal">
+        <p class="eyebrow">For testers</p>
+        <h1>Create native animations</h1>
+        <p>Open <strong>Build &gt; IK Edit &gt; Animations</strong>, then <strong>Create an animation</strong>. The
+creation mode uses the same skeleton, move/rotation tools,
+world/local gizmo, Ctrl rotation, symmetry and hand/foot IK handles.
+Its Pose, Animations and Visible bones tabs keep posing, timing and display
+controls separate. <strong>Return to IK contacts</strong> restores the existing contact
+definitions and their enable states.</p>
+<h2 id="record-keys">Record keys</h2>
+<p>The initial frame records the rest skeleton with your IK contacts solved on
+it. An animation is built from there: what plays on the avatar is not part of
+it, and while creating, the avatar shows the rest skeleton and your keys. Manual
+joint edits made in the contact editor stay there; pose them here. Choose a
+frame with the slider or adjacent numeric field, pose the avatar, then record
+it:</p>
+<ul>
+<li><strong>Key this bone</strong> records the selected joint. When its IK chain is being
+  edited, the affected ancestors are recorded too; symmetry includes the
+  edited counterpart.</li>
+<li><strong>Key changes</strong> records the joints affected by the staged pose edits.</li>
+<li><strong>Key full pose</strong> records the real skeletal joints in the displayed pose.</li>
+</ul>
+<p>Recording is applied after the pose has been evaluated. The temporary pose
+correction is removed when its new sampled keys are ready, so influence
+weights are baked once. Other unrecorded pose edits remain staged. Seeking
+or playing clears these temporary corrections and displays the keyed clip.
+Previous/next controls and nearby numbered keys navigate the selected bone.
+<strong>Remove this bone&rsquo;s key</strong> removes its rotation/position keys at that frame.</p>
+<p>Rotations are native local quaternions. Pelvis translations are relative to
+the avatar root. Other joint positions are included when a direct edit
+changes them; ordinary rotation keys retain the avatar&rsquo;s joint positions.
+The authoring grid is <strong>30 fps</strong>, from frame 0 to 1800 (60 seconds). Native
+files contain continuous key times rather than an original frame rate.
+Position channels must stay within the native format&rsquo;s -5 to +5 metre range
+per axis. An invalid capture reports an error without writing a partial key.</p>
+<h2 id="set-priorities-and-playback">Set priorities and playback</h2>
+<p><strong>Bones / priority</strong> enables each track and sets its priority independently.
+<code>-1</code> inherits the global animation priority. Disabling a track excludes it
+from preview/export while keeping its keys in the draft. Turning off the final
+track shows the rest skeleton; exporting still requires an active track with
+keys.</p>
+<p><strong>Playback settings</strong> contains:</p>
+<ul>
+<li>Start/end frames and the resulting exported duration. Trimming retains
+  outside keys in the draft, samples both new boundaries, and rebases the
+  exported file to time zero.</li>
+<li>Global priority, loop enable, loop start/end, ease-in and ease-out.</li>
+<li>Native hand pose and expression.</li>
+</ul>
+<p>Loop times are seconds relative to the exported start. The creation preview
+shows exact keyed frames; the ordinary import preview displays final
+playback easing, hand pose and expression. The existing native codec writes
+the file and validates the complete result before saving or preparing import.</p>
+<h2 id="reuse-an-ik-pose-and-keep-drafts">Reuse an IK pose and keep drafts</h2>
+<p>Return to IK contacts to adjust prim targets, bone targets or virtual
+controls. In Animations, choose the destination <strong>Frame (.anim)</strong> and
+<strong>Capture current IK pose</strong> to add your contacts, solved on the rest skeleton,
+to the current draft. This bakes the real skeletal pose; the LSL companion
+supplies live target following during play.</p>
+<p>Creating another animation retains the previous draft in the draft selector.
+Up to sixteen drafts remain available during the viewer session, including
+after closing/reopening IK Edit. Save <code>.anim</code> files to keep exported clips
+before leaving the viewer. Outside trimmed keys and disabled tracks remain
+in the session draft; an exported file contains the selected active clip.</p>
+<h2 id="save-or-import">Save or import</h2>
+<p><strong>Save .anim</strong> opens a native file dialog and writes the validated file.
+<strong>Prepare .anim import</strong> opens Block&rsquo;s existing animation import inspector
+with the same native bytes. Review its preview, destination, name and
+permissions, then use the normal upload action. Preparing the inspector does
+not start an upload or payment. The pose editor closes for this review and
+its drafts stay available through Animations.</p>
+<p>Encoding, preview binding, file dialogs and disk writes use background jobs.
+Grid upload and playback of the resulting inventory animation are validated
+by the human in Second Life.</p>
+<h2 id="offline-validation">Offline validation</h2>
+<p><code>AURORA_DEMO_IK_EDIT=clip</code> creates head rotation and pelvis position keys at
+frames 0, 30 and 60, then displays frame 15. <code>clip-frame</code> displays frame 45;
+<code>clip-priority</code> shows the global/inherited and per-bone priorities;
+<code>clip-settings</code> displays loop/ease metadata; <code>clip-crop</code> trims frames 15–45;
+<code>clip-import</code> prepares the ordinary native import inspector without uploading;
+<code>clip-release</code> closes at frame 720 (capture 800 to check restoration).</p>
+      </article>
+    </div>
+  </main>
+  <footer class="footer">
+    <div class="footer-row">
+      <a class="brand" href="../../"><img src="../../assets/mark.svg" width="22" height="22" alt=""><span>BLOCK VIEWER</span></a>
+      <nav class="footer-links" aria-label="Footer">
+        <a href="../../download/">Download</a>
+        <a href="../../docs/">Docs</a>
+        <a href="../../foundation/">Foundation</a>
+        <a href="../../privacy/">Privacy</a>
+        <a href="https://github.com/ape-squared/Block-Viewer">GitHub</a>
+      </nav>
+    </div>
+    <p class="legal">Guides are hosted on this site. Source of truth is the Markdown in the repository.</p>
+  </footer>
+  <script src="../../site.js?v=8" defer></script>
+</body>
+</html>

@@ -10,7 +10,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="../styles.css?v=5">
+  <link rel="stylesheet" href="../styles.css?v=8">
 </head>
 <body>
   <a class="skip" href="#main">Skip to content</a>
@@ -38,24 +38,24 @@
       <h1>Privacy</h1>
       <p>Block Viewer has no project telemetry server of its own. Grid traffic goes to the Second Life (or other) grid you choose. Updates and crash symbols use GitHub Releases for this repository when enabled.</p>
     </div>
-    <div class="feature-grid reveal">
-      <article>
+    <ul class="capability-grid reveal">
+      <li>
         <h3>Login &amp; world</h3>
         <p>Credentials and session traffic go to the login URI and region you select. Device identifiers follow the Legacy Viewer login fields. We do not operate a proxy for that traffic.</p>
-      </article>
-      <article>
+      </li>
+      <li style="--d:1">
         <h3>On this computer</h3>
         <p>Settings, cache, chat logs (if enabled), and remembered login hashes live under <code>%LOCALAPPDATA%\ape-squared\BlockViewer\</code> (and the system credential store for passwords / MFA).</p>
-      </article>
-      <article>
+      </li>
+      <li style="--d:2">
         <h3>Updates</h3>
-        <p>When “check for updates” is on, the viewer asks GitHub for <a href="https://github.com/ape-squared/Block-Viewer/releases">ape-squared/Block-Viewer releases</a> and may download a zip you accept.</p>
-      </article>
-      <article>
+        <p>When “check for updates” is on, the viewer asks GitHub for releases of this project and may download a zip you accept. See also <a href="../docs/updates/">Updates</a>.</p>
+      </li>
+      <li style="--d:3">
         <h3>Sister products</h3>
         <p><a href="https://ape-squared.github.io/Block-GPPI/">Block-GPPI</a> is a separate injector with its own site and issues. This policy is for the viewer only.</p>
-      </article>
-    </div>
+      </li>
+    </ul>
   </main>
   <footer class="footer">
     <div class="footer-row">
@@ -70,6 +70,6 @@
     </div>
     <p class="legal">Independent project by ape-squared. Not affiliated with Linden Lab.</p>
   </footer>
-  <script src="../site.js?v=5" defer></script>
+  <script src="../site.js?v=8" defer></script>
 </body>
 </html>

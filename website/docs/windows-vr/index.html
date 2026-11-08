@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Experimental Windows VR — Block Viewer</title>
+  <meta name="description" content="Experimental Windows VR — Block Viewer documentation.">
+  <link rel="canonical" href="https://ape-squared.github.io/Block-Viewer/docs/windows-vr/">
+  <link rel="icon" href="../../assets/mark.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../../styles.css?v=8">
+</head>
+<body>
+  <a class="skip" href="#main">Skip to content</a>
+  <div class="atmosphere" aria-hidden="true"></div>
+  <header class="nav" data-nav>
+    <a class="brand" href="../../" aria-label="Block Viewer home">
+      <img src="../../assets/mark.svg" width="28" height="28" alt="">
+      <span>BLOCK</span>
+    </a>
+    <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="site-nav" data-nav-toggle>
+      <span class="nav-toggle-bar"></span>
+      <span class="sr-only">Menu</span>
+    </button>
+    <nav id="site-nav" class="nav-links" aria-label="Primary">
+      <a href="../../download/">Download</a>
+      <a href="../../#features">Features</a>
+      <a class="is-active" href="../../docs/">Docs</a>
+      <a href="../../foundation/">Foundation</a>
+    </nav>
+    <a class="btn btn-primary nav-cta" href="../../download/">Download</a>
+  </header>
+  <main id="main" class="section page-shell docs-layout">
+    <div class="docs-with-side">
+      <aside class="docs-side" aria-label="Guides">
+<p class="docs-side-title"><a href="../">All guides</a></p>
+<p class="docs-side-section">For testers</p>
+<a href="../reporting-bugs/">Reporting bugs</a>
+<a href="../linux/">Installing on Linux</a>
+<a href="../vr/">Experimental VR scene viewing</a>
+<a class="is-active" href="../windows-vr/">Experimental Windows VR</a>
+<a href="../macos/">Installing on macOS</a>
+<a href="../updates/">Updates</a>
+<a href="../imports/">Asset imports</a>
+<a href="../livemesh/">LiveMesh</a>
+<a href="../hand-contacts/">Motorcycle hand contacts</a>
+<a href="../ik-edit/">IK Edit and bone contacts</a>
+<a href="../animation-creation/">Create native animations</a>
+<a href="../poser/">Local photo poser</a>
+<p class="docs-side-section">Contributing</p>
+<a href="../translating/">Translating the viewer</a>
+<a href="../branding/">Branding and interface</a>
+<p class="docs-side-section">Technical</p>
+<a href="../rlva/">RLVa implementation status</a>
+<a href="../licences/">Licences and notices</a>
+</aside>
+      <article class="prose docs-article reveal">
+        <p class="eyebrow">For testers</p>
+        <h1>Experimental Windows VR</h1>
+        <p>The Windows build enables the same native Vulkan/OpenXR implementation as Linux:
+stereo scene viewing, camera anchoring, head tracking, toolbar entry, Esc exit,
+desktop camera restoration and the desktop mirror. <strong>Windows runtime/headset
+validation is pending.</strong> A successful build is not proof of working headset output.
+The validated configuration remains Quest 3 / WiVRn 26.9 / RTX 3090 on Linux.</p>
+<p>For shared controls, limits and other platforms, see <a href="../vr/">VR setup</a>.</p>
+<h2 id="requirements">Requirements</h2>
+<ul>
+<li>Windows x64 and a GPU/driver supporting Vulkan 1.3 and Aurora&rsquo;s normal rendering
+  features, including bindless resources. OpenXR and the desktop must use a GPU
+  compatible with both headset rendering and window presentation.</li>
+<li>A configured active Windows OpenXR runtime supporting the intended headset and
+  <code>XR_KHR_vulkan_enable2</code>. Select the runtime through its vendor&rsquo;s supported tool.
+  An OpenXR badge alone does not guarantee Vulkan interoperability.</li>
+<li>Nothing else to install with the published viewer: its Khronos OpenXR loader
+  is built in (the <code>xr-static-loader</code> feature, which needs CMake), and it finds
+  the runtime the system has active. A local build without that feature loads
+  the runtime&rsquo;s <code>openxr_loader.dll</code> instead; add <code>--features xr-static-loader</code>
+  (with CMake installed) to build it in.</li>
+<li><code>PRIMARY_STEREO</code> with two views, <code>LOCAL</code>/<code>VIEW</code> reference spaces, opaque
+  composition, compatible RGBA8/BGRA8 eye formats and swapchain images usable as
+  color attachments, sampled textures and transfer sources.</li>
+<li>Runtime running and headset connected when the viewer starts. A headset
+  connected later makes the headset button offer &ldquo;Restart in VR&rdquo;: the viewer
+  restarts with <code>--vr</code> and enters VR once the world shows.
+  WiVRn is the Linux test route, not a Windows requirement. No OpenVR bridge,
+  VR framework or streaming client is bundled with Aurora.</li>
+</ul>
+<p>Tested by a maintainer on 2026-11-01: RTX 4090, Virtual Desktop&rsquo;s OpenXR
+runtime (VDXR). Other runtimes are expected to work but are untested. The
+runtime selects the Vulkan GPU; a conflicting explicit Aurora GPU preference or
+hybrid-GPU configuration may prevent initialization. Attaching a headset
+without a restart, headset reconnection and runtime-loss recovery remain
+unfinished.</p>
+<h2 id="build-and-ci">Build and CI</h2>
+<p>Build with the usual Windows toolchain (Rust stable, MSVC, Vulkan) in a
+normal checkout with the default target directory and a dev profile:</p>
+<pre><code class="language-powershell">cargo build --locked -p block-render --example xr_spike
+cargo build --locked -p block-viewer
+./scripts/check.ps1
+</code></pre>
+<p>The existing Windows workspace/all-target Clippy of the CI compiles the enabled
+Windows path. Headset tests use a local dev build.</p>
+<h2 id="maintainer-validation-checklist">Maintainer validation checklist</h2>
+<ol>
+<li>Start/connect the intended Windows runtime and headset. Run
+   <code>target/debug/examples/xr_spike.exe</code> (or the downloaded <code>xr_spike.exe</code>).
+   Confirm the sphere/checkerboard scene, stereo depth and head tracking in
+   both 15-second sessions. Keep the process running through both cycles.</li>
+<li>Run the offline viewer first:</li>
+</ol>
+<p><code>powershell
+   $env:AURORA_DEMO = "1"
+   cargo run -p block-viewer -- --title "Test vr-scene-view Windows"</code></p>
+<p>With a downloaded binary, set the same environment variable and run
+   <code>./block-viewer.exe --title "Test vr-scene-view Windows"</code> instead.
+3. Place/pitch the desktop camera downward. Click the headset button in the
+   bottom toolbar. Confirm horizon-level entry, correct stereo/head tracking,
+   scene materials/lighting/transparency and no interface/HUD/nameplate overlays.
+   Repeat with the headset tilted at activation, then worn level.
+4. Check the desktop left-eye mirror, letterboxing and desktop-only Esc hint.
+   Press Esc with Aurora focused; confirm original desktop camera/UI restoration.
+   Repeat several cycles without restarting.
+5. Test focus changes, resizing, minimization and clean shutdown. Check startup
+   with no loader/runtime/headset: normal desktop operation should remain
+   available; VR is unavailable. Disconnect/runtime restart are separate tests,
+   not supported recovery promises.
+6. Only after offline tests pass, the human may clear <code>AURORA_DEMO</code>, launch
+   normally and perform login/live-grid validation. Agents do not log in or
+   operate on a grid. Record runtime/headset/GPU/driver versions, results and
+   frame-time/memory observations without credentials or personal location data.</p>
+<h2 id="deliberate-limits">Deliberate limits</h2>
+<p><strong>Where the view starts:</strong> Preferences › Camera › VR, &ldquo;Headset view&rdquo;. By
+default (&ldquo;First person&rdquo;) at the avatar&rsquo;s eyes, as in mouselook, with the head
+and what is worn on it hidden; &ldquo;Camera position&rdquo; starts where the desktop
+camera was. Either way the heading is kept and pitch/roll are levelled to the
+horizon, and the view stays anchored there.</p>
+<p><strong>Viewing only:</strong> head tracking permits looking around and small
+physical leaning, not locomotion or camera relocation. No supported VR menus,
+chat, inventory, building, object interaction, controllers, hands or teleporting.
+Exit with Esc to interact or reposition the desktop camera. Esc needs viewer
+keyboard focus; headset controllers cannot exit VR.</p>
+<p>Each eye is capped at 1600 x 1600. Stereo backends add GPU time/memory; the
+30 FPS desktop mirror reuses an eye image instead of rendering a third scene.
+No Windows performance, recording overhead or disconnect-recovery claim is made.
+macOS/visionOS remain outside this implementation (a later step).</p>
+      </article>
+    </div>
+  </main>
+  <footer class="footer">
+    <div class="footer-row">
+      <a class="brand" href="../../"><img src="../../assets/mark.svg" width="22" height="22" alt=""><span>BLOCK VIEWER</span></a>
+      <nav class="footer-links" aria-label="Footer">
+        <a href="../../download/">Download</a>
+        <a href="../../docs/">Docs</a>
+        <a href="../../foundation/">Foundation</a>
+        <a href="../../privacy/">Privacy</a>
+        <a href="https://github.com/ape-squared/Block-Viewer">GitHub</a>
+      </nav>
+    </div>
+    <p class="legal">Guides are hosted on this site. Source of truth is the Markdown in the repository.</p>
+  </footer>
+  <script src="../../site.js?v=8" defer></script>
+</body>
+</html>

@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Experimental VR scene viewing — Block Viewer</title>
+  <meta name="description" content="Experimental VR scene viewing — Block Viewer documentation.">
+  <link rel="canonical" href="https://ape-squared.github.io/Block-Viewer/docs/vr/">
+  <link rel="icon" href="../../assets/mark.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../../styles.css?v=8">
+</head>
+<body>
+  <a class="skip" href="#main">Skip to content</a>
+  <div class="atmosphere" aria-hidden="true"></div>
+  <header class="nav" data-nav>
+    <a class="brand" href="../../" aria-label="Block Viewer home">
+      <img src="../../assets/mark.svg" width="28" height="28" alt="">
+      <span>BLOCK</span>
+    </a>
+    <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="site-nav" data-nav-toggle>
+      <span class="nav-toggle-bar"></span>
+      <span class="sr-only">Menu</span>
+    </button>
+    <nav id="site-nav" class="nav-links" aria-label="Primary">
+      <a href="../../download/">Download</a>
+      <a href="../../#features">Features</a>
+      <a class="is-active" href="../../docs/">Docs</a>
+      <a href="../../foundation/">Foundation</a>
+    </nav>
+    <a class="btn btn-primary nav-cta" href="../../download/">Download</a>
+  </header>
+  <main id="main" class="section page-shell docs-layout">
+    <div class="docs-with-side">
+      <aside class="docs-side" aria-label="Guides">
+<p class="docs-side-title"><a href="../">All guides</a></p>
+<p class="docs-side-section">For testers</p>
+<a href="../reporting-bugs/">Reporting bugs</a>
+<a href="../linux/">Installing on Linux</a>
+<a class="is-active" href="../vr/">Experimental VR scene viewing</a>
+<a href="../windows-vr/">Experimental Windows VR</a>
+<a href="../macos/">Installing on macOS</a>
+<a href="../updates/">Updates</a>
+<a href="../imports/">Asset imports</a>
+<a href="../livemesh/">LiveMesh</a>
+<a href="../hand-contacts/">Motorcycle hand contacts</a>
+<a href="../ik-edit/">IK Edit and bone contacts</a>
+<a href="../animation-creation/">Create native animations</a>
+<a href="../poser/">Local photo poser</a>
+<p class="docs-side-section">Contributing</p>
+<a href="../translating/">Translating the viewer</a>
+<a href="../branding/">Branding and interface</a>
+<p class="docs-side-section">Technical</p>
+<a href="../rlva/">RLVa implementation status</a>
+<a href="../licences/">Licences and notices</a>
+</aside>
+      <article class="prose docs-article reveal">
+        <p class="eyebrow">For testers</p>
+        <h1>Experimental VR scene viewing</h1>
+        <p>Use the bottom-toolbar headset button. By default the view starts at the avatar&rsquo;s
+eyes, as in mouselook, with the head and what is worn on it hidden; Preferences ›
+Camera › VR, &ldquo;Headset view&rdquo;, can start it where the desktop camera is instead.
+Either way the horizontal heading is kept, pitch/roll are levelled to the horizon,
+and headset rotation and small physical movements look around from there.
+Press <strong>Esc with Aurora focused</strong> to restore the original desktop camera and UI.
+Repeated normal entry/exit does not require restarting the viewer.</p>
+<p><strong>Viewing only:</strong> there are no supported VR menus, chat, inventory, building,
+object interaction, locomotion, camera relocation, controller or hand controls.
+Exit VR to interact or reposition the camera. No viewer UI, nameplates, worn HUDs,
+selection outlines or editing overlays appear in the headset. The desktop is a
+left-eye mirror with an exit instruction, not an interactive second viewport.</p>
+<h2 id="platform-status">Platform status</h2>
+<table>
+<thead>
+<tr>
+<th>Platform</th>
+<th>Graphics binding</th>
+<th>Build/automated evidence</th>
+<th>Human headset evidence</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Linux</td>
+<td>Vulkan / <code>XR_KHR_vulkan_enable2</code></td>
+<td>Full local checks pass</td>
+<td>Quest 3, WiVRn 26.9, RTX 3090: stereo, tracking, horizon, repeated entry/Esc exit, restoration, mirror and hint validated</td>
+</tr>
+<tr>
+<td>Windows x64</td>
+<td>Vulkan / <code>XR_KHR_vulkan_enable2</code></td>
+<td>Native strict Clippy, viewer/sample builds and shared VR tests pass</td>
+<td>Maintainer, 2026-11-01: RTX 4090, Virtual Desktop&rsquo;s runtime (VDXR): stereo, tracking, first-person and camera-position entry, repeated entry/Esc exit, restart into VR</td>
+</tr>
+<tr>
+<td>macOS Apple Silicon</td>
+<td>Metal / <code>XR_KHR_metal_enable</code></td>
+<td>Native binding implemented; existing macOS CI and runtime tests pending</td>
+<td>No Mac/headset available in this session; no headset or simulator result claimed</td>
+</tr>
+</tbody>
+</table>
+<p>No platform status means every OpenXR headset works. The runtime must expose the
+required graphics binding, device, stereo views and eye image format. Build, unit
+tests, simulator rendering and physical headset streaming are separate gates.</p>
+<h2 id="common-requirements">Common requirements</h2>
+<ul>
+<li>A GPU/driver meeting Aurora&rsquo;s existing renderer feature/resource requirements.
+  The runtime-selected GPU must also be suitable for the desktop window.</li>
+<li>A configured headset runtime. The published Windows viewer has the Khronos OpenXR
+  loader built in (<code>xr-static-loader</code>, CMake needed to build it; a local build
+  without it loads the runtime&rsquo;s loader); Linux uses the distribution&rsquo;s loader package (WiVRn and Monado
+  install it), macOS the installed loader. VR is set up when
+  Aurora starts, and only once VR has been used (Preferences › Camera › VR ›
+  &ldquo;Set up VR at startup&rdquo;, off by default: loading a runtime at every start
+  crashed PCs that never use VR, #2309). Until then, or with the headset
+  connected later, the headset button offers &ldquo;Restart in VR&rdquo; (the viewer
+  restarts with <code>--vr</code>, enters VR once the world shows and turns the setting
+  on). VR is optional: without a runtime, the viewer starts as usual.</li>
+<li>Head-mounted display, two-view <code>PRIMARY_STEREO</code>, <code>LOCAL</code> and <code>VIEW</code> reference
+  spaces, opaque composition and the selected RGBA8/BGRA8 eye format.</li>
+<li>Eye images supporting color attachment and sampling; Vulkan also uses
+  transfer-source access. Eye dimensions are currently capped at 1600 x 1600.</li>
+</ul>
+<p>Attaching a headset without a restart, runtime restart/disconnect recovery, broader stereo
+visual validation and performance/memory benchmarks remain unfinished. A restart
+may be needed after runtime loss. Esc is not a global shortcut and controllers
+cannot exit VR. Two eye backends add GPU time and memory; no frame-rate guarantee
+is made. No standalone Android/visionOS Aurora application is included.</p>
+<h2 id="linux">Linux</h2>
+<p>Install the distribution OpenXR loader (<code>libopenxr_loader.so.1</code>; WiVRn and Monado
+depend on it) and a compatible Vulkan 1.3 runtime. Start
+WiVRn/server and connect the headset before launching, or use &ldquo;Restart in VR&rdquo;.
+Use the runtime&rsquo;s supported active-runtime registration. Normal use needs no demo
+variable. Other Linux runtimes/headsets/GPUs remain unvalidated.</p>
+<h2 id="windows">Windows</h2>
+<p>See <a href="../windows-vr/">Windows VR setup and maintainer checklist</a>. Select a runtime
+supporting Vulkan-enable2 (nothing else to install).
+Start with the two-session <code>xr_spike</code> sample, then test the offline viewer. The
+redundant dedicated Windows workflow was removed following maintainer feedback;
+existing Windows CI covers compilation. Headset tests use a local dev build.</p>
+<h2 id="macos-runtime-investigation-and-native-metal-path">macOS: runtime investigation and native Metal path</h2>
+<p>Aurora retains its Metal renderer. It does not switch to Vulkan/MoltenVK. The
+OpenXR binding queries the runtime&rsquo;s Metal device, checks adapter identity, binds
+the exact wgpu command queue, and imports retained runtime-owned <code>MTLTexture</code>
+images. Session teardown keeps the queue/images alive until rendering completes.
+<code>openxr 0.22</code> provides raw Metal extension bindings but no typed Metal graphics
+adapter; the small private adapter in <code>xr_metal.rs</code> uses those existing bindings.</p>
+<p>Sources checked on 2026-11-02:</p>
+<table>
+<thead>
+<tr>
+<th>Source</th>
+<th>What it establishes</th>
+<th>What it does not establish</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="https://registry.khronos.org/OpenXR/specs/1.1/man/html/XR_KHR_metal_enable.html">Khronos Metal binding</a></td>
+<td>Ratified native Metal device/queue/swapchain interface</td>
+<td>Availability or quality of a particular headset runtime</td>
+</tr>
+<tr>
+<td><a href="https://github.khronos.org/OpenXR-Inventory/runtime_extension_support.html">Khronos runtime inventory</a></td>
+<td>Meta XR Simulator on macOS advertises Metal; a simulator route exists</td>
+<td>Physical headset streaming or Aurora compatibility</td>
+</tr>
+<tr>
+<td><a href="https://github.com/demonixis/oxrsys/tree/82ee9ff58f26dcbe3d75f94de4357a2df1906b3e">OXRSys</a> and its <a href="https://github.com/demonixis/oxrsys/blob/82ee9ff58f26dcbe3d75f94de4357a2df1906b3e/docs/support-matrix.md">support matrix</a></td>
+<td>Experimental macOS runtime source with Metal and headset-streaming clients</td>
+<td>Aurora launch, stereo correctness or physical-device qualification; its matrix distinguishes these from builds</td>
+</tr>
+<tr>
+<td><a href="https://github.com/kzahel/wivrn-macos/tree/0ed2634ad917749b58e23a58b452299d0b27b4ab">WiVRn macOS fork</a></td>
+<td>Experimental Apple Silicon host packaging with a native Metal frame probe and Quest route</td>
+<td>Upstream WiVRn macOS support or an Aurora headset test</td>
+</tr>
+<tr>
+<td><a href="https://monado.freedesktop.org/">Upstream Monado</a></td>
+<td>Published platform coverage differs from these experimental forks</td>
+<td>An upstream production-ready macOS installation</td>
+</tr>
+</tbody>
+</table>
+<p>These are candidate development runtimes, not Aurora-certified products. It
+would be inaccurate to say no macOS OpenXR runtime exists; it would also be
+inaccurate to infer physical headset compatibility from these repositories.
+Windows runtime names are not macOS installation instructions.</p>
+<h3 id="mac-setup-and-validation">Mac setup and validation</h3>
+<ol>
+<li>Use Aurora&rsquo;s normal Apple Silicon/Xcode environment. Install a candidate
+   runtime, its matching headset client if needed, and an arm64 Khronos OpenXR
+   loader. Runtime registration remains the runtime provider&rsquo;s responsibility.
+   Meta&rsquo;s <a href="https://developers.meta.com/vr/documentation/native/xrsim-getting-started/">simulator setup</a>
+   provides a separate desktop-simulator route; record simulator results as such.</li>
+<li>If the loader is not discoverable as <code>libopenxr_loader.dylib</code>, set
+   <code>AURORA_OPENXR_LOADER</code> to its absolute installed path. For a development
+   runtime, <code>XR_RUNTIME_JSON</code> may select its manifest. No loader/runtime is bundled.</li>
+<li>Validate the runtime independently with Khronos <code>hello_xr -g Metal</code>. Aurora&rsquo;s
+   <code>xr_spike</code> example remains a Vulkan-only Linux/Windows interoperability test.</li>
+<li>Start/connect the runtime and headset, then run the timed full-scene offline
+   test (environment values below are examples of controls, not installed paths):</li>
+</ol>
+<p><code>sh
+   AURORA_DEMO=1 AURORA_DEMO_XR_WORLD=1 cargo run -p block-viewer -- --title "Test vr-scene-view macOS"</code></p>
+<p>This enters after frame 600 and submits for about 15 seconds. Then test manual
+   toolbar entry/Esc exit with <code>AURORA_DEMO=1</code> and no <code>AURORA_DEMO_XR_WORLD</code>.
+5. Record Mac/GPU, OS, runtime commit/version, loader, simulator/headset/client,
+   stereo/depth/tracking, horizon leveling from tilted desktop/headset entry,
+   repeated entry/Esc exit, desktop restoration, mirror/hint, focus, resizing and
+   shutdown. Test unavailable runtime and disconnect separately. Only a human
+   logs in for any later live-grid validation.</p>
+<p><strong>Pending:</strong> macOS CI compilation and Metal pipeline/demo checks, simulator
+submission, physical headset streaming, runtime/driver resource-lifetime
+validation, latency/performance and recovery. Maintainer review must decide
+whether the experimental runtime ecosystem is sufficient for platform parity.</p>
+<h2 id="dependencies-and-footprint">Dependencies and footprint</h2>
+<p>The new runtime dependency is <code>openxr 0.22.0</code>, with <code>openxr-sys 0.14.0</code> and
+<code>libloading 0.9.0</code>; the older libloading remains for existing users. Licenses are
+MIT/Apache-2.0 and ISC. macOS directly reuses <code>objc2 0.6.5</code> and the existing
+<code>objc2-metal 0.3.2</code> bindings already used by wgpu; no additional package versions
+or Metal/Vulkan translation library are added for the Mac path.</p>
+<p>No VR engine/framework, runtime, streaming stack, headset client or recording
+software is bundled. The system loader/runtime are external requirements. The
+interoperability example is not part of the viewer executable. Binary-size,
+GPU-memory and frame-time differences have not been quantified.</p>
+<h2 id="recording">Recording</h2>
+<p>The desktop mirror samples the submitted left eye at up to 30 FPS, with
+letterboxing, rather than drawing a third world view or reading it back to the
+CPU. Capture the Aurora window with OBS (PipeWire on Linux/Wayland; the native
+window source on other systems), using hardware encoding where available. The
+exit instruction is included. Capture/encoding adds overhead and the mirror
+cannot show headset streaming/compositor-only artifacts.</p>
+      </article>
+    </div>
+  </main>
+  <footer class="footer">
+    <div class="footer-row">
+      <a class="brand" href="../../"><img src="../../assets/mark.svg" width="22" height="22" alt=""><span>BLOCK VIEWER</span></a>
+      <nav class="footer-links" aria-label="Footer">
+        <a href="../../download/">Download</a>
+        <a href="../../docs/">Docs</a>
+        <a href="../../foundation/">Foundation</a>
+        <a href="../../privacy/">Privacy</a>
+        <a href="https://github.com/ape-squared/Block-Viewer">GitHub</a>
+      </nav>
+    </div>
+    <p class="legal">Guides are hosted on this site. Source of truth is the Markdown in the repository.</p>
+  </footer>
+  <script src="../../site.js?v=8" defer></script>
+</body>
+</html>

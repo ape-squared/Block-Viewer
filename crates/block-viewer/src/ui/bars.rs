@@ -102,7 +102,10 @@ pub enum BarAction {
     TeleportTo(String),
     /// A recent place from the place menu: prefer its SLURL, else its saved
     /// global position (LLTeleportHistoryStorage::goToItem).
-    TeleportRecent { slurl: String, global: glam::DVec3 },
+    TeleportRecent {
+        slurl: String,
+        global: glam::DVec3,
+    },
     /// A landmark chosen in the location field's suggestions, by its asset.
     TeleportLandmark(uuid::Uuid),
     /// A place of the teleport history chosen in the location field's

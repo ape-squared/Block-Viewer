@@ -106,10 +106,7 @@ pub fn start() -> Vec3 {
 /// frame moves them.
 pub fn events() -> Vec<NetEvent> {
     let boxp = shape(LL_PCODE_PATH_LINE, LL_PCODE_PROFILE_SQUARE, 100, 0, 0);
-    let labels = [
-        block_i18n::tr!("demo-sound-hrtf-circle"),
-        block_i18n::tr!("demo-sound-hrtf-updown"),
-    ];
+    let labels = [block_i18n::tr!("demo-sound-hrtf-circle"), block_i18n::tr!("demo-sound-hrtf-updown")];
     let colours = [[0.55, 0.36, 0.96, 1.0], [0.96, 0.62, 0.25, 1.0]];
     let objects = playing()
         .map(|k| {

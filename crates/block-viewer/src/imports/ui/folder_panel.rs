@@ -24,12 +24,7 @@ pub(super) fn destination_row(
     if imports.window_choice() != Choice::Bulk {
         let before = (prefs.use_default_folders, prefs.batch_folder, prefs.include_source_folder);
         ui.add_enabled_ui(!busy, |ui| {
-            checkbox(
-                ui,
-                p,
-                &mut prefs.use_default_folders,
-                block_i18n::tr!("import-use-default-folders"),
-            );
+            checkbox(ui, p, &mut prefs.use_default_folders, block_i18n::tr!("import-use-default-folders"));
             ui.horizontal_wrapped(|ui| {
                 ui.label(block_i18n::tr!("import-destination"));
                 let mut folder = if prefs.use_default_folders {

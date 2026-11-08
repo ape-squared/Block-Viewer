@@ -262,10 +262,7 @@ impl State {
                     || self.granted_to.contains_key(&peer);
                 if hidden {
                     // Otherwise the asker waits out the minute and sees "No answer".
-                    if present(world, peer)
-                        && !self.incoming.iter().any(|r| r.peer == peer)
-                        && !self.granted_to.contains_key(&peer)
-                    {
+                    if present(world, peer) && !self.incoming.iter().any(|r| r.peer == peer) && !self.granted_to.contains_key(&peer) {
                         self.send(id, PoseKind::Refuse, peer);
                     }
                     return;

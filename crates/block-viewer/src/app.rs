@@ -12025,9 +12025,15 @@ impl App {
             && let Some((w, h, px)) = gfx.renderer.captured.take()
         {
             self.video_capture_pending = false;
-            self.video_record.push_frame(w, h, px);
+            // Match the viewfinder Format crop (Window = full frame).
+            let crop = match self.settings.snapshot.aspect {
+                crate::snapshot::Aspect::Window => None,
+                aspect => Some(aspect.ratio((w.max(1), h.max(1)))),
+            };
+            self.video_record.push_frame(w, h, px, crop);
         } else if self.video_capture_pending {
-            // Capture flag was set but another consumer won, or GPU skipped it.
+            // Render already ran above: empty means the GPU skipped us or
+            // another consumer won the slot — ask again next cadence tick.
             self.video_capture_pending = false;
             self.video_record.capture_missed();
         }

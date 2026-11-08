@@ -1,13 +1,15 @@
-//! In-viewer camera recording: window-size scene frames encoded to an MP4
-//! (H.264) next to the stills folder. Windows uses Media Foundation; other
-//! platforms refuse the start with a clear error. The viewfinder drives
-//! start / stop; the app asks `capture_scene` on a cadence and feeds RGBA.
+//! In-viewer camera recording: scene frames encoded to an MP4 (H.264) next
+//! to the stills folder. Frames are centre-cropped to the camera Format
+//! aspect when it is not Window, then downscaled. Sample times follow wall
+//! clock so a 30 s recording stays ~30 s even when GPU readback is sparse.
+//! Windows uses Media Foundation; other platforms refuse the start with a
+//! clear error.
 
 use std::path::{Path, PathBuf};
 use std::sync::mpsc::{Receiver, Sender, TryRecvError};
 use std::time::{Duration, Instant};
 
-/// Target frames written per second (capture requests follow this).
+/// Target capture cadence (requests follow this; timestamps use wall clock).
 pub const TARGET_FPS: u32 = 24;
 /// Long edge cap before encode (keeps bitrate and GPU readback sane).
 pub const MAX_EDGE: u32 = 1280;
@@ -56,7 +58,15 @@ struct Live {
 }
 
 enum WorkerMsg {
-    Frame { width: u32, height: u32, rgba: Vec<u8> },
+    Frame {
+        width: u32,
+        height: u32,
+        rgba: Vec<u8>,
+        /// Presentation time in 100 ns units from session start (wall clock).
+        time_hns: i64,
+        /// Centre-crop to this width/height ratio before encode; None = full frame.
+        crop_aspect: Option<f32>,
+    },
     Stop,
 }
 
@@ -184,7 +194,8 @@ impl VideoRecorder {
     }
 
     /// A scene capture arrived; enqueue for encode.
-    pub fn push_frame(&mut self, width: u32, height: u32, rgba: Vec<u8>) {
+    /// `crop_aspect` is width/height of the camera Format (None = keep the full window).
+    pub fn push_frame(&mut self, width: u32, height: u32, rgba: Vec<u8>, crop_aspect: Option<f32>) {
         let Phase::Live(live) = &mut self.phase else {
             return;
         };
@@ -194,7 +205,18 @@ impl VideoRecorder {
         if width < 2 || height < 2 || rgba.len() < (width as usize) * (height as usize) * 4 {
             return;
         }
-        if live.tx.send(WorkerMsg::Frame { width, height, rgba }).is_ok() {
+        let time_hns = (live.started.elapsed().as_secs_f64() * 10_000_000.0).round() as i64;
+        if live
+            .tx
+            .send(WorkerMsg::Frame {
+                width,
+                height,
+                rgba,
+                time_hns,
+                crop_aspect,
+            })
+            .is_ok()
+        {
             live.frames += 1;
         }
     }
@@ -213,9 +235,35 @@ fn run_worker(path: PathBuf, rx: Receiver<WorkerMsg>) -> Result<PathBuf, String>
     windows_encode::encode(path, rx)
 }
 
+/// Centre-crop RGBA to `aspect` (width/height), then return the sub-image.
+pub fn crop_rgba(width: u32, height: u32, rgba: &[u8], aspect: f32) -> (u32, u32, Vec<u8>) {
+    let aspect = aspect.max(0.01);
+    let win = width as f32 / height.max(1) as f32;
+    let (cw, ch, x0, y0) = if (win - aspect).abs() < 0.01 {
+        (width, height, 0u32, 0u32)
+    } else if win > aspect {
+        let cw = ((height as f32 * aspect).round() as u32).clamp(2, width);
+        ((cw & !1).max(2), height, (width - cw) / 2, 0)
+    } else {
+        let ch = ((width as f32 / aspect).round() as u32).clamp(2, height);
+        (width, (ch & !1).max(2), 0, (height - ch) / 2)
+    };
+    if cw == width && ch == height {
+        return (width, height, rgba.to_vec());
+    }
+    let mut out = vec![0u8; (cw * ch * 4) as usize];
+    for y in 0..ch {
+        let src = (((y0 + y) * width + x0) * 4) as usize;
+        let dst = (y * cw * 4) as usize;
+        let bytes = (cw * 4) as usize;
+        out[dst..dst + bytes].copy_from_slice(&rgba[src..src + bytes]);
+    }
+    (cw, ch, out)
+}
+
 #[cfg(windows)]
 mod windows_encode {
-    use super::{MAX_EDGE, TARGET_FPS, WorkerMsg};
+    use super::{MAX_EDGE, TARGET_FPS, WorkerMsg, crop_rgba};
     use std::os::windows::ffi::OsStrExt;
     use std::path::PathBuf;
     use std::sync::mpsc::Receiver;
@@ -260,8 +308,18 @@ mod windows_encode {
             let mut frames = 0u64;
             while let Ok(msg) = rx.recv() {
                 match msg {
-                    WorkerMsg::Frame { width, height, rgba } => {
-                        let (w, h, pixels) = fit_frame(width, height, &rgba);
+                    WorkerMsg::Frame {
+                        width,
+                        height,
+                        rgba,
+                        time_hns,
+                        crop_aspect,
+                    } => {
+                        let (cw, ch, cropped) = match crop_aspect {
+                            Some(a) => crop_rgba(width, height, &rgba, a),
+                            None => (width, height, rgba),
+                        };
+                        let (w, h, pixels) = fit_frame(cw, ch, &cropped);
                         if writer.is_none() {
                             writer = Some(Writer::open(&path, w, h)?);
                         }
@@ -269,7 +327,7 @@ mod windows_encode {
                         if (w, h) != (wtr.width, wtr.height) {
                             continue;
                         }
-                        wtr.write_bgra(&pixels, frames)?;
+                        wtr.write_bgra(&pixels, time_hns)?;
                         frames += 1;
                     }
                     WorkerMsg::Stop => break,
@@ -294,6 +352,7 @@ mod windows_encode {
         width: u32,
         height: u32,
         frame_duration: i64,
+        last_time: i64,
     }
 
     impl Writer {
@@ -332,16 +391,24 @@ mod windows_encode {
                     width,
                     height,
                     frame_duration: 10_000_000 / i64::from(TARGET_FPS),
+                    last_time: -1,
                 })
             }
         }
 
         /// `bgra` is already BGRA8 top-down at `width`×`height`.
-        fn write_bgra(&self, bgra: &[u8], index: u64) -> Result<(), String> {
+        fn write_bgra(&mut self, bgra: &[u8], time_hns: i64) -> Result<(), String> {
             let bytes = (self.width * self.height * 4) as usize;
             if bgra.len() < bytes {
                 return Err("frame buffer too small".into());
             }
+            let time = time_hns.max(0);
+            let duration = if self.last_time < 0 {
+                self.frame_duration
+            } else {
+                (time - self.last_time).max(1)
+            };
+            self.last_time = time;
             // SAFETY: buffer is locked for `bytes`; `bgra` is valid for that length;
             // Unlock before the sample is written.
             unsafe {
@@ -359,10 +426,9 @@ mod windows_encode {
 
                 let sample: IMFSample = MFCreateSample().map_err(|e| format!("sample: {e}"))?;
                 sample.AddBuffer(&buffer).map_err(|e| format!("AddBuffer: {e}"))?;
-                let time = index as i64 * self.frame_duration;
                 sample.SetSampleTime(time).map_err(|e| format!("time: {e}"))?;
                 sample
-                    .SetSampleDuration(self.frame_duration)
+                    .SetSampleDuration(duration)
                     .map_err(|e| format!("duration: {e}"))?;
                 self.sink
                     .WriteSample(self.stream, &sample)
@@ -435,7 +501,28 @@ mod tests {
     #[test]
     fn push_without_session_is_ignored() {
         let mut r = VideoRecorder::default();
-        r.push_frame(4, 4, vec![0; 64]);
+        r.push_frame(4, 4, vec![0; 64], None);
         assert!(!r.recording());
+    }
+
+    #[test]
+    fn crop_rgba_square_from_wide() {
+        // 4×2 red left / blue right → 2×2 centre crop at 1:1
+        let mut rgba = vec![0u8; 4 * 2 * 4];
+        for y in 0..2 {
+            for x in 0..4 {
+                let i = (y * 4 + x) * 4;
+                if x < 2 {
+                    rgba[i] = 255;
+                } else {
+                    rgba[i + 2] = 255;
+                }
+                rgba[i + 3] = 255;
+            }
+        }
+        let (w, h, out) = crop_rgba(4, 2, &rgba, 1.0);
+        assert_eq!((w, h), (2, 2));
+        // centre columns were x=1 (red) and x=2 (blue) — after even clamp may be 2 wide from x0=1
+        assert_eq!(out.len(), 2 * 2 * 4);
     }
 }

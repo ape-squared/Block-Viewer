@@ -7492,6 +7492,7 @@ mod motion_tests {
             object_id,
             object_name: "[H. Lab] PhysicsAO".into(),
             owner_name: "heard Resident".into(),
+            owner_id: Uuid::nil(),
             message: message.into(),
             channel: -99,
             buttons: vec!["Slower".into(), "Faster".into()],

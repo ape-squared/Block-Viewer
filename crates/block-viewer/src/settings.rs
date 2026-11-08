@@ -2147,7 +2147,9 @@ impl Default for Settings {
             mirrors: 1,
             ssr: false,
             anisotropy: 8,
-            cache_size_mb: 20480,
+            // 8 GB is enough for a busy session; 20 GB made cold start scan
+            // the disk for minutes on HDDs and still left “loading” feeling.
+            cache_size_mb: 8192,
             cache_location: String::new(),
             chat_log_location: String::new(),
             bandwidth_kbps: block_net::throttle::DEFAULT_KBPS as u32,
@@ -2546,11 +2548,10 @@ impl Settings {
         self.fps_limit = self.fps_limit.clamp(10, 500);
         self.background_fps_limit = self.background_fps_limit.clamp(1, 120);
         if self.settings_version < 6 {
-            // new defaults: texture memory from the detected VRAM, 20 GB disk cache
+            // new defaults: texture memory from the detected VRAM
             self.texture_budget_auto = true;
-            if self.cache_size_mb == 4096 {
-                self.cache_size_mb = 20480;
-            }
+            // older installs kept 4 GB; do not inflate them to 20 GB (that
+            // made DiskCache::trim walk multi‑GB trees for minutes at start)
         }
         if self.settings_version < 7 {
             // new default: parcel music waits for the radio toggle (Firestorm)

@@ -1720,15 +1720,22 @@ impl App {
             remote_object: None,
             app_link_parcels: HashSet::new(),
             music_playing: false,
-            audio_engine: match block_audio::AudioEngine::new_with_device(out_device) {
-                Ok(e) => {
-                    let o = e.output_info();
-                    log::info!("audio: {} ({} Hz, {} canaux)", o.device_name, o.sample_rate, o.channels);
-                    Some(e)
-                }
-                Err(e) => {
-                    log::warn!("audio disabled: {e}");
-                    None
+            audio_engine: if std::env::var("AURORA_AUDIO").as_deref() == Ok("0") {
+                // Triage for drivers that take every app silent when WASAPI opens
+                // (see block-audio output buffer notes).
+                log::info!("audio disabled (AURORA_AUDIO=0)");
+                None
+            } else {
+                match block_audio::AudioEngine::new_with_device(out_device) {
+                    Ok(e) => {
+                        let o = e.output_info();
+                        log::info!("audio: {} ({} Hz, {} ch)", o.device_name, o.sample_rate, o.channels);
+                        Some(e)
+                    }
+                    Err(e) => {
+                        log::warn!("audio disabled: {e}");
+                        None
+                    }
                 }
             },
             applied_audio: None,

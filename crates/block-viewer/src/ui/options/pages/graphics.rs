@@ -529,15 +529,10 @@ fn quality(cx: &mut Cx) {
                     path_label(ui, &p, &dir, ui.available_width());
                     ui.horizontal(|ui| {
                         let size = Vec2::new(0.0, 24.0);
-                        if action_button(ui, &p, "folder-filled", tr!("ui-options-change-folder"), ActionKind::Flat, size)
-                            .clicked()
-                        {
+                        if action_button(ui, &p, "folder-filled", tr!("ui-options-change-folder"), ActionKind::Flat, size).clicked() {
                             r.folder = Some((Folder::Photos, FolderChoice::Pick));
                         }
-                        if custom
-                            && action_button(ui, &p, "restore", tr!("ui-options-default-folder"), ActionKind::Flat, size)
-                                .clicked()
-                        {
+                        if custom && action_button(ui, &p, "restore", tr!("ui-options-default-folder"), ActionKind::Flat, size).clicked() {
                             r.folder = Some((Folder::Photos, FolderChoice::Default));
                         }
                     });

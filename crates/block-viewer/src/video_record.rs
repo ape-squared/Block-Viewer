@@ -427,9 +427,7 @@ mod windows_encode {
                 let sample: IMFSample = MFCreateSample().map_err(|e| format!("sample: {e}"))?;
                 sample.AddBuffer(&buffer).map_err(|e| format!("AddBuffer: {e}"))?;
                 sample.SetSampleTime(time).map_err(|e| format!("time: {e}"))?;
-                sample
-                    .SetSampleDuration(duration)
-                    .map_err(|e| format!("duration: {e}"))?;
+                sample.SetSampleDuration(duration).map_err(|e| format!("duration: {e}"))?;
                 self.sink
                     .WriteSample(self.stream, &sample)
                     .map_err(|e| format!("WriteSample: {e}"))?;

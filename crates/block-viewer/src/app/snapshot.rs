@@ -1571,6 +1571,9 @@ impl App {
         self.snapshots.quiet = !self.panels.snapshot;
         self.photo_take(&gfx.renderer, None);
         self.gfx = Some(gfx);
+        if self.settings.medal.clip_on_photo && self.settings.medal.ready() {
+            let _ = self.medal_tv.save_clip(&self.settings.medal, false);
+        }
     }
 
     /// Every frame: the saves, thumbnails, dialogs and preview to follow.
@@ -1578,6 +1581,9 @@ impl App {
         if std::mem::take(&mut self.snapshots.to_disk) {
             self.snapshots.quiet = !self.panels.snapshot;
             self.photo_take(renderer, None);
+            if self.settings.medal.clip_on_photo && self.settings.medal.ready() {
+                let _ = self.medal_tv.save_clip(&self.settings.medal, false);
+            }
         }
         self.photo_demo(renderer);
         self.photo_reel_demo(renderer);

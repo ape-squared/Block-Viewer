@@ -453,6 +453,8 @@ pub enum Action {
     /// "Snapshot to Disk" (Firestorm Ctrl+`): a photo with the settings of
     /// the photo window, without it.
     PhotoToDisk,
+    /// Ask the Medal.tv desktop app to save a clip from its buffer (F8).
+    MedalClip,
     /// World › Environment's fixed times of day and Use Shared Environment
     /// (menu_viewer.xml: `World.EnvSettings` sunrise / noon / sunset /
     /// midnight / region, Ctrl+Shift+U / Y / N / X / J).
@@ -626,6 +628,7 @@ pub fn sections() -> &'static Vec<(&'static str, Vec<(Action, &'static str)>)> {
                 vec![
                     (Action::PhotoWindow, block_i18n::tr!("keybinds-photo-window")),
                     (Action::PhotoToDisk, block_i18n::tr!("keybinds-photo-to-disk")),
+                    (Action::MedalClip, block_i18n::tr!("keybinds-medal-clip")),
                 ],
             ),
             (
@@ -932,6 +935,8 @@ impl KeyBindings {
             (Action::RefreshAttachments, [kalt(K::KeyR, false, true), None]),
             (Action::PhotoWindow, [kmod(K::KeyS, true, true), None]),
             (Action::PhotoToDisk, [kmod(K::Backquote, true, false), None]),
+            // Medal.tv Auto Clipping (desktop app default is often F8).
+            (Action::MedalClip, [k(K::F8), None]),
             // menu_viewer.xml: World › Environment
             (Action::EnvSunrise, [kmod(K::KeyU, true, true), None]),
             (Action::EnvMidday, [kmod(K::KeyY, true, true), None]),

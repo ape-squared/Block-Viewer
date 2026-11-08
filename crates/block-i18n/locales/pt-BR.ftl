@@ -1409,7 +1409,7 @@ ui-options-specular-aa = Anti- aliasing especular
 ui-options-specular-aa-help = Acalma o brilho de pequenos destaques brilhantes ( alivio fino, metal, cabelo brilhante) quando a câmera se move, ampliando um destaque onde a superfície gira mais rápido do que um pixel pode mostrar. Quase livre
 ui-options-live-decor = Pré-visualização LiveDecor
 ui-options-live-decor-help = Mostra um holograma onde um objeto do inventário será rezzado enquanto você o arrasta para o mundo, para mirar a decoração antes que apareça.
-ui-options-medal-clip = Profundidade de medalhas / camadas finas
+ui-options-medal-clip = Profundidade de camadas finas
 ui-options-medal-clip-help = Impede que medalhas no peito e camadas de malha transparentes atravessem o corpo ordenando sua profundidade como cabelo em camadas. Ativado por padrão.
 ui-profile-preview-with-links = Visualização com links
 build-land-flatten = Flatten
@@ -4207,6 +4207,28 @@ ui-options-discord-maturity-all = Geral, Moderado, Adulto
 ui-options-discord-maturity-gm = Geral e Moderado
 ui-options-discord-maturity-g = Geral
 ui-options-discord-maturity-none = Não partilhes
+ui-options-medal-tv = Medal.tv
+ui-options-medal-tv-help = Quando o Medal.tv está a correr e a gravar neste PC, o Block Viewer pode pedir-lhe que guarde um clip do buffer (F8). Desligado por omissão.
+ui-options-medal-tv-enabled = Enviar clips para o Medal.tv
+ui-options-medal-tv-enabled-help = Envia um evento SaveClip para a API local Auto Clipping do Medal. O Medal tem de estar aberto e a gravar.
+ui-options-medal-tv-public-key = Chave pública
+ui-options-medal-tv-public-key-help = Chave pública do jogo no portal Medal Auto Clipping. Também pode definir AURORA_MEDAL_PUBLIC_KEY.
+ui-options-medal-tv-event-id = Id do evento
+ui-options-medal-tv-event-id-help = Id do evento no portal Medal (normalmente 1).
+ui-options-medal-tv-event-name = Título do clip
+ui-options-medal-tv-event-name-help = Título na biblioteca Medal (máx. 40 caracteres).
+ui-options-medal-tv-duration = Duração do clip
+ui-options-medal-tv-duration-help = Quantos segundos do buffer de replay manter.
+ui-options-medal-tv-delay = Atraso de captura
+ui-options-medal-tv-delay-help = Milissegundos a esperar após o evento antes do Medal guardar (post-roll).
+ui-options-medal-tv-clip-on-photo = Clip ao tirar foto
+ui-options-medal-tv-clip-on-photo-help = Também pedir um clip ao Medal quando Instantâneo para disco tiver sucesso.
+medal-tv-sent-clip = Medal.tv: clip pedido
+medal-tv-sent-screenshot = Medal.tv: captura pedida
+medal-tv-disabled = Clips Medal.tv desligados — ative em Preferências › Privacidade
+medal-tv-need-key = Medal.tv precisa de uma chave pública em Preferências › Privacidade
+medal-tv-failed = Medal.tv: não foi possível enviar o pedido de clip
+keybinds-medal-clip = Clip Medal.tv
 ui-options-occlusion = Oclusão
 ui-options-ambient-occlusion = Oclusão ambiente
 ui-options-ao-method = Método de oclusão
@@ -12867,3 +12889,1155 @@ voice-morphing-none = Sem transformação
 
 ui-options-block-building = Construção
 ui-options-block-bridge = Ponte Block
+
+## Fallback English strings for keys not yet translated
+about-third-party-viewer = Block Viewer is a third-party viewer, not provided or supported by Linden Lab, the makers of Second Life.
+
+about-vram-shared = { $dedicated } MB dedicated + { $shared } MB shared
+
+appearance-editor-camera = Camera
+
+app-gpu-recovered = The graphics card's driver was reset (an image took too long to draw, its video memory was full, or another program took the card). Block Viewer reopened its window on the card again: you stayed logged in, and the world reloads in a moment.
+
+app-gpu-recovered-safe = The graphics card's driver was reset again within a few minutes. Block Viewer reopened its window with the safe graphics (the Potato level) so that it does not happen again: you stayed logged in. Your graphics settings are kept: the login screen offers them back.
+
+app-gpu-recovered-title = The graphics card was reset
+
+app-inventory-thumbnail-this-texture-is-not-in-your-inventory = Use a texture from your inventory that allows copying and transfer.
+
+app-vr-leave = Press { $key } to return to desktop mode
+
+bridge-disabled = The Block bridge is turned off in Preferences › Block Viewer › Behavior.
+
+build-mod-no-copyable-object = None of the selected objects can be copied.
+
+build-place = Place on surface
+
+build-place-keep = Keep rotation
+
+build-place-offset = Offset
+
+build-place-offset-tip = How far off the surface it goes (metres, along the surface’s normal); negative sinks it in.
+
+build-place-rotate = Auto rotate
+
+build-place-rotate-tip = Keep rotation only moves the selection, the side facing the surface on it. Auto rotate turns the chosen side flat against the surface.
+
+build-place-side-back = Back
+
+build-place-side-bottom = Bottom
+
+build-place-side-front = Front
+
+build-place-side-left = Left
+
+build-place-side-right = Right
+
+build-place-side-tip = The side put against the surface, as the object sat the first time Place on surface was turned on for it: Bottom pointed down, Front faced you. Every placement turns it from that rotation.
+
+build-place-side-top = Top
+
+build-place-tip = Then click a surface or the ground: the selection goes against it, centred on the point, shown there as a hologram (P turns it on or off, Esc off).
+
+build-snap = Snap
+
+build-snap-grid = Grid
+
+build-snap-objects = Objects
+
+build-snap-off = Off
+
+build-ui-general-export = Export
+
+build-ui-texture-drop-disabled = This slot cannot be changed right now.
+
+build-ui-texture-drop-object = This object cannot receive this item. You need permission to modify it.
+
+build-ui-texture-drop-restricted = Only textures with unrestricted copy and transfer permissions are allowed.
+
+build-ui-texture-drop-single-material = This slot only accepts a single material.
+
+build-ui-texture-drop-single-texture = This slot only accepts a single texture.
+
+build-ui-texture-paste-limited = You applied a texture with limited permissions, object will inherit permissions from texture.
+
+build-ui-texture-paste-not-in-inventory = Paste failed. One or more textures not found in inventory.
+
+build-ui-texture-paste-wait-contents = Unable to add texture. Please wait a few seconds and try again.
+
+busy-pause-forced-notice = Render paused from the Dev Toolbox (R13). Press R13 again to resume.
+
+busy-pause-notice = Render paused: the graphics card is busy with another program. Click to resume.
+
+busy-pause-window-title = { $title } — Paused
+
+contents-root-drag-tip = Drag onto an inventory folder to take every item of the object into it
+
+controls-roll-angle = Roll { $angle }
+
+controls-roll-left = Roll left
+
+controls-roll-level = Level the camera (reset roll)
+
+controls-roll-right = Roll right
+
+currency-password-needs-https = Your password was not sent: this purchase service does not use a secure (https) connection.
+
+currency-region-helper = This region uses its own currency service, on { $host }. A purchase made here is between you and that service, which also receives your session (and your password if it asks for one): only buy if you trust it.
+
+currency-service = Currency service: { $host }
+
+demo-im-announce-message = Hello! Did you see me coming?
+
+demo-notifs-fee-group-invitation = Tess Touch has invited you to join Lagoon Sailing Club.
+
+demo-notifs-fee-object = Tip jar
+
+demo-sound-hrtf-circle = Circling sound
+
+demo-sound-hrtf-updown = Rising and falling sound
+
+demo-sound-occlusion-box = In the box
+
+demo-sound-occlusion-open = Open sound
+
+demo-sound-occlusion-wall = Behind the wall
+
+demo-sound-reverb-clapper = Clapper
+
+demo-sound-reverb-hall = Large hall
+
+demo-sound-reverb-open = Open air
+
+demo-sound-reverb-room = Small room
+
+demo-toast-emote = waves from the fountain 👋
+
+demo-toast-group-emote = is setting up the stage
+
+dev-toolbox-r13 = Pause the Render
+
+gesture-demo-channel-replace-name = Demo channel replacement
+
+grids-helper = Currency helper URL (Buy L$)
+
+group-titles-activate = Activate
+
+group-titles-activate-tip = Wear the selected group title
+
+group-titles-added = { $region } now wears the selected title.
+
+group-titles-change = Change the title
+
+group-titles-clear-all = Clear all regions
+
+group-titles-clear-region = Clear region
+
+group-titles-clear-region-tip = Remove the region assignment from the selected title
+
+group-titles-col-regions = Auto regions
+
+group-titles-col-title = Title
+
+group-titles-default-tip = Default title worn in regions without an assignment
+
+group-titles-filter = Filter group titles
+
+group-titles-info = Info
+
+group-titles-info-tip = Show info about the group of the selected title
+
+group-titles-loading = Loading the titles…
+
+group-titles-looking-up = Looking for { $region }…
+
+group-titles-not-found = The region "{ $region }" could not be found. Check the name and try again.
+
+group-titles-no-title = <No group title>
+
+group-titles-refresh-tip = Refresh the list of available group titles
+
+group-titles-region-hint = Exact region name
+
+group-titles-rule-group-left = { $wears } (group left, ignored)
+
+group-titles-rule-group-left-tip = You are no longer in this group: arriving in this region changes nothing.
+
+group-titles-rules = Regions with a title
+
+group-titles-rules-empty = No region has a title yet. Select a title, then "This region" or "Type region": arriving there will wear it.
+
+group-titles-rule-wears = { $title } · { $group }
+
+group-titles-set-default = Set as default
+
+group-titles-set-default-tip = Mark the selected title as the default for regions without an assignment
+
+group-titles-this-region = This region
+
+group-titles-this-region-tip = Assign the selected title to the region you are in
+
+group-titles-type-region = Type region
+
+group-titles-type-region-tip = Type the name of a region to assign to the selected title
+
+group-titles-use-default = Use default title in regions without assignment
+
+group-titles-use-default-tip = When you enter a region with no title assignment, switch to the title marked as default. A default of <No group title> wears no tag.
+
+import-collision-analyzing = Analyzing…
+
+import-collision-use-triangles = Use triangle mesh
+
+import-confirm-shared-textures = Shared textures will only be uploaded once.
+
+import-create-folder = Create folder
+
+import-create-folder-help = Put files added directly into a new folder under the selected destination. The folder is created after confirming the import.
+
+import-entry-point = Open imports with
+
+import-entry-point-help = Choose what the Import shortcut (Ctrl+U by default) and Build > Import open. The quick import bar also opens the full upload window.
+
+import-entry-window = Upload window
+
+import-folder-name = Folder name
+
+import-icon-bar = Quick import bar
+
+import-launcher-folder = Folder
+
+import-physics-convex-help = Convex hulls approximate the collision shape and may fill openings. Visual LODs stay unchanged. Check the physics preview before requesting a quote.
+
+import-physics-convex-repair = Create convex collision hulls
+
+import-physics-resolution-custom = Custom
+
+import-physics-resolution-help = Precision of the 3D grid used to analyze collisions ({ $voxels } voxels). Higher settings can preserve finer details, but take longer and use more memory.
+
+import-physics-resolution-high = High
+
+import-physics-resolution-low = Low
+
+import-physics-resolution-maximum = Maximum
+
+import-physics-resolution-normal = Normal
+
+import-physics-resolution-ultra = Ultra
+
+import-physics-resolution-very-high = Very high
+
+input-restricted-ao = Use standard ASCII letters, numbers, spaces and punctuation, except ":" and "|".
+
+input-restricted-ascii = This field only supports ASCII characters: standard letters, numbers, spaces and punctuation.
+
+input-restricted-decimal = Use digits, a minus sign and a decimal point or the current decimal separator.
+
+input-restricted-digits = Use digits 0–9 only.
+
+input-restricted-multiline = Use ASCII characters and line breaks. The "|" character is not supported.
+
+input-restricted-no-pipe = Use standard ASCII letters, numbers, spaces and punctuation, except "|".
+
+input-restricted-title = Unsupported characters
+
+inventory-folder-color = Folder color…
+
+inventory-folder-color-custom = Custom color
+
+inventory-folder-color-many = { $count } folders
+
+inventory-folder-color-none = Select a folder to color it.
+
+inventory-folder-color-private = Only you see these colors.
+
+inventory-folder-color-restore = Restore default
+
+inventory-folder-colors = Folder colors
+
+inventory-folder-colors-help = Add "Folder color…" to a folder's menu, to give its icon a color of your choice. The colors are kept in this viewer only: nobody else sees them.
+
+inventory-folder-color-title = Folder color
+
+inventory-pill-protected = Locked
+
+joystick-axis-button-value = Axis { $axis } ({ $direction })
+
+joystick-axis-camera-only = Camera only
+
+joystick-axis-invert = Invert
+
+joystick-axis-move = Move an axis…
+
+joystick-axis-value = Axis { $axis }
+
+joystick-button-assign = Assign…
+
+joystick-button-press = Press a button…
+
+joystick-button-value = Button { $button }
+
+joystick-direct-zoom-hint = Absolute zoom uses the control value as an offset from the reference field of view; returning to rest restores that view. Otherwise, the control sets zoom speed. Relative reset: press both zoom buttons together, double-press the adjustment button, or give the direct axis two quick impulses with a return to rest between them.
+
+joystick-zoom-button-hint = Release the controls, click to assign, then press a button or trigger. In relative mode, hold to zoom and release to stop; press both controls together to restore the reference field of view. In absolute mode, trigger pressure sets the zoom offset.
+
+joystick-zoom-controls = Flycam zoom
+
+joystick-zoom-hint = Changes the flycam's field of view only. Assigning an axis enables zoom with Camera gain 1 if it was 0. A gain of 0 disables it.
+
+joystick-zoom-hold-button = Zoom adjustment button
+
+joystick-zoom-hold-hint = Assign a button or trigger, then hold it while moving the zoom axis. Other camera actions on that axis pause; centre it after release to resume them. In relative mode, release keeps the zoom and a quick double-press restores the reference field of view.
+
+joystick-zoom-in-button = Zoom in button
+
+joystick-zoom-mode = Zoom control
+
+joystick-zoom-mode-axis = Direct axis
+
+joystick-zoom-mode-buttons = Two buttons
+
+joystick-zoom-mode-hint = Changes the flycam's field of view. Choose direct axis control, two buttons, or an axis while holding a button.
+
+joystick-zoom-mode-hold-axis = Hold button + axis
+
+joystick-zoom-out-button = Zoom out button
+
+joystick-zoom-press = Press a control…
+
+joystick-zoom-speed = Button zoom speed
+
+joystick-zoom-speed-hint = Zoom speed while a zoom button is held. Higher values change the field of view faster.
+
+joystick-zoom-strength = Absolute zoom range
+
+joystick-zoom-strength-hint = Maximum offset from the reference field of view while a zoom control is held. Trigger pressure adjusts the offset continuously; release restores the reference view.
+
+keybinds-double-click-teleport = Double-click teleport on / off
+
+keybinds-focus-selection = Focus on selection
+
+keybinds-mute-all-sound = Mute / unmute all sound
+
+keybinds-reset-camera-angles = Reset camera angles
+
+keybinds-selection-outlines = Show / hide selection outlines
+
+keybinds-zoom-selection = Zoom to selection
+
+link-trust-the-link-leads-to-this-computer-or-local-network = The link leads to this computer or to your local network, not to a site on the internet.
+
+local-bakes-the-bake-could-not-be-uploaded = The bake could not be uploaded.
+
+local-bakes-the-bake-is-too-large = The bake is too large to upload.
+
+local-texture-preview-hint = Local texture — preview from a file on this computer.
+
+login-camera-limits = Like the Legacy Viewer, the camera keeps within the draw distance again and stops in front of walls and objects. To turn this off again: Preferences › Camera › Behavior, "Unrestricted camera" and "Disable camera collisions".
+
+login-camera-limits-ok = OK
+
+login-camera-limits-preferences = Camera preferences
+
+login-camera-limits-title = Camera limits are back on
+
+login-photo-quality-off = Block Viewer closed unexpectedly last time while Photo quality had every graphics setting at its maximum. It is off now, so the photo window opens normally; your own graphics settings have not changed. You can turn it back on in the photo window or in Preferences › Graphics.
+
+login-photo-quality-off-back-on = Turn it back on
+
+login-photo-quality-off-ok = OK
+
+login-photo-quality-off-title = Photo quality turned off
+
+marketplace-alert-cannot-wear = You cannot wear clothes or body parts that are in the Marketplace Listings folder.
+
+marketplace-confirm-clear-version = This action will deactivate the version folder of the current listing. Do you want to continue?
+
+marketplace-confirm-listing-cut-or-delete = Moving or deleting a listing folder will delete your Marketplace listing. If you would like to keep the Marketplace listing, move or delete the contents of the version folder you would like to modify. Do you want to continue?
+
+marketplace-reason-drag-active = You can't move a listed listing
+
+media-plugins-consent = Web pages (profiles, search, the web browser) and media on objects need Block Viewer's web and media support: about { $size } MB, downloaded once from GitHub and kept on this computer.
+
+media-plugins-consent-later = Not now
+
+media-plugins-consent-later-hint = You can download it later in Preferences › Sound and voice › Media, or where a web page or media would show.
+
+media-plugins-consent-title = Download web and media support?
+
+media-plugins-download = Download
+
+media-plugins-not-downloaded = Not downloaded (about { $size } MB from GitHub)
+
+media-plugins-page-offer = Web pages and media need Block Viewer's web and media support (about { $size } MB).
+
+movement-pass-checking = The object or the land is still loading. Try again in a moment.
+
+movement-pass-no-rights = You can only pass through objects you own or can edit, or where you can build on both sides.
+
+outfit-json-checking = Checking the outfit items in your inventory…
+
+outfit-json-confirm = Do you want to create and wear a new outfit called “{ $name }”? You can rename it below.
+
+outfit-json-create-wear = Create and wear
+
+outfit-json-empty = This backup contains no outfit items. Import is unavailable.
+
+outfit-json-export = Export to JSON
+
+outfit-json-failed = The outfit backup could not be read or written. Please try again.
+
+outfit-json-file-type = Outfit JSON (*.json)
+
+outfit-json-import = Import from JSON
+
+outfit-json-import-partial = Import partial outfit
+
+outfit-json-invalid = This is not a supported outfit backup, or the file is invalid or too large.
+
+outfit-json-missing = { $count ->
+    [one] One item could not be found or verified in your inventory.
+   *[other] { $count } items could not be found or verified in your inventory.
+    }
+    Attachments affected: { $attachments }.
+
+outfit-json-missing-changed = Some outfit items are unavailable. Import again to review the missing items and choose whether to import a partial outfit.
+
+outfit-json-name = Outfit name
+
+outfit-json-none-found = None of the backed-up items are available. Import is unavailable.
+
+outfit-json-partial-help = You can import the available items as a partial outfit, or cancel. Missing body parts keep their currently worn replacements.
+
+outfit-json-references-only = This file contains inventory references, not copies of assets. The items must still be available in your inventory.
+
+outfit-json-saved = Outfit exported to { $file }
+
+outfit-json-title = Outfit backup
+
+particle-editor-copied-without-texture = The LSL script of this particle system is on the clipboard, without the texture key: paste that key into the script yourself.
+
+particle-editor-injected-without-texture = The particle script was put into the object, without the texture key: the default particle is used until you add it.
+
+photo-light-sun-azimuth-reset = Back to the azimuth of your environment's sun
+
+photo-light-sun-elevation-reset = Back to the elevation of your environment's sun
+
+photo-quality-off-after-crash = Turn photo quality off after a crash
+
+photo-quality-off-after-crash-help = When Block Viewer crashes or is stopped while Photo quality is on, the next start turns it off and says so on the login screen.
+
+photo-reel-apply = Apply to profile
+
+photo-reel-apply-failed = This photo has no uploaded texture to apply.
+
+photo-reel-apply-ok = Apply
+
+photo-reel-apply-text = It replaces your current profile picture.
+
+photo-reel-apply-title = Use this photo as your profile picture?
+
+photo-reel-deleted = Photo deleted.
+
+photo-reel-delete-failed = Not deleted: { $error }
+
+photo-reel-delete-item = Its Photo Album item goes to the inventory Trash.
+
+photo-reel-delete-recycle = { $name } goes to the Recycle Bin.
+
+photo-reel-delete-reel-only = It only leaves this session's photos.
+
+photo-reel-delete-sent = What was posted or e-mailed stays sent: it cannot be taken back.
+
+photo-reel-delete-title = Delete this photo?
+
+photo-reel-delete-trash-file = { $name } goes to the Trash.
+
+photo-reel-email = E-mail
+
+photo-reel-index = { $index } / { $count }
+
+photo-reel-in-folder = Show in folder
+
+photo-reel-in-inventory = Show in inventory
+
+photo-reel-newer = Newer
+
+photo-reel-none = No photos this session yet
+
+photo-reel-not-sent = Not sent
+
+photo-reel-older = Older
+
+photo-reel-on-profile = View profile
+
+photo-reel-preparing = The photo is still being prepared.
+
+photo-reel-save = Save to disk
+
+photo-reel-tip = This session's photos
+
+photo-reel-tray-tip = This session's photos. Click to view them, Shift+click to open their folder.
+
+photo-reel-upload = Upload to inventory
+
+picker-pipette-hint = Click an object face to select its texture or material from your inventory.
+
+picker-pipette-no-material = No copyable material found in your inventory.
+
+picker-pipette-no-texture = No copyable texture found in your inventory.
+
+portal-cross-go = Go
+
+portal-cross-text = { $name } opened this portal. It leads to { $destination }.
+
+portal-cross-title = Go through this portal?
+
+portal-land-checking = The land here is still loading. Try again in a moment.
+
+portal-no-build = You can only open a portal where you can build.
+
+poser-bridge-disabled = Requests go through the Block bridge, turned off in Preferences › Block Viewer › Behavior.
+
+poser-export-hint = Exports contain your own changes only. Start from T-pose to save a complete pose.
+
+quickprefs-name-tags-brief = Briefly
+
+quickprefs-name-tags-off = Off
+
+quickprefs-name-tags-on = On
+
+rlva-blocked-autopilot = Unable to use the autopilot due to RLVa restrictions.
+
+rlva-blocked-script-dialog = Unable to show script dialog or textbox due to RLVa restrictions.
+
+script-object-no-modify = This script is in an object you cannot modify, so it cannot be opened.
+
+script-preproc-include-no-transfer = Include script cannot be transferred, and you are not its creator: { $name }
+
+script-saved-not-compiled = Script saved. This grid compiles scripts when they are placed in an object.
+
+session-inventory-change-not-supported-on-this-grid = This grid does not support that inventory change.
+
+shape-a-pose = A-Pose
+
+texture-library-no-copy-drop = You are applying a no-copy item. It will move to the object’s contents and leave your inventory.
+
+texture-library-no-copy-drop-move = Move
+
+texture-library-no-copy-drop-question = Move the item?
+
+texture-library-worn-drop-all-faces = All faces
+
+texture-library-worn-drop-linked = All linked items
+
+toolbar-command-photo-roll = Photo roll
+
+ui-appearance-clipboard-cannot-take = This selection cannot be copied or cut.
+
+ui-appearance-clipboard-select-an-outfit = Select an outfit to paste into.
+
+ui-bars-fly-override = Fly override
+
+ui-bars-fly-override-caution = Use the fly override responsibly! Flying with it without the land owner's permission may get your avatar banned from the parcel you fly in.
+
+ui-bars-fly-override-off = Fly override: off
+
+ui-bars-fly-override-on = Fly override: on
+
+ui-env-editor-source-no-copy = The settings shown cannot be copied or modified: these are not saved as new settings.
+
+ui-env-editor-source-no-save = The settings shown may not be saved: these can only be applied to yourself.
+
+ui-env-editor-source-no-transfer = The settings shown cannot be transferred: settings saved from them cannot be transferred either.
+
+ui-env-editor-source-unknown = The permissions of the settings shown are not known: these can be edited and applied to yourself only.
+
+ui-environment-no-match = No name contains “{ $query }”.
+
+ui-environment-search-by-name = Search by name
+
+ui-experiences-admin = Admin
+
+ui-experiences-allowed = Allowed
+
+ui-experiences-blocked = Blocked
+
+ui-experiences-contributor = Contributor
+
+ui-experiences-loading = Loading experiences…
+
+ui-experiences-log = Events
+
+ui-experiences-log-attach = Attach
+
+ui-experiences-log-clear = Clear
+
+ui-experiences-log-control-camera = Control Camera
+
+ui-experiences-log-days = Days
+
+ui-experiences-log-environment = Environment
+
+ui-experiences-log-long-attach = attach to your avatar
+
+ui-experiences-log-long-control-camera = control your camera
+
+ui-experiences-log-long-environment = change your environment settings
+
+ui-experiences-log-long-permission = automatically accept experience permissions
+
+ui-experiences-log-long-sit = force your avatar to sit
+
+ui-experiences-log-long-take-controls = take over your controls
+
+ui-experiences-log-long-teleport = teleport you
+
+ui-experiences-log-long-track-camera = track your camera
+
+ui-experiences-log-long-trigger-animations = trigger animations on your avatar
+
+ui-experiences-log-none = No events.
+
+ui-experiences-log-notice = An object was allowed to { $what } by the experience { $experience }. Object: { $object }. Parcel: { $parcel }.
+
+ui-experiences-log-notify = Notify
+
+ui-experiences-log-notify-all = Notify all events
+
+ui-experiences-log-permission = Permission
+
+ui-experiences-log-report = Report
+
+ui-experiences-log-sit = Sit
+
+ui-experiences-log-take-controls = Take Controls
+
+ui-experiences-log-teleport = Teleport
+
+ui-experiences-log-track-camera = Track Camera
+
+ui-experiences-log-trigger-animations = Trigger Animations
+
+ui-experiences-log-unknown = perform an unknown operation: { $permission }
+
+ui-experiences-none = No experiences.
+
+ui-experiences-owned = Owned
+
+ui-experiences-search = Search
+
+ui-experiences-search-go = Go
+
+ui-experiences-search-hint = Experience name
+
+ui-experiences-searching = Searching…
+
+ui-experiences-search-none = No experience found for “{ $query }”.
+
+ui-experiences-search-rating = Max content rating
+
+ui-experiences-title = Experiences
+
+ui-experiences-unavailable = The simulator does not give this list.
+
+ui-hypergrid-suitcase-go = Teleport anyway
+
+ui-hypergrid-suitcase-hint = Put them in My Suitcase (or a folder inside it) to take them with you.
+
+ui-hypergrid-suitcase-text = { $count ->
+    [one] One worn item is not in My Suitcase, so { $grid } cannot load it:
+   *[other] { $count } worn items are not in My Suitcase, so { $grid } cannot load them:
+}
+
+ui-hypergrid-suitcase-title = Some of what you wear stays here
+
+ui-inventory-restore-no-copy = A no-copy object is not returned to its last location: it could be lost on the way.
+
+ui-login-critical-message = Important message
+
+ui-login-critical-message-read = I have read this message and want to log in
+
+ui-login-grid-link-add = Add in the grid manager…
+
+ui-login-grid-link-add-hint = A grid that only answers over http is not reached from a link: add it once in the grid manager, then open the link again.
+
+ui-login-grid-link-switch = Switch grid
+
+ui-login-grid-link-text = A link opened from outside Block Viewer asks to log in to another grid. Your password goes to the grid you log in to: only switch if you trust this one.
+
+ui-login-grid-link-title = Change the login grid?
+
+ui-login-terms-of-service-read = Read the Terms of Service
+
+ui-notifications-allow-access = Allow access
+
+ui-notifications-clear-history = Clear history
+
+ui-notifications-deny = Deny
+
+ui-options-announce-incoming-im-hint = When a resident starts typing an IM to you, their conversation opens right away with "Incoming message from" and their name, before the message arrives.
+
+ui-options-appearance-camera-hint = Automatically frame the edited body part when editing your shape or a layer. Off, keep your framing; orbit, zoom and pan still work.
+
+ui-options-aurora-aim = Where your gaze goes
+
+ui-options-aurora-aim-direction = Direction (Legacy)
+
+ui-options-aurora-aim-help = Your avatar looks at the exact point under the cursor, or turns its head toward the cursor's side like the Legacy Viewer.
+
+ui-options-aurora-aim-point = Point under the cursor
+
+ui-options-aurora-animation-clock = Animation timing
+
+ui-options-aurora-animation-clock-experimental = Experimental: synchronized playback is still being validated on the grid for avatars and animesh. Legacy remains the default.
+
+ui-options-aurora-animation-clock-help = Avatars and animesh: the synchronized clock follows elapsed time from the first received signal, including after late loading or editing. Legacy starts at loading and resumes from the paused pose after editing.
+
+ui-options-aurora-animation-clock-legacy = Legacy
+
+ui-options-aurora-animation-clock-synchronized = Synchronized clock
+
+ui-options-aurora-animations = Animations
+
+ui-options-aurora-avatar-plates = Avatar plates
+
+ui-options-aurora-bridge = Block bridge
+
+ui-options-aurora-building = Building
+
+ui-options-aurora-controls = Camera and movement controls
+
+ui-options-aurora-controls-aurora = Block
+
+ui-options-aurora-controls-classic = Classic windows (Legacy)
+
+ui-options-aurora-controls-help = The Camera and Movement windows.
+
+ui-options-aurora-gaze = Gaze
+
+ui-options-aurora-ground-feet = Use Block foot placement
+
+ui-options-aurora-ground-feet-avatars = Maximum other avatars
+
+ui-options-aurora-ground-feet-avatars-help = Apply leg correction to the nearest avatars in view. Your own avatar does not count toward this limit. 0: only your avatar. Default: 5.
+
+ui-options-aurora-ground-feet-height = Maximum foot adjustment
+
+ui-options-aurora-ground-feet-height-help = Maximum vertical movement of each foot relative to the animation. A larger value reaches more distant supports. Default: 0.4 m; maximum: 1 m.
+
+ui-options-aurora-ground-feet-help = Replace standard Legacy Viewer foot placement with Block's adaptation to slopes and individual steps. Foot lifts and high-priority poses keep control. When off, native standing, crouching and recovery animations use the standard behaviour. The two corrections never accumulate.
+
+ui-options-aurora-ground-feet-moving = Also while moving
+
+ui-options-aurora-ground-feet-moving-help = Extend foot correction to walking, running and crouch-walking. When off, correction fades out during movement and resumes at rest.
+
+ui-options-aurora-hover-tips = World tooltips
+
+ui-options-aurora-hover-tips-help = Block: a bubble, a card or a readout with icons and labels (its form in Preferences › Interface). Legacy: the Legacy Viewer's text, with its "i" button.
+
+ui-options-aurora-hover-tips-legacy = Text (Legacy)
+
+ui-options-aurora-money-tracker-help = The L$ received and paid during the session.
+
+ui-options-aurora-move-hologram = Hologram while moving
+
+ui-options-aurora-move-hologram-help = While the move handles drag an object: Moving object draws it as a hologram until you let go; Where it started leaves a hologram at its starting place.
+
+ui-options-aurora-move-hologram-moving = Moving object
+
+ui-options-aurora-move-hologram-off = Off
+
+ui-options-aurora-move-hologram-start = Where it started
+
+ui-options-aurora-movement = Movement
+
+ui-options-aurora-own-motion = Your avatar's movement
+
+ui-options-aurora-own-motion-experimental = Experimental: still being tried on the grid. Your avatar is drawn ahead of the simulator by what your keys are about to do; a wall, a push or a lagging region can still pull it back.
+
+ui-options-aurora-own-motion-help = Your avatar moves as soon as you press a key and the simulator's corrections fade smoothly, or it waits for the simulator's answer like the Legacy Viewer.
+
+ui-options-aurora-own-motion-instant = Instant
+
+ui-options-aurora-own-motion-server = Simulator (Legacy)
+
+ui-options-aurora-pay-aurora = Block
+
+ui-options-aurora-pay-classic = Classic window (Legacy)
+
+ui-options-aurora-pay-window = Pay window
+
+ui-options-aurora-pay-window-help = Paying residents, groups and objects.
+
+ui-options-aurora-portal-sources = Show portals from
+
+ui-options-aurora-portal-sources-everyone = Everyone
+
+ui-options-aurora-portal-sources-friends = Friends
+
+ui-options-aurora-portal-sources-groups = Friends and my groups
+
+ui-options-aurora-portal-sources-help = Portals that other residents open near you with their Block bridge. Your own portals and the way back from your trips always show. The first time you walk through a portal from someone who is not your friend, Block Viewer asks before you go. With groups, a resident counts once the grid lists them in one of your groups (their profile or a loaded member list).
+
+ui-options-aurora-portal-sources-nobody = Nobody
+
+ui-options-aurora-restart-alert = Restart alert
+
+ui-options-aurora-restart-alert-help = A card with a countdown, or the Legacy Viewer's yellow box in the middle.
+
+ui-options-aurora-restart-card = Card
+
+ui-options-aurora-restart-classic = Yellow box (Legacy)
+
+ui-options-aurora-rez-effect = Rez effect
+
+ui-options-aurora-rez-effect-aurora = Effect
+
+ui-options-aurora-rez-effect-classic = Grey (Legacy)
+
+ui-options-aurora-rez-effect-help = An object or avatar appearing while you watch: a glowing grid while it loads, then a line of light that reveals it. Or grey until it has loaded, like the Legacy Viewer. Off with Reduce animations.
+
+ui-options-aurora-use-bridge = Use the Block bridge
+
+ui-options-aurora-use-bridge-help = A small scripted attachment that Block Viewer makes and wears for you: position lock, avatar heights in the radar, script and object information, pose requests and shared portals. Off, Block Viewer no longer makes or wears it and takes off a worn one: these features are then unavailable.
+
+ui-options-borderless-fullscreen = Fullscreen
+
+ui-options-borderless-fullscreen-help = Fills the current monitor, without borders. Alt+Enter turns it on or off (not while typing).
+
+ui-options-browser-home-page = Browser home page
+
+ui-options-browser-home-page-help = The page the Web browser toolbar button opens. Empty: https://duckduckgo.com.
+
+ui-options-camera-vr = VR
+
+ui-options-camera-vr-at-start = Set up VR at startup
+
+ui-options-camera-vr-at-start-help = The VR button then enters VR at once. Off, Block Viewer does not load your VR software at startup, and the VR button offers a restart. Applies at the next start.
+
+ui-options-camera-vr-view = Headset view
+
+ui-options-camera-vr-view-desktop-camera = Camera position
+
+ui-options-camera-vr-view-first-person = First person
+
+ui-options-camera-vr-view-help = Where the view starts when you enter VR: at your avatar's eyes, or where the camera was.
+
+ui-options-chat-logs-busy = The history is busy with an import, a move or an erasing: try again in a moment.
+
+ui-options-chat-logs-import = Import from the Legacy Viewer…
+
+ui-options-chat-logs-import-choose = Choose a folder…
+
+ui-options-chat-logs-import-confirm = Import
+
+ui-options-chat-logs-imported = { $count ->
+    [one] { $count } message added
+   *[other] { $count } messages added
+    } to { $files ->
+    [one] { $files } conversation.
+   *[other] { $files } conversations.
+    }
+
+ui-options-chat-logs-imported-at-login = Chat history from the Legacy Viewer: { $count ->
+    [one] { $count } message added
+   *[other] { $count } messages added
+    } to { $files ->
+    [one] { $files } conversation.
+   *[other] { $files } conversations.
+    } To stop this, turn off Import at login (Preferences › Chat › History).
+
+ui-options-chat-logs-import-empty = No conversation files in this folder.
+
+ui-options-chat-logs-import-failed = { $count ->
+    [one] { $count } file could not be imported and was left as it was: import again to retry.
+   *[other] { $count } files could not be imported and were left as they were: import again to retry.
+    }
+
+ui-options-chat-logs-import-files = { $count ->
+    [one] { $count } conversation file
+   *[other] { $count } conversation files
+    }
+
+ui-options-chat-logs-importing = Importing: { $done } of { $total } files
+
+ui-options-chat-logs-import-left-out = { $count ->
+    [one] { $count } text file has no timestamps and was left out: it may be a conversation logged without them.
+   *[other] { $count } text files have no timestamps and were left out: they may be conversations logged without them.
+    }
+
+ui-options-chat-logs-import-login = Import at login
+
+ui-options-chat-logs-import-login-help = At each login, adds what the Legacy Viewer wrote for this account since the last import, for the conversations saved above. Its files are only read. On by default.
+
+ui-options-chat-logs-import-login-off = Import at login is now off, so that this history does not come back.
+
+ui-options-chat-logs-import-none = No Legacy Viewer history was found for this account. If it is somewhere else, choose its folder.
+
+ui-options-chat-logs-import-nothing = Nothing new to import.
+
+ui-options-chat-logs-import-reopen = A conversation already in progress shows them the next time it opens.
+
+ui-options-chat-logs-import-same = Block Viewer already uses this folder: there is nothing to import.
+
+ui-options-chat-logs-import-searching = Looking for the Legacy Viewer's history…
+
+ui-options-chat-logs-import-text = Conversations are added to this account's files in time order, and the messages already there are skipped, so importing again adds only what is new. The Legacy Viewer's files are only read.
+
+ui-options-chat-logs-import-title = Import chat history from the Legacy Viewer
+
+ui-options-chat-text-size = Chat text size
+
+ui-options-chat-text-size-hint = Size of the messages in the nearby chat and the conversations, and of the chat fields, apart from Appearance › Text size.
+
+ui-options-colored-sky-ambient = Colored sky ambient
+
+ui-options-colored-sky-ambient-help = Lights with the sky's ambient color at full strength, as the first PBR viewers did, instead of a softened ambient that linear and HDR skies turn grey: warm or tinted skies color the interiors again. Classic skies keep their color either way and only get a little brighter. Differs from the Legacy Viewer
+
+ui-options-confirm-merchant-active-change = Confirm changes to an active listing
+
+ui-options-confirm-merchant-active-change-help = Ask before changing the content of a listing that is for sale
+
+ui-options-confirm-merchant-clear-version = Confirm deactivating a version folder
+
+ui-options-confirm-merchant-clear-version-help = Ask before a version folder is dragged away from its listing
+
+ui-options-confirm-merchant-listing-delete = Confirm moving or deleting a listing
+
+ui-options-confirm-merchant-listing-delete-help = Ask before a listing folder is moved or deleted, which deletes its Marketplace listing
+
+ui-options-confirm-merchant-move = Confirm moves into the listings
+
+ui-options-confirm-merchant-move-help = Ask before an item dragged from the inventory moves to the Marketplace listings
+
+ui-options-confirm-merchant-unlist = Confirm unlisting an active listing
+
+ui-options-confirm-merchant-unlist-help = Ask before associating a listing that is for sale with another folder, which unlists it
+
+ui-options-friends-only-keep = Keep "Show friends only" after a teleport
+
+ui-options-friends-only-keep-help = "Show friends only" stays on when a teleport arrives. Off, the teleport switches it off. Switched off, the other avatars come back at once. Kept for each account.
+
+ui-options-friends-only-keep-login = Kept for each account: log in to change it.
+
+ui-options-fsr = AMD FidelityFX Super Resolution
+
+ui-options-fsr-balanced = Balanced (59%)
+
+ui-options-fsr-native-aa = Native AA (100%)
+
+ui-options-fsr-note = Choose FSR 3.1 under Anti-aliasing to use it. FSR draws the world smaller, then rebuilds it sharp at the window's size, for more frames per second.
+
+ui-options-fsr-performance = Performance (50%)
+
+ui-options-fsr-quality = FSR mode
+
+ui-options-fsr-quality-help = How much smaller than the window the world is drawn. Native AA keeps the window's size and only smooths the edges.
+
+ui-options-fsr-quality-mode = Quality (67%)
+
+ui-options-fsr-sharpness = FSR sharpening
+
+ui-options-fsr-sharpness-help = Sharpens the image FSR draws. 0 turns it off.
+
+ui-options-fsr-ultra-performance = Ultra performance (33%)
+
+ui-options-login-favorites = Show my favorite landmarks at login
+
+ui-options-login-favorites-hint = In the Start menu of the login screen, for this account. Anyone who uses this computer can see them there.
+
+ui-options-login-favorites-login = Kept for each account: log in with an account the login screen remembers to change it.
+
+ui-options-maximum-texture-resolution = Maximum texture resolution
+
+ui-options-night-sky-place-lisbon = Lisbon
+
+ui-options-night-sky-place-oslo = Oslo
+
+ui-options-pause-when-card-busy = Pause the Render when the card is overloaded
+
+ui-options-pause-when-card-busy-tip = When another program keeps the graphics card busy while Block Viewer is behind, Block Viewer stops drawing the world until you click on it, so the card is not reset. Turned off, Block Viewer can close with "the graphics card was lost". Applies to every Block Viewer window open. Enabled by default
+
+ui-options-projector-shadow-limit = Projectors with shadows
+
+ui-options-projector-shadow-limit-help = Maximum simultaneous projector shadows (1–16). More projectors increase GPU time and video memory use.
+
+ui-options-remove-aurora = Remove Block Viewer from this computer
+
+ui-options-remove-aurora-button = Remove…
+
+ui-options-remove-aurora-help = Removes what Block Viewer registered on this computer outside its own folders: the link handler, the keys and saved passwords of the system's credential store, the Blender add-on. Then lists the folders that remain, for you to delete with the viewer.
+
+ui-options-sharpness-off-with-fsr = Off with FSR 3.1: FSR sharpens the image itself (FSR sharpening)
+
+ui-options-sound-hrtf = 3D sound for headphones (HRTF)
+
+ui-options-sound-hrtf-help = World sounds are heard where they are: in front, behind, above or below you, not only to the left or the right. Use headphones: on speakers it sounds wrong. Off: sounds are panned between left and right, as in the Legacy Viewer
+
+ui-options-sound-occlusion = Muffle sounds behind walls
+
+ui-options-sound-occlusion-help = World sounds heard through a wall, an object or a hill are duller and quieter, as a sound in another room. Off: every sound is heard unobstructed, as in the Legacy Viewer
+
+ui-options-sound-reverb = Reverb from the surroundings
+
+ui-options-sound-reverb-help = World sounds echo like the place you are in: briefly in a small room, long in a large hall, hardly at all in the open air. Interface sounds, voice chat, music and media stay dry. Off: every sound is dry, as in the Legacy Viewer
+
+ui-options-texture-resolution-pixels = { $size } pixels
+
+ui-options-unread-ims-in-window-title = Show the number of unread IMs in the window title
+
+ui-options-unread-ims-in-window-title-hint = While private messages, group chats or conferences wait unread, their count comes first in the window title, "(3) Block Viewer", which the taskbar shows too.
+
+ui-options-warn-hypergrid-suitcase = Warn about worn items left behind
+
+ui-options-warn-hypergrid-suitcase-help = Before a Hypergrid teleport, name the worn items that are not in My Suitcase: the other grid cannot load them
+
+ui-options-web-browser = Web browser
+
+ui-options-world-textures-load-no-larger-more-fit-before-blurring = World textures load no larger than this: more of them fit in the texture memory before some turn blurry
+
+ui-texture-picker-no-live-preview = No live preview for a no-copy or no-transfer texture: confirm with OK.
+
+ui-texture-picker-owner-only = A no-transfer texture can only go on an object you own that is not for sale.
+
+uninstall-absent = Nothing to remove
+
+uninstall-blender = Block's add-on, in each Blender found that has it
+
+uninstall-cache-key = Cache key, in the credential store
+
+uninstall-confirm = Remove
+
+uninstall-crash-reports = GitHub authorization of crash reports, in the credential store
+
+uninstall-done = What was removed
+
+uninstall-dry-run = Demo mode: nothing was removed. This is what a real removal would do.
+
+uninstall-failed = Not removed: { $error }
+
+uninstall-kind-blender-backups = Blender preference backups made by the add-on's installer
+
+uninstall-kind-cache = Cache
+
+uninstall-kind-chosen-cache = Cache (folder you chose)
+
+uninstall-kind-logs = Logs
+
+uninstall-kind-media-plugins = Media plugins
+
+uninstall-kind-menu-entry = Desktop menu entry
+
+uninstall-kind-settings = Settings
+
+uninstall-kind-transcripts = Conversation history (folder you chose)
+
+uninstall-kind-viewer = The viewer
+
+uninstall-left = Still on this computer
+
+uninstall-left-text = Quit Block Viewer, then delete these folders and the viewer itself. They hold your settings, conversation history, cache and logs.
+
+uninstall-links = Link handler of secondlife://, hop:// and x-grid-location-info://
+
+uninstall-notification-id = Windows notification identity
+
+uninstall-open-folder = Open folder
+
+uninstall-password = Saved password of { $user } ({ $grid }), in the credential store
+
+uninstall-quit = Quit Block Viewer
+
+uninstall-removed = Removed
+
+uninstall-running = Removing… Each Blender found is checked, which can take a minute.
+
+uninstall-second-factor = Second-factor authorization of { $user } ({ $grid }), in the credential store
+
+uninstall-text = Block Viewer removes the following, which it registered outside its own folders. It works until you quit it, but saved passwords are forgotten and the cache is downloaded again. A link handler that opens another program is left as it is.
+
+uninstall-title = Remove Block Viewer from this computer?
+
+uninstall-window = Remove Block Viewer from this computer
+
+voice-controls-blocked-nearby = Unable to see the presence of nearby avatars due to RLV restrictions
+
+voice-controls-invited = Invited
+
+voice-controls-leave = Leave call
+
+voice-controls-leave-tip = Leave the call and go back to nearby voice
+
+voice-controls-left = Left
+
+voice-controls-muted-by-moderator = Muted by a moderator
+
+voice-controls-no-one-near = No one near has voice enabled
+
+voice-controls-sort-name = Sort by name
+
+voice-controls-sort-recent = Sort by recent speakers
+
+voice-controls-title-adhoc = Conference call
+
+voice-controls-title-group = Group call with { $group }
+
+voice-controls-title-nearby = Nearby voice
+
+voice-controls-title-p2p = Call with { $name }
+
+vr-restart-body = Your headset was connected after Block Viewer started. Block Viewer sets up VR when it starts: restart it to use VR. It will enter VR on its own once you are back in the world.
+
+vr-restart-body-set-up = Block Viewer sets up VR when it starts, and only once you have used VR: restart it to use VR. It will enter VR on its own once you are back in the world, and will be ready for VR at every start from now on.
+
+vr-restart-confirm = Restart in VR
+
+vr-restart-title = Headset connected
+
+vr-unavailable = VR is unavailable. Check that an OpenXR runtime and headset are connected.
+
+vr-view = VR view
+
+web-browser-home = Home page
+
+web-browser-loading = Loading…
+
+web-browser-not-secure = The connection is not secure
+
+web-browser-secure = Secure connection (https)
+
+web-browser-stop = Stop loading
+
+web-browser-title = Web browser
+
+world-arrival-not-confirmed = The region did not confirm your arrival. You are still connected: try teleporting again, or log out.
+
+world-im-announce-incoming = Incoming message from { $name }
+
+world-notifications-caution-advice = Do not allow access if you do not fully understand why it wants access to your account.
+
+world-notifications-caution-also = If you allow access to your account, you will also be allowing the object to:
+
+world-notifications-caution-debit = The object “{ $object_name }” owned by { $owner_name } wants total access to your L$ account. If you allow access, it can remove funds from your account at any time, or empty your account completely, on an ongoing basis with no additional warnings.
+
+world-notifications-caution-denied = “{ $object_name }”, an object owned by { $owner_name }, located in { $region } at { $position }, has been denied permission to: { $permissions }.
+
+world-notifications-caution-granted = “{ $object_name }”, an object owned by { $owner_name }, located in { $region } at { $position }, has been granted permission to: { $permissions }.
+
+world-notifications-caution-land = The object “{ $object_name }” owned by { $owner_name } wants privileged access to your land. If you allow access, it may sell your land with no additional warnings.
+
+world-notifications-caution-title = Warning: access to your account
+
+world-notifications-caution-unknown-position = (unknown position)
+
+world-notifications-caution-unknown-region = (unknown region)
+
+world-notifications-group-fee = Membership fee: L$ { $fee }
+
+world-outfit-paste-already-in-outfit = Already in this outfit.
+
+world-outfit-paste-already-worn = Already worn.
+
+world-outfit-paste-cannot-be-used-in-outfits = One or more items can't be used inside outfits.
+

@@ -74,6 +74,7 @@ mod lsl_keywords;
 #[cfg(target_os = "macos")]
 mod mac_quit;
 mod machine_id;
+mod medal_tv;
 mod media;
 mod movement;
 mod net_adapters;

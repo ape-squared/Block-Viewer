@@ -1033,6 +1033,8 @@ pub struct App {
     region_group_key: String,
     /// Discord Rich Presence (Legacy Viewer FSDiscordConnect).
     discord_presence: crate::discord_presence::Presence,
+    /// Medal.tv Auto Clipping client (local HTTP to the Medal desktop app).
+    medal_tv: crate::medal_tv::Client,
     ao_missing: HashSet<uuid::Uuid>,
     ao_demo: Option<String>,
     ao_default_applied: bool,
@@ -1845,6 +1847,7 @@ impl App {
             ao_agent: uuid::Uuid::nil(),
             region_group_key: String::new(),
             discord_presence: Default::default(),
+            medal_tv: Default::default(),
             ao_missing: Default::default(),
             ao_demo: std::env::var("AURORA_DEMO_AO").ok(),
             ao_default_applied: false,
@@ -4613,6 +4616,7 @@ impl App {
             Action::RefreshAttachments => self.refresh_attachments(),
             Action::PhotoWindow => ui::widgets::toggle_floater(&self.egui_ctx, ui::snapshot::WINDOW, &mut self.panels.snapshot),
             Action::PhotoToDisk => self.photo_to_disk(),
+            Action::MedalClip => self.medal_clip(false),
             Action::EnvSunrise | Action::EnvMidday | Action::EnvSunset | Action::EnvMidnight | Action::EnvShared => {
                 self.env_shortcut(action)
             }
@@ -6405,6 +6409,28 @@ impl App {
             None
         };
         self.discord_presence.sync(&self.settings.discord, in_world, snap);
+    }
+
+    /// Ask Medal.tv to save a clip (or screenshot) from its replay buffer.
+    pub(crate) fn medal_clip(&mut self, screenshot: bool) {
+        match self.medal_tv.save_clip(&self.settings.medal, screenshot) {
+            Ok(()) => {
+                self.world.system_message(if screenshot {
+                    block_i18n::tr!("medal-tv-sent-screenshot")
+                } else {
+                    block_i18n::tr!("medal-tv-sent-clip")
+                });
+            }
+            Err("medal-disabled") => {
+                self.world.system_message(block_i18n::tr!("medal-tv-disabled"));
+            }
+            Err("medal-no-key") => {
+                self.world.system_message(block_i18n::tr!("medal-tv-need-key"));
+            }
+            Err(_) => {
+                self.world.system_message(block_i18n::tr!("medal-tv-failed"));
+            }
+        }
     }
 
     fn update_radar(&mut self) {

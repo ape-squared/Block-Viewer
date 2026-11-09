@@ -29,12 +29,12 @@ fn paths(install: &Path) -> Result<(PathBuf, PathBuf)> {
     if let Some(root) = std::env::var_os("AURORA_UPDATE_TEST_ROOT") {
         let root = PathBuf::from(root).canonicalize()?;
         ensure!(root.join("install") == install, "test data outside isolated installation");
-        let marker: serde_json::Value = serde_json::from_slice(&fs::read(root.join("aurora-update-test.json"))?)?;
+        let marker: serde_json::Value = serde_json::from_slice(&fs::read(root.join("block-update-test.json"))?)?;
         ensure!(marker["schema"].as_u64() == Some(1), "invalid test data marker");
         crate::feed::Source::local(marker["feed"].as_str().context("test feed")?)?;
         return Ok((root.join("cache"), root.join("profile/settings.json")));
     }
-    let dirs = directories::ProjectDirs::from("org", "Aurora", "AuroraViewer").context("user data directories unavailable")?;
+    let dirs = directories::ProjectDirs::from("org", "Aurora", "BlockViewer").context("user data directories unavailable")?;
     Ok((dirs.cache_dir().into(), dirs.config_dir().join("settings.json")))
 }
 
@@ -84,7 +84,7 @@ impl Backup {
             plain_dir(&parent)?;
             let name = original.file_name().context("data name")?;
             let original = parent.join(name);
-            let saved = parent.join(format!("{}.aurora-before-update-{token}", name.to_string_lossy()));
+            let saved = parent.join(format!("{}.block-before-update-{token}", name.to_string_lossy()));
             ensure!(!saved.try_exists()?, "data backup already exists");
             if existed {
                 fs::rename(&original, &saved).context("cannot back up user data")?;
@@ -163,7 +163,7 @@ mod tests {
     struct Temp(PathBuf);
     impl Temp {
         fn new() -> Self {
-            let path = std::env::temp_dir().join(format!("aurora-data-test-{}", uuid::Uuid::new_v4()));
+            let path = std::env::temp_dir().join(format!("block-data-test-{}", uuid::Uuid::new_v4()));
             fs::create_dir(&path).expect("fixture");
             Self(path)
         }
@@ -208,14 +208,14 @@ mod tests {
                 assert!(
                     !fs::read_dir(&tmp.0)
                         .expect("root")
-                        .any(|e| e.expect("entry").file_name().to_string_lossy().contains("aurora-before"))
+                        .any(|e| e.expect("entry").file_name().to_string_lossy().contains("block-before"))
                 );
                 assert!(
                     !fs::read_dir(settings.parent().expect("profile")).expect("profile").any(|e| e
                         .expect("entry")
                         .file_name()
                         .to_string_lossy()
-                        .contains("aurora-before"))
+                        .contains("block-before"))
                 );
             }
         }

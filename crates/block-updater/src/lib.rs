@@ -34,7 +34,7 @@ pub fn test_environment() -> Option<&'static TestEnvironment> {
         if exe.parent()? != root.join("install") {
             return None;
         }
-        let config: serde_json::Value = serde_json::from_slice(&std::fs::read(root.join("aurora-update-test.json")).ok()?).ok()?;
+        let config: serde_json::Value = serde_json::from_slice(&std::fs::read(root.join("block-update-test.json")).ok()?).ok()?;
         if config["schema"].as_u64()? != 1 {
             return None;
         }

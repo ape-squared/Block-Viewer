@@ -132,19 +132,19 @@ pub(crate) fn parse_sha256(hex: &str) -> Result<[u8; 32]> {
     Ok(hash)
 }
 
-fn components(name: &str) -> Result<Vec<&str>> {
-    ensure!(
-        !name.starts_with('/') && !name.contains('\\') && !name.contains('\0'),
-        "unsafe ZIP path"
-    );
+/// Split a ZIP entry path into safe components. PowerShell's Compress-Archive
+/// writes Windows backslashes; GitHub Actions / 7-Zip use forward slashes.
+fn components(name: &str) -> Result<Vec<String>> {
+    ensure!(!name.starts_with(['/', '\\']) && !name.contains('\0'), "unsafe ZIP path");
+    let normalized = name.replace('\\', "/");
     let mut parts = Vec::new();
-    for part in name.trim_end_matches('/').split('/') {
+    for part in normalized.trim_end_matches('/').split('/') {
         ensure!(
             !part.is_empty()
                 && part != "."
                 && part != ".."
                 && !part.ends_with(['.', ' '])
-                && !part.contains([':', '<', '>', '"', '|', '?', '*'])
+                && !part.contains([':', '<', '>', '"', '|', '?', '*', '\\'])
                 && !part.chars().any(char::is_control),
             "unsafe Windows path"
         );
@@ -154,20 +154,22 @@ fn components(name: &str) -> Result<Vec<&str>> {
                 && !(stem.len() == 4 && (stem.starts_with("COM") || stem.starts_with("LPT")) && matches!(stem.as_bytes()[3], b'1'..=b'9')),
             "reserved Windows filename"
         );
-        parts.push(part);
+        parts.push(part.to_owned());
     }
     Ok(parts)
 }
 
 pub fn extract(path: &Path, root: &Path, tag: &str, cancel: &Cancel) -> Result<PathBuf> {
-    unpack(path, root, &format!("Aurora-Viewer-{tag}-windows-x64"), cancel)?;
-    let manifest: InstallManifest = serde_json::from_slice(&fs::read(root.join("aurora-install.json"))?)?;
+    unpack(path, root, &format!("Block-Viewer-{tag}-windows-x64"), cancel)?;
+    let manifest: InstallManifest = serde_json::from_slice(&fs::read(root.join("block-install.json"))?)?;
     ensure!(
         manifest.schema == 1 && manifest.version == tag.trim_start_matches('v'),
         "package version mismatch"
     );
     ensure!(
-        root.join("block-viewer.exe").is_file() && root.join("assets").is_dir() && root.join("LICENSE").is_file(),
+        (root.join("block-viewer.exe").is_file() || root.join("BlockViewer.exe").is_file())
+            && root.join("assets").is_dir()
+            && root.join("LICENSE").is_file(),
         "incomplete viewer package"
     );
     Ok(root.to_path_buf())
@@ -188,14 +190,14 @@ pub(crate) fn unpack(path: &Path, root: &Path, prefix: &str, cancel: &Cancel) ->
         let name = entry.name()?;
         let parts = components(&name)?;
         ensure!(
-            parts[0] == prefix
+            parts.first().map(String::as_str) == Some(prefix)
                 && !entry.is_symlink()
                 && entry
                     .unix_mode()
                     .is_none_or(|m| m & 0o170000 == 0 || matches!(m & 0o170000, 0o100000 | 0o040000)),
             "invalid package root or link"
         );
-        ensure!(names.insert(name.trim_end_matches('/').to_lowercase()), "duplicate ZIP path");
+        ensure!(names.insert(parts.join("/").to_lowercase()), "duplicate ZIP path");
         expanded = expanded.saturating_add(entry.size());
         ensure!(expanded <= 4 * 1024 * 1024 * 1024, "expanded package too large");
     }
@@ -263,12 +265,16 @@ mod tests {
     #[test]
     fn windows_archive_paths() {
         assert!(components("Aurora/assets/character/a.llm").is_ok());
+        // PowerShell Compress-Archive uses backslashes; accept and normalize.
+        assert_eq!(
+            components(r"Block-Viewer-v0.0.5-windows-x64\block-viewer.exe").expect("backslash zip"),
+            vec!["Block-Viewer-v0.0.5-windows-x64".to_owned(), "block-viewer.exe".to_owned()]
+        );
         for value in [
             "../a",
             "/a",
             "C:/a",
             "a/../b",
-            "a\\b",
             "a/file:stream",
             "a/NUL.txt",
             "a/COM1",

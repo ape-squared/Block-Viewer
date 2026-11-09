@@ -42,7 +42,7 @@ pub fn logs_dir() -> PathBuf {
     if let Some(test) = block_updater::test_environment() {
         return test.root.join("logs");
     }
-    directories::ProjectDirs::from("org", "Aurora", "AuroraViewer")
+    directories::ProjectDirs::from("com", "ape-squared", "BlockViewer")
         .map(|d| d.data_local_dir().join("logs"))
         .unwrap_or_else(|| PathBuf::from("logs"))
 }

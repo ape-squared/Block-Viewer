@@ -1,5 +1,5 @@
 //! Build script: tells the viewer which cargo profile built it, for the
-//! window title ("Aurora Viewer <version> (Dev)"): cargo only exposes `debug` /
+//! window title ("Block Viewer <version> (Dev)"): cargo only exposes `debug` /
 //! `release` (PROFILE), while the profile's target directory names the
 //! custom ones (`debugging`, `ci`). On Windows it also embeds the resources
 //! of block-viewer.exe: its icon and its version block.
@@ -74,11 +74,11 @@ fn dictionaries() {
 /// release must not ship without its icon again.
 fn windows_resources() {
     let manifest = std::env::var("CARGO_MANIFEST_DIR").expect("Cargo supplies CARGO_MANIFEST_DIR");
-    let icon = Path::new(&manifest).join("../../assets/branding/aurora.ico");
+    let icon = Path::new(&manifest).join("../../assets/branding/block.ico");
     println!("cargo:rerun-if-changed={}", icon.display());
 
-    let display = std::env::var("DEP_AURORA_VERSION_DISPLAY").expect("block-version's build script supplies the version");
-    let numeric = std::env::var("DEP_AURORA_VERSION_NUMERIC").expect("block-version's build script supplies the version");
+    let display = std::env::var("DEP_BLOCK_VERSION_DISPLAY").expect("block-version's build script supplies the version");
+    let numeric = std::env::var("DEP_BLOCK_VERSION_NUMERIC").expect("block-version's build script supplies the version");
     // "major.minor.patch.distance" packed as four 16-bit fields
     let packed = numeric
         .split('.')
@@ -88,8 +88,8 @@ fn windows_resources() {
 
     let mut res = winresource::WindowsResource::new();
     res.set_icon(&icon.to_string_lossy())
-        .set("ProductName", "Aurora Viewer")
-        .set("FileDescription", "Aurora Viewer")
+        .set("ProductName", "Block Viewer")
+        .set("FileDescription", "Block Viewer")
         .set("OriginalFilename", "block-viewer.exe")
         .set("ProductVersion", &display)
         .set("FileVersion", &display)

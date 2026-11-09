@@ -20,6 +20,7 @@ const BUILTIN: &str = include_str!("../../../../peers/block-peers.json");
 /// How long a live bridge ping keeps another avatar's badge lit.
 const LIVE_TTL: Duration = Duration::from_secs(45);
 /// How often we ask our bridge to RegionSay a presence ping.
+#[allow(dead_code)]
 pub const ANNOUNCE_INTERVAL: Duration = Duration::from_secs(12);
 
 #[derive(Debug, Clone, Deserialize, Default)]
@@ -154,6 +155,7 @@ fn live(id: &Uuid, now: Instant) -> bool {
 }
 
 /// A nearby Block bridge announced this avatar (OwnerSay `<auroraBlock>`).
+#[allow(dead_code)]
 pub fn note_live(id: Uuid, now: Instant) {
     if id.is_nil() {
         return;

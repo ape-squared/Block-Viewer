@@ -200,6 +200,7 @@ pub fn rigged_apart() -> bool {
 }
 
 /// How the rigged faces write their depth this frame (see the module).
+#[allow(dead_code)]
 pub fn depth_mode() -> RiggedBlendDepth {
     depth_mode_prefer(true)
 }

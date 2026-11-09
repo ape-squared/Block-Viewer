@@ -2,6 +2,11 @@
 //! night sky gradient, twinkling stars, slowly moving aurora curtains in the
 //! brand colors (additive light) and mountain silhouettes on the horizon.
 //! Drawn with egui meshes: a few hundred vertices, no textures.
+//!
+//! Block login uses `block_bg` instead; this module stays for theme-guard /
+//! optional Aurora skins until those call sites are retired.
+
+#![allow(dead_code)]
 
 use crate::theme::Palette;
 use egui::epaint::{Mesh, Vertex, WHITE_UV};

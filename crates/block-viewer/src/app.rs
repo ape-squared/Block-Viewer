@@ -3127,6 +3127,7 @@ impl App {
         self.chat_import_closed();
         self.chat_ui = ChatUi::from_settings(&self.settings);
         self.ao_agent = uuid::Uuid::nil();
+        self.discord_presence.clear();
         self.appearance_ui = Default::default();
         self.shape_ui = Default::default();
         self.shape_camera = None;
@@ -6409,6 +6410,32 @@ impl App {
         true
     }
 
+    fn update_discord_presence(&mut self) {
+        let in_world = self.in_world();
+        if in_world && self.discord_presence.started_unix == 0 {
+            self.discord_presence.session_start();
+        }
+        let snap = if in_world && self.settings.discord.enabled {
+            let share_loc = !self.world.rlva.has("showloc");
+            let share_name = self.world.rlva_can_name(self.world.agent_id);
+            let party_size = self.radar.entries().filter(|e| !e.left_behind).count() as i32;
+            let grid = crate::world::chat_log::grid_name(&self.settings.grid, &self.settings.custom_login_uri, self.demo);
+            Some(crate::discord_presence::snapshot_from_world(
+                &self.settings.discord,
+                &self.world,
+                self.discord_presence.started_unix,
+                share_loc,
+                share_name,
+                party_size,
+                40,
+                &grid,
+            ))
+        } else {
+            None
+        };
+        self.discord_presence.sync(&self.settings.discord, in_world, snap);
+    }
+
     /// Ask Medal.tv to save a clip (or screenshot) from its replay buffer.
     pub(crate) fn medal_clip(&mut self, screenshot: bool) {
         match self.medal_tv.save_clip(&self.settings.medal, screenshot) {
@@ -6435,6 +6462,7 @@ impl App {
     /// window closed, for its alerts), the profiles its columns show and
     /// the crossings it reports (FSRadar::updateRadarList, fsradar.cpp).
     fn update_radar(&mut self) {
+        self.update_discord_presence();
         use crate::world::radar::Event;
         let now = self.radar_clock.elapsed().as_secs_f64();
         // not during a teleport: our position is still the one we had in
@@ -15502,6 +15530,13 @@ impl App {
                 let favorites_shown = ui::bars::favorites::take_shown(&ctx);
                 let here = parcel_landmark.as_ref().is_some_and(|lm| lm.favorite);
                 let favorites = self.favorites_view(favorites_shown, here);
+                // Cache resolved favourites for the login destination list.
+                if favorites_shown && !favorites.list.is_empty() && !self.world.agent_id.is_nil() {
+                    let entries = crate::login_favorites::from_view(&favorites.list);
+                    if !entries.is_empty() {
+                        crate::login_favorites::save(&self.world.agent_id, &entries);
+                    }
+                }
                 let location_landmarks = self.world.landmarks.named(&self.world.inventory);
                 let (classic_bars, islands) = self.bars_look();
                 self.poser_consent_ui(&ctx, &p);

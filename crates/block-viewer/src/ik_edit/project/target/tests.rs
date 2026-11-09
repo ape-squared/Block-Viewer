@@ -4,7 +4,7 @@ use crate::{
     demo,
     ik_edit::profiles::tests::fixture,
 };
-use aurora_net::{NetEvent, build::ObjectProps};
+use block_net::{NetEvent, build::ObjectProps};
 
 const DELTA: u32 = 1000;
 fn replacement(worn: bool) -> (World, Editor, BuildTool) {

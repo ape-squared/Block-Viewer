@@ -11,7 +11,7 @@ import unittest
 from unittest.mock import patch
 import zlib
 
-spec = importlib.util.spec_from_file_location("aurora_client", Path(__file__).resolve().parents[1] / "aurora_live" / "client.py")
+spec = importlib.util.spec_from_file_location("aurora_client", Path(__file__).resolve().parents[1] / "block_live" / "client.py")
 module = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(module)
 

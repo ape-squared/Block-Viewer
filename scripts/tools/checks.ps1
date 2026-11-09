@@ -1,4 +1,4 @@
-﻿# Aurora Tools: what the development environment needs, what is missing or
+# Aurora Tools: what the development environment needs, what is missing or
 # out of date, and how to fix it (dot-sourced by aurora-tools.ps1).
 
 $RepoUrl = 'https://github.com/Aurora-Viewer/Aurora-Viewer'
@@ -7,7 +7,7 @@ $FirestormUrl = 'https://github.com/FirestormViewer/phoenix-firestorm'
 function Get-Paths([string]$Root) {
     [pscustomobject]@{
         Root = $Root
-        Repo = Join-Path $Root 'aurora-viewer'
+        Repo = Join-Path $Root 'block-viewer'
         Firestorm = Join-Path $Root 'phoenix-firestorm'
         Work = Join-Path $Root 'work'
         Release = Join-Path $Root 'RELEASE'
@@ -59,7 +59,7 @@ function Get-Checks($P, [switch]$Offline) {
 
     $hasRepo = Test-Path (Join-Path $P.Repo '.git')
     if (-not $hasRepo) {
-        & $add (New-Check repo 'aurora-viewer repository' $null todo 'cloned from GitHub')
+        & $add (New-Check repo 'block-viewer repository' $null todo 'cloned from GitHub')
     } else {
         $branch = (git -C $P.Repo rev-parse --abbrev-ref HEAD).Trim()
         $behind = 0
@@ -69,11 +69,11 @@ function Get-Checks($P, [switch]$Offline) {
         }
         $dirty = [bool](git -C $P.Repo status --porcelain --untracked-files=no)
         if ($branch -ne 'main' -or $dirty) {
-            & $add (New-Check repo 'aurora-viewer repository' "on $branch$(if ($dirty) { ', local changes' })" info 'left as is (your changes)')
+            & $add (New-Check repo 'block-viewer repository' "on $branch$(if ($dirty) { ', local changes' })" info 'left as is (your changes)')
         } elseif ($behind -gt 0) {
-            & $add (New-Check repo 'aurora-viewer repository' "main, $behind commit(s) behind" stale 'updated (git pull)')
+            & $add (New-Check repo 'block-viewer repository' "main, $behind commit(s) behind" stale 'updated (git pull)')
         } else {
-            & $add (New-Check repo 'aurora-viewer repository' 'main, up to date' ok 'nothing to do')
+            & $add (New-Check repo 'block-viewer repository' 'main, up to date' ok 'nothing to do')
         }
     }
 

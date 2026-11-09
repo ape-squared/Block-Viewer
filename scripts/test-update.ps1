@@ -19,16 +19,16 @@ $next = if ($Beta) { '0.2.101-beta.20261025.1' } else { '0.2.101' }
 try {
     foreach ($version in @('0.2.100', $next)) {
         $env:AURORA_UPDATE_TEST_VERSION = "v$version"
-        cargo build --locked -p aurora-viewer
+        cargo build --locked -p block-viewer
         if ($LASTEXITCODE -ne 0) { throw "Build $version failed." }
         $out = if ($version -eq '0.2.100') { Join-Path $taskRoot 'install' } else { Join-Path $taskFeed "Aurora-Viewer-v$version-windows-x64" }
-        & "$PSScriptRoot/package.ps1" -Exe (Join-Path $taskRepoRoot 'target/debug/aurora-viewer.exe') -Out $out
+        & "$PSScriptRoot/package.ps1" -Exe (Join-Path $taskRepoRoot 'target/debug/block-viewer.exe') -Out $out
     }
 } finally {
     if ($null -eq $taskPreviousVersion) { Remove-Item Env:AURORA_UPDATE_TEST_VERSION -ErrorAction SilentlyContinue } else { $env:AURORA_UPDATE_TEST_VERSION = $taskPreviousVersion }
 }
 # Restore the normal Git version in the worktree's ordinary build.
-cargo build --locked -p aurora-viewer
+cargo build --locked -p block-viewer
 if ($LASTEXITCODE -ne 0) { throw 'Failed to restore the normal build.' }
 $name = "Aurora-Viewer-v$next-windows-x64.zip"
 $zip = Join-Path $taskFeed $name
@@ -62,7 +62,7 @@ try {
     Remove-Item Env:AURORA_DEMO -ErrorAction SilentlyContinue
     $arguments = @('--title', "`"$Title`"", '--language', $Language)
     if ($null -ne $FpsLimit) { $arguments += @('--fps-limit', $FpsLimit) }
-    $viewer = Start-Process -FilePath (Join-Path $taskRoot 'install/aurora-viewer.exe') -WorkingDirectory (Join-Path $taskRoot 'install') -ArgumentList $arguments -WindowStyle Hidden -PassThru -RedirectStandardOutput (Join-Path $taskRoot 'viewer.stdout.log') -RedirectStandardError (Join-Path $taskRoot 'viewer.stderr.log')
+    $viewer = Start-Process -FilePath (Join-Path $taskRoot 'install/block-viewer.exe') -WorkingDirectory (Join-Path $taskRoot 'install') -ArgumentList $arguments -WindowStyle Hidden -PassThru -RedirectStandardOutput (Join-Path $taskRoot 'viewer.stdout.log') -RedirectStandardError (Join-Path $taskRoot 'viewer.stderr.log')
 } finally {
     if ($null -eq $taskPreviousRoot) { Remove-Item Env:AURORA_UPDATE_TEST_ROOT -ErrorAction SilentlyContinue } else { $env:AURORA_UPDATE_TEST_ROOT = $taskPreviousRoot }
     if ($null -eq $taskPreviousDemo) { Remove-Item Env:AURORA_DEMO -ErrorAction SilentlyContinue } else { $env:AURORA_DEMO = $taskPreviousDemo }

@@ -1,4 +1,4 @@
-﻿# Shared helpers for the scripts (dot-sourced: . "$PSScriptRoot\common.ps1").
+# Shared helpers for the scripts (dot-sourced: . "$PSScriptRoot\common.ps1").
 
 # Native tools (cargo, git, gh) write progress to stderr: Windows PowerShell 5.1
 # turns it into errors when the output is redirected. They are judged on their
@@ -29,7 +29,7 @@ function Get-TaskSlug([string]$Name) {
 function Test-InUse([string]$Dir) {
     $full = [IO.Path]::GetFullPath($Dir).TrimEnd('\') + '\'
     $procs = Get-CimInstance Win32_Process -ErrorAction SilentlyContinue -Filter (
-        "Name='cargo.exe' OR Name='rustc.exe' OR Name='clippy-driver.exe' OR Name='aurora-viewer.exe'")
+        "Name='cargo.exe' OR Name='rustc.exe' OR Name='clippy-driver.exe' OR Name='block-viewer.exe'")
     [bool]($procs | Where-Object {
         ($_.ExecutablePath -and $_.ExecutablePath.StartsWith($full, [StringComparison]::OrdinalIgnoreCase)) -or
         ($_.CommandLine -and $_.CommandLine.IndexOf($full, [StringComparison]::OrdinalIgnoreCase) -ge 0)

@@ -1,7 +1,7 @@
-﻿<#
+<#
 .SYNOPSIS
     Builds the latest main of GitHub (or a PR) in --release, next to the
-    repository: ..\RELEASE\Aurora-Viewer\aurora-viewer.exe, ready to launch.
+    repository: ..\RELEASE\Aurora-Viewer\block-viewer.exe, ready to launch.
 
 .DESCRIPTION
     The code built always comes from GitHub, never from the local
@@ -96,7 +96,7 @@ Push-Location $src
 $previousVersionTag = [Environment]::GetEnvironmentVariable('AURORA_VERSION_TAG', 'Process')
 try {
     [Environment]::SetEnvironmentVariable('AURORA_VERSION_TAG', $null, 'Process')
-    Invoke-Checked 'cargo build' { cargo build --release --locked -p aurora-viewer }
+    Invoke-Checked 'cargo build' { cargo build --release --locked -p block-viewer }
 } finally {
     [Environment]::SetEnvironmentVariable('AURORA_VERSION_TAG', $previousVersionTag, 'Process')
     Pop-Location
@@ -105,7 +105,7 @@ try {
 # Use the built commit's verifier when available, just like package.ps1.
 # Older revisions do not understand --version: invoking it would open a
 # viewer, so keep their existing packaging path without querying the exe.
-$builtExe = Join-Path $src 'target\release\aurora-viewer.exe'
+$builtExe = Join-Path $src 'target\release\block-viewer.exe'
 $reportedVersion = $null
 $verifyVersion = Join-Path $src 'scripts\verify-version.ps1'
 if (Test-Path -LiteralPath $verifyVersion) {
@@ -121,7 +121,7 @@ if (Test-Path -LiteralPath $verifyVersion) {
 $package = Join-Path $src 'scripts\package.ps1'
 if (-not (Test-Path -LiteralPath $package)) { $package = Join-Path $PSScriptRoot 'package.ps1' }
 if (Test-Path -LiteralPath $out) { Remove-Item -LiteralPath $out -Recurse -Force -ErrorAction Stop }
-& $package -Exe (Join-Path $src 'target\release\aurora-viewer.exe') -Out $out -Source $src
+& $package -Exe (Join-Path $src 'target\release\block-viewer.exe') -Out $out -Source $src
 @(
     if ($reportedVersion) { $reportedVersion }
     "${what}: $((git -C $src log -1 --format='%h %s (%ci)').Trim())"
@@ -129,5 +129,5 @@ if (Test-Path -LiteralPath $out) { Remove-Item -LiteralPath $out -Recurse -Force
 ) | Set-Content -LiteralPath (Join-Path $out 'version.txt') -Encoding UTF8 -ErrorAction Stop
 
 Write-Host ""
-Write-Host "Ready in $([math]::Floor($sw.Elapsed.TotalMinutes)) min $($sw.Elapsed.Seconds) s: $out\aurora-viewer.exe" -ForegroundColor Green
+Write-Host "Ready in $([math]::Floor($sw.Elapsed.TotalMinutes)) min $($sw.Elapsed.Seconds) s: $out\block-viewer.exe" -ForegroundColor Green
 Write-Host "Double-click $bat to rebuild (build-release.bat 42: PR 42)."

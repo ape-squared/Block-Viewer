@@ -13,7 +13,7 @@ if not os.environ.get("BLENDER_USER_EXTENSIONS"):
     raise RuntimeError("An isolated extension directory is required")
 paths = [Path(value).resolve() for value in sys.argv[sys.argv.index("--")+1:]]
 assert len(paths) == 2 and all(path.is_file() for path in paths)
-module_name = "bl_ext.user_default.aurora_live_mesh"
+module_name = "bl_ext.user_default.block_live_mesh"
 for index, path in enumerate(paths):
     assert bpy.ops.extensions.package_install_files(filepath=str(path), repo="user_default", enable_on_install=True) == {"FINISHED"}
     package = importlib.import_module(module_name)

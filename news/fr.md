@@ -116,7 +116,7 @@ Survolez un objet de l'inventaire pour voir son image, et construisez une recher
 
 ## 2026-10-29 — Vos idées, sur le tableau des suggestions
 Les demandes de fonctionnalités vivent désormais sur notre tableau des suggestions : proposez une idée, votez pour celles que vous voulez le plus et suivez leur avancement. Les demandes faites sur GitHub y ont été déplacées.
-[Ouvrir le tableau des suggestions](https://feedback.aurora-viewer.org)
+[Ouvrir le tableau des suggestions](https://feedback.block-viewer.org)
 
 ## 2026-10-29 — Aurora 0.8.2 parle japonais, 日本語
 Aurora existe désormais en japonais : choisissez 日本語 dans Préférences › Interface › Langue, ou laissez la langue du système le choisir sur un Windows japonais. Chaque message est traduit avec les termes japonais officiels de Second Life, l'interface s'affiche avec des polices japonaises et les dates se lisent à la japonaise.

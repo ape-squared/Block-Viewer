@@ -516,10 +516,10 @@ dependencies = [
 ]
 
 [[package]]
-name = "aurora-assets"
+name = "block-assets"
 version = "0.1.0"
 dependencies = [
- "aurora-llsd",
+ "block-llsd",
  "base64 0.23.1",
  "cc",
  "crossbeam-channel",
@@ -540,10 +540,10 @@ dependencies = [
 ]
 
 [[package]]
-name = "aurora-audio"
+name = "block-audio"
 version = "0.1.0"
 dependencies = [
- "aurora-version",
+ "block-version",
  "cpal",
  "crossbeam-channel",
  "log",
@@ -559,7 +559,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "aurora-i18n"
+name = "block-i18n"
 version = "0.1.0"
 dependencies = [
  "fluent-bundle",
@@ -570,7 +570,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "aurora-llsd"
+name = "block-llsd"
 version = "0.1.0"
 dependencies = [
  "base64 0.23.1",
@@ -580,10 +580,10 @@ dependencies = [
 ]
 
 [[package]]
-name = "aurora-media"
+name = "block-media"
 version = "0.1.0"
 dependencies = [
- "aurora-llsd",
+ "block-llsd",
  "env_logger",
  "image",
  "libc",
@@ -594,7 +594,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "aurora-msg"
+name = "block-msg"
 version = "0.1.0"
 dependencies = [
  "glam 0.34.1",
@@ -603,15 +603,15 @@ dependencies = [
 ]
 
 [[package]]
-name = "aurora-net"
+name = "block-net"
 version = "0.1.0"
 dependencies = [
- "aurora-assets",
- "aurora-i18n",
- "aurora-llsd",
- "aurora-msg",
- "aurora-prim",
- "aurora-version",
+ "block-assets",
+ "block-i18n",
+ "block-llsd",
+ "block-msg",
+ "block-prim",
+ "block-version",
  "base64 0.23.1",
  "bitflags 2.13.2",
  "crossbeam-channel",
@@ -633,7 +633,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "aurora-prim"
+name = "block-prim"
 version = "0.1.0"
 dependencies = [
  "glam 0.34.1",
@@ -642,12 +642,12 @@ dependencies = [
 ]
 
 [[package]]
-name = "aurora-render"
+name = "block-render"
 version = "0.1.0"
 dependencies = [
  "ash",
- "aurora-assets",
- "aurora-llsd",
+ "block-assets",
+ "block-llsd",
  "bcdec_rs",
  "bytemuck",
  "egui",
@@ -670,11 +670,11 @@ dependencies = [
 ]
 
 [[package]]
-name = "aurora-updater"
+name = "block-updater"
 version = "0.1.0"
 dependencies = [
  "anyhow",
- "aurora-version",
+ "block-version",
  "directories",
  "log",
  "reqwest",
@@ -689,29 +689,29 @@ dependencies = [
 ]
 
 [[package]]
-name = "aurora-version"
+name = "block-version"
 version = "0.1.0"
 dependencies = [
  "semver",
 ]
 
 [[package]]
-name = "aurora-viewer"
+name = "block-viewer"
 version = "0.1.0"
 dependencies = [
  "anyhow",
  "arboard",
- "aurora-assets",
- "aurora-audio",
- "aurora-i18n",
- "aurora-llsd",
- "aurora-media",
- "aurora-net",
- "aurora-prim",
- "aurora-render",
- "aurora-updater",
- "aurora-version",
- "aurora-voice",
+ "block-assets",
+ "block-audio",
+ "block-i18n",
+ "block-llsd",
+ "block-media",
+ "block-net",
+ "block-prim",
+ "block-render",
+ "block-updater",
+ "block-version",
+ "block-voice",
  "base64 0.23.1",
  "bevy_mikktspace",
  "chrono",
@@ -779,12 +779,12 @@ dependencies = [
 ]
 
 [[package]]
-name = "aurora-voice"
+name = "block-voice"
 version = "0.1.0"
 dependencies = [
  "async-trait",
- "aurora-audio",
- "aurora-llsd",
+ "block-audio",
+ "block-llsd",
  "bytes",
  "glam 0.34.1",
  "log",

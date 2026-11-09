@@ -6,7 +6,7 @@ consistent icons. Every screen must look polished and finished.
 
 ## Palette
 
-The colours come from `crates/aurora-viewer/src/theme.rs` (`Theme::default`).
+The colours come from `crates/block-viewer/src/theme.rs` (`Theme::default`).
 In the code, always use the resolved `Palette` (`p.violet`, `p.ink`…),
 **never a hard-coded colour**: a skin can change them, and so can the user,
 from Preferences › Appearance › Skin › Interface colours
@@ -271,7 +271,7 @@ dragging a handle switch to `violet_light`, like any selection.
   buttons, switches, help badges, warning triangle…) rather than recreating
   them.
 - **Interface texts are short and clear**, in English and French through
-  `aurora_i18n::tr!` (see [TRANSLATING.md](TRANSLATING.md)); English is the
+  `block_i18n::tr!` (see [TRANSLATING.md](TRANSLATING.md)); English is the
   fallback. A tooltip explains every option whose effect is not obvious.
 - **Snapping windows.** A window moved near another one, a bar or an edge
   follows the pointer without a jump. Moving without Alt creates no snap
@@ -297,13 +297,13 @@ Files in [`assets/branding/`](../assets/branding/):
 
 | File | Use |
 |---|---|
-| `aurora-logo.svg` / `.png` (720 px) | full logo in colour, transparent background: README, window icon, login and loading screens, About, system notifications (`LOGO_PNG` of `app.rs`), the Linux desktop icon (`aurora-viewer.svg` of the archive) |
+| `aurora-logo.svg` / `.png` (720 px) | full logo in colour, transparent background: README, window icon, login and loading screens, About, system notifications (`LOGO_PNG` of `app.rs`), the Linux desktop icon (`block-viewer.svg` of the archive) |
 | `aurora-logo-white.svg` / `.png` (4096 px) | white silhouette: the Aurora menu button of the toolbars (tinted with the palette), monochrome uses on a dark background |
 | `aurora-logo-black.svg` / `.png` (4096 px) | black silhouette: monochrome uses on a light background |
 | `aurora-logo-purple.png` / `aurora-logo-teal.png` (4096 px) | silhouette in violet or in turquoise |
 | `aurora-logo-bg.png` (4096 px) | full logo on a navy background (the only file with an opaque background): square icons that need one (website's Apple touch icon) |
 | `aurora.icns` | full logo on its navy background in Apple's rounded square (an 824 px body with 185 px corners on a 1024 px canvas, 16 to 1024 px, taken from `aurora-logo-bg.png`): icon of `Aurora Viewer.app` on macOS |
-| `aurora.ico` | full logo as a Windows icon (16 to 256 px, taken from `aurora-logo.png`): icon of `aurora-viewer.exe` (embedded by its `build.rs`), "Aurora Tools" and "Aurora PR" shortcuts |
+| `aurora.ico` | full logo as a Windows icon (16 to 256 px, taken from `aurora-logo.png`): icon of `block-viewer.exe` (embedded by its `build.rs`), "Aurora Tools" and "Aurora PR" shortcuts |
 
 The logo is a howling wolf's head in profile, facing up and to the right,
 its mane made of aurora ribbons, in a circle. Its colours: violet `#8B5CF6`
@@ -340,7 +340,7 @@ Do not mix them with another icon set.
   outline icons) and `filled/` (1,054 filled icons). This is where an icon
   is chosen; the Tabler site lets you search by keyword.
 - Only the icons in use are embedded in the viewer:
-  `crates/aurora-viewer/assets/icons/tabler/outline/<name>.svg` and
+  `crates/block-viewer/assets/icons/tabler/outline/<name>.svg` and
   `…/tabler/filled/<name>.svg`.
 - In the code, an icon bears its Tabler name: `eye-off` for the outline
   version, `eye-filled` for the filled version.
@@ -369,10 +369,10 @@ already in use before adding one.
 
 1. Choose the name in `assets/tabler-icons/filled/`, otherwise in
    `assets/tabler-icons/outline/` (e.g. `microphone.svg`).
-2. Copy it into `crates/aurora-viewer/assets/icons/tabler/filled/` (or
+2. Copy it into `crates/block-viewer/assets/icons/tabler/filled/` (or
    `outline/`).
 3. Add its name to the `FILLED` (or `OUTLINE`) list of
-   `crates/aurora-viewer/src/ui/icons.rs`.
+   `crates/block-viewer/src/ui/icons.rs`.
 4. Use it with `icons.get("microphone-filled")` (or `icons.get("volume")`
    for an outline icon), tinted by the palette.
 
@@ -387,7 +387,7 @@ profiles is `circle-check-filled` in `success` (trusted site),
 
 The world cursors are drawn from the same Tabler outline icons, in the
 `ink` colour outlined with `bar` to stay readable over any scenery
-(`crates/aurora-viewer/src/cursors.rs`). The rules are those of the Legacy Viewer,
+(`crates/block-viewer/src/cursors.rs`). The rules are those of the Legacy Viewer,
 only the drawings change:
 
 | Situation | Cursor |

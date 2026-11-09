@@ -116,7 +116,7 @@ Hover an inventory item to preview its picture, and build an advanced search fro
 
 ## 2026-10-29 — Your ideas, on the feedback board
 Feature requests now live on our feedback board: suggest an idea, vote for the ones you want most, and follow their progress. The requests made on GitHub have been moved there.
-[Open the feedback board](https://feedback.aurora-viewer.org)
+[Open the feedback board](https://feedback.block-viewer.org)
 
 ## 2026-10-29 — Aurora 0.8.2 now speaks Japanese, 日本語
 Aurora is now available in Japanese: choose 日本語 in Preferences › Interface › Language, or let the system language pick it on a Japanese Windows. Every message is translated with Second Life's official Japanese terms, the interface draws with Japanese fonts, and dates read the Japanese way.

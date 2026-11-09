@@ -35,7 +35,7 @@ runs:
           # Metal compiler is the one that refused a shader Vulkan took)
           # and the app bundle. Linux: its packaging.
           macos)
-            own='^(crates/aurora-render/|packaging/macos/|\.github/workflows/macos\.yml$)|\.wgsl$' ;;
+            own='^(crates/block-render/|packaging/macos/|\.github/workflows/macos\.yml$)|\.wgsl$' ;;
           linux)
             own='^(packaging/linux/|\.github/workflows/ci\.yml$)' ;;
           *)

@@ -164,7 +164,7 @@ up the successful transactions after the helper has finished.
 
 ## Validation
 
-`cargo test -p aurora-updater`: loopback HTTP server and throwaway packages
+`cargo test -p block-updater`: loopback HTTP server and throwaway packages
 for SemVer, required update, tampered hash, incomplete transfer,
 cancellation, dangerous ZIP, lock, backup and rollback of the package and of
 the data. `scripts/test-update-policy.ps1` checks the release choices (minimum

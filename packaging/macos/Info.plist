@@ -12,11 +12,11 @@
 	<key>CFBundleName</key>
 	<string>Aurora Viewer</string>
 	<key>CFBundleExecutable</key>
-	<string>aurora-viewer</string>
+	<string>block-viewer</string>
 	<key>CFBundleIconFile</key>
 	<string>Aurora</string>
 	<key>CFBundleIdentifier</key>
-	<string>org.aurora-viewer.AuroraViewer</string>
+	<string>org.block-viewer.AuroraViewer</string>
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundlePackageType</key>

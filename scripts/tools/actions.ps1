@@ -1,4 +1,4 @@
-﻿# Aurora Tools: the menu actions — viewers, demo, agents' tasks, disk, logs,
+# Aurora Tools: the menu actions — viewers, demo, agents' tasks, disk, logs,
 # shortcut (dot-sourced by aurora-tools.ps1).
 
 # Starts a viewer in its own window; the console stays on the tools.
@@ -35,23 +35,23 @@ function Invoke-ReleaseViewer {
     Write-Color '  Built in RELEASE\; your local changes are not included.' muted
     & (Join-Path $Paths.Repo 'scripts\build-release.ps1')
     if ($LASTEXITCODE -eq 0 -and (Read-YesNo 'Start this viewer?')) {
-        Start-Viewer (Join-Path $Paths.Release 'Aurora-Viewer\aurora-viewer.exe') 'Release'
+        Start-Viewer (Join-Path $Paths.Release 'Aurora-Viewer\block-viewer.exe') 'Release'
     }
 }
 
 function Invoke-DevViewer {
     Write-Title 'Dev viewer: your local repository, default profile'
-    if (Invoke-Cargo @('build', '-p', 'aurora-viewer')) {
-        if (Read-YesNo 'Start this viewer?') { Start-Viewer (Join-Path $Paths.Repo 'target\debug\aurora-viewer.exe') 'Dev' }
+    if (Invoke-Cargo @('build', '-p', 'block-viewer')) {
+        if (Read-YesNo 'Start this viewer?') { Start-Viewer (Join-Path $Paths.Repo 'target\debug\block-viewer.exe') 'Dev' }
     }
 }
 
 function Invoke-DebugViewer {
     Write-Title 'Debug viewer: console, debugging controls, full information'
     Write-Color '  Profile "debugging" (Cargo.toml): its own target\debugging folder, a few more GB.' muted
-    if (Invoke-Cargo @('build', '--profile', 'debugging', '-p', 'aurora-viewer')) {
+    if (Invoke-Cargo @('build', '--profile', 'debugging', '-p', 'block-viewer')) {
         if (Read-YesNo 'Start this viewer (with its console)?') {
-            Start-Viewer (Join-Path $Paths.Repo 'target\debugging\aurora-viewer.exe') 'Debug' @{ RUST_BACKTRACE = '1' }
+            Start-Viewer (Join-Path $Paths.Repo 'target\debugging\block-viewer.exe') 'Debug' @{ RUST_BACKTRACE = '1' }
         }
     }
 }
@@ -79,10 +79,10 @@ function Invoke-Demo {
     $pick = Show-Menu 'Offline demo: which scenario?' $items { Show-Logo 'Demo' }
     if (-not $pick) { return $false }
     Write-Title "Demo: $($pick.Label)"
-    if (Invoke-Cargo @('build', '-p', 'aurora-viewer')) {
+    if (Invoke-Cargo @('build', '-p', 'block-viewer')) {
         $vars = @{ AURORA_DEMO = '1' }
         if ($pick.Var) { $vars[$pick.Var] = '1' }
-        Start-Viewer (Join-Path $Paths.Repo 'target\debug\aurora-viewer.exe') "Demo $($pick.Label)" $vars
+        Start-Viewer (Join-Path $Paths.Repo 'target\debug\block-viewer.exe') "Demo $($pick.Label)" $vars
     }
     $true
 }

@@ -11,7 +11,7 @@ $TriageEnd = '<!-- crash-triage:end -->'
 # reference, whatever its body says.
 $TriagedLabel = 'crash-triaged'
 # The viewer's own module, the one whose symbols each release publishes.
-$OwnModule = 'aurora_viewer'
+$OwnModule = 'block_viewer'
 
 function Read-CrashReport([string]$Body) {
     if (-not $Body -or -not $Body.Contains($CrashMarker)) { return $null }
@@ -227,7 +227,7 @@ function Get-StableName([string]$Name) {
 
 # Frames of the panic and exception machinery, of the crash handler itself
 # and of the process start: the same in every crash.
-$IgnoredFrame = '^(std|core|alloc|panic_unwind|backtrace|backtrace_rs)::|^__rust|^rust_(begin_unwind|panic)|^aurora_viewer::(crash|logging|allocator)::|^(mimalloc|libmimalloc_sys)::|^_?mi_|^_*scrt_|^invoke_main$|^main$|^(kernelbase|ntdll|kernel32|ucrtbase|vcruntime140)(\+0x[0-9a-f]+)?$|^\?$'
+$IgnoredFrame = '^(std|core|alloc|panic_unwind|backtrace|backtrace_rs)::|^__rust|^rust_(begin_unwind|panic)|^block_viewer::(crash|logging|allocator)::|^(mimalloc|libmimalloc_sys)::|^_?mi_|^_*scrt_|^invoke_main$|^main$|^(kernelbase|ntdll|kernel32|ucrtbase|vcruntime140)(\+0x[0-9a-f]+)?$|^\?$'
 
 <#
     The crash's signature: its kind and its first three meaningful frames,

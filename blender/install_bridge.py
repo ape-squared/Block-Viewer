@@ -53,21 +53,21 @@ def locations():
     overridden = os.environ.get("BLENDER_USER_CONFIG")
     if overridden and config.resolve() != Path(overridden).resolve():
         raise RuntimeError("Blender did not honor BLENDER_USER_CONFIG; refusing to touch a different profile.")
-    legacy = Path(bpy.utils.user_resource("SCRIPTS")) / "addons" / "aurora_live"
+    legacy = Path(bpy.utils.user_resource("SCRIPTS")) / "addons" / "block_live"
     repo = None
     if extension:
         repos = bpy.context.preferences.extensions.repos
         # Update an existing local installation in place, including a custom repo.
         repo = next((r for r in repos if r.enabled and not r.use_remote_url
-                     and (Path(r.directory) / "aurora_live_mesh").is_dir()), None)
+                     and (Path(r.directory) / "block_live_mesh").is_dir()), None)
         if repo is None:
             repo = next((r for r in repos if r.module == "user_default" and r.enabled and not r.use_remote_url), None)
         if repo is None:
             raise RuntimeError("No enabled local extension repository. Enable User Default in Blender preferences.")
-        target = Path(repo.directory) / "aurora_live_mesh"
-        module = "bl_ext." + repo.module + ".aurora_live_mesh"
+        target = Path(repo.directory) / "block_live_mesh"
+        module = "bl_ext." + repo.module + ".block_live_mesh"
     else:
-        target, module = legacy, "aurora_live"
+        target, module = legacy, "block_live"
     return extension, config, legacy, repo, target, module
 
 
@@ -107,7 +107,7 @@ def install(request, state):
     with zipfile.ZipFile(package) as archive:
         files = {}
         for name in archive.namelist():
-            relative = Path(name if extension else name.removeprefix("aurora_live/"))
+            relative = Path(name if extension else name.removeprefix("block_live/"))
             if relative.is_absolute() or ".." in relative.parts:
                 raise RuntimeError("Invalid path in the bundled Aurora package.")
             if not name.endswith("/"):
@@ -135,8 +135,8 @@ def install(request, state):
         shutil.copy2(prefs, backup / "userpref.blend")
     directories = [(path.resolve(), saved) for path, saved in directories]
     try:
-        if extension and "aurora_live" in before_addons:
-            checked(bpy.ops.preferences.addon_disable(module="aurora_live"))
+        if extension and "block_live" in before_addons:
+            checked(bpy.ops.preferences.addon_disable(module="block_live"))
         if extension:
             checked(bpy.ops.extensions.package_install_files(
                 filepath=request["extension_zip"], repo=repo.module, enable_on_install=True, overwrite=True))
@@ -151,10 +151,10 @@ def install(request, state):
         for relative, contents in files.items():
             if (target / relative).read_bytes() != contents:
                 raise RuntimeError("Blender did not install the complete bundled Aurora package: " + str(relative))
-        if not hasattr(bpy.types.Scene, "aurora_live") or module not in bpy.context.preferences.addons:
+        if not hasattr(bpy.types.Scene, "block_live") or module not in bpy.context.preferences.addons:
             raise RuntimeError("Aurora plug-in did not enable correctly.")
         after_addons = set(bpy.context.preferences.addons.keys())
-        if after_addons - {module, "aurora_live"} != before_addons - {module, "aurora_live"}:
+        if after_addons - {module, "block_live"} != before_addons - {module, "block_live"}:
             raise RuntimeError("Unrelated enabled add-ons changed; restoring the previous installation.")
         # Old Blender falls back to its normal config if an environment override
         # points to a directory that does not exist at save time.
@@ -195,7 +195,7 @@ def uninstall(state):
     extension, config, legacy, repo, target, module = state
     removed = []
     disabled = False
-    for name in dict.fromkeys([module, "aurora_live"]):
+    for name in dict.fromkeys([module, "block_live"]):
         if name in bpy.context.preferences.addons:
             checked(bpy.ops.preferences.addon_disable(module=name))
             disabled = True

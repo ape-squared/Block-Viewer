@@ -4,7 +4,7 @@
 Sound, "3D sound for headphones (HRTF)"): for 368 directions around the
 head, from 40 degrees below the ears to straight above, a pair of 64-tap
 minimum-phase filters at 48 kHz and the delay of each ear. The mixer renders
-world sounds through them (`crates/aurora-audio/src/hrtf.rs`); the other
+world sounds through them (`crates/block-audio/src/hrtf.rs`); the other
 half of the sphere is their mirror image.
 
 They are derived from the **MIT Media Lab's KEMAR HRTF measurements** by

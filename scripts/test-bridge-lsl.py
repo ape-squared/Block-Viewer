@@ -15,7 +15,7 @@ from pathlib import Path
 import lummao
 
 
-SOURCE = Path(__file__).resolve().parents[1] / "crates/aurora-viewer/src/world/bridge"
+SOURCE = Path(__file__).resolve().parents[1] / "crates/block-viewer/src/world/bridge"
 OWNER = lummao.Key("00000000-0000-0000-0000-000000000001")
 # Hex letters in the first digits exercise the channel derivation.
 ROOT = lummao.Key("1a2b3c4d-0000-0000-0000-000000000002")

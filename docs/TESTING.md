@@ -11,7 +11,7 @@ own cache (`…\config\demo`, `…\cache\demo`).
 ```powershell
 $env:AURORA_DEMO = "1"
 $env:AURORA_DEMO_MAP = "1"          # a scenario, if needed
-cargo run -p aurora-viewer -- --title "Test my-task"
+cargo run -p block-viewer -- --title "Test my-task"
 ```
 
 The logs are in `%LOCALAPPDATA%\Aurora\AuroraViewer\data\logs\`.
@@ -25,7 +25,7 @@ catalogues, dates and plurals are in [TRANSLATING.md](TRANSLATING.md).
 **Unit tests**: always on the whole workspace, filtered by name if needed:
 `cargo test --workspace render_thread`, never `cargo test -p <crate>`. A
 single crate resolves the features of its dependencies on its own, so Cargo
-builds a second copy of them (`cargo test -p aurora-render` alone: 67 s of
+builds a second copy of them (`cargo test -p block-render` alone: 67 s of
 dependencies, then again for the next `--workspace` build).
 
 **To add a variable**: one short line in the table of its topic (the name
@@ -55,7 +55,7 @@ outline. From the task's worktree, after the build:
 
 ```powershell
 $env:AURORA_DEMO = '1'
-$viewer = Start-Process -FilePath '.\target\debug\aurora-viewer.exe' -PassThru `
+$viewer = Start-Process -FilePath '.\target\debug\block-viewer.exe' -PassThru `
   -ArgumentList '--title "Test my-task [AUTOMATION - DO NOT TOUCH]"'
 $borderScript = (Resolve-Path '.\scripts\automation-window-border.ps1').Path
 $borderArgs = @(
@@ -811,9 +811,9 @@ mode): at frame 600 the photo takes those looks, stacked in the order
 given with `+` (`Sepia+aurora:fine-grain`), the last one chosen: each a
 Legacy Viewer filter by
 its file's name (`Sepia`, `Toycamera`, `Lightleak`, `Miniature`,
-`Posterize`…, see `crates/aurora-render/src/looks/legacy/`), one of Aurora's
+`Posterize`…, see `crates/block-render/src/looks/legacy/`), one of Aurora's
 looks as `aurora:<id>` (`aurora:instant`, `aurora:vhs`, `aurora:haze`…, see
-`crates/aurora-render/src/looks/aurora/`), a table of the library as
+`crates/block-render/src/looks/aurora/`), a table of the library as
 `lut:<file>`, or `lut:demo` (a warm table, "Demo warm", written into the
 demo's library); the chosen one at 100 % or the percentage given, its
 settings set with `set=<v>,<v>,…` (an Aurora look's values in the order of
@@ -2624,7 +2624,7 @@ scripts in Mono mode with `lslint` when changing them:
 
 ```powershell
 foreach ($script in 'bridge', 'query', 'ik') {
-    lslint -m "crates/aurora-viewer/src/world/bridge/$script.lsl"
+    lslint -m "crates/block-viewer/src/world/bridge/$script.lsl"
 }
 ```
 
@@ -4697,7 +4697,7 @@ both open states and the selection count. Capture at frame 620.
   `max=` and `r_acquire` in `max:` on the seconds of a growth; with
   `AURORA_PROFILE_FRAMES=1`, the `render profile` line of the slow frame.
   What a growth costs is the first use of the new buffer, about 21 µs per
-  MB (`aurora-render/src/arena.rs`). The arena's peak use is remembered
+  MB (`block-render/src/arena.rs`). The arena's peak use is remembered
   for the region (`geometry-needs.txt` of the cache, that of the demo for
   the demo: `cache\demo`): the next run grows the arena at once behind
   the loading screen (`geometry arena grown ahead behind the loading
@@ -4716,7 +4716,7 @@ both open states and the selection count. Capture at frame 620.
   textures, so the log holds `Invalid usage flags` lines a real card does
   not.
 - **`AURORA_GPU_OOM=<mb>`** (demo or grid): every allocation of `mb`
-  megabytes or more made through `aurora-render/src/gpu_alloc.rs` fails as
+  megabytes or more made through `block-render/src/gpu_alloc.rs` fails as
   if video memory were full (`0`: all of them): the geometry arena, the
   draw records, the culling tables, the joint palettes and skin bindings,
   particle and world-label upload buffers, and the texture pages. The
@@ -4954,7 +4954,7 @@ once the dry run finished, with the folders that remain, read from the
 viewer's path helpers (shown from `%APPDATA%`, `%LOCALAPPDATA%` or `~`);
 `left` the same window scrolled down to those folders and their "Open
 folder" buttons.
-In demo mode, and with `AURORA_DEMO=1 aurora-viewer --uninstall`, nothing is
+In demo mode, and with `AURORA_DEMO=1 block-viewer --uninstall`, nothing is
 read from or removed in the registry, the desktop files, the credential
 store or Blender: the log says what a real removal would do. Capture after
 frame 700 in English, French and Japanese.
@@ -7125,9 +7125,9 @@ failure. Grid validation and any paid upload are performed by the human.
   and each module's build ID; `oom` fails only with
   `AURORA_ALLOCATOR=system` (the kernel's overcommit grants mimalloc the
   64 TB) and ends with SIGABRT. `thread`, once the window shows, makes a thread named
-  `aurora-net` panic: the viewer ends the session at its next frame, the
+  `block-net` panic: the viewer ends the session at its next frame, the
   window says "A part of the viewer stopped working" and the report adds
-  `| Thread | aurora-net (the session was ended) |` to the panic. The window must keep the language
+  `| Thread | block-net (the session was ended) |` to the panic. The window must keep the language
   and the theme of the stopped session, allow the trace to be selected and
   copied and open its folder; no window after a normal
   close. The screenshots are taken after three frames of the independent
@@ -9699,7 +9699,7 @@ What the inventory must show with these scenarios:
   (`-linux-x64.zip` on Linux)
   instead of the GitHub release; only a loopback address is accepted, and
   the archive must still have the size and the SHA-256 written in
-  `crates/aurora-updater/src/media_pack.rs`. A pack installed that way is
+  `crates/block-updater/src/media_pack.rs`. A pack installed that way is
   replaced when these two values change.
 - **`AURORA_DEMO_MUSIC`**: `1` designates an unreachable dummy address; the
   music waits for the radio button.
@@ -10000,7 +10000,7 @@ What the inventory must show with these scenarios:
 
 ### Details
 
-- **`AURORA_DEMO_VIEWER_STATS=1`** (`aurora_net::viewer_stats`,
+- **`AURORA_DEMO_VIEWER_STATS=1`** (`block_net::viewer_stats`,
   `app/viewer_stats.rs`): on the grid the session posts Linden Lab's viewer
   statistics to the region's `ViewerStats` capability once the agent has
   arrived, every 5 minutes, and at logout (send_viewer_stats of the Legacy
@@ -10010,7 +10010,7 @@ What the inventory must show with these scenarios:
   network counters are the demo's; the session id is never in it, and the
   adapter address and the serial show as `(not logged)`). On the
   grid the report is logged at debug level only, `sending viewer
-  statistics: …` (`RUST_LOG=info,aurora_net=debug`).
+  statistics: …` (`RUST_LOG=info,block_net=debug`).
 - **`AURORA_VULKAN_LAYERS=keep`**: at start the viewer sets the variables
   that disable Overwolf's implicit Vulkan layers (`VK_LAYER_OW_OVERLAY`,
   `DISABLE_VULKAN_OW_OVERLAY_LAYER=1`; `VK_LAYER_OW_OBS_HOOK`,
@@ -10062,7 +10062,7 @@ What the inventory must show with these scenarios:
   shows, with its type, memory and whether it can present, then
   `GPU adapter <n> chosen:` and why. When only an integrated GPU is listed
   on a PC that has a dedicated one, the NVIDIA Control Panel's "Preferred
-  graphics processor" for `aurora-viewer.exe` hides it from Vulkan
+  graphics processor" for `block-viewer.exe` hides it from Vulkan
   (`VK_LAYER_NV_optimus`): the log says so, and Preferences › Graphics ›
   Smoothness › Graphics card shows a note under its title (the same for a
   dedicated card that cannot present). The list of that choice comes from
@@ -10079,7 +10079,7 @@ What the inventory must show with these scenarios:
   a crash report titled "GPU device lost at startup", read at the next start
   off Windows. Its GPU, GPU notice and GPU descriptors rows are what to check.
 - **`AURORA_PIPELINE_CACHE=0`**: the renderer makes its pipelines without
-  Aurora's cache (`aurora-render/src/pipeline_cache.rs`), as before: the
+  Aurora's cache (`block-render/src/pipeline_cache.rs`), as before: the
   driver compiles each one, or takes it from its own disk cache when that
   still holds it. To see a cold start without emptying the driver's cache,
   point NVIDIA's at an empty folder for one launch:
@@ -10093,7 +10093,7 @@ What the inventory must show with these scenarios:
   Network and cache for this launch, without changing the saved setting,
   from 100 to 10,000. A session first asks its simulator for one and a
   half times the setting, 6,000 kb/s at most in all
-  (`aurora-net/src/throttle.rs`): the default, 4,000, already asks for
+  (`block-net/src/throttle.rs`): the default, 4,000, already asks for
   that most, and 3,000 is Firestorm's default.
   `AURORA_THROTTLE_MAX_KBPS=<n>` (6,000 to 50,000) raises that most for
   the launch, to measure what a simulator sends when asked for more than
@@ -10119,7 +10119,7 @@ What the inventory must show with these scenarios:
   camera during the reading.
 - **`AURORA_LABEL_OCCLUSION=0`**: the avatar name tags (plates and classic)
   and the floating texts are no longer compared with the scene's depth
-  (`aurora-render/src/label_depth.rs`): egui-wgpu draws them over the scene,
+  (`block-render/src/label_depth.rs`): egui-wgpu draws them over the scene,
   as before, and they show through walls. The image only differs where the
   scene is in front of a label. Scene: `AURORA_DEMO_TAGS=wall`; cost:
   `r_egui`, `gpu=` and `draws=` of `perf summary` in a crowd
@@ -10158,7 +10158,7 @@ What the inventory must show with these scenarios:
     (1000000) removes all pressure, to compare.
 - **`AURORA_VRAM_BUDGET_MB=<n>`**: the budget the driver grants the viewer
   is taken as n MB (at least 256), what the texture budget and the
-  Performance window then read (`aurora-render/src/vram.rs`); what the
+  Performance window then read (`block-render/src/vram.rs`); what the
   driver counts for the viewer stays the real figure. It replaces the
   budget given out, the driver's lowest of the last minute (log line
   `GPU memory budget: … given out`), which a smaller card would not show
@@ -10175,7 +10175,7 @@ What the inventory must show with these scenarios:
     colour and the overview the warning "Video memory over the driver's
     budget".
 - **`AURORA_TEXTURE_SLOTS=<n>`**: the texture table holds n textures
-  instead of 262,144 (`aurora-render/src/textures.rs`; the `renderer ready:`
+  instead of 262,144 (`block-render/src/textures.rs`; the `renderer ready:`
   line of the log gives its size). Each texture known to the streamer holds
   a slot of it, from the first face that uses it until 45 s after the last
   one stopped. Used to fill the table in demo.
@@ -10407,7 +10407,7 @@ What the inventory must show with these scenarios:
 - **`AURORA_PROJECTOR_TRACE=1`**: writes `projector trace:` lines with the
   camera position, selected projector object indices, shadow-map
   owners, their fade values and candidate priorities. It requires an info
-  log filter (`RUST_LOG=warn,aurora_viewer::scene::lights=info` is enough).
+  log filter (`RUST_LOG=warn,block_viewer::scene::lights=info` is enough).
   Use a separately named test log and unset the variable after diagnosis;
   these per-frame lines are intended for local investigation.
 - **`AURORA_CONTACT_SHADOWS=0|1|alt|prepass|shell`**: the sun's contact shadows
@@ -10482,7 +10482,7 @@ What the inventory must show with these scenarios:
   main view only walks the reflection probes that cover at once its screen
   column, its row and its depth slice (the sets of the lights,
   `AURORA_LIGHT_TILES`, filled for the probes: `probes::tiles` in
-  `aurora-render/src/probes.rs`), once for its two lookups (ambient and
+  `block-render/src/probes.rs`), once for its two lookups (ambient and
   reflection of a PBR face, glossy and environment reflection of a legacy
   one; `sample_probes_pair` in `common.wgsl`). Same image: a probe left out
   covers none of the fragments drawn there, and those that stay are added
@@ -10509,7 +10509,7 @@ What the inventory must show with these scenarios:
 - **`AURORA_LIGHT_TILES=0|alt|check`**: by default, a lit fragment only
   walks the local lights that cover at once its screen column, its row and
   its depth slice (32 of each; sets computed each frame on the render
-  thread, `aurora-render/src/light_tiles.rs`), in the order of the list:
+  thread, `block-render/src/light_tiles.rs`), in the order of the list:
   same image, the lights that reach the fragment are added up as before and
   in the same order.
   - `0`: each fragment walks the whole list (up to 64 lights), as before,
@@ -10666,7 +10666,7 @@ What the inventory must show with these scenarios:
   their text.
 - **`AURORA_PRESENT_MODE=immediate|mailbox|fifo|fifo-relaxed`**: replaces
   the present mode chosen from vertical sync
-  (`aurora-render/src/present.rs`: without sync `Mailbox`, otherwise
+  (`block-render/src/present.rs`: without sync `Mailbox`, otherwise
   `Immediate`; with it, `FifoRelaxed`, otherwise `Fifo`), if the surface
   offers it; an unknown value is reported in the log and ignored. Used to
   compare the fps from one screen to another (screens with different
@@ -10926,7 +10926,7 @@ What the inventory must show with these scenarios:
   (#1711), so the frames overlap there as without pacing. Without GPU
   timestamps it stays off. `pace` (that wait, 0 while it is off) and
   `input` (input to presentation) in the `perf summary` line; with `0`,
-  `pace` stays at 0 (`aurora-render/src/pacing.rs`). `always` waits on
+  `pace` stays at 0 (`block-render/src/pacing.rs`). `always` waits on
   every frame, whoever sets the pace, as 0.8.4 did: the "before" of a
   comparison in a busy region.
 - **`AURORA_FRAME_PRIORITY=normal|alt`**: by default the threads a frame
@@ -10934,7 +10934,7 @@ What the inventory must show with these scenarios:
   help the main thread in the frame's parallel loops and the texture page
   thread) run one step above normal priority, so that other programs
   keeping the cores busy do not take a core from a step of the frame
-  (`aurora-render/src/frame_priority.rs`). `normal` keeps them at normal
+  (`block-render/src/frame_priority.rs`). `normal` keeps them at normal
   priority, as before; `alt` puts them back at normal priority one second
   in three, named `xmode=old` at the end of the `perf summary` line
   (`xmode=new` for the others): read `ft=` and `off_cpu:` per mode, on a
@@ -10991,11 +10991,11 @@ What the inventory must show with these scenarios:
 - **`AURORA_SHADOW_LEGACY=1|splits|separate|ab|merge`**: to compare the
   image and the measurements of the shadows. By default, each cascade only
   draws the objects whose shadow can fall on what the view reads in it
-  (`aurora-render/src/shadow_cull.rs`), the opaque faces are drawn without
+  (`block-render/src/shadow_cull.rs`), the opaque faces are drawn without
   a fragment shader, the cascade of a pixel is chosen from its own distance
   to the camera, and an opaque object that the cascade before already holds
   is not drawn again: that part of the cascade is filled from the finer
-  map (`aurora-render/src/shadow_merge.rs`), so most objects are drawn in
+  map (`block-render/src/shadow_merge.rs`), so most objects are drawn in
   one cascade only.
   - `separate`: each cascade draws all its objects, as before. An object
     whose shadow reaches two or three cascades is drawn in each: in a
@@ -11533,9 +11533,9 @@ tens of thousands of objects), the threads listed by a thread of their own.
   the process's CPU time as a share of one core and of all the cores,
   `machine=` how busy all the cores were (every process: another program
   loading the PC shows there), then each group of threads as a share of
-  one core, the busiest first: `main`, `aurora-render`, `aurora-worker`
+  one core, the busiest first: `main`, `block-render`, `aurora-worker`
   (the frame's parallel loops), `aurora-jobs` (decodes, meshes, disk),
-  `aurora-net` (the network runtime), `aurora-pages`, `aurora-trash`,
+  `block-net` (the network runtime), `aurora-pages`, `aurora-trash`,
   audio, voice, `unnamed` (the driver's and the system's threads)…; a pool
   gives its threads and its busiest one (`aurora-jobs=320%(14t max=31%)`);
   the groups under 0.1 % of a core are only counted (`quiet_groups=`).
@@ -11670,7 +11670,7 @@ cached textures (read-only), per size class, on one thread then on as many
 threads as the background tasks:
 
 ```powershell
-cargo run --release -p aurora-assets --example j2k_bench -- "$env:LOCALAPPDATA\Aurora\AuroraViewer\cache\tex"
+cargo run --release -p block-assets --example j2k_bench -- "$env:LOCALAPPDATA\Aurora\AuroraViewer\cache\tex"
 ```
 
 Options: `--sample <n>` (2000 textures by default), `--threads <n>`,
@@ -11681,7 +11681,7 @@ pass the quality check, video memory with and without it, cost of encoding
 against decoding), opaque textures and textures with alpha apart:
 
 ```powershell
-cargo run --release -p aurora-render --example bc7_check -- "$env:LOCALAPPDATA\Aurora\AuroraViewer\cache\tex"
+cargo run --release -p block-render --example bc7_check -- "$env:LOCALAPPDATA\Aurora\AuroraViewer\cache\tex"
 ```
 
 Options: `--sample <n>` (1000 by default), `--discard <n>` (decoded level,

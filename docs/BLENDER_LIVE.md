@@ -307,7 +307,7 @@ python blender/package.py --legacy .scratch/aurora-live-mesh-0.8.7-legacy.zip
 ```
 
 The extension ZIP has a root manifest and targets Blender 4.2+. The classic
-ZIP contains an `aurora_live/` directory with `bl_info` and targets 2.93–4.1.
+ZIP contains an `block_live/` directory with `bl_info` and targets 2.93–4.1.
 
 ## Create a rig and test T-shirt
 

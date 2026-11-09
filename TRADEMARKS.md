@@ -43,9 +43,9 @@ and when (section 5(a)).
 ## Official downloads
 
 The only official builds are those linked from
-[aurora-viewer.org](https://aurora-viewer.org) and the
+[block-viewer.org](https://block-viewer.org) and the
 [releases of this repository](https://github.com/Aurora-Viewer/Aurora-Viewer/releases).
 
 ## Questions
 
-[contact@aurora-viewer.org](mailto:contact@aurora-viewer.org).
+[contact@block-viewer.org](mailto:contact@block-viewer.org).

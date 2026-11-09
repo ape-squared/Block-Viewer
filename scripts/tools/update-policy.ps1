@@ -1,4 +1,4 @@
-﻿# Release policy is part of the annotated tag: the release can be configured
+# Release policy is part of the annotated tag: the release can be configured
 # without committing local choices to main. Thresholds carry across versions.
 function Get-UpdatePolicy([string]$RepoPath, [string]$Tag, [string]$BaseTag, [string]$Ref) {
     $fields = @('minimum_supported_version', 'cache_invalidation_before', 'settings_reset_before')
@@ -42,7 +42,7 @@ function Assert-UpdatePolicy($Policy, [string]$Version) {
         }
     }
     # 0.9.2-beta.1 comes before 0.9.2: the updater refuses a floor above the
-    # version it offers (aurora-updater feed.rs, "invalid update floor")
+    # version it offers (block-updater feed.rs, "invalid update floor")
     $minimum = $Policy.minimum_supported_version
     if ($minimum -and $Version -ne $core -and [version]$minimum -eq [version]$core) {
         throw "Invalid minimum for the pre-release ${Version}: $minimum."

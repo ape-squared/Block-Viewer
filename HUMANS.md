@@ -238,10 +238,10 @@ see the news item in the viewer **before** merging, launch it with
    Enter) and clone the repository:
 
    ```bat
-   git clone https://github.com/Aurora-Viewer/Aurora-Viewer aurora-viewer
+   git clone https://github.com/Aurora-Viewer/Aurora-Viewer block-viewer
    ```
 
-2. Double-click **`aurora-viewer\aurora-tools.cmd`** (the Aurora tools, next
+2. Double-click **`block-viewer\aurora-tools.cmd`** (the Aurora tools, next
    section). They check what is missing and offer **Repair / update**:
    - they install what is missing with winget: GitHub CLI (for the whole
      machine), the Visual Studio C++ tools that Rust needs to build (several
@@ -266,7 +266,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -Command "$f = Join-Path $env:TEMP
 ```
 
 From here on, **the project folder** is the one of the installation: it
-contains `aurora-viewer\`, `phoenix-firestorm\`, `work\` (the agents' tasks)
+contains `block-viewer\`, `phoenix-firestorm\`, `work\` (the agents' tasks)
 and, later, `RELEASE\`.
 
 ## The Aurora tools: `aurora-tools.cmd`
@@ -278,7 +278,7 @@ to go back, and the key shown in front of each choice as a shortcut.
 
 The launcher loads the scripts present in `scripts/tools/` each time it
 opens. It also works when placed in the project folder, next to
-`aurora-viewer/`; alone in an empty folder, it downloads the installer from
+`block-viewer/`; alone in an empty folder, it downloads the installer from
 the `main` of GitHub. On the command line, it passes the arguments to the
 tools and returns their exit code, for example
 `aurora-tools.cmd -Action diagnose`. Exclamation marks in the path stay valid
@@ -376,7 +376,7 @@ built.
 ## Building and launching by hand
 
 ```bash
-cargo run -p aurora-viewer
+cargo run -p block-viewer
 ```
 
 - The default profile (without `--release`) is the agents' one: it behaves
@@ -384,7 +384,7 @@ cargo run -p aurora-viewer
   `cargo build --release` is still possible to measure performance (it
   rebuilds everything a second time).
 - Demo mode (no connection): `$env:AURORA_DEMO="1"` before launching.
-- Naming the window: `cargo run -p aurora-viewer -- --title "My test"`.
+- Naming the window: `cargo run -p block-viewer -- --title "My test"`.
 - Checking everything like CI: `./scripts/check.ps1`.
 - The agents build in their own folder `..\work\<task>\target`: their open
   viewers do not block yours.
@@ -453,8 +453,8 @@ for the format of the packages and their policy.
 | Conversation history (text files, per account and per grid; Preferences › Chat to open it, turn it off or erase it) | `%APPDATA%\Aurora\AuroraViewer\config\accounts\<account uuid>\chat_logs\<grid>\` |
 | Cache (textures, mesh…) — can be deleted safely | `%LOCALAPPDATA%\Aurora\AuroraViewer\cache\` |
 | Logs (to send to an agent after a test) | `%LOCALAPPDATA%\Aurora\AuroraViewer\data\logs\` |
-| `--release` viewer of the latest `main` | `RELEASE\Aurora-Viewer\aurora-viewer.exe`, in the project folder |
-| Program built by hand | `target\debug\aurora-viewer.exe` (or `work\<task>\target\debug\`) |
+| `--release` viewer of the latest `main` | `RELEASE\Aurora-Viewer\block-viewer.exe`, in the project folder |
+| Program built by hand | `target\debug\block-viewer.exe` (or `work\<task>\target\debug\`) |
 
 `aurora.log` is the log of your last real session; the session before is kept
 as `aurora.previous.log`. Demo sessions have their own logs

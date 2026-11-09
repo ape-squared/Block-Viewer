@@ -64,7 +64,7 @@ background work and lowers the latency of Bluetooth controllers and
 headphones.
 
 Game Mode belongs to the installed application: running a bare
-`aurora-viewer` executable from a terminal has no application bundle, so
+`block-viewer` executable from a terminal has no application bundle, so
 macOS cannot offer it there.
 
 ## Keyboard
@@ -133,15 +133,15 @@ Install Apple's command line tools and Rust, then build:
 ```bash
 xcode-select --install
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
-git clone https://github.com/Aurora-Viewer/Aurora-Viewer aurora-viewer
-cd aurora-viewer
-cargo build --release --locked -p aurora-viewer
-./target/release/aurora-viewer
+git clone https://github.com/Aurora-Viewer/Aurora-Viewer block-viewer
+cd block-viewer
+cargo build --release --locked -p block-viewer
+./target/release/block-viewer
 ```
 
-`AURORA_DEMO=1 ./target/release/aurora-viewer` starts the offline demo,
+`AURORA_DEMO=1 ./target/release/block-viewer` starts the offline demo,
 without the network. To build the application itself as the release does,
-run `pwsh ./scripts/package-macos.ps1 -Exe target/release/aurora-viewer -Out "Aurora Viewer.app"`
+run `pwsh ./scripts/package-macos.ps1 -Exe target/release/block-viewer -Out "Aurora Viewer.app"`
 (PowerShell 7: `brew install powershell`). The same PowerShell runs the local
 checks: `pwsh -File ./scripts/check.ps1` (formatting, clippy, tests).
 

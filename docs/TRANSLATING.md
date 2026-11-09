@@ -1,6 +1,6 @@
 # Translating the viewer
 
-Each language has a Fluent catalogue in `crates/aurora-i18n/locales/`.
+Each language has a Fluent catalogue in `crates/block-i18n/locales/`.
 English is in `en.ftl`, French in `fr.ftl` and Japanese in `ja.ftl`. The
 files are embedded at build time; adding `de.ftl`, for example, adds a
 language to the Preferences without changing the Rust code. The file name
@@ -30,8 +30,8 @@ A new text uses an explicit key and its version in every catalogue
 `scripts/check.ps1` and in the merge queue.
 
 ```rust
-ui.label(aurora_i18n::tr!("inventory-empty"));
-let message = aurora_i18n::tr!("resident-online", name = name.as_str());
+ui.label(block_i18n::tr!("inventory-empty"));
+let message = block_i18n::tr!("resident-online", name = name.as_str());
 ```
 
 ```ftl
@@ -52,7 +52,7 @@ Variable names must be identical in every language.
 Passing a number directly lets Fluent choose the plural:
 
 ```rust
-let label = aurora_i18n::tr!("inventory-count", count = items.len());
+let label = block_i18n::tr!("inventory-count", count = items.len());
 ```
 
 ```ftl
@@ -115,7 +115,7 @@ widget identifiers, UUIDs, font names and saved identifiers stay stable.
 Names, descriptions and messages written by residents or received from the
 server stay as they are.
 
-`cargo test -p aurora-i18n` checks the syntax, the uniqueness of the keys and
+`cargo test -p block-i18n` checks the syntax, the uniqueness of the keys and
 the parity of the keys and variables with English, as well as selection,
 fallback and plurals. `scripts/check.ps1` also runs the viewer and network
 tests.
@@ -125,9 +125,9 @@ To compare the languages without changing the preferences:
 ```powershell
 $env:AURORA_DEMO = '1'
 $env:AURORA_DEMO_OPTIONS = '1'
-cargo run -p aurora-viewer -- --language en --title "Test langue-viewer"
-cargo run -p aurora-viewer -- --language fr --title "Test langue-viewer"
-cargo run -p aurora-viewer -- --language ja --title "Test langue-viewer"
+cargo run -p block-viewer -- --language en --title "Test langue-viewer"
+cargo run -p block-viewer -- --language fr --title "Test langue-viewer"
+cargo run -p block-viewer -- --language ja --title "Test langue-viewer"
 ```
 
 Remove `--language` to check the saved choice and its change while the

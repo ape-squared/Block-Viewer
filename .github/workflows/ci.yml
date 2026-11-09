@@ -142,7 +142,7 @@ jobs:
       # pull requests: the quick tests of the media host and the updater
       - name: Tests of the media host and the updater
         if: steps.changes.outputs.needed == 'true' && github.event_name == 'pull_request'
-        run: cargo test --profile ci --locked -p aurora-media -p aurora-updater
+        run: cargo test --profile ci --locked -p block-media -p block-updater
       # main: build the tests and save the cache before running them, so
       # that the queue compiles the workspace and not its dependencies, even
       # when a test fails

@@ -174,9 +174,9 @@ What each part tells the one who fixes it:
 Each Windows release carries `Aurora-Viewer-vX.Y.Z-windows-x64-symbols.zip`:
 the Breakpad symbol file of the exe, made by `dump_syms` from the release
 build's PDB (line tables only) and stored as
-`aurora_viewer.pdb/<debug id>/aurora_viewer.sym`. The debug id is the
-`id=` of the `aurora_viewer` line in a report's modules: the file of the
-version that crashed turns each `aurora_viewer+0xoffset` into a function
+`block_viewer.pdb/<debug id>/block_viewer.sym`. The debug id is the
+`id=` of the `block_viewer` line in a report's modules: the file of the
+version that crashed turns each `block_viewer+0xoffset` into a function
 and a source line. A pull request that changes the Release workflow keeps
 the file of its dry run as the run's artifact. The PDB itself is not
 published. To resolve a stack by hand, unzip the file and look up, for
@@ -220,7 +220,7 @@ closed issue is not a reference: a crash that comes back after its fix
 opens a new issue. "Run workflow" with an issue number triages it again,
 for example once the symbols of its version are published. Locally, on a
 crash session's `public-report.md` and an unzipped symbol file:
-`./scripts/crash-triage.ps1 -ReportFile <public-report.md> -SymbolFile <aurora_viewer.sym>`
+`./scripts/crash-triage.ps1 -ReportFile <public-report.md> -SymbolFile <block_viewer.sym>`
 prints the section, title and signature without writing to GitHub.
 `scripts/test-crash-triage.ps1` holds the fixture tests; the workflow runs
 them on the pull requests that change the triage.

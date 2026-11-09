@@ -43,8 +43,8 @@ Use the normal Windows environment described in `HUMANS.md`; build in the task
 worktree with its default target directory and dev profile:
 
 ```powershell
-cargo build --locked -p aurora-render --example xr_spike
-cargo build --locked -p aurora-viewer
+cargo build --locked -p block-render --example xr_spike
+cargo build --locked -p block-viewer
 ./scripts/check.ps1
 ```
 
@@ -61,11 +61,11 @@ Windows path. Headset tests use a local dev build.
 
    ```powershell
    $env:AURORA_DEMO = "1"
-   cargo run -p aurora-viewer -- --title "Test vr-scene-view Windows"
+   cargo run -p block-viewer -- --title "Test vr-scene-view Windows"
    ```
 
    With a downloaded binary, set the same environment variable and run
-   `./aurora-viewer.exe --title "Test vr-scene-view Windows"` instead.
+   `./block-viewer.exe --title "Test vr-scene-view Windows"` instead.
 3. Place/pitch the desktop camera downward. Click the headset button in the
    bottom toolbar. Confirm horizon-level entry, correct stereo/head tracking,
    scene materials/lighting/transparency and no interface/HUD/nameplate overlays.

@@ -3,7 +3,7 @@
 Input: the folder of the MIT Media Lab's diffuse-field equalized KEMAR set
 (`diffuse.zip` of https://sound.media.mit.edu/resources/KEMAR.html, by Bill
 Gardner and Keith Martin, Copyright 1994 MIT Media Lab, free to use with
-credit). Output: assets/hrtf/kemar.bin, read by aurora-audio/src/hrtf.rs
+credit). Output: assets/hrtf/kemar.bin, read by block-audio/src/hrtf.rs
 (keep the two formats in step).
 
 Each response (128 taps at 44.1 kHz, azimuths 0 to 180 degrees, the other

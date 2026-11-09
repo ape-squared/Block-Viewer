@@ -107,7 +107,7 @@ Windows runtime names are not macOS installation instructions.
    test (environment values below are examples of controls, not installed paths):
 
    ```sh
-   AURORA_DEMO=1 AURORA_DEMO_XR_WORLD=1 cargo run -p aurora-viewer -- --title "Test vr-scene-view macOS"
+   AURORA_DEMO=1 AURORA_DEMO_XR_WORLD=1 cargo run -p block-viewer -- --title "Test vr-scene-view macOS"
    ```
 
    This enters after frame 600 and submits for about 15 seconds. Then test manual

@@ -22,12 +22,12 @@ cargo-fuzz = true
 libfuzzer = ["dep:libfuzzer-sys"]
 
 [dependencies]
-aurora-assets = { path = "../crates/aurora-assets" }
-aurora-audio = { path = "../crates/aurora-audio" }
-aurora-llsd = { path = "../crates/aurora-llsd" }
-aurora-msg = { path = "../crates/aurora-msg" }
-aurora-net = { path = "../crates/aurora-net" }
-aurora-prim = { path = "../crates/aurora-prim" }
+block-assets = { path = "../crates/block-assets" }
+block-audio = { path = "../crates/block-audio" }
+block-llsd = { path = "../crates/block-llsd" }
+block-msg = { path = "../crates/block-msg" }
+block-net = { path = "../crates/block-net" }
+block-prim = { path = "../crates/block-prim" }
 glam = "0.34.1"
 libfuzzer-sys = { version = "0.4", optional = true }
 uuid = "1.27.0"
@@ -45,27 +45,27 @@ debug-assertions = false
 overflow-checks = false
 
 # (outside this workspace, our crates are "*" too: a name wins over "*")
-[profile.release.package.aurora-assets]
+[profile.release.package.block-assets]
 debug-assertions = true
 overflow-checks = true
 
-[profile.release.package.aurora-audio]
+[profile.release.package.block-audio]
 debug-assertions = true
 overflow-checks = true
 
-[profile.release.package.aurora-llsd]
+[profile.release.package.block-llsd]
 debug-assertions = true
 overflow-checks = true
 
-[profile.release.package.aurora-msg]
+[profile.release.package.block-msg]
 debug-assertions = true
 overflow-checks = true
 
-[profile.release.package.aurora-net]
+[profile.release.package.block-net]
 debug-assertions = true
 overflow-checks = true
 
-[profile.release.package.aurora-prim]
+[profile.release.package.block-prim]
 debug-assertions = true
 overflow-checks = true
 

@@ -11,7 +11,7 @@ A Vulkan renderer, a clean interface, and the Second Life you already know.
 [![Download for Linux](docs/readme/button-download-linux.svg)](docs/LINUX.md)&nbsp;
 [![Download for macOS (experimental)](docs/readme/button-download-macos.svg)](docs/MACOS.md)&nbsp;
 [![Discord](docs/readme/button-discord.svg)](https://discord.gg/TK4nbMGmKt)&nbsp;
-[![Website](docs/readme/button-website.svg)](https://aurora-viewer.org)
+[![Website](docs/readme/button-website.svg)](https://block-viewer.org)
 
 [![CI](https://github.com/Aurora-Viewer/Aurora-Viewer/actions/workflows/ci.yml/badge.svg)](https://github.com/Aurora-Viewer/Aurora-Viewer/actions/workflows/ci.yml)
 [![Release](https://img.shields.io/github/v/release/Aurora-Viewer/Aurora-Viewer?include_prereleases&color=8B5CF6)](https://github.com/Aurora-Viewer/Aurora-Viewer/releases)
@@ -801,7 +801,7 @@ The viewer first follows the language saved in **Preferences › Interface ›
 Language**, then the system's if "System language" is selected. English is
 the fallback. The change applies at once; the "Language visible to scripts"
 setting is on by default, like the Legacy Viewer. The translations are in
-`crates/aurora-i18n/locales/`.
+`crates/block-i18n/locales/`.
 
 ### Frame limiter
 
@@ -1006,7 +1006,7 @@ details: the full trace may contain personal paths, review it before sharing.
 The bar button can be hidden in Preferences › Interface.
 
 Ideas and feature requests go to the
-[feedback board](https://feedback.aurora-viewer.org), where everyone can vote
+[feedback board](https://feedback.block-viewer.org), where everyone can vote
 for them.
 
 ### Where your files are
@@ -1023,7 +1023,7 @@ files never leave the machine and are never attached to a bug report.
 ### Removing Aurora
 
 Preferences › Language and updates › "Remove Aurora from this computer"
-(or `aurora-viewer --uninstall`, see [Command line](#command-line)) removes
+(or `block-viewer --uninstall`, see [Command line](#command-line)) removes
 what Aurora registered outside its own folders: the `secondlife://`,
 `hop://` and `x-grid-location-info://` link handler when it opens this
 Aurora (another viewer's stays), the Windows notification identity, the
@@ -1080,7 +1080,7 @@ see [Installing on Linux](docs/LINUX.md#building-from-source); on macOS,
 repository into it, then double-click **`aurora-tools.cmd`**:
 
 ```bat
-git clone https://github.com/Aurora-Viewer/Aurora-Viewer aurora-viewer
+git clone https://github.com/Aurora-Viewer/Aurora-Viewer block-viewer
 ```
 
 The tools check the environment and offer to **repair** it: they install
@@ -1101,15 +1101,15 @@ powershell -NoProfile -ExecutionPolicy Bypass -Command "$f = Join-Path $env:TEMP
 Or by hand, to build the viewer only:
 
 ```powershell
-git clone https://github.com/Aurora-Viewer/Aurora-Viewer aurora-viewer
-cd aurora-viewer
-cargo build --release -p aurora-viewer
-./target/release/aurora-viewer.exe
+git clone https://github.com/Aurora-Viewer/Aurora-Viewer block-viewer
+cd block-viewer
+cargo build --release -p block-viewer
+./target/release/block-viewer.exe
 ```
 
 Run the same checks as the CI with `./scripts/check.ps1` (rustfmt, clippy
 with warnings as errors, tests). Day-to-day development uses the default
-profile (`cargo run -p aurora-viewer`): it behaves like the release build
+profile (`cargo run -p block-viewer`): it behaves like the release build
 without its slow link-time optimization. `./scripts/build-release.ps1`
 builds GitHub's latest `main` with `--release` into `..\RELEASE\`.
 
@@ -1118,7 +1118,7 @@ exe, so the exe works from any folder.
 
 ### macOS
 
-Apple Silicon Macs draw through Metal (`aurora_render::BACKENDS`), Windows
+Apple Silicon Macs draw through Metal (`block_render::BACKENDS`), Windows
 and Linux through Vulkan; MoltenVK is not used. Building, the application
 bundle and its signing: [Installing on macOS](docs/MACOS.md). The macOS
 workflow (`.github/workflows/macos.yml`) checks every pull request with
@@ -1188,7 +1188,7 @@ exe before publishing; the local build also writes it to `version.txt`.
   from this computer" does, without its confirmation (see
   [Removing Aurora](#removing-aurora)); it prints each part with its result,
   then the folders to delete, and exits with code 1 when a part could not be
-  removed. On Windows, run it as `aurora-viewer.exe --uninstall | more` so
+  removed. On Windows, run it as `block-viewer.exe --uninstall | more` so
   the terminal waits for its text. With `AURORA_DEMO=1` it is a dry run that
   removes nothing.
 - `--login`: the account follows the usual "remember" choices; a single
@@ -1203,7 +1203,7 @@ settings and cache (`…\config\demo`, `…\cache\demo`).
 
 ```powershell
 $env:AURORA_DEMO = "1"
-cargo run -p aurora-viewer
+cargo run -p block-viewer
 ```
 
 | Variable | Effect |
@@ -1287,15 +1287,15 @@ openly.
   testers on the grid.
 
 Questions and answers, and the details:
-[AI use policy](https://aurora-viewer.org/ai-policy/).
+[AI use policy](https://block-viewer.org/ai-policy/).
 
 ## Privacy
 
 The Aurora team runs no server: the viewer talks to Linden Lab, and to other
 services only for the features you use. The
-[privacy policy](https://aurora-viewer.org/privacy/) lists what is sent, to
+[privacy policy](https://block-viewer.org/privacy/) lists what is sent, to
 whom, and what stays on your computer; it is also linked from Preferences ›
-Privacy. Questions about it: [contact@aurora-viewer.org](mailto:contact@aurora-viewer.org).
+Privacy. Questions about it: [contact@block-viewer.org](mailto:contact@block-viewer.org).
 
 ## License
 
@@ -1308,7 +1308,7 @@ from the Second Life viewer and Firestorm (originally LGPL 2.1); see
 
 The name and the wolf logo identify the team's own builds: a modified version
 takes its own name and icon, see [TRADEMARKS.md](TRADEMARKS.md). The only
-official downloads are on [aurora-viewer.org](https://aurora-viewer.org) and in
+official downloads are on [block-viewer.org](https://block-viewer.org) and in
 this repository's [releases](https://github.com/Aurora-Viewer/Aurora-Viewer/releases).
 
 Aurora Viewer is not affiliated with Linden Lab or the Firestorm project.

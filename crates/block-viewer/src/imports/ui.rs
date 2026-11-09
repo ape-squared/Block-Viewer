@@ -1,0 +1,985 @@
+//! Aurora import windows: stable layout, short labels, scoped advanced
+//! controls and a persistent footer showing the exact confirmed price.
+
+use super::*;
+use crate::{
+    theme::Palette,
+    ui::widgets::{self, ActionKind, Floater, action_button, action_button_if, checkbox, flat_button},
+};
+use egui::{RichText, Vec2};
+
+const IMPORT_POSITION: egui::Pos2 = egui::Pos2 { x: 48.0, y: 80.0 };
+
+pub(super) mod destination;
+mod folder_panel;
+mod folder_preview;
+mod footer;
+mod inspector;
+pub(crate) mod launcher;
+pub(crate) mod local_status;
+mod queue;
+mod source_root;
+
+pub(crate) const WINDOW: &str = "asset_imports_v7";
+
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
+pub enum Tab {
+    #[default]
+    Batch,
+    Folder,
+    Permissions,
+}
+mod material_panel;
+mod mesh_panel;
+pub(crate) mod permission_panel;
+mod sound_panel;
+#[cfg(test)]
+mod tests;
+#[cfg(test)]
+mod unified_tests;
+mod zoom;
+
+// egui's menu style and button strokes can change the padding between states.
+// Keep popup row geometry fixed while still using native keyboard interaction.
+fn selection<T: PartialEq>(ui: &mut egui::Ui, current: &mut T, value: T, label: impl Into<egui::WidgetText>) -> egui::Response {
+    let response = ui
+        .scope(|ui| {
+            ui.spacing_mut().button_padding = Vec2::new(8.0, 4.0);
+            let w = &mut ui.visuals_mut().widgets;
+            for visuals in [&mut w.inactive, &mut w.hovered, &mut w.active] {
+                visuals.bg_stroke = egui::Stroke::NONE;
+                visuals.expansion = 0.0;
+            }
+            ui.add_sized(
+                Vec2::new(ui.available_width(), ui.spacing().interact_size.y),
+                egui::Button::new(label.into())
+                    .selected(*current == value)
+                    .frame(true)
+                    .frame_when_inactive(true)
+                    .truncate(),
+            )
+        })
+        .inner;
+    if response.clicked() && *current != value {
+        *current = value;
+        let mut response = response;
+        response.mark_changed();
+        response
+    } else {
+        response
+    }
+}
+
+/// Collapsible section under its title: the shared header, with the id a
+/// stock `ui.collapsing` gave to the same title.
+fn fold(ui: &mut egui::Ui, p: &Palette, title: &str, default_open: bool, body: impl FnOnce(&mut egui::Ui)) {
+    widgets::collapsing(ui, p, title, title, default_open, body);
+}
+
+/// A flat text button of the toolbar, greyed out when `enabled` is false.
+fn tool_button(ui: &mut egui::Ui, p: &Palette, label: &str, enabled: bool) -> egui::Response {
+    action_button_if(
+        ui,
+        p,
+        "",
+        label,
+        ActionKind::Flat,
+        Vec2::new(0.0, ui.spacing().interact_size.y),
+        enabled,
+    )
+}
+
+/// Swatch and picker of a glTF factor: linear components with a straight
+/// alpha, edited as the sRGB bytes of the shared color picker. The factor is
+/// written only when the user changes it, so an untouched one keeps its
+/// exact value.
+pub(crate) fn factor_swatch(ui: &mut egui::Ui, p: &Palette, id_salt: impl egui::AsIdSalt, factor: &mut [f32], alpha: bool) {
+    use egui::ecolor::{gamma_u8_from_linear_f32, linear_f32_from_gamma_u8, linear_u8_from_linear_f32};
+    let mut srgba = [255u8; 4];
+    for (byte, linear) in srgba.iter_mut().zip(factor.iter()).take(3) {
+        *byte = gamma_u8_from_linear_f32(*linear);
+    }
+    if let Some(a) = factor.get(3) {
+        srgba[3] = linear_u8_from_linear_f32(*a);
+    }
+    if widgets::color_button(ui, p, id_salt, &mut srgba, alpha).changed() {
+        for (linear, byte) in factor.iter_mut().zip(srgba).take(3) {
+            *linear = linear_f32_from_gamma_u8(byte);
+        }
+        if let Some(a) = factor.get_mut(3) {
+            *a = f32::from(srgba[3]) / 255.0;
+        }
+    }
+}
+
+pub enum Action {
+    Files,
+    Choose(Choice),
+    Folder,
+    Start,
+    StartFor(Choice),
+    Cancel,
+    Preview(Uuid),
+    Play(Uuid, bool),
+    AnimationModel(Uuid),
+    SelectAnimationModel(Uuid, Uuid),
+    RemoveAnimationModel(Uuid),
+    DefaultAnimationModel(Uuid),
+    SoundGain(Uuid),
+    Reload(Uuid),
+    RestoreDraft(Uuid),
+    ResetMesh(Uuid),
+    Quote(Uuid),
+    MeshFile(Uuid, usize),
+    PhysicsPreset(Uuid, bool),
+    Open(Uuid),
+    Local(Uuid),
+    ClearLocal(Uuid),
+    RezLocal(Uuid),
+    StageLocalUploads,
+    MapFile(Uuid, usize),
+    MapInventory(Uuid, usize),
+    MapDrop(Uuid, usize, crate::ui::resource_drop::Target),
+    Zoom(Uuid, Option<usize>),
+    LargeMap(Uuid, usize),
+    Remove(Uuid),
+    Resume,
+    ResumeFor(Choice),
+}
+
+fn server_message(message: &str) -> &str {
+    // LLMeshUploadThread::log_upload_error also translates these MAV details.
+    match message {
+        "MAV_FOUND_DEGENERATE_TRIANGLES" => block_i18n::tr!("import-mesh-error-degenerate"),
+        "MAV_CONFIRMATION_DATA_MISMATCH" => block_i18n::tr!("import-mesh-error-confirmation"),
+        "MAV_BLOCK_MISSING" => block_i18n::tr!("import-mesh-error-missing"),
+        "MAV_UNKNOWN_VERSION" => block_i18n::tr!("import-mesh-error-version"),
+        _ => message,
+    }
+}
+
+pub fn error(error: Error) -> String {
+    if let Error::Refused(reason) | Error::Uncertain(reason) = &error {
+        let mut details = Vec::new();
+        if let Some(status) = reason.status {
+            details.push(block_i18n::tr!("import-error-http", status = status));
+        }
+        if !reason.identifier.is_empty() {
+            details.push(block_i18n::tr!("import-error-code", code = &reason.identifier));
+        }
+        let explanation = server_message(&reason.identifier);
+        if explanation != reason.identifier {
+            details.push(explanation.to_owned());
+        }
+        for message in &reason.messages {
+            let message = server_message(message).to_owned();
+            if !details.contains(&message) {
+                details.push(message);
+            }
+        }
+        if reason.messages.is_empty() && explanation == reason.identifier {
+            details.push(block_i18n::tr!("import-error-no-details").into());
+        }
+        let heading = if matches!(error, Error::Uncertain(_)) {
+            block_i18n::tr!("import-unknown-outcome")
+        } else {
+            block_i18n::tr!("import-rejected")
+        };
+        return format!("{heading}\n{}", details.join("\n"));
+    }
+    if let Error::PriceChanged(Some(cost)) = error {
+        return block_i18n::tr!("import-new-price", cost = cost);
+    }
+    match error {
+        Error::Invalid => block_i18n::tr!("import-invalid-request"),
+        Error::Unavailable => block_i18n::tr!("import-service-unavailable"),
+        Error::Rejected => block_i18n::tr!("import-rejected"),
+        Error::MeshPermission => block_i18n::tr!("import-mesh-permission-denied"),
+        Error::Refused(_) | Error::Uncertain(_) => unreachable!("details handled above"),
+        Error::Response => block_i18n::tr!("import-invalid-response"),
+        Error::Unknown => block_i18n::tr!("import-unknown-outcome"),
+        Error::Verification => block_i18n::tr!("import-unverified"),
+        Error::PriceChanged(_) => block_i18n::tr!("import-price-changed"),
+    }
+    .into()
+}
+
+fn status(entry: &Entry) -> String {
+    match &entry.status {
+        Status::Ready => block_i18n::tr!("import-ready").into(),
+        Status::Preparing => block_i18n::tr!("import-preparing").into(),
+        Status::Uploading => block_i18n::tr!("import-uploading").into(),
+        Status::Done(_) => block_i18n::tr!("import-done").into(),
+        Status::Cancelled => block_i18n::tr!("import-cancelled").into(),
+        Status::Error(error) => error.clone(),
+    }
+}
+
+fn file_status(ui: &mut egui::Ui, p: &Palette, entry: &Entry) {
+    let response = ui
+        .allocate_ui_with_layout(
+            Vec2::new(18.0, 26.0),
+            egui::Layout::left_to_right(egui::Align::Center),
+            |ui| match &entry.status {
+                Status::Ready => {}
+                Status::Preparing | Status::Uploading => {
+                    ui.add(egui::Spinner::new().size(16.0));
+                }
+                Status::Done(_) => widgets::glyph(ui, "check", p.success, 16.0),
+                Status::Cancelled => widgets::glyph(ui, "x", p.muted, 16.0),
+                Status::Error(_) => widgets::glyph(ui, "alert-triangle-filled", p.danger, 16.0),
+            },
+        )
+        .response;
+    if !matches!(entry.status, Status::Ready) {
+        response.on_hover_text(status(entry));
+    }
+}
+
+fn metadata_controls(ui: &mut egui::Ui, entry: &mut Entry) {
+    let mesh = matches!(entry.source, Some(Source::Mesh(_)));
+    egui::Grid::new("import_metadata")
+        .num_columns(2)
+        .spacing(Vec2::new(12.0, 8.0))
+        .show(ui, |ui| {
+            ui.label(block_i18n::tr!("common-name"));
+            crate::ui::widgets::restricted_text_field(
+                ui,
+                true,
+                &mut entry.name,
+                crate::ui::widgets::TextPolicy::PrintableNoPipe,
+                |b, ui| {
+                    egui::TextEdit::singleline(b)
+                        .desired_width((ui.available_width() - if mesh { 0.0 } else { 100.0 }).clamp(120.0, 360.0))
+                        .char_limit(63)
+                },
+            );
+            ui.end_row();
+            if !entry.local {
+                ui.label(block_i18n::tr!("common-description"));
+                crate::ui::widgets::restricted_text_field(
+                    ui,
+                    true,
+                    &mut entry.description,
+                    crate::ui::widgets::TextPolicy::PrintableNoPipe,
+                    |b, ui| {
+                        egui::TextEdit::singleline(b)
+                            .desired_width((ui.available_width() - if mesh { 0.0 } else { 100.0 }).clamp(120.0, 360.0))
+                            .char_limit(127)
+                    },
+                );
+                ui.end_row();
+            }
+        });
+}
+
+fn has_selected_mesh(imports: &Imports) -> bool {
+    imports
+        .entries
+        .iter()
+        .any(|entry| imports.choice.accepts(entry) && entry.selected && matches!(entry.source, Some(Source::Mesh(_))))
+}
+
+fn mesh_blocked(imports: &Imports, connected: bool, account: Uuid) -> bool {
+    connected && has_selected_mesh(imports) && imports.mesh_permission_denied && imports.mesh_permission_account == account
+}
+
+fn price_label(imports: &Imports, prices: &Prices, connected: bool, account: Uuid) -> String {
+    if imports.choice == Choice::Local {
+        return block_i18n::tr!("import-local-free").into();
+    }
+    if !connected {
+        return block_i18n::tr!("import-price-unavailable").into();
+    }
+    if mesh_blocked(imports, connected, account) {
+        return block_i18n::tr!("import-mesh-account-denied").into();
+    }
+    if let Some(cost) = imports.total(prices) {
+        return block_i18n::tr!("import-total", cost = cost);
+    }
+    if imports
+        .entries
+        .iter()
+        .any(|entry| imports.choice.accepts(entry) && entry.selected && matches!(entry.status, Status::Error(_)))
+    {
+        return block_i18n::tr!("import-fix-errors-before-upload").into();
+    }
+    if has_selected_mesh(imports) {
+        return block_i18n::tr!("import-mesh-fee-required").into();
+    }
+    block_i18n::tr!("import-price-pending").into()
+}
+
+pub fn show(
+    ctx: &egui::Context,
+    p: &Palette,
+    imports: &mut Imports,
+    prefs: &mut Preferences,
+    world: &crate::world::World,
+    inventory_prefs: &crate::ui::inventory::InventoryPreferences,
+) -> Vec<Action> {
+    #[cfg(test)]
+    ctx.data_mut(|data| data.remove::<(egui::Rect, egui::Rect, bool)>(egui::Id::unique("import_upload_action")));
+    let mut actions = Vec::new();
+    let old_permissions = prefs.clone();
+    if imports.choice != Choice::Local {
+        imports.choice = Choice::Bulk;
+    }
+    imports.sync_destinations(prefs, world, inventory_prefs);
+    imports.reconcile_active();
+    let prices = if imports.demo_started {
+        Prices {
+            texture: Some(10),
+            large_texture: Some(40),
+            sound: Some(10),
+            animation: Some(10),
+        }
+    } else {
+        world.login.as_ref().map(|login| Prices::from_login(&login.raw)).unwrap_or_default()
+    };
+    let prices = prices.with_fallback(world.upload_cost);
+    launcher::show(ctx, p, imports, &mut actions);
+    inspector::show(ctx, p, imports, prefs, world, inventory_prefs, &prices, &mut actions);
+    for choice in windows::TYPES {
+        if imports.window_open(choice) {
+            let mut window_actions = Vec::new();
+            imports.with_window(choice, |imports| {
+                inspector::show(ctx, p, imports, prefs, world, inventory_prefs, &prices, &mut window_actions);
+            });
+            actions.extend(window_actions.into_iter().map(|action| match action {
+                Action::Files => Action::Choose(choice),
+                Action::Resume => Action::ResumeFor(choice),
+                action => action,
+            }));
+        }
+    }
+    launcher::keep_accessible(ctx, imports);
+    if prefs.permissions_for(Kind::Mesh) != old_permissions.permissions_for(Kind::Mesh) {
+        for entry in &mut imports.entries {
+            if let Some(Source::Mesh(draft)) = &mut entry.source {
+                draft.invalidate_quote();
+                entry.preview_generation += 1;
+            }
+        }
+    }
+    if imports.confirm {
+        let choice = imports.confirm_choice.unwrap_or(imports.choice);
+        imports.with_choice(choice, |imports| {
+            let modal = widgets::Modal::new(egui::Id::unique("import_confirmation")).show(ctx, |ui| {
+                ui.set_width(380.0_f32.min(ctx.content_rect().width() - 60.0).max(180.0));
+                widgets::section_header(ui, p, "file-upload-filled", block_i18n::tr!("import-confirm-title"));
+                if let Some(cost) = imports.total(&prices) {
+                    ui.label(block_i18n::tr!("import-confirm-price", cost = cost));
+                    if imports.has_shared_textures() {
+                        ui.label(block_i18n::tr!("import-confirm-shared-textures"));
+                    }
+                }
+                if imports.folders.active() && !imports.folder_plan_ready(world) {
+                    ui.label(block_i18n::tr!("import-folders-auto-create"));
+                }
+                ui.horizontal(|ui| {
+                    let size = Vec2::new(0.0, 26.0);
+                    let upload = block_i18n::tr!("import-upload");
+                    let start = action_button(ui, p, "file-upload-filled", upload, ActionKind::Primary, size);
+                    #[cfg(test)]
+                    ctx.data_mut(|data| data.insert_temp(egui::Id::unique("import_confirm_upload"), start.rect));
+                    if start.clicked() {
+                        actions.push(if choice == Choice::Bulk {
+                            Action::Start
+                        } else {
+                            Action::StartFor(choice)
+                        });
+                        imports.confirm = false;
+                    }
+                    if action_button(ui, p, "x", block_i18n::tr!("common-cancel"), ActionKind::Flat, size).clicked() {
+                        imports.confirm = false;
+                    }
+                });
+            });
+            if modal.should_close() {
+                imports.confirm = false;
+            }
+        });
+        if !imports.confirm {
+            imports.confirm_choice = None;
+        }
+    }
+    zoom::show(ctx, p, imports, &mut actions);
+    actions
+}
+
+fn lod_label(level: usize) -> &'static str {
+    match level {
+        3 => block_i18n::tr!("import-lod-high"),
+        2 => block_i18n::tr!("import-lod-medium"),
+        1 => block_i18n::tr!("import-lod-low"),
+        _ => block_i18n::tr!("import-lod-lowest"),
+    }
+}
+
+// LLFloaterModelPreview color swatches; Aurora's palette supplies defaults
+// so previews follow the active theme until a color is explicitly saved.
+fn preview_colors(ui: &mut egui::Ui, p: &Palette, prefs: &mut Preferences) {
+    fold(ui, p, block_i18n::tr!("import-preview-colors"), false, |ui| {
+        preview_colors_fields(ui, p, prefs);
+    });
+}
+
+fn preview_colors_fields(ui: &mut egui::Ui, p: &Palette, prefs: &mut Preferences) {
+    for (label, stored, default) in [
+        (
+            block_i18n::tr!("import-preview-background"),
+            &mut prefs.preview_background,
+            p.field,
+        ),
+        (block_i18n::tr!("import-edges"), &mut prefs.preview_edges, p.teal),
+        (
+            block_i18n::tr!("import-preview-physics-fill"),
+            &mut prefs.preview_physics_fill,
+            p.teal,
+        ),
+        (
+            block_i18n::tr!("import-preview-physics-edges"),
+            &mut prefs.preview_physics_edges,
+            p.ink,
+        ),
+        (
+            block_i18n::tr!("import-preview-degenerate-fill"),
+            &mut prefs.preview_degenerate_fill,
+            p.danger,
+        ),
+        (
+            block_i18n::tr!("import-preview-degenerate-edges"),
+            &mut prefs.preview_degenerate_edges,
+            p.warn,
+        ),
+    ] {
+        ui.horizontal(|ui| {
+            // stored as straight sRGB components in 0..=1
+            let mut srgba = color32(stored.unwrap_or_else(|| palette_color(default))).to_srgba_unmultiplied();
+            let response = widgets::color_button(ui, p, ("import_preview_color", label), &mut srgba, true);
+            ui.ctx()
+                .data_mut(|data| data.insert_temp(egui::Id::unique(("import_preview_swatch", label)), (response.id, response.rect)));
+            if response.changed() {
+                *stored = Some(srgba.map(|v| f32::from(v) / 255.0));
+            }
+            ui.label(label);
+        });
+    }
+    if flat_button(ui, p, block_i18n::tr!("common-reset")).clicked() {
+        prefs.preview_background = None;
+        prefs.preview_edges = None;
+        prefs.preview_physics_fill = None;
+        prefs.preview_physics_edges = None;
+        prefs.preview_degenerate_fill = None;
+        prefs.preview_degenerate_edges = None;
+    }
+}
+
+fn preview_colors_button(ui: &mut egui::Ui, p: &Palette, id: Uuid, prefs: &mut Preferences) {
+    let key = egui::Id::unique(("import_preview_colors_open", id));
+    let position = ui.next_widget_position();
+    ui.ctx().data_mut(|data| {
+        data.insert_temp(
+            egui::Id::unique(("import_preview_palette", id)),
+            egui::Rect::from_min_size(position, Vec2::splat(20.0)),
+        )
+    });
+    let mut open = ui.ctx().data(|data| data.get_temp::<bool>(key)).unwrap_or(false);
+    if widgets::icon_button(ui, p, "palette-filled", block_i18n::tr!("import-preview-colors"), true) {
+        open = !open;
+    }
+    if open {
+        let mut floater = Floater::new(
+            "import_preview_colors",
+            block_i18n::tr!("import-preview-colors"),
+            position + Vec2::new(250.0, 24.0),
+            Vec2::new(330.0, 310.0),
+        )
+        .fixed()
+        .auto_height();
+        floater.min_size = Vec2::new(300.0, 290.0);
+        floater.show(ui.ctx(), p, &mut open, |ui| {
+            preview_colors_fields(ui, p, prefs);
+        });
+        if open {
+            ui.ctx()
+                .move_to_top(egui::LayerId::new(egui::Order::Middle, egui::Id::unique("import_preview_colors")));
+        }
+    }
+    ui.ctx().data_mut(|data| data.insert_temp(key, open));
+}
+
+fn apply_preview_colors(view: &mut block_render::preview::View, p: &Palette, prefs: &Preferences) {
+    view.background = prefs.preview_background.unwrap_or_else(|| palette_color(p.field));
+    view.edge_color = prefs.preview_edges.unwrap_or_else(|| palette_color(p.teal));
+    view.ambient = [0.2; 3];
+    view.diagnostic_colors = [
+        linear_color(prefs.preview_degenerate_fill.unwrap_or_else(|| palette_color(p.danger))),
+        prefs.preview_degenerate_edges.unwrap_or_else(|| palette_color(p.warn)),
+    ];
+}
+
+fn palette_color(color: egui::Color32) -> [f32; 4] {
+    color.to_srgba_unmultiplied().map(|v| f32::from(v) / 255.0)
+}
+fn color32(color: [f32; 4]) -> egui::Color32 {
+    let [r, g, b, a] = color.map(|v| (v.clamp(0.0, 1.0) * 255.0).round() as u8);
+    egui::Color32::from_rgba_unmultiplied(r, g, b, a)
+}
+fn linear_color(color: [f32; 4]) -> [f32; 4] {
+    // The egui preview target stores gamma RGB. PBR factors use linear RGB.
+    egui::Rgba::from(color32(color)).to_rgba_unmultiplied()
+}
+fn texture(
+    ui: &mut egui::Ui,
+    p: &Palette,
+    id: Uuid,
+    image: &DecodedImage,
+    empty_alpha: bool,
+    options: &mut import_texture::Options,
+    prefs: &mut Preferences,
+    preview: &Option<egui::TextureHandle>,
+    actions: &mut Vec<Action>,
+    generation: &mut u64,
+    target: &mut usize,
+    model: &Option<Arc<block_render::preview::Model>>,
+    view: &mut block_render::preview::View,
+) {
+    widgets::section_header(ui, p, "photo-filled", block_i18n::tr!("import-preview"));
+    let old = *options;
+    let old_target = *target;
+    let labels = [
+        block_i18n::tr!("import-preview-image"),
+        block_i18n::tr!("import-preview-hair"),
+        block_i18n::tr!("import-preview-female-head"),
+        block_i18n::tr!("import-preview-female-upper"),
+        block_i18n::tr!("import-preview-female-lower"),
+        block_i18n::tr!("import-preview-male-head"),
+        block_i18n::tr!("import-preview-male-upper"),
+        block_i18n::tr!("import-preview-male-lower"),
+        block_i18n::tr!("import-preview-skirt"),
+        block_i18n::tr!("import-preview-sculpt"),
+    ];
+    egui::ComboBox::from_id_salt("import_texture_target")
+        .selected_text(labels[(*target).min(9)])
+        .show_ui(ui, |ui| {
+            for (index, label) in labels.into_iter().enumerate() {
+                selection(ui, target, index, label);
+            }
+        });
+    if texture_needs_size_limit(image) {
+        let mut limit_size = options.max_width.max(options.max_height) <= 1024;
+        if widgets::switch_labeled(ui, p, &mut limit_size, block_i18n::tr!("import-max-size")).changed() {
+            let maximum = if limit_size { 1024 } else { 2048 };
+            options.max_width = maximum;
+            options.max_height = maximum;
+            prefs.limit_texture_size = limit_size;
+        }
+    }
+    let (width, height) = import_texture::dimensions(image.width, image.height, *options);
+    ui.label(block_i18n::tr!("import-texture-size", width = width, height = height));
+    if width * height <= 128 * 128 {
+        checkbox(ui, p, &mut options.lossless_small, block_i18n::tr!("import-lossless"));
+    }
+    if empty_alpha {
+        checkbox(ui, p, &mut options.strip_alpha, block_i18n::tr!("import-strip-alpha"));
+    }
+    if old != *options || old_target != *target {
+        *generation += 1;
+        actions.push(Action::Preview(id));
+    }
+    if *target != 0 {
+        if let Some(model) = model {
+            let response = block_render::preview::paint(
+                ui,
+                ui.scope_id().with(("texture_preview", id)),
+                model.clone(),
+                view,
+                Vec2::new(ui.available_width(), 260.0),
+            );
+            widgets::local_texture::paint(ui, p, response.rect);
+            preview_camera_controls(ui, p, view);
+        } else {
+            ui.spinner();
+        }
+    } else if let Some(texture) = preview {
+        let size = texture.size_vec2();
+        let (rect, response) = ui.allocate_exact_size(Vec2::new(ui.available_width(), 170.0), egui::Sense::drag());
+        let painter = ui.painter().with_clip_rect(rect);
+        for y in 0..(rect.height() / 16.0).ceil() as i32 {
+            for x in 0..(rect.width() / 16.0).ceil() as i32 {
+                painter.rect_filled(
+                    egui::Rect::from_min_size(rect.min + Vec2::new(x as f32 * 16.0, y as f32 * 16.0), Vec2::splat(16.0)),
+                    0.0,
+                    if (x + y) % 2 == 0 { p.field } else { p.raised },
+                );
+            }
+        }
+        if response.dragged() {
+            let delta = ui.input(|i| i.pointer.delta());
+            view.pan[0] += delta.x;
+            view.pan[1] += delta.y;
+        }
+        if response.hovered() {
+            let wheel = ui.input(|i| i.smooth_scroll_delta.y);
+            if wheel != 0.0 {
+                view.distance = (view.distance * (-wheel * 0.002).exp()).clamp(0.2, 20.0);
+                ui.input_mut(|i| i.smooth_scroll_delta = Vec2::ZERO);
+            }
+        }
+        if response.double_clicked() {
+            view.distance = 3.0;
+            view.pan = [0.0; 2];
+        }
+        let scale = (rect.width() / size.x).min(rect.height() / size.y) * 3.0 / view.distance;
+        let image_rect = egui::Rect::from_center_size(rect.center() + Vec2::from(view.pan), size * scale);
+        painter.image(
+            texture.id(),
+            image_rect,
+            egui::Rect::from_min_max(egui::pos2(0.0, 0.0), egui::pos2(1.0, 1.0)),
+            widgets::PICTURE_TINT,
+        );
+        widgets::local_texture::paint(ui, p, rect);
+    } else {
+        ui.spinner();
+    }
+}
+
+fn animation_model_controls(
+    ui: &mut egui::Ui,
+    p: &Palette,
+    id: Uuid,
+    model: &super::animation_model::Selection,
+    saved: &[super::animation_model::Saved],
+    actions: &mut Vec<Action>,
+) {
+    ui.label(block_i18n::tr!("import-animation-model"));
+    let mut selected = model.saved;
+    let name = saved
+        .iter()
+        .find(|saved| Some(saved.id) == selected)
+        .map(|saved| saved.name.as_str())
+        .or_else(|| {
+            model
+                .current
+                .as_ref()
+                .and_then(|current| current.path.file_stem())
+                .and_then(|name| name.to_str())
+        })
+        .unwrap_or(block_i18n::tr!("import-animation-model-default"));
+    if ui
+        .ctx()
+        .data(|data| data.get_temp::<bool>(egui::Id::unique(("animation_model_list_open", id))))
+        .unwrap_or(false)
+    {
+        // Scripted captures keep the list visible after startup focus changes.
+        // Any human interaction returns the demo to ordinary popup behaviour.
+        if ui.input(|input| {
+            input.pointer.any_pressed()
+                || input
+                    .events
+                    .iter()
+                    .any(|event| matches!(event, egui::Event::Key { pressed: true, .. }))
+        }) {
+            ui.ctx()
+                .data_mut(|data| data.remove_temp::<bool>(egui::Id::unique(("animation_model_list_open", id))));
+        } else {
+            egui::Popup::open_id(
+                ui.ctx(),
+                ui.make_persistent_id(egui::IdSalt::new(("animation_models", id))).with("popup"),
+            );
+        }
+    }
+    let list = egui::ComboBox::from_id_salt(("animation_models", id))
+        .width(ui.available_width())
+        .selected_text(name)
+        .close_behavior(egui::PopupCloseBehavior::CloseOnClickOutside)
+        .show_ui(ui, |ui| {
+            if selection(ui, &mut selected, None, block_i18n::tr!("import-animation-model-default")).clicked() {
+                ui.close();
+            }
+            for saved in saved {
+                ui.push_id(saved.id, |ui| {
+                    ui.allocate_ui_with_layout(
+                        Vec2::new(ui.available_width(), 26.0),
+                        egui::Layout::right_to_left(egui::Align::Center),
+                        |ui| {
+                            let label = block_i18n::tr!("import-animation-model-remove", name = saved.name.clone());
+                            let remove =
+                                action_button(ui, p, "trash-filled", "", ActionKind::Flat, Vec2::splat(26.0)).on_hover_text(&label);
+                            remove.widget_info(|| egui::WidgetInfo::labeled(egui::Role::Button, ui.is_enabled(), &label));
+                            let row =
+                                selection(ui, &mut selected, Some(saved.id), &saved.name).on_hover_text(saved.path.display().to_string());
+                            ui.ctx().data_mut(|data| {
+                                data.insert_temp(egui::Id::unique(("animation_model_remove", id, saved.id)), remove.rect);
+                                data.insert_temp(egui::Id::unique(("animation_model_row", id, saved.id)), row.rect);
+                            });
+                            if remove.clicked() {
+                                actions.push(Action::RemoveAnimationModel(saved.id));
+                            }
+                            if row.clicked() {
+                                ui.close();
+                            }
+                        },
+                    );
+                });
+            }
+        })
+        .response
+        .on_hover_text(block_i18n::tr!("import-animation-model-help"));
+    ui.ctx()
+        .data_mut(|data| data.insert_temp(egui::Id::unique(("animation_model_list", id)), list.rect));
+    if selected != model.saved {
+        if let Some(saved) = selected {
+            actions.push(Action::SelectAnimationModel(id, saved));
+        } else {
+            actions.push(Action::DefaultAnimationModel(id));
+        }
+    }
+    ui.horizontal(|ui| {
+        let choose = tool_button(ui, p, block_i18n::tr!("import-animation-model-choose"), !model.pending);
+        if choose.clicked() {
+            actions.push(Action::AnimationModel(id));
+        }
+        let reset = tool_button(
+            ui,
+            p,
+            block_i18n::tr!("import-animation-model-default"),
+            model.current.is_some() || model.pending,
+        );
+        if reset.clicked() {
+            actions.push(Action::DefaultAnimationModel(id));
+        }
+        ui.ctx().data_mut(|data| {
+            data.insert_temp(egui::Id::unique(("animation_model_choose", id)), choose.rect);
+            data.insert_temp(egui::Id::unique(("animation_model_reset", id)), reset.rect);
+        });
+        if model.pending {
+            ui.spinner();
+        }
+    });
+    if let Some(error) = &model.error {
+        ui.label(RichText::new(error).small().color(p.danger));
+        ui.label(
+            RichText::new(block_i18n::tr!("import-animation-model-kept"))
+                .small()
+                .color(p.muted),
+        );
+    }
+}
+
+fn animation_transport(
+    ui: &mut egui::Ui,
+    p: &Palette,
+    id: Uuid,
+    player: &mut super::animation::Player,
+    animation: &Animation,
+    preview_on_avatar: &mut bool,
+) -> Vec<Action> {
+    let mut actions = Vec::new();
+    ui.horizontal_wrapped(|ui| {
+        if flat_button(ui, p, block_i18n::tr!("common-play")).clicked() {
+            actions.push(Action::Play(id, true));
+        }
+        if flat_button(ui, p, block_i18n::tr!("common-stop")).clicked() {
+            player.playing = false;
+            player.seek(0.0);
+            actions.push(Action::Play(id, false));
+        }
+        if flat_button(ui, p, block_i18n::tr!("import-pause")).clicked() {
+            player.playing = !player.playing;
+        }
+    });
+    let mut position = animation.local_time(f64::from(player.position)) as f32;
+    if ui
+        .add(egui::Slider::new(&mut position, 0.0..=animation.duration).suffix(" s"))
+        .changed()
+    {
+        player.seek(position);
+    }
+    checkbox(ui, p, preview_on_avatar, block_i18n::tr!("import-preview-own-avatar"));
+    actions
+}
+
+fn animation_controls(ui: &mut egui::Ui, p: &Palette, animation: &mut Animation, bvh: Option<&BvhInfo>, joint_count: usize) {
+    widgets::section_header(
+        ui,
+        p,
+        "adjustments-filled",
+        if bvh.is_some() {
+            block_i18n::tr!("import-animation-settings")
+        } else {
+            block_i18n::tr!("import-animation")
+        },
+    );
+    ui.label(
+        RichText::new(block_i18n::tr!(
+            "import-animation-info",
+            duration = format!("{:.3}", animation.duration),
+            joints = joint_count
+        ))
+        .small()
+        .color(p.muted),
+    );
+    let Some(bvh) = bvh else {
+        return;
+    };
+    ui.label(
+        RichText::new(block_i18n::tr!(
+            "import-animation-frames",
+            frames = bvh.frames,
+            rate = format!("{:.2}", if bvh.frame_time > 0.0 { 1.0 / bvh.frame_time } else { 0.0 })
+        ))
+        .small()
+        .color(p.muted),
+    );
+    ui.add_space(12.0);
+    egui::Grid::new("animation_identity")
+        .num_columns(2)
+        .spacing(Vec2::new(12.0, 8.0))
+        .show(ui, |ui| {
+            ui.label(block_i18n::tr!("import-priority"));
+            ui.add(egui::DragValue::new(&mut animation.base_priority).range(0..=6));
+            ui.end_row();
+            ui.label(block_i18n::tr!("import-animation-hands"));
+            let hands = super::animation::hands();
+            egui::ComboBox::from_id_salt("animation_hand")
+                .width(180.0)
+                .selected_text(hands[(animation.hand_pose as usize).min(13)])
+                .show_ui(ui, |ui| {
+                    for (index, label) in hands.into_iter().enumerate() {
+                        selection(ui, &mut animation.hand_pose, index as u32, label);
+                    }
+                });
+            ui.end_row();
+            ui.label(block_i18n::tr!("import-animation-expression"));
+            let emotes = super::animation::emotes();
+            egui::ComboBox::from_id_salt("animation_emote")
+                .width(180.0)
+                .selected_text(
+                    emotes
+                        .iter()
+                        .find(|(name, _, _)| *name == animation.emote_name)
+                        .map(|(_, _, label)| *label)
+                        .unwrap_or(block_i18n::tr!("import-emote-none")),
+                )
+                .show_ui(ui, |ui| {
+                    for (name, _, label) in emotes {
+                        selection(ui, &mut animation.emote_name, name.into(), label);
+                    }
+                });
+            ui.end_row();
+        });
+    ui.add_space(12.0);
+    checkbox(ui, p, &mut animation.looping, block_i18n::tr!("import-loop"));
+    ui.add_enabled_ui(animation.looping, |ui| {
+        egui::Grid::new("animation_loop")
+            .num_columns(4)
+            .spacing(Vec2::new(10.0, 8.0))
+            .show(ui, |ui| {
+                ui.label("");
+                ui.label(RichText::new(block_i18n::tr!("import-animation-seconds")).small().color(p.muted));
+                ui.label(RichText::new("%").small().color(p.muted));
+                ui.label(RichText::new(block_i18n::tr!("import-animation-frame")).small().color(p.muted));
+                ui.end_row();
+                for (label, value) in [
+                    (block_i18n::tr!("import-loop-in"), &mut animation.loop_in),
+                    (block_i18n::tr!("import-loop-out"), &mut animation.loop_out),
+                ] {
+                    ui.label(label);
+                    ui.add_sized(
+                        Vec2::new(64.0, 26.0),
+                        egui::DragValue::new(value)
+                            .range(0.0..=animation.duration)
+                            .speed(bvh.frame_time)
+                            .fixed_decimals(3),
+                    );
+                    let mut percent = if animation.duration > 0.0 {
+                        *value / animation.duration * 100.0
+                    } else {
+                        0.0
+                    };
+                    if ui
+                        .add_sized(
+                            Vec2::new(58.0, 26.0),
+                            egui::DragValue::new(&mut percent).range(0.0..=100.0).fixed_decimals(1),
+                        )
+                        .changed()
+                    {
+                        *value = percent / 100.0 * animation.duration;
+                    }
+                    let mut frame = if bvh.frame_time > 0.0 {
+                        (*value / bvh.frame_time).round() as usize
+                    } else {
+                        0
+                    };
+                    if ui
+                        .add_sized(
+                            Vec2::new(52.0, 26.0),
+                            egui::DragValue::new(&mut frame).range(0..=bvh.frames.saturating_sub(2)),
+                        )
+                        .changed()
+                    {
+                        *value = frame as f32 * bvh.frame_time;
+                    }
+                    ui.end_row();
+                }
+            });
+        animation.loop_out = animation.loop_out.max(animation.loop_in);
+    });
+    ui.add_space(12.0);
+    egui::Grid::new("animation_ease")
+        .num_columns(2)
+        .spacing(Vec2::new(12.0, 8.0))
+        .show(ui, |ui| {
+            for (label, value) in [
+                (block_i18n::tr!("import-ease-in"), &mut animation.ease_in),
+                (block_i18n::tr!("import-ease-out"), &mut animation.ease_out),
+            ] {
+                ui.label(label);
+                ui.add(
+                    egui::DragValue::new(value)
+                        .range(0.0..=animation.duration)
+                        .suffix(" s")
+                        .speed(0.01)
+                        .fixed_decimals(3),
+                );
+                ui.end_row();
+            }
+        });
+}
+
+fn map_label(slot: usize) -> &'static str {
+    match slot {
+        0 => block_i18n::tr!("import-base-color"),
+        1 => block_i18n::tr!("import-normal"),
+        2 => block_i18n::tr!("import-metallic-roughness"),
+        _ => block_i18n::tr!("import-emissive"),
+    }
+}
+fn camera_hint(ui: &mut egui::Ui, p: &Palette) {
+    ui.label(RichText::new(block_i18n::tr!("import-preview-gestures")).color(p.muted));
+}
+fn preview_camera_controls(ui: &mut egui::Ui, p: &Palette, view: &mut block_render::preview::View) -> egui::Response {
+    let response = action_button(
+        ui,
+        p,
+        "refresh",
+        block_i18n::tr!("import-preview-reset-view"),
+        ActionKind::Flat,
+        Vec2::new(0.0, 26.0),
+    )
+    .on_hover_text(block_i18n::tr!("import-preview-camera-help"));
+    if response.clicked() {
+        view.reset_camera();
+    }
+    response
+}
+fn alpha_name(mode: block_assets::AlphaMode) -> &'static str {
+    match mode {
+        block_assets::AlphaMode::Opaque => block_i18n::tr!("import-alpha-opaque"),
+        block_assets::AlphaMode::Blend => block_i18n::tr!("import-alpha-blend"),
+        block_assets::AlphaMode::Mask => block_i18n::tr!("import-alpha-mask"),
+    }
+}

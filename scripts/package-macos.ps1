@@ -6,7 +6,7 @@
     Contents/Resources. The macOS job of the release runs it (PowerShell 7);
     signing and notarization come after, in the workflow.
 .EXAMPLE
-    ./scripts/package-macos.ps1 -Exe target/release/aurora-viewer -Out "Aurora Viewer.app"
+    ./scripts/package-macos.ps1 -Exe target/release/block-viewer -Out "Aurora Viewer.app"
 #>
 param(
     [Parameter(Mandatory)][string]$Exe,
@@ -25,7 +25,7 @@ New-Item -ItemType Directory -Force -Path $macos, $resources | Out-Null
 # the files every package carries, then the executable where macOS runs it
 # (code only in Contents/MacOS: the signature seals the rest as resources)
 & (Join-Path $PSScriptRoot 'package.ps1') -Exe $Exe -Out $resources -Source $Source
-Move-Item -LiteralPath (Join-Path $resources (Split-Path $Exe -Leaf)) -Destination (Join-Path $macos 'aurora-viewer')
+Move-Item -LiteralPath (Join-Path $resources (Split-Path $Exe -Leaf)) -Destination (Join-Path $macos 'block-viewer')
 
 # MAJOR.MINOR.PATCH of the build, the only form CFBundleShortVersionString
 # takes (a beta's pre-release part and the commits since the tag are left out)

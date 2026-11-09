@@ -1,4 +1,4 @@
-﻿<#
+<#
 .SYNOPSIS
     Puts the built viewer and its files in a folder ready to launch (or to
     zip): exe, assets, licences. The GitHub release and build-release.ps1
@@ -6,9 +6,9 @@
     runs it too (PowerShell 7), with the executable without extension.
 
 .EXAMPLE
-    ./scripts/package.ps1 -Exe target/release/aurora-viewer.exe -Out Aurora-Viewer
+    ./scripts/package.ps1 -Exe target/release/block-viewer.exe -Out Aurora-Viewer
 .EXAMPLE
-    ./scripts/package.ps1 -Exe target/release/aurora-viewer -Out Aurora-Viewer-v0.8.0-linux-x64
+    ./scripts/package.ps1 -Exe target/release/block-viewer -Out Aurora-Viewer-v0.8.0-linux-x64
 #>
 param(
     [Parameter(Mandatory)][string]$Exe,
@@ -25,7 +25,7 @@ Copy-Item -LiteralPath (Join-Path $Source 'assets/emoji/LICENSE-OFL.txt') -Desti
 # The spelling dictionaries are inside the exe too: their licences ship
 # (GPL, LGPL and MPL ask for the text), one per dictionary, with the list of
 # their sources.
-$dictionaries = Join-Path $Source 'crates/aurora-viewer/assets/dictionaries'
+$dictionaries = Join-Path $Source 'crates/block-viewer/assets/dictionaries'
 $dictionariesOut = Join-Path $Out 'assets/dictionaries'
 New-Item -ItemType Directory -Force -Path $dictionariesOut -ErrorAction Stop | Out-Null
 Copy-Item -LiteralPath (Join-Path $dictionaries 'README.md') -Destination $dictionariesOut -ErrorAction Stop
@@ -43,8 +43,8 @@ Copy-Item -LiteralPath $docs -Destination $Out -ErrorAction Stop
 # (macOS has its own bundle: package-macos.ps1; $IsMacOS is unset, so
 # false, in Windows PowerShell 5.1.)
 if (-not [IO.Path]::GetExtension($Exe) -and -not $IsMacOS) {
-    Copy-Item -LiteralPath (Join-Path $Source 'packaging/linux/aurora-viewer.desktop') -Destination $Out -ErrorAction Stop
-    Copy-Item -LiteralPath (Join-Path $Source 'assets/branding/aurora-logo.svg') -Destination (Join-Path $Out 'aurora-viewer.svg') -ErrorAction Stop
+    Copy-Item -LiteralPath (Join-Path $Source 'packaging/linux/block-viewer.desktop') -Destination $Out -ErrorAction Stop
+    Copy-Item -LiteralPath (Join-Path $Source 'assets/branding/aurora-logo.svg') -Destination (Join-Path $Out 'block-viewer.svg') -ErrorAction Stop
 }
 $taskExePath = (Resolve-Path -LiteralPath $Exe).Path
 $taskVersion = (& $taskExePath --version | Out-String).Trim() -replace '^Aurora Viewer ', ''

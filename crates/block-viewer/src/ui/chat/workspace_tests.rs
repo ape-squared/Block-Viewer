@@ -2025,8 +2025,7 @@ fn a_group_conversation_opens_the_group_actions() {
     let activate = block_i18n::tr!("ui-chat-menu-activate-group");
     let call = block_i18n::tr!("common-voice-call");
     assert!(
-        shown(&texts, block_i18n::tr!("ui-chat-close-conversation"))
-            || shown(&texts, block_i18n::tr!("ui-chat-close-conversation-leave"))
+        shown(&texts, block_i18n::tr!("ui-chat-close-conversation")) || shown(&texts, block_i18n::tr!("ui-chat-close-conversation-leave"))
     );
     for label in [
         call,

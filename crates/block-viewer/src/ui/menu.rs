@@ -1040,13 +1040,7 @@ pub fn voice_volume(ui: &mut Ui, p: &Palette, v: VoiceVolume) -> Option<VoiceEdi
         };
         super::widgets::icon_toggle(&mut child, p, "microphone-off", tip, v.muted)
     } else {
-        super::widgets::icon_button(
-            &mut child,
-            p,
-            "microphone-off",
-            block_i18n::tr!("ui-call-mute-voice-linden"),
-            false,
-        )
+        super::widgets::icon_button(&mut child, p, "microphone-off", block_i18n::tr!("ui-call-mute-voice-linden"), false)
     };
     if clicked {
         edit = Some(VoiceEdit::ToggleMute);

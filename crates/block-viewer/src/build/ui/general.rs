@@ -461,10 +461,7 @@ pub fn show(ui: &mut egui::Ui, p: &Palette, tool: &mut BuildTool, world: &mut Wo
             }
             let deed_ok = can_deed_targets(tool, world, &targets, first.group_id);
             if ui
-                .add_enabled(
-                    deed_ok,
-                    egui::Button::new(RichText::new(block_i18n::tr!("common-deed")).size(12.0)),
-                )
+                .add_enabled(deed_ok, egui::Button::new(RichText::new(block_i18n::tr!("common-deed")).size(12.0)))
                 .on_hover_text(block_i18n::tr!("build-ui-general-deed-this-object-to-group"))
                 .clicked()
             {
@@ -687,14 +684,7 @@ fn ownership_permissions(
         }
         let (v, t) = bit(everyone, perm::COPY);
         let copy_ok = owner.0 & perm::COPY != 0 && owner.0 & perm::TRANSFER != 0;
-        if let Some(n) = check(
-            ui,
-            p,
-            v,
-            t || !copy_ok,
-            block_i18n::tr!("common-copy-2"),
-            can_manipulate && copy_ok,
-        ) {
+        if let Some(n) = check(ui, p, v, t || !copy_ok, block_i18n::tr!("common-copy-2"), can_manipulate && copy_ok) {
             tool.set_perm(world, perm_field::EVERYONE, n, perm::COPY);
         }
         // OpenSim's export permission, only where the region honours it

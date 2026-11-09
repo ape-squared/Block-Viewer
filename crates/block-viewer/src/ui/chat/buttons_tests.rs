@@ -1589,10 +1589,7 @@ fn the_field_acts() {
         h.press(control_id("box-volume"));
         h.press_text(block_i18n::tr!("ui-chat-volume-shout"));
         assert_eq!(h.st.volume, Volume::Shout, "{style:?}");
-        assert!(
-            h.painted(block_i18n::tr!("ui-chat-volume-shout")),
-            "{style:?}: the button names it"
-        );
+        assert!(h.painted(block_i18n::tr!("ui-chat-volume-shout")), "{style:?}: the button names it");
         h.st.conv_focus_request = true;
         h.settle();
         h.enter(Default::default());

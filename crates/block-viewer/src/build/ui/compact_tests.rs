@@ -861,10 +861,13 @@ fn megaprim_edit_keeps_server_dimensions_until_a_size_edit() {
                     original,
                     "Opening Edit changed the megaprim (legacy={legacy}, modifiable={modifiable})"
                 );
-                assert!(!inspector.tool.out.iter().any(|command| matches!(
-                    command,
-                    block_net::NetCommand::Build(block_net::build::BuildCmd::Transform { .. })
-                )));
+                assert!(
+                    !inspector
+                        .tool
+                        .out
+                        .iter()
+                        .any(|command| matches!(command, block_net::NetCommand::Build(block_net::build::BuildCmd::Transform { .. })))
+                );
             }
             if modifiable {
                 // Moving or rotating a megaprim must not submit its size either.
@@ -1752,10 +1755,7 @@ fn pbr_number_scrubbing_keeps_the_chosen_inspector_width() {
 
 #[test]
 fn material_numbers_commit_typed_values_once_without_resetting_the_inspector() {
-    for label in [
-        block_i18n::tr!("build-ui-texture-shininess"),
-        block_i18n::tr!("common-environment"),
-    ] {
+    for label in [block_i18n::tr!("build-ui-texture-shininess"), block_i18n::tr!("common-environment")] {
         for finish in [egui::Key::Enter, egui::Key::Tab, egui::Key::Escape] {
             let mut inspector = material_inspector();
             inspector.settings.transform_expanded = false;
@@ -3088,12 +3088,11 @@ fn a_typed_position_over_a_mixed_axis_is_sent_only_when_it_changes() {
             inspector.show(vec![egui::Event::Text(typed.into())]);
             key(&mut inspector, egui::Key::Enter);
             inspector.show(vec![]);
-            let sent = inspector.tool.out.iter().any(|command| {
-                matches!(
-                    command,
-                    block_net::NetCommand::Build(block_net::build::BuildCmd::Transform { .. })
-                )
-            });
+            let sent = inspector
+                .tool
+                .out
+                .iter()
+                .any(|command| matches!(command, block_net::NetCommand::Build(block_net::build::BuildCmd::Transform { .. })));
             assert_eq!(sent, moves, "{case}: {:?}", inspector.tool.out);
         }
     }

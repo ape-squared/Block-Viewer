@@ -3866,14 +3866,7 @@ pub fn action_events() -> Vec<NetEvent> {
             [0.35, 0.65, 0.8, 1.0],
             block_i18n::tr!("demo-buy-copy-for-l-10"),
         ),
-        (
-            972,
-            3,
-            135.0,
-            130.0,
-            [0.3, 0.75, 0.55, 1.0],
-            block_i18n::tr!("demo-pay-pay-object"),
-        ),
+        (972, 3, 135.0, 130.0, [0.3, 0.75, 0.55, 1.0], block_i18n::tr!("demo-pay-pay-object")),
         (
             975,
             0,
@@ -9259,8 +9252,7 @@ mod particle_tests {
     fn particle_wind_demo_emitters_only_differ_by_the_wind_mask() {
         use block_prim::particles as ps;
         let parse = |wind| {
-            let Some(block_net::objects::ParticleUpdate::Set(block)) = compressed_particle_block(&region_wind_particles(wind), true)
-            else {
+            let Some(block_net::objects::ParticleUpdate::Set(block)) = compressed_particle_block(&region_wind_particles(wind), true) else {
                 panic!("compressed particle update");
             };
             ps::parse(&block).expect("region wind particle data")

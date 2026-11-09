@@ -3312,10 +3312,7 @@ fn classic_pane(
             suggest::after(ui, p, &mut output, &mut draft, suggest_nav, &mut st.suggest, scope);
             let has_text = !draft.trim().is_empty();
             send_clicked = send_button(ui, p, icons, has_text).clicked() && has_text;
-            output
-                .response
-                .response
-                .on_hover_text(block_i18n::tr!("ui-chat-compose-shortcuts"))
+            output.response.response.on_hover_text(block_i18n::tr!("ui-chat-compose-shortcuts"))
         })
         .inner;
     // the strip between the lines and the field: egui reaches

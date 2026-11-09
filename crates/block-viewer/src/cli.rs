@@ -191,10 +191,7 @@ fn parse_login_uri(value: &str) -> Option<Grid> {
 fn parse_fps_limit(value: &str) -> Option<u32> {
     let limit = value.trim().parse::<u32>().ok().filter(|fps| (1..=500).contains(fps));
     if limit.is_none() {
-        eprintln!(
-            "{}",
-            block_i18n::tr!("cli-fps-limit-requires-a-value-between-1-and-500").to_owned()
-        );
+        eprintln!("{}", block_i18n::tr!("cli-fps-limit-requires-a-value-between-1-and-500").to_owned());
     }
     limit
 }

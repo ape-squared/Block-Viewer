@@ -1,7 +1,7 @@
 //! Embedded PBR images are decoded, bounded and staged on the socket worker.
+use base64::{Engine, engine::general_purpose::STANDARD};
 use block_assets::material::{AlphaMode, PbrMaterial, TextureTransform};
 use block_render::{StagedTexture, StagingPool};
-use base64::{Engine, engine::general_purpose::STANDARD};
 use serde::Deserialize;
 use sha2::{Digest, Sha256};
 use std::{collections::HashMap, sync::Arc};

@@ -235,10 +235,7 @@ pub(crate) fn panel(ui: &mut egui::Ui, p: &Palette, icons: Option<&Icons>, data:
                 );
                 ui.label(RichText::new(acquired(it.created_at)).size(12.0));
                 if ui
-                    .add_enabled(
-                        can_thumbnail,
-                        egui::Button::new(block_i18n::tr!("ui-inventory-properties-picture")),
-                    )
+                    .add_enabled(can_thumbnail, egui::Button::new(block_i18n::tr!("ui-inventory-properties-picture")))
                     .clicked()
                 {
                     response.thumbnail = true;

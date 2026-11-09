@@ -347,9 +347,8 @@ fn access(ui: &mut egui::Ui, p: &Palette, s: &mut LandUi, v: &View, world: &mut 
     };
     see_region |= sheet::srow_ext(ui, p, &payment, 40.0, |ui| {
         editable(ui, now.public && can && !parcel.region_deny_anonymous, |ui| {
-            widgets::switch(ui, p, &mut now.payment).on_hover_text(block_i18n::tr!(
-                "ui-land-access-residents-must-have-payment-info-on-file-to-access"
-            ));
+            widgets::switch(ui, p, &mut now.payment)
+                .on_hover_text(block_i18n::tr!("ui-land-access-residents-must-have-payment-info-on-file-to-access"));
         });
     });
     if see_region {
@@ -388,10 +387,7 @@ fn access(ui: &mut egui::Ui, p: &Palette, s: &mut LandUi, v: &View, world: &mut 
             let pass_on = !now.public && now.pass && can;
             editable(ui, pass_on, |ui| {
                 let mut to = usize::from(now.pass_group);
-                let to_options = [
-                    (block_i18n::tr!("common-everyone"), true),
-                    (block_i18n::tr!("common-group"), true),
-                ];
+                let to_options = [(block_i18n::tr!("common-everyone"), true), (block_i18n::tr!("common-group"), true)];
                 if widgets::segmented(ui, p, &mut to, &to_options) {
                     now.pass_group = to == 1;
                 }

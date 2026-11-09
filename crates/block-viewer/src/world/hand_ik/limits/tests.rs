@@ -1,7 +1,7 @@
 use super::*;
 use crate::{demo, scene::avatar::AvatarLibrary, world::rig_graph::MAX_BYTES};
-use block_net::NetEvent;
 use base64::{Engine, engine::general_purpose::STANDARD};
+use block_net::NetEvent;
 use std::sync::Arc;
 
 fn fixture(worn: bool) -> World {

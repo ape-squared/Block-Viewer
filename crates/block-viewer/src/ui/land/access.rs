@@ -164,9 +164,7 @@ pub(super) fn show(ui: &mut egui::Ui, p: &Palette, s: &mut LandUi, v: &View, wor
                 value0 = (if parcel.region_deny_anonymous { estate } else { "" }).to_string()
             ),
         );
-        r.on_hover_text(block_i18n::tr!(
-            "ui-land-access-residents-must-have-payment-info-on-file-to-access"
-        ));
+        r.on_hover_text(block_i18n::tr!("ui-land-access-residents-must-have-payment-info-on-file-to-access"));
         now.payment = on;
     });
     let can_allow_group = !now.public || (now.payment ^ now.age);

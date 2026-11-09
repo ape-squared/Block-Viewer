@@ -869,12 +869,9 @@ fn groups_tab(ui: &mut egui::Ui, p: &Palette, world: &World, filter: &str, actio
         }
         if let Some(query) = &plan.no_match {
             ui.label(
-                RichText::new(block_i18n::tr!(
-                    "ui-contacts-no-group-containing-was-found",
-                    value0 = query.clone(),
-                ))
-                .size(12.0)
-                .color(p.muted),
+                RichText::new(block_i18n::tr!("ui-contacts-no-group-containing-was-found", value0 = query.clone(),))
+                    .size(12.0)
+                    .color(p.muted),
             );
         }
         for &g in &plan.items {

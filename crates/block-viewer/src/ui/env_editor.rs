@@ -757,11 +757,7 @@ impl EnvEditorUi {
         ui.add_space(4.0);
         ui.horizontal_top(|ui| {
             ui.vertical(|ui| {
-                ui.label(
-                    RichText::new(block_i18n::tr!("ui-env-editor-cloud-scroll"))
-                        .size(12.0)
-                        .color(p.ink),
-                );
+                ui.label(RichText::new(block_i18n::tr!("ui-env-editor-cloud-scroll")).size(12.0).color(p.ink));
                 xy_pad(ui, p, "cloud_scroll", &mut s.cloud_scroll_rate, 30.0, true);
             });
             ui.add_space(16.0);
@@ -879,13 +875,7 @@ impl EnvEditorUi {
                     color(ui, p, block_i18n::tr!("ui-env-editor-fog-color"), &mut w.fog_color, 1.0);
                     ui.end_row();
                 });
-                slider(
-                    ui,
-                    p,
-                    block_i18n::tr!("ui-env-editor-fog-density"),
-                    &mut w.fog_density,
-                    0.0..=100.0,
-                );
+                slider(ui, p, block_i18n::tr!("ui-env-editor-fog-density"), &mut w.fog_density, 0.0..=100.0);
                 slider(
                     ui,
                     p,

@@ -168,8 +168,7 @@ impl App {
             self.settings.payment_received_opens = rule;
             self.world.payments.open_received = rule;
             self.world.payment(&paid(1, DEMO_TESS, 20, "Payment"));
-            self.world
-                .payment(&paid(2, DEMO_FRIEND, 250, block_i18n::tr!("demo-payment-boat")));
+            self.world.payment(&paid(2, DEMO_FRIEND, 250, block_i18n::tr!("demo-payment-boat")));
             if self.world.social.has_session(&DEMO_FRIEND) {
                 self.chat_ui.open(DEMO_FRIEND);
             }

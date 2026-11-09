@@ -1098,16 +1098,7 @@ impl DayEditorUi {
                     }
                 }
                 ui.add_space(6.0);
-                if widgets::action_button(
-                    ui,
-                    p,
-                    "x",
-                    block_i18n::tr!("common-cancel"),
-                    ActionKind::Flat,
-                    Vec2::new(0.0, 26.0),
-                )
-                .clicked()
-                {
+                if widgets::action_button(ui, p, "x", block_i18n::tr!("common-cancel"), ActionKind::Flat, Vec2::new(0.0, 26.0)).clicked() {
                     done = true;
                 }
             });

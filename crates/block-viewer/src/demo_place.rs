@@ -639,13 +639,7 @@ pub fn session() -> Vec<TpEntry> {
         grid: None,
     };
     vec![
-        entry(
-            (999, 999),
-            block_i18n::tr!("common-sandbox"),
-            "",
-            Vec3::new(128.0, 128.0, 25.0),
-            95,
-        ),
+        entry((999, 999), block_i18n::tr!("common-sandbox"), "", Vec3::new(128.0, 128.0, 25.0), 95),
         entry(
             (1000, 1001),
             "Nordheim",

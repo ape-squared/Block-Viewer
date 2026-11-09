@@ -599,8 +599,7 @@ mod tests {
                             | if estate { parcel_flags::USE_ESTATE_VOICE_CHAN } else { 0 },
                         ..Default::default()
                     };
-                    let flags =
-                        block_net::region_flags::ALLOW_DAMAGE | if region_voice { block_net::region_flags::ALLOW_VOICE } else { 0 };
+                    let flags = block_net::region_flags::ALLOW_DAMAGE | if region_voice { block_net::region_flags::ALLOW_VOICE } else { 0 };
                     let channel = Voice::channel(7, Some(flags), Some(&parcel), None);
                     if region_voice && parcel_voice {
                         let parcel_id = (!estate).then_some(42);

@@ -464,10 +464,7 @@ fn probe_section(
     let pr = probe.unwrap_or(PROBE_DEFAULT);
     let mut np = pr;
     let mut send = false;
-    let shape_items = [
-        (block_i18n::tr!("common-sphere"), 0u8),
-        (block_i18n::tr!("common-box"), PROBE_BOX),
-    ];
+    let shape_items = [(block_i18n::tr!("common-sphere"), 0u8), (block_i18n::tr!("common-box"), PROBE_BOX)];
     ui.horizontal(|ui| {
         if let Some(v) = check(ui, p, probe.is_some(), false, block_i18n::tr!("common-reflection-probe"), enabled) {
             if v {

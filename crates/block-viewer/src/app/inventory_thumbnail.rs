@@ -371,8 +371,8 @@ fn square(image: &image::RgbaImage) -> Result<image::RgbaImage, String> {
     Ok(image::imageops::resize(&crop, 256, 256, image::imageops::FilterType::Lanczos3))
 }
 fn rgba(data: &[u8]) -> Result<image::RgbaImage, String> {
-    let info = block_assets::j2k_info(data)
-        .ok_or_else(|| block_i18n::tr!("app-inventory-thumbnail-the-jpeg2000-image-is-invalid").to_owned())?;
+    let info =
+        block_assets::j2k_info(data).ok_or_else(|| block_i18n::tr!("app-inventory-thumbnail-the-jpeg2000-image-is-invalid").to_owned())?;
     if info.width > 4096 || info.height > 4096 {
         return Err(block_i18n::tr!("app-inventory-thumbnail-the-image-exceeds-4096-pixels").into());
     }
@@ -393,8 +393,8 @@ fn rgba(data: &[u8]) -> Result<image::RgbaImage, String> {
         .ok_or_else(|| block_i18n::tr!("app-inventory-thumbnail-invalid-image-pixels").into())
 }
 fn texture_thumbnail(asset: Uuid, resize: bool, bytes: &[u8]) -> Result<Prepared, String> {
-    let info = block_assets::j2k_info(bytes)
-        .ok_or_else(|| block_i18n::tr!("app-inventory-thumbnail-the-selected-image-is-invalid").to_owned())?;
+    let info =
+        block_assets::j2k_info(bytes).ok_or_else(|| block_i18n::tr!("app-inventory-thumbnail-the-selected-image-is-invalid").to_owned())?;
     if info.width != info.height || info.width < 64 {
         return Err(block_i18n::tr!("app-inventory-thumbnail-the-image-must-be-square-and-at-least-64").into());
     }

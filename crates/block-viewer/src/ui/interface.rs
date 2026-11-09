@@ -386,15 +386,7 @@ pub fn confirm(ctx: &egui::Context, p: &Palette, keys: &str, again: &mut bool) -
         ui.add_space(4.0);
         ui.horizontal(|ui| {
             let size = Vec2::new((width - 8.0) / 2.0, 32.0);
-            if super::widgets::action_button(
-                ui,
-                p,
-                "x",
-                block_i18n::tr!("common-cancel"),
-                super::widgets::ActionKind::Flat,
-                size,
-            )
-            .clicked()
+            if super::widgets::action_button(ui, p, "x", block_i18n::tr!("common-cancel"), super::widgets::ActionKind::Flat, size).clicked()
             {
                 answer = Some(false);
             }

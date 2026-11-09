@@ -547,11 +547,7 @@ pub fn legacy_triangle_order() -> bool {
 
 /// Convert decoded mesh faces, optionally applying a transform (bind shape)
 /// and remapping skin joints to rig indices (`joint_map[mesh joint] = palette index`).
-pub fn mesh_to_faces(
-    faces: &[block_assets::MeshFace],
-    xform: Option<glam::Mat4>,
-    joint_map: Option<&[u8]>,
-) -> (Vec<FaceData>, Vec3, Vec3) {
+pub fn mesh_to_faces(faces: &[block_assets::MeshFace], xform: Option<glam::Mat4>, joint_map: Option<&[u8]>) -> (Vec<FaceData>, Vec3, Vec3) {
     let mut min = Vec3::splat(f32::MAX);
     let mut max = Vec3::splat(f32::MIN);
     let normal_m = xform.map(|m| glam::Mat3::from_mat4(m).inverse().transpose());

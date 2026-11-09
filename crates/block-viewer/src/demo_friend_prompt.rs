@@ -42,13 +42,7 @@ const TESS: Uuid = Uuid::from_u128(0xF41E_0000_0000_0000_0000_0000_0000_0007);
 /// The events of `frame`, at 60 frames a second.
 pub fn events(frame: u64, agent: Uuid) -> Vec<NetEvent> {
     match frame {
-        700 => vec![offer(
-            agent,
-            NOVA,
-            "Nova Example",
-            1,
-            block_i18n::tr!("demo-friend-prompt-message"),
-        )],
+        700 => vec![offer(agent, NOVA, "Nova Example", 1, block_i18n::tr!("demo-friend-prompt-message"))],
         760 => vec![offer(agent, TESS, "Tess Touch", 2, "")],
         _ => Vec::new(),
     }

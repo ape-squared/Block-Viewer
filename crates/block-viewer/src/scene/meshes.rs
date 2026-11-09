@@ -1537,8 +1537,8 @@ mod tests {
         };
         let (asset, plain) = (encode(true), encode(false));
         let header = block_assets::parse_mesh_header(&asset).expect("header");
-        let skin = block_assets::decode_skin(block_assets::mesh::section_bytes(&asset, header.skin.expect("skin")).expect("skin"))
-            .expect("skin");
+        let skin =
+            block_assets::decode_skin(block_assets::mesh::section_bytes(&asset, header.skin.expect("skin")).expect("skin")).expect("skin");
         let bind = skin.bind_shape;
         let mut s = mesh_streamer();
         let (rigged, still) = (Uuid::from_u128(1), Uuid::from_u128(2));

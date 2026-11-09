@@ -447,12 +447,7 @@ impl SnapshotUi {
                 block_i18n::tr!("photo-email-to-hint"),
                 usize::MAX,
             ),
-            (
-                block_i18n::tr!("photo-email-from"),
-                &mut form.name,
-                &mail.sender,
-                POSTCARD_NAME_MAX,
-            ),
+            (block_i18n::tr!("photo-email-from"), &mut form.name, &mail.sender, POSTCARD_NAME_MAX),
             (
                 block_i18n::tr!("photo-email-subject"),
                 &mut form.subject,

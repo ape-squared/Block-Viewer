@@ -3191,12 +3191,7 @@ mod tests {
             egui::Modifiers::NONE,
             egui::PointerButton::Secondary,
         );
-        let actions = click_menu(
-            &ctx,
-            &mut world,
-            &mut st,
-            block_i18n::tr!("ui-appearance-items-remove-from-outfit"),
-        );
+        let actions = click_menu(&ctx, &mut world, &mut st, block_i18n::tr!("ui-appearance-items-remove-from-outfit"));
         let [Action::DeleteFromOutfit { folder: from, items }] = actions.as_slice() else {
             panic!("{actions:?}");
         };

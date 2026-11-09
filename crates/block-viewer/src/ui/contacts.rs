@@ -847,10 +847,7 @@ fn friend_table(
     .map(|c| (c.1, c.2, c.3))
     .collect();
     let rights_cols: [(&str, &str); 5] = [
-        (
-            "eye-filled",
-            block_i18n::tr!("ui-contacts-this-person-can-see-when-you-are-online"),
-        ),
+        ("eye-filled", block_i18n::tr!("ui-contacts-this-person-can-see-when-you-are-online")),
         ("map-pin-filled", block_i18n::tr!("ui-contacts-this-person-can-locate-you")),
         (
             "pencil-filled",
@@ -1371,12 +1368,9 @@ fn group_list(
                         );
                     } else if let Some(query) = &plan.no_match {
                         ui.label(
-                            RichText::new(block_i18n::tr!(
-                                "ui-contacts-no-group-containing-was-found",
-                                value0 = query.clone()
-                            ))
-                            .size(12.0)
-                            .color(p.muted),
+                            RichText::new(block_i18n::tr!("ui-contacts-no-group-containing-was-found", value0 = query.clone()))
+                                .size(12.0)
+                                .color(p.muted),
                         );
                     }
                     let pinned = plan.items.iter().filter(|g| world.groups.favorites.contains(&g.id)).count();
@@ -2084,12 +2078,7 @@ fn dialogs(ctx: &egui::Context, p: &Palette, world: &mut World, st: &mut Contact
             } else {
                 block_i18n::tr!("ui-contacts-offer-teleport-to", value0 = name(&to[0]).to_string())
             };
-            (
-                block_i18n::tr!("common-offer-teleport"),
-                text,
-                block_i18n::tr!("common-send"),
-                true,
-            )
+            (block_i18n::tr!("common-offer-teleport"), text, block_i18n::tr!("common-send"), true)
         }
         Dialog::AddSet(_) => (
             block_i18n::tr!("ui-contacts-new-contact-set"),

@@ -417,10 +417,7 @@ impl LibraryUi {
                     if let Some(uploader) = window.texture.metadata.uploader {
                         world.social.want_name(uploader);
                         let name = world.person_name(&uploader).unwrap_or_else(|| uploader.to_string());
-                        if ui
-                            .small_button(block_i18n::tr!("resource-preview-uploader", name = name))
-                            .clicked()
-                        {
+                        if ui.small_button(block_i18n::tr!("resource-preview-uploader", name = name)).clicked() {
                             actions.push(Action::Profile(uploader));
                         }
                     }

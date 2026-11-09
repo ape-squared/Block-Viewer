@@ -198,16 +198,7 @@ impl ReportAbuseUi {
                 if send.clicked() {
                     self.on_send(grid, &mut actions);
                 }
-                if action_button(
-                    ui,
-                    p,
-                    "x",
-                    block_i18n::tr!("common-cancel"),
-                    ActionKind::Flat,
-                    Vec2::new(0.0, 28.0),
-                )
-                .clicked()
-                {
+                if action_button(ui, p, "x", block_i18n::tr!("common-cancel"), ActionKind::Flat, Vec2::new(0.0, 28.0)).clicked() {
                     // onClickCancel
                     self.open = false;
                 }

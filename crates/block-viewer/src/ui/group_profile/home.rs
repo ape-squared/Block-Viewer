@@ -248,67 +248,59 @@ fn setting_row(ui: &mut egui::Ui, p: &Palette, icon: &str, label: &str, control:
 fn me(ui: &mut egui::Ui, c: &mut Ctx, v: &View, actions: &mut Vec<GroupAction>) {
     let p = c.p;
     let Some(m) = v.member else { return };
-    view::card(
-        ui,
-        p,
-        "user-cog",
-        p.muted_dim,
-        block_i18n::tr!("ui-group-profile-me"),
-        None,
-        |ui| {
-            ui.spacing_mut().item_spacing.y = 2.0;
-            setting_row(ui, p, "star-filled", block_i18n::tr!("ui-group-profile-active"), |ui| {
-                let mut on = v.active;
-                if widgets::switch(ui, p, &mut on).changed() {
-                    actions.push(GroupAction::Activate(if on { v.id } else { uuid::Uuid::nil() }));
-                }
-            });
-            setting_row(ui, p, "tag-filled", block_i18n::tr!("ui-group-profile-title-shown"), |ui| {
-                let titles = v.data.map(|d| d.titles.as_slice()).unwrap_or_default();
-                let current = titles.iter().find(|t| t.selected);
-                let text = current.map_or_else(|| v.my_title().unwrap_or_default(), |t| t.title.clone());
-                ui.add_enabled_ui(!titles.is_empty(), |ui| {
-                    egui::ComboBox::from_id_salt(("group_title", v.id))
-                        .width(130.0)
-                        .selected_text(text)
-                        .show_ui(ui, |ui| {
-                            for t in titles {
-                                if ui.selectable_label(t.selected, &t.title).clicked() && !t.selected {
-                                    actions.push(GroupAction::SetTitle { group: v.id, role: t.role });
-                                }
+    view::card(ui, p, "user-cog", p.muted_dim, block_i18n::tr!("ui-group-profile-me"), None, |ui| {
+        ui.spacing_mut().item_spacing.y = 2.0;
+        setting_row(ui, p, "star-filled", block_i18n::tr!("ui-group-profile-active"), |ui| {
+            let mut on = v.active;
+            if widgets::switch(ui, p, &mut on).changed() {
+                actions.push(GroupAction::Activate(if on { v.id } else { uuid::Uuid::nil() }));
+            }
+        });
+        setting_row(ui, p, "tag-filled", block_i18n::tr!("ui-group-profile-title-shown"), |ui| {
+            let titles = v.data.map(|d| d.titles.as_slice()).unwrap_or_default();
+            let current = titles.iter().find(|t| t.selected);
+            let text = current.map_or_else(|| v.my_title().unwrap_or_default(), |t| t.title.clone());
+            ui.add_enabled_ui(!titles.is_empty(), |ui| {
+                egui::ComboBox::from_id_salt(("group_title", v.id))
+                    .width(130.0)
+                    .selected_text(text)
+                    .show_ui(ui, |ui| {
+                        for t in titles {
+                            if ui.selectable_label(t.selected, &t.title).clicked() && !t.selected {
+                                actions.push(GroupAction::SetTitle { group: v.id, role: t.role });
                             }
-                        });
+                        }
+                    });
+            });
+        });
+        setting_row(ui, p, "bell-filled", block_i18n::tr!("ui-group-profile-receive-notices"), |ui| {
+            let mut on = m.accept_notices;
+            if widgets::switch(ui, p, &mut on).changed() {
+                actions.push(GroupAction::SetFlags {
+                    group: v.id,
+                    accept_notices: on,
+                    list_in_profile: m.list_in_profile,
                 });
-            });
-            setting_row(ui, p, "bell-filled", block_i18n::tr!("ui-group-profile-receive-notices"), |ui| {
-                let mut on = m.accept_notices;
-                if widgets::switch(ui, p, &mut on).changed() {
-                    actions.push(GroupAction::SetFlags {
-                        group: v.id,
-                        accept_notices: on,
-                        list_in_profile: m.list_in_profile,
-                    });
-                }
-            });
-            setting_row(ui, p, "messages-filled", block_i18n::tr!("ui-group-profile-receive-chat"), |ui| {
-                let blocked = c.world.mutes.group_chat_muted(&v.id);
-                let mut on = !blocked;
-                if widgets::switch(ui, p, &mut on).changed() {
-                    crate::ui::context::request(ui.ctx(), crate::ui::context::CtxAction::GroupChatBlocked(v.id, !on));
-                }
-            });
-            setting_row(ui, p, "id-filled", block_i18n::tr!("ui-group-profile-show-in-profile"), |ui| {
-                let mut on = m.list_in_profile;
-                if widgets::switch(ui, p, &mut on).changed() {
-                    actions.push(GroupAction::SetFlags {
-                        group: v.id,
-                        accept_notices: m.accept_notices,
-                        list_in_profile: on,
-                    });
-                }
-            });
-        },
-    );
+            }
+        });
+        setting_row(ui, p, "messages-filled", block_i18n::tr!("ui-group-profile-receive-chat"), |ui| {
+            let blocked = c.world.mutes.group_chat_muted(&v.id);
+            let mut on = !blocked;
+            if widgets::switch(ui, p, &mut on).changed() {
+                crate::ui::context::request(ui.ctx(), crate::ui::context::CtxAction::GroupChatBlocked(v.id, !on));
+            }
+        });
+        setting_row(ui, p, "id-filled", block_i18n::tr!("ui-group-profile-show-in-profile"), |ui| {
+            let mut on = m.list_in_profile;
+            if widgets::switch(ui, p, &mut on).changed() {
+                actions.push(GroupAction::SetFlags {
+                    group: v.id,
+                    accept_notices: m.accept_notices,
+                    list_in_profile: on,
+                });
+            }
+        });
+    });
 }
 
 #[cfg(test)]

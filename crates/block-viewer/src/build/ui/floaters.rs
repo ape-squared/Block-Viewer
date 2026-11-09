@@ -311,14 +311,7 @@ fn media_settings(ctx: &egui::Context, p: &Palette, tool: &mut BuildTool, world:
                 ) {
                     e.first_click_interact = v;
                 }
-                if let Some(v) = check(
-                    ui,
-                    p,
-                    e.auto_zoom,
-                    false,
-                    block_i18n::tr!("build-ui-floaters-automatic-zoom"),
-                    true,
-                ) {
+                if let Some(v) = check(ui, p, e.auto_zoom, false, block_i18n::tr!("build-ui-floaters-automatic-zoom"), true) {
                     e.auto_zoom = v;
                 }
                 if let Some(v) = check(
@@ -331,11 +324,7 @@ fn media_settings(ctx: &egui::Context, p: &Palette, tool: &mut BuildTool, world:
                 ) {
                     e.auto_play = v;
                 }
-                small(
-                    ui,
-                    p,
-                    block_i18n::tr!("build-ui-floaters-note-residents-may-override-this-setting"),
-                );
+                small(ui, p, block_i18n::tr!("build-ui-floaters-note-residents-may-override-this-setting"));
                 if let Some(v) = check(
                     ui,
                     p,
@@ -691,8 +680,7 @@ fn confirm(ctx: &egui::Context, p: &Palette, tool: &mut BuildTool, world: &mut W
             if let Some(idx) = tool.selection.first().and_then(|k| world.objects.index_of(k)) {
                 tool.make_probe(world, idx);
                 if !tool.ui.probe_warned {
-                    tool.status =
-                        block_i18n::tr!("build-ui-floaters-reflection-probes-can-only-be-selected-when-select-reflection").into();
+                    tool.status = block_i18n::tr!("build-ui-floaters-reflection-probes-can-only-be-selected-when-select-reflection").into();
                     tool.ui.probe_warned = true;
                 }
             }

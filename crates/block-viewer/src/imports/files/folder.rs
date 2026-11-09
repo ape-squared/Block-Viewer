@@ -40,11 +40,7 @@ pub(in crate::imports) fn load(
         if retained.saturating_add(size) > 1024 * 1024 * 1024 || count + loaded.len() > 512 {
             loaded_rows.push((
                 index,
-                vec![Entry::new(
-                    path.clone(),
-                    Err(block_i18n::tr!("import-batch-limit").into()),
-                    options,
-                )],
+                vec![Entry::new(path.clone(), Err(block_i18n::tr!("import-batch-limit").into()), options)],
             ));
             break;
         }

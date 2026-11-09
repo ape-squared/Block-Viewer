@@ -608,9 +608,7 @@ fn visible_timing_fields_edit_global_fades_but_only_the_selected_bones_distance_
             .shapes
             .iter()
             .find_map(|s| match &s.shape {
-                egui::Shape::Text(t) if t.galley.text() == block_i18n::text(key) => {
-                    Some(egui::Rect::from_min_size(t.pos, t.galley.size()))
-                }
+                egui::Shape::Text(t) if t.galley.text() == block_i18n::text(key) => Some(egui::Rect::from_min_size(t.pos, t.galley.size())),
                 _ => None,
             })
             .unwrap();

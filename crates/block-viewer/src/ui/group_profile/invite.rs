@@ -381,11 +381,7 @@ impl InviteUi {
             });
             foot.show(ui, |ui| {
                 // the role
-                ui.label(
-                    egui::RichText::new(block_i18n::tr!("ui-group-invite-role"))
-                        .size(12.5)
-                        .color(p.ink),
-                );
+                ui.label(egui::RichText::new(block_i18n::tr!("ui-group-invite-role")).size(12.5).color(p.ink));
                 let roles = Self::roles(v, c.world.agent_id);
                 if !roles.iter().any(|r| r.id == self.role) {
                     self.role = Uuid::nil();
@@ -414,15 +410,8 @@ impl InviteUi {
                     if widgets::action_button_if(ui, p, "send-filled", label, ActionKind::Primary, Vec2::new(0.0, 28.0), ready).clicked() {
                         send = true;
                     }
-                    if widgets::action_button(
-                        ui,
-                        p,
-                        "x",
-                        block_i18n::tr!("common-cancel"),
-                        ActionKind::Flat,
-                        Vec2::new(0.0, 28.0),
-                    )
-                    .clicked()
+                    if widgets::action_button(ui, p, "x", block_i18n::tr!("common-cancel"), ActionKind::Flat, Vec2::new(0.0, 28.0))
+                        .clicked()
                     {
                         self.open = false;
                     }

@@ -530,14 +530,7 @@ fn return_all(ctx: &egui::Context, p: &Palette, s: &mut RegionUi, v: &View, worl
             ui.label(semibold(ui, block_i18n::tr!("region-top-return-all-title"), 13.5, p.ink));
         });
         ui.add_space(8.0);
-        ui.add(
-            egui::Label::new(
-                RichText::new(block_i18n::tr!("region-top-return-all-text"))
-                    .size(12.5)
-                    .color(p.ink),
-            )
-            .wrap(),
-        );
+        ui.add(egui::Label::new(RichText::new(block_i18n::tr!("region-top-return-all-text")).size(12.5).color(p.ink)).wrap());
         ui.add_space(14.0);
         let buttons = [
             DialogButton {

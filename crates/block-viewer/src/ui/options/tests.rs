@@ -1303,10 +1303,7 @@ fn the_frame_rate_limits_show_under_their_switches() {
         texts = page_frame(&mut frames, &mut s, &mut st, &mut r, Page::Graphics, 5, Vec::new());
     }
     for (switch, limit) in [
-        (
-            block_i18n::tr!("extra-limit-frame-rate"),
-            block_i18n::tr!("ui-options-frame-limit"),
-        ),
+        (block_i18n::tr!("extra-limit-frame-rate"), block_i18n::tr!("ui-options-frame-limit")),
         (
             block_i18n::tr!("ui-options-limit-when-unfocused"),
             block_i18n::tr!("ui-options-frame-limit-unfocused"),

@@ -1031,9 +1031,7 @@ fn sent(ui: &mut egui::Ui, p: &Palette, name: &str, amount: i32, balance: Option
                 .strong()
                 .color(p.ink),
         );
-        let mut detail = balance.map_or_else(String::new, |b| {
-            block_i18n::tr!("ui-pay-new-balance", amount = money(b)).to_owned()
-        });
+        let mut detail = balance.map_or_else(String::new, |b| block_i18n::tr!("ui-pay-new-balance", amount = money(b)).to_owned());
         if !message.trim().is_empty() {
             if !detail.is_empty() {
                 detail.push_str(" · ");

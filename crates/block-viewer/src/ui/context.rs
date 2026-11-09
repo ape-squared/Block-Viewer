@@ -1225,12 +1225,7 @@ pub fn teleport_confirm(ctx: &egui::Context, p: &Palette, id: &str, text: &str, 
     let mut answer = None;
     let modal = crate::ui::widgets::Modal::new(egui::Id::unique(id)).show(ctx, |ui| {
         ui.set_width(340.0);
-        ui.label(
-            RichText::new(block_i18n::tr!("common-teleport-2"))
-                .size(15.0)
-                .strong()
-                .color(p.ink),
-        );
+        ui.label(RichText::new(block_i18n::tr!("common-teleport-2")).size(15.0).strong().color(p.ink));
         ui.add_space(6.0);
         ui.label(RichText::new(text).size(12.5).color(p.muted));
         ui.add_space(8.0);

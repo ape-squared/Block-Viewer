@@ -203,11 +203,7 @@ fn the_compact_window_stacks_its_cards() {
     let texts = body_texts(&world, &mut w, 380.0);
     let tr = block_i18n::text;
     // the tabs in a drop-down list, About and Info without their heads
-    assert!(
-        texts
-            .iter()
-            .any(|t| t == &block_i18n::tr!("ui-profile-aurora-sections", count = 6))
-    );
+    assert!(texts.iter().any(|t| t == &block_i18n::tr!("ui-profile-aurora-sections", count = 6)));
     assert!(texts.iter().all(|t| t != tr("ui-profile-aurora-tab-picks")));
     assert!(texts.iter().all(|t| *t != tr("ui-profile-aurora-about").to_uppercase()));
     assert!(texts.iter().all(|t| t != tr("ui-profile-aurora-view-in-people")));

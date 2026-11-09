@@ -2155,9 +2155,7 @@ impl App {
                 return;
             }
             match &cmd {
-                NetCommand::Build(block_net::build::BuildCmd::SetTextures { local_id, .. })
-                    if ui::color_picker::demo::mode().is_some() =>
-                {
+                NetCommand::Build(block_net::build::BuildCmd::SetTextures { local_id, .. }) if ui::color_picker::demo::mode().is_some() => {
                     log::info!("demo color ObjectImage: prim={local_id}");
                 }
                 NetCommand::TeleportTo { handle, position, look_at } => {
@@ -10530,12 +10528,10 @@ impl App {
                 .rlva_overlay_frames(Instant::now())
                 .into_iter()
                 .filter_map(|frame| {
-                    self.rlva_overlay_slots
-                        .get(&frame.texture)
-                        .map(|slot| block_render::OverlayEffect {
-                            color: frame.color,
-                            texture: [*slot, 0, 0, 0],
-                        })
+                    self.rlva_overlay_slots.get(&frame.texture).map(|slot| block_render::OverlayEffect {
+                        color: frame.color,
+                        texture: [*slot, 0, 0, 0],
+                    })
                 })
                 .collect(),
             rlva_spheres: self.world.rlva_sphere_frames(self.camera.position, Instant::now()),

@@ -420,8 +420,7 @@ impl super::Scene {
                         let (u, v) = (seg as f32 / SIDE as f32, ring as f32 / SIDE as f32);
                         let (sin, cos) = (u * std::f32::consts::TAU).sin_cos();
                         let p = center + Vec3::new(cos * radius, sin * radius, (v - 0.5) * 0.5);
-                        tube.vertices
-                            .push(block_render::Vertex::new(p.to_array(), [cos, sin, 0.0], [u, v]));
+                        tube.vertices.push(block_render::Vertex::new(p.to_array(), [cos, sin, 0.0], [u, v]));
                     }
                 }
                 for ring in 0..SIDE {

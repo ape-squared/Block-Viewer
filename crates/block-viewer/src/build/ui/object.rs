@@ -29,11 +29,7 @@ pub fn types() -> [(&'static str, u8, u8); 22] {
             LL_PCODE_PATH_LINE,
             LL_PCODE_PROFILE_EQUALTRI,
         ),
-        (
-            block_i18n::tr!("common-sphere"),
-            LL_PCODE_PATH_CIRCLE,
-            LL_PCODE_PROFILE_CIRCLE_HALF,
-        ),
+        (block_i18n::tr!("common-sphere"), LL_PCODE_PATH_CIRCLE, LL_PCODE_PROFILE_CIRCLE_HALF),
         (block_i18n::tr!("common-torus"), LL_PCODE_PATH_CIRCLE, LL_PCODE_PROFILE_CIRCLE),
         (block_i18n::tr!("common-tube"), LL_PCODE_PATH_CIRCLE, LL_PCODE_PROFILE_SQUARE),
         (block_i18n::tr!("common-ring"), LL_PCODE_PATH_CIRCLE, LL_PCODE_PROFILE_EQUALTRI),

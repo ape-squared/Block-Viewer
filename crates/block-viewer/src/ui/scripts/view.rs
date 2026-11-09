@@ -479,11 +479,7 @@ fn edit_menu(ui: &mut egui::Ui, p: &Palette, e: &Editor, id: Id, chosen: &mut Op
         (Command::Find, "search-filled", block_i18n::tr!("script-search-title")),
         (Command::Goto, "arrow-bar-to-down", block_i18n::tr!("script-goto")),
         (Command::LineComment, "slashes", block_i18n::tr!("script-edit-line-comment")),
-        (
-            Command::BlockComment,
-            "code-asterisk",
-            block_i18n::tr!("script-edit-block-comment"),
-        ),
+        (Command::BlockComment, "code-asterisk", block_i18n::tr!("script-edit-block-comment")),
         (Command::Indent, "indent-increase", block_i18n::tr!("script-edit-indent")),
         (Command::Outdent, "indent-decrease", block_i18n::tr!("script-edit-outdent")),
         (Command::FoldAll, "caret-right-filled", block_i18n::tr!("script-fold-all")),

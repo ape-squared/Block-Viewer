@@ -327,8 +327,7 @@ impl Stack {
                                 if widgets::icon_button(ui, p, "arrow-up", block_i18n::tr!("ik-edit-animation-up"), index > 0) {
                                     movement = Some((index, -1));
                                 }
-                                if widgets::icon_button(ui, p, "arrow-down", block_i18n::tr!("ik-edit-animation-down"), index + 1 < count)
-                                {
+                                if widgets::icon_button(ui, p, "arrow-down", block_i18n::tr!("ik-edit-animation-down"), index + 1 < count) {
                                     movement = Some((index, 1));
                                 }
                                 if widgets::icon_button(ui, p, "trash-filled", block_i18n::tr!("ik-edit-animation-remove"), true) {

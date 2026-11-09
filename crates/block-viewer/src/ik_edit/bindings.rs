@@ -529,11 +529,7 @@ pub(super) fn rotation_toggle(ui: &mut egui::Ui, palette: &Palette, on: bool) ->
         ui,
         palette,
         "rotate-clockwise",
-        &format!(
-            "{}\n{}",
-            block_i18n::tr!("ik-edit-orient"),
-            block_i18n::tr!("ik-edit-orient-hint")
-        ),
+        &format!("{}\n{}", block_i18n::tr!("ik-edit-orient"), block_i18n::tr!("ik-edit-orient-hint")),
         on,
     )
 }

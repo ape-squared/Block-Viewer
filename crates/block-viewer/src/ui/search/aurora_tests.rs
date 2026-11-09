@@ -546,10 +546,7 @@ fn a_place_is_for_sale_by_its_row_not_by_its_parcel_price() {
     let texts = w.settle(&mut world);
     let for_sale = |r: &crate::world::search::Row| r.icon == RowIcon::ForSale;
     let expected = list.rows.iter().filter(|r| for_sale(r)).count() + usize::from(for_sale(&selected));
-    let drawn = texts
-        .iter()
-        .filter(|(_, t)| t == block_i18n::tr!("search-aurora-for-sale"))
-        .count();
+    let drawn = texts.iter().filter(|(_, t)| t == block_i18n::tr!("search-aurora-for-sale")).count();
     assert_eq!(drawn, expected, "only the rows the search reply marked for sale, and their details");
 }
 

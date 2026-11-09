@@ -2595,11 +2595,8 @@ pub fn glass_action_icon(ui: &mut egui::Ui, p: &Palette, icon: &str, label: &str
         );
         ui.painter().add(frame.paint(rect.shrink(frame.stroke.width)));
         if p.panel_alpha < 255 {
-            ui.painter().add(block_render::glass_panel(
-                rect.shrink(1.0),
-                f32::from(frame.corner_radius.nw),
-                tint,
-            ));
+            ui.painter()
+                .add(block_render::glass_panel(rect.shrink(1.0), f32::from(frame.corner_radius.nw), tint));
         }
         if let Some(texture) = super::icons::global(icon) {
             ui.painter().image(

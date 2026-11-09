@@ -207,10 +207,7 @@ impl Service {
                         if path.extension().is_some_and(|e| e.eq_ignore_ascii_case("anim")) {
                             Output::Loaded(
                                 subject,
-                                Loaded::Animation(
-                                    block_assets::anim::parse_animation_upload(&bytes).map_err(|e| e.to_string())?,
-                                    mode,
-                                ),
+                                Loaded::Animation(block_assets::anim::parse_animation_upload(&bytes).map_err(|e| e.to_string())?, mode),
                             )
                         } else if path.extension().is_some_and(|e| e.eq_ignore_ascii_case("bvh")) {
                             let skeleton = skeleton.as_ref().ok_or_else(|| block_i18n::tr!("anim-edit-invalid").to_string())?;

@@ -644,9 +644,7 @@ pub fn note_asset(embedded: bool) -> Vec<u8> {
         }
         card.encode(&text).unwrap_or_default()
     } else {
-        block_net::inventory::notecard::Notecard::default()
-            .encode(text)
-            .unwrap_or_default()
+        block_net::inventory::notecard::Notecard::default().encode(text).unwrap_or_default()
     }
 }
 

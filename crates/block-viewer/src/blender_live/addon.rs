@@ -45,11 +45,7 @@ pub(super) fn archive(legacy: bool) -> Result<Vec<u8>, String> {
         if legacy && *name == "blender_manifest.toml" {
             continue;
         }
-        let path = if legacy {
-            format!("block_live/{name}")
-        } else {
-            (*name).to_owned()
-        };
+        let path = if legacy { format!("block_live/{name}") } else { (*name).to_owned() };
         writer.start_file(path, options).map_err(|error| error.to_string())?;
         writer.write_all(bytes).map_err(|error| error.to_string())?;
     }
@@ -134,11 +130,7 @@ mod tests {
                     assert!(zip.by_name("block_live/blender_manifest.toml").is_err());
                     continue;
                 }
-                let path = if legacy {
-                    format!("block_live/{name}")
-                } else {
-                    (*name).to_owned()
-                };
+                let path = if legacy { format!("block_live/{name}") } else { (*name).to_owned() };
                 let mut file = zip.by_name(&path).expect("entry");
                 assert!(file.enclosed_name().is_some());
                 let mut contents = Vec::new();

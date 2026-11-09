@@ -3990,10 +3990,7 @@ impl World {
                 None
             }
             NetEvent::ProfileSaveFailed { target, reason } => {
-                self.system_message(block_i18n::tr!(
-                    "world-mod-could-not-save-the-profile",
-                    reason = reason.to_string()
-                ));
+                self.system_message(block_i18n::tr!("world-mod-could-not-save-the-profile", reason = reason.to_string()));
                 // show what the server really has
                 self.profiles.refresh(target);
                 None

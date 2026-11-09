@@ -940,15 +940,7 @@ fn preset_choice(ui: &mut egui::Ui, p: &Palette, s: &mut Settings) -> bool {
 /// list shows the last ones and says so, and the current choice is not
 /// called missing meanwhile.
 pub(super) fn device_combo(ui: &mut egui::Ui, id: &str, value: &mut String, devices: &[String], width: f32, listing: bool) -> (bool, bool) {
-    choice_combo(
-        ui,
-        id,
-        value,
-        devices,
-        width,
-        block_i18n::tr!("ui-options-system-default"),
-        listing,
-    )
+    choice_combo(ui, id, value, devices, width, block_i18n::tr!("ui-options-system-default"), listing)
 }
 
 /// `device_combo` whose empty choice reads `default_label`.
@@ -1488,13 +1480,7 @@ fn sidebar(
     let width = ui.available_width();
     ui.horizontal(|ui| {
         let clear_w = if st.query.is_empty() { 0.0 } else { 26.0 };
-        let field = super::widgets::search_box(
-            ui,
-            p,
-            &mut st.query,
-            block_i18n::tr!("ui-options-search-settings"),
-            width - clear_w,
-        );
+        let field = super::widgets::search_box(ui, p, &mut st.query, block_i18n::tr!("ui-options-search-settings"), width - clear_w);
         if st.focus_search && !ui.is_sizing_pass() && ui.is_enabled() {
             st.focus_search = false;
             field.request_focus();

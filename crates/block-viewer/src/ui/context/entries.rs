@@ -717,11 +717,7 @@ fn avatar_groups(ui: &mut Builder, f: &Facts, id: Uuid, attachment: Option<Uuid>
         block_i18n::tr!("common-look-toward-avatar"),
         CtxAction::LookAtAvatar(id),
     );
-    ui.item(
-        "zoom-in-filled",
-        block_i18n::tr!("common-zoom-2"),
-        CtxAction::Zoom(point, Some(id)),
-    );
+    ui.item("zoom-in-filled", block_i18n::tr!("common-zoom-2"), CtxAction::Zoom(point, Some(id)));
     ui.item("coin-filled", block_i18n::tr!("common-pay"), CtxAction::PayResident(id));
     ui.separator();
     if let Some(object) = attachment {
@@ -815,13 +811,7 @@ fn avatar_groups(ui: &mut Builder, f: &Facts, id: Uuid, attachment: Option<Uuid>
             block_i18n::tr!("common-report"),
             CtxAction::ReportAbuse(ReportTarget::Object(id)),
         );
-        ui.check(
-            "ban",
-            block_i18n::tr!("common-ignore"),
-            f.blocked,
-            true,
-            CtxAction::ToggleBlock(id),
-        );
+        ui.check("ban", block_i18n::tr!("common-ignore"), f.blocked, true, CtxAction::ToggleBlock(id));
         // Local mute of their nearby/call voice only (flagVoiceChat), same as
         // People › Block voice and the menu volume row — not land moderation.
         ui.check(
@@ -1130,11 +1120,7 @@ fn land_menu(ui: &mut Builder, f: &Facts, point: Vec3) {
         block_i18n::tr!("ui-context-buy-this-land"),
         CtxAction::BuyLand(point),
     );
-    ui.item(
-        "ticket-filled",
-        block_i18n::tr!("ui-context-buy-access"),
-        CtxAction::BuyPass(point),
-    );
+    ui.item("ticket-filled", block_i18n::tr!("ui-context-buy-access"), CtxAction::BuyPass(point));
     ui.separator();
     ui.item("box", block_i18n::tr!("common-build"), CtxAction::Build);
     ui.item("mountain-filled", block_i18n::tr!("ui-context-edit-land"), CtxAction::EditTerrain);

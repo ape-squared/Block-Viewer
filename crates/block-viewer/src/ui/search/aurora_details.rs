@@ -496,12 +496,7 @@ fn event(ui: &mut egui::Ui, c: &mut Ctx, id: u32, row_name: &str, row: Option<&R
         head(ui, p, &e.name, None, Some(content), &e.category);
         ui.add_space(4.0);
         text_field(ui, p, block_i18n::tr!("search-event-date"), &e.date);
-        text_field(
-            ui,
-            p,
-            block_i18n::tr!("search-event-duration"),
-            &search::event_duration(e.duration),
-        );
+        text_field(ui, p, block_i18n::tr!("search-event-duration"), &search::event_duration(e.duration));
         field(ui, p, block_i18n::tr!("search-event-organizer"), |ui| agent_link(ui, c, e.creator));
         // "%s (%d, %d, %d)": the region and the position in it
         let (x, y) = c.world.map.local_xy(e.global.x.round(), e.global.y.round());

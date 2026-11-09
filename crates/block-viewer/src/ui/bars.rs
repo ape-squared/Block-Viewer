@@ -792,20 +792,13 @@ fn main_menus(ui: &mut egui::Ui, p: &Palette, panels: &mut Panels, st: &StatusIn
         }
         // Firestorm keeps its double-click teleport beside its movement
         // entries (Avatar › Movement): the four choices of the preference
-        menu::submenu(
-            ui,
-            p,
-            "hand-click",
-            block_i18n::tr!("ui-options-double-click-ground"),
-            true,
-            |ui| {
-                for choice in crate::autopilot::DoubleClick::ALL {
-                    if menu::check(ui, p, choice.icon(), choice.label(), st.double_click == choice, true) {
-                        *action = BarAction::SetDoubleClick(choice);
-                    }
+        menu::submenu(ui, p, "hand-click", block_i18n::tr!("ui-options-double-click-ground"), true, |ui| {
+            for choice in crate::autopilot::DoubleClick::ALL {
+                if menu::check(ui, p, choice.icon(), choice.label(), st.double_click == choice, true) {
+                    *action = BarAction::SetDoubleClick(choice);
                 }
-            },
-        );
+            }
+        });
         health_menu(ui, p, &st.health);
         menu::separator(ui, p);
         if menu::item(ui, p, "settings-filled", block_i18n::tr!("ui-bars-preferences")) {
@@ -875,11 +868,7 @@ fn main_menus(ui: &mut egui::Ui, p: &Palette, panels: &mut Panels, st: &StatusIn
             }
             for (zoom, icon, label) in [
                 (1.0, "restore", block_i18n::tr!("ui-bars-normal-size")),
-                (
-                    (st.hud_zoom / 1.2).max(0.1),
-                    "zoom-out-filled",
-                    block_i18n::tr!("ui-bars-zoom-out"),
-                ),
+                ((st.hud_zoom / 1.2).max(0.1), "zoom-out-filled", block_i18n::tr!("ui-bars-zoom-out")),
                 ((st.hud_zoom * 1.2).min(1.0), "zoom-in-filled", block_i18n::tr!("ui-bars-zoom-in")),
             ] {
                 if menu::item(ui, p, icon, label) {
@@ -949,14 +938,7 @@ fn main_menus(ui: &mut egui::Ui, p: &Palette, panels: &mut Panels, st: &StatusIn
             &mut panels.minimap,
             true,
         );
-        flip_window(
-            ui,
-            p,
-            "map",
-            block_i18n::tr!("common-world-map"),
-            "worldmap",
-            &mut panels.world_map,
-        );
+        flip_window(ui, p, "map", block_i18n::tr!("common-world-map"), "worldmap", &mut panels.world_map);
         // menu_viewer.xml: Stream Title (its window keeps the history of
         // the titles), then Landmark this Place, after the maps
         flip_window(
@@ -1334,12 +1316,7 @@ fn health_menu(ui: &mut egui::Ui, p: &Palette, h: &HealthMenu) {
         ) {
             request(ui.ctx(), CtxAction::StopAnimationsKeepPermissions);
         }
-        if menu::item(
-            ui,
-            p,
-            "player-stop-filled",
-            block_i18n::tr!("avatar-health-stop-animations-revoke"),
-        ) {
+        if menu::item(ui, p, "player-stop-filled", block_i18n::tr!("avatar-health-stop-animations-revoke")) {
             request(ui.ctx(), CtxAction::StopAnimations);
         }
         if menu::item(ui, p, "stretching", block_i18n::tr!("avatar-health-undeform")) {
@@ -1673,9 +1650,7 @@ fn voice_light(ui: &mut egui::Ui, p: &Palette, icons: &Icons, light: crate::voic
         if resp.hovered() { p.ink } else { p.muted },
     );
     let color = if resp.hovered() { p.ink } else { p.muted };
-    let label = ui
-        .painter()
-        .layout_no_wrap(block_i18n::tr!("common-voice").to_owned(), font, color);
+    let label = ui.painter().layout_no_wrap(block_i18n::tr!("common-voice").to_owned(), font, color);
     super::widgets::paint_ink_left(ui.painter(), label, egui::pos2(rect.left() + LABEL_AT, rect.center().y), color);
     let tip = if why.is_empty() || why == state {
         state.to_owned()

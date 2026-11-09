@@ -135,10 +135,7 @@ impl App {
                 Some(o) => {
                     let local_id = o.key.local_id;
                     self.send(NetCommand::Touch { local_id });
-                    self.report_command(block_i18n::tr!(
-                        "app-chat-commands-touched-object-with-key",
-                        id = format!("{}", id)
-                    ));
+                    self.report_command(block_i18n::tr!("app-chat-commands-touched-object-with-key", id = format!("{}", id)));
                 }
                 None => self.report_command(block_i18n::tr!(
                     "app-chat-commands-object-with-key-not-found",

@@ -342,12 +342,7 @@ impl GroupCreateUi {
                 floater.show(ctx, c.p, &mut open, |ui| self.classic(ui, c, &mut actions));
             } else {
                 let size = Vec2::new(820.0, 720.0);
-                let mut floater = Floater::new(
-                    WINDOW,
-                    block_i18n::tr!("ui-group-create-title"),
-                    screen.center() - size * 0.5,
-                    size,
-                );
+                let mut floater = Floater::new(WINDOW, block_i18n::tr!("ui-group-create-title"), screen.center() - size * 0.5, size);
                 floater.min_size = Vec2::new(560.0, 460.0);
                 floater.show(ctx, c.p, &mut open, |ui| self.aurora(ui, c, &mut actions));
             }
@@ -749,8 +744,7 @@ impl GroupCreateUi {
                     {
                         self.press(c.world, actions);
                     }
-                    if widgets::action_button(ui, p, "", block_i18n::tr!("common-cancel"), ActionKind::Flat, Vec2::new(0.0, 24.0))
-                        .clicked()
+                    if widgets::action_button(ui, p, "", block_i18n::tr!("common-cancel"), ActionKind::Flat, Vec2::new(0.0, 24.0)).clicked()
                     {
                         self.open = false;
                     }

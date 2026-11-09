@@ -30,11 +30,7 @@ impl MovementUi {
         let down = keys.get(KeyAction::Down);
         let passage_keys = keys.pass_wall_bindings();
         ui.style_mut().wrap_mode = Some(egui::TextWrapMode::Wrap);
-        ui.label(
-            egui::RichText::new(block_i18n::tr!("movement-title"))
-                .strong()
-                .color(p.violet_pale),
-        );
+        ui.label(egui::RichText::new(block_i18n::tr!("movement-title")).strong().color(p.violet_pale));
         if status == block_i18n::tr!("movement-physics-unavailable") {
             ui.label(egui::RichText::new(status).color(p.violet_pale));
         }

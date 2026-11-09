@@ -1076,18 +1076,8 @@ fn blinn_phong(ui: &mut egui::Ui, p: &Palette, tool: &mut BuildTool, world: &mut
         ui.spacing_mut().item_spacing.x = 10.0;
         for (id, mixed, caption, target) in [
             (tex, tex_mixed, block_i18n::tr!("build-ui-texture-diffuse"), PickTarget::Diffuse),
-            (
-                normal,
-                normal_mixed,
-                block_i18n::tr!("build-ui-texture-normal"),
-                PickTarget::Normal,
-            ),
-            (
-                spec,
-                spec_mixed,
-                block_i18n::tr!("build-ui-texture-specular"),
-                PickTarget::Specular,
-            ),
+            (normal, normal_mixed, block_i18n::tr!("build-ui-texture-normal"), PickTarget::Normal),
+            (spec, spec_mixed, block_i18n::tr!("build-ui-texture-specular"), PickTarget::Specular),
         ] {
             material_map(ui, p, tool, world, env, id, mixed, caption, target, editable, size);
         }

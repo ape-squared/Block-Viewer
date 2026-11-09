@@ -2330,10 +2330,7 @@ fn tiles(s: &Settings, panel: &SnapshotUi, f: &Frame) -> Vec<(&'static str, Stri
     ));
     v.push((
         block_i18n::tr!("photo-vf-time"),
-        time_label(panel.light.env.time).replace(
-            block_i18n::tr!("photo-vf-sky-current"),
-            block_i18n::tr!("photo-light-time-current"),
-        ),
+        time_label(panel.light.env.time).replace(block_i18n::tr!("photo-vf-sky-current"), block_i18n::tr!("photo-light-time-current")),
         Box::new(|_, panel| {
             panel.light.env.set_time(next_time(panel.light.env.time));
             None

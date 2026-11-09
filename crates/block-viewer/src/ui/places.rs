@@ -800,13 +800,7 @@ impl PlacesUi {
             Some(Sel::Folder(f)) => Some(f),
             _ => None,
         };
-        if super::menu::item_if(
-            ui,
-            p,
-            "map-pin-filled",
-            block_i18n::tr!("ui-places-add-landmark"),
-            folder.is_some(),
-        ) {
+        if super::menu::item_if(ui, p, "map-pin-filled", block_i18n::tr!("ui-places-add-landmark"), folder.is_some()) {
             actions.push(PlacesAction::CreateLandmark(folder));
         }
         super::menu::todo(ui, p, "folder-filled", block_i18n::tr!("ui-places-add-folder"));

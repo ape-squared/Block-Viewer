@@ -427,11 +427,7 @@ fn preview_colors(ui: &mut egui::Ui, p: &Palette, prefs: &mut Preferences) {
 
 fn preview_colors_fields(ui: &mut egui::Ui, p: &Palette, prefs: &mut Preferences) {
     for (label, stored, default) in [
-        (
-            block_i18n::tr!("import-preview-background"),
-            &mut prefs.preview_background,
-            p.field,
-        ),
+        (block_i18n::tr!("import-preview-background"), &mut prefs.preview_background, p.field),
         (block_i18n::tr!("import-edges"), &mut prefs.preview_edges, p.teal),
         (
             block_i18n::tr!("import-preview-physics-fill"),
@@ -761,11 +757,7 @@ fn animation_model_controls(
     });
     if let Some(error) = &model.error {
         ui.label(RichText::new(error).small().color(p.danger));
-        ui.label(
-            RichText::new(block_i18n::tr!("import-animation-model-kept"))
-                .small()
-                .color(p.muted),
-        );
+        ui.label(RichText::new(block_i18n::tr!("import-animation-model-kept")).small().color(p.muted));
     }
 }
 

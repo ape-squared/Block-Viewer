@@ -616,14 +616,7 @@ fn landmark_info(ui: &mut egui::Ui, c: &mut Ctx, place: &Place, item: Uuid, data
     ui.horizontal(|ui| {
         // "Owner:" in Firestorm; named apart from the landmark's owner below,
         // on one line (wider than the label column)
-        ui.add(
-            egui::Label::new(
-                RichText::new(block_i18n::tr!("ui-place-details-landowner"))
-                    .size(12.0)
-                    .color(p.ink),
-            )
-            .extend(),
-        );
+        ui.add(egui::Label::new(RichText::new(block_i18n::tr!("ui-place-details-landowner")).size(12.0).color(p.ink)).extend());
         match data {
             Shown::Parcel(d) => who(ui, c, d.owner, d.flags & 0x4 != 0),
             Shown::Loading => {
@@ -776,8 +769,7 @@ mod tests {
         );
         assert_eq!(e(RemoteParcelError::Failed), e(RemoteParcelError::NoParcel));
         assert!(
-            error_text(PlaceError::UnknownRegion, false)
-                == block_i18n::tr!("ui-place-details-could-not-find-the-region-s-location-it-may")
+            error_text(PlaceError::UnknownRegion, false) == block_i18n::tr!("ui-place-details-could-not-find-the-region-s-location-it-may")
         );
         assert!(
             error_text(PlaceError::LandmarkUnavailable, true)

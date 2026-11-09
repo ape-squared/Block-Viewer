@@ -353,8 +353,8 @@ fn setup() -> (World, Mat4, Vec<Mat4>) {
 #[test]
 fn observed_avatar_follows_this_frames_other_avatar_pose_while_only_the_local_editor_is_frozen() {
     use crate::scene::ik::{EditRequest, JointEdit};
-    use block_net::{ChatMessage, ChatSourceType, ChatType};
     use base64::{Engine, engine::general_purpose::STANDARD};
+    use block_net::{ChatMessage, ChatSourceType, ChatType};
     use std::time::Duration;
     let lib = Arc::new(AvatarLibrary::load());
     let mut world = World::new(lib.clone());

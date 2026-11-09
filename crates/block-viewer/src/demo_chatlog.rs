@@ -275,24 +275,14 @@ pub fn offline_messages(agent: Uuid) -> Vec<NetEvent> {
         .duration_since(SystemTime::UNIX_EPOCH)
         .map_or(0, |d| d.as_secs() as u32);
     vec![
-        im(
-            agent,
-            block_i18n::tr!("demo-chatlog-offline-1"),
-            true,
-            now.saturating_sub(9 * 3600),
-        ),
+        im(agent, block_i18n::tr!("demo-chatlog-offline-1"), true, now.saturating_sub(9 * 3600)),
         im(
             agent,
             block_i18n::tr!("demo-chatlog-offline-2"),
             true,
             now.saturating_sub(9 * 3600 - 40),
         ),
-        im(
-            agent,
-            block_i18n::tr!("demo-chatlog-offline-3"),
-            true,
-            now.saturating_sub(2 * 3600),
-        ),
+        im(agent, block_i18n::tr!("demo-chatlog-offline-3"), true, now.saturating_sub(2 * 3600)),
     ]
 }
 

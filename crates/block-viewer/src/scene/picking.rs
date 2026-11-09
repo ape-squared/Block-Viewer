@@ -3380,10 +3380,7 @@ pub(crate) mod tests {
         let mut candidates = Vec::new();
         assert_eq!(scene.creation_surface(&world, ray, 20.0, &mut candidates).unwrap().1, Some(front));
         let pcode = world.objects.get(front).unwrap().pcode;
-        for code in [
-            block_prim::params::LL_PCODE_LEGACY_AVATAR,
-            block_prim::params::LL_PCODE_LEGACY_TREE,
-        ] {
+        for code in [block_prim::params::LL_PCODE_LEGACY_AVATAR, block_prim::params::LL_PCODE_LEGACY_TREE] {
             world.objects.get_mut(front).unwrap().pcode = code;
             assert_eq!(scene.creation_surface(&world, ray, 20.0, &mut candidates).unwrap().1, Some(back));
         }

@@ -207,16 +207,7 @@ pub(super) fn rules_fold(ui: &mut egui::Ui, p: &Palette, s: &mut RegionUi, v: &V
     line(ui, p);
     srow(ui, p, block_i18n::tr!("region-telehub"), &desc, 320.0, |ui| {
         if connected
-            && widgets::action_button_if(
-                ui,
-                p,
-                "",
-                block_i18n::tr!("region-telehub-disconnect"),
-                ActionKind::Flat,
-                size,
-                can,
-            )
-            .clicked()
+            && widgets::action_button_if(ui, p, "", block_i18n::tr!("region-telehub-disconnect"), ActionKind::Flat, size, can).clicked()
         {
             world.estate.telehub(v.handle, TelehubVerb::Delete, objects.clone());
         }

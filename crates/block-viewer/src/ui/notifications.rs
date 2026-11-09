@@ -563,11 +563,7 @@ pub(super) fn card(
                     buttons.push((block_i18n::tr!("ui-notifications-accept").into(), Response::Accept, true));
                     buttons.push((block_i18n::tr!("ui-notifications-decline").into(), Response::Decline, false));
                     if invite.p2p {
-                        buttons.push((
-                            block_i18n::tr!("ui-notifications-call-start-im").into(),
-                            Response::Button(0),
-                            false,
-                        ));
+                        buttons.push((block_i18n::tr!("ui-notifications-call-start-im").into(), Response::Button(0), false));
                     }
                 }
                 Data::RlvaQuery { .. } => {

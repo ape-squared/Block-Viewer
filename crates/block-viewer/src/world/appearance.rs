@@ -1760,11 +1760,7 @@ pub(super) fn demo_replace(inv: &mut Inventory, agent: Uuid, id: Uuid, links: &[
     }]);
 }
 
-pub fn demo_mutate(
-    inv: &mut Inventory,
-    agent: Uuid,
-    change: &OutfitMutation,
-) -> Result<Vec<block_net::inventory::FolderContents>, String> {
+pub fn demo_mutate(inv: &mut Inventory, agent: Uuid, change: &OutfitMutation) -> Result<Vec<block_net::inventory::FolderContents>, String> {
     if let Some(cat) = &change.create {
         inv.folders.insert(
             cat.id,
@@ -2344,14 +2340,7 @@ mod tests {
         let trash = system_folder(&inv, 14).expect("Trash");
         let current = base(&inv).expect("base");
         assert!(category_plan(&inv, current, Update::Trash(trash)).is_err());
-        assert!(
-            category_plan(
-                &inv,
-                cof(&inv).expect("COF"),
-                Update::Rename(block_i18n::tr!("common-name").into())
-            )
-            .is_err()
-        );
+        assert!(category_plan(&inv, cof(&inv).expect("COF"), Update::Rename(block_i18n::tr!("common-name").into())).is_err());
         assert!(category_plan(&inv, Uuid::from_u128(704), Update::Rename("  ".into())).is_err());
         let selected = Uuid::from_u128(704);
         let links = folder_links(&inv, selected);

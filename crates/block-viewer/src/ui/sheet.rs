@@ -346,12 +346,8 @@ pub fn page_tabs<P: Copy + PartialEq>(
                 if widgets::segmented(ui, p, &mut choice, &options) {
                     *as_visitor = choice == 1;
                 }
-                ui.label(
-                    RichText::new(block_i18n::tr!("ui-land-overview-view-as"))
-                        .size(12.0)
-                        .color(p.muted),
-                )
-                .on_hover_text(r.tip);
+                ui.label(RichText::new(block_i18n::tr!("ui-land-overview-view-as")).size(12.0).color(p.muted))
+                    .on_hover_text(r.tip);
             });
         }
     });

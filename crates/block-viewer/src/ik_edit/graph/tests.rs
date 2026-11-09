@@ -1,8 +1,8 @@
 use super::*;
 use crate::ik_edit::tests::HeadlessContext as _;
 use crate::{demo, scene::avatar::AvatarLibrary};
-use block_net::NetEvent;
 use base64::{Engine, engine::general_purpose::STANDARD};
+use block_net::NetEvent;
 
 fn fixture() -> (World, Frame) {
     let lib = Arc::new(AvatarLibrary::load());

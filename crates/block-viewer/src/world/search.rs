@@ -136,7 +136,7 @@ pub struct SearchSettings {
     pub teleport_action: u8,
     /// The G / M / A toggles of Aurora's window, one set for every type
     /// (the Legacy Viewer's defaults: General only).
-    pub aurora_ratings: RatingBoxes,
+    pub block_ratings: RatingBoxes,
 }
 
 impl Default for SearchSettings {
@@ -152,7 +152,7 @@ impl Default for SearchSettings {
             land_limit_area: false,
             land_type: 0,
             teleport_action: 1,
-            aurora_ratings: RatingBoxes::default(),
+            block_ratings: RatingBoxes::default(),
         }
     }
 }

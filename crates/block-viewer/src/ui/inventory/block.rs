@@ -170,7 +170,7 @@ pub fn sync_state(p: &Palette, inv: &Inventory, st: &InventoryUi) -> (egui::Colo
     if fetching {
         (p.muted_dim, block_i18n::tr!("inventory-syncing").to_owned())
     } else {
-        (p.teal, block_i18n::tr!("inventory-synced").to_owned())
+        (p.muted, block_i18n::tr!("inventory-synced").to_owned())
     }
 }
 
@@ -247,7 +247,7 @@ pub(super) fn contents(
     actions: &mut Vec<InvAction>,
 ) {
     let layout = Layout::for_width(ui.available_width());
-    st.aurora = Some(Frame {
+    st.block = Some(Frame {
         layout,
         rights: prefs.rights,
         columns: prefs.explorer,
@@ -354,7 +354,7 @@ fn compact(
     let message = toolbar::message(p, st);
     let foot_h = card_height(prefs) + if message.is_some() { toolbar::MESSAGE } else { 0.0 };
     let (room, list_rect, foot) = list_and_foot(ui, foot_h);
-    let out = in_rect(ui, list_rect, "aurora_inventory_list_room", |ui| {
+    let out = in_rect(ui, list_rect, "block_inventory_list_room", |ui| {
         list(
             ui,
             p,
@@ -370,11 +370,11 @@ fn compact(
             false,
         )
     });
-    let zone = ui.interact(out.inner_rect, ui.scope_id().with("aurora_list_zone"), Sense::hover());
+    let zone = ui.interact(out.inner_rect, ui.scope_id().with("block_list_zone"), Sense::hover());
     let target = list_destination(st, root);
     task_drop::target(ui, p, &zone, inv, target, actions);
     drag::target(ui, p, &zone, inv, target, st, prefs, facts, actions);
-    in_rect(ui, foot, "aurora_inventory_foot", |ui| {
+    in_rect(ui, foot, "block_inventory_foot", |ui| {
         if let Some((text, color)) = message {
             toolbar::message_line(ui, st, &text, color);
         }
@@ -413,13 +413,13 @@ fn explorer(
         egui::pos2(side.right() + GAP, area.top()),
         egui::pos2(if pane_w > 0.0 { pane.left() - GAP } else { area.right() }, area.bottom()),
     );
-    let mut side_ui = ui.new_child(egui::UiBuilder::new().max_rect(side).id_salt("aurora_inventory_side"));
+    let mut side_ui = ui.new_child(egui::UiBuilder::new().max_rect(side).id_salt("block_inventory_side"));
     side_ui.set_clip_rect(side.intersect(ui.clip_rect()));
     sidebar::show(&mut side_ui, p, icons, inv, st, prefs, facts, actions);
     let mut content_ui = ui.new_child(
         egui::UiBuilder::new()
             .max_rect(content)
-            .id_salt("aurora_inventory_content")
+            .id_salt("block_inventory_content")
             .layout(egui::Layout::top_down(egui::Align::Min)),
     );
     content_ui.set_clip_rect(content.intersect(ui.clip_rect()));
@@ -428,7 +428,7 @@ fn explorer(
         let mut pane_ui = ui.new_child(
             egui::UiBuilder::new()
                 .max_rect(pane)
-                .id_salt("aurora_inventory_details")
+                .id_salt("block_inventory_details")
                 .layout(egui::Layout::top_down(egui::Align::Min)),
         );
         pane_ui.set_clip_rect(pane.intersect(ui.clip_rect()));
@@ -456,13 +456,13 @@ fn explorer_list(
         Layout::Wide => toolbar::chips(ui, p, st, prefs),
         _ => toolbar::breadcrumb_row(ui, p, inv, st),
     }
-    let list_id = ui.scope_id().with("aurora_inventory_list");
-    let Some(mut frame) = st.aurora else { return };
+    let list_id = ui.scope_id().with("block_inventory_list");
+    let Some(mut frame) = st.block else { return };
     frame.rights = prefs.rights;
     frame.columns = prefs.explorer;
     rows::header(ui, p, frame, list_id, &mut prefs.explorer);
     frame.columns = prefs.explorer;
-    st.aurora = Some(frame);
+    st.block = Some(frame);
     ui.add_space(2.0);
     let (root, filtered) = list_scope(inv, st, prefs, facts);
     let message = toolbar::message(p, st);
@@ -491,27 +491,27 @@ fn explorer_list(
         st.expand_all = None;
         let browse = st.browse;
         std::mem::swap(&mut st.plain, &mut st.flat);
-        if let Some(frame) = &mut st.aurora {
+        if let Some(frame) = &mut st.block {
             frame.explorer = true;
         }
-        let out = in_rect(ui, list_rect, "aurora_inventory_list_room", |ui| {
+        let out = in_rect(ui, list_rect, "block_inventory_list_room", |ui| {
             list(ui, p, icons, inv, st, prefs, facts, actions, list_h, browse, false, false)
         });
-        if let Some(frame) = &mut st.aurora {
+        if let Some(frame) = &mut st.block {
             frame.explorer = false;
         }
         std::mem::swap(&mut st.plain, &mut st.flat);
         out
     } else {
-        in_rect(ui, list_rect, "aurora_inventory_list_room", |ui| {
+        in_rect(ui, list_rect, "block_inventory_list_room", |ui| {
             list(ui, p, icons, inv, st, prefs, facts, actions, list_h, root, filtered, false)
         })
     };
     widgets::remember_scroll_bar(ui, list_id, &out);
-    let zone = ui.interact(out.inner_rect, ui.scope_id().with("aurora_list_zone"), Sense::hover());
+    let zone = ui.interact(out.inner_rect, ui.scope_id().with("block_list_zone"), Sense::hover());
     task_drop::target(ui, p, &zone, inv, target, actions);
     drag::target(ui, p, &zone, inv, target, st, prefs, facts, actions);
-    in_rect(ui, foot, "aurora_inventory_foot", |ui| match layout {
+    in_rect(ui, foot, "block_inventory_foot", |ui| match layout {
         Layout::Medium => {
             if let Some((text, color)) = message {
                 toolbar::message_line(ui, st, &text, color);
@@ -582,7 +582,7 @@ mod tests {
             assert_eq!(h.st.selection, selection);
             assert!(h.actions.is_empty(), "splitters cannot perform inventory operations");
             let saved = h.prefs.explorer;
-            widgets::size_floater(&h.ctx, "aurora_inventory_test", egui::vec2(740.0, 560.0));
+            widgets::size_floater(&h.ctx, "block_inventory_test", egui::vec2(740.0, 560.0));
             h.frames(8);
             assert_eq!(h.prefs.explorer, saved, "fitting a smaller window preserves the requested widths");
             let header = h
@@ -667,7 +667,7 @@ mod tests {
                     },
                     |ui| {
                         widgets::Floater::new(
-                            "aurora_inventory_test",
+                            "block_inventory_test",
                             "Inventory",
                             egui::pos2(20.0, 20.0),
                             egui::vec2(width, 720.0),
@@ -797,7 +797,7 @@ mod tests {
         for width in [DEFAULT_SIZE.x, 800.0, WIDE_SIZE] {
             let mut h = Harness::new(width);
             h.frames(3);
-            let layout = h.st.aurora.map(|frame| frame.layout);
+            let layout = h.st.block.map(|frame| frame.layout);
             assert_eq!(layout, Some(Layout::for_width(width - 20.0)), "{width} px");
             let (object, other, folder) = (Uuid::from_u128(8100), Uuid::from_u128(8101), Uuid::from_u128(8000));
             for selection in [vec![], vec![object], vec![folder], vec![object, other]] {
@@ -845,7 +845,7 @@ mod tests {
             );
             let area = |h: &Harness| {
                 h.ctx
-                    .memory(|m| m.area_rect(egui::Id::unique("aurora_inventory_test")))
+                    .memory(|m| m.area_rect(egui::Id::unique("block_inventory_test")))
                     .expect("window")
             };
             let before = area(&h).height();
@@ -883,7 +883,7 @@ mod tests {
                 h.frames(4);
                 let area = |h: &Harness| {
                     h.ctx
-                        .memory(|m| m.area_rect(egui::Id::unique("aurora_inventory_test")))
+                        .memory(|m| m.area_rect(egui::Id::unique("block_inventory_test")))
                         .expect("window")
                 };
                 let before = area(&h).height();

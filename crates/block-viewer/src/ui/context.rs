@@ -552,7 +552,7 @@ pub fn contact_set_submenu(ui: &mut egui::Ui, p: &Palette, world: &World, ids: &
 
 /// egui temp data: actions chosen in menus this frame.
 fn requests_id() -> egui::Id {
-    egui::Id::unique("aurora_context_requests")
+    egui::Id::unique("block_context_requests")
 }
 
 /// Hand a menu choice to the app (run after the interface pass).

@@ -6,7 +6,7 @@
 //! CSV export / import of FS:PP and LLFloaterBanDuration are the classic
 //! window's.
 
-use super::aurora::{Pictures, cards, semibold};
+use super::block::{Pictures, cards, semibold};
 use super::dialogs::Confirm;
 use super::manage::{card_begin, card_end, missing_power};
 use super::{Dialog, LandUi, PickFor, View};

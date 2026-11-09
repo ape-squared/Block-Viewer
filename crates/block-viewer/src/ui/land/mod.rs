@@ -10,7 +10,7 @@
 //! the nine tabs stay in Preferences › Aurora.
 
 mod access;
-mod aurora;
+mod block;
 mod covenant;
 mod dialogs;
 mod environment;
@@ -30,7 +30,7 @@ mod people;
 mod scripts;
 mod sound;
 
-use aurora::Page;
+use block::Page;
 pub(crate) use dialogs::{pick_row, settings_flags};
 pub(crate) use environment::day_hours;
 pub(crate) use overview::day;
@@ -635,7 +635,7 @@ impl LandUi {
         let (id, size, min_size) = if classic {
             ("about_land", Vec2::new(790.0, 620.0), Vec2::new(740.0, 470.0))
         } else {
-            ("about_land_aurora", aurora::SIZE, aurora::MIN_SIZE)
+            ("about_land_aurora", block::SIZE, block::MIN_SIZE)
         };
         let mut floater = Floater::new(
             id,
@@ -647,8 +647,8 @@ impl LandUi {
         floater.min_size = min_size;
         floater.show(ctx, p, open, |ui| {
             if !classic {
-                let pics = aurora::Pictures { images, avatars };
-                streams_changed = aurora::show(ui, p, self, &view, world, &pics, streams, has_xp);
+                let pics = block::Pictures { images, avatars };
+                streams_changed = block::show(ui, p, self, &view, world, &pics, streams, has_xp);
                 return;
             }
             let tabs: Vec<Tab> = Tab::ALL.into_iter().filter(|t| *t != Tab::Experiences || has_xp).collect();
@@ -1012,7 +1012,7 @@ fn check(ui: &mut egui::Ui, p: &Palette, enabled: bool, mut value: bool, label: 
 
 /// "Not available in Aurora yet" for the few Firestorm floaters not ported yet.
 fn not_yet() -> &'static str {
-    block_i18n::tr!("common-not-available-in-aurora-yet")
+    block_i18n::tr!("common-not-available-in-block-yet")
 }
 
 /// Region type in French (LLViewerRegion::getLocalizedSimProductName).

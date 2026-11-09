@@ -176,6 +176,11 @@ const ALLOWED: &[(&str, &str, &str)] = &[
         "brand: the painting of the aurora sky (stars, depths of the navy)",
     ),
     (
+        "ui/block_bg.rs",
+        COLOR,
+        "brand: the painting of the Block login sky (stars, depths of the navy)",
+    ),
+    (
         "ui/voice_tag.rs",
         RADIUS,
         "voice ring around a name tag: a visual of the world, kept with the tag",

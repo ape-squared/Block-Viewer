@@ -156,7 +156,7 @@ fn picture(
     if !thumbnail.is_nil() {
         let mut child = ui.new_child(egui::UiBuilder::new().max_rect(rect));
         thumbnail::picture(&mut child, p, thumbnail, rect.width().min(rect.height()), images, wanted);
-        return ui.interact(rect, ui.scope_id().with(("aurora_picture", id)), Sense::click());
+        return ui.interact(rect, ui.scope_id().with(("block_picture", id)), Sense::click());
     }
     ui.painter().rect_filled(rect, ui.visuals().window_corner_radius, p.panel);
     let (icon, tint) = inv.items.get(&id).map_or_else(
@@ -178,7 +178,7 @@ fn picture(
             tint,
         );
     }
-    ui.interact(rect, ui.scope_id().with(("aurora_picture", id)), Sense::click())
+    ui.interact(rect, ui.scope_id().with(("block_picture", id)), Sense::click())
 }
 
 /// The "more actions" button: the right-click menu of what it is about.
@@ -259,7 +259,7 @@ pub(super) fn strip(
     let mut body = ui.new_child(
         egui::UiBuilder::new()
             .max_rect(text)
-            .id_salt("aurora_inventory_card")
+            .id_salt("block_inventory_card")
             .layout(egui::Layout::top_down(egui::Align::Min)),
     );
     body.spacing_mut().item_spacing = Vec2::new(6.0, 2.0);
@@ -324,7 +324,7 @@ pub(super) fn strip(
             )
             .clicked()
             {
-                if st.aurora.is_some_and(|f| f.layout == Layout::Compact) {
+                if st.block.is_some_and(|f| f.layout == Layout::Compact) {
                     st.plain.set_open(id, true);
                 } else {
                     st.browse = folder.info.id;

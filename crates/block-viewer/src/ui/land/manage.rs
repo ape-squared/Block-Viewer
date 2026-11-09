@@ -9,7 +9,7 @@
 //! What the agent may not change is shown greyed, with the power it lacks.
 
 use super::access::AccessState;
-use super::aurora::semibold;
+use super::block::semibold;
 use super::dialogs::{Confirm, SellForm};
 use super::options::{self, Shown};
 use super::{Dialog, LandUi, View};
@@ -1013,7 +1013,7 @@ fn visibility(
                 Some(t) => {
                     let [w, h] = t.size();
                     egui::Image::from_texture(egui::load::SizedTexture::new(t.id(), size))
-                        .uv(super::aurora::cover_uv(w, h, size))
+                        .uv(super::block::cover_uv(w, h, size))
                         .corner_radius(ui.visuals().window_corner_radius)
                         .paint_at(ui, rect);
                 }

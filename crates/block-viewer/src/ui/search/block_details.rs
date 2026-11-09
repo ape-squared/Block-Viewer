@@ -6,7 +6,7 @@
 //! ClassifiedInfoReply), laid out the Aurora way.
 
 use super::SearchAction;
-use super::aurora::{linden, pill, sale_pill, started_pill};
+use super::block::{linden, pill, sale_pill, started_pill};
 use super::details::{Btn, agent_link, field, muted, pane, rating, text_box, text_field};
 use crate::theme::Palette;
 use crate::ui::context::{self, CtxAction};

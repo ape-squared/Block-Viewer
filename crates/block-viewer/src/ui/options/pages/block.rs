@@ -1,16 +1,13 @@
-//! Preferences › Aurora: what Aurora does differently from the Legacy
+//! Preferences › Block: what Block does differently from the Legacy
 //! Viewer, and for each redrawn element the way back to the Legacy look.
-//! The entry of the sidebar carries the aurora gradient, the one exception
-//! to the theme here (docs/BRANDING.md); the settings keep the rows of the
-//! other pages.
+//! The sidebar entry uses solid signal lime (brand accent), not a rainbow.
 
 use super::super::cx::{Cx, F, field};
 use crate::build::MoveHologram;
 use crate::settings::{ChatStyle, NotificationsStyle, PhotoWindowStyle, Settings, WorldMapStyle};
 use crate::theme::Palette;
 use crate::world::lookat::{Aim, Style};
-use egui::epaint::{Mesh, Vertex, WHITE_UV};
-use egui::{Color32, FontId, Pos2, Rect, Sense, Shape, Vec2};
+use egui::{FontId, Pos2, Rect, Sense, Vec2};
 
 /// The two looks a redrawn element can take.
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
@@ -65,74 +62,38 @@ pub fn set_all(s: &mut Settings, look: Look) {
     s.colored_sky_ambient = aurora;
 }
 
-/// The aurora gradient at `t` (0 at its start, 1 at its end): the brand's
-/// green, turquoise, indigo, violet and rose, taken from the palette.
-fn aurora_color(p: &Palette, t: f32) -> Color32 {
-    let stops = [p.success, p.teal, p.indigo_light, p.violet_light, p.rose];
-    let x = t.clamp(0.0, 1.0) * (stops.len() - 1) as f32;
-    let i = (x.floor() as usize).min(stops.len() - 2);
-    stops[i].lerp_to_gamma(stops[i + 1], x - i as f32)
-}
-
-fn vertex(pos: Pos2, color: Color32) -> Vertex {
-    Vertex { pos, uv: WHITE_UV, color }
-}
-
-/// A strip of the aurora gradient, from its top to its bottom.
-fn aurora_strip(p: &Palette, r: Rect) -> Shape {
-    const STEPS: usize = 16;
-    let mut m = Mesh::default();
-    for i in 0..=STEPS {
-        let t = i as f32 / STEPS as f32;
-        let c = aurora_color(p, t);
-        let y = r.top() + r.height() * t;
-        m.vertices.push(vertex(Pos2::new(r.left(), y), c));
-        m.vertices.push(vertex(Pos2::new(r.right(), y), c));
-        if i > 0 {
-            let k = (i as u32) * 2;
-            m.add_triangle(k - 2, k - 1, k);
-            m.add_triangle(k - 1, k + 1, k);
-        }
-    }
-    Shape::mesh(m)
-}
-
-/// The entry of the page in the sidebar: the neighbours' entry, with the
-/// aurora gradient in its edge mark and its name.
+/// The entry of the Block page in the sidebar: solid signal face when
+/// selected (on_accent ink), quiet raised hover otherwise.
 pub fn nav_entry(ui: &mut egui::Ui, p: &Palette, label: &str, icon: &str, selected: bool) -> egui::Response {
-    let (rect, response) = ui.allocate_exact_size(Vec2::new(ui.available_width(), 34.0), Sense::click());
+    let (rect, response) = ui.allocate_exact_size(Vec2::new(ui.available_width(), 36.0), Sense::click());
     let radius = ui.visuals().widgets.inactive.corner_radius;
-    let face = if selected {
-        p.violet.gamma_multiply(0.24)
+    let (face, ink, glyph) = if selected {
+        (p.violet, p.on_accent, p.on_accent)
     } else if response.hovered() {
-        p.raised
+        (p.raised, p.ink, p.violet)
     } else {
-        p.raised.gamma_multiply(0.3)
+        (p.raised.gamma_multiply(0.45), p.ink, p.violet.gamma_multiply(0.85))
     };
     ui.painter().rect_filled(rect, radius, face);
-    ui.painter().add(aurora_strip(
-        p,
-        Rect::from_min_max(rect.left_top(), Pos2::new(rect.left() + 3.0, rect.bottom())),
-    ));
+    if !selected {
+        ui.painter().rect_filled(
+            Rect::from_min_max(rect.left_top(), Pos2::new(rect.left() + 3.0, rect.bottom())),
+            egui::CornerRadius::ZERO,
+            p.violet,
+        );
+    }
     if let Some(texture) = crate::ui::icons::global(icon) {
         ui.painter().image(
             texture.id(),
             Rect::from_center_size(rect.left_center() + Vec2::new(17.0, 0.0), Vec2::splat(17.0)),
             Rect::from_min_max(Pos2::ZERO, Pos2::new(1.0, 1.0)),
-            p.teal,
+            glyph,
         );
     }
-    // the name in the gradient, one letter after the other
-    let font = FontId::new(12.0, crate::ui::fonts::semibold(ui.ctx()));
-    let count = label.chars().count().max(2) as f32 - 1.0;
-    let mut job = egui::text::LayoutJob::default();
-    for (i, ch) in label.chars().enumerate() {
-        let color = aurora_color(p, i as f32 / count);
-        job.append(&ch.to_string(), 0.0, egui::TextFormat::simple(font.clone(), color));
-    }
-    let galley = ui.painter().layout_job(job);
+    let font = FontId::new(12.5, crate::ui::fonts::semibold(ui.ctx()));
+    let galley = ui.painter().layout_no_wrap(label.to_owned(), font, ink);
     ui.painter()
-        .galley(rect.left_center() + Vec2::new(34.0, -galley.size().y / 2.0), galley, p.ink);
+        .galley(rect.left_center() + Vec2::new(34.0, -galley.size().y / 2.0), galley, ink);
     response.widget_info(|| egui::WidgetInfo::selected(egui::Role::Button, true, selected, label));
     response.on_hover_text(label)
 }
@@ -150,100 +111,100 @@ fn warned(help: &str, warning: &str) -> String {
 
 pub fn page(cx: &mut Cx, tab: usize) {
     use block_i18n::tr;
-    let aurora = tr!("ui-options-aurora-about-land-aurora");
-    let classic = tr!("ui-options-aurora-about-land-classic");
+    let aurora = tr!("ui-options-block-about-land-aurora");
+    let classic = tr!("ui-options-block-about-land-classic");
     match tab {
-        0 => cx.group(tr!("ui-options-aurora-redrawn-windows"), |cx| {
+        0 => cx.group(tr!("ui-options-block-redrawn-windows"), |cx| {
             cx.wide().choice(
-                tr!("ui-options-aurora-conversations"),
-                tr!("ui-options-aurora-conversations-help"),
+                tr!("ui-options-block-conversations"),
+                tr!("ui-options-block-conversations-help"),
                 &field!(chat_style),
                 &[
-                    (ChatStyle::Aurora, tr!("ui-options-aurora-workspace"), true),
-                    (ChatStyle::Compact, tr!("ui-options-aurora-compact"), true),
-                    (ChatStyle::Bubbles, tr!("ui-options-aurora-bubbles"), true),
-                    (ChatStyle::Legacy, tr!("ui-options-aurora-lines"), false),
+                    (ChatStyle::Aurora, tr!("ui-options-block-workspace"), true),
+                    (ChatStyle::Compact, tr!("ui-options-block-compact"), true),
+                    (ChatStyle::Bubbles, tr!("ui-options-block-bubbles"), true),
+                    (ChatStyle::Legacy, tr!("ui-options-block-lines"), false),
                 ],
             );
             look(
                 cx,
-                tr!("ui-options-aurora-chat-lines"),
-                tr!("ui-options-aurora-chat-lines-help"),
-                tr!("ui-options-aurora-chat-lines-cards"),
-                tr!("ui-options-aurora-chat-lines-classic"),
+                tr!("ui-options-block-chat-lines"),
+                tr!("ui-options-block-chat-lines-help"),
+                tr!("ui-options-block-chat-lines-cards"),
+                tr!("ui-options-block-chat-lines-classic"),
                 &field!(classic_chat_lines),
             );
             cx.wide().choice(
-                tr!("ui-options-aurora-world-map"),
-                tr!("ui-options-aurora-world-map-help"),
+                tr!("ui-options-block-world-map"),
+                tr!("ui-options-block-world-map-help"),
                 &field!(world_map_style),
                 &[
-                    (WorldMapStyle::Aurora, tr!("ui-options-aurora-world-map-full"), true),
-                    (WorldMapStyle::Legacy, tr!("ui-options-aurora-world-map-side"), false),
+                    (WorldMapStyle::Aurora, tr!("ui-options-block-world-map-full"), true),
+                    (WorldMapStyle::Legacy, tr!("ui-options-block-world-map-side"), false),
                 ],
             );
             look(
                 cx,
-                tr!("ui-options-aurora-places"),
-                tr!("ui-options-aurora-places-help"),
-                tr!("ui-options-aurora-places-aurora"),
-                tr!("ui-options-aurora-places-classic"),
+                tr!("ui-options-block-places"),
+                tr!("ui-options-block-places-help"),
+                tr!("ui-options-block-places-aurora"),
+                tr!("ui-options-block-places-classic"),
                 &field!(classic_places),
             );
             look(
                 cx,
-                tr!("ui-options-aurora-people"),
-                tr!("ui-options-aurora-people-help"),
-                tr!("ui-options-aurora-people-rows"),
-                tr!("ui-options-aurora-people-table"),
+                tr!("ui-options-block-people"),
+                tr!("ui-options-block-people-help"),
+                tr!("ui-options-block-people-rows"),
+                tr!("ui-options-block-people-table"),
                 &field!(classic_people),
             );
             look(
                 cx,
-                tr!("ui-options-aurora-profiles"),
-                tr!("ui-options-aurora-profiles-help"),
-                tr!("ui-options-aurora-profiles-aurora"),
-                tr!("ui-options-aurora-profiles-classic"),
+                tr!("ui-options-block-profiles"),
+                tr!("ui-options-block-profiles-help"),
+                tr!("ui-options-block-profiles-aurora"),
+                tr!("ui-options-block-profiles-classic"),
                 &field!(classic_profiles),
             );
             let classic_profiles = cx.s.classic_profiles;
             cx.subs(classic_profiles, |cx| {
                 cx.toggle(
-                    tr!("ui-options-aurora-profiles-rights"),
-                    tr!("ui-options-aurora-profiles-rights-help"),
+                    tr!("ui-options-block-profiles-rights"),
+                    tr!("ui-options-block-profiles-rights-help"),
                     &field!(profile_rights),
                 );
             });
             cx.wide().choice(
-                tr!("ui-options-aurora-photo-window"),
-                tr!("ui-options-aurora-photo-window-help"),
+                tr!("ui-options-block-photo-window"),
+                tr!("ui-options-block-photo-window-help"),
                 &field!(photo_window),
                 &[
-                    (PhotoWindowStyle::Aurora, tr!("ui-options-aurora-photo-viewfinder"), true),
-                    (PhotoWindowStyle::Panel, tr!("ui-options-aurora-photo-panel"), true),
-                    (PhotoWindowStyle::Legacy, tr!("ui-options-aurora-photo-classic"), false),
+                    (PhotoWindowStyle::Aurora, tr!("ui-options-block-photo-viewfinder"), true),
+                    (PhotoWindowStyle::Panel, tr!("ui-options-block-photo-panel"), true),
+                    (PhotoWindowStyle::Legacy, tr!("ui-options-block-photo-classic"), false),
                 ],
             );
             let viewfinder = cx.s.photo_window == PhotoWindowStyle::Aurora;
             cx.subs(!viewfinder, |cx| {
                 use crate::snapshot::viewfinder::OnScreen;
                 let labels = [
-                    (tr!("ui-options-aurora-vf-controls-always"), true),
-                    (tr!("ui-options-aurora-vf-controls-hover"), true),
-                    (tr!("ui-options-aurora-vf-controls-hidden"), false),
+                    (tr!("ui-options-block-vf-controls-always"), true),
+                    (tr!("ui-options-block-vf-controls-hover"), true),
+                    (tr!("ui-options-block-vf-controls-hidden"), false),
                 ];
                 let choices: Vec<(OnScreen, &str, bool)> = OnScreen::ALL.iter().zip(labels).map(|(o, (l, a))| (*o, l, a)).collect();
                 cx.wide().choice(
-                    tr!("ui-options-aurora-vf-controls"),
-                    tr!("ui-options-aurora-vf-controls-help"),
+                    tr!("ui-options-block-vf-controls"),
+                    tr!("ui-options-block-vf-controls-help"),
                     &field!(snapshot.viewfinder.controls),
                     &choices,
                 );
             });
             look(
                 cx,
-                tr!("ui-options-aurora-about-land"),
-                tr!("ui-options-aurora-about-land-help"),
+                tr!("ui-options-block-about-land"),
+                tr!("ui-options-block-about-land-help"),
                 aurora,
                 classic,
                 &field!(classic_about_land),
@@ -251,15 +212,15 @@ pub fn page(cx: &mut Cx, tab: usize) {
             look(
                 cx,
                 tr!("search-title"),
-                tr!("ui-options-aurora-search-help"),
+                tr!("ui-options-block-search-help"),
                 aurora,
-                tr!("ui-options-aurora-search-classic"),
+                tr!("ui-options-block-search-classic"),
                 &field!(classic_search),
             );
             look(
                 cx,
                 tr!("region-title"),
-                tr!("ui-options-aurora-region-estate-help"),
+                tr!("ui-options-block-region-estate-help"),
                 aurora,
                 classic,
                 &field!(classic_region_estate),
@@ -267,77 +228,77 @@ pub fn page(cx: &mut Cx, tab: usize) {
             look(
                 cx,
                 tr!("common-inventory"),
-                tr!("ui-options-aurora-inventory-help"),
+                tr!("ui-options-block-inventory-help"),
                 aurora,
                 classic,
                 &field!(classic_inventory),
             );
             look(
                 cx,
-                tr!("ui-options-aurora-build"),
-                tr!("ui-options-aurora-build-help"),
+                tr!("ui-options-block-build"),
+                tr!("ui-options-block-build-help"),
                 aurora,
                 classic,
                 &field!(build.legacy_window),
             );
             look(
                 cx,
-                tr!("ui-options-aurora-pay-window"),
-                tr!("ui-options-aurora-pay-window-help"),
-                tr!("ui-options-aurora-pay-aurora"),
-                tr!("ui-options-aurora-pay-classic"),
+                tr!("ui-options-block-pay-window"),
+                tr!("ui-options-block-pay-window-help"),
+                tr!("ui-options-block-pay-aurora"),
+                tr!("ui-options-block-pay-classic"),
                 &field!(classic_pay_window),
             );
             look(
                 cx,
                 tr!("money-tracker-title"),
-                tr!("ui-options-aurora-money-tracker-help"),
+                tr!("ui-options-block-money-tracker-help"),
                 aurora,
                 classic,
                 &field!(legacy_money_tracker),
             );
             look(
                 cx,
-                tr!("ui-options-aurora-controls"),
-                tr!("ui-options-aurora-controls-help"),
-                tr!("ui-options-aurora-controls-aurora"),
-                tr!("ui-options-aurora-controls-classic"),
+                tr!("ui-options-block-controls"),
+                tr!("ui-options-block-controls-help"),
+                tr!("ui-options-block-controls-aurora"),
+                tr!("ui-options-block-controls-classic"),
                 &field!(classic_controls),
             );
         }),
         1 => {
-            cx.group(tr!("ui-options-aurora-in-the-world"), |cx| {
+            cx.group(tr!("ui-options-block-in-the-world"), |cx| {
                 look(
                     cx,
-                    tr!("ui-options-aurora-name-tags"),
-                    tr!("ui-options-aurora-name-tags-help"),
-                    tr!("ui-options-aurora-plates"),
-                    tr!("ui-options-aurora-classic"),
+                    tr!("ui-options-block-name-tags"),
+                    tr!("ui-options-block-name-tags-help"),
+                    tr!("ui-options-block-plates"),
+                    tr!("ui-options-block-classic"),
                     &field!(classic_name_tags),
                 );
                 cx.wide().choice(
-                    tr!("ui-options-aurora-look-at"),
-                    tr!("ui-options-aurora-look-at-help"),
+                    tr!("ui-options-block-look-at"),
+                    tr!("ui-options-block-look-at-help"),
                     &field!(lookat.style),
                     &[
-                        (Style::Aurora, tr!("ui-options-aurora-halo"), true),
-                        (Style::Legacy, tr!("ui-options-aurora-crosshair"), false),
+                        (Style::Aurora, tr!("ui-options-block-halo"), true),
+                        (Style::Legacy, tr!("ui-options-block-crosshair"), false),
                     ],
                 );
                 look(
                     cx,
-                    tr!("ui-options-aurora-rez-effect"),
-                    tr!("ui-options-aurora-rez-effect-help"),
-                    tr!("ui-options-aurora-rez-effect-aurora"),
-                    tr!("ui-options-aurora-rez-effect-classic"),
+                    tr!("ui-options-block-rez-effect"),
+                    tr!("ui-options-block-rez-effect-help"),
+                    tr!("ui-options-block-rez-effect-aurora"),
+                    tr!("ui-options-block-rez-effect-classic"),
                     &field!(classic_rez_effect),
                 );
                 look(
                     cx,
-                    tr!("ui-options-aurora-hover-tips"),
-                    tr!("ui-options-aurora-hover-tips-help"),
+                    tr!("ui-options-block-hover-tips"),
+                    tr!("ui-options-block-hover-tips-help"),
                     aurora,
-                    tr!("ui-options-aurora-hover-tips-legacy"),
+                    tr!("ui-options-block-hover-tips-legacy"),
                     &field!(classic_hover_tips),
                 );
                 // also in Graphics › Sky and environment, the same setting
@@ -345,109 +306,109 @@ pub fn page(cx: &mut Cx, tab: usize) {
                     tr!("ui-options-colored-sky-ambient"),
                     tr!("ui-options-colored-sky-ambient-help"),
                     &field!(colored_sky_ambient),
-                    &[(true, aurora, true), (false, tr!("ui-options-aurora-classic"), false)],
+                    &[(true, aurora, true), (false, tr!("ui-options-block-classic"), false)],
                 );
             });
             cx.group(tr!("common-interface"), |cx| {
                 cx.wide().choice(
-                    tr!("ui-options-aurora-notifications"),
-                    tr!("ui-options-aurora-notifications-help"),
+                    tr!("ui-options-block-notifications"),
+                    tr!("ui-options-block-notifications-help"),
                     &field!(notifications_style),
                     &[
-                        (NotificationsStyle::Aurora, tr!("ui-options-aurora-animated-bell"), true),
-                        (NotificationsStyle::Legacy, tr!("ui-options-aurora-toasts"), false),
+                        (NotificationsStyle::Aurora, tr!("ui-options-block-animated-bell"), true),
+                        (NotificationsStyle::Legacy, tr!("ui-options-block-toasts"), false),
                     ],
                 );
                 look(
                     cx,
-                    tr!("ui-options-aurora-bars"),
-                    tr!("ui-options-aurora-bars-help"),
-                    tr!("ui-options-aurora-bars-islands"),
-                    tr!("ui-options-aurora-bars-classic"),
+                    tr!("ui-options-block-bars"),
+                    tr!("ui-options-block-bars-help"),
+                    tr!("ui-options-block-bars-islands"),
+                    tr!("ui-options-block-bars-classic"),
                     &field!(classic_bars),
                 );
                 look(
                     cx,
-                    tr!("ui-options-aurora-restart-alert"),
-                    tr!("ui-options-aurora-restart-alert-help"),
-                    tr!("ui-options-aurora-restart-card"),
-                    tr!("ui-options-aurora-restart-classic"),
+                    tr!("ui-options-block-restart-alert"),
+                    tr!("ui-options-block-restart-alert-help"),
+                    tr!("ui-options-block-restart-card"),
+                    tr!("ui-options-block-restart-classic"),
                     &field!(classic_restart_alert),
                 );
             });
         }
         _ => {
-            cx.group(tr!("ui-options-aurora-building"), |cx| {
+            cx.group(tr!("ui-options-block-building"), |cx| {
                 cx.wide().choice(
-                    tr!("ui-options-aurora-move-hologram"),
-                    tr!("ui-options-aurora-move-hologram-help"),
+                    tr!("ui-options-block-move-hologram"),
+                    tr!("ui-options-block-move-hologram-help"),
                     &field!(build.move_hologram),
                     &[
-                        (MoveHologram::Off, tr!("ui-options-aurora-move-hologram-off"), false),
-                        (MoveHologram::Moving, tr!("ui-options-aurora-move-hologram-moving"), true),
-                        (MoveHologram::Start, tr!("ui-options-aurora-move-hologram-start"), true),
+                        (MoveHologram::Off, tr!("ui-options-block-move-hologram-off"), false),
+                        (MoveHologram::Moving, tr!("ui-options-block-move-hologram-moving"), true),
+                        (MoveHologram::Start, tr!("ui-options-block-move-hologram-start"), true),
                     ],
                 );
             });
-            cx.group(tr!("ui-options-aurora-bridge"), |cx| {
+            cx.group(tr!("ui-options-block-bridge"), |cx| {
                 cx.toggle(
-                    tr!("ui-options-aurora-use-bridge"),
-                    tr!("ui-options-aurora-use-bridge-help"),
+                    tr!("ui-options-block-use-bridge"),
+                    tr!("ui-options-block-use-bridge-help"),
                     &field!(use_bridge),
                 );
                 use crate::world::portals::Sources;
                 cx.combo(
-                    tr!("ui-options-aurora-portal-sources"),
-                    tr!("ui-options-aurora-portal-sources-help"),
+                    tr!("ui-options-block-portal-sources"),
+                    tr!("ui-options-block-portal-sources-help"),
                     &field!(portal_sources),
                     &[
-                        (Sources::Friends, tr!("ui-options-aurora-portal-sources-friends")),
-                        (Sources::FriendsAndGroups, tr!("ui-options-aurora-portal-sources-groups")),
-                        (Sources::Everyone, tr!("ui-options-aurora-portal-sources-everyone")),
-                        (Sources::Nobody, tr!("ui-options-aurora-portal-sources-nobody")),
+                        (Sources::Friends, tr!("ui-options-block-portal-sources-friends")),
+                        (Sources::FriendsAndGroups, tr!("ui-options-block-portal-sources-groups")),
+                        (Sources::Everyone, tr!("ui-options-block-portal-sources-everyone")),
+                        (Sources::Nobody, tr!("ui-options-block-portal-sources-nobody")),
                     ],
                 );
             });
-            cx.group(tr!("ui-options-aurora-gaze"), |cx| {
+            cx.group(tr!("ui-options-block-gaze"), |cx| {
                 cx.wide().choice(
-                    tr!("ui-options-aurora-aim"),
-                    tr!("ui-options-aurora-aim-help"),
+                    tr!("ui-options-block-aim"),
+                    tr!("ui-options-block-aim-help"),
                     &field!(lookat.aim),
                     &[
-                        (Aim::Point, tr!("ui-options-aurora-aim-point"), true),
-                        (Aim::Direction, tr!("ui-options-aurora-aim-direction"), false),
+                        (Aim::Point, tr!("ui-options-block-aim-point"), true),
+                        (Aim::Direction, tr!("ui-options-block-aim-direction"), false),
                     ],
                 );
             });
             // the Legacy Viewer's until the human has tried it on the grid,
             // marked experimental meanwhile
-            cx.group(tr!("ui-options-aurora-movement"), |cx| {
+            cx.group(tr!("ui-options-block-movement"), |cx| {
                 let help = warned(
-                    tr!("ui-options-aurora-own-motion-help"),
-                    tr!("ui-options-aurora-own-motion-experimental"),
+                    tr!("ui-options-block-own-motion-help"),
+                    tr!("ui-options-block-own-motion-experimental"),
                 );
                 cx.wide().experimental().choice(
-                    tr!("ui-options-aurora-own-motion"),
+                    tr!("ui-options-block-own-motion"),
                     &help,
                     &field!(predict_own_motion),
                     &[
-                        (true, tr!("ui-options-aurora-own-motion-instant"), true),
-                        (false, tr!("ui-options-aurora-own-motion-server"), false),
+                        (true, tr!("ui-options-block-own-motion-instant"), true),
+                        (false, tr!("ui-options-block-own-motion-server"), false),
                     ],
                 );
             });
-            cx.group(tr!("ui-options-aurora-animations"), |cx| {
+            cx.group(tr!("ui-options-block-animations"), |cx| {
                 let help = warned(
-                    tr!("ui-options-aurora-animation-clock-help"),
-                    tr!("ui-options-aurora-animation-clock-experimental"),
+                    tr!("ui-options-block-animation-clock-help"),
+                    tr!("ui-options-block-animation-clock-experimental"),
                 );
                 cx.wide().experimental().choice(
-                    tr!("ui-options-aurora-animation-clock"),
+                    tr!("ui-options-block-animation-clock"),
                     &help,
                     &field!(synchronize_animations),
                     &[
-                        (true, tr!("ui-options-aurora-animation-clock-synchronized"), true),
-                        (false, tr!("ui-options-aurora-animation-clock-legacy"), false),
+                        (true, tr!("ui-options-block-animation-clock-synchronized"), true),
+                        (false, tr!("ui-options-block-animation-clock-legacy"), false),
                     ],
                 );
             });
@@ -584,10 +545,9 @@ mod tests {
     }
 
     #[test]
-    fn the_aurora_gradient_runs_from_green_to_rose() {
+    fn the_block_nav_mark_is_signal_lime() {
         let p = crate::theme::Theme::default().palette();
-        assert_eq!(aurora_color(&p, 0.0), p.success);
-        assert_eq!(aurora_color(&p, 1.0), p.rose);
-        assert_eq!(aurora_color(&p, 0.5), p.indigo_light);
+        // Brand signal (#D4FF3F) is the Preferences › Block accent — not a rainbow.
+        assert_eq!(format!("{:02X}{:02X}{:02X}", p.violet.r(), p.violet.g(), p.violet.b()), "D4FF3F");
     }
 }

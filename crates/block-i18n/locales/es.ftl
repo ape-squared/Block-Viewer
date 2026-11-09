@@ -8671,7 +8671,7 @@ ui-texture-picker-uuid = UUID
 build-ui-tools-owner-group = grupo
 build-ui-tools-owner-others = otros
 build-ui-tools-owner-public = público
-ui-options-aurora = Bloque
+ui-options-block = Bloque
 ui-options-block-intro = Lo que Block hace diferente del Legacy Viewer. Cada elemento redrawn puede volver a su versión Legacy si lo prefiere.
 ui-options-block-all-firestorm = Todo en la versión Legacy
 ui-options-block-all-aurora = Todo en versión Block
@@ -13582,127 +13582,79 @@ ui-options-announce-incoming-im-hint = When a resident starts typing an IM to yo
 
 ui-options-appearance-camera-hint = Automatically frame the edited body part when editing your shape or a layer. Off, keep your framing; orbit, zoom and pan still work.
 
-ui-options-aurora-aim = Where your gaze goes
 
-ui-options-aurora-aim-direction = Direction (Legacy)
 
-ui-options-aurora-aim-help = Your avatar looks at the exact point under the cursor, or turns its head toward the cursor's side like the Legacy Viewer.
 
-ui-options-aurora-aim-point = Point under the cursor
 
-ui-options-aurora-animation-clock = Animation timing
 
-ui-options-aurora-animation-clock-experimental = Experimental: synchronized playback is still being validated on the grid for avatars and animesh. Legacy remains the default.
 
-ui-options-aurora-animation-clock-help = Avatars and animesh: the synchronized clock follows elapsed time from the first received signal, including after late loading or editing. Legacy starts at loading and resumes from the paused pose after editing.
 
-ui-options-aurora-animation-clock-legacy = Legacy
 
-ui-options-aurora-animation-clock-synchronized = Synchronized clock
 
-ui-options-aurora-animations = Animations
 
-ui-options-aurora-avatar-plates = Avatar plates
 
-ui-options-aurora-bridge = Block bridge
 
-ui-options-aurora-building = Building
 
-ui-options-aurora-controls = Camera and movement controls
 
-ui-options-aurora-controls-aurora = Block
 
-ui-options-aurora-controls-classic = Classic windows (Legacy)
 
-ui-options-aurora-controls-help = The Camera and Movement windows.
 
-ui-options-aurora-gaze = Gaze
 
-ui-options-aurora-ground-feet = Use Block foot placement
 
-ui-options-aurora-ground-feet-avatars = Maximum other avatars
 
-ui-options-aurora-ground-feet-avatars-help = Apply leg correction to the nearest avatars in view. Your own avatar does not count toward this limit. 0: only your avatar. Default: 5.
 
-ui-options-aurora-ground-feet-height = Maximum foot adjustment
 
-ui-options-aurora-ground-feet-height-help = Maximum vertical movement of each foot relative to the animation. A larger value reaches more distant supports. Default: 0.4 m; maximum: 1 m.
 
-ui-options-aurora-ground-feet-help = Replace standard Legacy Viewer foot placement with Block's adaptation to slopes and individual steps. Foot lifts and high-priority poses keep control. When off, native standing, crouching and recovery animations use the standard behaviour. The two corrections never accumulate.
 
-ui-options-aurora-ground-feet-moving = Also while moving
 
-ui-options-aurora-ground-feet-moving-help = Extend foot correction to walking, running and crouch-walking. When off, correction fades out during movement and resumes at rest.
 
-ui-options-aurora-hover-tips = World tooltips
 
-ui-options-aurora-hover-tips-help = Block: a bubble, a card or a readout with icons and labels (its form in Preferences › Interface). Legacy: the Legacy Viewer's text, with its "i" button.
 
-ui-options-aurora-hover-tips-legacy = Text (Legacy)
 
-ui-options-aurora-money-tracker-help = The L$ received and paid during the session.
 
-ui-options-aurora-move-hologram = Hologram while moving
+ui-options-block-move-hologram = Hologram while moving
 
-ui-options-aurora-move-hologram-help = While the move handles drag an object: Moving object draws it as a hologram until you let go; Where it started leaves a hologram at its starting place.
+ui-options-block-move-hologram-help = While the move handles drag an object: Moving object draws it as a hologram until you let go; Where it started leaves a hologram at its starting place.
 
-ui-options-aurora-move-hologram-moving = Moving object
+ui-options-block-move-hologram-moving = Moving object
 
-ui-options-aurora-move-hologram-off = Off
+ui-options-block-move-hologram-off = Off
 
-ui-options-aurora-move-hologram-start = Where it started
+ui-options-block-move-hologram-start = Where it started
 
-ui-options-aurora-movement = Movement
 
-ui-options-aurora-own-motion = Your avatar's movement
 
-ui-options-aurora-own-motion-experimental = Experimental: still being tried on the grid. Your avatar is drawn ahead of the simulator by what your keys are about to do; a wall, a push or a lagging region can still pull it back.
 
-ui-options-aurora-own-motion-help = Your avatar moves as soon as you press a key and the simulator's corrections fade smoothly, or it waits for the simulator's answer like the Legacy Viewer.
 
-ui-options-aurora-own-motion-instant = Instant
 
-ui-options-aurora-own-motion-server = Simulator (Legacy)
 
-ui-options-aurora-pay-aurora = Block
 
-ui-options-aurora-pay-classic = Classic window (Legacy)
 
-ui-options-aurora-pay-window = Pay window
 
-ui-options-aurora-pay-window-help = Paying residents, groups and objects.
 
-ui-options-aurora-portal-sources = Show portals from
+ui-options-block-portal-sources = Show portals from
 
-ui-options-aurora-portal-sources-everyone = Everyone
+ui-options-block-portal-sources-everyone = Everyone
 
-ui-options-aurora-portal-sources-friends = Friends
+ui-options-block-portal-sources-friends = Friends
 
-ui-options-aurora-portal-sources-groups = Friends and my groups
+ui-options-block-portal-sources-groups = Friends and my groups
 
-ui-options-aurora-portal-sources-help = Portals that other residents open near you with their Block bridge. Your own portals and the way back from your trips always show. The first time you walk through a portal from someone who is not your friend, Block Viewer asks before you go. With groups, a resident counts once the grid lists them in one of your groups (their profile or a loaded member list).
+ui-options-block-portal-sources-help = Portals that other residents open near you with their Block bridge. Your own portals and the way back from your trips always show. The first time you walk through a portal from someone who is not your friend, Block Viewer asks before you go. With groups, a resident counts once the grid lists them in one of your groups (their profile or a loaded member list).
 
-ui-options-aurora-portal-sources-nobody = Nobody
+ui-options-block-portal-sources-nobody = Nobody
 
-ui-options-aurora-restart-alert = Restart alert
 
-ui-options-aurora-restart-alert-help = A card with a countdown, or the Legacy Viewer's yellow box in the middle.
 
-ui-options-aurora-restart-card = Card
 
-ui-options-aurora-restart-classic = Yellow box (Legacy)
 
-ui-options-aurora-rez-effect = Rez effect
 
-ui-options-aurora-rez-effect-aurora = Effect
 
-ui-options-aurora-rez-effect-classic = Grey (Legacy)
 
-ui-options-aurora-rez-effect-help = An object or avatar appearing while you watch: a glowing grid while it loads, then a line of light that reveals it. Or grey until it has loaded, like the Legacy Viewer. Off with Reduce animations.
 
-ui-options-aurora-use-bridge = Use the Block bridge
+ui-options-block-use-bridge = Use the Block bridge
 
-ui-options-aurora-use-bridge-help = A small scripted attachment that Block Viewer makes and wears for you: position lock, avatar heights in the radar, script and object information, pose requests and shared portals. Off, Block Viewer no longer makes or wears it and takes off a worn one: these features are then unavailable.
+ui-options-block-use-bridge-help = A small scripted attachment that Block Viewer makes and wears for you: position lock, avatar heights in the radar, script and object information, pose requests and shared portals. Off, Block Viewer no longer makes or wears it and takes off a worn one: these features are then unavailable.
 
 ui-options-borderless-fullscreen = Fullscreen
 

@@ -2,7 +2,7 @@
 //! rows, rating toggles and "See all" clicked, on the demo directory's
 //! answers.
 
-use super::aurora::Kind;
+use super::block::Kind;
 use super::{SearchAction, SearchUi, WebEnv};
 use crate::ui::place_details::Ctx;
 use crate::world::World;
@@ -65,7 +65,7 @@ impl Window {
         crate::theme::Theme::default().apply(&ctx, 1.0);
         let mut st = SearchUi::default();
         st.open_all();
-        st.aurora.text = text.to_owned();
+        st.block.text = text.to_owned();
         Window {
             st,
             settings: SearchSettings::default(),
@@ -503,7 +503,7 @@ fn all_then_a_chip_rows_toggles_and_the_web() {
     assert!(has(&texts, block_i18n::tr!("common-teleport-3")), "the place's actions");
     // a rating toggle is saved and searches again
     let actions = w.click(&mut world, block_i18n::tr!("common-moderate"));
-    assert!(w.settings.aurora_ratings.mature || !world.agent_access().can_access_mature());
+    assert!(w.settings.block_ratings.mature || !world.agent_access().can_access_mature());
     if world.agent_access().can_access_mature() {
         assert!(actions.iter().any(|a| matches!(a, SearchAction::SettingsChanged)));
         assert!(actions.iter().any(|a| matches!(a, SearchAction::Find(r) if r.tab() == Tab::Places)));
@@ -556,7 +556,7 @@ fn enter_searches_and_an_empty_field_says_what_to_do() {
     let mut w = Window::new("");
     let texts = w.settle(&mut world);
     assert!(has(&texts, block_i18n::tr!("search-aurora-start")), "nothing searched yet");
-    w.st.aurora.text = "nova".into();
+    w.st.block.text = "nova".into();
     w.st.focus = true;
     w.settle(&mut world);
     let (_, actions) = w.frame(

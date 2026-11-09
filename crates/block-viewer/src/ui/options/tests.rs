@@ -1229,10 +1229,10 @@ fn the_conversations_choice_switches_the_style() {
         texts = page_frame(&mut frames, &mut s, &mut st, &mut r, Page::Aurora, 0, Vec::new());
     }
     for (label, style) in [
-        (block_i18n::tr!("ui-options-aurora-compact"), ChatStyle::Compact),
-        (block_i18n::tr!("ui-options-aurora-bubbles"), ChatStyle::Bubbles),
-        (block_i18n::tr!("ui-options-aurora-lines"), ChatStyle::Legacy),
-        (block_i18n::tr!("ui-options-aurora-workspace"), ChatStyle::Aurora),
+        (block_i18n::tr!("ui-options-block-compact"), ChatStyle::Compact),
+        (block_i18n::tr!("ui-options-block-bubbles"), ChatStyle::Bubbles),
+        (block_i18n::tr!("ui-options-block-lines"), ChatStyle::Legacy),
+        (block_i18n::tr!("ui-options-block-workspace"), ChatStyle::Aurora),
     ] {
         let at = texts
             .iter()

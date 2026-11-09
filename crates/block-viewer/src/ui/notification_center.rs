@@ -791,7 +791,7 @@ fn center_card(
     });
     // a new version of Aurora: the aurora's edge, read or not
     if matches!(n.data, Data::Update { .. }) {
-        aurora::paint_edge(ui, p, inner.response.rect);
+        block::paint_edge(ui, p, inner.response.rect);
     } else if !read {
         let r = inner.response.rect;
         ui.painter().rect_filled(
@@ -1035,7 +1035,7 @@ fn hhmm(secs: u64) -> String {
     super::chat::hhmm(at(secs))
 }
 
-pub mod aurora;
+pub mod block;
 pub mod presence;
 
 #[cfg(test)]

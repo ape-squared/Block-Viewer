@@ -202,7 +202,7 @@ fn smart_searches(
     saved: &[super::super::smart_store::Saved],
 ) {
     use super::super::smart_store;
-    let editing = ui.make_persistent_id("aurora_smart_rename");
+    let editing = ui.make_persistent_id("block_smart_rename");
     // (search, name, first frame)
     let mut edit: Option<(u64, String, bool)> = ui.data_mut(|d| d.get_temp(editing));
     if edit.as_ref().is_some_and(|(id, ..)| !saved.iter().any(|s| s.id == *id)) {
@@ -218,7 +218,7 @@ fn smart_searches(
             let r = ui.add_sized(
                 [ui.available_width(), ROW],
                 egui::TextEdit::singleline(name)
-                    .id(ui.make_persistent_id(("aurora_smart_rename_field", *id)))
+                    .id(ui.make_persistent_id(("block_smart_rename_field", *id)))
                     .font(egui::FontId::proportional(13.0))
                     .text_color(p.ink)
                     .char_limit(63),
@@ -407,13 +407,13 @@ pub(super) fn show(
     let spacing = ui.spacing().item_spacing.y;
     ui.spacing_mut().item_spacing.y = 0.0;
     let mut area = egui::ScrollArea::vertical()
-        .id_salt("aurora_inventory_side_folders")
+        .id_salt("block_inventory_side_folders")
         .max_height(height)
         .auto_shrink([false, false]);
     if follow && let Some(index) = rows.iter().position(|row| row.id == st.browse) {
         // LLScrollContainer::scrollToShowRect (indra/llui/llscrollcontainer.cpp):
         // leave visible folders in place; reveal offscreen ones at the nearest edge.
-        let id = ui.make_persistent_id(egui::IdSalt::new("aurora_inventory_side_folders"));
+        let id = ui.make_persistent_id(egui::IdSalt::new("block_inventory_side_folders"));
         let offset = egui::scroll_area::State::load(ui.ctx(), id).map_or(0.0, |state| state.unclamped_offset().y);
         let top = index as f32 * ROW;
         area = area.vertical_scroll_offset(offset.min(top).max(top + ROW - height).max(0.0));
@@ -444,7 +444,7 @@ pub(super) fn show(
             if row.branches {
                 let caret = ui.interact(
                     Rect::from_center_size(caret_center, Vec2::splat(CARET + 6.0)),
-                    ui.scope_id().with(("aurora_side_caret", row.id)),
+                    ui.scope_id().with(("block_side_caret", row.id)),
                     Sense::click(),
                 );
                 widgets::paint_glyph(

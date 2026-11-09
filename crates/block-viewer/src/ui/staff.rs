@@ -1,12 +1,12 @@
 //! The staff's tag after their name in the windows (`world::staff`): the
-//! Aurora team's "Aurora Team" and Linden Lab's "Linden Lab", in the
+//! Block team's "Block Dev" and Linden Lab's "Linden Lab", in the
 //! People lists, the chat and the profile, with the light of their mark
 //! over the profile's banner. The plate's tag (`nameplate/mark.rs`) with
 //! the windows' corners: the plates' night tint, the mark's moving border,
 //! its icon and its letters.
 
 use crate::theme::Palette;
-use crate::ui::nameplate::{aurora, mark::Look};
+use crate::ui::nameplate::{block, mark::Look};
 use crate::world::staff::Mark;
 use egui::text::LayoutJob;
 use egui::{Galley, Mesh, Pos2, Rect, Shape, Vec2};
@@ -29,7 +29,7 @@ fn time(ui: &egui::Ui) -> f32 {
     if !still {
         ui.ctx().request_repaint_after(std::time::Duration::from_millis(33));
     }
-    aurora::time(ui.input(|i| i.time), still)
+    block::time(ui.input(|i| i.time), still)
 }
 
 /// The light of a staff member's mark over their profile's banner, inside

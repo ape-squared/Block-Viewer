@@ -474,13 +474,10 @@ pub enum CtxAction {
         tab: usize,
         editing: bool,
     },
-    /// People floater on a tab (0 nearby, 1 friends, 2 groups, 4 blocked);
-    /// `select` opens that resident's row / sheet when set.
-    OpenPeople(u8, Option<Uuid>),
+    /// People floater on a tab (0 nearby, 1 friends, 2 groups).
+    OpenPeople(u8),
     /// Camera on an avatar of a list, following it (Avatar.ZoomIn).
     ZoomAvatar(Uuid),
-    /// Open the local photo Poser on this avatar (Ask consent when needed).
-    PoseAvatar(Uuid),
     /// Teleport to where an avatar is (FSRadar teleport_to).
     TeleportToAvatar(Uuid),
     /// World map on an avatar (Avatar.ShowOnMap).
@@ -555,7 +552,7 @@ pub fn contact_set_submenu(ui: &mut egui::Ui, p: &Palette, world: &World, ids: &
 
 /// egui temp data: actions chosen in menus this frame.
 fn requests_id() -> egui::Id {
-    egui::Id::unique("block_context_requests")
+    egui::Id::unique("aurora_context_requests")
 }
 
 /// Hand a menu choice to the app (run after the interface pass).
@@ -1005,7 +1002,7 @@ pub fn group_menu(ui: &mut egui::Ui, p: &Palette, world: &World, id: Uuid) {
         ui,
         p,
         "circle-check-filled",
-        block_i18n::tr!("common-enable"),
+        block_i18n::tr!("common-activate"),
         world.groups.active != id,
     ) {
         act(CtxAction::ActivateGroup(id));
@@ -1379,7 +1376,7 @@ pub fn external_link_confirm(ctx: &egui::Context, p: &Palette, url: &str, dont_w
         }
         let text = match danger {
             Some(_) => {
-                block_i18n::tr!("ui-context-block-recommends-against-opening-this-link-if-it-asks")
+                block_i18n::tr!("ui-context-aurora-recommends-against-opening-this-link-if-it-asks")
             }
             None => {
                 block_i18n::tr!("ui-context-this-link-leads-to-a-site-that-is-not")

@@ -165,7 +165,7 @@ mod win {
         write(&class, None, "URL:Virtual World")?;
         write(&class, Some("URL Protocol"), "")?;
         write(&format!(r"{class}\DefaultIcon"), None, &format!("\"{exe}\",0"))?;
-        write(&format!(r"{class}\shell\open"), Some("FriendlyAppName"), "Block Viewer")?;
+        write(&format!(r"{class}\shell\open"), Some("FriendlyAppName"), "Aurora Viewer")?;
         write(&format!(r"{class}\shell\open\command"), None, &format!("\"{exe}\" -url \"%1\""))?;
         log::info!("{scheme} links: registered for this user");
         Ok(())
@@ -417,7 +417,7 @@ mod xdg {
     pub(super) fn desktop_entry(exe: &str) -> String {
         let mimes: String = SCHEMES.iter().map(|s| format!("x-scheme-handler/{s};")).collect();
         format!(
-            "[Desktop Entry]\nType=Application\nName=Block Viewer\nComment=Opens Second Life and Hypergrid links\n\
+            "[Desktop Entry]\nType=Application\nName=Aurora Viewer\nComment=Opens Second Life and Hypergrid links\n\
              Exec={}\nIcon=block-viewer\nTerminal=false\nNoDisplay=true\nMimeType={mimes}\n",
             exec_line(exe)
         )
@@ -716,7 +716,7 @@ pub fn refresh() {
 /// At start, published builds outside demo mode only: a registration left
 /// on a moved Aurora is pointed at this one (test builds never take it).
 pub fn repair_at_start() {
-    if env!("AURORA_BUILD_PROFILE") == "release" && !crate::block_env::demo_mode() {
+    if env!("AURORA_BUILD_PROFILE") == "release" && std::env::var_os("AURORA_DEMO").is_none() {
         #[cfg(windows)]
         win::repair();
         #[cfg(target_os = "linux")]
@@ -747,7 +747,7 @@ mod xdg_tests {
 
     #[test]
     fn a_replaced_executable_is_registered_at_its_path() {
-        let dir = std::env::temp_dir().join(format!("block-live-exe-{}", std::process::id()));
+        let dir = std::env::temp_dir().join(format!("aurora-live-exe-{}", std::process::id()));
         std::fs::create_dir_all(&dir).expect("temp dir");
         let exe = dir.join("block-viewer");
         std::fs::write(&exe, "").expect("temp file");

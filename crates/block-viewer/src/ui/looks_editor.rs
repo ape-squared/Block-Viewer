@@ -195,7 +195,7 @@ impl LooksUi {
         match self.tab {
             Tab::Legacy => self.chips(ui, p, &looks::legacy_list(), s),
             Tab::Aurora => {
-                for (section, entries) in looks::block_list() {
+                for (section, entries) in looks::aurora_list() {
                     heading(ui, p, looks::section_name(section));
                     self.chips(ui, p, &entries, s);
                 }
@@ -314,7 +314,7 @@ impl LooksUi {
             ui.add(egui::Label::new(RichText::new(note).size(11.0).color(p.muted)).wrap());
             return;
         };
-        let Some(look) = block_render::looks::block_look(aurora) else {
+        let Some(look) = block_render::looks::aurora_look(aurora) else {
             return;
         };
         let list = knobs::knobs(aurora);

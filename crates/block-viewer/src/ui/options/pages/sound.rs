@@ -4,7 +4,7 @@
 //! voice and the microphone.
 
 use super::super::cx::{Custom, Cx, Nothing, field};
-use super::super::{COMBO_W, SLIDER_W, binding_cell, device_combo, parse_uuid_text, uuid_text};
+use super::super::{SLIDER_W, binding_cell, device_combo, parse_uuid_text, uuid_text};
 use crate::ui::widgets;
 use egui::Vec2;
 
@@ -60,13 +60,33 @@ fn volumes(cx: &mut Cx) {
             tr!("ui-options-audio-output"),
             tr!("ui-options-speakers-or-headset-used-by-the-viewer"),
             &field!(audio.output_device),
-            |ui, s, st, _| device_combo(ui, "audio_out", &mut s.audio.output_device, &st.output_devices, SLIDER_W + 40.0).0,
+            |ui, s, st, _| {
+                device_combo(
+                    ui,
+                    "audio_out",
+                    &mut s.audio.output_device,
+                    &st.output_devices,
+                    SLIDER_W + 40.0,
+                    st.devices_listing,
+                )
+                .0
+            },
         );
         cx.row_with(
             tr!("ui-options-microphone"),
             tr!("ui-options-input-used-for-voice"),
             &field!(audio.input_device),
-            |ui, s, st, _| device_combo(ui, "audio_in", &mut s.audio.input_device, &st.input_devices, SLIDER_W + 40.0).0,
+            |ui, s, st, _| {
+                device_combo(
+                    ui,
+                    "audio_in",
+                    &mut s.audio.input_device,
+                    &st.input_devices,
+                    SLIDER_W + 40.0,
+                    st.devices_listing,
+                )
+                .0
+            },
         );
         cx.row_with(tr!("ui-options-device-list"), "", &Nothing, |ui, _, _, r| {
             if widgets::flat_button(ui, &p, tr!("ui-options-refresh-list")).clicked() {
@@ -512,34 +532,5 @@ fn voice(cx: &mut Cx) {
         cx.toggle(tr!("voice-show-dot"), "", &field!(audio.voice_visualizer_dot));
         cx.toggle(tr!("voice-show-in-calls"), "", &field!(audio.voice_visualizers_in_calls));
         cx.toggle(tr!("voice-show-conversation"), "", &field!(audio.conversation_voice_indicator));
-    });
-    // Legacy Voice Morphing menu: store the chosen effect id (empty = none).
-    // Applied as a mic pitch shift (WebRTC path; no Vivox fonts).
-    cx.group(tr!("voice-morphing"), |cx| {
-        cx.row(
-            tr!("voice-morphing-effect"),
-            tr!("voice-morphing-effect-hint"),
-            &field!(audio.voice_morph),
-            |ui, s| {
-                let label = if s.audio.voice_morph.is_empty() {
-                    tr!("voice-morphing-none")
-                } else {
-                    s.audio.voice_morph.as_str()
-                };
-                let mut changed = false;
-                egui::ComboBox::from_id_salt(ui.scope_id().with("voice-morph"))
-                    .width(COMBO_W)
-                    .selected_text(label)
-                    .show_ui(ui, |ui| {
-                        changed |= ui
-                            .selectable_value(&mut s.audio.voice_morph, String::new(), tr!("voice-morphing-none"))
-                            .changed();
-                        for id in ["Warm", "Breathy", "Robot", "Deep"] {
-                            changed |= ui.selectable_value(&mut s.audio.voice_morph, id.to_owned(), id).changed();
-                        }
-                    });
-                changed
-            },
-        );
     });
 }

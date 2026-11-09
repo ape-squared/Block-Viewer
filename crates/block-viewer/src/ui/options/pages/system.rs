@@ -1,7 +1,7 @@
 //! Preferences › Language and updates: the interface's language, how the
 //! new versions come, whether the `secondlife:` links of web pages open
 //! in this viewer, the backup of the settings (`options/backup.rs`), and
-//! the removal of Block Viewer from this computer (`uninstall.rs`).
+//! the removal of Aurora from this computer (`uninstall.rs`).
 
 use super::super::COMBO_W;
 use super::super::cx::{Cx, Nothing, field};
@@ -57,29 +57,18 @@ pub fn page(cx: &mut Cx) {
                 (Channel::Beta, tr!("update-channel-beta")),
             ],
         );
-        cx.note(&tr!("update-check-from-github", page = block_updater::feed::RELEASE_PAGE));
-        cx.toggle(
-            tr!("ui-options-prevent-display-sleep"),
-            tr!("ui-options-prevent-display-sleep-hint"),
-            &field!(prevent_display_sleep),
-        );
-        let muted = cx.p.muted;
-        cx.row(
-            tr!("ui-options-force-window-size"),
-            tr!("ui-options-force-window-size-hint"),
-            &Nothing,
-            |ui, s| {
-                let mut changed = false;
-                ui.label(RichText::new(tr!("common-width")).size(12.0).color(muted));
-                changed |= ui
-                    .add(egui::DragValue::new(&mut s.force_window_width).range(0..=7680).suffix(" px"))
-                    .changed();
-                ui.label(RichText::new(tr!("common-height")).size(12.0).color(muted));
-                changed |= ui
-                    .add(egui::DragValue::new(&mut s.force_window_height).range(0..=4320).suffix(" px"))
-                    .changed();
-                changed
-            },
+        use crate::updater::Interval;
+        cx.combo(
+            tr!("update-interval"),
+            tr!("update-interval-help"),
+            &field!(update_check_interval),
+            &[
+                (Interval::Minutes10, tr!("update-interval-10-minutes")),
+                (Interval::Minutes30, tr!("update-interval-30-minutes")),
+                (Interval::Hour1, tr!("update-interval-1-hour")),
+                (Interval::Hours6, tr!("update-interval-6-hours")),
+                (Interval::Never, tr!("update-interval-never")),
+            ],
         );
     });
     // the system's state, not a saved setting, so outside the page's reset;

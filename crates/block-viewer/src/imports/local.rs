@@ -603,7 +603,7 @@ mod tests {
             ..Default::default()
         };
         let mut streamer =
-            crate::scene::meshes::MeshStreamer::new(std::env::temp_dir().join(format!("block-local-mesh-{}", Uuid::new_v4())));
+            crate::scene::meshes::MeshStreamer::new(std::env::temp_dir().join(format!("aurora-local-mesh-{}", Uuid::new_v4())));
         let receive = |imports: &mut Imports| {
             let Worker::Local(received, generation, result) =
                 imports.rx.recv_timeout(Duration::from_secs(10)).expect("local worker finishes")

@@ -4,7 +4,7 @@
     Planning), and lists the issues still to take, highest priority first.
     The project manager sets Priority (an issue field of the organisation,
     like the type) and the milestone; the agents only move the project's
-    Status (issue triage): In progress when they start; at the end
+    Status (AGENTS.md, section 15): In progress when they start; at the end
     Done, Waiting Review (the fix waits for the human's or the QA's
     validation) or Waiting for user response (a comment asked the reporter for
     something); On hold, with a comment, when something outside the work
@@ -162,8 +162,8 @@ $q = 'mutation($p:ID!,$i:ID!,$f:ID!,$v:String!){updateProjectV2ItemFieldValue(in
 [void](Invoke-Graphql $q @{ p = $board.id; i = $s.Item.id; f = $board.status.id; v = $option.id })
 Show-IssueItem (Get-IssueItem)
 if ($option.name -eq 'Done' -and $s.Issue.state -eq 'OPEN') {
-    Write-Host '  The issue is still open: close it once resolved (issue triage), or use Waiting Review / Waiting for user response.' -ForegroundColor Yellow
+    Write-Host '  The issue is still open: close it once resolved (AGENTS.md, section 15), or use Waiting Review / Waiting for user response.' -ForegroundColor Yellow
 }
 if ($option.name -eq 'On hold') {
-    Write-Host '  On hold needs a comment on the issue saying why and what unblocks it (issue triage).' -ForegroundColor Yellow
+    Write-Host '  On hold needs a comment on the issue saying why and what unblocks it (AGENTS.md, section 15).' -ForegroundColor Yellow
 }

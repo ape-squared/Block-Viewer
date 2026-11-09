@@ -103,7 +103,7 @@ def rebind(context, objects, target=None, scope="BODY"):
                     group.add([index], weight, "REPLACE")
             modifier = next((m for m in source.modifiers if m.type == "ARMATURE"), None)
             if modifier is None:
-                modifier = source.modifiers.new("Block Avatar Rig", "ARMATURE")
+                modifier = source.modifiers.new("Aurora Avatar Rig", "ARMATURE")
             modifier.object = rig
             if source.parent is not rig:
                 world = source.matrix_world.copy()

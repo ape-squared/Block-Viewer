@@ -29,8 +29,8 @@ pub(super) fn execute(
             source.name_assets(|item| shared.get(item));
             return export_file(source, || {
                 rfd::FileDialog::new()
-                    .add_filter("Block IK", &["json"])
-                    .set_file_name("project.block-ik.json")
+                    .add_filter("Aurora IK", &["json"])
+                    .set_file_name("project.aurora-ik.json")
                     .save_file()
             });
         }

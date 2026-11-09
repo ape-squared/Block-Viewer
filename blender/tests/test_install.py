@@ -31,8 +31,8 @@ else:
     assert "FINISHED" in result, result
     result = bpy.ops.preferences.addon_enable(module=module)
 assert "FINISHED" in result, result
-assert hasattr(bpy.types.Scene, "aurora_live"), "extension was not enabled"
-prefs = bpy.context.scene.aurora_live
+assert hasattr(bpy.types.Scene, "block_live"), "extension was not enabled"
+prefs = bpy.context.scene.block_live
 assert prefs.auto_update and abs(prefs.interval - 2.0) < 0.000001
 prefs.auto_update = False
 prefs.interval = 45
@@ -47,7 +47,7 @@ else:
 assert bpy.ops.aurora.create_sl_rig(with_tshirt=True) == {"FINISHED"}
 shirt = bpy.context.object
 assert len(shirt.find_armature().data.bones) == 159
-entries = bpy.context.scene.aurora_live.objects
+entries = bpy.context.scene.block_live.objects
 assert len(entries) == 1 and entries[0].object == shirt and entries[0].enabled
 assert bpy.ops.aurora.live_selection() == {"FINISHED"}
 assert len(entries) == 1
@@ -70,5 +70,5 @@ for kind in ("CLASSIC", "BENTO"):
     assert bpy.ops.aurora.center_look_at(kind=kind) == {"FINISHED"}
     assert bpy.ops.aurora.switch_look_at(kind=kind, enabled=False) == {"FINISHED"}
 result = bpy.ops.preferences.addon_disable(module=module)
-assert "FINISHED" in result and not hasattr(bpy.types.Scene, "aurora_live"), result
+assert "FINISHED" in result and not hasattr(bpy.types.Scene, "block_live"), result
 print("AURORA_BLENDER_INSTALL_OK", flush=True)

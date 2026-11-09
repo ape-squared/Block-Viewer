@@ -17,7 +17,7 @@
 //! the data of `places/model.rs`; Preferences › Aurora › Places brings these
 //! tabs back.
 
-pub mod block;
+pub mod aurora;
 pub(crate) mod drag;
 pub mod model;
 
@@ -173,7 +173,7 @@ fn add_rows(
         return;
     }
     let mut kids: Vec<_> = f.children.iter().filter_map(|c| inv.folders.get(c)).collect();
-    kids.sort_by_key(|k| k.info.name.to_lowercase());
+    kids.sort_by_key(|k| crate::natural_order::key(&k.info.name));
     for k in kids {
         let keep = if filter.is_empty() {
             all || has_match(inv, k.info.id, "", 0)
@@ -204,10 +204,10 @@ fn add_rows(
         items.sort_by(|a, b| {
             b.created_at
                 .cmp(&a.created_at)
-                .then_with(|| a.name.to_lowercase().cmp(&b.name.to_lowercase()))
+                .then_with(|| crate::natural_order::cmp(&a.name, &b.name))
         });
     } else {
-        items.sort_by_key(|i| i.name.to_lowercase());
+        items.sort_by_key(|i| crate::natural_order::key(&i.name));
     }
     rows.extend(items.into_iter().map(|i| Row {
         depth,
@@ -279,7 +279,7 @@ pub struct PlacesUi {
     /// (spot, global point, region id or nil), for `World::place_snapshots`.
     pub want_snapshots: Vec<(crate::world::place_snapshots::Spot, glam::DVec3, Uuid)>,
     /// Aurora's look.
-    pub aurora: block::AuroraState,
+    pub aurora: aurora::AuroraState,
     /// Inventory changes asked from a menu, sent with the window's actions.
     pending_edits: Vec<block_net::inventory::operations::Mutation>,
     raise: bool,
@@ -300,7 +300,7 @@ impl PlacesUi {
         if classic {
             self.tab == TAB_HISTORY
         } else {
-            self.aurora.source == block::Source::History
+            self.aurora.source == aurora::Source::History
         }
     }
 
@@ -325,7 +325,7 @@ impl PlacesUi {
         open: &mut bool,
         by_date: bool,
         confirm_teleports: bool,
-        aurora: Option<&block::Env>,
+        aurora: Option<&aurora::Env>,
     ) -> Vec<PlacesAction> {
         let mut actions = Vec::new();
         self.show_confirm(ctx, c.p, confirm_teleports, &mut actions);
@@ -354,7 +354,7 @@ impl PlacesUi {
                         .layout(egui::Layout::top_down(egui::Align::Min)),
                 );
                 child.set_clip_rect(body.intersect(ui.clip_rect()));
-                self.block_body(&mut child, c, env, &mut actions);
+                self.aurora_body(&mut child, c, env, &mut actions);
                 ui.allocate_rect(body, Sense::hover());
             });
             return actions;

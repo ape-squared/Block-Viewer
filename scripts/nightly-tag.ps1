@@ -21,7 +21,7 @@ if (Test-AlreadyReleased $here) {
     exit 0
 }
 $tag = Get-NextBetaTag $tags ([datetime]::UtcNow)
-$message = @("Block Viewer $($tag.TrimStart('v')) (nightly beta)")
+$message = @("Aurora Viewer $($tag.TrimStart('v')) (nightly beta)")
 $stable = Get-LatestStable $tags
 $stableMessage = if ($stable) { @(git -C $repo for-each-ref '--format=%(contents)' "refs/tags/$($stable.Tag)") } else { @() }
 # the thresholds of the commit tagged, as a release would take them

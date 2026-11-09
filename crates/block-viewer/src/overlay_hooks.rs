@@ -14,12 +14,16 @@
 //! crash report names the hooks too ("Overlay hooks"), from this fixed list
 //! only.
 
+#[cfg(windows)]
 use std::time::Duration;
 
-/// How often the process's modules are listed: the hooks arrive late and
-/// at any time. A list of a few hundred modules takes well under a
+/// Normal module scan cadence after an initial one-second sampling window.
+/// Hooks arrive late; a list of a few hundred modules takes well under a
 /// millisecond on a background thread.
+#[cfg(windows)]
 const EVERY: Duration = Duration::from_secs(10);
+#[cfg(windows)]
+const EARLY: Duration = Duration::from_secs(1);
 
 /// One known hook DLL, what it belongs to and what to do if the image is
 /// lost while it is loaded.
@@ -91,11 +95,12 @@ pub fn start() {
     #[cfg(windows)]
     {
         let demo = demo_hook(
-            crate::block_env::demo_mode(),
+            std::env::var_os("AURORA_DEMO").is_some(),
             std::env::var("AURORA_DEMO_OVERLAY_HOOK").ok().as_deref(),
         );
-        let spawned = std::thread::Builder::new().name("block-overlay-hooks".into()).spawn(move || {
+        let spawned = std::thread::Builder::new().name("aurora-overlay-hooks".into()).spawn(move || {
             let mut seen = Vec::new();
+            let mut samples = 0u8;
             loop {
                 let mut loaded = modules();
                 loaded.extend(demo.clone());
@@ -109,7 +114,11 @@ pub fn start() {
                     // the crash report names it (crash/summary.rs)
                     crate::crash::overlay_hook(hook.file);
                 }
-                std::thread::sleep(EVERY);
+                // Device startup follows shortly after this watch begins.
+                // Sample each second early to catch hooks loaded by
+                // vkCreateInstance/device setup, then use the normal cadence.
+                std::thread::sleep(if samples < 30 { EARLY } else { EVERY });
+                samples = samples.saturating_add(1);
             }
         });
         if let Err(e) = spawned {
@@ -146,6 +155,15 @@ fn modules() -> Vec<String> {
         }
     }
     names
+}
+
+/// Snapshot known hook modules at the moment the viewer records a GPU loss.
+pub(crate) fn loss_snapshot() {
+    #[cfg(windows)]
+    {
+        let files: Vec<_> = modules().iter().filter_map(|name| known(name).map(|hook| hook.file)).collect();
+        crate::crash::overlay_hooks_at_loss(&files);
+    }
 }
 
 #[cfg(test)]

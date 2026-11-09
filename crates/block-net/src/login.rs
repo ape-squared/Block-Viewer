@@ -10,7 +10,7 @@ use uuid::Uuid;
 pub const SL_MAIN_GRID: &str = "https://login.agni.lindenlab.com/cgi-bin/login.cgi";
 pub const SL_BETA_GRID: &str = "https://login.aditi.lindenlab.com/cgi-bin/login.cgi";
 
-pub const CHANNEL: &str = "Block Viewer";
+pub const CHANNEL: &str = "Aurora Viewer";
 
 #[derive(Debug, Clone)]
 pub enum StartLocation {
@@ -264,12 +264,6 @@ fn split_username(username: &str) -> (String, String) {
     (first, last)
 }
 
-/// Authenticator apps may show the code as `123 456`; the login server wants
-/// digits only. Port of LLLoginInstance::handleMFAChallenge whitespace strip.
-pub fn normalize_mfa_token(token: &str) -> String {
-    token.chars().filter(|c| !c.is_whitespace()).collect()
-}
-
 /// `$1$` + md5 hex of the password (SL truncates passwords to 16 chars).
 pub fn hash_password(password: &str, truncate16: bool) -> String {
     if password.len() == 35 && password.starts_with("$1$") {
@@ -394,9 +388,7 @@ fn build_params(req: &LoginRequest) -> Llsd {
     p.insert("last_exec_session_id".into(), req.last_exec.session_id.to_string().into());
     p.insert("extended_errors".into(), true.into());
     p.insert("host_id".into(), "".into());
-    // LLLoginInstance::handleMFAChallenge (lllogininstance.cpp): strip all
-    // whitespace from the authenticator code (SL-17034 / BUG-231938).
-    p.insert("token".into(), normalize_mfa_token(&req.mfa_token).into());
+    p.insert("token".into(), req.mfa_token.clone().into());
     p.insert("mfa_hash".into(), req.mfa_hash.clone().into());
     let options: Vec<Llsd> = [
         "inventory-root",
@@ -528,13 +520,6 @@ mod tests {
         assert_eq!(hash_password("test", true), "$1$098f6bcd4621d373cade4e832627b4f6");
         // truncated to 16 chars on SL
         assert_eq!(hash_password("0123456789abcdefXYZ", true), hash_password("0123456789abcdef", true));
-    }
-
-    #[test]
-    fn mfa_token_drops_whitespace() {
-        assert_eq!(normalize_mfa_token(" 123 456 "), "123456");
-        assert_eq!(normalize_mfa_token("12\t34\n56"), "123456");
-        assert_eq!(normalize_mfa_token(""), "");
     }
 
     #[test]

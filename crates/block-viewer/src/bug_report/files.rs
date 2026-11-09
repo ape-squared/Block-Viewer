@@ -241,7 +241,7 @@ mod tests {
 
     #[test]
     fn crash_bundle_uses_saved_log_and_keeps_raw_traces_out_of_public_files() {
-        let root = std::env::temp_dir().join(format!("block-crash-bundle-test-{}", uuid::Uuid::new_v4()));
+        let root = std::env::temp_dir().join(format!("aurora-crash-bundle-test-{}", uuid::Uuid::new_v4()));
         let session = root.join("old-session");
         std::fs::create_dir_all(&session).unwrap();
         std::fs::write(session.join("session.log"), "[old ERROR block_viewer] panic: PRIVATE_LOG_NAME\n").unwrap();
@@ -280,7 +280,7 @@ mod tests {
 
     #[test]
     fn public_bundle_contains_only_reviewed_fields_and_private_log_is_separate() {
-        let root = std::env::temp_dir().join(format!("block-report-test-{}", uuid::Uuid::new_v4()));
+        let root = std::env::temp_dir().join(format!("aurora-report-test-{}", uuid::Uuid::new_v4()));
         let report = Report {
             title: "Example".into(),
             fields: vec![Field::new("test", "Location", "SECRET_LOCATION", false)],
@@ -310,7 +310,7 @@ mod tests {
     #[test]
     fn conversation_transcripts_never_enter_a_bundle() {
         use crate::world::chat_log::store::{Identity, folder};
-        let root = std::env::temp_dir().join(format!("block-report-chatlog-test-{}", uuid::Uuid::new_v4()));
+        let root = std::env::temp_dir().join(format!("aurora-report-chatlog-test-{}", uuid::Uuid::new_v4()));
         // transcripts dropped right next to the session log, the worst case
         let session = root.join("session");
         std::fs::create_dir_all(&session).unwrap();

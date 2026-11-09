@@ -55,7 +55,7 @@ pub fn init() {
         && is_ours(&last)
     {
         log::info!("cache folder changed: the previous cache is removed");
-        let _ = std::thread::Builder::new().name("block-cache-purge".into()).spawn(move || {
+        let _ = std::thread::Builder::new().name("aurora-cache-purge".into()).spawn(move || {
             if let Err(e) = std::fs::remove_dir_all(&last)
                 && e.kind() != std::io::ErrorKind::NotFound
             {

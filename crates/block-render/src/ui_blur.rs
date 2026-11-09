@@ -82,7 +82,7 @@ impl Blur {
         self.size == size && self.scale == scale
     }
 
-    pub fn new(device: &wgpu::Device, queue: &wgpu::Queue, format: wgpu::TextureFormat, size: [u32; 2], scale: f32) -> Self {
+    pub fn new(device: &wgpu::Device, format: wgpu::TextureFormat, size: [u32; 2], scale: f32) -> Self {
         let texture = |label, size: [u32; 2]| {
             device.create_texture(&wgpu::TextureDescriptor {
                 label: Some(label),
@@ -148,9 +148,8 @@ impl Blur {
             (&intermediate, [0.0, STEP * scale / size[1] as f32, 0.0, 0.0]),
         ]
         .map(|(source, direction)| {
-            let uniform = crate::upload::create_buffer_data(
+            let uniform = crate::gpu_alloc::buffer_init(
                 device,
-                queue,
                 "UI backdrop direction",
                 bytemuck::cast_slice(&direction),
                 wgpu::BufferUsages::UNIFORM,

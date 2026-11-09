@@ -331,7 +331,6 @@ fn plate_content(
         render_never: !own && too_complex && settings.render_exception(&id) == 1,
         blocked,
         mark: crate::world::staff::mark_named(&id, &legacy),
-        block_viewer: crate::world::block_peers::is_block_viewer(world, &id, &legacy, settings.advertise_block_viewer),
     }
 }
 

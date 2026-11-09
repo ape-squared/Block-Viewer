@@ -18,15 +18,15 @@ const CRITICAL: &[&str] = &[
     // the network runtime's workers: the session loop and its tasks
     "block-net",
     // GPU texture pages (block-render/src/textures.rs)
-    "block-pages",
+    "aurora-pages",
     // what the frame hands over to be freed (scene/jobs.rs)
-    "block-trash",
+    "aurora-trash",
     // the disk caches' writers
-    "block-cache",
-    "block-texcache",
+    "aurora-cache",
+    "aurora-texcache",
     // the chat history's writers: without them, conversations are lost
-    "block-chatlog",
-    "block-transcript",
+    "aurora-chatlog",
+    "aurora-transcript",
 ];
 
 static DIED: OnceLock<String> = OnceLock::new();
@@ -67,7 +67,7 @@ mod tests {
             assert_eq!(published_name(&format!(" {name}\n")), Some(*name));
         }
         // handled elsewhere, or disposable
-        for name in ["main", "block-render", "block-jobs-3", "block-worker-0", "block-photo-save", ""] {
+        for name in ["main", "block-render", "aurora-jobs-3", "aurora-worker-0", "aurora-photo-save", ""] {
             assert!(!is_critical(name), "{name}");
         }
         assert_eq!(published_name("Alice Resident"), None);

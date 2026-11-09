@@ -12,8 +12,8 @@ import time
 import bpy
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-import aurora_live
-from aurora_live.client import Client
+import block_live
+from block_live.client import Client
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--port", type=int, default=17655)
@@ -39,7 +39,7 @@ def flush(label, count, settle=1.0):
     deadline = time.monotonic() + 10
     acknowledged = False
     while time.monotonic() < deadline:
-        aurora_live._tick()
+        block_live._tick()
         try:
             while True:
                 reply = replies.get_nowait()
@@ -51,15 +51,15 @@ def flush(label, count, settle=1.0):
         if acknowledged:
             break
         time.sleep(0.02)
-    assert acknowledged, (label, aurora_live._client.state())
+    assert acknowledged, (label, block_live._client.state())
     assert len(sent[-1]["meshes"]) == count, (label, sent[-1])
     print("AURORA_TRACKING_PHASE={} REVISION={} MESHES={} IMAGES={}".format(
         label, sent[-1]["revision"], count, len(sent[-1]["images"])), flush=True)
     time.sleep(settle)
 
 
-aurora_live.register()
-aurora_live.Client = ObservedClient
+block_live.register()
+block_live.Client = ObservedClient
 try:
     bpy.ops.object.select_all(action="SELECT")
     bpy.ops.object.delete(use_global=False)
@@ -83,9 +83,9 @@ try:
     other.data.materials.append(blue)
     other.select_set(True)
     bpy.ops.aurora.live_selection()
-    entries = bpy.context.scene.aurora_live.objects
+    entries = bpy.context.scene.block_live.objects
     assert len(entries) == 2
-    bpy.context.scene.aurora_live.port = args.port
+    bpy.context.scene.block_live.port = args.port
     bpy.ops.aurora.live_connect()
     flush("initial", 2, 4.5)
     broken = bpy.data.materials.new("Unsupported live material")
@@ -95,14 +95,14 @@ try:
     broken.node_tree.links.new(diffuse.outputs[0], output.inputs["Surface"])
     other.data.materials[0] = broken
     flush("invalid_source_isolated", 1)
-    assert other.name in aurora_live._error and entries[1].error
+    assert other.name in block_live._error and entries[1].error
     shirt.data.vertices[0].co.x += 0.1
     shirt.data.update()
-    aurora_live._dirty = True
+    block_live._dirty = True
     flush("valid_source_still_updates", 1)
     other.data.materials[0] = blue
     flush("repaired_source_returns", 2)
-    assert not aurora_live._error and not entries[1].error
+    assert not block_live._error and not entries[1].error
     entries[0].enabled = False
     flush("pause_first", 1)
     image.pixels.foreach_set([0, 1, 0, 1] * 4)
@@ -135,5 +135,5 @@ try:
         image.pack()
         bpy.ops.wm.save_as_mainfile(filepath=str(args.save_blend.resolve()))
 finally:
-    aurora_live.unregister()
+    block_live.unregister()
 print("AURORA_BLENDER_TRACKING_BRIDGE_OK", flush=True)

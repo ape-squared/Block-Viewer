@@ -16,6 +16,9 @@ base64 = "0.23.1"
 # local time off Windows (snapshot names, chat log dates, script __DATE__);
 # already built for block-llsd, MIT/Apache-2.0.
 chrono = "0.4.45"
+# The Windows event log's XML for the crash report's GPU reset records
+# (crash/os_events.rs); already built for usvg, MIT/Apache-2.0.
+roxmltree = "0.21.1"
 # The bars' clock: the computer's tz database zone (Windows' zones mapped to
 # IANA names; already in the tree through chrono) and its abbreviation now
 # (CET / CEST), from the embedded tz database (about 1.3 MB of the release
@@ -32,15 +35,11 @@ block-render = { version = "0.1.0", path = "../block-render" }
 block-voice = { version = "0.1.0", path = "../block-voice" }
 block-version = { version = "0.1.0", path = "../block-version" }
 crossbeam-channel = "0.5.17"
-# Discord Rich Presence over local IPC (Legacy Viewer FSDiscordConnect); MIT.
-discord-rich-presence = "1.1.0"
 directories = "6.0.0"
 # experimental: only makes egui::theme public (the text fields' size, theme.rs)
 egui = { version = "0.37.0", features = ["experimental", "monochrome_emoji_fonts", "persistence"] }
 egui-wgpu = "0.37.0"
 egui-winit = "0.37.0"
-# System browser for "Open in browser" (already pulled by egui-winit's links).
-webbrowser = "1.2.4"
 emojis = "0.9.0"
 # imported Hunspell dictionaries in their own SET encoding (spelling.rs);
 # MIT / Apache-2.0
@@ -62,7 +61,7 @@ memmap2 = "0.9.11"
 parking_lot = "0.13.0"
 # CommonMark parsing for notecard previews; MIT licensed, no HTML runtime.
 pulldown-cmark = { version = "0.13.4", default-features = false }
-reqwest = { version = "0.13.5", default-features = false, features = ["rustls", "blocking", "json"] }
+reqwest = { version = "0.13.5", default-features = false, features = ["rustls"] }
 rayon = "1.12.0"
 resvg = "0.49"
 # native file dialogs (About Land: export / import of access lists)
@@ -111,7 +110,7 @@ foldhash = "0.2.0"
 # during arrivals (no such frame in 8 runs with 2, 4 in 8 runs with 3).
 # Held at these two versions: libmimalloc-sys 0.1.48 and later compile
 # mimalloc through a `.cc` file that cc passes to cl as `-Tp <file>`, which
-# sccache 0.18 (the shared build cache) breaks
+# sccache 0.18 (the shared build cache, AGENTS.md section 3) breaks
 # ("c1xx: cannot open source file '/WX-'"). Fixed in sccache by
 # mozilla/sccache#2904, after 0.18: bump both at the first sccache release
 # that has it (also in .github/dependabot.yml).
@@ -127,12 +126,12 @@ version = "4"
 # Already used by egui-winit (MIT/Apache-2.0); add a file offer alongside
 # the bitmap so Explorer can paste a copied conversation image as a PNG.
 arboard = { version = "3.6.1", default-features = false, features = ["image-data"] }
-windows-sys = { version = "0.61.2", features = ["Win32_UI_Input", "Win32_UI_Input_KeyboardAndMouse", "Win32_System_Threading", "Win32_System_Diagnostics_Debug", "Win32_System_Kernel", "Win32_System_SystemInformation", "Win32_UI_WindowsAndMessaging", "Win32_Graphics_Gdi", "Win32_Globalization", "Win32_Foundation", "Win32_System_Diagnostics_ToolHelp", "Win32_System_ProcessStatus", "Win32_System_WindowsProgramming", "Win32_System_Performance", "Win32_System_Pipes", "Win32_Storage_FileSystem", "Win32_Security", "Win32_System_IO", "Win32_System_RemoteDesktop", "Win32_System_Registry", "Win32_System_Console", "Win32_System_Environment", "Win32_NetworkManagement_NetBios", "Win32_System_Memory", "Win32_System_LibraryLoader", "Win32_Devices_DeviceAndDriverInstallation", "Win32_System_Power"] }
+windows-sys = { version = "0.61.2", features = ["Win32_UI_Input", "Win32_UI_Input_KeyboardAndMouse", "Win32_System_Threading", "Win32_System_Diagnostics_Debug", "Win32_System_Kernel", "Win32_System_SystemInformation", "Win32_UI_WindowsAndMessaging", "Win32_Graphics_Gdi", "Win32_Globalization", "Win32_Foundation", "Win32_System_Diagnostics_ToolHelp", "Win32_System_ProcessStatus", "Win32_System_WindowsProgramming", "Win32_System_Performance", "Win32_System_Pipes", "Win32_Storage_FileSystem", "Win32_Security", "Win32_Security_Authorization", "Win32_System_IO", "Win32_System_RemoteDesktop", "Win32_System_Registry", "Win32_System_Console", "Win32_System_Environment", "Win32_NetworkManagement_NetBios", "Win32_System_Memory", "Win32_System_LibraryLoader", "Win32_Devices_DeviceAndDriverInstallation"] }
 # Windows notifications (system_notify.rs): the WinRT toast API, which
 # windows-sys does not cover; already in the tree through wgpu and cpal
 # and the login device ids (machine_id.rs): WMI through COM
 # and the network adapters' names (net_adapters.rs): GetAdaptersAddresses
-windows = { version = "0.62.2", features = ["Data_Xml_Dom", "Foundation", "UI_Notifications", "Win32_Foundation", "Win32_Media", "Win32_Media_MediaFoundation", "Win32_NetworkManagement_IpHelper", "Win32_NetworkManagement_Ndis", "Win32_Networking_WinSock", "Win32_System_Com", "Win32_System_Ole", "Win32_System_Registry", "Win32_System_Variant", "Win32_System_WinRT", "Win32_System_Wmi"] }
+windows = { version = "0.62.2", features = ["Data_Xml_Dom", "Foundation", "UI_Notifications", "Win32_Foundation", "Win32_NetworkManagement_IpHelper", "Win32_NetworkManagement_Ndis", "Win32_Networking_WinSock", "Win32_System_Com", "Win32_System_Ole", "Win32_System_Registry", "Win32_System_Variant", "Win32_System_WinRT", "Win32_System_Wmi"] }
 
 [target.'cfg(unix)'.dependencies]
 # getenv without allocating, for the allocator's choice (allocator.rs), and

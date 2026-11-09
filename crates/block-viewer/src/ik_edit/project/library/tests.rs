@@ -3,11 +3,11 @@ use super::*;
 use crate::ik_edit::tests::HeadlessContext as _;
 
 pub(super) fn root() -> PathBuf {
-    std::env::temp_dir().join(format!("block-ik-library-{}", Uuid::new_v4()))
+    std::env::temp_dir().join(format!("aurora-ik-library-{}", Uuid::new_v4()))
 }
 pub(super) fn cleanup(root: &Path) {
     assert!(root.starts_with(std::env::temp_dir()));
-    assert!(root.file_name().unwrap().to_string_lossy().starts_with("block-ik-library-"));
+    assert!(root.file_name().unwrap().to_string_lossy().starts_with("aurora-ik-library-"));
     if root.exists() {
         std::fs::remove_dir_all(root).unwrap();
     }

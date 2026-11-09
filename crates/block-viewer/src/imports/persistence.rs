@@ -443,7 +443,7 @@ impl Imports {
         let (tx, rx) = crossbeam_channel::unbounded::<Vec<u8>>();
         let (receipt, receipts) = crossbeam_channel::unbounded();
         self.persistence.receipts = Some(receipts);
-        let worker = std::thread::Builder::new().name("block-local-previews".into()).spawn(move || {
+        let worker = std::thread::Builder::new().name("aurora-local-previews".into()).spawn(move || {
             while let Ok(mut bytes) = rx.recv() {
                 while let Ok(newer) = rx.try_recv() {
                     bytes = newer;
@@ -711,7 +711,7 @@ mod tests {
     struct Files(PathBuf);
     impl Files {
         fn new() -> Self {
-            let root = std::env::temp_dir().join(format!("block-preview-registry-{}", Uuid::new_v4()));
+            let root = std::env::temp_dir().join(format!("aurora-preview-registry-{}", Uuid::new_v4()));
             demo::fixtures(&root).expect("synthetic fixtures");
             Self(root)
         }

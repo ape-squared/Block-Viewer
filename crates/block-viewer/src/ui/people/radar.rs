@@ -190,21 +190,12 @@ impl Default for RadarSettings {
             show_muted: true,
             name_format: 0,
             color_names: false,
-            // Toasts on with chat-range alerts so arrivals show even when the
-            // nearby chat console is scrolled away (settings version 33).
-            toasts: true,
-            // Feedback / Legacy RadarReportChatRange*: on in Block so nearby
-            // chat range arrivals and departures show without hunting the menu.
-            chat_enter: true,
-            chat_leave: true,
+            toasts: false,
+            chat_enter: false,
+            chat_leave: false,
             draw_enter: false,
             draw_leave: false,
-            // Feedback: show who entered the region in chat (off in Legacy until
-            // opted in; Block turns region enter on so arrivals are visible).
-            region_enter: true,
-            // Region leave stays off by default: chat-range leave covers
-            // nearby departures; a separate "left the region" for far
-            // avatars is opt-in from the radar menu.
+            region_enter: false,
             region_leave: false,
             alert_sounds: false,
             enter_scripts: false,
@@ -373,7 +364,7 @@ pub(super) fn rows(world: &World, data: &RadarData, filter: &str) -> Vec<Row> {
     let column = Column::ALL.get(settings.sort as usize).copied().unwrap_or(Column::Name);
     rows.sort_by(|a, b| {
         use std::cmp::Ordering;
-        let by_name = || a.name.to_lowercase().cmp(&b.name.to_lowercase());
+        let by_name = || crate::natural_order::cmp(&a.name, &b.name);
         // the lit rows of a flag column come first
         let flag = |x: bool, y: bool| y.cmp(&x);
         let order = match column {
@@ -880,13 +871,10 @@ pub fn tab(
         let radius = ui.visuals().window_corner_radius;
         for row in &list {
             // dragged onto a conversation, the resident joins it
-            let (rect, resp) = ui.allocate_exact_size(Vec2::new(ui.available_width(), 22.0), Sense::click_and_drag());
+            let (rect, resp) = super::rows::allocate(ui, row.id, Vec2::new(ui.available_width(), 22.0));
             resp.dnd_set_drag_payload(crate::ui::call_invite::PersonDrag(row.id));
-            if st.scroll_to == Some(row.id) {
-                ui.scroll_to_rect(rect, Some(egui::Align::Center));
-                st.scroll_to = None;
-            }
             if !ui.is_rect_visible(rect) {
+                super::rows::list_menu(&resp, p, world, &st.radar_selected, row.id, AvatarList::Nearby);
                 continue;
             }
             let selected = st.radar_selected.contains(&row.id);
@@ -926,15 +914,7 @@ pub fn tab(
                 }
             }
             // menu_fs_radar.xml, menu_fs_radar_multiselect.xml for several
-            let several = st.radar_selected.len() > 1 && st.radar_selected.contains(&row.id);
-            let chosen = st.radar_selected.clone();
-            menu::context_menu(&resp, p, |ui| {
-                if several {
-                    context::avatars_menu(ui, p, world, &chosen);
-                } else {
-                    context::avatar_list_menu(ui, p, world, row.id, AvatarList::Nearby);
-                }
-            });
+            super::rows::list_menu(&resp, p, world, &st.radar_selected, row.id, AvatarList::Nearby);
             if let Some(tip) = tip {
                 resp.on_hover_text(tip);
             }

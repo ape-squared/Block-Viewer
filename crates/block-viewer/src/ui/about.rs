@@ -1,19 +1,21 @@
-//! Help › About Block Viewer. Port of LLFloaterAbout
+//! Help › About Aurora Viewer. Port of LLFloaterAbout
 //! (indra/newview/llfloaterabout.cpp, floater_about.xml, the About* strings
 //! of strings.xml, originally LGPL 2.1): the version, then the system
-//! information with "Copy to clipboard", and the licences. Layout is a
-//! compact header (logo + version + links), then information cards (a click
-//! on a value copies it alone); licences come from NOTICE.md
-//! (`about/notice.rs`). The copy stays in English whatever the interface
-//! language, as the Legacy Viewer's (strings.xml: "this info sometimes gets
-//! sent to support").
+//! information with "Copy to clipboard", and the licences. Redrawn in the
+//! Aurora look: a banner with the logo and the version, the information in
+//! cards (a click on a value copies it alone), the licences read from
+//! NOTICE.md (`about/notice.rs`). The copy stays in English whatever the
+//! interface language, as the Legacy Viewer's (strings.xml: "this info
+//! sometimes gets sent to support"). The Legacy Viewer's credits tabs name
+//! its own teams: Aurora names the authors of the code it follows in the
+//! licences, as NOTICE.md does.
 
 pub mod notice;
 
-use super::sheet;
+use super::sheet::{self, Tone};
 use super::widgets::{self, ActionKind, Floater};
 use crate::theme::Palette;
-use egui::{RichText, Sense, Vec2};
+use egui::{Rect, RichText, Sense, Shape, Vec2};
 use notice::Block;
 use std::time::{Duration, Instant};
 
@@ -118,7 +120,7 @@ pub fn release_notes(version: &str) -> Option<String> {
 /// its English labels).
 pub fn copy_text(sections: &[Section]) -> String {
     let version = block_version::version();
-    let mut out = format!("Block Viewer {version}\n");
+    let mut out = format!("Aurora Viewer {version}\n");
     if let Some(url) = release_notes(version) {
         out.push_str(&format!("Release notes: {url}\n"));
     }
@@ -234,42 +236,60 @@ impl AboutUi {
     }
 }
 
-/// Compact header: logo, name, version, build and project links — no branded
-/// glow banner (keeps the window closer to a plain system About panel).
+/// The banner: the logo in its violet light, the name, the version and the
+/// build, and the project's links.
 fn hero(ui: &mut egui::Ui, p: &Palette, logo: Option<&egui::TextureHandle>) {
-    widgets::surface(ui, p, |ui| {
-        ui.set_min_width(ui.available_width());
-        ui.horizontal(|ui| {
-            ui.spacing_mut().item_spacing.x = 14.0;
-            if let Some(logo) = logo {
-                ui.add(egui::Image::new(logo).fit_to_exact_size(Vec2::splat(LOGO * 0.72)));
-            }
-            ui.vertical(|ui| {
-                ui.spacing_mut().item_spacing.y = 2.0;
-                ui.label(RichText::new("Block Viewer").size(20.0).color(p.ink).strong());
-                ui.label(RichText::new(crate::ui::login::client_tagline()).size(11.5).color(p.muted));
-                ui.add_space(4.0);
-                ui.horizontal_wrapped(|ui| {
-                    ui.spacing_mut().item_spacing = Vec2::new(8.0, 4.0);
-                    ui.label(RichText::new(block_version::version()).size(12.5).color(p.ink));
-                    ui.label(
-                        RichText::new(block_i18n::tr!("about-build-pill", profile = build_label()))
-                            .size(12.0)
-                            .color(p.muted),
-                    );
-                });
-                ui.add_space(4.0);
-                ui.horizontal_wrapped(|ui| {
-                    ui.spacing_mut().item_spacing = Vec2::new(6.0, 4.0);
-                    if let Some(url) = release_notes(block_version::version()) {
-                        link(ui, p, "file-text-filled", block_i18n::tr!("about-release-notes"), &url);
-                    }
-                    link(ui, p, "brand-github-filled", "GitHub", crate::links::GITHUB);
-                    link(ui, p, "world-filled", block_i18n::tr!("ui-login-website"), crate::links::WEBSITE);
-                });
+    const PAD: Vec2 = Vec2::new(18.0, 16.0);
+    let width = ui.available_width();
+    let top = ui.cursor().min;
+    // the face and the light go under what is laid out first
+    let face = ui.painter().add(Shape::Noop);
+    let light = ui.painter().add(Shape::Noop);
+    let inner = Rect::from_min_size(top + PAD, Vec2::new(width - PAD.x * 2.0, 10_000.0));
+    let mut child = ui.new_child(
+        egui::UiBuilder::new()
+            .max_rect(inner)
+            .layout(egui::Layout::top_down(egui::Align::Min)),
+    );
+    let mut logo_rect = None;
+    child.horizontal(|ui| {
+        ui.spacing_mut().item_spacing.x = 18.0;
+        if let Some(logo) = logo {
+            logo_rect = Some(ui.add(egui::Image::new(logo).fit_to_exact_size(Vec2::splat(LOGO))).rect);
+        }
+        ui.vertical(|ui| {
+            ui.spacing_mut().item_spacing.y = 4.0;
+            ui.label(sheet::semibold(ui, "Aurora Viewer", 22.0, p.ink));
+            ui.label(RichText::new(crate::ui::login::client_tagline()).size(12.0).color(p.violet_pale));
+            ui.add(egui::Label::new(RichText::new(block_i18n::tr!("about-third-party-viewer")).size(11.5).color(p.muted)).wrap());
+            ui.add_space(4.0);
+            ui.horizontal_wrapped(|ui| {
+                ui.spacing_mut().item_spacing = Vec2::new(6.0, 6.0);
+                sheet::pill(ui, p, Tone::Group, "tag-filled", block_version::version());
+                let build = block_i18n::tr!("about-build-pill", profile = build_label());
+                sheet::pill(ui, p, Tone::Neutral, "", &build);
+            });
+            ui.add_space(6.0);
+            ui.horizontal_wrapped(|ui| {
+                ui.spacing_mut().item_spacing = Vec2::new(6.0, 6.0);
+                if let Some(url) = release_notes(block_version::version()) {
+                    link(ui, p, "file-text-filled", block_i18n::tr!("about-release-notes"), &url);
+                }
+                link(ui, p, "brand-github-filled", "GitHub", crate::links::GITHUB);
+                link(ui, p, "world-filled", block_i18n::tr!("ui-login-website"), crate::links::WEBSITE);
             });
         });
     });
+    let rect = Rect::from_min_size(top, Vec2::new(width, child.min_rect().height() + PAD.y * 2.0));
+    ui.painter()
+        .set(face, Shape::rect_filled(rect, ui.visuals().window_corner_radius, p.field));
+    if let Some(logo) = logo_rect {
+        let glow = crate::ui::aurora_bg::radial_glow_shape(logo.center(), LOGO * 1.6, p.violet, 0.38);
+        // the light stays in the banner: a shape set keeps the clip of the
+        // painter that sets it
+        ui.painter().with_clip_rect(rect.intersect(ui.clip_rect())).set(light, glow);
+    }
+    ui.allocate_rect(rect, Sense::hover());
 }
 
 /// The build's profile as the window title names it ("Dev"), else its
@@ -408,7 +428,7 @@ mod tests {
     fn release_notes_only_for_a_published_version() {
         assert_eq!(
             release_notes("0.7.0").as_deref(),
-            Some("https://github.com/Block-Viewer/Block-Viewer/releases/tag/v0.7.0")
+            Some("https://github.com/Aurora-Viewer/Aurora-Viewer/releases/tag/v0.7.0")
         );
         assert_eq!(release_notes("0.7.0+3.gabcdef123"), None);
         assert_eq!(release_notes("0.0.0"), None);
@@ -430,7 +450,7 @@ mod tests {
         ];
         let text = copy_text(&sections);
         let blocks: Vec<&str> = text.split("\n\n").collect();
-        assert!(blocks[0].starts_with(&format!("Block Viewer {}", block_version::version())));
+        assert!(blocks[0].starts_with(&format!("Aurora Viewer {}", block_version::version())));
         assert_eq!(
             blocks[1],
             format!(

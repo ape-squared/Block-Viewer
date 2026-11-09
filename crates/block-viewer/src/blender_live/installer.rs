@@ -375,7 +375,7 @@ fn remembered() -> Vec<PathBuf> {
 }
 
 fn remembered_paths() -> Option<PathBuf> {
-    directories::ProjectDirs::from("com", "ape-squared", "BlockViewer").map(|d| d.config_dir().join("blender-installations.json"))
+    directories::ProjectDirs::from("org", "Aurora", "AuroraViewer").map(|d| d.config_dir().join("blender-installations.json"))
 }
 
 fn remember_selected(executable: &Path) -> Result<(), String> {
@@ -532,7 +532,7 @@ fn scan(manual: &[PathBuf]) -> Vec<Installation> {
 struct Temporary(PathBuf);
 impl Temporary {
     fn new() -> Result<Self, String> {
-        let path = std::env::temp_dir().join(format!("block-blender-{}", uuid::Uuid::new_v4()));
+        let path = std::env::temp_dir().join(format!("aurora-blender-{}", uuid::Uuid::new_v4()));
         std::fs::create_dir(&path).map_err(|e| e.to_string())?;
         Ok(Self(path))
     }
@@ -568,7 +568,7 @@ enum Operation {
     Probe,
     Install,
     /// Disables and deletes Aurora's package (`--uninstall`, Preferences ›
-    /// Remove Block Viewer from this computer); install's backups stay.
+    /// Remove Aurora from this computer); install's backups stay.
     Uninstall,
 }
 

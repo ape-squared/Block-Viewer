@@ -510,7 +510,7 @@ mod tests {
     }
     #[test]
     fn uploaded_pngs_become_valid_square_jpeg2000_with_alpha() {
-        let path = std::env::temp_dir().join(format!("block-inventory-thumbnail-{}.png", Uuid::new_v4()));
+        let path = std::env::temp_dir().join(format!("aurora-inventory-thumbnail-{}.png", Uuid::new_v4()));
         let source = image::RgbaImage::from_pixel(96, 80, image::Rgba([21, 42, 63, 170]));
         source.save(&path).expect("generated PNG");
         let result = file_thumbnails(&path);
@@ -535,7 +535,7 @@ mod tests {
         let source = image::RgbaImage::from_fn(128, 512, |x, y| image::Rgba([x as u8, (y / 2) as u8, 63, 170]));
         let expected = file_choices(&source).expect("source choices");
         for extension in ["png", "j2c"] {
-            let path = std::env::temp_dir().join(format!("block-thumbnail-{}.{}", Uuid::new_v4(), extension));
+            let path = std::env::temp_dir().join(format!("aurora-thumbnail-{}.{}", Uuid::new_v4(), extension));
             if extension == "png" {
                 source.save(&path).expect("generated PNG");
             } else {

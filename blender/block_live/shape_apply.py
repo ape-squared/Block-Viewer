@@ -124,7 +124,7 @@ def apply(context, payload):
         return rig
     if "avastar" in rig:
         _avastar(context, rig, payload, mapping)
-        context.scene.aurora_live.rig = rig
+        context.scene.block_live.rig = rig
         return rig
 
     basis = exporter.coordinate_basis(rig) @ Matrix.Scale(context.scene.unit_settings.scale_length, 4)
@@ -135,7 +135,7 @@ def apply(context, payload):
         if bone is not None:
             previous = bone.get("aurora_shape_bind") if rig.get("aurora_shape_id") else joint["reference_bind"]
             deltas[bone.name] = inverse @ _matrix(joint["inverse_bind"]).inverted() @ _matrix(previous) @ basis
-    # Keep Block Viewer's existing control offsets, hierarchy and constraints. The
+    # Keep Aurora's existing control offsets, hierarchy and constraints. The
     # ground root stays anchored; targets follow the corresponding end joint.
     for bone in rig.data.bones:
         if bone.name in deltas:
@@ -186,11 +186,11 @@ def apply(context, payload):
         if "auroraPose.COG" in clone.bones:
             correction = original.bones["auroraPose.COG"].matrix_local @ clone.bones["auroraPose.COG"].matrix_local.inverted()
             for bone in rig.pose.bones:
-                con = bone.constraints.get("Block Viewer pose root")
+                con = bone.constraints.get("Aurora pose root")
                 if con and con.type == "CHILD_OF" and con.target == rig and con.subtarget == "auroraPose.COG":
                     con.inverse_matrix = con.inverse_matrix @ correction
         _remember(rig, payload, {name: rig.data.bones[bone.name] for name, bone in mapping.items()})
-        context.scene.aurora_live.rig = rig
+        context.scene.block_live.rig = rig
         context.view_layer.update()
         return rig
     except Exception:

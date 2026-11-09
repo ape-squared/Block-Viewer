@@ -2,7 +2,7 @@
 .SYNOPSIS
     Puts a ready PR in the merge queue and waits for the outcome: merged, or
     out of the queue (red CI on the code combined with the latest main,
-    conflict…). Run it only when the PR is green and review is done.
+    conflict…). Run it only when AGENTS.md allows it (section 8, step 9).
 
 .EXAMPLE
     ./scripts/merge-pr.ps1 -Pr 42

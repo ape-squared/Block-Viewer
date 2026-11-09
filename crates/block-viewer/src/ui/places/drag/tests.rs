@@ -5,7 +5,7 @@ use crate::{
     ui::{
         bars::favorites,
         place_details::Ctx,
-        places::{PlacesAction, PlacesUi, block},
+        places::{PlacesAction, PlacesUi, aurora},
     },
     world::World,
 };
@@ -181,7 +181,7 @@ fn place_portal_drags_start_from_every_favorites_and_places_view_and_leave_reord
                             wanted_images: &mut wanted_images,
                             want_groups: &mut groups,
                         };
-                        let env = block::Env {
+                        let env = aurora::Env {
                             sort: Default::default(),
                             favorites: &[favorite],
                         };

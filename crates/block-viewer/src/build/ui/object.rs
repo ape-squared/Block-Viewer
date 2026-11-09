@@ -356,7 +356,7 @@ fn vec_block(
     const LETTER: f32 = super::common::SMALL;
     let row = ui.add_enabled_ui(enabled, |ui| {
         let (rect, _) = ui.allocate_exact_size(egui::vec2(ui.available_width(), HEIGHT), egui::Sense::hover());
-        let width = ((rect.width() - 2.0 * GAP) / 3.0).max(96.0);
+        let width = ((rect.width() - 2.0 * GAP) / 3.0).max(40.0);
         let radius = ui.visuals().window_corner_radius;
         for (axis, value) in v.iter_mut().enumerate() {
             let left = rect.left() + axis as f32 * (width + GAP);
@@ -404,7 +404,7 @@ fn vec_block(
                     let (letter, _) = ui.allocate_exact_size(galley.size(), egui::Sense::hover());
                     let drop = 0.35 * (value_size - LETTER).max(0.0);
                     ui.painter().galley(letter.min + egui::vec2(0.0, drop), galley, color);
-                    e = e.or(super::common::spin_with_min_decimals(
+                    e = e.or(super::common::transform_spin(
                         ui,
                         value,
                         increment,
@@ -471,8 +471,8 @@ fn legacy_vec_block(
                             .color(crate::build::draw::axis_color(p, axis)),
                     ),
                 );
-                let width = (ui.available_width() - 23.0).max(96.0);
-                edit = edit.or(super::common::spin_with_min_decimals(
+                let width = (ui.available_width() - 23.0).max(45.0);
+                edit = edit.or(super::common::transform_spin(
                     ui,
                     value,
                     increment,
@@ -648,7 +648,7 @@ pub fn show_flags(ui: &mut egui::Ui, p: &Palette, tool: &mut BuildTool, world: &
     let Some(key) = tool.selection.first().copied() else { return };
     let Some(idx) = world.objects.index_of(&key) else { return };
     let Some(o) = world.objects.get(idx) else { return };
-    let (flags, is_root, full_id, flexible) = (o.update_flags, o.parent_id == 0, o.full_id, o.extra.flexible.is_some());
+    let (flags, is_root, full_id, flexible) = (o.update_flags, o.parent_id == 0, o.full_id, o.has_flexible_path());
     let editable = tool.can_modify(world, idx);
     let self_owned = tool.props.get(&full_id).is_some_and(|pr| pr.owner_id == world.agent_id);
     ui.spacing_mut().item_spacing.y = 1.0;
@@ -708,7 +708,7 @@ pub fn show_shape(ui: &mut egui::Ui, p: &Palette, tool: &mut BuildTool, world: &
     let Some(key) = tool.selection.first().copied() else { return };
     let Some(idx) = world.objects.index_of(&key) else { return };
     let Some(o) = world.objects.get(idx) else { return };
-    let (volume, flexible) = (o.volume, o.extra.flexible.is_some());
+    let (volume, flexible) = (o.volume, o.has_flexible_path());
     if volume.is_mesh() {
         super::mesh::show(ui, p, tool, world, idx, env);
         return;
@@ -812,7 +812,7 @@ fn paste_params(tool: &mut BuildTool, world: &mut World, idx: usize, c: ShapeCli
         (None, Some(Some(_))) => tool.set_extra(world, idx, crate::build::edits::Extra::Sculpt(None)),
         _ => {}
     }
-    let flexible = world.objects.get(idx).is_some_and(|o| o.extra.flexible.is_some());
+    let flexible = world.objects.get(idx).is_some_and(|o| o.has_flexible_path());
     let mut v = c.volume;
     v.sculpt = c.sculpt;
     // a line path follows the object's flexible state
@@ -864,13 +864,11 @@ fn shape_pair(
                     .on_hover_text(title);
             },
         );
-        // Wider than the old 49 px spins so XYZ can be read and dragged easily.
-        let spin_w = ((ui.available_width() - 90.0) / 3.0).clamp(96.0, 140.0);
         for ((value, axis), range) in values.into_iter().zip(axes).zip(ranges) {
-            ui.allocate_ui_with_layout(Vec2::new(22.0, 26.0), egui::Layout::right_to_left(egui::Align::Center), |ui| {
+            ui.allocate_ui_with_layout(Vec2::new(30.0, 26.0), egui::Layout::right_to_left(egui::Align::Center), |ui| {
                 ui.label(RichText::new(axis).size(super::common::SMALL).color(p.muted));
             });
-            edit = edit.or(spin(ui, value, increment, range, decimals, spin_w, false));
+            edit = edit.or(spin(ui, value, increment, range, decimals, 49.0, false));
         }
     });
     edit
@@ -916,6 +914,7 @@ fn shape_column(
     let mut e = Edit {
         changed: chosen_type.is_some(),
         commit: chosen_type.is_some(),
+        ..Edit::default()
     };
     if let Some(ty) = chosen_type {
         u.ty = ty;
@@ -952,6 +951,7 @@ fn shape_column(
                     e = e.or(Edit {
                         changed: true,
                         commit: true,
+                        ..Edit::default()
                     });
                 }
             };

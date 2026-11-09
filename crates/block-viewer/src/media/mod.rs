@@ -397,6 +397,10 @@ impl Default for MediaSettings {
 struct ObjMedia {
     idx: usize,
     fetched_version: Option<u32>,
+    /// Object media version of the last GET asked (0 without one): asked
+    /// once per version, like LLVOVolume::processUpdateMessage asks once per
+    /// media change, so a failed GET is not asked again until the next one.
+    asked_version: Option<u32>,
     data: Option<ObjectMediaData>,
     hud: bool,
     on_other_avatar: bool,
@@ -521,7 +525,7 @@ impl Default for MediaManager {
 /// The user agent of the viewer's web requests (getCurrentUserAgent): the
 /// browsers' and the web profile's.
 pub fn user_agent() -> String {
-    format!("SecondLife (Block Viewer {})", block_version::version())
+    format!("SecondLife (Aurora Viewer {})", block_version::version())
 }
 
 /// The shared cache of our CEF browsers, in which the plugin creates
@@ -601,7 +605,7 @@ mod cache_tests {
 
     #[test]
     fn the_plugin_cache_lands_inside_cef() {
-        let dir = std::env::temp_dir().join("block-cef-path");
+        let dir = std::env::temp_dir().join("aurora-cef-path");
         let s = browser_settings(&dir, "en");
         // what MediaPluginCEF builds from it
         assert_eq!(Path::new(&format!("{}cef_cache", s.cache_path)), dir.join("cef").join("cef_cache"));
@@ -610,7 +614,7 @@ mod cache_tests {
     #[cfg(unix)]
     #[test]
     fn the_misplaced_cache_is_removed_but_a_running_profile_stays() {
-        let root = std::env::temp_dir().join(format!("block-misplaced-cache-{}", std::process::id()));
+        let root = std::env::temp_dir().join(format!("aurora-misplaced-cache-{}", std::process::id()));
         let _ = std::fs::remove_dir_all(&root);
         let misplaced = root.join("cef\\cef_cache");
         // a plugin id far above any pid_max, and ours, which runs

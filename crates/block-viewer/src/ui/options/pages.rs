@@ -3,8 +3,9 @@
 
 pub mod accessibility;
 pub mod appearance;
+pub mod aurora;
 pub mod avatars;
-pub mod block;
+pub mod build;
 pub mod camera;
 pub mod chat;
 pub mod commands;
@@ -55,11 +56,11 @@ pub fn tabs(page: Page) -> Vec<&'static str> {
             block_i18n::tr!("ui-options-tab-name-tags"),
             block_i18n::tr!("ui-options-names"),
             block_i18n::tr!("ui-options-look-at-targets"),
-            block_i18n::tr!("ui-options-block-animations"),
+            block_i18n::tr!("ui-options-aurora-animations"),
         ],
         Page::Chat => vec![
             block_i18n::tr!("common-nearby-chat"),
-            block_i18n::tr!("ui-options-block-notifications"),
+            block_i18n::tr!("ui-options-aurora-notifications"),
             block_i18n::tr!("ui-options-tab-keywords"),
             block_i18n::tr!("ui-options-tab-history"),
             block_i18n::tr!("ui-options-tab-away-and-replies"),
@@ -89,10 +90,11 @@ pub fn tabs(page: Page) -> Vec<&'static str> {
 /// The rows of one tab of a page.
 pub fn draw(cx: &mut Cx, page: Page, tab: usize) {
     match page {
-        Page::Aurora => block::page(cx, tab),
+        Page::Aurora => aurora::page(cx, tab),
         Page::Graphics => graphics::page(cx, tab),
         Page::Camera => camera::page(cx, tab),
         Page::Avatars => avatars::page(cx, tab),
+        Page::Build => build::page(cx),
         Page::Chat => chat::page(cx, tab),
         Page::Sound => sound::page(cx, tab),
         Page::Media => media::page(cx),

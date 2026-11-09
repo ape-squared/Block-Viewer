@@ -101,7 +101,6 @@ impl Demo {
                     Ok(match query {
                         Query::Pose { .. } => Reply::Pose,
                         Query::Portal { .. } => Reply::Portal,
-                        Query::PeerAnnounce => Reply::PeerAnnounce,
                         Query::Altitudes(ids) => Reply::Altitudes(
                             ids.iter()
                                 .filter(|id| **id == SKY_VISITOR)

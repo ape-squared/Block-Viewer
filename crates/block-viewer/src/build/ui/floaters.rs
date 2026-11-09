@@ -60,7 +60,7 @@ pub fn secondary(ctx: &egui::Context, p: &Palette, tool: &mut BuildTool, world: 
 /// floater_build_options.xml, shared by the inline construction settings.
 pub(super) fn ruler_controls(ui: &mut egui::Ui, p: &Palette, s: &mut BuildSettings) {
     let label_width = (ui.available_width() - 80.0).max(30.0);
-    ui.spacing_mut().slider_width = (ui.available_width() - 80.0).clamp(100.0, 220.0);
+    ui.spacing_mut().slider_width = (ui.available_width() - 80.0).clamp(40.0, 170.0);
     row(ui, p, block_i18n::tr!("build-ui-floaters-unit-meters"), label_width, |ui| {
         spin(ui, &mut s.grid_resolution, 0.01, 0.01..=5.0, 3, 70.0, false);
     });
@@ -103,9 +103,9 @@ pub(super) fn ruler_controls(ui: &mut egui::Ui, p: &Palette, s: &mut BuildSettin
 }
 
 /// Aurora: the size of the edit handles, in percent of the Legacy Viewer's
-/// fixed screen sizes (#1328), and of the compact Move/Rotate strip.
+/// fixed screen sizes (#1328).
 pub(super) fn handle_controls(ui: &mut egui::Ui, p: &Palette, s: &mut BuildSettings) {
-    ui.spacing_mut().slider_width = (ui.available_width() - 80.0).clamp(100.0, 220.0);
+    ui.spacing_mut().slider_width = (ui.available_width() - 80.0).clamp(40.0, 170.0);
     let range = crate::build::GIZMO_SCALE_RANGE;
     ui.horizontal(|ui| {
         label(ui, p, block_i18n::tr!("build-ui-floaters-handle-size"));
@@ -119,21 +119,6 @@ pub(super) fn handle_controls(ui: &mut egui::Ui, p: &Palette, s: &mut BuildSetti
             .changed()
         {
             s.gizmo_scale = percent / 100.0;
-        }
-    });
-    let buttons = crate::build::TOOL_BUTTON_SCALE_RANGE;
-    ui.horizontal(|ui| {
-        label(ui, p, block_i18n::tr!("build-ui-floaters-tool-button-size"));
-        let mut percent = (s.tool_button_scale() * 100.0).round();
-        if ui
-            .add(
-                egui::Slider::new(&mut percent, buttons.start() * 100.0..=buttons.end() * 100.0)
-                    .custom_parser(block_i18n::parse_number)
-                    .step_by(5.0),
-            )
-            .changed()
-        {
-            s.tool_button_scale = percent / 100.0;
         }
     });
 }
@@ -552,7 +537,7 @@ pub(super) fn group_picker(ctx: &egui::Context, p: &Palette, tool: &mut BuildToo
                 chosen = Some(uuid::Uuid::nil());
             }
             let mut groups: Vec<(uuid::Uuid, String)> = world.groups.groups.iter().map(|g| (g.id, g.name.clone())).collect();
-            groups.sort_by_key(|g| g.1.to_lowercase());
+            groups.sort_by_key(|g| crate::natural_order::key(&g.1));
             for (id, name) in groups {
                 if ui.selectable_label(false, RichText::new(name).size(12.0)).double_clicked() {
                     chosen = Some(id);
@@ -746,5 +731,67 @@ impl BuildTool {
             }
         }
         (tris, area)
+    }
+}
+
+/// LLSelectMgr's CannotLink notifications, shared by both editor styles.
+pub(super) fn link_error(ctx: &egui::Context, p: &Palette, tool: &mut BuildTool) {
+    let Some(message) = tool.ui.link_error.clone() else { return };
+    let mut close = ctx.input_mut(|i| i.consume_key(egui::Modifiers::NONE, egui::Key::Escape));
+    crate::ui::widgets::Modal::new(egui::Id::unique("build-link-error")).show(ctx, |ui| {
+        ui.set_max_width(340.0);
+        ui.label(RichText::new(block_i18n::tr!("build-link-error-title")).strong().color(p.ink));
+        ui.add_space(4.0);
+        ui.label(message);
+        ui.add_space(8.0);
+        close |= crate::ui::widgets::action_button(
+            ui,
+            p,
+            "check",
+            block_i18n::tr!("common-ok"),
+            crate::ui::widgets::ActionKind::Primary,
+            Vec2::new(0.0, 26.0),
+        )
+        .clicked();
+    });
+    if close {
+        tool.ui.link_error = None;
+    }
+}
+
+#[cfg(test)]
+mod link_error_tests {
+    use super::*;
+
+    #[test]
+    fn linking_refusal_is_visible_and_escape_dismisses_only_the_notice() {
+        for legacy in [false, true] {
+            let context = egui::Context::default();
+            let mut tool = BuildTool {
+                open: true,
+                ..Default::default()
+            };
+            tool.ui.legacy_window = legacy;
+            tool.ui.link_error = Some(block_i18n::tr!("build-link-modify").into());
+            let palette = crate::theme::Theme::default().palette();
+            let mut output = context.run_ui(Default::default(), |ui| link_error(ui.ctx(), &palette, &mut tool));
+            // Headless frames have no renderer to consume their texture updates.
+            output.textures_delta.clear();
+            assert!(tool.ui.link_error.is_some());
+            let input = egui::RawInput {
+                events: vec![egui::Event::Key {
+                    key: egui::Key::Escape,
+                    physical_key: None,
+                    pressed: true,
+                    repeat: false,
+                    modifiers: egui::Modifiers::NONE,
+                }],
+                ..Default::default()
+            };
+            let mut output = context.run_ui(input, |ui| link_error(ui.ctx(), &palette, &mut tool));
+            output.textures_delta.clear();
+            assert!(tool.ui.link_error.is_none());
+            assert!(tool.open, "Escape dismissed the notice, preserving the editor");
+        }
     }
 }

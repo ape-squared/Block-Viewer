@@ -1,9 +1,8 @@
-//! UI icons: Phosphor SVGs (MIT, see assets/icons/phosphor/LICENSE), rasterized
+//! UI icons: Tabler SVGs (MIT, see assets/icons/tabler/LICENSE), rasterized
 //! at startup as white alpha masks so they can be tinted with the skin
-//! palette. Logical names stay Tabler-shaped (`eye-off`, `eye-filled`) so
-//! call sites and Firestorm aliases keep working; the artwork is Phosphor
-//! bold/fill. A few glyphs still fall back to Tabler when Phosphor has no
-//! match. Skins can override any icon with a PNG or SVG of the same name.
+//! palette. Names follow Tabler: `eye-off` is the outline icon, `eye-filled`
+//! the filled one. Legacy Firestorm icon names are mapped onto Tabler ones;
+//! skins can override any icon with a PNG or SVG of the same name.
 
 use std::collections::HashMap;
 
@@ -11,12 +10,12 @@ macro_rules! svg_list {
     ($dir:literal, $suffix:literal: $($name:literal),* $(,)?) => {
         &[$((
             concat!($name, $suffix),
-            include_bytes!(concat!("../../assets/icons/phosphor/", $dir, "/", $name, ".svg")) as &[u8],
+            include_bytes!(concat!("../../assets/icons/tabler/", $dir, "/", $name, ".svg")) as &[u8],
         )),*]
     };
 }
 
-/// Embedded outline icons (Phosphor bold), keyed by logical name.
+/// Embedded Tabler outline icons, by Tabler name.
 const OUTLINE: &[(&str, &[u8])] = svg_list!(
     "outline", "":
     "antenna-bars-5",
@@ -214,7 +213,7 @@ const OUTLINE: &[(&str, &[u8])] = svg_list!(
     "x",
 );
 
-/// Embedded filled icons (Phosphor fill), named `<logical name>-filled`.
+/// Embedded Tabler filled icons, named `<Tabler name>-filled`.
 const FILLED: &[(&str, &[u8])] = svg_list!(
     "filled", "-filled":
     "accessible",
@@ -474,12 +473,12 @@ const FILLED: &[(&str, &[u8])] = svg_list!(
 );
 
 /// Brand SVGs (white wolf silhouette of assets/branding/), drawn untinted or tinted.
-const BRAND_SVGS: &[(&str, &[u8])] = &[("wolf", include_bytes!("../../../../assets/branding/block-logo-white.svg"))];
+const BRAND_SVGS: &[(&str, &[u8])] = &[("wolf", include_bytes!("../../../../assets/branding/aurora-logo-white.svg"))];
 
 /// Raster images kept as PNG (brand logo).
 const PNGS: &[(&str, &[u8])] = &[("phoenix_18", include_bytes!("../../assets/icons/phoenix_18.png"))];
 
-/// Firestorm icon names used by skins / layouts -> logical icon name.
+/// Firestorm icon names used by skins / layouts -> Tabler icon.
 const ALIASES: &[(&str, &str)] = &[
     ("Command_Chat_Icon", "messages-filled"),
     ("Command_Speak_Icon", "microphone-filled"),

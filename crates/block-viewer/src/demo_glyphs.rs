@@ -90,7 +90,7 @@ pub const RTL_SAMPLES: &[Sample] = &[
         chat: "I love this place, شكرا جزيلا for the party!",
     },
     Sample {
-        title: "Block Viewer",
+        title: "Aurora Viewer",
         display_name: "ليلى",
         chat: "الحفلة الساعة 8:30 مساءً في المنطقة رقم 42 (الطابق الثاني)",
     },
@@ -102,7 +102,7 @@ pub const RTL_SAMPLES: &[Sample] = &[
     Sample {
         title: "דניאל",
         display_name: "Dani דני",
-        chat: "ברוכים הבאים ל-Block Viewer, תהנו!",
+        chat: "ברוכים הבאים ל-Aurora Viewer, תהנו!",
     },
     Sample {
         title: "رسالة طويلة",

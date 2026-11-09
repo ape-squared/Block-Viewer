@@ -1,5 +1,4 @@
-# Block Viewer
+> This software is not provided or supported by Linden Lab, the makers of Second Life.
 
-Support: [issues](https://github.com/ape-squared/Block-Viewer/issues) · [Discord](https://discord.gg/s96h8KwES7) · [website](https://ape-squared.github.io/Block-Viewer/) — Privacy: [privacy](https://ape-squared.github.io/Block-Viewer/privacy/) — Early development (0.x).
+Support: [issues](https://github.com/Aurora-Viewer/Aurora-Viewer/issues) · [Discord](https://discord.gg/TK4nbMGmKt) · [contact@block-viewer.org](mailto:contact@block-viewer.org) — Privacy: [block-viewer.org/privacy](https://block-viewer.org/privacy/) — Early development (0.x): see [what works today](https://github.com/Aurora-Viewer/Aurora-Viewer#what-works-today) and the [roadmap](https://github.com/Aurora-Viewer/Aurora-Viewer#roadmap).
 
-Sister project (injector, not this client): [Block-GPPI](https://ape-squared.github.io/Block-GPPI/).

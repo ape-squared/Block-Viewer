@@ -131,7 +131,7 @@ pub(super) fn editor(
                 continue;
             }
             if let Some(attachment) = source.attachment(marker) {
-                let label = ui.fonts_mut(|fonts| fonts.layout_no_wrap(attachment.item.name.clone(), label_font.clone(), p.violet_light));
+                let label = ui.fonts_mut(|fonts| fonts.layout_no_wrap(attachment.item.name.clone(), label_font.clone(), p.teal));
                 labels.insert(marker, label);
             }
         }
@@ -297,11 +297,11 @@ pub(super) fn editor(
                     icon.id(),
                     egui::Rect::from_min_size(pos, Vec2::splat(16.0)),
                     egui::Rect::from_min_max(egui::Pos2::ZERO, egui::pos2(1.0, 1.0)),
-                    p.violet_light,
+                    p.teal,
                 );
             }
-            painter.galley(pos + egui::vec2(20.0, 0.0), label.clone(), p.violet_light);
-            painter.hline(pos.x + 20.0..=rect.right() - 4.0, rect.bottom(), egui::Stroke::new(0.5, p.muted));
+            painter.galley(pos + egui::vec2(20.0, 0.0), label.clone(), p.teal);
+            painter.hline(pos.x + 20.0..=rect.right() - 4.0, rect.bottom(), egui::Stroke::new(0.5, p.teal));
             let response = ui.interact(
                 rect.intersect(output.text_clip_rect),
                 id.with(("attachment", index)),

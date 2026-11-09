@@ -15,7 +15,6 @@ mod carousel;
 mod chrome;
 mod credentials_form;
 mod derez;
-mod destinations;
 mod driver_notice;
 mod fade;
 mod layout;
@@ -130,9 +129,14 @@ pub enum LoginAction {
     Accessibility,
 }
 
-/// Tagline under the product name (login, carousel, About).
+/// "Second Life client · Rust · <graphics API>" under the name (login
+/// screen, its carousel, About), with the API this build draws with.
 pub(crate) fn client_tagline() -> &'static str {
-    "Build your look, block by block · Vulkan"
+    if cfg!(target_os = "macos") {
+        block_i18n::tr!("ui-login-second-life-client-rust-metal")
+    } else {
+        block_i18n::tr!("ui-login-second-life-client-rust-vulkan")
+    }
 }
 
 /// The Terms of Service page of Linden Lab's grids (the `real_url` of
@@ -170,7 +174,7 @@ pub fn draw_background(ui: &egui::Ui, p: &Palette) {
     let rect = ctx.content_rect();
     let painter = ctx.layer_painter(egui::LayerId::background());
     let t = ctx.input(|i| i.time) as f32;
-    super::block_bg::paint(&painter, p, rect, t, 1.0);
+    super::aurora_bg::paint(&painter, p, rect, t, 1.0);
     // slow animation: ~30 images/s are plenty
     ctx.request_repaint_after(std::time::Duration::from_millis(33));
 }
@@ -336,16 +340,6 @@ pub(super) fn demo_open_start_menu(ui: &egui::Ui, salt: &str, favorites: &StartF
 /// comes first and stays chosen until another entry is, as the Legacy
 /// Viewer's location combo shows the start SLURL
 /// (FSPanelLogin::onUpdateStartSLURL).
-/// Favourites cached for the account matching the typed username.
-fn login_favorites_for(settings: &Settings) -> Vec<crate::login_favorites::Entry> {
-    let key = (settings.login_uri(), settings.username.trim().to_lowercase());
-    let agent = crate::login_accounts::load()
-        .into_iter()
-        .find(|a| a.key() == key)
-        .and_then(|a| a.agent);
-    crate::login_favorites::load(agent.as_ref())
-}
-
 pub(super) fn start_menu(
     ui: &mut egui::Ui,
     combo: egui::ComboBox,
@@ -459,17 +453,11 @@ fn strip(r: egui::Rect, stops: &[(f32, Color32)]) -> egui::Shape {
 
 /// Card of the login screen: a pane of frosted glass. Under the tint of the
 /// in-world windows it shows the sky behind it out of focus
-/// (`block_bg::frosted`) and two lights of the aurora, which also spill
+/// (`aurora_bg::frosted`) and two lights of the aurora, which also spill
 /// around the card; its top edge catches the light, and the card the screen
 /// is for (`accent`) wears the brand line. An opaque skin (panel_alpha =
 /// 255) keeps its plain surface.
-pub(super) fn card<R>(
-    ui: &mut egui::Ui,
-    p: &Palette,
-    margin: i8,
-    accent: bool,
-    body: impl FnOnce(&mut egui::Ui) -> R,
-) -> egui::InnerResponse<R> {
+fn card<R>(ui: &mut egui::Ui, p: &Palette, margin: i8, accent: bool, body: impl FnOnce(&mut egui::Ui) -> R) -> egui::InnerResponse<R> {
     card_hover(ui, p, margin, accent, 0.0, body)
 }
 
@@ -514,13 +502,13 @@ fn glass_card<R>(
         let rect = outer.shrink(1.0);
         let strength = if accent { 1.0 } else { 0.6 } + hover * 0.45;
         let lights = vec![
-            super::block_bg::radial_glow_shape(
+            super::aurora_bg::radial_glow_shape(
                 outer.left_top() + Vec2::new(outer.width() * 0.18, outer.height() * 0.12),
                 outer.width() * 0.95,
                 p.violet,
                 0.24 * strength,
             ),
-            super::block_bg::radial_glow_shape(
+            super::aurora_bg::radial_glow_shape(
                 outer.right_bottom() - Vec2::new(outer.width() * 0.12, outer.height() * 0.14),
                 outer.width() * 0.8,
                 p.teal,
@@ -528,7 +516,7 @@ fn glass_card<R>(
             ),
         ];
         behind.0.set(behind.1, egui::Shape::Vec(lights.clone()));
-        let mut shapes = super::block_bg::frosted_pane(p, ctx.content_rect(), ctx.input(|i| i.time) as f32, rect, lights);
+        let mut shapes = super::aurora_bg::frosted_pane(p, ctx.content_rect(), ctx.input(|i| i.time) as f32, rect, lights);
         let top = |height: f32| egui::Rect::from_min_size(rect.min, Vec2::new(rect.width(), height));
         if accent {
             shapes.push(strip(top(2.0), &[(0.0, p.violet), (1.0, p.teal)]));
@@ -724,10 +712,10 @@ pub fn show(
                     let r = ui.add(egui::Image::new(l).fit_to_exact_size(Vec2::splat(logo_size))).rect;
                     // soft light behind the logo (additive)
                     let painter = ctx.layer_painter(egui::LayerId::new(egui::Order::Background, egui::Id::unique("halo")));
-                    super::block_bg::radial_glow(&painter, r.center(), 150.0, p.violet, 0.42);
+                    super::aurora_bg::radial_glow(&painter, r.center(), 150.0, p.violet, 0.42);
                 }
                 ui.add_space(2.0);
-                ui.label(RichText::new("Block Viewer").size(34.0).strong().color(p.ink));
+                ui.label(RichText::new("Aurora Viewer").size(34.0).strong().color(p.ink));
                 ui.label(RichText::new(client_tagline()).size(13.0).color(p.violet_pale));
                 ui.add_space(18.0);
             });
@@ -826,7 +814,6 @@ pub fn show(
                         );
                     }
                     if settings.start_location == "region" && form.start_slurl.is_none() && !favorite_chosen {
-                        let before = settings.start_region.clone();
                         field(
                             ui,
                             p,
@@ -837,13 +824,6 @@ pub fn show(
                             &mut settings.start_region,
                             None,
                         );
-                        // Legacy-like: paste a secondlife:// / maps.secondlife.com link into Region.
-                        if settings.start_region != before
-                            && let Some(loc) = crate::slurl::parse(settings.start_region.trim())
-                        {
-                            settings.start_region = loc.region.clone();
-                            form.start_slurl = Some(loc);
-                        }
                     }
                     ui.add_space(2.0);
                     ui.horizontal(|ui| {
@@ -860,11 +840,9 @@ pub fn show(
                         .on_hover_text(block_i18n::tr!("ui-login-stored-in-windows-credential-manager-as-the-hash-sent"));
                     });
                     ui.add_space(10.0);
-                    let mfa_ready = !form.show_mfa || form.mfa_token.chars().any(|c| !c.is_whitespace());
                     let can = form.block_reason.is_none()
                         && !settings.username.trim().is_empty()
-                        && (!form.password.is_empty() || form.stored.is_some())
-                        && mfa_ready;
+                        && (!form.password.is_empty() || form.stored.is_some());
                     let (r, resp) = ui.allocate_exact_size(
                         Vec2::new(ui.available_width(), 38.0),
                         if can { Sense::click() } else { Sense::hover() },
@@ -874,8 +852,8 @@ pub fn show(
                     // returns to the user-name field when both are present.
                     if !form.focused && enabled {
                         form.focused = true;
-                        match mfa.as_ref() {
-                            Some(m) if !mfa_ready => m.request_focus(),
+                        match mfa {
+                            Some(m) if form.mfa_token.is_empty() => m.request_focus(),
                             _ if settings.username.trim().is_empty() => user.request_focus(),
                             _ if can => resp.request_focus(),
                             _ => pass.request_focus(),
@@ -914,11 +892,8 @@ pub fn show(
                     if hot {
                         ui.ctx().set_cursor_icon(egui::CursorIcon::PointingHand);
                     }
-                    // Enter from the MFA field must submit too (classic path
-                    // only watched username / password / the button).
-                    let mfa_enter = mfa.as_ref().is_some_and(|r| r.has_focus() || r.lost_focus());
-                    let enter = (user.lost_focus() || pass.lost_focus() || mfa_enter || resp.has_focus())
-                        && ui.input(|i| i.key_pressed(egui::Key::Enter));
+                    let enter =
+                        (user.lost_focus() || pass.lost_focus() || resp.has_focus()) && ui.input(|i| i.key_pressed(egui::Key::Enter));
                     if (resp.clicked() || enter) && can && enabled {
                         action = LoginAction::Login;
                     }
@@ -987,21 +962,9 @@ pub fn show(
             .rect;
         });
 
-    // ---- version + destinations (right)
+    // ---- version + news (right)
     if wide {
-        let favorites = login_favorites_for(settings);
-        if chrome::sidebar(
-            &ctx,
-            p,
-            icons,
-            info,
-            login_card,
-            330.0,
-            lowest,
-            &mut settings.start_location,
-            &mut form.start_slurl,
-            &favorites,
-        ) {
+        if chrome::sidebar(&ctx, p, icons, info, login_card, 330.0, lowest) {
             action = LoginAction::CheckUpdates;
         }
     } else if info.can_check_updates {

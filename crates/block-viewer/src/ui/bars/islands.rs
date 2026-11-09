@@ -334,7 +334,7 @@ pub fn top(
                 menu::searchable(ui, p, |ui| main_menus(ui, p, panels, st, &mut action, true));
             },
         );
-        resp.on_hover_text(block_i18n::tr!("ui-bars-block-menu"));
+        resp.on_hover_text(block_i18n::tr!("ui-bars-aurora-menu"));
     });
     if let Some(bug_rect) = bug_rect {
         area(&ctx, p, "bug", bug_rect, |ui| {

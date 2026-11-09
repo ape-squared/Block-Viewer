@@ -59,7 +59,7 @@ fn groups() -> Vec<(Uuid, String, i32)> {
         (DEMO_GROUP2, block_i18n::tr!("demo-northern-wolves").to_owned(), 86),
         (id(GROUP, 3), "Nordheim Sailing Club".to_owned(), 412),
         (id(GROUP, 4), "Boreal Photographers".to_owned(), 2731),
-        (id(GROUP, 5), "Block Viewer Testers".to_owned(), 19),
+        (id(GROUP, 5), "Aurora Viewer Testers".to_owned(), 19),
         (id(GROUP, 6), "Pixel Boutique VIP".to_owned(), 5560),
     ]
 }
@@ -252,7 +252,7 @@ pub fn reply(cmd: &NetCommand) -> Option<Vec<NetEvent>> {
                 date_utc: unix,
                 duration: 60 + 30 * i as u32,
                 cover: (i % 3 == 1).then_some(50),
-                sim_name: block_i18n::tr!("common-block-demo").to_owned(),
+                sim_name: block_i18n::tr!("common-aurora-demo").to_owned(),
                 global: position + DVec3::new(12.0 * i as f64, -8.0 * i as f64, 0.0),
                 flags,
             }))]
@@ -288,8 +288,8 @@ pub fn reply(cmd: &NetCommand) -> Option<Vec<NetEvent>> {
                 name,
                 desc: block_i18n::tr!("demo-lightweight-mesh-furniture-copyable-and-modifiable-come-visit-the").to_owned(),
                 snapshot: TEX_SNAPSHOT,
-                sim_name: block_i18n::tr!("common-block-demo").to_owned(),
-                parcel_name: block_i18n::tr!("common-block-plaza").to_owned(),
+                sim_name: block_i18n::tr!("common-aurora-demo").to_owned(),
+                parcel_name: block_i18n::tr!("common-aurora-plaza").to_owned(),
                 pos_global: position,
                 flags: 0,
                 price,

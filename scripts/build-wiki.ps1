@@ -19,7 +19,7 @@
 param(
     [Parameter(Mandatory)][string]$Out,
     # owner/name on GitHub, for the links back to the repository
-    [string]$Repository = $(if ($env:GITHUB_REPOSITORY) { $env:GITHUB_REPOSITORY } else { 'ape-squared/Block-Viewer' }),
+    [string]$Repository = $(if ($env:GITHUB_REPOSITORY) { $env:GITHUB_REPOSITORY } else { 'Aurora-Viewer/Aurora-Viewer' }),
     [string]$Branch = 'main'
 )
 $ErrorActionPreference = 'Stop'
@@ -33,19 +33,25 @@ $pages = @(
     @{ Section = 'For testers'; Page = 'Installing-on-macOS'; Title = 'Installing on macOS'; Source = 'docs/MACOS.md' }
     @{ Section = 'For testers'; Page = 'Updates'; Title = 'Updates'; Source = 'docs/UPDATES.md' }
     @{ Section = 'For testers'; Page = 'Asset-imports'; Title = 'Asset imports'; Source = 'docs/IMPORTS.md' }
-    @{ Section = 'For testers'; Page = 'LiveMesh'; Title = 'LiveMesh'; Source = 'docs/BLENDER_LIVE.md' }
+    @{ Section = 'For testers'; Page = 'Blender-Live'; Title = 'LiveMesh'; Source = 'docs/BLENDER_LIVE.md' }
     @{ Section = 'For testers'; Page = 'Hand-contacts'; Title = 'Motorcycle hand contacts'; Source = 'docs/HAND_CONTACTS.md' }
     @{ Section = 'For testers'; Page = 'IK-Edit'; Title = 'IK Edit and bone contacts'; Source = 'docs/IK_EDIT.md' }
     @{ Section = 'For testers'; Page = 'Animation-creation'; Title = 'Create native animations'; Source = 'docs/ANIMATION_CREATION.md' }
     @{ Section = 'For testers'; Page = 'Poser'; Title = 'Local photo poser'; Source = 'docs/POSER.md' }
     @{ Section = 'For testers'; Page = 'Dev-Toolbox'; Title = 'Dev Toolbox'; Source = 'docs/DEV_TOOLBOX.md' }
+    @{ Section = 'Contributing'; Page = 'Guide-for-humans'; Title = 'Guide for humans'; Source = 'HUMANS.md' }
+    @{ Section = 'Contributing'; Page = 'Test-options'; Title = 'Test options and profiling'; Source = 'docs/TESTING.md' }
     @{ Section = 'Contributing'; Page = 'Translating'; Title = 'Translating the viewer'; Source = 'docs/TRANSLATING.md' }
     @{ Section = 'Contributing'; Page = 'Branding'; Title = 'Branding and interface'; Source = 'docs/BRANDING.md' }
+    @{ Section = 'Technical'; Page = 'Architecture'; Title = 'Architecture'; Source = 'ARCHITECTURE.md' }
     @{ Section = 'Technical'; Page = 'RLVa'; Title = 'RLVa implementation status'; Source = 'docs/RLVA.md' }
     @{ Section = 'Technical'; Page = 'Licences'; Title = 'Licences and notices'; Source = 'NOTICE.md' }
 )
 # kept in the repository only: linked from the sidebar
-$repoOnly = @()
+$repoOnly = @(
+    @{ Title = 'Task tracking'; Source = 'TASKS.md' }
+    @{ Title = 'Rules for AI agents'; Source = 'AGENTS.md' }
+)
 
 # .NET file calls do not follow PowerShell's current folder: use a full path
 $Out = $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath($Out)
@@ -85,15 +91,9 @@ if (-not (Test-Path -LiteralPath $Out)) { New-Item -ItemType Directory -Path $Ou
 # every page is generated: a page that is no longer in the table disappears
 Get-ChildItem -LiteralPath $Out -Filter *.md -File | Remove-Item -Force
 
-$guidePublic = Join-Path $PSScriptRoot 'guide_public.py'
 foreach ($p in $pages) {
     $source = $p.Source
-    # Shorten long guides for the wiki the same way the site does.
-    $tmpPublic = Join-Path ([IO.Path]::GetTempPath()) ("bv-wiki-public-" + [guid]::NewGuid().ToString() + ".md")
-    & python3 $guidePublic --source $source --repo $repo --write $tmpPublic
-    if ($LASTEXITCODE -ne 0) { throw "guide_public.py failed for $source" }
-    $lines = [IO.File]::ReadAllText($tmpPublic, $utf8) -replace "`r`n", "`n" -split "`n"
-    Remove-Item -LiteralPath $tmpPublic -Force
+    $lines = [IO.File]::ReadAllText((Join-Path $repo $source), $utf8) -replace "`r`n", "`n" -split "`n"
     $fenced = $false
     $body = foreach ($line in $lines) {
         if ($line -match '^\s*```') { $fenced = -not $fenced; $line; continue }

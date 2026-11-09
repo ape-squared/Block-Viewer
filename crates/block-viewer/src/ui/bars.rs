@@ -100,12 +100,6 @@ pub enum BarAction {
     VoicePrefs,
     /// Location typed or pasted in the navigation bar (SLURL, Region/x/y/z...).
     TeleportTo(String),
-    /// A recent place from the place menu: prefer its SLURL, else its saved
-    /// global position (LLTeleportHistoryStorage::goToItem).
-    TeleportRecent {
-        slurl: String,
-        global: glam::DVec3,
-    },
     /// A landmark chosen in the location field's suggestions, by its asset.
     TeleportLandmark(uuid::Uuid),
     /// A place of the teleport history chosen in the location field's
@@ -138,8 +132,6 @@ pub enum BarAction {
     NewEnvironment(crate::world::env_select::SettingsKind),
     /// World › Teleport history (ToggleTeleportHistory, Alt+H).
     TeleportHistory,
-    /// Communicate › Conversation log (Firestorm Conversation Log).
-    ConversationLog,
     /// The balance, or Me › Buy L$ (LLStatusBar::onClickBuyCurrency).
     BuyCurrency,
     /// The balance shown or hidden (its right click, the account island's).
@@ -213,9 +205,6 @@ pub struct RecentPlace {
     pub name: String,
     pub region: String,
     pub slurl: String,
-    /// Global position for teleports when the saved SLURL is empty (older
-    /// Second Life history rows written before maps URLs were stored).
-    pub global: glam::DVec3,
 }
 
 pub struct StatusInfo<'a> {
@@ -840,9 +829,6 @@ fn main_menus(ui: &mut egui::Ui, p: &Palette, panels: &mut Panels, st: &StatusIn
             "conversations",
             &mut panels.chat,
         );
-        if menu::item(ui, p, "file-text-filled", block_i18n::tr!("toolbar-command-conversation-log")) {
-            *action = BarAction::ConversationLog;
-        }
         let gestures = crate::keybinds::chord_label("KeyG", true, false, false);
         if menu::item_keys(ui, p, "hand-move", block_i18n::tr!("gesture-title"), &gestures) {
             super::widgets::toggle_floater(ui.ctx(), "gestures", &mut panels.gestures);
@@ -963,13 +949,13 @@ fn main_menus(ui: &mut egui::Ui, p: &Palette, panels: &mut Panels, st: &StatusIn
             super::stream_title::WINDOW,
             &mut panels.stream_title,
         );
-        if menu::item(ui, p, "map-pin-filled", block_i18n::tr!("landmark-create-here")) {
+        if menu::item(ui, p, "bookmark-filled", block_i18n::tr!("landmark-create-here")) {
             *action = BarAction::CreateLandmark;
         }
         if menu::item(ui, p, "map", block_i18n::tr!("owned-land-title")) {
             *action = BarAction::OwnedLand;
         }
-        menu::submenu(ui, p, "eye-filled", block_i18n::tr!("world-show-more"), true, |ui| {
+        menu::submenu(ui, p, "dots-filled", block_i18n::tr!("world-show-more"), true, |ui| {
             flip_window(
                 ui,
                 p,
@@ -1146,7 +1132,7 @@ fn main_menus(ui: &mut egui::Ui, p: &Palette, panels: &mut Panels, st: &StatusIn
         flip_window(
             ui,
             p,
-            "eye-filled",
+            "adjustments-horizontal-filled",
             block_i18n::tr!("avatar-render-title"),
             super::avatar_render_settings::WINDOW,
             &mut panels.avatar_render_settings,
@@ -1209,6 +1195,16 @@ fn main_menus(ui: &mut egui::Ui, p: &Palette, panels: &mut Panels, st: &StatusIn
                 toolbox,
                 crate::ui::dev_toolbox::WINDOW,
                 &mut panels.dev_toolbox,
+            );
+            // Advanced.ShowDebugSettings
+            let debug_settings = block_i18n::tr!("toolbar-command-debug-settings");
+            flip_window(
+                ui,
+                p,
+                "terminal-2",
+                debug_settings,
+                crate::ui::debug_settings::WINDOW,
+                &mut panels.debug_settings,
             );
             // Develop › Consoles › Region Debug Console, for those the
             // region gives the console to
@@ -1282,10 +1278,6 @@ fn main_menus(ui: &mut egui::Ui, p: &Palette, panels: &mut Panels, st: &StatusIn
             *action = BarAction::ServerReleaseNotes;
         }
         menu::separator(ui, p);
-        // Enable Sysinfo Button (SysinfoButtonInIM), then About, whose
-        // window carries the system information
-        menu::todo(ui, p, "device-desktop-filled", block_i18n::tr!("ui-bars-sysinfo-button"));
-        menu::separator(ui, p);
         let about = block_i18n::tr!("ui-bars-about");
         flip_window(ui, p, "info-circle-filled", about, super::about::WINDOW, &mut panels.about);
         let version = block_i18n::tr!("common-block-viewer", value0 = block_version::version().to_string());
@@ -1354,7 +1346,7 @@ fn health_menu(ui: &mut egui::Ui, p: &Palette, h: &HealthMenu) {
         if menu::item_keys(
             ui,
             p,
-            "refresh",
+            "paperclip",
             block_i18n::tr!("avatar-health-refresh-attachments"),
             &h.refresh_keys,
         ) {
@@ -1581,23 +1573,6 @@ fn state_chip(ui: &mut egui::Ui, p: &Palette, text: &str) {
     let radius = ui.visuals().window_corner_radius;
     ui.painter().rect_filled(rect, radius, p.violet.gamma_multiply(0.40));
     super::widgets::paint_ink_centered(ui.painter(), galley, rect.center(), p.ink);
-}
-
-/// Legacy-style Stand control while seated: same chip look, clickable.
-fn stand_chip(ui: &mut egui::Ui, p: &Palette, text: &str) -> egui::Response {
-    let galley = ui
-        .painter()
-        .layout_no_wrap(text.to_owned(), egui::FontId::proportional(11.5), p.on_accent);
-    let (rect, response) = ui.allocate_exact_size(Vec2::new(galley.size().x + 14.0, CHIP_HEIGHT), egui::Sense::click());
-    let radius = ui.visuals().window_corner_radius;
-    let fill = if response.hovered() {
-        p.violet
-    } else {
-        p.violet.gamma_multiply(0.85)
-    };
-    ui.painter().rect_filled(rect, radius, fill);
-    super::widgets::paint_ink_centered(ui.painter(), galley, rect.center(), p.on_accent);
-    response.on_hover_cursor(egui::CursorIcon::PointingHand).on_hover_text(text)
 }
 
 /// The colour and the name of the voice connection's state.
@@ -1862,7 +1837,7 @@ pub fn top_bars(
                     menu::button(ui, p, egui::Button::image(img), |ui| {
                         menu::searchable(ui, p, |ui| main_menus(ui, p, panels, st, &mut action, true));
                     })
-                    .on_hover_text(block_i18n::tr!("ui-bars-block-menu"));
+                    .on_hover_text(block_i18n::tr!("ui-bars-aurora-menu"));
                 }
                 // Firestorm's notification well: the bell next to the wolf
                 if !bell.aurora {
@@ -1987,12 +1962,13 @@ pub fn top_bars(
                         let (rect, _) = ui.allocate_exact_size(Vec2::new(w, size), egui::Sense::hover());
                         super::chat::thumbnails::reserve_top(ui.ctx(), rect, size, false);
                     }
-                    if st.flying {
-                        state_chip(ui, p, block_i18n::tr!("ui-bars-flying"));
-                    }
-                    // Legacy Viewer: a Stand control while seated (not only Me › Stand up).
-                    if st.seated && stand_chip(ui, p, block_i18n::tr!("common-stand-up")).clicked() {
-                        action = BarAction::StandUp;
+                    for (on, text) in [
+                        (st.flying, block_i18n::tr!("ui-bars-flying")),
+                        (st.seated, block_i18n::tr!("ui-bars-sitting")),
+                    ] {
+                        if on {
+                            state_chip(ui, p, text);
+                        }
                     }
                     ui.add_space(4.0);
                     egui::Frame::new()
@@ -2127,6 +2103,8 @@ pub fn run_command(ctx: &egui::Context, cmd: &str, panels: &mut Panels) -> BarAc
         "beacons" => toggle(super::beacons::WINDOW, &mut panels.beacons),
         // Floater.Toggle quickprefs
         "quickprefs" => toggle(super::quick_prefs::WINDOW, &mut panels.quick_prefs),
+        // Floater.ToggleOrBringToFront settings_debug
+        "settings_debug" => toggle(super::debug_settings::WINDOW, &mut panels.debug_settings),
         // Avatar.TogglePicks: our profile on its Picks tab
         "picks" => return BarAction::MyPicks,
         // MainChatbarVisible: the nearby chat bar shown or put away
@@ -2178,13 +2156,6 @@ pub fn run_command(ctx: &egui::Context, cmd: &str, panels: &mut Panels) -> BarAc
         "profile" => return BarAction::ToggleMyProfile,
         "reporter" => return BarAction::ToggleReportAbuse,
         "teleport_history" => return BarAction::TeleportHistory,
-        "conversation_log" => return BarAction::ConversationLog,
-        "discord" => {
-            if !crate::links::DISCORD.is_empty() {
-                use super::context::{CtxAction, request};
-                request(ctx, CtxAction::OpenUrl(crate::links::DISCORD.into()));
-            }
-        }
         "landmark_here" => return BarAction::CreateLandmark,
         "marketplacelistings" => return BarAction::ToggleMarketplaceListings,
         "stop_animations" => return BarAction::StopAnimations,
@@ -2225,6 +2196,7 @@ fn command_active(cmd: &str, panels: &Panels, flying: bool, seated: bool, mousel
         "snapshot" => panels.snapshot,
         "beacons" => panels.beacons,
         "quickprefs" => panels.quick_prefs,
+        "settings_debug" => panels.debug_settings,
         "preferences" => panels.settings,
         "move" => panels.movement_controls,
         "view" => panels.camera_controls,
@@ -2497,6 +2469,8 @@ pub struct MicButton<'a> {
     pub output_device: String,
     pub input_devices: &'a [String],
     pub output_devices: &'a [String],
+    /// The device lists are being read again.
+    pub devices_listing: bool,
     /// Output: a device was chosen.
     pub devices_changed: bool,
     /// Output: the panel opens, its lists of devices are to be read again.
@@ -2785,7 +2759,7 @@ fn mic_panel(ui: &mut egui::Ui, p: &Palette, icons: &Icons, mic: &mut MicButton,
                 hover.on_hover_text(name);
                 ui.add_space(9.0);
                 let width = ui.available_width();
-                let (changed, open) = super::options::device_combo(ui, id, device, list, width);
+                let (changed, open) = super::options::device_combo(ui, id, device, list, width, mic.devices_listing);
                 mic.devices_changed |= changed;
                 *list_open |= open;
             });
@@ -2974,8 +2948,6 @@ pub(crate) fn toolbar_row(
         };
         let tip = if matches!(b.command.as_str(), "movelock" | "move_lock") {
             toolbar.movelock_status.clone()
-        } else if b.command == "ao" {
-            block_i18n::tr!("ao-quick-toggle-hint").into()
         } else {
             tip
         };
@@ -3664,6 +3636,7 @@ mod tests {
             ("webbrowser", super::super::web_browser::WINDOW, |p| p.web_browser),
             ("beacons", super::super::beacons::WINDOW, |p| p.beacons),
             ("quickprefs", super::super::quick_prefs::WINDOW, |p| p.quick_prefs),
+            ("settings_debug", super::super::debug_settings::WINDOW, |p| p.debug_settings),
             ("statistics", "perf", |p| p.perf),
             ("voice", super::super::voice_controls::WINDOW, |p| p.voice_controls),
         ] {

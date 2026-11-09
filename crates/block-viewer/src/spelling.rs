@@ -111,7 +111,7 @@ impl State {
     fn send(&mut self, job: Job) {
         if self.worker.is_none() {
             let (tx, rx) = mpsc::channel();
-            let spawned = std::thread::Builder::new().name("block-spelling".into()).spawn(move || worker(rx));
+            let spawned = std::thread::Builder::new().name("aurora-spelling".into()).spawn(move || worker(rx));
             match spawned {
                 Ok(_) => self.worker = Some(tx),
                 Err(e) => {
@@ -285,7 +285,7 @@ pub fn catalogue() -> Arc<Vec<Info>> {
 pub fn import() {
     let title = block_i18n::tr!("spelling-import-title");
     let filter = block_i18n::tr!("spelling-import-filter");
-    let spawned = std::thread::Builder::new().name("block-dictionary-dialog".into()).spawn(move || {
+    let spawned = std::thread::Builder::new().name("aurora-dictionary-dialog".into()).spawn(move || {
         if let Some(dic) = rfd::FileDialog::new().set_title(title).add_filter(filter, &["dic"]).pick_file() {
             STATE.lock().send(Job::Import { dic });
         }

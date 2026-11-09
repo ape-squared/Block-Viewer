@@ -214,7 +214,7 @@ jobs:
           fi
           cargo run --profile ci --locked -p block-viewer -- --title "CI macOS"
           test -s "$AURORA_CAPTURE"
-          log="$HOME/Library/Application Support/org.Aurora.AuroraViewer/logs/block-demo-ci-macos.log"
+          log="$HOME/Library/Application Support/org.Aurora.AuroraViewer/logs/aurora-demo-ci-macos.log"
           if ! grep -q "notice shown" "$log" || ! grep -q "the graphics card answered again" "$log"; then
             echo "::error::the GPU stall and its notice did not happen as expected (see the demo log)"
             exit 1
@@ -226,7 +226,7 @@ jobs:
           name: macos-demo
           path: |
             ${{ runner.temp }}/metal-demo.png
-            ~/Library/Application Support/org.Aurora.AuroraViewer/logs/block-demo-*.log
+            ~/Library/Application Support/org.Aurora.AuroraViewer/logs/aurora-demo-*.log
           if-no-files-found: warn
 
   macos-interface:

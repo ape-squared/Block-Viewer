@@ -165,7 +165,7 @@ impl History {
         let (loaded_tx, loaded) = mpsc::bounded(1);
         let (writer, writes) = mpsc::unbounded::<Vec<Entry>>();
         let worker = std::thread::Builder::new()
-            .name("block-notification-history".into())
+            .name("aurora-notification-history".into())
             .spawn(move || {
                 let entries = match std::fs::read(&path) {
                     Ok(bytes) => crate::tolerant::from_slice::<Saved>(&bytes, FILE)
@@ -321,7 +321,7 @@ mod tests {
 
     fn temp(name: &str) -> PathBuf {
         std::env::temp_dir()
-            .join(format!("block-notif-history-{}", Uuid::new_v4()))
+            .join(format!("aurora-notif-history-{}", Uuid::new_v4()))
             .join(name)
     }
 

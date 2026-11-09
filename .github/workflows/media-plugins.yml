@@ -261,7 +261,7 @@ jobs:
           $source = "Aurora-Media-Plugins-$env:PACK_VERSION-source.tar.gz"
           $manifest = (& unzip -p $windows '*/block-media-plugins.json') -join "`n" | ConvertFrom-Json
           $notes = @(
-              "Media plugins of Block Viewer, pack $env:PACK_VERSION (Windows x64, Linux x64 and macOS universal). The viewer downloads the archive of its system by itself when media need it; it checks its size and SHA-256 and installs it in the user's data folder."
+              "Media plugins of Aurora Viewer, pack $env:PACK_VERSION (Windows x64, Linux x64 and macOS universal). The viewer downloads the archive of its system by itself when media need it; it checks its size and SHA-256 and installs it in the user's data folder."
               ''
               "- Windows: SLPlugin.exe, media_plugin_cef.dll and media_plugin_libvlc.dll; Linux: SLPlugin, libmedia_plugin_cef.so and libmedia_plugin_gstreamer.so; macOS: SLPlugin.app with media_plugin_cef.dylib and media_plugin_libvlc.dylib, signed ad hoc. Built from FirestormViewer/phoenix-firestorm@$env:FIRESTORM_SHA (LGPL 2.1); that source is attached ($source)."
               "- CEF / Dullahan $($manifest.packages.dullahan): Linden Lab's prebuilt packages (BSD-3-Clause for CEF, see LICENSES in the archives)."

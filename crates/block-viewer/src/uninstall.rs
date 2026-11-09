@@ -1,4 +1,4 @@
-//! Preferences › Language and updates › "Remove Block Viewer from this computer",
+//! Preferences › Language and updates › "Remove Aurora from this computer",
 //! and the `--uninstall` command line: removes what the viewer registered
 //! outside its own folders, then lists those folders for the user to delete
 //! with the viewer.

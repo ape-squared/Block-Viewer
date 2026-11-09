@@ -106,7 +106,7 @@ fn drawn(texts: &[Text], source: &str) -> bool {
 /// In Aurora's look the torn-off window is People's friends tab (its
 /// filter field), not the contact list and its three tabs.
 #[test]
-fn the_torn_off_window_keeps_block_s_look() {
+fn the_torn_off_window_keeps_aurora_s_look() {
     let mut frames = Frames::new();
     let mut state = State::new(true);
     let texts = settle(&mut frames, &mut state);

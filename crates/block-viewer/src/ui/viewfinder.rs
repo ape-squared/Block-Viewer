@@ -1,4 +1,4 @@
-//! The camera viewfinder (Preferences › Block › Camera window › Viewfinder):
+//! The photo viewfinder (Preferences › Aurora › Photo mode › Viewfinder):
 //! the world full screen under a camera's overlay, like an electronic
 //! viewfinder. Its three display levels (DISP), the AF point that hunts,
 //! turns green and beeps, the distance scale with the zone kept sharp, the
@@ -178,10 +178,6 @@ pub struct Frame<'a> {
     pub posing: bool,
     /// The session's photos (`ui::photo_reel`).
     pub reel: &'a crate::ui::photo_reel::ReelView<'a>,
-    /// In-viewer video is recording (REC indicator + stop affordance).
-    pub recording: bool,
-    /// Elapsed recording time for the REC readout.
-    pub record_elapsed: std::time::Duration,
 }
 
 /// The keys the help and the hints name.
@@ -220,9 +216,7 @@ pub enum Out {
     Poser,
     /// The reel's stack or quick view.
     Reel(crate::ui::photo_reel::ReelAction),
-    /// Start or stop in-viewer video recording.
-    RecordToggle,
-    /// Out of camera mode.
+    /// Out of the photo mode.
     Exit,
 }
 
@@ -400,9 +394,8 @@ fn next_destination(d: Destination) -> Destination {
     match d {
         Destination::Disk => Destination::Inventory,
         Destination::Inventory => Destination::Profile,
-        Destination::Profile => Destination::Web,
         // a postcard needs its e-mail, written in the panel
-        Destination::Web | Destination::Email => Destination::Disk,
+        Destination::Profile | Destination::Email => Destination::Disk,
     }
 }
 
@@ -438,11 +431,6 @@ fn next_size(s: &mut Settings, destination: Destination) {
             let i = all.iter().position(|r| *r == s.postcard_size).unwrap_or(0);
             s.postcard_size = all[(i + 1) % all.len()];
         }
-        Destination::Web => {
-            let all = crate::snapshot::profile::ProfileSize::ALL;
-            let i = all.iter().position(|r| *r == s.profile_size).unwrap_or(0);
-            s.profile_size = all[(i + 1) % all.len()];
-        }
     }
 }
 
@@ -466,7 +454,6 @@ fn destination_label(d: Destination) -> &'static str {
         Destination::Inventory => block_i18n::tr!("photo-destination-inventory"),
         Destination::Profile => block_i18n::tr!("photo-destination-profile"),
         Destination::Email => block_i18n::tr!("photo-destination-email"),
-        Destination::Web => block_i18n::tr!("photo-destination-web"),
     }
 }
 
@@ -703,14 +690,12 @@ impl Viewfinder {
             p.navy.gamma_multiply(0.62),
             Color32::TRANSPARENT,
         );
-        // Left rail: guide / timer / sky / status in one column so the
-        // cheat-sheet never sits under those buttons (photo-mode overlap).
-        let left = egui::Area::new(Id::unique("vf_top_left"))
+        // (the AF mode and area are the bottom bar's, once)
+        egui::Area::new(Id::unique("vf_top_left"))
             .order(Order::Foreground)
             .fade_in(false)
             .fixed_pos(screen.left_top() + Vec2::new(GAP, 12.0))
             .show(ctx, |ui| {
-                ui.spacing_mut().item_spacing.y = 8.0;
                 ui.horizontal(|ui| {
                     ui.spacing_mut().item_spacing.x = 18.0;
                     if icon_text_button(
@@ -732,19 +717,6 @@ impl Viewfinder {
                     if self.ae_lock {
                         text_button(ui, p, "AE-L", bold(ctx, 13.0), p.teal, block_i18n::tr!("photo-vf-ael-on"));
                     }
-                    if f.recording {
-                        let secs = f.record_elapsed.as_secs();
-                        let text = format!("REC {:02}:{:02}", secs / 60, secs % 60);
-                        // theme-guard: content — recording status uses danger red
-                        icon_text_button(
-                            ui,
-                            p,
-                            "player-record-filled",
-                            &text,
-                            p.danger,
-                            block_i18n::tr!("camera-vf-record-tip"),
-                        );
-                    }
                     if f.free_camera {
                         icon_text_button(ui, p, "video-filled", block_i18n::tr!("photo-free-camera"), p.teal, "");
                     }
@@ -752,33 +724,6 @@ impl Viewfinder {
                         icon_text_button(ui, p, "user-filled", block_i18n::tr!("photo-vf-first-person"), p.teal, "");
                     }
                 });
-                if icon_text_button(
-                    ui,
-                    p,
-                    "sun-filled",
-                    time_label(panel.light.env.time),
-                    p.ink,
-                    block_i18n::tr!("photo-vf-time-tip"),
-                )
-                .clicked()
-                {
-                    panel.light.env.set_time(next_time(panel.light.env.time));
-                }
-                if panel.freeze_world {
-                    ui.horizontal(|ui| {
-                        icon_text_button(ui, p, "snowflake", block_i18n::tr!("photo-vf-world-frozen"), p.ink, "");
-                    });
-                }
-                if panel.light.clouds_paused {
-                    ui.horizontal(|ui| {
-                        icon_text_button(ui, p, "cloud-filled", block_i18n::tr!("photo-vf-clouds-frozen"), p.ink, "");
-                    });
-                }
-                if !panel.light.attached_lights {
-                    ui.horizontal(|ui| {
-                        icon_text_button(ui, p, "bulb-off", block_i18n::tr!("photo-vf-lights-off"), p.amber, "");
-                    });
-                }
             });
 
         // what the photo will be: each a switch, a click for the next value
@@ -837,7 +782,7 @@ impl Viewfinder {
                             }
                             dot(ui, p);
                         }
-                        Destination::Profile | Destination::Web => {
+                        Destination::Profile => {
                             text_button(ui, p, FileFormat::Png.label(), font.clone(), p.ink, "");
                             dot(ui, p);
                         }
@@ -862,32 +807,67 @@ impl Viewfinder {
                         next_size(s, panel.destination);
                     }
                     dot(ui, p);
-                    if text_button(
-                        ui,
-                        p,
-                        aspect_label(s.aspect),
-                        font.clone(),
-                        p.ink,
-                        block_i18n::tr!("photo-vf-format-tip"),
-                    )
-                    .clicked()
-                    {
+                    if text_button(ui, p, aspect_label(s.aspect), font, p.ink, block_i18n::tr!("photo-vf-format-tip")).clicked() {
                         let i = Aspect::ALL.iter().position(|a| *a == s.aspect).unwrap_or(0);
                         s.set_aspect(Aspect::ALL[(i + 1) % Aspect::ALL.len()], f.window);
-                    }
-                    dot(ui, p);
-                    let fps_label = block_i18n::tr!("camera-vf-fps-label", fps = u32::from(s.video_fps));
-                    if text_button(ui, p, &fps_label, font, p.ink, block_i18n::tr!("camera-vf-fps-tip")).clicked() {
-                        s.video_fps = crate::video_record::next_fps_preset(u32::from(s.video_fps)) as u8;
                     }
                 });
             });
 
-        let mut y = left.response.rect.bottom() + 10.0;
+        // the light of the photo
+        let mut y = screen.top() + 66.0;
+        let line = |y: &mut f32, name: &str, text: &str, color: Color32| {
+            icon(
+                back,
+                name,
+                Rect::from_center_size(Pos2::new(screen.left() + GAP + 8.0, *y), Vec2::splat(16.0)),
+                color,
+            );
+            shadow_text(
+                back,
+                p,
+                Pos2::new(screen.left() + GAP + 23.0, *y),
+                Align2::LEFT_CENTER,
+                text,
+                regular(12.5),
+                color,
+            );
+            *y += 24.0;
+        };
+        // (the time of day is a switch too)
+        egui::Area::new(Id::unique("vf_time"))
+            .order(Order::Foreground)
+            .fade_in(false)
+            .pivot(Align2::LEFT_CENTER)
+            .fixed_pos(Pos2::new(screen.left() + GAP, y))
+            .show(ctx, |ui| {
+                if icon_text_button(
+                    ui,
+                    p,
+                    "sun-filled",
+                    time_label(panel.light.env.time),
+                    p.ink,
+                    block_i18n::tr!("photo-vf-time-tip"),
+                )
+                .clicked()
+                {
+                    panel.light.env.set_time(next_time(panel.light.env.time));
+                }
+            });
+        y += 24.0;
+        if panel.freeze_world {
+            line(&mut y, "snowflake", block_i18n::tr!("photo-vf-world-frozen"), p.ink);
+        }
+        if panel.light.clouds_paused {
+            line(&mut y, "cloud-filled", block_i18n::tr!("photo-vf-clouds-frozen"), p.ink);
+        }
+        if !panel.light.attached_lights {
+            line(&mut y, "bulb-off", block_i18n::tr!("photo-vf-lights-off"), p.amber);
+        }
 
         // the controls, under the light
         if s.viewfinder.hints && !self.menu && !self.help && !self.drawer {
-            y += 4.0;
+            y += 14.0;
             let dial = match self.dial {
                 Dial::Focal => block_i18n::tr!("photo-vf-dial-focal"),
                 Dial::Aperture => block_i18n::tr!("photo-vf-dial-aperture"),
@@ -1613,8 +1593,6 @@ impl Viewfinder {
                     // left, `reel_tray`)
                     ui.add_space(6.0);
                     self.shutter_button(ui, p, out);
-                    ui.add_space(4.0);
-                    self.record_button(ui, p, f.recording, out);
                     ui.add_space(6.0);
                     let isolating = self.isolate || f.isolation.mode != crate::snapshot::isolate::Mode::Off;
                     if dock_button(ui, p, Face::Icon("user-scan"), block_i18n::tr!("photo-isolate-tip"), isolating) {
@@ -1802,31 +1780,6 @@ impl Viewfinder {
         ui.painter().circle_filled(c, if self.pressed { 25.0 * 0.86 } else { 25.0 }, fill);
         keep_keys(&resp);
         resp.on_hover_text(block_i18n::tr!("photo-vf-shutter-tip"));
-    }
-
-    /// Record / stop: a smaller control under the shutter for in-viewer MP4.
-    fn record_button(&mut self, ui: &mut egui::Ui, p: &Palette, recording: bool, out: &mut Vec<Out>) {
-        let (rect, resp) = ui.allocate_exact_size(Vec2::splat(40.0), Sense::click());
-        let c = rect.center();
-        ui.painter().circle_filled(c, 18.0, p.navy.gamma_multiply(0.4));
-        ui.painter().circle_stroke(c, 17.0, Stroke::new(2.0, p.ink.gamma_multiply(0.85)));
-        // theme-guard: content — record control uses danger red
-        if recording {
-            let stop = Rect::from_center_size(c, Vec2::splat(12.0));
-            ui.painter()
-                .rect_filled(stop, ui.visuals().widgets.inactive.corner_radius, p.danger);
-        } else {
-            ui.painter().circle_filled(c, 7.5, p.danger);
-        }
-        keep_keys(&resp);
-        if resp.clicked() {
-            out.push(Out::RecordToggle);
-        }
-        resp.on_hover_text(if recording {
-            block_i18n::tr!("camera-vf-record-stop-tip")
-        } else {
-            block_i18n::tr!("camera-vf-record-tip")
-        });
     }
 
     /// The quick menu: a tile per setting, a click for the next value.
@@ -2321,7 +2274,7 @@ fn tiles(s: &Settings, panel: &SnapshotUi, f: &Frame) -> Vec<(&'static str, Stri
             .inventory_size
             .side()
             .map_or_else(|| block_i18n::tr!("photo-resolution-window").to_owned(), |v| v.to_string()),
-        Destination::Profile | Destination::Email | Destination::Web => {
+        Destination::Profile | Destination::Email => {
             let (w, h) = f.photo;
             format!("{w} × {h}")
         }

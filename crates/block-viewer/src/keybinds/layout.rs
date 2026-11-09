@@ -287,7 +287,7 @@ pub(super) fn named_code(code: &str) -> Option<KeyCode> {
 pub(super) fn current() -> &'static KeyboardLayout {
     static LAYOUT: OnceLock<KeyboardLayout> = OnceLock::new();
     LAYOUT.get_or_init(|| {
-        if crate::block_env::demo_mode() {
+        if std::env::var_os("AURORA_DEMO").is_some() {
             match std::env::var("AURORA_DEMO_KEYBOARD").as_deref() {
                 Ok("wasd") => return KeyboardLayout::wasd(),
                 Ok("zqsd") => return KeyboardLayout::zqsd(),

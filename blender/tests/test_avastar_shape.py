@@ -21,13 +21,13 @@ def offline(*_args, **_kwargs):
 
 socket.socket.connect = offline
 import avastar
-import aurora_live
-from aurora_live import exporter, shape_transfer
+import block_live
+from block_live import exporter, shape_transfer
 
 bpy.context.preferences.use_preferences_save = False
 bpy.context.preferences.addons.new().module = "avastar"
 avastar.register()
-aurora_live.register()
+block_live.register()
 bpy.ops.object.select_all(action="SELECT")
 bpy.ops.object.delete(use_global=False)
 assert bpy.ops.avastar.add_avatar(rigType="EXTENDED", jointType="PIVOT", skeletonType="AVASTAR", no_mesh=False) == {"FINISHED"}

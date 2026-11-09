@@ -14,7 +14,7 @@
 //! seconds ends the combo and the counter fades out. Aurora's own: nothing
 //! of the kind in the Legacy Viewer.
 
-use super::block;
+use super::aurora;
 use super::fidget::Spring;
 use super::mesh::Outline;
 use super::paint::Env;
@@ -180,7 +180,7 @@ pub fn fervor(streak: u32) -> f32 {
 }
 
 /// `text` in the semibold of the plates at `size`, each letter in the
-/// borealis with the shine running along (`block::letter_color`), the
+/// borealis with the shine running along (`aurora::letter_color`), the
 /// first one `lead` letters along the word.
 fn borealis_text(env: &Env<'_>, text: &str, size: f32, lead: usize, t: f32) -> std::sync::Arc<egui::Galley> {
     let n = text.chars().count() + lead;
@@ -189,7 +189,7 @@ fn borealis_text(env: &Env<'_>, text: &str, size: f32, lead: usize, t: f32) -> s
         ..Default::default()
     };
     for (i, ch) in text.chars().enumerate() {
-        let format = crate::ui::fonts::semibold_format(&env.semibold, size, block::letter_color(env.p, i + lead, n, t));
+        let format = crate::ui::fonts::semibold_format(&env.semibold, size, aurora::letter_color(env.p, i + lead, n, t));
         job.append(ch.encode_utf8(&mut [0; 4]), 0.0, format);
     }
     env.painter.layout_job(job)
@@ -200,7 +200,7 @@ pub(super) fn paint(env: &Env<'_>, surface: Rect, combo: &Combo, total: u32, fad
     let now = env.now;
     let alpha = combo.alpha(now) * fade;
     let (painter, p, ppp) = (env.painter, env.p, env.pixels_per_point);
-    let t = if still { block::time(now, true) } else { combo.flow };
+    let t = if still { aurora::time(now, true) } else { combo.flow };
     let heat = fervor(combo.streak);
     // punched by the clicks, shrinking a little as it fades out
     let scale = (1.0 + 0.45 * (combo.punch.x / 0.45).tanh()) * (0.85 + 0.15 * alpha);
@@ -227,7 +227,7 @@ pub(super) fn paint(env: &Env<'_>, surface: Rect, combo: &Combo, total: u32, fad
             }
             let reach = 1.0 - (1.0 - k).powi(3);
             let radius = h * 0.5 + (24.0 + 8.0 * ring) * reach;
-            let line = block::light(color, fade * (1.0 - k), 0.6);
+            let line = aurora::light(color, fade * (1.0 - k), 0.6);
             Outline::circle(center, radius, ppp).stroke(&mut sparks, 2.6 * (1.0 - k), line);
         }
         for k in 0..SPARKS {
@@ -237,25 +237,25 @@ pub(super) fn paint(env: &Env<'_>, surface: Rect, combo: &Combo, total: u32, fad
             let reach = 22.0 + 18.0 * ((k * 7) % SPARKS) as f32 / SPARKS as f32;
             let at = center + Vec2::angled(angle) * (h * 0.7 + reach * out) + Vec2::new(0.0, 6.0 * burst * burst);
             let color = p.borealis_at(k as f32 / (SPARKS - 1) as f32);
-            Outline::circle(at, 4.5 * flare, ppp).dot(&mut sparks, block::light(color, 0.35 * fade * flare, 0.4));
-            Outline::circle(at, 1.8 * flare + 0.4, ppp).dot(&mut sparks, block::light(color, fade * flare, 0.8));
+            Outline::circle(at, 4.5 * flare, ppp).dot(&mut sparks, aurora::light(color, 0.35 * fade * flare, 0.4));
+            Outline::circle(at, 1.8 * flare + 0.4, ppp).dot(&mut sparks, aurora::light(color, fade * flare, 0.8));
         }
         painter.add(Shape::mesh(sparks));
     }
     if alpha > 0.0 {
-        let edge = |s: f32| block::border_color(p, s, t);
+        let edge = |s: f32| aurora::border_color(p, s, t);
         let mut light = Mesh::default();
         // the curtains rise behind it as the streak heats, and flare up
         let curtains = heat.max(flare);
         if curtains > 0.0 && !still {
-            block::curtains(&mut light, p, pill, ppp, t, alpha * curtains);
+            aurora::curtains(&mut light, p, pill, ppp, t, alpha * curtains);
         }
-        block::border(&mut light, pill, ppp, alpha * (0.5 + 0.5 * curtains), 1.2, 0.8 + 1.6 * heat, edge);
-        block::tag(&mut light, pill, h * 0.5, ppp, env.tint.gamma_multiply(GLASS), alpha, 1.2, edge);
+        aurora::border(&mut light, pill, ppp, alpha * (0.5 + 0.5 * curtains), 1.2, 0.8 + 1.6 * heat, edge);
+        aurora::tag(&mut light, pill, h * 0.5, ppp, env.tint.gamma_multiply(GLASS), alpha, 1.2, edge);
         painter.add(Shape::mesh(light));
         if let Some(texture) = env.icon("click-filled") {
             let at = Pos2::new(pill.left() + 7.0 * scale + icon * 0.5, pill.center().y);
-            let color = block::letter_color(p, 0, digits.chars().count() + 1, t);
+            let color = aurora::letter_color(p, 0, digits.chars().count() + 1, t);
             painter.image(
                 texture.id(),
                 Rect::from_center_size(at, Vec2::splat(icon)),

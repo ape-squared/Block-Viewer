@@ -12,7 +12,7 @@
 use block_assets::sealed::Key;
 use std::path::Path;
 
-const SERVICE: &str = "Block Viewer cache";
+const SERVICE: &str = "Aurora Viewer cache";
 const ACCOUNT: &str = "disk cache key v1";
 const FILE: &str = "cache.key";
 /// The credential store's entry of the key (service, account), for the

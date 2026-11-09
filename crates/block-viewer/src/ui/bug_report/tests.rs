@@ -2,7 +2,7 @@ use super::*;
 
 #[test]
 fn preserved_report_keeps_crashed_session_language_draft_and_privacy_choices() {
-    let dir = std::env::temp_dir().join(format!("block-preserved-ui-test-{}", uuid::Uuid::new_v4()));
+    let dir = std::env::temp_dir().join(format!("aurora-preserved-ui-test-{}", uuid::Uuid::new_v4()));
     std::fs::create_dir(&dir).unwrap();
     std::fs::write(dir.join("session.log"), "[old ERROR block_viewer] panic: PRIVATE_NAME\n").unwrap();
     let mut state = BugReportUi::default();

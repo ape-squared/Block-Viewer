@@ -118,7 +118,7 @@ impl GeometryNeeds {
         // (during the session, off the frame: a disk can hold a write)
         if end_of_session {
             write();
-        } else if let Err(e) = std::thread::Builder::new().name("block-geometry-needs".into()).spawn(write) {
+        } else if let Err(e) = std::thread::Builder::new().name("aurora-geometry-needs".into()).spawn(write) {
             log::warn!("geometry needs not written: {e}");
         }
     }
@@ -208,7 +208,7 @@ mod tests {
 
     #[test]
     fn saved_needs_come_back() {
-        let dir = std::env::temp_dir().join(format!("block-geometry-needs-{}", std::process::id()));
+        let dir = std::env::temp_dir().join(format!("aurora-geometry-needs-{}", std::process::id()));
         let _ = std::fs::create_dir_all(&dir);
         let mut n = GeometryNeeds::load(&dir);
         n.note(42, (100, 200));

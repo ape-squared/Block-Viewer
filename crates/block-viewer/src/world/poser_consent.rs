@@ -85,17 +85,9 @@ pub fn distance(world: &World, peer: Uuid) -> Option<f32> {
     let own = world.objects.index_of_uuid(&world.agent_id)?;
     let other = world.objects.index_of_uuid(&peer)?;
     let now = Instant::now();
-    if let (Some(a), Some(b)) = (
-        crate::scene::Scene::object_transform(world, own, now, 0),
-        crate::scene::Scene::object_transform(world, other, now, 0),
-    ) {
-        return Some(a.0.distance(b.0));
-    }
-    // The drawn pose can be missing for a frame. Object positions still
-    // decide "nearby", or a request never reaches the prompt.
-    let a = world.objects.get(own)?;
-    let b = world.objects.get(other)?;
-    Some(a.position.distance(b.position))
+    let a = crate::scene::Scene::object_transform(world, own, now, 0)?;
+    let b = crate::scene::Scene::object_transform(world, other, now, 0)?;
+    Some(a.0.distance(b.0))
 }
 pub fn nearby(world: &World, peer: Uuid) -> bool {
     present(world, peer) && distance(world, peer).is_some_and(|d| d <= 50.0)
@@ -157,11 +149,14 @@ impl State {
         let permitted: HashSet<_> = self.incoming.iter().filter(|r| self.allowed(world, r.peer)).map(|r| r.id).collect();
         self.incoming.retain(|r| permitted.contains(&r.id));
     }
-    /// Friends and Everyone both open the prompt. Hiding a non-friend's
-    /// request looked like Ask did nothing. Nobody and the block list
-    /// refuse without a prompt.
     fn allowed(&self, world: &World, peer: Uuid) -> bool {
-        nearby(world, peer) && !self.preferences.blocked.contains(&peer) && self.preferences.policy != Policy::Nobody
+        nearby(world, peer)
+            && !self.preferences.blocked.contains(&peer)
+            && match self.preferences.policy {
+                Policy::Everyone => true,
+                Policy::Friends => world.social.friends.iter().any(|f| f.id == peer),
+                Policy::Nobody => false,
+            }
     }
     fn send(&mut self, id: Uuid, kind: PoseKind, peer: Uuid) {
         if self.out.len() < LIMIT * 2 {
@@ -254,17 +249,13 @@ impl State {
         }
         match kind {
             PoseKind::Request => {
-                let hidden = !self.allowed(world, peer)
+                if !self.allowed(world, peer)
                     || self.ended.contains_key(&(peer, id))
                     || self.inbound_cooldown.contains_key(&peer)
                     || self.incoming.len() >= LIMIT
                     || self.incoming.iter().any(|r| r.peer == peer)
-                    || self.granted_to.contains_key(&peer);
-                if hidden {
-                    // Otherwise the asker waits out the minute and sees "No answer".
-                    if present(world, peer) && !self.incoming.iter().any(|r| r.peer == peer) && !self.granted_to.contains_key(&peer) {
-                        self.send(id, PoseKind::Refuse, peer);
-                    }
+                    || self.granted_to.contains_key(&peer)
+                {
                     return;
                 }
                 self.incoming.push_back(Request { id, peer, at: now });

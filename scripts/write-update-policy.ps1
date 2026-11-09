@@ -1,5 +1,5 @@
-<# Publishes the tag metadata in the release package, without changing the repository. #>
-param([Parameter(Mandatory)][string]$Tag, [string]$Out = 'block-update-policy.json')
+﻿<# Publishes the tag metadata in the release package, without changing the repository. #>
+param([Parameter(Mandatory)][string]$Tag, [string]$Out = 'aurora-update-policy.json')
 $ErrorActionPreference = 'Stop'
 . "$PSScriptRoot/tools/update-policy.ps1"
 $taskRepo = (git rev-parse --show-toplevel).Trim()

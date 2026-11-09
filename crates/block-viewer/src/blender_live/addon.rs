@@ -95,9 +95,9 @@ impl Addon {
                 let Some(path) = rfd::FileDialog::new()
                     .set_title(block_i18n::tr!("blender-live-save-addon"))
                     .set_file_name(if legacy {
-                        "block-live-mesh-legacy.zip"
+                        "aurora-live-mesh-legacy.zip"
                     } else {
-                        "block-live-mesh.zip"
+                        "aurora-live-mesh.zip"
                     })
                     .add_filter("ZIP", &["zip"])
                     .save_file()

@@ -1,7 +1,7 @@
 name: Crash triage
 
 # A crash report sent from the viewer's crash window carries the
-# `<!-- block-crash v1 -->` marker (docs/BUG_REPORTING.md, "Crash triage"):
+# `<!-- aurora-crash v1 -->` marker (docs/BUG_REPORTING.md, "Crash triage"):
 # its stack is symbolized with the symbol file of its release, the issue is
 # signed and, when an open issue already has the same signature, closed as
 # its duplicate. The script reads the issue through the API: its text never
@@ -30,7 +30,7 @@ permissions:
 
 jobs:
   triage:
-    if: github.event_name == 'workflow_dispatch' || (github.event_name == 'issues' && contains(github.event.issue.body, '<!-- block-crash v1 -->'))
+    if: github.event_name == 'workflow_dispatch' || (github.event_name == 'issues' && contains(github.event.issue.body, '<!-- aurora-crash v1 -->'))
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1

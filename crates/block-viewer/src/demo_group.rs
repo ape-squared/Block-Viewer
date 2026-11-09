@@ -496,7 +496,7 @@ fn group_land(group: Uuid, transaction: Uuid) -> Vec<NetEvent> {
             totals: None,
             parcels: vec![parcel(
                 block_i18n::tr!("demo-group-land-workshop"),
-                block_i18n::tr!("common-block-demo"),
+                block_i18n::tr!("common-aurora-demo"),
                 (256_140.0, 256_130.0),
                 512,
             )],
@@ -512,7 +512,7 @@ fn group_land(group: Uuid, transaction: Uuid) -> Vec<NetEvent> {
     }
     let sandbox = parcel(
         block_i18n::tr!("demo-group-land-sandbox"),
-        block_i18n::tr!("common-block-demo"),
+        block_i18n::tr!("common-aurora-demo"),
         (256_000.0 + 64.0, 256_000.0 + 200.0),
         4096,
     );
@@ -1086,7 +1086,7 @@ mod tests {
     }
 
     #[test]
-    fn block_builders_has_its_named_members_among_all() {
+    fn aurora_builders_has_its_named_members_among_all() {
         let s = spec(&DEMO_GROUP1).expect("demo group");
         assert_eq!(s.members.len(), 1248);
         let online = s.members.iter().filter(|m| m.last_seen == LastSeen::Online).count();

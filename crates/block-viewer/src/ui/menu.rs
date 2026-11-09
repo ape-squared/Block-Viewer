@@ -32,7 +32,7 @@ pub const TEXT_INDENT: f32 = PAD + ICON + PAD;
 
 /// Tooltip of the entries Firestorm has but Aurora does not do yet.
 pub fn not_yet() -> &'static str {
-    block_i18n::tr!("common-not-available-in-block-yet")
+    block_i18n::tr!("common-not-available-in-aurora-yet")
 }
 
 /// What the right end of a row shows.
@@ -61,7 +61,7 @@ struct RowTrack {
 }
 
 fn rows_id() -> Id {
-    Id::unique("block_menu_rows")
+    Id::unique("aurora_menu_rows")
 }
 
 /// Menu style: the popup and sub-menu frames (`Frame::menu`) are built
@@ -1051,7 +1051,7 @@ pub fn voice_volume(ui: &mut Ui, p: &Palette, v: VoiceVolume) -> Option<VoiceEdi
 /// egui temp data: where the voice row of the menu in `layer` was drawn,
 /// and in which frame.
 fn keep_open_id(layer: LayerId) -> Id {
-    Id::unique("block_menu_keep_open").with(layer.id)
+    Id::unique("aurora_menu_keep_open").with(layer.id)
 }
 
 /// A click this frame lands on the voice row the menu `popup` drew last
@@ -1325,7 +1325,7 @@ fn hidden(ui: &mut Ui) -> egui::Response {
 /// down arrows move the selection (wrapping around) and Enter clicks it.
 /// Aurora's own: the Legacy Viewer's menus have no search.
 pub fn searchable(ui: &mut Ui, p: &Palette, body: impl FnOnce(&mut Ui)) {
-    let id = ui.layer_id().id.with("block_menu_search");
+    let id = ui.layer_id().id.with("aurora_menu_search");
     let frame = ui.ctx().cumulative_frame_nr();
     let mut state = ui.data(|d| d.get_temp::<SearchState>(id)).unwrap_or_default();
     let opened = state.frame + 1 < frame;

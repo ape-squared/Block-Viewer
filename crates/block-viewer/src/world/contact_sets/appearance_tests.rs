@@ -92,7 +92,7 @@ fn contact_visuals_round_trip_and_old_files_inherit() {
     unsupported.insert("icon", "not-an-icon");
     unsupported.insert("size", "unexpected");
     let mut set = Llsd::new_map();
-    set.insert("block_visuals", unsupported);
+    set.insert("aurora_visuals", unsupported);
     invalid.insert("Example", set);
     let mut restored = ContactSets::default();
     restored.import(&invalid);

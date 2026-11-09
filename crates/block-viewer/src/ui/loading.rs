@@ -204,8 +204,8 @@ fn progress_light(painter: &egui::Painter, p: &Palette, fill: Rect, k: f32, t: f
     // head: a soft halo breathing around a bright core
     let head = Pos2::new(fill.right(), fill.center().y);
     let breathe = 0.8 + 0.2 * (t * 3.1).sin();
-    super::block_bg::radial_glow(painter, head, 30.0 * k, p.teal, 0.5 * breathe * a);
-    super::block_bg::radial_glow(painter, head, 9.0 * k, p.ink, 0.95 * a);
+    super::aurora_bg::radial_glow(painter, head, 30.0 * k, p.teal, 0.5 * breathe * a);
+    super::aurora_bg::radial_glow(painter, head, 9.0 * k, p.ink, 0.95 * a);
 }
 
 /// What starts a fact about the place: an icon or a colored letter.
@@ -267,7 +267,6 @@ fn banner(
     label: &str,
     name: &str,
     stage: &str,
-    tip: &str,
     fraction: Option<f32>,
     place: &Place,
     t: f32,
@@ -293,7 +292,7 @@ fn banner(
         let size = 40.0 * k;
         let rect = Rect::from_min_size(Pos2::new(brand.x, brand.y - size / 2.0), Vec2::splat(size));
         let breathe = 0.85 + 0.15 * (t * 1.4).sin();
-        super::block_bg::radial_glow(painter, rect.center(), size * 1.1, p.violet, 0.4 * breathe * a);
+        super::aurora_bg::radial_glow(painter, rect.center(), size * 1.1, p.violet, 0.4 * breathe * a);
         painter.image(
             l.id(),
             rect,
@@ -305,7 +304,7 @@ fn banner(
     painter.text(
         Pos2::new(brand_text, brand.y),
         egui::Align2::LEFT_CENTER,
-        "Block Viewer",
+        "Aurora Viewer",
         egui::FontId::proportional(15.0 * k),
         p.violet_pale.gamma_multiply(a),
     );
@@ -344,7 +343,7 @@ fn banner(
                 rect.bottom() - rect.height() * y.clamp(0.0, 1.0),
             );
             let pulse = 0.6 + 0.4 * (t * 2.4).sin().abs();
-            super::block_bg::radial_glow(&painter.with_clip_rect(rect), at, 16.0 * k, p.violet_light, 0.7 * pulse * a);
+            super::aurora_bg::radial_glow(&painter.with_clip_rect(rect), at, 16.0 * k, p.violet_light, 0.7 * pulse * a);
             painter.circle_filled(at, 3.5 * k, p.ink.gamma_multiply(a));
             painter.circle_stroke(at, 3.5 * k, egui::Stroke::new(1.5 * k, p.violet.gamma_multiply(a)));
         }
@@ -363,23 +362,10 @@ fn banner(
         right = figures_at.x - 24.0 * k;
     }
 
-    // bottom left, built upwards: tip, stage, facts, name, label
+    // bottom left, built upwards: stage, facts, name, label
     let left = screen.left() + margin;
     let column = painter.with_clip_rect(Rect::from_min_max(screen.min, Pos2::new(right, screen.bottom())));
     let mut y = base;
-    if !tip.is_empty() {
-        let tip_ink = p.ink.gamma_multiply(0.78 * a);
-        let label_ink = p.violet_light.gamma_multiply(a);
-        let tip_label = block_i18n::tr!("loading-tip-label");
-        let head = column.layout_no_wrap(tip_label.to_uppercase(), egui::FontId::proportional(11.0 * k), label_ink);
-        let room = (right - left).max(160.0);
-        let body = column.layout(tip.to_owned(), egui::FontId::proportional(14.0 * k), tip_ink, room);
-        y -= body.size().y;
-        column.galley(Pos2::new(left, y), body, tip_ink);
-        y -= head.size().y + 4.0 * k;
-        column.galley(Pos2::new(left, y), head, label_ink);
-        y -= 16.0 * k;
-    }
     if !stage.is_empty() {
         let muted = p.muted.gamma_multiply(a);
         let galley = column.layout_no_wrap(stage.to_owned(), egui::FontId::proportional(13.0 * k), muted);
@@ -479,7 +465,6 @@ pub fn show(
     let painter = ctx.layer_painter(egui::LayerId::new(egui::Order::Middle, egui::Id::unique("loading_splash")));
     let t = ctx.input(|i| i.time) as f32;
     let detail = stage_line(info.stage, info.region, info.terrain, info.objects, info.textures);
-    let tip = super::motd_tips::current(info.elapsed);
     let corner = banner(
         &ctx,
         &painter,
@@ -489,7 +474,6 @@ pub fn show(
         block_i18n::tr!("common-loading-world"),
         info.region,
         &detail,
-        tip.as_ref(),
         Some(info.fraction),
         place,
         t,
@@ -545,10 +529,9 @@ pub fn teleport_overlay(
     // that frame between the loading screen and its fade out.
     let painter = ctx.layer_painter(layer).with_clip_rect(rect);
     if !backdrop.is_some_and(|b| b.paint(&painter, p, rect, a)) {
-        super::block_bg::paint(&painter, p, rect, t, a);
+        super::aurora_bg::paint(&painter, p, rect, t, a);
     }
-    // Teleport keeps the tip quiet so the destination stays the focus.
-    banner(ctx, &painter, p, rect, logo, title, dest, detail, "", fraction, place, t, a);
+    banner(ctx, &painter, p, rect, logo, title, dest, detail, fraction, place, t, a);
     ctx.request_repaint();
 }
 

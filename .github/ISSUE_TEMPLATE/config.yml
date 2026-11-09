@@ -1,11 +1,5 @@
 blank_issues_enabled: true
 contact_links:
   - name: Feature request
-    url: https://github.com/ape-squared/Block-Viewer/issues/new?template=feature_request.yml
-    about: Suggest a feature or improvement for Block Viewer (not the Block-GPPI injector).
-  - name: Website / docs
-    url: https://ape-squared.github.io/Block-Viewer/
-    about: Product site, download, foundation notes.
-  - name: Block GPPI (injector) issues
-    url: https://github.com/ape-squared/Block-GPPI/issues
-    about: Post-processing for other viewers — separate product. Do not file viewer bugs there.
+    url: https://feedback.block-viewer.org
+    about: Suggest a feature or an improvement, and vote for the ideas of others, on our feedback board.

@@ -13,17 +13,8 @@ const MAX_REPLY: usize = 4096;
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum Query {
-    Portal {
-        target: Uuid,
-        message: super::portal::Message,
-    },
-    Pose {
-        request: Uuid,
-        kind: PoseKind,
-        target: Uuid,
-    },
-    /// Region-local Block Viewer presence ping (nameplate badge for peers).
-    PeerAnnounce,
+    Portal { target: Uuid, message: super::portal::Message },
+    Pose { request: Uuid, kind: PoseKind, target: Uuid },
     Altitudes(Vec<Uuid>),
     ScriptInfo(Uuid),
     ObjectInfo(Uuid),
@@ -108,7 +99,6 @@ pub struct ObjectInfo {
 pub enum Reply {
     Portal,
     Pose,
-    PeerAnnounce,
     Altitudes(Vec<Altitude>),
     ScriptInfo(ScriptInfo),
     ObjectInfo(Box<ObjectInfo>),
@@ -125,7 +115,6 @@ impl Query {
                     ) || !target.is_nil())
             }
             Self::Pose { request, target, .. } => !request.is_nil() && !target.is_nil(),
-            Self::PeerAnnounce => true,
             Self::Altitudes(ids) => {
                 !ids.is_empty()
                     && ids.len() <= MAX_AVATARS
@@ -139,7 +128,6 @@ impl Query {
         match self {
             Self::Portal { target, message } => format!("query|{token}|portal|{target},{}", message.encode().unwrap_or_default()),
             Self::Pose { request, kind, target } => format!("query|{token}|pose|{},{request},{target}", kind.wire()),
-            Self::PeerAnnounce => format!("query|{token}|peer|"),
             Self::Altitudes(ids) => format!(
                 "query|{token}|altitudes|{}",
                 ids.iter().map(Uuid::to_string).collect::<Vec<_>>().join(",")
@@ -157,7 +145,6 @@ impl Query {
         match self {
             Self::Portal { .. } => values.is_empty().then_some(Reply::Portal),
             Self::Pose { .. } => values.is_empty().then_some(Reply::Pose),
-            Self::PeerAnnounce => values.is_empty().then_some(Reply::PeerAnnounce),
             Self::Altitudes(requested) => {
                 if values.len() > requested.len() * 2 || values.len() % 2 != 0 {
                     return None;
@@ -322,14 +309,6 @@ mod tests {
             Query::ObjectInfo(id(1)).body(id(100)),
             format!("query|{}|object|{}", id(100), id(1))
         );
-    }
-    #[test]
-    fn peer_announce_is_a_bare_kind_with_empty_targets() {
-        let query = Query::PeerAnnounce;
-        assert!(query.valid());
-        assert_eq!(query.body(id(100)), format!("query|{}|peer|", id(100)));
-        assert_eq!(query.decode(b"[]"), Some(Reply::PeerAnnounce));
-        assert!(query.decode(b"[1]").is_none());
     }
     #[test]
     fn altitude_replies_require_requested_unique_finite_samples_and_allow_partial_absence() {

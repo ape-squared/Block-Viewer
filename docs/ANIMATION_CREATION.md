@@ -75,7 +75,7 @@ in the session draft; an exported file contains the selected active clip.
 ## Save or import
 
 **Save .anim** opens a native file dialog and writes the validated file.
-**Prepare .anim import** opens Block's existing animation import inspector
+**Prepare .anim import** opens Aurora's existing animation import inspector
 with the same native bytes. Review its preview, destination, name and
 permissions, then use the normal upload action. Preparing the inspector does
 not start an upload or payment. The pose editor closes for this review and

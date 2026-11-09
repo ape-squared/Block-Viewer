@@ -147,7 +147,7 @@ impl HoverHeight {
     pub fn load(path: PathBuf) -> Self {
         let (loaded_tx, loaded) = mpsc::unbounded();
         let (writer, writes) = mpsc::unbounded::<Saved>();
-        let worker = std::thread::Builder::new().name("block-hover-height".into()).spawn(move || {
+        let worker = std::thread::Builder::new().name("aurora-hover-height".into()).spawn(move || {
             let saved = match std::fs::read(&path) {
                 Ok(bytes) => Saved::parse(&bytes).unwrap_or_default(),
                 Err(error) => {
@@ -485,7 +485,7 @@ mod tests {
 
     #[test]
     fn all_posture_heights_and_separate_switches_remain_independent_between_accounts() {
-        let root = std::env::temp_dir().join(format!("block-hover-accounts-{}", uuid::Uuid::new_v4()));
+        let root = std::env::temp_dir().join(format!("aurora-hover-accounts-{}", uuid::Uuid::new_v4()));
         let first_path = root.join("first").join(FILE);
         let second_path = root.join("second").join(FILE);
         for (path, standing, object, ground, ground_separate) in
@@ -540,7 +540,7 @@ mod tests {
 
     #[test]
     fn persisted_heights_are_per_account_and_the_latest_commit_survives_restart() {
-        let root = std::env::temp_dir().join(format!("block-hover-{}", uuid::Uuid::new_v4()));
+        let root = std::env::temp_dir().join(format!("aurora-hover-{}", uuid::Uuid::new_v4()));
         let path = root.join("first").join(FILE);
         let mut height = HoverHeight::load(path.clone());
         height.preview(0.2);

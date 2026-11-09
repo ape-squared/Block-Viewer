@@ -1,4 +1,4 @@
-"""Rig display, independent IK switches, and skinning tools in the Block sidebar."""
+"""Rig display, independent IK switches, and skinning tools in the Aurora sidebar."""
 import bpy
 from bpy.app.translations import pgettext_iface as tr
 from bpy.props import BoolProperty, EnumProperty
@@ -15,7 +15,7 @@ TABS = (
 
 
 def tab(context):
-    return getattr(context.window_manager, "aurora_live_tab", "LIVE")
+    return getattr(context.window_manager, "block_live_tab", "LIVE")
 
 
 def foldout(layout, manager, property_name, title):
@@ -77,7 +77,7 @@ class AURORA_OT_ik_handles(bpy.types.Operator):
             if rig.mode == "EDIT":
                 raise ValueError("Leave Edit Mode before creating IK controls")
             if not rigging.ready(rig):
-                raise ValueError("Create Block Viewer IK controls first")
+                raise ValueError("Create Aurora IK controls first")
             handles.apply(rig, replace=True)
         except (ValueError, RuntimeError) as error:
             self.report({"ERROR"}, tr(str(error)))
@@ -229,7 +229,7 @@ class AURORA_OT_transfer(bpy.types.Operator):
         return context.mode in {"OBJECT", "PAINT_WEIGHT"} and any(obj.type == "MESH" for obj in context.selected_objects)
 
     def execute(self, context):
-        prefs = context.scene.aurora_live
+        prefs = context.scene.block_live
         try:
             objects = skinning.apply(context, [obj for obj in context.selected_objects if obj.type == "MESH"],
                                      prefs.rig, None if self.clean else prefs.weight_source,
@@ -267,7 +267,7 @@ def draw_rig(layout, context):
         op = layout.operator("aurora.bone_visibility", text=tr(label) + " (" + str(count) + ")",
                           translate=False, icon="HIDE_OFF" if enabled else "HIDE_ON", depress=enabled)
         op.part, op.visible = key, not enabled
-    advanced = foldout(layout, context.window_manager, "aurora_live_show_advanced_bones", "Advanced bones")
+    advanced = foldout(layout, context.window_manager, "block_live_show_advanced_bones", "Advanced bones")
     if advanced:
         enabled = rigging.part_visible(rig, "SPINE")
         count = sum(rigging.part(bone) == "SPINE" for bone in rigging.bones(rig))
@@ -290,7 +290,7 @@ def draw_ik(layout, context):
         layout.operator("aurora.create_ik", text="Create IK controls", icon="ADD")
     else:
         box = layout.box()
-        box.prop(rig, "aurora_live_ik_handle_size", text="Handle size", slider=True)
+        box.prop(rig, "block_live_ik_handle_size", text="Handle size", slider=True)
         row = box.row(align=True)
         row.prop(rig, "show_in_front", text="In front")
         row.operator("aurora.refresh_ik_handles", text="", icon="FILE_REFRESH")
@@ -339,17 +339,17 @@ def draw_ik(layout, context):
             row.operator("aurora.select_pose_control", text="Target").kind = key
             row.operator("aurora.center_look_at", text="", icon="LOOP_BACK").kind = key
     layout.label(text="Control poses stay in Blender.", icon="INFO")
-    layout.label(text="Block Viewer animates the rest mesh.")
+    layout.label(text="Aurora animates the rest mesh.")
 
 
 def draw_automatic(layout, context):
-    prefs = context.scene.aurora_live
+    prefs = context.scene.block_live
     layout.prop(prefs, "weight_scope", text="")
     layout.operator("aurora.auto_weights", text="Recalculate weights", icon="MOD_ARMATURE")
 
 
 def draw_transfer(layout, context):
-    prefs = context.scene.aurora_live
+    prefs = context.scene.block_live
     layout.label(text="Weight source")
     layout.prop(prefs, "weight_source", text="")
     layout.label(text="Weight mapping")

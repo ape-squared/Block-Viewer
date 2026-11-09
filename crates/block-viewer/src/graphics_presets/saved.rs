@@ -42,7 +42,6 @@ quality_fields! {
     exposure: f32,
     water_effects: crate::settings::WaterEffectsSettings,
     specular_aa: bool,
-    medal_clip_layers: bool,
     colored_sky_ambient: bool,
     tonemapper: u8,
     tonemap_mix: f32,
@@ -250,6 +249,25 @@ mod tests {
         bad.fsr_sharpness = 9_999;
         bad.apply(&mut s);
         assert!(s.fsr_quality <= 4 && s.fsr_sharpness <= 100);
+    }
+
+    /// LLPresetsManager saves RenderGlow with a graphics preset
+    /// (app_settings/graphic_preset_controls.xml) and loading it puts it back,
+    /// where a level leaves it alone (#2388).
+    #[test]
+    fn graphics_saved_restores_the_glow_it_was_saved_with() {
+        let mut s = Settings::default();
+        Preset::High.apply(&mut s);
+        s.glow = false;
+        s.graphics_saved.insert("No glow".into(), Saved::capture(&s));
+        s.glow = true;
+        s.graphics_saved.insert("Glow".into(), Saved::capture(&s));
+        assert!(select(&mut s, "No glow"));
+        assert!(!s.glow);
+        Preset::Deluxe.apply(&mut s);
+        assert!(!s.glow, "a level after the profile keeps its glow");
+        assert!(select(&mut s, "Glow"));
+        assert!(s.glow);
     }
 
     #[test]

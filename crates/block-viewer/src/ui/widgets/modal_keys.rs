@@ -39,11 +39,11 @@ struct Current {
 }
 
 fn state_id(id: Id) -> Id {
-    id.with("block_modal_keys")
+    id.with("aurora_modal_keys")
 }
 
 fn current_id() -> Id {
-    Id::unique("block_modal_keys_current")
+    Id::unique("aurora_modal_keys_current")
 }
 
 /// Kept by `begin` for `end`.

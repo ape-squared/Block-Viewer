@@ -39,7 +39,9 @@ impl Scope {
     pub fn from_environment() -> Self {
         // Keep historical A/B controls in offline demos only. A normal viewer
         // always follows the saved preference, including existing accounts.
-        let mode = std::env::var("AURORA_FOOT_IK_SCOPE").ok().filter(|_| crate::block_env::demo_mode());
+        let mode = std::env::var("AURORA_FOOT_IK_SCOPE")
+            .ok()
+            .filter(|_| std::env::var_os("AURORA_DEMO").is_some());
         Self {
             profile: std::env::var_os("AURORA_PROFILE").is_some(),
             ..Self::from_mode(mode.as_deref().unwrap_or_default())

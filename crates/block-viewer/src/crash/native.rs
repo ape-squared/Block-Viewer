@@ -658,7 +658,7 @@ mod platform {
             let (ids, id) = std::sync::mpsc::channel();
             let (release, wait) = std::sync::mpsc::channel::<()>();
             let blocked = std::thread::Builder::new()
-                .name("block-crash-test-blocked".into())
+                .name("aurora-crash-test-blocked".into())
                 .spawn(move || {
                     // SAFETY: no argument.
                     ids.send(unsafe { GetCurrentThreadId() }).unwrap();
@@ -670,7 +670,7 @@ mod platform {
             let thread = Thread::open(id).expect("thread handle");
             let mut out = Vec::new();
             assert!(thread.write_stack(&mut out));
-            assert!(named_threads().contains(&(id, "block-crash-test-blocked".into())));
+            assert!(named_threads().contains(&(id, "aurora-crash-test-blocked".into())));
             release.send(()).unwrap();
             blocked.join().unwrap();
             let text = String::from_utf8(out).unwrap();

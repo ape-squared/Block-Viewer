@@ -156,9 +156,9 @@ pub(crate) fn edit_scoped<R>(
     let tokens = ui.input(|i| i.events.iter().any(|e| insertion(e).is_some())).then(|| {
         let id = uuid::Uuid::new_v4();
         [
-            format!("\0block-return-{id}\0"),
-            format!("\0block-tab-{id}\0"),
-            format!("\0block-close-{id}\0"),
+            format!("\0aurora-return-{id}\0"),
+            format!("\0aurora-tab-{id}\0"),
+            format!("\0aurora-close-{id}\0"),
         ]
     });
     let mut keys = ui.input_mut(|i| {

@@ -14,13 +14,13 @@ import bmesh
 from mathutils import Vector
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-import aurora_live
-from aurora_live import exporter
+import block_live
+from block_live import exporter
 
 
 class ExporterTests(unittest.TestCase):
     def test_parented_static_sources_keep_separate_meshes_root_and_relative_origins(self):
-        from aurora_live.client import wire_snapshot
+        from block_live.client import wire_snapshot
         self.mesh.modifiers.clear()
         self.mesh.parent = None
         self.mesh.location = (20, 30, 40)
@@ -79,7 +79,7 @@ class ExporterTests(unittest.TestCase):
         self.assertEqual(before, (len(bpy.data.objects), len(bpy.data.meshes)))
 
     def test_static_and_rigged_sources_share_a_snapshot_and_negotiate_old_viewers(self):
-        from aurora_live.client import wire_snapshot
+        from block_live.client import wire_snapshot
         static = self.mesh.copy()
         static.data = self.mesh.data.copy()
         static.name = "Static object"
@@ -88,7 +88,7 @@ class ExporterTests(unittest.TestCase):
         value = exporter.snapshot([self.mesh, static], {"mPelvis", "mChest"}, 1)
         self.assertTrue(value["meshes"][0]["joints"])
         self.assertEqual(value["meshes"][1]["joints"], [])
-        with self.assertRaisesRegex(ValueError, "Update Block Viewer"):
+        with self.assertRaisesRegex(ValueError, "Update Aurora Viewer"):
             wire_snapshot(value, ["source-ids"])
         self.assertEqual(wire_snapshot(value, ["static-meshes", "source-ids"]), value)
 
@@ -102,18 +102,18 @@ class ExporterTests(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        aurora_live.register()
+        block_live.register()
 
     @classmethod
     def tearDownClass(cls):
-        aurora_live.unregister()
+        block_live.unregister()
 
     def setUp(self):
         if bpy.context.object and bpy.context.object.mode != "OBJECT":
             bpy.ops.object.mode_set(mode="OBJECT")
         bpy.ops.object.select_all(action="SELECT")
         bpy.ops.object.delete(use_global=False)
-        bpy.context.scene.aurora_live.objects.clear()
+        bpy.context.scene.block_live.objects.clear()
         bpy.context.scene.unit_settings.scale_length = 1.0
         armature = bpy.data.armatures.new("Test rig")
         self.rig = bpy.data.objects.new("Test rig", armature)
@@ -143,7 +143,7 @@ class ExporterTests(unittest.TestCase):
         return exporter.snapshot([self.mesh], {"mPelvis", "mChest"}, 1)
 
     def assert_bulk_matches_legacy(self, supported=None):
-        from aurora_live.client import wire_snapshot
+        from block_live.client import wire_snapshot
         supported = supported or {"mPelvis", "mChest"}
         features = ["pbr-materials", "source-ids", "static-meshes", "object-links", "packed-geometry"]
         legacy = exporter.snapshot([self.mesh], supported, 1)
@@ -224,7 +224,7 @@ class ExporterTests(unittest.TestCase):
         self.assertEqual(before, (len(bpy.data.objects), len(bpy.data.meshes)))
 
     def test_material_refresh_matches_full_capture_and_reuses_geometry(self):
-        from aurora_live.client import wire_snapshot
+        from block_live.client import wire_snapshot
         supported = {"mPelvis", "mChest"}
         ids = {self.mesh.as_pointer(): str(uuid.uuid4())}
         previous = exporter.snapshot([self.mesh], supported, 1, source_ids=ids, packed=True)
@@ -607,30 +607,30 @@ class ExporterTests(unittest.TestCase):
 
     def test_live_handler_captures_edits_and_deletions_without_export_loop(self):
         captures = []
-        aurora_live._client = SimpleNamespace(state=lambda: ("Connected", {"mPelvis"}), rest_axes=lambda: {}, take_shape=lambda ready=True, pose=False: None, take_import=lambda ready=True: None,
+        block_live._client = SimpleNamespace(state=lambda: ("Connected", {"mPelvis"}), rest_axes=lambda: {}, take_shape=lambda ready=True, pose=False: None, take_import=lambda ready=True: None,
                                              submit=captures.append, close=lambda: None)
-        aurora_live.tracking.add(bpy.context.scene, [self.mesh])
-        aurora_live._dirty = True
-        aurora_live._last_capture = 0.0
+        block_live.tracking.add(bpy.context.scene, [self.mesh])
+        block_live._dirty = True
+        block_live._last_capture = 0.0
         try:
-            aurora_live._tick()
+            block_live._tick()
             bpy.context.view_layer.update()
-            self.assertFalse(aurora_live._dirty, "temporary capture objects must not start an export loop")
+            self.assertFalse(block_live._dirty, "temporary capture objects must not start an export loop")
             self.mesh.data.vertices[1].co.x = 0.6
             self.mesh.data.update()
             bpy.context.view_layer.update()
-            self.assertTrue(aurora_live._dirty)
-            aurora_live._last_capture = 0.0
-            aurora_live._last_change = 0.0
-            aurora_live._tick()
+            self.assertTrue(block_live._dirty)
+            block_live._last_capture = 0.0
+            block_live._last_change = 0.0
+            block_live._tick()
             self.assertEqual(len(captures), 2)
             self.assertNotEqual(captures[0]["meshes"], captures[1]["meshes"])
             bpy.data.objects.remove(self.mesh, do_unlink=True)
-            aurora_live._last_capture = 0.0
-            aurora_live._tick()
+            block_live._last_capture = 0.0
+            block_live._tick()
             self.assertEqual(captures[-1]["meshes"], [])
         finally:
-            aurora_live._stop()
+            block_live._stop()
 
     def test_capture_cost_for_twenty_thousand_triangles(self):
         count = 101

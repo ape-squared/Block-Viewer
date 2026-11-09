@@ -117,7 +117,7 @@ impl Worker {
     pub fn start() -> Option<Worker> {
         let (jobs, rx) = crossbeam_channel::bounded::<Job>(QUEUE);
         let (tx, loaded) = crossbeam_channel::unbounded();
-        let spawned = std::thread::Builder::new().name("block-chatlog".into()).spawn(move || run(rx, tx));
+        let spawned = std::thread::Builder::new().name("aurora-chatlog".into()).spawn(move || run(rx, tx));
         match spawned {
             Ok(_) => Some(Worker {
                 jobs,
@@ -460,7 +460,7 @@ mod tests {
     use super::*;
 
     fn temp() -> PathBuf {
-        let dir = std::env::temp_dir().join(format!("block-chatlog-store-{}", Uuid::new_v4()));
+        let dir = std::env::temp_dir().join(format!("aurora-chatlog-store-{}", Uuid::new_v4()));
         std::fs::create_dir_all(&dir).unwrap();
         dir
     }

@@ -9,6 +9,7 @@ pub mod github;
 #[cfg(target_os = "linux")]
 mod linux;
 mod native;
+mod os_events;
 pub mod privacy;
 // Bug report form (disabled, see main.rs):
 // mod report;
@@ -72,7 +73,7 @@ pub fn session_log() -> Option<std::fs::File> {
 }
 
 fn root() -> PathBuf {
-    root_for(crate::block_env::demo_mode(), std::env::var_os("AURORA_DEMO_CRASH_DIR"))
+    root_for(std::env::var_os("AURORA_DEMO").is_some(), std::env::var_os("AURORA_DEMO_CRASH_DIR"))
 }
 
 fn root_for(demo: bool, demo_dir: Option<std::ffi::OsString>) -> PathBuf {
@@ -171,7 +172,7 @@ fn helper_command(dir: &Path, mode: &str, demo: bool) -> std::io::Result<std::pr
 }
 
 fn spawn_helper(dir: &Path, mode: &str) -> std::io::Result<std::process::Child> {
-    let mut command = helper_command(dir, mode, crate::block_env::demo_mode())?;
+    let mut command = helper_command(dir, mode, std::env::var_os("AURORA_DEMO").is_some())?;
     if let Some(title) = &crate::cli::get().title {
         command.arg("--title").arg(title);
     }
@@ -217,7 +218,7 @@ fn start_inner() -> anyhow::Result<()> {
         font_scale: settings.font_scale,
         theme: crate::ui::skin::recovery_theme(),
         log_path: crate::logging::log_path(),
-        demo: crate::block_env::demo_mode(),
+        demo: std::env::var_os("AURORA_DEMO").is_some(),
         os: format!(
             "{} ({}, {})",
             sysinfo::System::long_os_version().unwrap_or_else(|| std::env::consts::OS.into()),
@@ -254,15 +255,20 @@ fn start_inner() -> anyhow::Result<()> {
     Ok(())
 }
 
-/// The Vulkan layers on offer go to `vulkan-layers.txt` as soon as they are
-/// known, on a thread of their own: a crash while Vulkan starts, before any
-/// note of the state, is where the report needs them most (#2241).
+/// Loader-enumerated and known-eligible Vulkan layers are recorded on a
+/// worker. Installed enumeration is available even before instance creation.
 fn note_vulkan_layers(dir: &Path) {
     let dir = dir.to_owned();
     let spawned = std::thread::Builder::new().name("aurora-crash-facts".into()).spawn(move || {
         let names = block_render::vulkan_layers::loaded_names();
+        let eligible = block_render::vulkan_layers::eligible_known_names(
+            &names,
+            |variable| std::env::var_os(variable).is_some(),
+            std::env::var("VK_LOADER_LAYERS_DISABLE").ok().as_deref(),
+        );
         if !names.is_empty() {
             let _ = std::fs::write(dir.join("vulkan-layers.txt"), names.join(","));
+            let _ = std::fs::write(dir.join("vulkan-layers-eligible.txt"), eligible.join(","));
         }
     });
     if let Err(error) = spawned {
@@ -335,7 +341,37 @@ pub fn gpu_stalled(seconds: u64) {
 /// The GPU device is lost for good (app/gpu_stall.rs): the session, which
 /// ends now, is reported as such, with the safe graphics offered next.
 pub fn gpu_lost() {
+    gpu_loss_snapshot();
     mark_gpu_lost(b"");
+}
+
+/// The renderer reported a confirmed device loss, including one the viewer
+/// may recover from. Keep only the first loss snapshot for this session.
+pub fn gpu_loss_snapshot() {
+    crate::overlay_hooks::loss_snapshot();
+}
+
+#[cfg(windows)]
+pub(crate) fn overlay_hooks_at_loss(files: &[&str]) {
+    if let Some(session) = SESSION.get() {
+        write_first_overlay_loss_snapshot(&session.dir, files);
+    }
+}
+
+#[cfg(any(windows, test))]
+fn write_first_overlay_loss_snapshot(dir: &Path, files: &[&str]) {
+    let known: Vec<_> = files
+        .iter()
+        .filter(|file| crate::overlay_hooks::known(file).is_some())
+        .copied()
+        .collect();
+    if let Ok(mut file) = std::fs::OpenOptions::new()
+        .write(true)
+        .create_new(true)
+        .open(dir.join("overlay-hooks-loss.txt"))
+    {
+        let _ = file.write_all(known.join("\n").as_bytes());
+    }
 }
 
 /// A GPU device loss the viewer recovered from (app/gpu_recovery.rs), `ms`
@@ -365,6 +401,7 @@ const GPU_LOST_AT_START: &str = "start";
 /// The same before the first frame (app.rs): reported under its own title,
 /// apart from the driver resets of a running session.
 pub fn gpu_lost_at_start() {
+    gpu_loss_snapshot();
     mark_gpu_lost(GPU_LOST_AT_START.as_bytes());
 }
 
@@ -565,6 +602,7 @@ fn show_once(dir: &Path) -> anyhow::Result<()> {
         return Ok(());
     }
     let record = load(dir)?;
+    collect_os_events_once(dir);
     // What a crash report would publish, kept beside the private files.
     let summary = summary::build(&record, dir);
     if let Err(error) = std::fs::write(dir.join("public-report.md"), format!("# {}\n\n{}", summary.title, summary.body)) {
@@ -577,6 +615,24 @@ fn show_once(dir: &Path) -> anyhow::Result<()> {
     }
     std::fs::write(dir.join("acknowledged"), [])?;
     Ok(())
+}
+
+/// The OS's own GPU reset records around the crash, read once per crash by
+/// the process that shows the report (the watcher right after the exit, or
+/// the helper a later start spawns), never by the viewer's own start: the
+/// queries may take up to their two-second budget.
+fn collect_os_events_once(dir: &Path) {
+    if dir.join("os-gpu-events.status").exists() {
+        return;
+    }
+    let stopped = read_limited(&dir.join("stopped-unix.txt"), 32)
+        .ok()
+        .and_then(|s| s.trim().parse().ok());
+    let tick = watchdog::read_alive(dir)
+        .iter()
+        .find(|(k, _)| k == "tick")
+        .and_then(|(_, v)| v.parse().ok());
+    os_events::collect(dir, stopped.or(tick));
 }
 
 fn trace(dir: &Path) -> String {
@@ -658,8 +714,20 @@ mod tests {
     use super::*;
 
     #[test]
+    fn overlay_hook_loss_snapshot_is_private_to_known_names_and_keeps_the_first_loss() {
+        let dir = scratch_root();
+        write_first_overlay_loss_snapshot(&dir, &["DiscordHook64.dll", "C:\\Users\\Private\\evil.dll"]);
+        write_first_overlay_loss_snapshot(&dir, &["RTSSHooks64.dll"]);
+        assert_eq!(
+            std::fs::read_to_string(dir.join("overlay-hooks-loss.txt")).unwrap(),
+            "DiscordHook64.dll"
+        );
+        std::fs::remove_dir_all(dir).unwrap();
+    }
+
+    #[test]
     fn session_snapshot_survives_language_theme_changes_and_rejects_unknown_formats() {
-        let dir = std::env::temp_dir().join(format!("block-crash-test-{}", uuid::Uuid::new_v4()));
+        let dir = std::env::temp_dir().join(format!("aurora-crash-test-{}", uuid::Uuid::new_v4()));
         std::fs::create_dir(&dir).unwrap();
         let mut record = Record {
             schema: 1,
@@ -695,7 +763,7 @@ mod tests {
     }
 
     fn scratch_root() -> PathBuf {
-        let root = std::env::temp_dir().join(format!("block-crash-test-{}", uuid::Uuid::new_v4()));
+        let root = std::env::temp_dir().join(format!("aurora-crash-test-{}", uuid::Uuid::new_v4()));
         std::fs::create_dir(&root).unwrap();
         root
     }
@@ -904,7 +972,7 @@ mod tests {
 
     #[test]
     fn normal_exit_and_crashes_are_distinct() {
-        let dir = std::env::temp_dir().join(format!("block-crash-test-{}", uuid::Uuid::new_v4()));
+        let dir = std::env::temp_dir().join(format!("aurora-crash-test-{}", uuid::Uuid::new_v4()));
         std::fs::create_dir(&dir).unwrap();
         assert!(should_report(&dir, 0));
         std::fs::write(dir.join("normal"), []).unwrap();
@@ -917,7 +985,7 @@ mod tests {
 
     #[test]
     fn absent_and_oversized_traces_are_not_read_as_valid_reports() {
-        let dir = std::env::temp_dir().join(format!("block-crash-test-{}", uuid::Uuid::new_v4()));
+        let dir = std::env::temp_dir().join(format!("aurora-crash-test-{}", uuid::Uuid::new_v4()));
         std::fs::create_dir(&dir).unwrap();
         assert!(trace(&dir).is_empty());
         let file = std::fs::File::create(dir.join("panic.txt")).unwrap();

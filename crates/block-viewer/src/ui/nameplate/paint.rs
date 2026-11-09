@@ -3,7 +3,7 @@
 //! do not (the blur, the picture, the icons): each change of texture is a
 //! draw of its own.
 
-use super::block;
+use super::aurora;
 use super::mark::Look;
 use super::mesh::{self, Border, Glow, Outline, Ring};
 use super::{Badge, Badges, Content, Halo, Layout, Level, Metrics, Picture, Presence, Role, SCALE, SubLine, Tag, TextSize};
@@ -14,12 +14,12 @@ use egui::{Color32, FontId, Galley, Mesh, Pos2, Rect, Shape, Vec2};
 use std::sync::Arc;
 
 /// Opacity of the plate's tint over the blurred world, and of the far pill's.
-const TINT_GLASS: (f32, f32) = (0.58, 0.48);
+const TINT_GLASS: (f32, f32) = (0.52, 0.42);
 /// The same without the blur behind: denser, so the text stays readable
 /// over a busy scene.
-const TINT_PLAIN: (f32, f32) = (0.78, 0.66);
+const TINT_PLAIN: (f32, f32) = (0.74, 0.62);
 /// Opacity of the light border, and of the far pill's.
-const BORDER: (f32, f32) = (0.18, 0.12);
+const BORDER: (f32, f32) = (0.14, 0.10);
 /// Under the pointer (#473): how far the surface goes toward the ink, and
 /// the opacity the border gains. Faint: the plate answers, it does not flash.
 const HOVER_LIGHT: f32 = 0.12;
@@ -266,12 +266,12 @@ fn face(env: &Env<'_>, level: Level, c: &Content, t: f32) -> Face {
             ..Default::default()
         };
         for (i, ch) in label.chars().enumerate() {
-            let format = crate::ui::fonts::semibold_format(&env.semibold, block::TAG_TEXT * m.scale, look.letter(p, i, n, t));
+            let format = crate::ui::fonts::semibold_format(&env.semibold, aurora::TAG_TEXT * m.scale, look.letter(p, i, n, t));
             job.append(ch.encode_utf8(&mut [0; 4]), 0.0, format);
         }
         (env.painter.layout_job(job), look, t)
     });
-    let lead = staff.as_ref().map_or(0.0, |(g, ..)| block::tag_width(g.size().x, m.scale));
+    let lead = staff.as_ref().map_or(0.0, |(g, ..)| aurora::tag_width(g.size().x, m.scale));
     Face {
         metrics: m,
         layout: super::layout_with(level, &m, &text, badges.len(), lead),
@@ -352,7 +352,7 @@ fn readable_name(mut name: Color32, background: Color32, ink: Color32) -> Color3
 /// drawn (moved by its bounce).
 pub(super) fn plate(env: &Env<'_>, tag: &Tag<'_>, st: &State, cache: &mut Cache) -> (Rect, Rect) {
     let c = &tag.content;
-    let t = block::time(env.now, st.still);
+    let t = aurora::time(env.now, st.still);
     let to = face(env, st.level, c, t);
     let from = st.from.map(|level| (level, face(env, level, c, t)));
     let far = |level: Level| if level == Level::Far { 1.0 } else { 0.0 };
@@ -408,7 +408,7 @@ fn background(env: &Env<'_>, rect: Rect, st: &State, alpha: f32, far: f32, c: &C
     let s = SCALE;
     if st.glass > 0.0 {
         // inside the antialiased edge of the surface, which hides the blur's own
-        let radius = (mesh::plate_corner(rect) - 0.5).max(2.0);
+        let radius = rect.height() * 0.5 - 0.5;
         env.painter
             .add(block_render::glass_region(rect.shrink(0.5), radius, st.glass * alpha, GLASS_SHADE));
     }
@@ -552,8 +552,7 @@ fn badge_icon(p: &Palette, badge: Badge) -> Option<(&'static str, Color32)> {
         ),
         Badge::More(_) => return None,
         Badge::Voice => ("microphone-filled", p.success),
-        Badge::BlockViewer => ("box", p.violet),
-        Badge::Friend => ("user-filled", p.success),
+        Badge::Friend => ("heart-filled", p.success),
         Badge::TooComplex => ("alert-triangle-filled", p.amber),
         Badge::RenderNever => ("eye-off", p.amber),
         Badge::Blocked => ("ban", p.danger),
@@ -569,15 +568,11 @@ fn marks(env: &Env<'_>, key: &MarksKey) -> Mesh {
     let (l, s, ppp) = (&key.layout, key.scale, key.pixels_per_point);
     let mut mesh = Mesh::default();
     if let Some(photo) = l.photo {
-        // Squared profile picture matching the plate's boxed corners.
-        let rect = Rect::from_center_size(photo.center, Vec2::splat(photo.radius * 2.0));
-        let corner = (photo.radius * 0.28).clamp(2.5, 6.0);
-        let frame = Outline::rounded(rect, corner, ppp);
+        let disc = Outline::circle(photo.center, photo.radius, ppp);
         if key.placeholder {
-            let fill = frame.ring(&mut mesh, -0.5, p.raised);
-            frame.fill(&mut mesh, fill, p.raised);
+            disc.dot(&mut mesh, p.raised);
         }
-        frame.stroke(&mut mesh, 2.0 * s, p.ink.gamma_multiply(0.22));
+        disc.stroke(&mut mesh, 2.0 * s, p.ink.gamma_multiply(0.22));
     }
     if let (Some(dot), Some(presence)) = (l.dot, key.dot) {
         use crate::ui::presence::Shape as Mark;
@@ -620,8 +615,7 @@ fn marks(env: &Env<'_>, key: &MarksKey) -> Mesh {
     let fill = env.tint.gamma_multiply(BADGE_OPACITY);
     let edge = mesh::over(p.ink.gamma_multiply(0.16), fill);
     for r in &l.badges[..key.badges] {
-        let corner = (r.width() * 0.22).clamp(2.0, 5.0);
-        Outline::rounded(*r, corner, ppp).disc(&mut mesh, fill, edge, 1.0);
+        Outline::circle(r.center(), r.width() * 0.5, ppp).disc(&mut mesh, fill, edge, 1.0);
     }
     mesh
 }
@@ -656,9 +650,7 @@ fn contents(
     if let (Some(photo), Some(texture)) = (l.photo, picture) {
         let mut mesh = Mesh::with_texture(texture.id());
         let tint = ink(crate::ui::widgets::PICTURE_TINT);
-        let rect = Rect::from_center_size(photo.center + origin, Vec2::splat(photo.radius * 2.0));
-        let corner = (photo.radius * 0.28).clamp(2.5, 6.0);
-        Outline::rounded(rect, corner, ppp).picture(&mut mesh, cover(texture.size()), tint);
+        Outline::circle(photo.center + origin, photo.radius, ppp).picture(&mut mesh, cover(texture.size()), tint);
         painter.add(Shape::mesh(mesh));
     }
     // the placeholder's disc, then the rings, discs and bars that lie over
@@ -733,24 +725,24 @@ fn contents(
 
     // the staff's tag over the top edge, from the name's left
     if let Some((label, look, t)) = &face.staff {
-        let size = Vec2::new(block::tag_width(label.size().x, s), block::TAG_HEIGHT * s);
-        let at = Pos2::new(origin.x + l.text_x.0 - 2.0 * s, rect.top() - block::TAG_RISE * s - size.y * 0.5);
+        let size = Vec2::new(aurora::tag_width(label.size().x, s), aurora::TAG_HEIGHT * s);
+        let at = Pos2::new(origin.x + l.text_x.0 - 2.0 * s, rect.top() - aurora::TAG_RISE * s - size.y * 0.5);
         let pill = Rect::from_min_size(Pos2::new((at.x * ppp).round() / ppp, (at.y * ppp).round() / ppp), size);
         let mut mesh = Mesh::default();
         let fill = env.tint.gamma_multiply(BADGE_OPACITY);
         look.tag(&mut mesh, p, pill, pill.height() * 0.5, ppp, *t, fill, alpha, 1.2 * s);
         painter.add(Shape::mesh(mesh));
-        let icon_at = Pos2::new(pill.left() + block::TAG_PAD * s + block::TAG_ICON * s * 0.5, pill.center().y);
+        let icon_at = Pos2::new(pill.left() + aurora::TAG_PAD * s + aurora::TAG_ICON * s * 0.5, pill.center().y);
         if let Some(icon) = env
             .icons
             .get(look.icon())
             .cloned()
             .or_else(|| crate::ui::icons::global(look.icon()))
         {
-            let size = Vec2::splat(block::TAG_ICON * s);
+            let size = Vec2::splat(aurora::TAG_ICON * s);
             painter.image(icon.id(), Rect::from_center_size(icon_at, size), WHOLE, ink(look.icon_color(p, *t)));
         }
-        let x = pill.left() + (block::TAG_PAD + block::TAG_ICON + block::TAG_GAP) * s;
+        let x = pill.left() + (aurora::TAG_PAD + aurora::TAG_ICON + aurora::TAG_GAP) * s;
         let mut shape = TextShape::new(Pos2::new(x, pill.center().y - label.size().y * 0.5), label.clone(), p.ink);
         shape.opacity_factor = alpha;
         painter.add(shape);

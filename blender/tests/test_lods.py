@@ -9,8 +9,8 @@ import uuid
 
 import bpy
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-import aurora_live
-from aurora_live import lods, starter, tracking
+import block_live
+from block_live import lods, starter, tracking
 
 
 def counts(bundle):
@@ -32,24 +32,24 @@ class LodTests(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        aurora_live.register()
+        block_live.register()
 
     @classmethod
     def tearDownClass(cls):
-        aurora_live.unregister()
+        block_live.unregister()
 
     def setUp(self):
-        aurora_live._stop()
+        block_live._stop()
         if bpy.context.object and bpy.context.object.mode != "OBJECT":
             bpy.ops.object.mode_set(mode="OBJECT")
-        bpy.context.scene.aurora_live.objects.clear()
+        bpy.context.scene.block_live.objects.clear()
         for obj in list(bpy.data.objects):
             bpy.data.objects.remove(obj, do_unlink=True)
         self.rig, self.high = starter.create(bpy.context)
         self.high.name = "Garment_high"
         tracking.add(bpy.context.scene, [self.high])
         self.source = tracking.source_ids(bpy.context.scene)[self.high.as_pointer()]
-        self.entry = bpy.context.scene.aurora_live.objects[0]
+        self.entry = bpy.context.scene.block_live.objects[0]
         lods.initialize(self.entry)
         self.names = {joint["name"] for joint in starter.joints()}
 
@@ -119,7 +119,7 @@ class LodTests(unittest.TestCase):
         self.assertLessEqual(counts(result)[1], 52)
         other = self.clone("Other object")
         tracking.add(bpy.context.scene, [other])
-        second = bpy.context.scene.aurora_live.objects[1]
+        second = bpy.context.scene.block_live.objects[1]
         lods.initialize(second)
         self.assertEqual(second.medium.ratio, 50)
         self.assertEqual(self.entry.medium.triangles, 80)
@@ -180,7 +180,7 @@ class LodTests(unittest.TestCase):
             path = str(Path(folder) / "lod-settings.blend")
             bpy.ops.wm.save_as_mainfile(filepath=path)
             bpy.ops.wm.open_mainfile(filepath=path)
-            entry = bpy.context.scene.aurora_live.objects[0]
+            entry = bpy.context.scene.block_live.objects[0]
             self.assertEqual(entry.low.object.name, "Custom low")
             self.assertEqual(entry.low.mode, "EXISTING")
             self.assertEqual(entry.medium.triangles, 80)

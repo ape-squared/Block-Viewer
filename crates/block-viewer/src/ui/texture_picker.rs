@@ -615,7 +615,7 @@ impl TexturePicker {
                 &[
                     (block_i18n::tr!("picker-inventory-tab"), true),
                     (block_i18n::tr!("picker-local-tab"), self.allow_local),
-                    (block_i18n::tr!("picker-block-tab"), true),
+                    (block_i18n::tr!("picker-aurora-tab"), true),
                 ],
             );
             if self.source == 1 && !self.allow_local {
@@ -2238,7 +2238,7 @@ pub(crate) mod tests {
             world.inventory.root = root;
             let parent = if source == 0 { root } else { Uuid::from_u128(3) };
             world.inventory.created_folders(
-                [(1, 0, "Inventory"), (2, 1, "#Block"), (3, 2, "Block Library")]
+                [(1, 0, "Inventory"), (2, 1, "#Aurora"), (3, 2, "Aurora Library")]
                     .into_iter()
                     .map(|(id, parent, name)| block_net::inventory::InvFolder {
                         id: Uuid::from_u128(id),

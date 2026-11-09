@@ -12,24 +12,19 @@ use std::collections::HashSet;
 use std::time::{Duration, Instant};
 use uuid::Uuid;
 
-pub const FOLDER: &str = "#Block";
-pub const SUBFOLDER: &str = "Block Bridge";
-/// Prior product names still found in existing inventories; renamed in place.
-const OLD_FOLDERS: &[&str] = &["#Aurora"];
-const OLD_SUBFOLDERS: &[&str] = &["Aurora Bridge", "Bridge"];
-#[allow(dead_code)] // matched when renaming leftover inventory scripts
-const OLD_NAMES: &[&str] = &["#Aurora Bridge v1.0"];
-pub const NAME: &str = "#Block Bridge v1.0";
+pub const FOLDER: &str = "#Aurora";
+pub const SUBFOLDER: &str = "Aurora Bridge";
+const OLD_SUBFOLDER: &str = "Bridge";
+pub const NAME: &str = "#Aurora Bridge v1.0";
 // Stable inventory/script names let upgrades replace the existing controller
 // instead of wearing two bridges with competing physics.
-const VERSION: &str = "1.42";
+const VERSION: &str = "1.41";
 /// The controller's and query script's owner-say tags, never shown in chat.
-const PRIVATE_TAGS: [&str; 8] = [
+const PRIVATE_TAGS: [&str; 7] = [
     "<auroraBridge>",
     "<auroraBridgeQuery>",
     "<auroraPose>",
     "<auroraPortal>",
-    "<auroraBlock>",
     "<auroraMoveLock>",
     "<auroraBridgeError>",
     "<auroraBridgeStatus>",
@@ -46,9 +41,7 @@ const ROCK: &str = "Rock - medium, round";
 const SOURCE: &str = include_str!("bridge/bridge.lsl");
 // Read-only services (radar heights, script and object information) run in a
 // second script: Mono gives each script 64 KB, and the controller has little left.
-pub const QUERY_NAME: &str = "#Block Bridge Query";
-#[allow(dead_code)] // matched when renaming leftover inventory scripts
-const OLD_QUERY_NAMES: &[&str] = &["#Aurora Bridge Query"];
+pub const QUERY_NAME: &str = "#Aurora Bridge Query";
 const QUERY_SOURCE: &str = include_str!("bridge/query.lsl");
 pub(crate) mod ik;
 
@@ -1009,7 +1002,7 @@ impl Bridge {
                     .children
                     .iter()
                     .filter_map(|id| inv.folders.get(id))
-                    .filter(|f| !f.library && (f.info.name == FOLDER || OLD_FOLDERS.contains(&f.info.name.as_str())))
+                    .filter(|f| !f.library && f.info.name == FOLDER)
                     .map(|f| f.info.id)
                     .min();
                 let Some(folder) = folder else {
@@ -1031,24 +1024,6 @@ impl Bridge {
                     }
                     return;
                 };
-                // Rename a leftover Aurora root folder in place so inventory
-                // shows Block branding without recreating the bridge.
-                if inv.folders.get(&folder).is_some_and(|f| f.info.name != FOLDER) && self.phase != Phase::Folder {
-                    self.mutate(
-                        Mutation {
-                            operations: vec![Operation::Patch {
-                                id: folder,
-                                folder: true,
-                                body: block_llsd::llsd_map! { "name" => FOLDER },
-                            }],
-                            refresh: vec![inv.root, folder],
-                            ..Default::default()
-                        },
-                        Phase::Folder,
-                        now,
-                    );
-                    return;
-                }
                 self.container = folder;
                 inv.request(folder);
                 let Some(container) = inv.folders.get(&folder).filter(|f| f.state == FetchState::Fetched) else {
@@ -1063,10 +1038,9 @@ impl Bridge {
                         .map(|f| f.info.id)
                         .min()
                 };
-                let named_any = |names: &[&str]| names.iter().find_map(|n| named(n));
                 let subfolder = named(SUBFOLDER);
                 if subfolder.is_none()
-                    && let Some(old) = named_any(OLD_SUBFOLDERS)
+                    && let Some(old) = named(OLD_SUBFOLDER)
                 {
                     self.folder = old;
                     if self.phase != Phase::Subfolder {
@@ -1122,7 +1096,7 @@ impl Bridge {
                     .filter_map(|id| inv.items.get(id))
                     .filter(|item| {
                         item.owner == world.agent_id
-                            && ((item.asset_type == 6 && (item.name == NAME || OLD_NAMES.contains(&item.name.as_str())))
+                            && ((item.asset_type == 6 && item.name == NAME)
                                 || (item.asset_type == 20
                                     && (crate::movement::Style::ALL.iter().any(|style| item.name == style.name())
                                         || crate::movement::strokes::WATER_CLIPS.iter().any(|(_, name)| item.name == *name))))
@@ -1154,28 +1128,9 @@ impl Bridge {
                     .items
                     .iter()
                     .filter_map(|id| inv.items.get(id))
-                    .filter(|i| i.asset_type == 6 && (i.name == NAME || OLD_NAMES.contains(&i.name.as_str())) && i.owner == world.agent_id)
+                    .filter(|i| i.asset_type == 6 && i.name == NAME && i.owner == world.agent_id)
                     .min_by_key(|i| (!worn.contains(&i.id), i.id))
-                    .cloned()
                 {
-                    // Rename a leftover Aurora object so worn/inventory lists
-                    // show Block branding.
-                    if item.name != NAME {
-                        self.mutate(
-                            Mutation {
-                                operations: vec![Operation::Patch {
-                                    id: item.id,
-                                    folder: false,
-                                    body: block_llsd::llsd_map! { "name" => NAME },
-                                }],
-                                refresh: vec![folder],
-                                ..Default::default()
-                            },
-                            Phase::Move,
-                            now,
-                        );
-                        return;
-                    }
                     self.item = item.id;
                     if let Some(object) = world.worn_attachment(&self.item).and_then(|i| world.objects.get(i)) {
                         self.object = object.full_id;
@@ -1437,10 +1392,8 @@ impl Bridge {
                             portals.receive(world, &chat.message, now, super::portals::unix_time());
                             world.portals = portals;
                         }
-                        // Pose consent does not wait on the movement bridge.
-                        // The query script can deliver Ask while Movelock is
-                        // still starting; dropping it here left no prompt.
                         if chat.message.starts_with("<auroraPose>")
+                            && self.available()
                             && world
                                 .objects
                                 .index_of_uuid(&self.object)
@@ -1451,20 +1404,6 @@ impl Bridge {
                             consent.sync(world, now);
                             consent.receive(world, &chat.message, now);
                             world.poser_consent = consent;
-                        }
-                        if let Some(peer) = chat
-                            .message
-                            .strip_prefix("<auroraBlock>")
-                            .and_then(|s| s.strip_suffix("</auroraBlock>"))
-                            .and_then(|s| Uuid::parse_str(s.trim()).ok())
-                            .filter(|peer| !peer.is_nil() && *peer != world.agent_id)
-                            && world
-                                .objects
-                                .index_of_uuid(&self.object)
-                                .and_then(|i| world.objects.get(i))
-                                .is_some_and(|o| Some(o.key.region) == world.main_region)
-                        {
-                            crate::world::block_peers::note_live(peer, now);
                         }
                         if let Some(boot) = boot_status(&chat.message, self.folder)
                             && world
@@ -1585,7 +1524,7 @@ impl Bridge {
                                     asset_type: 10,
                                     inv_type: 10,
                                     name: name.into(),
-                                    description: "Block private bridge".into(),
+                                    description: "Aurora's private bridge".into(),
                                     ..Default::default()
                                 }),
                             }));

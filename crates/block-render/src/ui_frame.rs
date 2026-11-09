@@ -242,7 +242,7 @@ mod tests {
                 egui::ScrollArea::vertical().max_height(120.0).show(ui, |ui| {
                     for row in 0..rows {
                         ui.horizontal(|ui| {
-                            ui.label(format!("Row {row}: Block Viewer éàü"));
+                            ui.label(format!("Row {row}: Aurora Viewer éàü"));
                             let _ = ui.button("Open");
                             let _ = ui.radio(row % 2 == 0, "Radio");
                         });

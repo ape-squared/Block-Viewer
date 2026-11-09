@@ -1,10 +1,8 @@
-# Installing Block Viewer on Linux
+# Installing Aurora Viewer on Linux
 
-Block’s published releases today are **Windows**. When a Linux archive is
-attached to a [release](https://github.com/ape-squared/Block-Viewer/releases),
-it is a portable tarball: extract and run, nothing to install as root. You
-can also [build from source](#building-from-source). The notes below match the
-upstream Linux packaging; tell us what breaks on your distro.
+Every release of Aurora Viewer comes with a Linux build: an archive to
+extract and run, with nothing to install as root. It is tested on Arch Linux
+and CachyOS; other recent distributions work the same way.
 
 ## Requirements
 
@@ -45,23 +43,23 @@ Plus the Vulkan driver of your graphics card if it is not there yet:
 
 ## 2. Download and extract
 
-From the [latest release](https://github.com/ape-squared/Block-Viewer/releases/latest),
-download `Block-Viewer-vX.Y.Z-linux-x64.tar.gz` and its `.sha256` file into
+From the [latest release](https://github.com/Aurora-Viewer/Aurora-Viewer/releases/latest),
+download `Aurora-Viewer-vX.Y.Z-linux-x64.tar.gz` and its `.sha256` file into
 the same folder, then:
 
 ```bash
-sha256sum -c Block-Viewer-vX.Y.Z-linux-x64.tar.gz.sha256
-tar -xzf Block-Viewer-vX.Y.Z-linux-x64.tar.gz
+sha256sum -c Aurora-Viewer-vX.Y.Z-linux-x64.tar.gz.sha256
+tar -xzf Aurora-Viewer-vX.Y.Z-linux-x64.tar.gz
 ```
 
-The archive holds one folder, `Block-Viewer-vX.Y.Z-linux-x64`, with the
+The archive holds one folder, `Aurora-Viewer-vX.Y.Z-linux-x64`, with the
 viewer (`block-viewer`), its desktop entry and icon, its licences and the
 README. Move it where you like, for example `~/.local/opt/block-viewer`.
 
 ## 3. Start the viewer
 
 ```bash
-cd Block-Viewer-vX.Y.Z-linux-x64
+cd Aurora-Viewer-vX.Y.Z-linux-x64
 ./block-viewer
 ```
 
@@ -100,7 +98,7 @@ would show, and the same row shows the progress. They go to
   are missing; install their packages.
 
   ```bash
-  ldd ~/.local/share/blockviewer/media-plugins/*/llplugin/libcef.so | grep "not found"
+  ldd ~/.local/share/auroraviewer/media-plugins/*/llplugin/libcef.so | grep "not found"
   ```
 
 - The built-in browser runs without Chromium's sandbox, as in the Legacy
@@ -116,19 +114,19 @@ Your settings, cache and logs are kept: they are not in the viewer's folder.
 
 | What | Where |
 |---|---|
-| Settings | `~/.config/blockviewer` |
-| Cache | `~/.cache/blockviewer` |
-| Logs, media plugins | `~/.local/share/blockviewer` |
+| Settings | `~/.config/auroraviewer` |
+| Cache | `~/.cache/auroraviewer` |
+| Logs, media plugins | `~/.local/share/auroraviewer` |
 
 ## Second Life links
 
 Preferences › Language and updates › "Open SLURL and Hypergrid links in
-Block" makes Block the handler of `secondlife://`, `hop://` and
+Aurora" makes Aurora the handler of `secondlife://`, `hop://` and
 `x-grid-location-info://` links for the current user. It writes a hidden
 desktop entry, `~/.local/share/applications/block-viewer-slurl.desktop`,
 and makes it the default for the three schemes in `~/.config/mimeapps.list`;
 the rest of that file is kept. Turning it off removes both. A link opened
-while Block runs goes to that viewer over the session bus instead of
+while Aurora runs goes to that viewer over the session bus instead of
 starting a second one. Wayland does not let it bring its window to the
 front, so the window stays where it is (X11 is not tested yet).
 
@@ -156,7 +154,7 @@ your desktop (GNOME, KDE and other GLib desktops read such paths).
 ```bash
 sudo pacman -S --needed git base-devel rustup cmake clang pkgconf alsa-lib libxkbcommon wayland libx11 libxcursor libxrandr libxi vulkan-icd-loader
 rustup default stable
-git clone https://github.com/ape-squared/Block-Viewer block-viewer
+git clone https://github.com/Aurora-Viewer/Aurora-Viewer block-viewer
 cd block-viewer
 cargo build --release -p block-viewer
 ./target/release/block-viewer

@@ -1,4 +1,4 @@
-﻿# Release policy is part of the annotated tag: the release can be configured
+# Release policy is part of the annotated tag: the release can be configured
 # without committing local choices to main. Thresholds carry across versions.
 function Get-UpdatePolicy([string]$RepoPath, [string]$Tag, [string]$BaseTag, [string]$Ref) {
     $fields = @('minimum_supported_version', 'cache_invalidation_before', 'settings_reset_before')

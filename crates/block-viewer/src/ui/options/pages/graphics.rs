@@ -4,9 +4,8 @@
 //! depth of field), smoothness and parcel visibility.
 
 use super::super::cx::{Cx, Nothing, field};
-use super::super::{COMBO_W, Folder, FolderChoice, path_label, preset_choice, stepped, toggle};
-use crate::ui::widgets::{ActionKind, action_button};
-use egui::{RichText, Vec2};
+use super::super::{COMBO_W, preset_choice, stepped, toggle};
+use egui::RichText;
 
 pub fn page(cx: &mut Cx, tab: usize) {
     use block_i18n::tr;
@@ -235,6 +234,11 @@ fn frames_per_second(cx: &mut Cx) {
             tr!("ui-options-pause-when-card-busy-tip"),
             &field!(background_gpu_pause),
         );
+        cx.unfolded().toggle(
+            tr!("ui-options-gpu-recovery"),
+            tr!("ui-options-gpu-recovery-tip"),
+            &field!(gpu_recovery),
+        );
     });
 }
 
@@ -304,8 +308,14 @@ fn quality(cx: &mut Cx) {
             tr!("common-draw-distance"),
             tr!("ui-options-objects-beyond-this-distance-are-not-drawn-96-m"),
             &field!(draw_distance),
-            32.0..=1024.0,
+            32.0..=512.0,
             " m",
+        );
+        // FSRenderFarClipStepping; its interval in Debug Settings (clean menus)
+        cx.keywords("FSRenderFarClipStepping progressive").toggle(
+            tr!("ui-options-draw-distance-stepping"),
+            tr!("ui-options-draw-distance-stepping-hint"),
+            &field!(draw_distance_stepping),
         );
         cx.row(
             tr!("ui-options-level-of-detail-lod"),
@@ -314,6 +324,24 @@ fn quality(cx: &mut Cx) {
             |ui, s| {
                 ui.add(
                     egui::Slider::new(&mut s.lod_factor, 0.5..=4.0)
+                        .custom_parser(block_i18n::parse_number)
+                        .step_by(0.125)
+                        .trailing_fill(true),
+                )
+                .changed()
+            },
+        );
+        // TreeMeshDetail (panel_preferences_graphics1.xml). From 0, where the
+        // Legacy slider starts at 0.125: 0 turns trees and grass off, as the
+        // Potato level and Debug Settings do (the human's decision,
+        // 2026-11-07)
+        cx.keywords("RenderTreeLODFactor LOD").row(
+            tr!("ui-options-trees"),
+            tr!("ui-options-trees-hint"),
+            &field!(tree_lod_factor),
+            |ui, s| {
+                ui.add(
+                    egui::Slider::new(&mut s.tree_lod_factor, 0.0..=1.0)
                         .custom_parser(block_i18n::parse_number)
                         .step_by(0.125)
                         .trailing_fill(true),
@@ -335,10 +363,11 @@ fn quality(cx: &mut Cx) {
                 .changed()
             },
         );
-        cx.toggle(
-            tr!("ui-options-selection-particles"),
-            tr!("ui-options-selection-particles-help"),
-            &field!(selection_particles),
+        // RenderAttachedParticles (panel_preferences_graphics1.xml)
+        cx.keywords("RenderAttachedParticles").toggle(
+            tr!("ui-options-attached-particles"),
+            tr!("ui-options-attached-particles-hint"),
+            &field!(attached_particles),
         );
         cx.toggle(
             tr!("ui-options-occlusion"),
@@ -508,7 +537,7 @@ fn quality(cx: &mut Cx) {
             );
         });
     });
-    // the camera window's own switch, also here: a PC that crashes as soon
+    // the photo window's own switch, also here: a PC that crashes as soon
     // as the window opens with it on can still turn it off
     cx.group(tr!("photo-title"), |cx| {
         cx.toggle(tr!("photo-quality"), tr!("photo-quality-hint"), &field!(snapshot.quality));
@@ -516,36 +545,6 @@ fn quality(cx: &mut Cx) {
             tr!("photo-quality-off-after-crash"),
             tr!("photo-quality-off-after-crash-help"),
             &field!(snapshot.quality_off_after_crash),
-        );
-        cx.slider(
-            tr!("camera-video-fps"),
-            tr!("camera-video-fps-help"),
-            &field!(snapshot.video_fps),
-            crate::video_record::MIN_FPS as u8..=crate::video_record::MAX_FPS as u8,
-            tr!("status-fps"),
-        );
-        let p = cx.p;
-        cx.below().row_with(
-            tr!("photo-folder"),
-            tr!("ui-options-photos-folder-help"),
-            &Nothing,
-            |ui, s, _, r| {
-                let dir = s.snapshot.folder();
-                let custom = s.snapshot.folder.is_some();
-                ui.vertical(|ui| {
-                    path_label(ui, &p, &dir, ui.available_width());
-                    ui.horizontal(|ui| {
-                        let size = Vec2::new(0.0, 24.0);
-                        if action_button(ui, &p, "folder-filled", tr!("ui-options-change-folder"), ActionKind::Flat, size).clicked() {
-                            r.folder = Some((Folder::Photos, FolderChoice::Pick));
-                        }
-                        if custom && action_button(ui, &p, "restore", tr!("ui-options-default-folder"), ActionKind::Flat, size).clicked() {
-                            r.folder = Some((Folder::Photos, FolderChoice::Default));
-                        }
-                    });
-                });
-                false
-            },
         );
     });
 }
@@ -747,7 +746,7 @@ fn reflections_and_water(cx: &mut Cx) {
             &field!(probe_count),
             |ui, s| {
                 ui.add(
-                    egui::Slider::new(&mut s.probe_count, 8..=64)
+                    egui::Slider::new(&mut s.probe_count, 8..=256)
                         .custom_parser(block_i18n::parse_number)
                         .step_by(8.0)
                         .trailing_fill(true),
@@ -755,9 +754,24 @@ fn reflections_and_water(cx: &mut Cx) {
                 .changed()
             },
         );
+        cx.row(
+            tr!("ui-options-probe-range"),
+            tr!("ui-options-probe-range-help"),
+            &field!(probe_range),
+            |ui, s| {
+                ui.add(
+                    egui::Slider::new(&mut s.probe_range, 32.0..=512.0)
+                        .custom_parser(block_i18n::parse_number)
+                        .step_by(16.0)
+                        .suffix(" m")
+                        .trailing_fill(true),
+                )
+                .changed()
+            },
+        );
     });
     // Aurora's own water effects, experimental and off by default
-    cx.group(tr!("ui-options-block-water"), |cx| {
+    cx.group(tr!("ui-options-aurora-water"), |cx| {
         cx.experimental().toggle(
             tr!("water-effects-enabled"),
             tr!("water-effects-help"),
@@ -813,11 +827,6 @@ fn image(cx: &mut Cx) {
             tr!("ui-options-specular-aa"),
             tr!("ui-options-specular-aa-help"),
             &field!(specular_aa),
-        );
-        cx.toggle(
-            tr!("ui-options-medal-clip"),
-            tr!("ui-options-medal-clip-help"),
-            &field!(medal_clip_layers),
         );
     });
     // FSR's own settings (block_render fsr.rs), greyed under another

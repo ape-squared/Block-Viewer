@@ -6,29 +6,29 @@ import bpy
 from mathutils import Matrix, Vector
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-import aurora_live
-from aurora_live import exporter, posing, rigging, skinning, starter
+import block_live
+from block_live import exporter, posing, rigging, skinning, starter
 
 
 class PoseControlTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        aurora_live.register()
+        block_live.register()
 
     @classmethod
     def tearDownClass(cls):
-        aurora_live.unregister()
+        block_live.unregister()
 
     def setUp(self):
         if bpy.context.object and bpy.context.object.mode != "OBJECT":
             bpy.ops.object.mode_set(mode="OBJECT")
         bpy.ops.object.select_all(action="SELECT")
         bpy.ops.object.delete(use_global=False)
-        bpy.context.scene.aurora_live.objects.clear()
+        bpy.context.scene.block_live.objects.clear()
         bpy.context.scene.unit_settings.scale_length = 1
-        bpy.context.scene.aurora_live.forward = "NATIVE"
+        bpy.context.scene.block_live.forward = "NATIVE"
         self.rig, self.shirt = starter.create(bpy.context)
-        bpy.context.scene.aurora_live.rig = self.rig
+        bpy.context.scene.block_live.rig = self.rig
 
     def matrices(self):
         bpy.context.view_layer.update()

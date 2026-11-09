@@ -1,4 +1,4 @@
-//! Second Life voice for Block Viewer (WebRTC).
+//! Second Life voice for Aurora Viewer (WebRTC).
 //!
 //! Second Life regions announce their voice backend in
 //! `SimulatorFeatures["VoiceServerType"]`. For `"webrtc"` regions this crate
@@ -20,6 +20,7 @@
 //! `indra/llwebrtc/llwebrtc.cpp`, Copyright (C) Linden Research, Inc. and
 //! The Phoenix Firestorm Project, licensed under the GNU originally LGPL 2.1.
 
+mod link_stats;
 pub mod protocol;
 mod session;
 mod state;

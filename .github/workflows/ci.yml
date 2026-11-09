@@ -13,6 +13,7 @@ name: CI
 # own (the platform-needed action), runs in full on main instead.
 on:
   pull_request:
+  merge_group:
   push:
     branches: [main]
 
@@ -29,6 +30,9 @@ concurrency:
 
 permissions:
   contents: read
+
+env:
+  CARGO_TERM_COLOR: always
 
 jobs:
   lint:

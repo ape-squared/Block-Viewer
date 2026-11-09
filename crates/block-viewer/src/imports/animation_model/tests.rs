@@ -143,7 +143,7 @@ fn custom_animation_model_cancel_errors_and_late_results_keep_the_current_select
 
 #[test]
 fn custom_animation_model_loads_a_local_collada_file_without_adding_it_to_the_import_queue() {
-    let root = std::env::temp_dir().join(format!("block-animation-model-{}", Uuid::new_v4()));
+    let root = std::env::temp_dir().join(format!("aurora-animation-model-{}", Uuid::new_v4()));
     std::fs::create_dir_all(&root).expect("fixture directory");
     let path = root.join("tail.dae");
     let bytes = demo::tail_dae();
@@ -177,7 +177,7 @@ fn custom_animation_model_loads_a_local_collada_file_without_adding_it_to_the_im
 
 #[test]
 fn custom_animation_model_loads_gltf_and_glb_with_bento_weights() {
-    let root = std::env::temp_dir().join(format!("block-animation-gltf-{}", Uuid::new_v4()));
+    let root = std::env::temp_dir().join(format!("aurora-animation-gltf-{}", Uuid::new_v4()));
     std::fs::create_dir_all(&root).expect("fixture directory");
     let mut binary = Vec::new();
     for value in [0.0f32, 0.0, 0.0, -1.0, 0.0, 0.0, -1.0, 0.2, 0.0] {
@@ -320,7 +320,7 @@ fn retired_inventory_preview_references_do_not_reappear_in_the_local_model_list(
 
 #[test]
 fn removing_a_saved_animation_model_keeps_its_file_and_rejects_pending_results() {
-    let root = std::env::temp_dir().join(format!("block-model-list-{}", Uuid::new_v4()));
+    let root = std::env::temp_dir().join(format!("aurora-model-list-{}", Uuid::new_v4()));
     std::fs::create_dir_all(&root).expect("fixture directory");
     let path = root.join("tail.dae");
     std::fs::write(&path, demo::tail_dae()).expect("model file");
@@ -383,7 +383,7 @@ fn an_unavailable_saved_animation_model_keeps_the_list_and_the_previous_preview(
 #[test]
 fn last_animation_model_restores_on_import_and_standard_remains_the_default_after_restart() {
     let _inline = crate::scene::jobs::execute_inline_on_this_thread();
-    let root = std::env::temp_dir().join(format!("block-model-default-{}", Uuid::new_v4()));
+    let root = std::env::temp_dir().join(format!("aurora-model-default-{}", Uuid::new_v4()));
     std::fs::create_dir_all(&root).expect("fixture directory");
     let path = root.join("tail.dae");
     std::fs::write(&path, demo::tail_dae()).expect("model file");
@@ -490,7 +490,7 @@ fn animation_model_changes_share_geometry_without_changing_clocks_metadata_or_ot
 #[test]
 fn queued_animation_model_load_survives_row_removal_and_cannot_undo_a_newer_choice() {
     let _inline = crate::scene::jobs::execute_inline_on_this_thread();
-    let root = std::env::temp_dir().join(format!("block-model-queue-{}", Uuid::new_v4()));
+    let root = std::env::temp_dir().join(format!("aurora-model-queue-{}", Uuid::new_v4()));
     std::fs::create_dir_all(&root).expect("fixture directory");
     let path = root.join("tail.dae");
     std::fs::write(&path, demo::tail_dae()).expect("model file");

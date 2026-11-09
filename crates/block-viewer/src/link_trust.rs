@@ -33,7 +33,7 @@ const TRUSTED: &[&str] = &[
     "phoenixviewer.com",
     // the project's official domain; the former auroraviewer.com is no
     // longer trusted (once released, anyone could own it)
-    "ape-squared.github.io/Block",
+    "block-viewer.org",
     // OpenSimulator
     "opensimulator.org",
     "osgrid.org",
@@ -441,9 +441,9 @@ mod tests {
             "https://www.casperdns.com/",
             "https://www.casperpanel.com/",
             "https://casperlet.com/",
-            "https://ape-squared.github.io/Block",
-            "https://www.ape-squared.github.io/Block/downloads",
-            "https://github.com/Block-Viewer/Block-Viewer/pulls",
+            "https://block-viewer.org",
+            "https://www.block-viewer.org/downloads",
+            "https://github.com/Aurora-Viewer/Aurora-Viewer/pulls",
             "https://gist.github.com/x",
             "https://secondlife.com./x",
             "https://www.youtube.com/watch?v=x",
@@ -496,7 +496,7 @@ mod tests {
             "https://second-life-login.example",
             "https://firestorm-viewer.download",
             "https://auroraviewer.com",
-            "https://ape-squared.github.io/Block.evil.example",
+            "https://block-viewer.org.evil.example",
             "https://block-viewer-login.example",
             "https://youtube.com.evil.example/watch",
             "https://bit.ly/abc",

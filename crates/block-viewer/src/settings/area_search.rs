@@ -377,7 +377,7 @@ mod tests {
     }
 
     #[test]
-    fn area_search_settings_round_trip_and_old_files_keep_block_defaults() {
+    fn area_search_settings_round_trip_and_old_files_keep_aurora_defaults() {
         let old: AreaSearch = serde_json::from_str("{}").unwrap();
         assert_eq!(old, AreaSearch::default());
         assert!(

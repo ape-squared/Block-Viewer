@@ -63,8 +63,6 @@ struct MicShared {
     capture_delay_ms: AtomicU32,
     /// Requested gain (f32 bits).
     gain: AtomicU32,
-    /// Voice morph pitch (f32 bits); 1.0 = unchanged. Applied after gain.
-    pitch: AtomicU32,
     /// Smoothed RMS of the gained signal, 0..1 (f32 bits).
     rms: AtomicU32,
     /// Samples written so far (stall detection).
@@ -80,7 +78,6 @@ impl MicShared {
             processing: Mutex::new(None),
             capture_delay_ms: AtomicU32::new(0),
             gain: AtomicU32::new(1.0f32.to_bits()),
-            pitch: AtomicU32::new(1.0f32.to_bits()),
             rms: AtomicU32::new(0),
             captured: AtomicU64::new(0),
             device: Mutex::new(String::new()),
@@ -122,25 +119,11 @@ impl MicWriter {
     /// many were queued (the rest is dropped when the reader lags).
     fn write(&mut self, samples: &[f32]) -> usize {
         let target = f32::from_bits(self.shared.gain.load(Ordering::Relaxed));
-        let pitch = f32::from_bits(self.shared.pitch.load(Ordering::Relaxed));
-        let pitch_shift = (pitch - 1.0).abs() > 0.01;
         let step = 1.0 / GAIN_RAMP_SAMPLES * MAX_INPUT_GAIN;
         let mut buf = [0.0f32; 256];
         let mut queued = 0;
-        let mut offset = 0usize;
-        while offset < samples.len() {
-            let n = (samples.len() - offset).min(buf.len());
-            for (j, o) in buf[..n].iter_mut().enumerate() {
-                let s = if pitch_shift {
-                    let src = (offset + j) as f32 * pitch;
-                    let i0 = src.floor() as usize;
-                    let frac = src - i0 as f32;
-                    let a = samples.get(i0).copied().unwrap_or(0.0);
-                    let b = samples.get(i0 + 1).copied().unwrap_or(a);
-                    a + (b - a) * frac
-                } else {
-                    samples[offset + j]
-                };
+        for chunk in samples.chunks(buf.len()) {
+            for (o, &s) in buf.iter_mut().zip(chunk) {
                 if self.gain != target {
                     self.gain += (target - self.gain).clamp(-step, step);
                 }
@@ -149,9 +132,8 @@ impl MicWriter {
                 *o = v;
                 self.meter(v);
             }
-            let (done, _) = self.prod.push_partial_slice(&buf[..n]);
+            let (done, _) = self.prod.push_partial_slice(&buf[..chunk.len()]);
             queued += done.len();
-            offset += n;
         }
         self.shared.captured.fetch_add(samples.len() as u64, Ordering::Relaxed);
         queued
@@ -392,13 +374,6 @@ impl MicCapture {
     pub fn set_gain(&self, gain: f32) {
         let gain = if gain.is_finite() { gain.clamp(0.0, MAX_INPUT_GAIN) } else { 1.0 };
         self.inner.shared.gain.store(gain.to_bits(), Ordering::Relaxed);
-    }
-
-    /// Pitch ratio for voice morphing (0.5..=2.0; 1.0 = none). Keeps the
-    /// output length; higher pitch reads the buffer faster.
-    pub fn set_pitch(&self, pitch: f32) {
-        let pitch = if pitch.is_finite() { pitch.clamp(0.5, 2.0) } else { 1.0 };
-        self.inner.shared.pitch.store(pitch.to_bits(), Ordering::Relaxed);
     }
 
     /// Enables WebRTC processing on the capture worker, before manual gain.

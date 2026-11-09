@@ -6,8 +6,8 @@ use crossbeam_channel::{Receiver, Sender};
 use serde_json::Value;
 use std::time::{Duration, Instant};
 
-pub const ISSUES: &str = "https://github.com/Block-Viewer/Block-Viewer/issues";
-const API: &str = "https://api.github.com/repos/Block-Viewer/Block-Viewer/issues";
+pub const ISSUES: &str = "https://github.com/Aurora-Viewer/Aurora-Viewer/issues";
+const API: &str = "https://api.github.com/repos/Aurora-Viewer/Aurora-Viewer/issues";
 pub const VERIFY: &str = "https://github.com/login/device";
 // Public identifier, supplied by the project's GitHub App registration.
 pub const CLIENT_ID: &str = "Iv23liT7PLWClMLztI1W";

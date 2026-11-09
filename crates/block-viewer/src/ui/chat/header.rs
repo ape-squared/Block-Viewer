@@ -289,9 +289,9 @@ fn call_tool(ui: &mut egui::Ui, p: &Palette, icons: &crate::ui::icons::Icons, wo
     }
 }
 
-/// The other actions of the conversation. Offer teleport stays on the head
-/// toolbar; this menu carries Request teleport (Legacy menu_avatar_other)
-/// so the two are not duplicated.
+/// The other actions of the conversation: what Firestorm's IM toolbar has
+/// and Aurora does not do yet stays in it, greyed. The workspace's head
+/// (`head.rs`) has no teleport button: its offer is here.
 pub(super) fn more_menu(
     ui: &mut egui::Ui,
     p: &Palette,
@@ -336,10 +336,8 @@ pub(super) fn more_items(
                 }
             }
             Some(other) => {
-                // Offer teleport is already on the head toolbar; Request is
-                // the missing Legacy companion (LLAvatarActions::teleportRequest).
-                if workspace && menu::item(ui, p, "plane-arrival-filled", block_i18n::tr!("common-request-teleport")) {
-                    crate::ui::context::request(ui.ctx(), CtxAction::RequestTeleport(other));
+                if workspace && menu::item(ui, p, "send-filled", block_i18n::tr!("common-offer-teleport")) {
+                    actions.push(ConvAction::OfferTeleport(other));
                 }
                 if workspace && menu::item(ui, p, super::head::ADD_PEOPLE_ICON, block_i18n::tr!("ui-call-add-people")) {
                     actions.push(ConvAction::PickPeople(other));

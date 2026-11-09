@@ -79,7 +79,7 @@ fn summary(ui: &mut egui::Ui, p: &Palette, icon: &str, label: &str, remembered: 
 }
 
 pub fn show(ctx: &Context, p: &Palette, icons: &Icons, settings: &mut Settings, form: &mut LoginForm) {
-    show_impl(ctx, p, icons, settings, form, crate::block_env::demo_mode());
+    show_impl(ctx, p, icons, settings, form, std::env::var_os("AURORA_DEMO").is_some());
 }
 
 fn show_impl(ctx: &Context, p: &Palette, icons: &Icons, settings: &mut Settings, form: &mut LoginForm, offline: bool) {
@@ -465,6 +465,10 @@ fn apply(settings: &mut Settings, form: &mut LoginForm, pending: Confirmation, o
             }
             // LLFloaterForgetUser: its stored favourites go with it
             form.favorites.forget(&account.key());
+            // FSPanelLogin::onClickRemove: UserLoginInfo goes with its account
+            if settings.last_login.as_ref() == Some(&account.key()) {
+                settings.last_login = None;
+            }
             if form.start_favorite.as_ref().is_some_and(|(key, _)| *key == account.key()) {
                 form.start_favorite = None;
             }
@@ -747,6 +751,7 @@ mod tests {
         assert!(form.stored.is_some());
         assert!(!form.remember_mfa);
         assert!(matches(&form.accounts[0], "SYNTHETIC-BETA".to_lowercase().as_str()));
+        settings.last_login = Some(alpha.key());
         apply(
             &mut settings,
             &mut form,
@@ -758,6 +763,8 @@ mod tests {
         );
         assert_eq!(form.accounts.len(), 1);
         assert_eq!(form.accounts[0].username, "synthetic-beta");
+        assert_eq!(settings.last_login, None, "the last login goes with its account");
+        settings.last_login = Some(form.accounts[0].key());
         apply(
             &mut settings,
             &mut form,
@@ -768,5 +775,10 @@ mod tests {
             true,
         );
         assert_eq!(form.accounts.len(), 1);
+        assert_eq!(
+            settings.last_login,
+            Some(form.accounts[0].key()),
+            "another account's removal keeps it"
+        );
     }
 }

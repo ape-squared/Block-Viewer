@@ -30,7 +30,7 @@ impl App {
         self.options_ui.backup_status.clear();
         let mut backup = Backup::new(&self.settings, ui::layout::text(ctx));
         let date = crate::snapshot::local_stamp();
-        let name = format!("block-settings-{}.json", date.get(..10).unwrap_or(&date));
+        let name = format!("aurora-settings-{}.json", date.get(..10).unwrap_or(&date));
         self.settings_backup.0 = Some(spawn(move || {
             let Some(path) = file_dialog().set_file_name(name).save_file() else {
                 return Outcome::Cancelled;
@@ -160,7 +160,7 @@ fn file_dialog() -> rfd::FileDialog {
 
 fn spawn(work: impl FnOnce() -> Outcome + Send + 'static) -> Receiver<Outcome> {
     let (tx, rx) = std::sync::mpsc::channel();
-    let _ = std::thread::Builder::new().name("block-settings-backup".into()).spawn(move || {
+    let _ = std::thread::Builder::new().name("aurora-settings-backup".into()).spawn(move || {
         let _ = tx.send(work());
     });
     rx

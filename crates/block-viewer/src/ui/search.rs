@@ -145,7 +145,7 @@ pub struct SearchUi {
     /// Profile pictures of the residents shown.
     pub wanted_pics: HashSet<Uuid>,
     /// Aurora's window: its field, type and selection.
-    block: block::Aurora,
+    aurora: block::Aurora,
 }
 
 impl Default for SearchUi {
@@ -175,7 +175,7 @@ impl Default for SearchUi {
             web_edit: None,
             web_home: String::new(),
             wanted_pics: HashSet::new(),
-            block: block::Aurora::default(),
+            aurora: block::Aurora::default(),
         }
     }
 }
@@ -421,12 +421,12 @@ impl SearchUi {
         self.tab = tab.index();
         self.restored = true;
         self.focus = true;
-        self.block.open(block::Kind::of(tab));
+        self.aurora.open(block::Kind::of(tab));
     }
 
     /// Aurora's window on its "All" chip (demo).
     pub fn open_all(&mut self) {
-        self.block.open(block::Kind::All);
+        self.aurora.open(block::Kind::All);
         self.focus = true;
     }
 
@@ -449,7 +449,7 @@ impl SearchUi {
     /// Demo: the text typed in the tab's field (the price field of the land
     /// sales, which have no search field).
     pub fn set_text(&mut self, tab: Tab, text: &str) {
-        self.block.text = text.to_owned();
+        self.aurora.text = text.to_owned();
         if tab == Tab::Land {
             self.land_price = text.to_owned();
         } else if let Some(t) = tab.list_index().and_then(|i| self.texts.get_mut(i)) {
@@ -837,7 +837,11 @@ impl SearchUi {
             }
             if widgets::action_button(ui, p, "external-link-filled", label, ActionKind::Flat, external).clicked() {
                 let url = external_address(&self.web.location, home, env.session);
-                super::context::request(ui.ctx(), super::context::CtxAction::OpenUrl(url));
+                // System browser: CtxAction::OpenUrl would keep Marketplace
+                // (and other in-viewer) sites inside a floater.
+                if let Err(err) = webbrowser::open(&url) {
+                    log::warn!("search: cannot open system browser for {url}: {err}");
+                }
             }
         });
         if env.anonymous {

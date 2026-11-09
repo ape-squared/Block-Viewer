@@ -138,14 +138,8 @@ mod tests {
         let blocks = blocks();
         // the copyright line opens the Licences tab: modified versions must
         // keep it on screen (GPLv3 section 5(d))
-        // Block's NOTICE opens with the product name, then the GPL line.
-        assert!(
-            blocks
-                .iter()
-                .any(|b| matches!(b, Block::Paragraph(p) if p.contains("GNU General Public License")))
-                || blocks.iter().any(|b| matches!(b, Block::Heading(t) if t.contains("Notices")))
-        );
-        assert!(NOTICE.contains("Block Viewer") && NOTICE.contains("GNU General Public License"));
+        assert!(matches!(&blocks[0], Block::Paragraph(p) if p.starts_with("Copyright © ") && p.contains("Block Viewer contributors")));
+        assert!(matches!(&blocks[1], Block::Paragraph(p) if p.contains("GNU General Public License")));
         let rows = blocks.iter().filter(|b| matches!(b, Block::Row { .. })).count();
         let table_lines = NOTICE.lines().filter(|l| l.trim_start().starts_with('|')).count();
         let tables = NOTICE.lines().filter(|l| l.trim_start().starts_with("|---")).count();

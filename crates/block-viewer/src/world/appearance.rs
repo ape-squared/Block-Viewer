@@ -493,6 +493,13 @@ pub fn plan(inv: &Inventory, action: Action, worn: &HashMap<Uuid, u8>) -> Result
     ) {
         for id in worn.keys() {
             if !current.iter().any(|l| l.target == *id) {
+                // Experience temp attachments often use an AttachItemID that
+                // isn't the agent's inventory item (#1812). Once the fetch
+                // answers missing, leave them out of the outfit plan instead
+                // of blocking every Wear/Add for the session.
+                if inv.missing_items.contains(id) {
+                    continue;
+                }
                 let it = inv
                     .items
                     .get(id)
@@ -1376,10 +1383,10 @@ pub fn seed_demo(inv: &mut Inventory, agent: Uuid) {
     }
     let mut items = Vec::new();
     for (i, (name, kind, flags)) in [
-        (block_i18n::tr!("world-appearance-aurora-silhouette"), 13, 0),
-        (block_i18n::tr!("world-appearance-aurora-skin"), 13, 1),
-        (block_i18n::tr!("world-appearance-aurora-hair"), 13, 2),
-        (block_i18n::tr!("world-appearance-aurora-eyes"), 13, 3),
+        (block_i18n::tr!("world-appearance-block-silhouette"), 13, 0),
+        (block_i18n::tr!("world-appearance-block-skin"), 13, 1),
+        (block_i18n::tr!("world-appearance-block-hair"), 13, 2),
+        (block_i18n::tr!("world-appearance-block-eyes"), 13, 3),
         (block_i18n::tr!("world-appearance-star-tattoo"), 5, 14),
         (block_i18n::tr!("world-appearance-leather-jacket-2"), 5, 8),
         (block_i18n::tr!("world-appearance-black-pants"), 5, 5),

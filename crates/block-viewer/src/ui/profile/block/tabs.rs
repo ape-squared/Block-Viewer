@@ -76,8 +76,8 @@ pub(super) fn classified_name_error(name: &str) -> Option<&'static str> {
     // Save. The field prevalidates new insertions separately; received
     // Unicode elsewhere in an existing title must not block other edits.
     match name.bytes().next() {
-        None => Some(block_i18n::tr!("ui-profile-aurora-classified-blank-name")),
-        Some(b) if !b.is_ascii_alphanumeric() => Some(block_i18n::tr!("ui-profile-aurora-classified-alphanumeric")),
+        None => Some(block_i18n::tr!("ui-profile-block-classified-blank-name")),
+        Some(b) if !b.is_ascii_alphanumeric() => Some(block_i18n::tr!("ui-profile-block-classified-alphanumeric")),
         _ => None,
     }
 }
@@ -100,7 +100,7 @@ pub(super) fn publish_price(text: &str) -> Result<i32, String> {
     match text.trim().parse::<i32>() {
         Ok(price) if price >= MINIMUM_PRICE_FOR_LISTING => Ok(price),
         _ => Err(block_i18n::tr!(
-            "ui-profile-aurora-classified-min-price",
+            "ui-profile-block-classified-min-price",
             price = MINIMUM_PRICE_FOR_LISTING
         )),
     }
@@ -349,15 +349,15 @@ pub(in super::super) fn picks(ui: &mut egui::Ui, env: &mut Env, w: &mut Window, 
     }
     if items.is_empty() {
         let name = display_name(world, &w.id);
-        let count = block_i18n::tr!("ui-profile-aurora-picks-count", count = 0, limit = limit as i64);
+        let count = block_i18n::tr!("ui-profile-block-picks-count", count = 0, limit = limit as i64);
         let clicked = if own {
             empty(
                 ui,
                 p,
                 "map-pin-filled",
-                block_i18n::tr!("ui-profile-aurora-picks-empty-own"),
-                block_i18n::tr!("ui-profile-aurora-picks-empty-own-text"),
-                Some(("plus", block_i18n::tr!("ui-profile-aurora-add-here"))),
+                block_i18n::tr!("ui-profile-block-picks-empty-own"),
+                block_i18n::tr!("ui-profile-block-picks-empty-own-text"),
+                Some(("plus", block_i18n::tr!("ui-profile-block-add-here"))),
                 Some(&count),
             )
         } else {
@@ -365,8 +365,8 @@ pub(in super::super) fn picks(ui: &mut egui::Ui, env: &mut Env, w: &mut Window, 
                 ui,
                 p,
                 "map-pin-filled",
-                block_i18n::tr!("ui-profile-aurora-picks-empty"),
-                &block_i18n::tr!("ui-profile-aurora-picks-empty-text", name = name),
+                block_i18n::tr!("ui-profile-block-picks-empty"),
+                &block_i18n::tr!("ui-profile-block-picks-empty-text", name = name),
                 None,
                 None,
             )
@@ -408,7 +408,7 @@ pub(in super::super) fn picks(ui: &mut egui::Ui, env: &mut Env, w: &mut Window, 
     }
     if editing && w.confirm_delete {
         let name = w.pick_edit.as_ref().map(|(e, _)| e.name.clone()).unwrap_or_default();
-        match confirm_strip(ui, p, &block_i18n::tr!("ui-profile-aurora-delete-pick", name = name)) {
+        match confirm_strip(ui, p, &block_i18n::tr!("ui-profile-block-delete-pick", name = name)) {
             Some(true) => {
                 if !sel.is_nil() {
                     env.actions.push(ProfileAction::Net(NetCommand::PickDelete(sel)));
@@ -486,7 +486,7 @@ fn feature(ui: &mut egui::Ui, env: &mut Env, w: &mut Window, v: &PickView, editi
                     &mut c,
                     p,
                     "photo-filled",
-                    block_i18n::tr!("ui-profile-aurora-change-image"),
+                    block_i18n::tr!("ui-profile-block-change-image"),
                     ActionKind::Primary,
                     chip.size(),
                 )
@@ -541,7 +541,7 @@ fn pick_buttons(ui: &mut egui::Ui, env: &mut Env, pos: DVec3, region: &str) {
             ui,
             p,
             "send-filled",
-            block_i18n::tr!("ui-profile-aurora-teleport"),
+            block_i18n::tr!("ui-profile-block-teleport"),
             ActionKind::Primary,
             size,
             has_pos,
@@ -555,7 +555,7 @@ fn pick_buttons(ui: &mut egui::Ui, env: &mut Env, pos: DVec3, region: &str) {
         }
         if let Some(slurl) = slurl(region, pos, &env.world.map)
             && widgets::action_button(ui, p, "copy-filled", "", ActionKind::Flat, Vec2::new(30.0, 28.0))
-                .on_hover_text(block_i18n::tr!("ui-profile-aurora-copy-slurl"))
+                .on_hover_text(block_i18n::tr!("ui-profile-block-copy-slurl"))
                 .clicked()
         {
             ui.ctx().copy_text(slurl);
@@ -593,7 +593,7 @@ fn pick_form(ui: &mut egui::Ui, env: &mut Env, w: &mut Window, v: &PickView) {
                 .font(semibold(ui, 12.5)),
         );
     });
-    field(ui, p, block_i18n::tr!("ui-profile-aurora-description"), |ui| {
+    field(ui, p, block_i18n::tr!("ui-profile-block-description"), |ui| {
         ui.add(
             egui::TextEdit::multiline(&mut e.desc)
                 .desired_width(ui.available_width())
@@ -605,7 +605,7 @@ fn pick_form(ui: &mut egui::Ui, env: &mut Env, w: &mut Window, v: &PickView) {
             ui,
             p,
             block_i18n::tr!(
-                "ui-profile-aurora-char-count",
+                "ui-profile-block-char-count",
                 count = block_i18n::integer(e.desc.chars().count() as i64),
                 max = block_i18n::integer(PICK_DESC_MAX as i64)
             ),
@@ -620,7 +620,7 @@ fn pick_form(ui: &mut egui::Ui, env: &mut Env, w: &mut Window, v: &PickView) {
             ui,
             p,
             "current-location-filled",
-            block_i18n::tr!("ui-profile-aurora-here"),
+            block_i18n::tr!("ui-profile-block-here"),
             ActionKind::Flat,
             size,
             !world.rlva.has("showloc"),
@@ -637,7 +637,7 @@ fn pick_form(ui: &mut egui::Ui, env: &mut Env, w: &mut Window, v: &PickView) {
             ui,
             p,
             "send-filled",
-            block_i18n::tr!("ui-profile-aurora-teleport"),
+            block_i18n::tr!("ui-profile-block-teleport"),
             ActionKind::Flat,
             size,
             has_pos,
@@ -719,14 +719,14 @@ fn thumbs(ui: &mut egui::Ui, env: &mut Env, w: &mut Window, items: &[(Uuid, Stri
             let c = rect.center();
             paint_icon(ui, "plus", c - Vec2::new(0.0, 22.0), 18.0, p.violet_light);
             let g = ui.painter().layout(
-                block_i18n::tr!("ui-profile-aurora-add-here").to_owned(),
+                block_i18n::tr!("ui-profile-block-add-here").to_owned(),
                 semibold(ui, 12.0),
                 p.violet_light,
                 col_w - 16.0,
             );
             let gh = g.size().y;
             ui.painter().galley(pos2(c.x - g.size().x / 2.0, c.y - 8.0), g, p.violet_light);
-            let n = block_i18n::tr!("ui-profile-aurora-picks-count", count = count as i64, limit = limit as i64);
+            let n = block_i18n::tr!("ui-profile-block-picks-count", count = count as i64, limit = limit as i64);
             let g = ui.painter().layout(n, FontId::proportional(11.0), p.muted_dim, col_w - 16.0);
             ui.painter()
                 .galley(pos2(c.x - g.size().x / 2.0, c.y - 8.0 + gh + 2.0), g, p.muted_dim);
@@ -832,9 +832,9 @@ pub(in super::super) fn classifieds(ui: &mut egui::Ui, env: &mut Env, w: &mut Wi
                 ui,
                 p,
                 "speakerphone",
-                block_i18n::tr!("ui-profile-aurora-classifieds-empty-own"),
-                &block_i18n::tr!("ui-profile-aurora-classifieds-empty-own-text", price = MINIMUM_PRICE_FOR_LISTING),
-                Some(("plus", block_i18n::tr!("ui-profile-aurora-new-classified"))),
+                block_i18n::tr!("ui-profile-block-classifieds-empty-own"),
+                &block_i18n::tr!("ui-profile-block-classifieds-empty-own-text", price = MINIMUM_PRICE_FOR_LISTING),
+                Some(("plus", block_i18n::tr!("ui-profile-block-new-classified"))),
                 None,
             )
         } else {
@@ -842,8 +842,8 @@ pub(in super::super) fn classifieds(ui: &mut egui::Ui, env: &mut Env, w: &mut Wi
                 ui,
                 p,
                 "speakerphone",
-                block_i18n::tr!("ui-profile-aurora-classifieds-empty"),
-                &block_i18n::tr!("ui-profile-aurora-classifieds-empty-text", name = name),
+                block_i18n::tr!("ui-profile-block-classifieds-empty"),
+                &block_i18n::tr!("ui-profile-block-classifieds-empty-text", name = name),
                 None,
                 None,
             )
@@ -868,7 +868,7 @@ pub(in super::super) fn classifieds(ui: &mut egui::Ui, env: &mut Env, w: &mut Wi
         }
         Some(true) if own => {
             let e = ClassifiedEdit {
-                name: block_i18n::tr!("ui-profile-aurora-new-classified").to_owned(),
+                name: block_i18n::tr!("ui-profile-block-new-classified").to_owned(),
                 ..new_classified(world)
             };
             w.classified_edit = Some((e, ClassifiedEdit::default()));
@@ -926,7 +926,7 @@ pub(in super::super) fn classifieds(ui: &mut egui::Ui, env: &mut Env, w: &mut Wi
                 ui,
                 p,
                 "plus",
-                block_i18n::tr!("ui-profile-aurora-new-classified"),
+                block_i18n::tr!("ui-profile-block-new-classified"),
                 ActionKind::Flat,
                 Vec2::new(0.0, 28.0),
             )
@@ -955,7 +955,7 @@ fn publish_strip(ui: &mut egui::Ui, p: &Palette, publish: &mut Publish, name: &s
                 let (rect, _) = ui.allocate_exact_size(Vec2::new(14.0, 24.0), Sense::hover());
                 paint_icon(ui, "coin-filled", rect.center(), 13.0, p.amber);
                 ui.label(
-                    RichText::new(block_i18n::tr!("ui-profile-aurora-publish", name = name))
+                    RichText::new(block_i18n::tr!("ui-profile-block-publish", name = name))
                         .font(semibold(ui, 12.0))
                         .color(p.amber),
                 );
@@ -969,7 +969,7 @@ fn publish_strip(ui: &mut egui::Ui, p: &Palette, publish: &mut Publish, name: &s
                         ui,
                         p,
                         "coin-filled",
-                        block_i18n::tr!("ui-profile-aurora-publish-button"),
+                        block_i18n::tr!("ui-profile-block-publish-button"),
                         ActionKind::Primary,
                         size,
                     )
@@ -984,7 +984,7 @@ fn publish_strip(ui: &mut egui::Ui, p: &Palette, publish: &mut Publish, name: &s
             });
             ui.add(
                 egui::Label::new(
-                    RichText::new(block_i18n::tr!("ui-profile-aurora-publish-help"))
+                    RichText::new(block_i18n::tr!("ui-profile-block-publish-help"))
                         .size(11.5)
                         .color(p.muted),
                 )
@@ -1054,7 +1054,7 @@ fn classified_card(ui: &mut egui::Ui, env: &mut Env, w: &mut Window, id: Uuid, o
     }
     if open && w.confirm_delete && !id.is_nil() {
         let name = info.map(|c| c.name.clone()).unwrap_or_default();
-        match confirm_strip(ui, p, &block_i18n::tr!("ui-profile-aurora-delete-classified", name = name)) {
+        match confirm_strip(ui, p, &block_i18n::tr!("ui-profile-block-delete-classified", name = name)) {
             Some(true) => {
                 env.actions.push(ProfileAction::Net(NetCommand::ClassifiedDelete(id)));
                 w.classified_sel = None;
@@ -1103,9 +1103,9 @@ fn classified_head(ui: &mut egui::Ui, env: &mut Env, c: &ClassifiedInfo, compact
             });
             let date = profiles::slt_date(c.creation_date);
             let line = if c.flags & classified_flags::AUTO_RENEW != 0 {
-                block_i18n::tr!("ui-profile-aurora-published-renewed", date = date)
+                block_i18n::tr!("ui-profile-block-published-renewed", date = date)
             } else {
-                block_i18n::tr!("ui-profile-aurora-published", date = date)
+                block_i18n::tr!("ui-profile-block-published", date = date)
             };
             ui.label(RichText::new(line).size(11.5).color(p.muted));
         });
@@ -1120,7 +1120,7 @@ fn classified_head(ui: &mut egui::Ui, env: &mut Env, c: &ClassifiedInfo, compact
                         .color(p.amber),
                 );
                 ui.label(
-                    RichText::new(block_i18n::tr!("ui-profile-aurora-listing-cost"))
+                    RichText::new(block_i18n::tr!("ui-profile-block-listing-cost"))
                         .size(11.0)
                         .color(p.muted_dim),
                 );
@@ -1177,12 +1177,12 @@ fn classified_more(ui: &mut egui::Ui, env: &mut Env, w: &mut Window, c: &Classif
         let (rating, content) = if classified_flags::is_mature(c.flags) {
             (
                 block_i18n::text("common-moderate"),
-                block_i18n::tr!("ui-profile-aurora-content-moderate"),
+                block_i18n::tr!("ui-profile-block-content-moderate"),
             )
         } else {
             (
                 block_i18n::text("common-general"),
-                block_i18n::tr!("ui-profile-aurora-content-general"),
+                block_i18n::tr!("ui-profile-block-content-general"),
             )
         };
         widgets::maturity_badge(ui, p, rating, 14.0);
@@ -1199,7 +1199,7 @@ fn classified_more(ui: &mut egui::Ui, env: &mut Env, w: &mut Window, c: &Classif
             ui,
             p,
             "send-filled",
-            block_i18n::tr!("ui-profile-aurora-teleport"),
+            block_i18n::tr!("ui-profile-block-teleport"),
             ActionKind::Primary,
             size,
             has_pos,
@@ -1241,15 +1241,15 @@ fn stats(ui: &mut egui::Ui, env: &Env, c: &ClassifiedInfo) {
     let cells: [(String, String); 4] = [
         (
             block_i18n::integer(s.teleport as i64),
-            block_i18n::tr!("ui-profile-aurora-stat-teleports").to_owned(),
+            block_i18n::tr!("ui-profile-block-stat-teleports").to_owned(),
         ),
         (
             block_i18n::integer(s.map as i64),
-            block_i18n::tr!("ui-profile-aurora-stat-maps").to_owned(),
+            block_i18n::tr!("ui-profile-block-stat-maps").to_owned(),
         ),
         (
             block_i18n::integer(s.profile as i64),
-            block_i18n::tr!("ui-profile-aurora-stat-profiles").to_owned(),
+            block_i18n::tr!("ui-profile-block-stat-profiles").to_owned(),
         ),
         (
             format!("{} {}", block_i18n::currency(), block_i18n::integer(c.price as i64)),
@@ -1308,7 +1308,7 @@ fn classified_form(ui: &mut egui::Ui, env: &mut Env, w: &mut Window, compact: bo
             &mut c,
             p,
             "photo-filled",
-            block_i18n::tr!("ui-profile-aurora-image"),
+            block_i18n::tr!("ui-profile-block-image"),
             ActionKind::Primary,
             chip.size(),
         )
@@ -1333,14 +1333,14 @@ fn classified_form(ui: &mut egui::Ui, env: &mut Env, w: &mut Window, compact: bo
                     ui,
                     p,
                     block_i18n::tr!(
-                        "ui-profile-aurora-bytes-count",
+                        "ui-profile-block-bytes-count",
                         count = e.name.len() as i64,
                         max = CLASSIFIED_NAME_BYTES as i64
                     ),
                     e.name.len() >= CLASSIFIED_NAME_BYTES,
                 );
             });
-            field(ui, p, block_i18n::tr!("ui-profile-aurora-description"), |ui| {
+            field(ui, p, block_i18n::tr!("ui-profile-block-description"), |ui| {
                 ui.add(
                     egui::TextEdit::multiline(&mut e.desc)
                         .desired_width(ui.available_width())
@@ -1352,7 +1352,7 @@ fn classified_form(ui: &mut egui::Ui, env: &mut Env, w: &mut Window, compact: bo
                     ui,
                     p,
                     block_i18n::tr!(
-                        "ui-profile-aurora-char-count",
+                        "ui-profile-block-char-count",
                         count = block_i18n::integer(e.desc.chars().count() as i64),
                         max = block_i18n::integer(CLASSIFIED_DESC_MAX as i64)
                     ),
@@ -1394,7 +1394,7 @@ fn classified_form(ui: &mut egui::Ui, env: &mut Env, w: &mut Window, compact: bo
     row(
         ui,
         &mut |ui| {
-            field(ui, p, block_i18n::tr!("ui-profile-aurora-category"), |ui| {
+            field(ui, p, block_i18n::tr!("ui-profile-block-category"), |ui| {
                 let current = categories
                     .iter()
                     .find(|(id, _)| *id == category)
@@ -1411,7 +1411,7 @@ fn classified_form(ui: &mut egui::Ui, env: &mut Env, w: &mut Window, compact: bo
             });
         },
         &mut |ui| {
-            field(ui, p, block_i18n::tr!("ui-profile-aurora-content"), |ui| {
+            field(ui, p, block_i18n::tr!("ui-profile-block-content"), |ui| {
                 let options = [
                     (block_i18n::tr!("common-general"), true),
                     (block_i18n::tr!("common-moderate"), true),
@@ -1435,7 +1435,7 @@ fn classified_form(ui: &mut egui::Ui, env: &mut Env, w: &mut Window, compact: bo
     row(
         ui,
         &mut |ui| {
-            field(ui, p, block_i18n::tr!("ui-profile-aurora-place"), |ui| {
+            field(ui, p, block_i18n::tr!("ui-profile-block-place"), |ui| {
                 ui.horizontal(|ui| {
                     ui.add(egui::Label::new(RichText::new(place.as_ref()).size(12.0).color(p.muted)).truncate());
                     ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
@@ -1443,7 +1443,7 @@ fn classified_form(ui: &mut egui::Ui, env: &mut Env, w: &mut Window, compact: bo
                             ui,
                             p,
                             "current-location-filled",
-                            block_i18n::tr!("ui-profile-aurora-here"),
+                            block_i18n::tr!("ui-profile-block-here"),
                             ActionKind::Flat,
                             Vec2::new(0.0, 24.0),
                             !world.rlva.has("showloc"),
@@ -1454,10 +1454,10 @@ fn classified_form(ui: &mut egui::Ui, env: &mut Env, w: &mut Window, compact: bo
             });
         },
         &mut |ui| {
-            field(ui, p, block_i18n::tr!("ui-profile-aurora-renewal"), |ui| {
+            field(ui, p, block_i18n::tr!("ui-profile-block-renewal"), |ui| {
                 ui.horizontal(|ui| {
                     ui.label(
-                        RichText::new(block_i18n::tr!("ui-profile-aurora-renew-weekly"))
+                        RichText::new(block_i18n::tr!("ui-profile-block-renew-weekly"))
                             .size(12.5)
                             .color(p.ink),
                     );
@@ -1490,7 +1490,7 @@ fn classified_form(ui: &mut egui::Ui, env: &mut Env, w: &mut Window, compact: bo
                 ui,
                 p,
                 "coin-filled",
-                block_i18n::tr!("ui-profile-aurora-publish-ellipsis"),
+                block_i18n::tr!("ui-profile-block-publish-ellipsis"),
                 ActionKind::Primary,
                 size,
             )
@@ -1507,7 +1507,7 @@ fn classified_form(ui: &mut egui::Ui, env: &mut Env, w: &mut Window, compact: bo
                 ui,
                 p,
                 "send-filled",
-                block_i18n::tr!("ui-profile-aurora-teleport"),
+                block_i18n::tr!("ui-profile-block-teleport"),
                 ActionKind::Flat,
                 size,
                 has_pos,
@@ -1533,7 +1533,7 @@ fn classified_form(ui: &mut egui::Ui, env: &mut Env, w: &mut Window, compact: bo
         if balance.unwrap_or(0) < MINIMUM_PRICE_FOR_LISTING {
             w.publish = Some(Publish {
                 price: MINIMUM_PRICE_FOR_LISTING.to_string(),
-                error: Some(block_i18n::tr!("ui-profile-aurora-classified-no-funds").to_owned()),
+                error: Some(block_i18n::tr!("ui-profile-block-classified-no-funds").to_owned()),
             });
         } else {
             w.publish.get_or_insert_with(Publish::default);
@@ -1569,16 +1569,16 @@ pub(in super::super) fn first_life(ui: &mut egui::Ui, env: &mut Env, w: &mut Win
         let name = display_name(world, &w.id);
         let (title, text) = if own {
             (
-                block_i18n::tr!("ui-profile-aurora-first-life-empty-own"),
-                block_i18n::tr!("ui-profile-aurora-first-life-empty-own-text").to_owned(),
+                block_i18n::tr!("ui-profile-block-first-life-empty-own"),
+                block_i18n::tr!("ui-profile-block-first-life-empty-own-text").to_owned(),
             )
         } else {
             (
-                block_i18n::tr!("ui-profile-aurora-first-life-empty"),
-                block_i18n::tr!("ui-profile-aurora-first-life-empty-text", name = name),
+                block_i18n::tr!("ui-profile-block-first-life-empty"),
+                block_i18n::tr!("ui-profile-block-first-life-empty-text", name = name),
             )
         };
-        let cta = own.then_some(("pencil-filled", block_i18n::tr!("ui-profile-aurora-edit")));
+        let cta = own.then_some(("pencil-filled", block_i18n::tr!("ui-profile-block-edit")));
         if empty(ui, p, "user-heart", title, &text, cta, None) {
             w.editing = true;
         }
@@ -1603,7 +1603,7 @@ pub(in super::super) fn first_life(ui: &mut egui::Ui, env: &mut Env, w: &mut Win
                 ui.painter().text(
                     rect.center() + Vec2::new(0.0, 12.0),
                     egui::Align2::CENTER_CENTER,
-                    block_i18n::tr!("ui-profile-aurora-add-photo"),
+                    block_i18n::tr!("ui-profile-block-add-photo"),
                     FontId::proportional(12.0),
                     env.p.muted_dim,
                 );
@@ -1611,7 +1611,7 @@ pub(in super::super) fn first_life(ui: &mut egui::Ui, env: &mut Env, w: &mut Win
         }
         if editing {
             photo_menu(ui, env, rect, image);
-        } else if !image.is_nil() && response.on_hover_text(block_i18n::tr!("ui-profile-aurora-big-photo")).clicked() {
+        } else if !image.is_nil() && response.on_hover_text(block_i18n::tr!("ui-profile-block-big-photo")).clicked() {
             w.open_photo(PictureSlot::FirstLife, image);
         }
     };
@@ -1621,8 +1621,8 @@ pub(in super::super) fn first_life(ui: &mut egui::Ui, env: &mut Env, w: &mut Win
                 ui.spacing_mut().item_spacing.y = 6.0;
                 ui.horizontal(|ui| {
                     let options = [
-                        (block_i18n::tr!("ui-profile-aurora-write"), true),
-                        (block_i18n::tr!("ui-profile-aurora-preview"), true),
+                        (block_i18n::tr!("ui-profile-block-write"), true),
+                        (block_i18n::tr!("ui-profile-block-preview"), true),
                     ];
                     let mut selected = usize::from(w.fl_preview);
                     if widgets::segmented(ui, p, &mut selected, &options) {
@@ -1630,7 +1630,7 @@ pub(in super::super) fn first_life(ui: &mut egui::Ui, env: &mut Env, w: &mut Win
                     }
                     ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
                         let count = block_i18n::tr!(
-                            "ui-profile-aurora-char-count",
+                            "ui-profile-block-char-count",
                             count = block_i18n::integer(w.fl_about.text.chars().count() as i64),
                             max = block_i18n::integer(FIRST_LIFE_MAX as i64)
                         );
@@ -1654,7 +1654,7 @@ pub(in super::super) fn first_life(ui: &mut egui::Ui, env: &mut Env, w: &mut Win
             card(
                 ui,
                 p,
-                Some(("user-heart", block_i18n::tr!("ui-profile-aurora-tab-first-life"))),
+                Some(("user-heart", block_i18n::tr!("ui-profile-block-tab-first-life"))),
                 None,
                 false,
                 |ui| {
@@ -1701,16 +1701,16 @@ fn photo_menu(ui: &mut egui::Ui, env: &mut Env, rect: Rect, image: Uuid) {
             ui,
             p,
             "file-upload-filled",
-            block_i18n::tr!("ui-profile-aurora-upload-image"),
+            block_i18n::tr!("ui-profile-block-upload-image"),
             false,
             block_i18n::tr!("ui-profile-coming-soon"),
         );
-        choose = menu::item(ui, p, "photo-filled", block_i18n::tr!("ui-profile-aurora-choose-from-inventory"));
+        choose = menu::item(ui, p, "photo-filled", block_i18n::tr!("ui-profile-block-choose-from-inventory"));
         remove = menu::item_if(
             ui,
             p,
             "trash-filled",
-            block_i18n::tr!("ui-profile-aurora-remove-photo"),
+            block_i18n::tr!("ui-profile-block-remove-photo"),
             !image.is_nil(),
         );
     });
@@ -1737,8 +1737,8 @@ pub(in super::super) fn web(ui: &mut egui::Ui, env: &mut Env, w: &mut Window) {
             ui,
             p,
             "world-filled",
-            block_i18n::tr!("ui-profile-aurora-no-web"),
-            block_i18n::tr!("ui-profile-aurora-no-web-text"),
+            block_i18n::tr!("ui-profile-block-no-web"),
+            block_i18n::tr!("ui-profile-block-no-web-text"),
             None,
             None,
         );
@@ -1772,7 +1772,7 @@ pub(in super::super) fn web(ui: &mut egui::Ui, env: &mut Env, w: &mut Window) {
                         ui,
                         p,
                         "external-link-filled",
-                        block_i18n::tr!("ui-profile-aurora-open-in-browser"),
+                        block_i18n::tr!("ui-profile-block-open-in-browser"),
                         ActionKind::Flat,
                         Vec2::new(0.0, 24.0),
                     )
@@ -1781,7 +1781,7 @@ pub(in super::super) fn web(ui: &mut egui::Ui, env: &mut Env, w: &mut Window) {
                         context::request(ui.ctx(), CtxAction::OpenUrl(page.clone()));
                     }
                     if widgets::action_button(ui, p, "refresh", "", ActionKind::Flat, Vec2::new(28.0, 24.0))
-                        .on_hover_text(block_i18n::tr!("ui-profile-aurora-reload"))
+                        .on_hover_text(block_i18n::tr!("ui-profile-block-reload"))
                         .clicked()
                     {
                         w.web.reload();
@@ -1794,7 +1794,7 @@ pub(in super::super) fn web(ui: &mut egui::Ui, env: &mut Env, w: &mut Window) {
     w.web.show(ui, p, env.web.paths, env.web.browser, env.web.cookie, size);
     ui.with_layout(egui::Layout::right_to_left(egui::Align::Min), |ui| {
         let text = match w.web.load_secs {
-            Some(s) => block_i18n::tr!("ui-profile-aurora-loaded-in", s = block_i18n::number_text(&format!("{s:.2}"))),
+            Some(s) => block_i18n::tr!("ui-profile-block-loaded-in", s = block_i18n::number_text(&format!("{s:.2}"))),
             None => block_i18n::tr!("common-loading-2").to_owned(),
         };
         ui.label(RichText::new(text).size(11.5).color(p.muted_dim));
@@ -1819,18 +1819,18 @@ pub(in super::super) fn notes(ui: &mut egui::Ui, env: &mut Env, w: &mut Window) 
     card(
         ui,
         p,
-        Some(("lock-filled", block_i18n::tr!("ui-profile-aurora-notes-private"))),
+        Some(("lock-filled", block_i18n::tr!("ui-profile-block-notes-private"))),
         None,
         true,
         |ui| {
             // at the right of the head: "Saved", or the count of characters
             let head = ui.min_rect();
             let (text, color) = if saved {
-                (block_i18n::tr!("ui-profile-aurora-notes-saved").to_owned(), p.success)
+                (block_i18n::tr!("ui-profile-block-notes-saved").to_owned(), p.success)
             } else {
                 (
                     block_i18n::tr!(
-                        "ui-profile-aurora-char-count",
+                        "ui-profile-block-char-count",
                         count = block_i18n::integer(w.notes.text.chars().count() as i64),
                         max = block_i18n::integer(NOTES_MAX as i64)
                     ),
@@ -1848,7 +1848,7 @@ pub(in super::super) fn notes(ui: &mut egui::Ui, env: &mut Env, w: &mut Window) 
                     .desired_width(ui.available_width())
                     .desired_rows(5)
                     .char_limit(NOTES_MAX)
-                    .hint_text(block_i18n::tr!("ui-profile-aurora-notes-hint", name = name.clone()))
+                    .hint_text(block_i18n::tr!("ui-profile-block-notes-hint", name = name.clone()))
                     .font(FontId::proportional(12.5)),
             );
             if edit.changed() {
@@ -1862,7 +1862,7 @@ pub(in super::super) fn notes(ui: &mut egui::Ui, env: &mut Env, w: &mut Window) 
                 });
             } else if w.notes.text.trim().is_empty() {
                 ui.label(
-                    RichText::new(block_i18n::tr!("ui-profile-aurora-notes-kept"))
+                    RichText::new(block_i18n::tr!("ui-profile-block-notes-kept"))
                         .size(11.5)
                         .color(p.muted_dim),
                 );

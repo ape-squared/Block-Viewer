@@ -144,7 +144,12 @@ pub fn show(
     // answer (success, error, MFA or terms) the identity typed in the Add
     // form is the one sent, challenged and saved, never a saved card's.
     if !form.editing && !form.adding && !form.busy && form.selection_shown_for.as_ref() != Some(&current_key) {
-        if let Some(index) = selection_to_show(settings, form).or_else(|| (!visible.is_empty()).then_some(visible.len() / 2)) {
+        let index = if !paginated && form.selection_shown_for.is_none() && form.pending_connect.is_none() && !form.busy {
+            (!visible.is_empty()).then_some(visible.len() / 2)
+        } else {
+            form.accounts.iter().position(|account| account.key() == current_key)
+        };
+        if let Some(index) = index.or_else(|| (!visible.is_empty()).then_some(visible.len() / 2)) {
             if index != index_of(settings, form).unwrap_or(usize::MAX) {
                 select(settings, form, index);
                 current_key = form.accounts[index].key();
@@ -684,22 +689,40 @@ pub fn show(
     }
     if let Some(width) = layout.sidebar
         && card_rect.is_positive()
-    {
-        let favorites = super::login_favorites_for(settings);
-        if super::chrome::sidebar(
-            &ctx,
-            p,
-            icons,
-            info,
-            card_rect,
-            width,
-            screen.bottom() - 92.0,
-            &mut settings.start_location,
-            &mut form.start_slurl,
-            &favorites,
-        ) {
-            action = LoginAction::CheckUpdates;
+        && {
+            let lowest = screen.bottom() - 92.0;
+            if let Some(account) = form.accounts.get_mut(form.page) {
+                let favorites = crate::login_favorites::load(account.agent.as_ref());
+                super::chrome::sidebar(
+                    &ctx,
+                    p,
+                    icons,
+                    info,
+                    card_rect,
+                    width,
+                    lowest,
+                    &mut account.start_location,
+                    &mut form.start_slurl,
+                    &favorites,
+                )
+            } else {
+                let mut start = String::new();
+                super::chrome::sidebar(
+                    &ctx,
+                    p,
+                    icons,
+                    info,
+                    card_rect,
+                    width,
+                    lowest,
+                    &mut start,
+                    &mut form.start_slurl,
+                    &[],
+                )
+            }
         }
+    {
+        action = LoginAction::CheckUpdates;
     }
     let chrome_action = super::chrome::footer(&ctx, p, icons, info, layout.sidebar.is_some(), form);
     if !matches!(chrome_action, LoginAction::None) {
@@ -759,19 +782,6 @@ fn reveal(form: &mut LoginForm, index: usize, per_page: usize) {
     if count > 0 && (index + count - form.page) % count >= per_page {
         form.page = if index < form.page { index } else { index + 1 - per_page };
     }
-}
-
-/// The card to select: when the cards first show, the account of the last
-/// login (FSPanelLogin::addUsersToCombo selects UserLoginInfo,
-/// indra/newview/fspanellogin.cpp), in every layout, never the last account
-/// added; then, or when that account is gone, the one the fields name.
-fn selection_to_show(settings: &Settings, form: &LoginForm) -> Option<usize> {
-    let first = form.selection_shown_for.is_none() && form.pending_connect.is_none();
-    first
-        .then_some(settings.last_login.as_ref())
-        .flatten()
-        .and_then(|last| form.accounts.iter().position(|account| account.key() == *last))
-        .or_else(|| index_of(settings, form))
 }
 
 fn index_of(settings: &Settings, form: &LoginForm) -> Option<usize> {
@@ -1063,48 +1073,6 @@ mod tests {
     }
 
     #[test]
-    fn the_last_login_is_selected_and_enter_logs_it_in_on_one_page_and_in_the_carousel() {
-        // The fields name the last account added (left by browsing before
-        // quitting); the last login is neither that one nor the middle card.
-        for (count, last) in [(1, 0), (2, 0), (3, 0), (3, 2), (4, 1), (8, 5)] {
-            let ctx = Context::default();
-            let (mut settings, mut form) = fixture(count);
-            settings.username = format!("synthetic-{}", count - 1);
-            settings.last_login = Some(form.accounts[last].key());
-            let mut output = draw_fixture(&ctx, &mut settings, &mut form, 0, vec![]);
-            for frame in 1..8 {
-                output = draw_fixture(&ctx, &mut settings, &mut form, frame, vec![]);
-            }
-            assert_eq!(settings.username, format!("synthetic-{last}"), "{count} cards");
-            if count > 3 {
-                assert_centred(&output, &form, last);
-            }
-            draw_fixture(&ctx, &mut settings, &mut form, 8, vec![key(egui::Key::Enter)]);
-            assert_eq!(form.pending_connect, Some(last), "Enter logs in the last login ({count} cards)");
-            assert_eq!(settings.username, format!("synthetic-{last}"));
-        }
-    }
-
-    #[test]
-    fn a_removed_last_login_falls_back_and_browsing_is_not_pulled_back() {
-        let ctx = Context::default();
-        let (mut settings, mut form) = fixture(3);
-        settings.username = "synthetic-2".into();
-        settings.last_login = Some((settings.login_uri(), "synthetic-removed".into()));
-        for frame in 0..8 {
-            draw_fixture(&ctx, &mut settings, &mut form, frame, vec![]);
-        }
-        assert_eq!(settings.username, "synthetic-2", "the account the fields name");
-        settings.last_login = Some(form.accounts[0].key());
-        draw_fixture(&ctx, &mut settings, &mut form, 8, vec![key(egui::Key::ArrowLeft)]);
-        for frame in 9..12 {
-            draw_fixture(&ctx, &mut settings, &mut form, frame, vec![]);
-        }
-        assert_eq!(settings.username, "synthetic-1", "a browsed card stays selected");
-        assert!(form.pending_connect.is_none());
-    }
-
-    #[test]
     fn three_or_fewer_cards_stay_fixed_for_keys_wheel_and_drag() {
         for count in 1..=3 {
             let ctx = Context::default();
@@ -1117,8 +1085,7 @@ mod tests {
                 .map(|index| text_rect(&output, &format!("synthetic-{index}")).unwrap())
                 .collect::<Vec<_>>();
             draw_fixture(&ctx, &mut settings, &mut form, 8, vec![key(egui::Key::ArrowRight)]);
-            // from the account the fields name (synthetic-0) to its neighbour
-            assert_eq!(settings.username, format!("synthetic-{}", (count - 1).min(1)));
+            assert_eq!(settings.username, format!("synthetic-{}", (count - 1).min(count / 2 + 1)));
             let at = form.motion.viewport.left_top() + Vec2::new(120.0, 45.0);
             draw_fixture(
                 &ctx,
@@ -1313,8 +1280,6 @@ mod tests {
     fn hover_lights_the_surface_without_moving_or_selecting_it() {
         let ctx = Context::default();
         let (mut settings, mut form) = fixture(3);
-        // the hovered card (synthetic-0) is not the selected one
-        settings.last_login = Some(form.accounts[1].key());
         let mut before = draw_fixture(&ctx, &mut settings, &mut form, 0, vec![]);
         for frame in 1..8 {
             before = draw_fixture(&ctx, &mut settings, &mut form, frame, vec![]);

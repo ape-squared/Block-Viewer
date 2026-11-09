@@ -846,7 +846,7 @@ mod tests {
     #[test]
     fn numbers_and_latin_words_keep_their_order_in_arabic() {
         assert_eq!(shown(&job("عدد 123 مرحبا"), Base::Auto), ["[*مرحبا][ 123 ][*عدد]"]);
-        assert_eq!(shown(&job("انا Aurora Viewer"), Base::Auto), ["[Aurora Viewer ][*انا]"]);
+        assert_eq!(shown(&job("انا Block Viewer"), Base::Auto), ["[Block Viewer ][*انا]"]);
         // Arabic-Indic digits: one section each, so that none is reversed
         assert_eq!(shown(&job("١٢٣"), Base::Auto), ["[١][٢][٣]"]);
     }
@@ -945,11 +945,11 @@ mod tests {
 
     #[test]
     fn latin_letters_in_a_right_to_left_row_are_read_from_the_left() {
-        let rows = visual_rows(&job("שלום Aurora"), Base::Auto, &mut units);
+        let rows = visual_rows(&job("שלום Blocks"), Base::Auto, &mut units);
         let latin = rows[0]
             .segments
             .iter()
-            .find(|s| s.text.starts_with("Aurora"))
+            .find(|s| s.text.starts_with("Blocks"))
             .expect("the Latin run");
         // the space after it is read from the right (level 1), the letters
         // from the left (level 2)

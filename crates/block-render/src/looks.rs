@@ -39,7 +39,7 @@ use std::sync::Arc;
 mod cube;
 mod parse;
 pub use cube::{CubeError, Lut, parse_cube};
-pub use parse::{AuroraLook, AuroraSection, LookError, aurora_look, aurora_looks, legacy_look, legacy_looks, parse_look};
+pub use parse::{AuroraLook, AuroraSection, LookError, block_look, block_looks, legacy_look, legacy_looks, parse_look};
 
 /// Operations of one look at most (Miniature has 27).
 pub const MAX_OPS: usize = 64;

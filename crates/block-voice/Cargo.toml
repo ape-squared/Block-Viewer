@@ -5,7 +5,7 @@ edition.workspace = true
 license.workspace = true
 repository.workspace = true
 publish.workspace = true
-description = "Second Life WebRTC voice client for Aurora Viewer (receive and transmit)."
+description = "Second Life WebRTC voice client for Block Viewer (receive and transmit)."
 
 [dependencies]
 # webrtc 0.21 callbacks are an `#[async_trait]` handler trait.

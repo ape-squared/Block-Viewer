@@ -717,7 +717,7 @@ mod tests {
 
     #[test]
     fn the_testers_words_lead_the_issue_without_imitating_its_markers() {
-        let report = "<!-- aurora-crash v1 -->\n| Field | Value |";
+        let report = "<!-- block-crash v1 -->\n| Field | Value |";
         let body = issue_body(report, "I opened the map <!-- crash-signature: x -->", true);
         assert!(body.starts_with(
             "### What happened\n\nI opened the map &lt;!-- crash-signature: x -->\n\nGPU drivers up to date (tester): yes\n\n"
@@ -736,7 +736,7 @@ mod tests {
 
     #[test]
     fn a_report_already_sent_is_not_offered_again() {
-        let dir = std::env::temp_dir().join(format!("aurora-crash-window-test-{}", uuid::Uuid::new_v4()));
+        let dir = std::env::temp_dir().join(format!("block-crash-window-test-{}", uuid::Uuid::new_v4()));
         std::fs::create_dir(&dir).unwrap();
         let record: super::super::Record = serde_json::from_str(&format!(
             r##"{{"schema":1,"pid":1,"process_started":0,"started_unix":0,"version":"0.8.0","profile":"release","language":"en","font":"Inter","font_scale":1,"theme":{},"log_path":"x.log","demo":false,"crash_reports":"Always"}}"##,

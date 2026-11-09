@@ -164,7 +164,7 @@ mod tests {
         object.extra.render_materials = vec![(0, material_id)];
         let index = world.objects.upsert(world.main_region.expect("region"), object);
         let mut scene = Scene::new(
-            std::env::temp_dir().join(format!("aurora-hint-material-{}", Uuid::new_v4())),
+            std::env::temp_dir().join(format!("block-hint-material-{}", Uuid::new_v4())),
             world.avatar_lib.clone(),
         );
         scene.materials.resolve(&material_id);

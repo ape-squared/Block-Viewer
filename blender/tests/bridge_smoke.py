@@ -15,8 +15,8 @@ import time
 import bpy
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-from block_live import exporter, starter, materials, weights
-from block_live.client import Client, MAGIC
+from aurora_live import exporter, starter, materials, weights
+from aurora_live.client import Client, MAGIC
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--port", type=int, default=17655)

@@ -15,7 +15,7 @@ use uuid::Uuid;
 pub fn active() -> bool {
     static ON: std::sync::OnceLock<bool> = std::sync::OnceLock::new();
     *ON.get_or_init(|| {
-        std::env::var_os("AURORA_DEMO").is_some() && std::env::var("AURORA_DEMO_STAFF").is_ok_and(|v| !matches!(v.trim(), "" | "0"))
+        crate::block_env::demo_mode() && crate::block_env::var_string("DEMO_STAFF").is_some_and(|v| !matches!(v.trim(), "" | "0"))
     })
 }
 

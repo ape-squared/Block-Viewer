@@ -96,7 +96,7 @@ impl Kind {
 
     fn label(self) -> &'static str {
         match self {
-            Kind::All => block_i18n::tr!("search-aurora-all"),
+            Kind::All => block_i18n::tr!("search-block-all"),
             Kind::People => block_i18n::tr!("common-people"),
             Kind::Places => block_i18n::tr!("common-places"),
             Kind::Events => block_i18n::tr!("search-tab-events"),
@@ -176,12 +176,12 @@ fn event_when(unix: i64, now: i64) -> String {
     let day = if same(now) {
         block_i18n::tr!("search-events-today").to_owned()
     } else if same(now + 86_400) {
-        block_i18n::tr!("search-aurora-tomorrow").to_owned()
+        block_i18n::tr!("search-block-tomorrow").to_owned()
     } else {
         let date = block_i18n::tr!("search-events-date", month = m as i64, day = d);
         format!("{} {date}", crate::ui::land::weekdays()[weekday])
     };
-    block_i18n::tr!("search-aurora-event-time", day = day, time = format!("{h:02}:{min:02}"))
+    block_i18n::tr!("search-block-event-time", day = day, time = format!("{h:02}:{min:02}"))
 }
 
 /// The user name of a directory row: "First Last" → "first.last", a
@@ -192,7 +192,7 @@ fn username(name: &str) -> String {
 
 /// "L$ 12 500".
 pub(super) fn linden(amount: i64) -> String {
-    block_i18n::tr!("search-aurora-linden", amount = block_i18n::integer(amount))
+    block_i18n::tr!("search-block-linden", amount = block_i18n::integer(amount))
 }
 
 /// The rating of an event row, as its icon carries it.
@@ -216,15 +216,15 @@ pub(super) fn pill(ui: &mut egui::Ui, text: &str, ink: Color32, fill: Color32) {
 
 pub(super) fn sale_pill(ui: &mut egui::Ui, p: &Palette, auction: bool) {
     let text = if auction {
-        block_i18n::tr!("search-aurora-auction")
+        block_i18n::tr!("search-block-auction")
     } else {
-        block_i18n::tr!("search-aurora-for-sale")
+        block_i18n::tr!("search-block-for-sale")
     };
     pill(ui, text, p.amber, p.amber.gamma_multiply(0.14));
 }
 
 pub(super) fn started_pill(ui: &mut egui::Ui, p: &Palette) {
-    pill(ui, block_i18n::tr!("search-aurora-started"), p.teal, p.teal.gamma_multiply(0.14));
+    pill(ui, block_i18n::tr!("search-block-started"), p.teal, p.teal.gamma_multiply(0.14));
 }
 
 /// A muted figure with its icon before it, in a row laid out from the right.
@@ -292,9 +292,9 @@ impl SearchUi {
     /// every category and the current and upcoming events: its line of
     /// filters has the ratings only.
     fn block_request(&self, tab: Tab, settings: &SearchSettings) -> Option<Request> {
-        let text = self.block.text.trim().to_owned();
+        let text = self.aurora.text.trim().to_owned();
         let ratings = settings.block_ratings.ratings();
-        let single = self.block.kind != Kind::All;
+        let single = self.aurora.kind != Kind::All;
         Some(match tab {
             Tab::Web => return None,
             Tab::People => Request::People { text },
@@ -323,8 +323,8 @@ impl SearchUi {
                 category: if single { self.classifieds_category } else { 0 },
             },
             Tab::Land => {
-                let price = self.block.land_price.trim();
-                let area = self.block.land_area.trim();
+                let price = self.aurora.land_price.trim();
+                let area = self.aurora.land_area.trim();
                 Request::Land {
                     ratings,
                     filter: LandFilter {
@@ -346,51 +346,51 @@ impl SearchUi {
     /// last searched for something else (another text, other filters).
     fn block_search(&mut self, settings: &SearchSettings, stale_only: bool) -> Vec<Request> {
         let mut out = Vec::new();
-        for tab in self.block.kind.tabs() {
+        for tab in self.aurora.kind.tabs() {
             let Some(request) = self.block_request(tab, settings) else {
                 continue;
             };
-            if stale_only && self.block.searched.get(&tab) == Some(&request) {
+            if stale_only && self.aurora.searched.get(&tab) == Some(&request) {
                 continue;
             }
-            self.block.searched.insert(tab, request.clone());
+            self.aurora.searched.insert(tab, request.clone());
             out.push(request);
         }
         if !out.is_empty() {
-            self.block.selected = None;
+            self.aurora.selected = None;
         }
         out
     }
 
     /// The searches of Aurora's window for its chip, as they are (demo).
-    pub fn aurora_requests(&mut self, settings: &SearchSettings) -> Vec<Request> {
+    pub fn block_requests(&mut self, settings: &SearchSettings) -> Vec<Request> {
         self.block_search(settings, false)
     }
 
     #[cfg(test)]
-    pub(super) fn aurora_kind(&self) -> Kind {
-        self.block.kind
+    pub(super) fn block_kind(&self) -> Kind {
+        self.aurora.kind
     }
 
     /// The text the web page of the grid is asked with (none in the Legacy
     /// look, as its web tab).
     pub fn web_query(&self, classic: bool) -> &str {
-        if classic { "" } else { &self.block.web_query }
+        if classic { "" } else { &self.aurora.web_query }
     }
 
     /// A classified or an event opened from a link (`Search::show_one`):
     /// Aurora's window shows its list as searched, the row selected, and
     /// does not search it again for the text it holds.
-    pub fn aurora_show_one(&mut self, tab: Tab, key: Key, settings: &SearchSettings) {
+    pub fn block_show_one(&mut self, tab: Tab, key: Key, settings: &SearchSettings) {
         if let Some(request) = self.block_request(tab, settings) {
-            self.block.searched.insert(tab, request);
+            self.aurora.searched.insert(tab, request);
         }
-        self.block.selected = Some((tab, key));
+        self.aurora.selected = Some((tab, key));
     }
 
     /// Whether Aurora's window searched this list for what it shows now.
-    fn aurora_shows(&self, tab: Tab) -> bool {
-        self.block.searched.contains_key(&tab)
+    fn block_shows(&self, tab: Tab) -> bool {
+        self.aurora.searched.contains_key(&tab)
     }
 
     /// The count of a chip, once its list answered: "100+" when the
@@ -398,23 +398,23 @@ impl SearchUi {
     fn chip_count(&self, search: &Search, kind: Kind) -> Option<String> {
         let tab = kind.tab()?;
         let list = search.list(tab)?;
-        if !self.aurora_shows(tab) || list.status == Status::Searching {
+        if !self.block_shows(tab) || list.status == Status::Searching {
             return None;
         }
         let n = list.rows.len();
         Some(if list.has_next {
-            block_i18n::tr!("search-aurora-count-more", count = n as i64)
+            block_i18n::tr!("search-block-count-more", count = n as i64)
         } else {
             n.to_string()
         })
     }
 
     /// The row whose details are shown.
-    fn aurora_selection(&self, search: &Search) -> Option<(Tab, Key)> {
+    fn block_selection(&self, search: &Search) -> Option<(Tab, Key)> {
         let has = |tab: Tab, key: Key| search.list(tab).is_some_and(|l| l.rows.iter().any(|r| r.key == key));
-        match self.block.kind {
-            Kind::All => self.block.selected.filter(|(t, k)| has(*t, *k)).or_else(|| {
-                SECTIONS.iter().filter(|t| self.aurora_shows(**t)).find_map(|t| {
+        match self.aurora.kind {
+            Kind::All => self.aurora.selected.filter(|(t, k)| has(*t, *k)).or_else(|| {
+                SECTIONS.iter().filter(|t| self.block_shows(**t)).find_map(|t| {
                     let list = search.list(*t)?;
                     let first = list.sorted().first()?.key;
                     Some((*t, list.selected.filter(|k| has(*t, *k)).unwrap_or(first)))
@@ -423,7 +423,7 @@ impl SearchUi {
             kind => {
                 let tab = kind.tab()?;
                 let list = search.list(tab)?;
-                self.aurora_shows(tab).then_some(())?;
+                self.block_shows(tab).then_some(())?;
                 list.selected.filter(|k| has(tab, *k)).map(|k| (tab, k))
             }
         }
@@ -445,19 +445,19 @@ impl SearchUi {
         let mut find = false;
         // the field
         ui.horizontal(|ui| {
-            let hint = if self.block.kind == Kind::Land {
-                block_i18n::tr!("search-aurora-land-hint")
+            let hint = if self.aurora.kind == Kind::Land {
+                block_i18n::tr!("search-block-land-hint")
             } else {
-                block_i18n::tr!("search-aurora-hint")
+                block_i18n::tr!("search-block-hint")
             };
-            let clear = if self.block.text.is_empty() { 0.0 } else { 28.0 };
-            let field = widgets::search_box(ui, p, &mut self.block.text, hint, ui.available_width() - clear);
+            let clear = if self.aurora.text.is_empty() { 0.0 } else { 28.0 };
+            let field = widgets::search_box(ui, p, &mut self.aurora.text, hint, ui.available_width() - clear);
             if std::mem::take(&mut self.focus) {
                 field.request_focus();
             }
             find |= field.lost_focus() && ui.input(|i| i.key_pressed(egui::Key::Enter));
-            if clear > 0.0 && widgets::icon_button(ui, p, "x", block_i18n::tr!("search-aurora-clear"), true) {
-                self.block.text.clear();
+            if clear > 0.0 && widgets::icon_button(ui, p, "x", block_i18n::tr!("search-block-clear"), true) {
+                self.aurora.text.clear();
                 self.focus = true;
             }
         });
@@ -469,7 +469,7 @@ impl SearchUi {
             ui.spacing_mut().item_spacing.x = 4.0;
             for kind in Kind::CHIPS {
                 let count = self.chip_count(&world.search, kind);
-                if widgets::pill_tab(ui, p, kind.icon(), kind.label(), count, false, self.block.kind == kind, true).clicked() {
+                if widgets::pill_tab(ui, p, kind.icon(), kind.label(), count, false, self.aurora.kind == kind, true).clicked() {
                     picked = Some(kind);
                 }
             }
@@ -480,34 +480,34 @@ impl SearchUi {
                 Kind::Web.label(),
                 None,
                 false,
-                self.block.kind == Kind::Web,
+                self.aurora.kind == Kind::Web,
                 true,
             );
-            if web_chip.on_hover_text(block_i18n::tr!("search-aurora-web-tip")).clicked() {
+            if web_chip.on_hover_text(block_i18n::tr!("search-block-web-tip")).clicked() {
                 picked = Some(Kind::Web);
             }
         });
-        if let Some(kind) = picked.filter(|k| *k != self.block.kind) {
-            self.block.kind = kind;
-            self.block.selected = None;
+        if let Some(kind) = picked.filter(|k| *k != self.aurora.kind) {
+            self.aurora.kind = kind;
+            self.aurora.selected = None;
             self.focus = kind != Kind::Web;
             if kind == Kind::Web {
-                self.block.web_query = self.block.text.trim().to_owned();
+                self.aurora.web_query = self.aurora.text.trim().to_owned();
             }
             actions.extend(self.block_search(settings, true).into_iter().map(SearchAction::Find));
         }
-        if self.block.kind != Kind::Web {
+        if self.aurora.kind != Kind::Web {
             ui.add_space(6.0);
-            find |= self.aurora_filters(ui, p, world, settings, access, actions);
+            find |= self.block_filters(ui, p, world, settings, access, actions);
         }
-        if find && self.block.kind == Kind::Web {
-            self.block.web_query = self.block.text.trim().to_owned();
+        if find && self.aurora.kind == Kind::Web {
+            self.aurora.web_query = self.aurora.text.trim().to_owned();
         } else if find {
             actions.extend(self.block_search(settings, false).into_iter().map(SearchAction::Find));
         }
         ui.add_space(4.0);
         widgets::divider(ui, p);
-        if self.block.kind == Kind::Web {
+        if self.aurora.kind == Kind::Web {
             ui.add_space(4.0);
             self.web_tab(ui, p, web);
             return;
@@ -519,17 +519,17 @@ impl SearchUi {
         let left = Rect::from_min_max(body.min, Pos2::new(body.right() - details_w - 1.0, body.bottom()));
         let right = Rect::from_min_max(Pos2::new(left.right() + 1.0, body.top()), body.max);
         ui.painter().vline(left.right() + 0.5, body.y_range(), widgets::divider_stroke(p));
-        let selection = self.aurora_selection(&world.search);
+        let selection = self.block_selection(&world.search);
         let mut list_ui = ui.new_child(
             egui::UiBuilder::new()
-                .id_salt(("aurora-search-list", self.block.kind as usize))
+                .id_salt(("block-search-list", self.aurora.kind as usize))
                 .max_rect(left.shrink2(Vec2::new(0.0, 2.0)))
                 .layout(egui::Layout::top_down(egui::Align::Min)),
         );
-        self.aurora_list(&mut list_ui, c, settings, selection, actions);
+        self.block_list(&mut list_ui, c, settings, selection, actions);
         let mut detail_ui = ui.new_child(
             egui::UiBuilder::new()
-                .id_salt("aurora-search-details")
+                .id_salt("block-search-details")
                 .max_rect(right.shrink2(Vec2::new(12.0, 10.0)))
                 .layout(egui::Layout::top_down(egui::Align::Min)),
         );
@@ -541,7 +541,7 @@ impl SearchUi {
             None => {
                 detail_ui.add_space(40.0);
                 detail_ui.vertical_centered(|ui| {
-                    ui.label(RichText::new(block_i18n::tr!("search-aurora-select")).size(12.5).color(p.muted));
+                    ui.label(RichText::new(block_i18n::tr!("search-block-select")).size(12.5).color(p.muted));
                 });
             }
         }
@@ -549,7 +549,7 @@ impl SearchUi {
 
     /// The line of filters of the chip shown, and the number of results at
     /// its right end. True when a search is asked.
-    fn aurora_filters(
+    fn block_filters(
         &mut self,
         ui: &mut egui::Ui,
         p: &Palette,
@@ -558,7 +558,7 @@ impl SearchUi {
         access: AgentAccess,
         actions: &mut Vec<SearchAction>,
     ) -> bool {
-        let kind = self.block.kind;
+        let kind = self.aurora.kind;
         let mut find = false;
         let mut saved = false;
         let count = self.results_text(&world.search);
@@ -583,19 +583,15 @@ impl SearchUi {
                 }
                 match kind {
                     Kind::People => {
-                        ui.label(
-                            RichText::new(block_i18n::tr!("search-aurora-people-hint"))
-                                .size(12.0)
-                                .color(p.muted),
-                        );
+                        ui.label(RichText::new(block_i18n::tr!("search-block-people-hint")).size(12.0).color(p.muted));
                     }
                     Kind::Groups => {
                         let levels = [
-                            (SIM_ACCESS_PG, block_i18n::tr!("search-aurora-groups-general")),
-                            (SIM_ACCESS_MATURE, block_i18n::tr!("search-aurora-groups-moderate")),
-                            (SIM_ACCESS_ADULT, block_i18n::tr!("search-aurora-groups-adult")),
+                            (SIM_ACCESS_PG, block_i18n::tr!("search-block-groups-general")),
+                            (SIM_ACCESS_MATURE, block_i18n::tr!("search-block-groups-moderate")),
+                            (SIM_ACCESS_ADULT, block_i18n::tr!("search-block-groups-adult")),
                         ];
-                        if combo(ui, "aurora-search-group-maturity", &mut settings.group_maturity, &levels, 230.0) {
+                        if combo(ui, "block-search-group-maturity", &mut settings.group_maturity, &levels, 230.0) {
                             saved = true;
                             find = true;
                         }
@@ -604,7 +600,7 @@ impl SearchUi {
                         ui.add_space(6.0);
                         find |= combo(
                             ui,
-                            "aurora-search-place-category",
+                            "block-search-place-category",
                             &mut self.places_category,
                             &place_categories(),
                             180.0,
@@ -617,7 +613,7 @@ impl SearchUi {
                         items.extend(cats.iter().map(|(id, name)| (*id, name.as_str())));
                         find |= combo(
                             ui,
-                            "aurora-search-classified-category",
+                            "block-search-classified-category",
                             &mut self.classifieds_category,
                             &items,
                             180.0,
@@ -627,7 +623,7 @@ impl SearchUi {
                         ui.add_space(6.0);
                         find |= combo(
                             ui,
-                            "aurora-search-event-category",
+                            "block-search-event-category",
                             &mut self.events_category,
                             &event_categories(),
                             180.0,
@@ -635,7 +631,7 @@ impl SearchUi {
                         let mut mode = usize::from(self.events_by_day);
                         let options = [
                             (block_i18n::tr!("search-events-current"), false),
-                            (block_i18n::tr!("search-aurora-by-date"), false),
+                            (block_i18n::tr!("search-block-by-date"), false),
                         ];
                         if widgets::segmented(ui, p, &mut mode, &options) {
                             self.events_by_day = mode == 1;
@@ -663,26 +659,26 @@ impl SearchUi {
                     Kind::Land => {
                         ui.add_space(6.0);
                         let kinds = [
-                            (LandKind::All, block_i18n::tr!("search-aurora-land-all")),
+                            (LandKind::All, block_i18n::tr!("search-block-land-all")),
                             (LandKind::Auction, block_i18n::tr!("search-land-auction")),
                             (LandKind::Mainland, block_i18n::tr!("search-land-mainland")),
                             (LandKind::Estate, block_i18n::tr!("search-land-estate")),
                         ];
                         let mut land_kind = LandKind::from_setting(settings.land_type);
-                        if combo(ui, "aurora-search-land-kind", &mut land_kind, &kinds, 140.0) {
+                        if combo(ui, "block-search-land-kind", &mut land_kind, &kinds, 140.0) {
                             settings.land_type = land_kind.setting();
                             saved = true;
                             find = true;
                         }
-                        find |= number_field(ui, block_i18n::tr!("search-land-max-price"), &mut self.block.land_price);
-                        find |= number_field(ui, block_i18n::tr!("search-land-min-area"), &mut self.block.land_area);
+                        find |= number_field(ui, block_i18n::tr!("search-land-max-price"), &mut self.aurora.land_price);
+                        find |= number_field(ui, block_i18n::tr!("search-land-min-area"), &mut self.aurora.land_area);
                         let sorts = [
-                            (LandSort::Name, block_i18n::tr!("search-aurora-sort-name")),
-                            (LandSort::Price, block_i18n::tr!("search-aurora-sort-price")),
-                            (LandSort::PerMeter, block_i18n::tr!("search-aurora-sort-per-meter")),
-                            (LandSort::Area, block_i18n::tr!("search-aurora-sort-area")),
+                            (LandSort::Name, block_i18n::tr!("search-block-sort-name")),
+                            (LandSort::Price, block_i18n::tr!("search-block-sort-price")),
+                            (LandSort::PerMeter, block_i18n::tr!("search-block-sort-per-meter")),
+                            (LandSort::Area, block_i18n::tr!("search-block-sort-area")),
                         ];
-                        find |= combo(ui, "aurora-search-land-sort", &mut self.land_sort, &sorts, 130.0);
+                        find |= combo(ui, "block-search-land-sort", &mut self.land_sort, &sorts, 130.0);
                         if widgets::icon_toggle(ui, p, "arrows-sort", block_i18n::tr!("search-land-ascending"), self.land_ascending) {
                             self.land_ascending = !self.land_ascending;
                             find = true;
@@ -703,18 +699,18 @@ impl SearchUi {
 
     /// "6 results", "> 100 results" for the chip shown, once answered.
     fn results_text(&self, search: &Search) -> String {
-        match self.block.kind {
+        match self.aurora.kind {
             Kind::All => {
                 let lists: Vec<_> = SECTIONS
                     .iter()
-                    .filter(|t| self.aurora_shows(**t))
+                    .filter(|t| self.block_shows(**t))
                     .filter_map(|t| search.list(*t))
                     .collect();
                 let n: usize = lists.iter().map(|l| l.rows.len()).sum();
                 results(n, lists.iter().any(|l| l.has_next))
             }
             kind => match kind.tab().and_then(|t| search.list(t)) {
-                Some(list) if self.aurora_shows(list.tab) => results(list.rows.len(), list.has_next),
+                Some(list) if self.block_shows(list.tab) => results(list.rows.len(), list.has_next),
                 _ => String::new(),
             },
         }
@@ -725,12 +721,12 @@ impl SearchUi {
     fn all_status(&self, search: &Search) -> String {
         let statuses: Vec<&Status> = SECTIONS
             .iter()
-            .filter(|t| self.aurora_shows(**t))
+            .filter(|t| self.block_shows(**t))
             .filter_map(|t| search.list(*t))
             .map(|l| &l.status)
             .collect();
         if statuses.is_empty() {
-            return block_i18n::tr!("search-aurora-start").to_owned();
+            return block_i18n::tr!("search-block-start").to_owned();
         }
         if let Some(s) = statuses.iter().find(|s| matches!(s, Status::Searching)) {
             return status_text(s);
@@ -740,13 +736,13 @@ impl SearchUi {
             .find(|s| !matches!(s, Status::Found | Status::Idle | Status::NotFound(_)))
             .copied()
             .cloned()
-            .unwrap_or_else(|| Status::NotFound(self.block.text.trim().to_owned()));
+            .unwrap_or_else(|| Status::NotFound(self.aurora.text.trim().to_owned()));
         status_text(&reason)
     }
 
     /// The results: the sections of "All", or the list of one type with its
     /// pages.
-    fn aurora_list(
+    fn block_list(
         &mut self,
         ui: &mut egui::Ui,
         c: &mut Ctx,
@@ -756,11 +752,11 @@ impl SearchUi {
     ) {
         let p = c.p;
         let world = c.world;
-        let kind = self.block.kind;
+        let kind = self.aurora.kind;
         let mut asks = 0;
         let mut goto = None;
         egui::ScrollArea::vertical()
-            .id_salt(("aurora-search-rows", kind as usize))
+            .id_salt(("block-search-rows", kind as usize))
             .auto_shrink([false, false])
             .show(ui, |ui| {
                 ui.spacing_mut().item_spacing.y = 1.0;
@@ -774,7 +770,7 @@ impl SearchUi {
                 if kind == Kind::All {
                     let mut any = false;
                     for tab in SECTIONS {
-                        let Some(list) = world.search.list(tab).filter(|_| self.aurora_shows(tab)) else {
+                        let Some(list) = world.search.list(tab).filter(|_| self.block_shows(tab)) else {
                             continue;
                         };
                         let rows = list.sorted();
@@ -783,7 +779,7 @@ impl SearchUi {
                         }
                         any = true;
                         let total = if list.has_next {
-                            block_i18n::tr!("search-aurora-count-more", count = rows.len() as i64)
+                            block_i18n::tr!("search-block-count-more", count = rows.len() as i64)
                         } else {
                             rows.len().to_string()
                         };
@@ -791,7 +787,7 @@ impl SearchUi {
                             goto = Some(Kind::of(tab));
                         }
                         for row in rows.iter().take(SECTION_ROWS) {
-                            self.aurora_row(ui, c, tab, row, selection, &mut asks, actions);
+                            self.block_row(ui, c, tab, row, selection, &mut asks, actions);
                         }
                     }
                     if !any {
@@ -805,8 +801,8 @@ impl SearchUi {
                 let Some(list) = world.search.list(tab) else {
                     return;
                 };
-                if !self.aurora_shows(tab) {
-                    note(ui, block_i18n::tr!("search-aurora-start").to_owned());
+                if !self.block_shows(tab) {
+                    note(ui, block_i18n::tr!("search-block-start").to_owned());
                     return;
                 }
                 let rows = list.sorted();
@@ -816,7 +812,7 @@ impl SearchUi {
                 }
                 ui.add_space(3.0);
                 for row in &rows {
-                    self.aurora_row(ui, c, tab, row, selection, &mut asks, actions);
+                    self.block_row(ui, c, tab, row, selection, &mut asks, actions);
                 }
                 // the directory's pages of a hundred rows
                 if list.has_back() || list.has_next {
@@ -824,13 +820,13 @@ impl SearchUi {
                     ui.vertical_centered(|ui| {
                         let size = Vec2::new(0.0, 26.0);
                         if list.has_next {
-                            let next = block_i18n::tr!("search-aurora-next-page");
+                            let next = block_i18n::tr!("search-block-next-page");
                             if widgets::action_button(ui, p, "caret-right-filled", next, ActionKind::Flat, size).clicked() {
                                 actions.push(SearchAction::Page(tab, true));
                             }
                         }
                         if list.has_back() {
-                            let back = block_i18n::tr!("search-aurora-previous-page");
+                            let back = block_i18n::tr!("search-block-previous-page");
                             if widgets::action_button(ui, p, "caret-left-filled", back, ActionKind::Flat, size).clicked() {
                                 actions.push(SearchAction::Page(tab, false));
                             }
@@ -842,8 +838,8 @@ impl SearchUi {
                 }
             });
         if let Some(kind) = goto {
-            self.block.kind = kind;
-            self.block.selected = None;
+            self.aurora.kind = kind;
+            self.aurora.selected = None;
             actions.extend(self.block_search(settings, true).into_iter().map(SearchAction::Find));
         }
     }
@@ -851,7 +847,7 @@ impl SearchUi {
     /// One result row; a click selects it (and asks for its details), a
     /// resident's double click opens the profile, a right click its menu.
     #[allow(clippy::too_many_arguments)]
-    fn aurora_row(
+    fn block_row(
         &mut self,
         ui: &mut egui::Ui,
         c: &mut Ctx,
@@ -881,7 +877,7 @@ impl SearchUi {
             (Tab::Places | Tab::Land, Key::Id(id)) => {
                 let parcel = world.profiles.parcels.get(&id);
                 if parcel.is_none() {
-                    ask(&mut self.block.asked, id, SearchAction::WantParcel(id));
+                    ask(&mut self.aurora.asked, id, SearchAction::WantParcel(id));
                 }
                 let snapshot = parcel.map(|d| d.snapshot).filter(|s| !s.is_nil());
                 if let Some(s) = snapshot {
@@ -926,7 +922,7 @@ impl SearchUi {
             (Tab::Classifieds, Key::Id(id)) => {
                 let info = world.profiles.classifieds.get(&id);
                 if info.is_none() {
-                    ask(&mut self.block.asked, id, SearchAction::WantClassified(id));
+                    ask(&mut self.aurora.asked, id, SearchAction::WantClassified(id));
                 }
                 let snapshot = info.map(|i| i.snapshot).filter(|s| !s.is_nil());
                 if let Some(s) = snapshot {
@@ -935,7 +931,7 @@ impl SearchUi {
                 let tex = snapshot.and_then(|s| c.images.get(&s));
                 let subtitle = info.map_or_else(
                     || block_i18n::tr!("common-loading-2").to_owned(),
-                    |i| block_i18n::tr!("search-aurora-published", date = crate::world::profiles::slt_date(i.creation_date)),
+                    |i| block_i18n::tr!("search-block-published", date = crate::world::profiles::slt_date(i.creation_date)),
                 );
                 let mature = info.map(|i| {
                     i.flags & (block_net::profile::classified_flags::MATURE | block_net::profile::classified_flags::QUERY_INC_MATURE) != 0
@@ -995,7 +991,7 @@ impl SearchUi {
             (Tab::Groups, Key::Id(id)) => {
                 let profile = world.search.groups.get(&id);
                 if profile.is_none() {
-                    ask(&mut self.block.asked, id, SearchAction::RefreshGroup(id));
+                    ask(&mut self.aurora.asked, id, SearchAction::RefreshGroup(id));
                 }
                 let insignia = profile
                     .map(|g| g.insignia)
@@ -1026,7 +1022,7 @@ impl SearchUi {
                 let member = world.groups.is_member(&id);
                 place_card::row(ui, p, size, &card, |ui| {
                     if member {
-                        pill(ui, block_i18n::tr!("search-aurora-member"), p.violet_pale, p.raised);
+                        pill(ui, block_i18n::tr!("search-block-member"), p.violet_pale, p.raised);
                     }
                 })
             }
@@ -1052,7 +1048,7 @@ impl SearchUi {
         };
         let resp = super::place_drag_source(resp, c, tab, row);
         if resp.clicked() && !selected {
-            self.block.selected = Some((tab, row.key));
+            self.aurora.selected = Some((tab, row.key));
             actions.push(SearchAction::Select(tab, row.key));
         }
         match (tab, row.key) {
@@ -1078,9 +1074,9 @@ fn results(n: usize, more: bool) -> String {
     if n == 0 {
         String::new()
     } else if more {
-        block_i18n::tr!("search-aurora-results-more", count = n as i64)
+        block_i18n::tr!("search-block-results-more", count = n as i64)
     } else {
-        block_i18n::tr!("search-aurora-results", count = n as i64)
+        block_i18n::tr!("search-block-results", count = n as i64)
     }
 }
 
@@ -1091,15 +1087,12 @@ fn land_subtitle(row: &Row) -> String {
         parts.push(kind.clone());
     }
     if let Some(Value::Int(area)) = row.values.get(2) {
-        parts.push(block_i18n::tr!("search-aurora-area", area = block_i18n::integer(*area)));
+        parts.push(block_i18n::tr!("search-block-area", area = block_i18n::integer(*area)));
     }
     if row.icon != RowIcon::Auction
         && let Some(Value::Real(per_meter)) = row.values.get(3)
     {
-        parts.push(block_i18n::tr!(
-            "search-aurora-per-meter",
-            value = block_i18n::number(*per_meter, 2)
-        ));
+        parts.push(block_i18n::tr!("search-block-per-meter", value = block_i18n::number(*per_meter, 2)));
     }
     parts.join(" · ")
 }
@@ -1126,7 +1119,7 @@ fn section_head(ui: &mut egui::Ui, p: &Palette, kind: Kind, count: &str, more: b
                 let see = ui
                     .add(
                         egui::Label::new(
-                            RichText::new(block_i18n::tr!("search-aurora-see-all"))
+                            RichText::new(block_i18n::tr!("search-block-see-all"))
                                 .size(12.0)
                                 .color(p.violet_light),
                         )
@@ -1149,10 +1142,10 @@ mod tests {
     fn all_searches_the_five_texts_and_keeps_their_categories_open() {
         let mut ui = SearchUi::default();
         let settings = SearchSettings::default();
-        ui.block.text = " lune ".into();
+        ui.aurora.text = " lune ".into();
         ui.places_category = 9;
         ui.events_by_day = true;
-        let requests = ui.aurora_requests(&settings);
+        let requests = ui.block_requests(&settings);
         let tabs: Vec<Tab> = requests.iter().map(Request::tab).collect();
         assert_eq!(tabs, SECTIONS.to_vec(), "land sales have no text");
         assert!(requests.contains(&Request::Places {
@@ -1173,13 +1166,13 @@ mod tests {
         );
         // a chip shows its list without searching again, until a filter of
         // its own changes the request
-        ui.block.kind = Kind::Places;
+        ui.aurora.kind = Kind::Places;
         let again = ui.block_search(&settings, true);
         assert_eq!(again.len(), 1, "the category of the chip makes another request");
         assert!(ui.block_search(&settings, true).is_empty(), "nothing changed since");
-        ui.block.kind = Kind::People;
+        ui.aurora.kind = Kind::People;
         assert!(ui.block_search(&settings, true).is_empty(), "people were searched by All");
-        ui.block.text = "lunes".into();
+        ui.aurora.text = "lunes".into();
         assert_eq!(ui.block_search(&settings, true).len(), 1);
     }
 
@@ -1187,13 +1180,13 @@ mod tests {
     fn land_limits_come_from_the_fields() {
         let mut ui = SearchUi::default();
         let mut settings = SearchSettings::default();
-        ui.block.kind = Kind::Land;
+        ui.aurora.kind = Kind::Land;
         let Some(Request::Land { filter, .. }) = ui.block_request(Tab::Land, &settings) else {
             panic!("land");
         };
         assert!(!filter.limit_price && !filter.limit_area, "empty fields set no limit");
-        ui.block.land_price = "5000".into();
-        ui.block.land_area = "512".into();
+        ui.aurora.land_price = "5000".into();
+        ui.aurora.land_area = "512".into();
         settings.land_type = LandKind::Estate.setting();
         let Some(Request::Land { filter, .. }) = ui.block_request(Tab::Land, &settings) else {
             panic!("land");
@@ -1229,7 +1222,7 @@ mod tests {
         };
         assert_eq!(
             land_subtitle(&auction),
-            block_i18n::tr!("search-aurora-area", area = block_i18n::integer(2048)),
+            block_i18n::tr!("search-block-area", area = block_i18n::integer(2048)),
             "an auction has no price per metre"
         );
         // 10:00 SLT on a day of the demo events: an hour later is the same day
@@ -1237,7 +1230,7 @@ mod tests {
         let (.., h, min, sec) = crate::ui::land::slt_parts(base);
         let now = base - h * 3600 - min * 60 - sec + 10 * 3600;
         assert!(event_when(now + 3600, now).starts_with(block_i18n::tr!("search-events-today")));
-        assert!(event_when(now + 86_400, now).starts_with(block_i18n::tr!("search-aurora-tomorrow")));
+        assert!(event_when(now + 86_400, now).starts_with(block_i18n::tr!("search-block-tomorrow")));
         assert_eq!(event_rating(RowIcon::EventAdult), block_i18n::tr!("common-adult"));
         assert_eq!(Kind::of(Tab::Classifieds).tab(), Some(Tab::Classifieds));
         assert_eq!(Kind::All.tabs(), SECTIONS.to_vec());

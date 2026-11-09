@@ -62,6 +62,8 @@ pub enum Destination {
     Profile,
     /// A postcard (LLPanelSnapshotPostcard).
     Email,
+    /// Anonymous upload to catbox.moe (viewfinder destination cycle).
+    Web,
 }
 
 /// The e-mail of a postcard (panel_postcard_message.xml).
@@ -329,8 +331,8 @@ impl SnapshotUi {
     fn actions(&mut self, ui: &mut egui::Ui, p: &Palette, view: &View, out: &mut Vec<Action>) {
         ui.add_space(4.0);
         let busy = view.busy.is_some();
-        ui.horizontal(|ui| match (&view.email, &view.inventory, &view.profile) {
-            (Some(mail), _, _) => {
+        ui.horizontal(|ui| match (&view.email, &view.inventory, &view.profile, self.destination) {
+            (Some(mail), _, _, _) => {
                 let ready = !busy && mail.available;
                 if widgets::action_button_if(
                     ui,
@@ -346,7 +348,7 @@ impl SnapshotUi {
                     out.push(Action::Take);
                 }
             }
-            (None, _, Some(prof)) => {
+            (None, _, Some(prof), _) => {
                 let ready = !busy && prof.connected && prof.ready;
                 if widgets::action_button_if(
                     ui,
@@ -362,7 +364,7 @@ impl SnapshotUi {
                     out.push(Action::Take);
                 }
             }
-            (None, Some(inv), None) => {
+            (None, Some(inv), None, _) => {
                 let ready = !busy && inv.connected && inv.cost.is_some();
                 if widgets::action_button_if(
                     ui,
@@ -378,7 +380,23 @@ impl SnapshotUi {
                     out.push(Action::Take);
                 }
             }
-            (None, None, None) => {
+            (None, None, None, Destination::Web) => {
+                ui.add_enabled_ui(!busy, |ui| {
+                    if widgets::action_button(
+                        ui,
+                        p,
+                        "world-www",
+                        block_i18n::tr!("photo-web-send"),
+                        ActionKind::Primary,
+                        Vec2::new(ui.available_width(), 32.0),
+                    )
+                    .clicked()
+                    {
+                        out.push(Action::Take);
+                    }
+                });
+            }
+            (None, None, None, _) => {
                 let take_w = ui.available_width() - 34.0;
                 ui.add_enabled_ui(!busy, |ui| {
                     if widgets::action_button(
@@ -572,6 +590,7 @@ impl SnapshotUi {
             Destination::Inventory => 1,
             Destination::Profile => 2,
             Destination::Email => 3,
+            Destination::Web => 4,
         };
         if widgets::segmented(
             ui,
@@ -582,15 +601,20 @@ impl SnapshotUi {
                 (block_i18n::tr!("photo-destination-inventory"), true),
                 (block_i18n::tr!("photo-destination-profile"), true),
                 (block_i18n::tr!("photo-destination-email"), true),
+                (block_i18n::tr!("photo-destination-web"), true),
             ],
         ) {
             self.destination = match dest {
                 1 => Destination::Inventory,
                 2 => Destination::Profile,
                 3 => Destination::Email,
+                4 => Destination::Web,
                 _ => Destination::Disk,
             };
             out.push(Action::Changed);
+        }
+        if self.destination == Destination::Web {
+            ui.label(RichText::new(block_i18n::tr!("photo-web-hint")).size(12.0).color(p.muted));
         }
         match (&view.email, &view.inventory, &view.profile) {
             (Some(mail), _, _) => self.postcard_form(ui, p, s, mail),

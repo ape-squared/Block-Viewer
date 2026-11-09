@@ -187,7 +187,7 @@ enum PageJob {
 }
 
 /// Creates the pages of the streamed uploads and destroys the emptied ones
-/// on a thread of its own (`aurora-pages`). Most pages are carved out of a
+/// on a thread of its own (`block-pages`). Most pages are carved out of a
 /// block of video memory the device already holds (a few µs), but the one
 /// that needs a new block (128 then 256 MB each) waits for the driver to
 /// allocate it, under the lock of the device's memory allocator: 1.0 to
@@ -214,7 +214,7 @@ impl PageWorker {
         let (tx, rx) = std::sync::mpsc::channel::<PageJob>();
         let (made_tx, made) = std::sync::mpsc::channel::<MadePage>();
         let device = device.clone();
-        let spawned = std::thread::Builder::new().name("aurora-pages".into()).spawn(move || {
+        let spawned = std::thread::Builder::new().name("block-pages".into()).spawn(move || {
             for job in rx {
                 // (the render thread can wait for it: frame_priority.rs)
                 crate::frame_priority::apply();
@@ -905,15 +905,9 @@ impl PageStore {
     /// arrive (`replace` / `replace_staged`): nothing is written and no
     /// layer is taken.
     fn create_placeholder(&mut self) -> Option<u32> {
-        self.create_shared(PLACEHOLDER)
-    }
-
-    /// A derived normal loads through a stable slot, sampling the reserved
-    /// flat normal until its first upload. Shared slots allocate no layer.
-    fn create_shared(&mut self, reserved: u32) -> Option<u32> {
         let (key, page, layer) = self
             .slots
-            .get(reserved as usize)
+            .get(PLACEHOLDER as usize)
             .and_then(Option::as_ref)
             .map(|s| (s.key, s.page, s.layer))?;
         let slot = match self.free_slots.pop() {
@@ -1531,11 +1525,6 @@ impl TextureTable {
         self.store.create_placeholder()
     }
 
-    /// A streamed derived normal, flat until ready, without allocating texels.
-    pub fn create_normal_placeholder(&mut self) -> Option<u32> {
-        self.store.create_shared(FLAT_NORMAL)
-    }
-
     /// A texture that will not come: its slot, while it still shows the
     /// loading placeholder, shows the missing grey ([`MISSING`]). Costs no
     /// GPU work. False for a slot with texels of its own.
@@ -1828,13 +1817,11 @@ pub fn alpha_coverage(data: &[u8], cutoff: u8) -> f32 {
 /// averages thin opaque texels with the empty ones around them, so a leaf,
 /// a blade of grass, a hair strand or a fence wire falls under the cutoff a
 /// few levels down and the foliage thins out with the distance. Each level
-/// from 1 on can have its alpha raised to restore level 0's share: find the
-/// threshold on its histogram and scale by cutoff / threshold. A fuller
-/// level stays at the plain average (LLImageBase::generateMip,
-/// indra/llimage/llimage.cpp). Never lower alpha: the same texture may be
-/// used with a higher material cutoff, and dimming even its opaque texels
-/// erased HUD panels (#2163, #2452). Level 0 and colour stay unchanged;
-/// fully drawn or fully hidden textures are not touched.
+/// from 1 on gets its alpha scaled so that the share of texels at or above
+/// the cutoff matches level 0's: the threshold of the level that keeps that
+/// share is found on its alpha histogram, and the level is scaled by
+/// cutoff / threshold. Level 0 and the colour are left as they are; a
+/// level that level 0 leaves fully drawn or fully hidden is not touched.
 pub fn preserve_alpha_coverage(mips: &mut [(u32, u32, Vec<u8>)], cutoff: u8) {
     let cutoff = cutoff.max(1);
     let Some(target) = mips.first().map(|(_, _, d)| alpha_coverage(d, cutoff)) else {
@@ -1858,10 +1845,7 @@ pub fn preserve_alpha_coverage(mips: &mut [(u32, u32, Vec<u8>)], cutoff: u8) {
             kept[t] = kept[t + 1] + hist[t];
         }
         let want = target * n as f32;
-        if kept[usize::from(cutoff)] as f32 >= want {
-            continue;
-        }
-        let threshold = (1..=usize::from(cutoff))
+        let threshold = (1..256usize)
             .min_by(|&a, &b| {
                 let da = (kept[a] as f32 - want).abs();
                 let db = (kept[b] as f32 - want).abs();
@@ -1923,39 +1907,6 @@ mod tests {
         assert!((alpha_coverage(&mips[0].2, MASK_CUTOFF) - 0.25).abs() < 1e-3);
         // two levels down a line is a quarter of a texel: nothing draws
         assert_eq!(alpha_coverage(&mips[2].2, MASK_CUTOFF), 0.0);
-    }
-
-    #[test]
-    fn alpha_coverage_keeps_masked_hud_panels_at_the_creators_cutoff() {
-        // An opaque panel with a one-texel transparent border. Its 8 x 8
-        // mip already covers more than level 0 at the automatic cutoff.
-        // Scaling that coverage down made even its opaque centre 165/255:
-        // a HUD material cut at 200/255 disappeared altogether (#2163).
-        let mut pixels = [20, 40, 80, 255].repeat(64 * 64);
-        for y in 0..64 {
-            for x in 0..64 {
-                if x == 0 || y == 0 || x == 63 || y == 63 {
-                    pixels[(y * 64 + x) * 4 + 3] = 0;
-                }
-            }
-        }
-        let plain = build_mips(64, 64, pixels, 16);
-        assert!(alpha_coverage(&plain[3].2, 200) > 0.5);
-        let mut kept = plain.clone();
-        preserve_alpha_coverage(&mut kept, MASK_CUTOFF);
-        assert!(alpha_coverage(&kept[3].2, 200) > 0.5, "a 200/255 HUD panel must remain visible");
-        for (level, ((_, _, before), (_, _, after))) in plain.iter().zip(&kept).enumerate() {
-            for cutoff in [1, 128, 200, 255] {
-                assert!(
-                    alpha_coverage(after, cutoff) >= alpha_coverage(before, cutoff),
-                    "level {level}, cutoff {cutoff}: coverage preservation must not hide a panel the plain mip draws"
-                );
-            }
-            for (before, after) in before.as_chunks::<4>().0.iter().zip(after.as_chunks::<4>().0) {
-                assert_eq!(after[..3], before[..3]);
-                assert!(after[3] >= before[3], "level {level}: alpha must never decrease");
-            }
-        }
     }
 
     /// 128 × 128 texels, a quarter of them opaque, scattered (splitmix64).
@@ -2182,17 +2133,6 @@ mod tests {
         // the reserved slots are never handed out nor freed
         store.free(WHITE);
         assert_eq!(store.create_placeholder(), None);
-    }
-
-    #[test]
-    fn bump_normal_placeholder_shares_the_flat_normal_without_allocating_texels() {
-        let mut store = bare_store(64, 64);
-        store.slots[FLAT_NORMAL as usize].as_mut().unwrap().layer = 1;
-        let slot = store.create_shared(FLAT_NORMAL).unwrap();
-        assert_eq!(store.loc[slot as usize], pack(0, 1));
-        assert_eq!((store.bytes, store.pages.len(), store.live), (0, 0, 1));
-        store.free(slot);
-        assert_eq!((store.bytes, store.live), (0, 0));
     }
 
     #[test]
@@ -2505,7 +2445,7 @@ mod tests {
         let rows: u32 = (0..k.mips).map(|l| k.format.rows(level_dim(k.height, l))).sum();
         let buf = device.create_buffer(&wgpu::BufferDescriptor {
             label: None,
-            size: crate::readback::readback_size(rows as u64 * 256),
+            size: rows as u64 * 256,
             usage: wgpu::BufferUsages::COPY_DST | wgpu::BufferUsages::MAP_READ,
             mapped_at_creation: false,
         });
@@ -3290,7 +3230,7 @@ mod tests {
         let sample_all = |table: &TextureTable| -> Vec<u8> {
             let buf = device.create_buffer(&wgpu::BufferDescriptor {
                 label: None,
-                size: crate::readback::readback_size(SLOTS as u64 * 8),
+                size: SLOTS as u64 * 8,
                 usage: wgpu::BufferUsages::COPY_DST | wgpu::BufferUsages::MAP_READ,
                 mapped_at_creation: false,
             });

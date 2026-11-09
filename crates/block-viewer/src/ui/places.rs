@@ -173,7 +173,7 @@ fn add_rows(
         return;
     }
     let mut kids: Vec<_> = f.children.iter().filter_map(|c| inv.folders.get(c)).collect();
-    kids.sort_by_key(|k| crate::natural_order::key(&k.info.name));
+    kids.sort_by_key(|k| k.info.name.to_lowercase());
     for k in kids {
         let keep = if filter.is_empty() {
             all || has_match(inv, k.info.id, "", 0)
@@ -204,10 +204,10 @@ fn add_rows(
         items.sort_by(|a, b| {
             b.created_at
                 .cmp(&a.created_at)
-                .then_with(|| crate::natural_order::cmp(&a.name, &b.name))
+                .then_with(|| a.name.to_lowercase().cmp(&b.name.to_lowercase()))
         });
     } else {
-        items.sort_by_key(|i| crate::natural_order::key(&i.name));
+        items.sort_by_key(|i| i.name.to_lowercase());
     }
     rows.extend(items.into_iter().map(|i| Row {
         depth,
@@ -279,7 +279,7 @@ pub struct PlacesUi {
     /// (spot, global point, region id or nil), for `World::place_snapshots`.
     pub want_snapshots: Vec<(crate::world::place_snapshots::Spot, glam::DVec3, Uuid)>,
     /// Aurora's look.
-    pub block: block::AuroraState,
+    pub aurora: block::AuroraState,
     /// Inventory changes asked from a menu, sent with the window's actions.
     pending_edits: Vec<block_net::inventory::operations::Mutation>,
     raise: bool,
@@ -290,7 +290,7 @@ impl PlacesUi {
     pub fn open_tab(&mut self, tab: usize) {
         self.tab = tab.min(TAB_HISTORY);
         self.selected = None;
-        self.block.open_tab(self.tab);
+        self.aurora.open_tab(self.tab);
         self.raise = true;
     }
 
@@ -300,7 +300,7 @@ impl PlacesUi {
         if classic {
             self.tab == TAB_HISTORY
         } else {
-            self.block.source == block::Source::History
+            self.aurora.source == block::Source::History
         }
     }
 
@@ -325,12 +325,12 @@ impl PlacesUi {
         open: &mut bool,
         by_date: bool,
         confirm_teleports: bool,
-        block_env: Option<&block::Env>,
+        aurora: Option<&block::Env>,
     ) -> Vec<PlacesAction> {
         let mut actions = Vec::new();
         self.show_confirm(ctx, c.p, confirm_teleports, &mut actions);
         if !*open {
-            self.block.pending_click = None;
+            self.aurora.pending_click = None;
             return actions;
         }
         if std::mem::take(&mut self.raise) {
@@ -342,7 +342,7 @@ impl PlacesUi {
         let pos = screen.center() - size * 0.5 + Vec2::new(120.0, 0.0);
         let mut floater = Floater::new("places", block_i18n::tr!("common-places"), pos, size);
         floater.min_size = Vec2::new(260.0, 300.0);
-        if let Some(env) = block_env {
+        if let Some(env) = aurora {
             // the mockup's panes reach the window's edges
             floater.flush_body = true;
             floater.min_size = Vec2::new(320.0, 360.0);
@@ -359,7 +359,7 @@ impl PlacesUi {
             });
             return actions;
         }
-        self.block.pending_click = None;
+        self.aurora.pending_click = None;
         floater.show(ctx, c.p, open, |ui| {
             let body = egui::Rect::from_min_max(ui.cursor().min, ui.max_rect().max);
             ui.allocate_rect(body, Sense::hover());

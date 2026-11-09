@@ -130,7 +130,7 @@ impl PluginPack {
             }
         }
         // AURORA_DEMO_MEDIA_PACK: a fixed state for the screenshots
-        if std::env::var_os("AURORA_DEMO").is_some()
+        if crate::block_env::demo_mode()
             && let Ok(mode) = std::env::var("AURORA_DEMO_MEDIA_PACK")
         {
             this.automatic = false;

@@ -439,7 +439,7 @@ fn local_fields_are_the_zone_s_own() {
 
 #[test]
 fn free_names_skip_the_taken_ones() {
-    let dir = std::env::temp_dir().join(format!("aurora-photo-names-{}", std::process::id()));
+    let dir = std::env::temp_dir().join(format!("block-photo-names-{}", std::process::id()));
     let _ = std::fs::remove_dir_all(&dir);
     std::fs::create_dir_all(&dir).unwrap();
     let first = free_path(&dir, "Snapshot", None, FileFormat::Png);
@@ -453,7 +453,7 @@ fn free_names_skip_the_taken_ones() {
 
 #[test]
 fn saved_photos_read_back_in_every_format() {
-    let dir = std::env::temp_dir().join(format!("aurora-photo-save-{}", std::process::id()));
+    let dir = std::env::temp_dir().join(format!("block-photo-save-{}", std::process::id()));
     let _ = std::fs::remove_dir_all(&dir);
     let (w, h) = (300u32, 170u32);
     let mut rgba = Vec::with_capacity((w * h * 4) as usize);
@@ -500,7 +500,7 @@ fn saved_photos_read_back_in_every_format() {
 
 #[test]
 fn a_wrong_buffer_is_refused_without_a_file() {
-    let dir = std::env::temp_dir().join(format!("aurora-photo-bad-{}", std::process::id()));
+    let dir = std::env::temp_dir().join(format!("block-photo-bad-{}", std::process::id()));
     let path = dir.join("bad.png");
     let r = save::save(
         save::Job {
@@ -520,7 +520,7 @@ fn a_wrong_buffer_is_refused_without_a_file() {
 
 #[test]
 fn a_cut_out_photo_keeps_its_alpha_in_the_png_and_its_colour_when_reduced() {
-    let dir = std::env::temp_dir().join(format!("aurora-photo-cutout-{}", std::process::id()));
+    let dir = std::env::temp_dir().join(format!("block-photo-cutout-{}", std::process::id()));
     let path = dir.join("cutout.png");
     // left half a red subject, a half covered column, the rest empty
     let (w, h) = (4u32, 2u32);
@@ -841,34 +841,4 @@ fn a_pass_the_driver_ended_reads_back_blank() {
     assert!(blank(&[0; 16]));
     // one pixel of light is a photo
     assert!(!blank(&[0, 0, 0, 255, 0, 0, 1, 255]));
-}
-
-#[test]
-fn a_photo_waits_while_the_drawing_is_paused_then_starts_over_once_the_textures_are_back() {
-    let t0 = std::time::Instant::now();
-    let at = |ms: u64| t0 + std::time::Duration::from_millis(ms);
-    let mut w = PausedWait::default();
-    // drawn as usual while the scene is
-    assert_eq!(w.next(at(0), false, 40, 1), PausedPart::Draw);
-    // paused: the parts drawn are given up once, then nothing is asked
-    assert_eq!(w.next(at(16), true, 0, 1), PausedPart::StartOver);
-    assert_eq!(w.next(at(33), true, 0, 2), PausedPart::Wait);
-    // back in front: the count of the last pass is stale (no texture
-    // wanted finer yet), the next one is waited for
-    assert_eq!(w.next(at(50), false, 0, 2), PausedPart::Wait);
-    assert_eq!(w.next(at(66), false, 120, 3), PausedPart::Wait);
-    // paused again before they loaded: no new start over, the wait goes on
-    assert_eq!(w.next(at(80), true, 120, 3), PausedPart::Wait);
-    assert_eq!(w.next(at(100), false, 120, 3), PausedPart::Wait);
-    assert_eq!(w.next(at(500), false, 0, 4), PausedPart::Draw, "loaded");
-    assert_eq!(w.next(at(516), false, 0, 4), PausedPart::Draw);
-    // paused again: given up again
-    assert_eq!(w.next(at(600), true, 0, 4), PausedPart::StartOver);
-    // textures that never finish loading: drawn after the photo quality's wait
-    assert_eq!(w.next(at(700), false, 5, 5), PausedPart::Wait);
-    assert_eq!(
-        w.next(at(700) + quality::DETAIL_WAIT - std::time::Duration::from_millis(1), false, 5, 9),
-        PausedPart::Wait
-    );
-    assert_eq!(w.next(at(700) + quality::DETAIL_WAIT, false, 5, 9), PausedPart::Draw);
 }

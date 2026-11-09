@@ -27,12 +27,6 @@ pub const TAG_TEXT: f32 = 10.5;
 /// mostly outside, clear of the name.
 pub const TAG_RISE: f32 = 3.0;
 
-/// Squarer corner radius than a stadium pill (kept local: nameplate mesh
-/// geometry no longer exports this helper after the Aurora sync).
-fn plate_corner(rect: Rect) -> f32 {
-    (rect.height() * 0.18).clamp(2.5, 6.0).min(rect.width() * 0.4)
-}
-
 /// Width of the tag around a text `text` points wide, at `scale`.
 pub fn tag_width(text: f32, scale: f32) -> f32 {
     (2.0 * TAG_PAD + TAG_ICON + TAG_GAP) * scale + text
@@ -118,7 +112,7 @@ struct Perimeter {
 impl Perimeter {
     /// Name-plate outline: squarer corners than a stadium pill.
     fn of(rect: Rect, ppp: f32) -> Perimeter {
-        Perimeter::rounded(rect, plate_corner(rect), ppp)
+        Perimeter::rounded(rect, super::mesh::plate_corner(rect), ppp)
     }
 
     fn rounded(rect: Rect, radius: f32, ppp: f32) -> Perimeter {
@@ -267,7 +261,7 @@ mod tests {
         let rect = pill();
         let o = Perimeter::of(rect, 1.0);
         assert!(o.points.len() > 40);
-        let r = plate_corner(rect);
+        let r = crate::ui::nameplate::mesh::plate_corner(rect);
         for &(pos, n, s) in &o.points {
             assert!((0.0..=1.0).contains(&s));
             assert!((n.length() - 1.0).abs() < 1e-4);
@@ -293,10 +287,14 @@ mod tests {
                 .iter()
                 .all(|v| v.pos.y <= 76.0 && v.pos.y >= 50.0 - 50.0 * CURTAIN_HEIGHT * 1.31)
         );
-        // three cube columns across the plate, staying inside its width
-        let xs: Vec<_> = mesh.vertices.iter().map(|v| v.pos.x).collect();
-        assert!(xs.iter().any(|&x| x < 140.0) && xs.iter().any(|&x| x > 220.0));
-        assert!(xs.iter().all(|&x| (100.0..260.0).contains(&x)));
+        // over the whole width, the feet on the plate's outline (its round
+        // ends included), never under it
+        let feet: Vec<_> = mesh.vertices.iter().step_by(3).map(|v| v.pos).collect();
+        assert!(feet.iter().any(|f| f.x < 101.0) && feet.iter().any(|f| f.x > 259.0));
+        for f in &feet {
+            let cx = f.x.clamp(125.0, 235.0);
+            assert!(((f.x - cx).hypot(f.y - 1.0 - 75.0) - 25.0).abs() < 0.05, "{f:?}");
+        }
         // the tops are dark, the feet lit somewhere
         assert!(mesh.vertices.iter().any(|v| v.color.g() > 40));
         let mut ring = Mesh::default();

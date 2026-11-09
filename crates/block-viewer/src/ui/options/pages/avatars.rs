@@ -18,6 +18,7 @@ fn plate_click_label(action: PlateClick) -> &'static str {
         PlateClick::Profile => block_i18n::tr!("common-view-profile"),
         PlateClick::InstantMessage => block_i18n::tr!("ui-context-send-im"),
         PlateClick::OfferTeleport => block_i18n::tr!("common-offer-teleport"),
+        PlateClick::RequestTeleport => block_i18n::tr!("common-request-teleport"),
         PlateClick::Menu => block_i18n::tr!("ui-options-plate-click-menu"),
     }
 }

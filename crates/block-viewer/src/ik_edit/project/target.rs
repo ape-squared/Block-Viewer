@@ -265,6 +265,3 @@ impl Editor {
         }
     }
 }
-
-#[cfg(test)]
-mod tests;

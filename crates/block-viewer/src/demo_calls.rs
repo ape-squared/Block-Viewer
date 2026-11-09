@@ -40,7 +40,7 @@ pub enum Mode {
 
 pub fn mode() -> Option<Mode> {
     // the calls of AURORA_DEMO_CONV=aurora:call…
-    if let Some(call) = super::aurora_scenario().and_then(|s| s.call) {
+    if let Some(call) = super::block_scenario().and_then(|s| s.call) {
         use super::AuroraCall;
         return Some(match call {
             AuroraCall::Incoming => Mode::Incoming,

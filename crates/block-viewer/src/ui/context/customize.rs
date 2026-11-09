@@ -350,6 +350,7 @@ fn action_key(action: &CtxAction) -> String {
         CtxAction::OpenAppearance { .. } => "OpenAppearance",
         CtxAction::OpenPeople(..) => "OpenPeople",
         CtxAction::ZoomAvatar(..) => "ZoomAvatar",
+        CtxAction::PoseAvatar(..) => "PoseAvatar",
         CtxAction::TeleportToAvatar(..) => "TeleportToAvatar",
         CtxAction::ShowOnMap(..) => "ShowOnMap",
         CtxAction::ShowPlaceInfo(..) => "ShowPlaceInfo",
@@ -377,7 +378,7 @@ fn action_key(action: &CtxAction) -> String {
     match action {
         CtxAction::TakeOffClothing(kind) | CtxAction::DetachAt(kind) => format!("{base}:{kind}"),
         CtxAction::Derender { permanent, .. } => format!("{base}:{permanent}"),
-        CtxAction::SetRender(_, mode) | CtxAction::OpenPeople(mode) => format!("{base}:{mode}"),
+        CtxAction::SetRender(_, mode) | CtxAction::OpenPeople(mode, _) => format!("{base}:{mode}"),
         CtxAction::SetOwnerSoundBlock { flag, .. } => format!("{base}:{flag}"),
         CtxAction::SetParticleBlock { owner, .. } => format!("{base}:{owner}"),
         CtxAction::ModerateVoice(Some(_), _) => format!("{base}:selected"),

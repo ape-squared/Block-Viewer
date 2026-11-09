@@ -199,12 +199,6 @@ pub fn rigged_apart() -> bool {
     mode() != Mode::Sorted
 }
 
-/// How the rigged faces write their depth this frame (see the module).
-#[allow(dead_code)]
-pub fn depth_mode() -> RiggedBlendDepth {
-    depth_mode_prefer(true)
-}
-
 /// How the rigged faces write their depth this frame. When `AURORA_RIGGED_BLEND`
 /// is unset, `medal_layers` chooses Layers (medal / sheer attachment depth)
 /// or Write (Legacy).
@@ -440,6 +434,15 @@ mod tests {
         assert_eq!(depth_mode_in(Mode::Sorted, false), RiggedBlendDepth::Write);
         assert_eq!(depth_mode_in(Mode::Alternate, false), RiggedBlendDepth::Layers);
         assert_eq!(depth_mode_in(Mode::Alternate, true), RiggedBlendDepth::Split);
+    }
+
+    #[test]
+    fn medal_clip_preference_picks_layers_or_write_without_env() {
+        // When AURORA_RIGGED_BLEND is unset in this process, prefer maps directly.
+        // With the variable set (CI / other tests), env wins — only assert the
+        // helper's mode mapping for the preference path.
+        assert_eq!(depth_mode_in(Mode::Layers, false), RiggedBlendDepth::Layers);
+        assert_eq!(depth_mode_in(Mode::Write, false), RiggedBlendDepth::Write);
     }
 
     #[test]

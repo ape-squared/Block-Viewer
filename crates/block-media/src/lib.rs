@@ -1,4 +1,4 @@
-//! Aurora Viewer media plugin host.
+//! Block Viewer media plugin host.
 //!
 //! Second Life viewers render web pages and videos in separate processes:
 //! `SLPlugin` loads a media plugin library (`media_plugin_cef` for the web
@@ -20,7 +20,6 @@
 //! Copyright (C) Linden Research, Inc. and The Phoenix Firestorm Project,
 //! originally LGPL 2.1.
 
-mod file_picker;
 pub mod media;
 pub mod message;
 pub mod process;

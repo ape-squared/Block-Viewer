@@ -22,6 +22,8 @@ pub(super) struct InventoryDrag {
     /// whether the object under the pointer takes the cargo into its contents
     contents: contents_drop::PlanCheck,
     pub cursor: Option<egui::CursorIcon>,
+    /// LiveDecor: surface point for the rez hologram (land / object rez, not contents).
+    pub live_decor: Option<Vec3>,
 }
 
 impl InventoryDrag {
@@ -222,10 +224,12 @@ impl App {
         let place_drag = egui::DragAndDrop::has_payload_of_type::<ui::places::drag::PlaceDrag>(ctx);
         if ui::inventory::drag::carried_count(ctx).is_none() && !place_drag {
             self.inventory_drag.checked = None;
+            self.inventory_drag.live_decor = None;
         }
         let give = self.avatar_give_input(ctx, renderer);
         self.scene.mark_give_target(&self.world, give);
         if give.is_some() || !matches!(self.screen, Screen::World) || self.world.teleporting || self.exit_prompt.open {
+            self.inventory_drag.live_decor = None;
             return Vec::new();
         }
         if egui::DragAndDrop::payload::<ui::places::drag::PlaceDrag>(ctx).is_some_and(|cargo| cargo.target.item().is_none()) {
@@ -247,6 +251,7 @@ impl App {
         let Some(ids) = ui::inventory::drag::carried_ids(ctx) else {
             return Vec::new();
         };
+        self.inventory_drag.live_decor = None;
         if ctx.is_pointer_over_egui() {
             return Vec::new();
         }
@@ -440,9 +445,17 @@ impl App {
         self.inventory_drag.cursor = Some(result.unwrap_or(egui::CursorIcon::NotAllowed));
         self.scene
             .mark_give_target(&self.world, outline.and_then(|idx| self.contents_outline(idx)));
+        // LiveDecor hologram while aiming an object rez (not contents / landmark).
+        self.inventory_drag.live_decor = if self.settings.build.live_decor && !landmark && !released && result.is_ok() && outline.is_none()
+        {
+            self.inventory_drag.surface.map(|(point, _)| point)
+        } else {
+            None
+        };
         if !released {
             return None;
         }
+        self.inventory_drag.live_decor = None;
         egui::DragAndDrop::clear_payload(ctx);
         self.scene.mark_give_target(&self.world, None);
         if landmark {
@@ -556,9 +569,6 @@ impl App {
             self.build.edit_inventory_rez(&self.world);
         }
         let rez = matches!(drop.command, BuildCmd::RezInventory(_));
-        if rez {
-            self.build.forget_new_defaults();
-        }
         if let BuildCmd::RezInventory(item) = &drop.command {
             self.record_library_use(item.item.id);
         }
@@ -869,8 +879,6 @@ mod tests {
                 opensim: Default::default(),
                 currency_symbol: String::new(),
                 export_supported: false,
-                max_link_children: None,
-                animated_object_max_tris: 0,
             },
         );
         let r = rez(prepare(

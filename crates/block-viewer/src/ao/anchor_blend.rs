@@ -237,7 +237,6 @@ mod tests {
                 loop_in: 0.0,
                 loop_out: 1.2,
                 looping,
-                ends_after: None,
                 ease_in,
                 ease_out,
                 hand_pose: 0,

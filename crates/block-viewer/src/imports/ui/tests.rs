@@ -1090,7 +1090,6 @@ fn clicking_an_animation_selects_and_restarts_its_preview() {
         loop_in: 0.0,
         loop_out: 2.0,
         looping: false,
-        ends_after: None,
         ease_in: 0.3,
         ease_out: 0.3,
         hand_pose: 0,

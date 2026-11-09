@@ -43,7 +43,6 @@ impl Kind {
 pub struct LinkCounts {
     pub gaps: u64,
     pub late: u64,
-    pub lost: u64,
     pub resent: u64,
     pub given_up: u64,
     pub duplicates: u64,
@@ -56,7 +55,6 @@ impl LinkCounts {
         LinkCounts {
             gaps: s.seq_gaps,
             late: s.seq_late,
-            lost: s.packets_lost,
             resent: s.resent,
             given_up: s.dropped_reliable,
             duplicates: s.duplicates,
@@ -124,7 +122,7 @@ impl Timeline {
     pub fn line(&self, outcome: &str, at: Instant, link: LinkCounts) -> String {
         let since = |a: u64, b: u64| a.saturating_sub(b);
         let s = &self.at_start;
-        let lost = since(link.lost, s.lost);
+        let lost = since(link.gaps, s.gaps).saturating_sub(since(link.late, s.late));
         let mut out = format!(
             "{} timeline: {outcome} after {:.0} ms",
             self.kind.name(),
@@ -298,7 +296,6 @@ mod tests {
         let start = LinkCounts {
             gaps: 10,
             late: 2,
-            lost: 5,
             resent: 5,
             ..LinkCounts::default()
         };
@@ -316,7 +313,6 @@ mod tests {
         let end = LinkCounts {
             gaps: 17,
             late: 3,
-            lost: 11,
             resent: 9,
             given_up: 1,
             duplicates: 2,

@@ -40,7 +40,7 @@ fn publish_with(path: &Path, bytes: &[u8], durable: bool) -> std::io::Result<()>
 
 fn publish_if(path: &Path, bytes: &[u8], durable: bool, still: impl FnOnce() -> bool) -> std::io::Result<bool> {
     let parent = path.parent().unwrap_or_else(|| Path::new("."));
-    let temporary = parent.join(format!(".aurora-{}-{}.tmp", std::process::id(), uuid::Uuid::new_v4()));
+    let temporary = parent.join(format!(".block-{}-{}.tmp", std::process::id(), uuid::Uuid::new_v4()));
     let result = (|| {
         let mut file = std::fs::OpenOptions::new().write(true).create_new(true).open(&temporary)?;
         file.write_all(bytes)?;
@@ -126,7 +126,7 @@ mod tests {
 
     #[test]
     fn concurrent_writers_publish_whole_files() {
-        let root = std::env::temp_dir().join(format!("aurora-atomic-{}", uuid::Uuid::new_v4()));
+        let root = std::env::temp_dir().join(format!("block-atomic-{}", uuid::Uuid::new_v4()));
         std::fs::create_dir_all(&root).expect("directory");
         let target = root.join("asset");
         super::write(&target, &[0; 4096]).expect("initial file");

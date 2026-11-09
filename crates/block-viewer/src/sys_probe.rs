@@ -235,7 +235,7 @@ fn clock_ticks() -> f64 {
 }
 
 /// The group of a thread: its name without the number of its pool
-/// (`aurora-jobs-3` → `aurora-jobs`), `main` for the main thread, `unnamed`
+/// (`block-jobs-3` → `block-jobs`), `main` for the main thread, `unnamed`
 /// for threads without a name (the driver's, the system's).
 pub fn group_of(name: &str, id: u32, main: u32) -> String {
     if id == main {
@@ -330,7 +330,7 @@ const QUIET_PERCENT: f64 = 0.1;
 pub fn start(main: u32) {
     #[cfg(any(windows, target_os = "linux"))]
     {
-        let spawned = std::thread::Builder::new().name("aurora-probe".into()).spawn(move || {
+        let spawned = std::thread::Builder::new().name("block-probe".into()).spawn(move || {
             let cores = std::thread::available_parallelism().map_or(1, |n| n.get());
             let rate = block_render::thread_cpu::cycles_per_ms();
             let (threads, mut process) = read_threads();
@@ -442,7 +442,7 @@ pub fn set_live(on: bool, main: u32) {
     }
     static STARTED: std::sync::Once = std::sync::Once::new();
     STARTED.call_once(|| {
-        let spawned = std::thread::Builder::new().name("aurora-monitor".into()).spawn(live_loop);
+        let spawned = std::thread::Builder::new().name("block-monitor".into()).spawn(live_loop);
         if let Err(e) = spawned {
             log::warn!("resource monitor sampler not started: {e}");
         }
@@ -979,7 +979,7 @@ pub mod proc_text {
 
     /// A thread's whole name from the cut one, when the cut one starts
     /// exactly one of [`LONG_NAMES`]. A pool's numbered name cut short
-    /// (`aurora-worker-1` for `aurora-worker-12`) keeps its group anyway.
+    /// (`block-worker-1` for `block-worker-12`) keeps its group anyway.
     pub fn full_thread_name(comm: &str) -> &str {
         if comm.len() != 15 {
             return comm;
@@ -1000,12 +1000,12 @@ mod tests {
     fn proc_stat_files_are_read_from_their_last_bracket() {
         // captured on Linux 7.2 (a viewer thread, then a name with a space
         // and a bracket in it)
-        let line = "4242 (aurora-jobs-3) S 4100 4100 4000 0 -1 4194368 120 0 0 0 731 52 0 0 30 10 61 0 9001 \
+        let line = "4242 (block-jobs-3) S 4100 4100 4000 0 -1 4194368 120 0 0 0 731 52 0 0 30 10 61 0 9001 \
                     10485760 2560 18446744073709551615 1 1 0 0 0 0 0 4096 0 0 0 0 -1 7 0 0 0 0 0\n";
         let s = proc_text::parse_stat(line).expect("parsed");
         assert_eq!(
             (s.comm.as_str(), s.ppid, s.utime, s.stime, s.nice, s.rss_pages),
-            ("aurora-jobs-3", 4100, 731, 52, 10, 2560)
+            ("block-jobs-3", 4100, 731, 52, 10, 2560)
         );
         let odd = "17 (a) b (c) R 1 17 17 0 -1 0 0 0 0 0 5 6 0 0 20 -3 1 0 0 0 99 0";
         let s = proc_text::parse_stat(odd).expect("parsed");
@@ -1048,13 +1048,13 @@ mod tests {
         assert_eq!(proc_text::full_thread_name("block-audio-ou"), "block-audio-out");
         assert_eq!(proc_text::full_thread_name("block-audio-st"), "block-audio-stream");
         assert_eq!(proc_text::full_thread_name("block-render"), "block-render");
-        assert_eq!(group_of(proc_text::full_thread_name("aurora-worker-1"), 9, 1), "aurora-worker");
+        assert_eq!(group_of(proc_text::full_thread_name("block-worker-1"), 9, 1), "block-worker");
     }
 
     #[test]
     fn threads_are_grouped_by_pool() {
-        assert_eq!(group_of("aurora-jobs-12", 5, 1), "aurora-jobs");
-        assert_eq!(group_of("aurora-worker-0", 5, 1), "aurora-worker");
+        assert_eq!(group_of("block-jobs-12", 5, 1), "block-jobs");
+        assert_eq!(group_of("block-worker-0", 5, 1), "block-worker");
         assert_eq!(group_of("block-render", 5, 1), "block-render");
         assert_eq!(group_of("", 1, 1), "main");
         assert_eq!(group_of("", 5, 1), "unnamed");
@@ -1075,21 +1075,21 @@ mod tests {
         // and 2 s, a new thread 1 s
         let now = [
             t(1, "", 10_000),
-            t(2, "aurora-jobs-0", 5000),
-            t(3, "aurora-jobs-1", 2000),
+            t(2, "block-jobs-0", 5000),
+            t(3, "block-jobs-1", 2000),
             t(4, "block-net", 1000),
-            t(5, "aurora-trash", 5),
+            t(5, "block-trash", 5),
         ];
         let groups = group_times(&before, &now, 1, 1.0);
         assert_eq!(
             groups.iter().map(|g| g.group.as_str()).collect::<Vec<_>>(),
-            ["main", "aurora-jobs", "block-net", "aurora-trash"]
+            ["main", "block-jobs", "block-net", "block-trash"]
         );
         assert_eq!((groups[1].threads, groups[1].ms, groups[1].busiest_ms), (2, 7000.0, 5000.0));
         let line = cpu_line(&groups, 17_000.0, 10_000.0, 8, Some(40.0));
         assert_eq!(
             line,
-            "process=170% of one core, 21.2% of 8 cores | machine=40.0% | main=90.0% aurora-jobs=70.0%(2t max=50.0%) block-net=10.0% \
+            "process=170% of one core, 21.2% of 8 cores | machine=40.0% | main=90.0% block-jobs=70.0%(2t max=50.0%) block-net=10.0% \
              | quiet_groups=1"
         );
     }

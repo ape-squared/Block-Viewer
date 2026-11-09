@@ -73,7 +73,7 @@ fn parcels() -> &'static Vec<DemoParcel> {
             DemoParcel {
                 grid: (1001, 1000),
                 id: Uuid::from_u128(0xDE40_91AC_0000_0000_0000_0000_0000_0002),
-                name: block_i18n::tr!("demo-place-aurora-lagoon"),
+                name: block_i18n::tr!("demo-place-block-lagoon"),
                 desc: block_i18n::tr!("demo-place-pier-campfire-and-a-view-of-the-northern-lights"),
                 area: 4096,
                 dwell: 312.6,
@@ -136,7 +136,7 @@ pub fn scenario() -> Option<(&'static str, Vec3)> {
         "unknown" | "inconnue" => (block_i18n::tr!("demo-place-atlantis"), Vec3::new(128.0, 128.0, 20.0)),
         "landmark" | "repere" | "history" | "historique" => return None,
         // Violet Wolf's home (the link of his profile)
-        _ => (block_i18n::tr!("common-aurora-demo"), Vec3::new(140.0, 120.0, 25.0)),
+        _ => (block_i18n::tr!("common-block-demo"), Vec3::new(140.0, 120.0, 25.0)),
     })
 }
 
@@ -223,7 +223,7 @@ pub fn parcel_info(id: Uuid) -> Option<NetEvent> {
             actual_area: l.area,
             billable_area: l.area,
             flags: 0,
-            sim_name: block_i18n::tr!("common-aurora-demo").into(),
+            sim_name: block_i18n::tr!("common-block-demo").into(),
             global: DVec3::new(256_000.0 + 128.0, 256_000.0 + 128.0, 25.0),
             snapshot: TEX_SNAPSHOT,
             dwell: 145.0,
@@ -260,14 +260,14 @@ fn landmarks() -> &'static Vec<(u128, &'static str, (u32, u32), [f32; 3], i64)> 
         vec![
             (
                 LANDMARKS_FOLDER,
-                block_i18n::tr!("demo-place-aurora-beach"),
+                block_i18n::tr!("demo-place-block-beach"),
                 (1000, 1000),
                 [140.0, 120.0, 25.0],
                 1_712_068_948,
             ),
             (
                 LANDMARKS_FOLDER,
-                block_i18n::tr!("demo-place-aurora-lagoon"),
+                block_i18n::tr!("demo-place-block-lagoon"),
                 (1001, 1000),
                 [60.0, 200.0, 22.0],
                 1_740_000_000,
@@ -302,14 +302,14 @@ fn landmarks() -> &'static Vec<(u128, &'static str, (u32, u32), [f32; 3], i64)> 
             ),
             (
                 FAVORITES_FOLDER,
-                block_i18n::tr!("common-aurora-plaza"),
+                block_i18n::tr!("common-block-plaza"),
                 (1000, 1000),
                 [128.0, 128.0, 25.0],
                 1_712_068_948,
             ),
             (
                 FAVORITES_FOLDER,
-                block_i18n::tr!("demo-place-aurora-lagoon"),
+                block_i18n::tr!("demo-place-block-lagoon"),
                 (1001, 1000),
                 [60.0, 200.0, 22.0],
                 1_740_000_000,
@@ -657,7 +657,7 @@ pub fn session() -> Vec<TpEntry> {
         entry(
             (1001, 1000),
             block_i18n::tr!("common-boreal-lagoon"),
-            block_i18n::tr!("demo-place-aurora-lagoon"),
+            block_i18n::tr!("demo-place-block-lagoon"),
             Vec3::new(60.0, 200.0, 22.0),
             20,
         ),
@@ -681,7 +681,7 @@ pub fn history() -> Vec<HistoryItem> {
         item("Ahern", DVec3::new(254_208.0 + 128.0, 256_256.0 + 128.0, 30.0), 240.0 * DAY),
         item(block_i18n::tr!("common-sandbox"), at((999, 999), 128.0, 128.0, 25.0), 40.0 * DAY),
         item(
-            block_i18n::tr!("demo-place-wolf-s-workshop-aurora-demo"),
+            block_i18n::tr!("demo-place-wolf-s-workshop-block-demo"),
             at((1000, 1000), 60.0, 200.0, 22.0),
             12.0 * DAY,
         ),
@@ -689,7 +689,7 @@ pub fn history() -> Vec<HistoryItem> {
         // the same parcel as the lagoon's landmark, on a deck above it: a
         // place of its own in the history
         item(
-            block_i18n::tr!("demo-place-aurora-lagoon-boreal-lagoon"),
+            block_i18n::tr!("demo-place-block-lagoon-boreal-lagoon"),
             at((1001, 1000), 64.0, 196.0, 60.0),
             2.0 * DAY,
         ),
@@ -699,7 +699,7 @@ pub fn history() -> Vec<HistoryItem> {
             1.1 * DAY,
         ),
         item(
-            block_i18n::tr!("demo-place-aurora-lagoon-boreal-lagoon"),
+            block_i18n::tr!("demo-place-block-lagoon-boreal-lagoon"),
             at((1001, 1000), 60.0, 200.0, 22.0),
             3.0 * 3600.0,
         ),

@@ -23,7 +23,7 @@ fn valid_name(name: &str) -> bool {
     !name.is_empty() && name.trim() == name && name.len() <= 128 && !name.chars().any(char::is_control)
 }
 pub(super) fn path(root: &Path, id: Uuid) -> PathBuf {
-    root.join("projects").join(format!("{id}.aurora-ik.json"))
+    root.join("projects").join(format!("{id}.block-ik.json"))
 }
 fn load(root: &Path, id: Uuid) -> Result<Vec<u8>, String> {
     let bytes = read(&path(root, id))?;
@@ -44,7 +44,7 @@ fn list(root: &Path) -> Result<Vec<Identity>, String> {
             continue;
         }
         let file = entry.file_name().to_string_lossy().into_owned();
-        let Some(id) = file.strip_suffix(".aurora-ik.json").and_then(|s| Uuid::parse_str(s).ok()) else {
+        let Some(id) = file.strip_suffix(".block-ik.json").and_then(|s| Uuid::parse_str(s).ok()) else {
             continue;
         };
         if let Ok(bytes) = read(&entry.path())
@@ -62,7 +62,7 @@ fn list(root: &Path) -> Result<Vec<Identity>, String> {
     Ok(entries)
 }
 fn sort(entries: &mut [Identity]) {
-    entries.sort_by(|a, b| crate::natural_order::cmp(&a.name, &b.name).then(a.id.cmp(&b.id)));
+    entries.sort_by(|a, b| a.name.to_lowercase().cmp(&b.name.to_lowercase()).then(a.id.cmp(&b.id)));
 }
 #[derive(Clone, Copy)]
 enum EditKind {

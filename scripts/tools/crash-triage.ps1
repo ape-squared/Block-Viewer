@@ -3,7 +3,7 @@
 # call. An issue body is written by anyone: every value read from it is
 # validated against a fixed shape again, like the viewer did (crash/summary.rs).
 
-$CrashMarker = '<!-- aurora-crash v1 -->'
+$CrashMarker = '<!-- block-crash v1 -->'
 $TriageStart = '<!-- crash-triage:start -->'
 $TriageEnd = '<!-- crash-triage:end -->'
 # Set by the triage on each issue it signed (scripts/crash-triage.ps1). Only

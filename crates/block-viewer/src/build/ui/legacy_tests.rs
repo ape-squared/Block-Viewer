@@ -22,7 +22,7 @@ fn legacy() -> Inspector {
 }
 
 #[test]
-fn legacy_build_tabs_reuse_native_panels_and_ignore_hidden_aurora_sections() {
+fn legacy_build_tabs_reuse_native_panels_and_ignore_hidden_block_sections() {
     use crate::build::layout::{Item, Panel};
     let mut inspector = legacy();
     inspector.settings.layout.place(Item::Shape, Panel::Hidden, None, false);

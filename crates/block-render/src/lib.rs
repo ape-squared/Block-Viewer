@@ -1,4 +1,4 @@
-//! Aurora Viewer renderer: wgpu on Vulkan (Metal on macOS), bindless textures,
+//! Block Viewer renderer: wgpu on Vulkan (Metal on macOS), bindless textures,
 //! sub-allocated geometry and multi-draw-indirect submission.
 //!
 //! Two halves: `main_thread` (the `Renderer` the scene uses: its stores,
@@ -48,7 +48,6 @@ pub mod present;
 pub mod preview;
 pub mod probes;
 pub mod projector_shadows;
-mod readback;
 mod render_thread;
 mod renderer;
 mod rlva;
@@ -310,7 +309,7 @@ fn water_pixel(surface:WaterOut)->vec4<f32> {{return vec4<f32>(0.0,0.0,1.0,1.0);
         });
         let readback = device.create_buffer(&wgpu::BufferDescriptor {
             label: None,
-            size: crate::readback::readback_size(8 * 256),
+            size: 8 * 256,
             usage: wgpu::BufferUsages::MAP_READ | wgpu::BufferUsages::COPY_DST,
             mapped_at_creation: false,
         });
@@ -577,7 +576,7 @@ fn water_pixel(surface:WaterOut)->vec4<f32> {{return vec4<f32>(0.0,0.0,1.0,1.0);
                 readback.map_async(wgpu::MapMode::Read, .., |r| r.expect("interface order readback"));
                 device.poll(wgpu::PollType::wait_indefinitely()).expect("GPU completion");
                 let pixels = readback.get_mapped_range(..).expect("interface order samples");
-                let data = crate::readback::f32s(&pixels);
+                let data: &[f32] = bytemuck::cast_slice(&pixels);
                 let expected = 1.0 / (1.0 + (eye.z - 20.0) / (0.875 * (std::f32::consts::FRAC_PI_3 * 0.5).tan()));
                 let row = data[7 * 64..7 * 64 + 8].to_vec();
                 if let Some(previous) = &reference {
@@ -722,7 +721,7 @@ struct VsOut {{@builtin(position) clip:vec4<f32>,@location(0) world_pos:vec3<f32
         );
         let readback = device.create_buffer(&wgpu::BufferDescriptor {
             label: None,
-            size: crate::readback::readback_size(8 * 256),
+            size: 8 * 256,
             usage: wgpu::BufferUsages::MAP_READ | wgpu::BufferUsages::COPY_DST,
             mapped_at_creation: false,
         });
@@ -891,7 +890,7 @@ fn probe(@builtin(global_invocation_id) id:vec3<u32>) {{
         });
         let readback = device.create_buffer(&wgpu::BufferDescriptor {
             label: Some("fog sample readback"),
-            size: crate::readback::readback_size(640),
+            size: 640,
             usage: wgpu::BufferUsages::MAP_READ | wgpu::BufferUsages::COPY_DST,
             mapped_at_creation: false,
         });
@@ -915,7 +914,7 @@ fn probe(@builtin(global_invocation_id) id:vec3<u32>) {{
         readback.map_async(wgpu::MapMode::Read, .., |r| r.expect("fog sample readback"));
         device.poll(wgpu::PollType::wait_indefinitely()).expect("GPU completion");
         let mapped = readback.get_mapped_range(..).expect("mapped fog samples");
-        let samples = crate::readback::f32x4s(&mapped);
+        let samples: &[[f32; 4]] = bytemuck::cast_slice(&mapped);
         for (a, b) in [(0, 1), (2, 3)] {
             for component in 0..2 {
                 for c in 0..3 {

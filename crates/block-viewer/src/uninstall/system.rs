@@ -109,7 +109,7 @@ impl System for DryRun {
         };
         vec![AddonRemoval {
             executable: PathBuf::from(executable),
-            removed: vec![PathBuf::from("Blender/4.5/extensions/user_default/block_live_mesh")],
+            removed: vec![PathBuf::from("Blender/4.5/extensions/user_default/aurora_live_mesh")],
             backups: None,
             error: None,
         }]

@@ -23,9 +23,17 @@ pub(super) fn show(ui: &mut egui::Ui, p: &Palette, s: &mut LandUi, v: &View, wor
 
     crate::ui::widgets::section_header(ui, p, "file-info-filled", block_i18n::tr!("workspace-land-identity"));
     row(ui, p, block_i18n::tr!("common-name-2"), |ui| {
-        let r = super::parcel_name_field(ui, can_identity, &mut s.name, f32::INFINITY);
-        let pending = s.name.after(&r);
-        s.apply_name(world, pending);
+        s.name.sync(&parcel.name);
+        let r = crate::ui::widgets::restricted_text_field(
+            ui,
+            can_identity,
+            &mut s.name.text,
+            crate::ui::widgets::TextPolicy::PrintableNoPipe,
+            |b, _| egui::TextEdit::singleline(b).desired_width(f32::INFINITY),
+        );
+        if let Some(name) = s.name.after(&r) {
+            world.land.update(|u| u.name = name);
+        }
     });
     row(ui, p, block_i18n::tr!("ui-land-general-land-id"), |ui| {
         let id = match world.land.sel.as_ref().and_then(|s| s.parcel_uuid) {

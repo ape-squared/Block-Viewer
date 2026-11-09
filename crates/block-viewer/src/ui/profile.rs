@@ -668,7 +668,7 @@ impl ProfileUi {
             let title = match slot {
                 PictureSlot::SecondLife => block_i18n::tr!("ui-profile-profile-picture"),
                 PictureSlot::FirstLife => block_i18n::tr!("ui-profile-rl-picture"),
-                PictureSlot::Pick(_) | PictureSlot::Classified(_) => block_i18n::tr!("ui-profile-aurora-snapshot"),
+                PictureSlot::Pick(_) | PictureSlot::Classified(_) => block_i18n::tr!("ui-profile-block-snapshot"),
             };
             self.picker.open(title, current);
             self.picker_slot = Some(slot);
@@ -1253,7 +1253,7 @@ fn second_life_tab(
             *pick_picture = Some((PictureSlot::SecondLife, pr.sl_image));
         } else if !own
             && let Some(pr) = profile.filter(|pr| !pr.sl_image.is_nil())
-            && r.on_hover_text(block_i18n::tr!("ui-profile-aurora-big-photo")).clicked()
+            && r.on_hover_text(block_i18n::tr!("ui-profile-block-big-photo")).clicked()
         {
             w.open_photo(PictureSlot::SecondLife, pr.sl_image);
         }
@@ -1414,7 +1414,7 @@ fn groups_list(
         return;
     }
     let mut groups: Vec<_> = pr.groups.iter().collect();
-    groups.sort_by_key(|g| crate::natural_order::key(&g.name));
+    groups.sort_by_key(|g| g.name.to_lowercase());
     ui.spacing_mut().item_spacing.y = 1.0;
     for g in groups {
         let member = world.groups.is_member(&g.id);
@@ -2250,7 +2250,7 @@ fn first_life_tab(
             if r.on_hover_text(block_i18n::tr!("ui-profile-click-change-image")).clicked() {
                 *pick_picture = Some((PictureSlot::FirstLife, pr.fl_image));
             }
-        } else if !pr.fl_image.is_nil() && r.on_hover_text(block_i18n::tr!("ui-profile-aurora-big-photo")).clicked() {
+        } else if !pr.fl_image.is_nil() && r.on_hover_text(block_i18n::tr!("ui-profile-block-big-photo")).clicked() {
             w.open_photo(PictureSlot::FirstLife, pr.fl_image);
         }
         if c.own {

@@ -494,7 +494,7 @@ mod tests {
         let mut d = PlaceDetails::default();
         let global = DVec3::new(256_316.4, 256_200.0, 22.0);
         let source = Source::History {
-            title: block_i18n::tr!("demo-place-aurora-lagoon-boreal-lagoon").into(),
+            title: block_i18n::tr!("demo-place-block-lagoon-boreal-lagoon").into(),
             global,
         };
         d.open_panel(source, &WorldMap::default(), &mut lm, Instant::now());

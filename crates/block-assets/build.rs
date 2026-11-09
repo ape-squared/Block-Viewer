@@ -8,5 +8,5 @@ fn main() {
         .flag_if_supported("/EHsc")
         .warnings(false)
         .file("native/vhacd/bridge.cpp")
-        .compile("aurora_vhacd");
+        .compile("block_vhacd");
 }

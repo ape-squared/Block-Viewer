@@ -63,7 +63,7 @@ struct GroupChoice {
 /// (removeNoneOption): our groups where we may invite, by name.
 pub fn invite_groups(groups: &[block_net::GroupMembership]) -> Vec<&block_net::GroupMembership> {
     let mut v: Vec<_> = groups.iter().filter(|g| g.powers & groups::powers::MEMBER_INVITE != 0).collect();
-    v.sort_by_cached_key(|g| crate::natural_order::key(&g.name));
+    v.sort_by_cached_key(|g| g.name.to_lowercase());
     v
 }
 
@@ -261,7 +261,7 @@ impl InviteUi {
             .map(|r| r.id)
             .collect();
         let mut out: Vec<&groups::GroupRole> = d.roles.values().filter(|r| allowed.contains(&r.id)).collect();
-        out.sort_by_cached_key(|r| (!r.id.is_nil(), crate::natural_order::key(&role_name(&r.name))));
+        out.sort_by_cached_key(|r| (!r.id.is_nil(), role_name(&r.name).to_lowercase()));
         out
     }
 

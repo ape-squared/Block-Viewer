@@ -73,7 +73,7 @@ fn main() {
     println!("cargo:rustc-env=AURORA_LOGIN_VERSION={}", version.login);
     println!("cargo:rustc-env=AURORA_BUILD_COMMIT={}", commit.as_deref().unwrap_or("unknown"));
     // `links` metadata, read by block-viewer's build script as
-    // DEP_AURORA_VERSION_DISPLAY / _NUMERIC (version block of the exe).
+    // DEP_BLOCK_VERSION_DISPLAY / _NUMERIC (version block of the exe).
     println!("cargo:display={}", version.display);
     println!("cargo:numeric={}", version.login);
 }

@@ -125,21 +125,21 @@ fn a_friends_profile_reads_in_the_order_of_the_mockup() {
         .unwrap_or_default();
     // who it is, then the tabs along the banner's bottom; the buttons sit
     // on the line of the picture, beside who it is
-    assert!(texts.iter().any(|t| t == tr("ui-profile-aurora-conversation")));
+    assert!(texts.iter().any(|t| t == tr("ui-profile-block-conversation")));
     assert_in_order(
         &texts,
         &[
             &birth,
-            tr("ui-profile-aurora-friend"),
+            tr("ui-profile-block-friend"),
             tr("world-profiles-premium"),
-            tr("ui-profile-aurora-view-in-people"),
-            tr("ui-profile-aurora-tab-profile"),
-            tr("ui-profile-aurora-tab-picks"),
-            tr("ui-profile-aurora-tab-classifieds"),
-            tr("ui-profile-aurora-tab-first-life"),
-            tr("ui-profile-aurora-tab-web"),
+            tr("ui-profile-block-view-in-people"),
+            tr("ui-profile-block-tab-profile"),
+            tr("ui-profile-block-tab-picks"),
+            tr("ui-profile-block-tab-classifieds"),
+            tr("ui-profile-block-tab-first-life"),
+            tr("ui-profile-block-tab-web"),
             tr("common-notes"),
-            &tr("ui-profile-aurora-about").to_uppercase(),
+            &tr("ui-profile-block-about").to_uppercase(),
             "Musicienne du dimanche",
         ],
     );
@@ -148,22 +148,22 @@ fn a_friends_profile_reads_in_the_order_of_the_mockup() {
         &texts,
         &[
             tr("common-notes"),
-            &tr("ui-profile-aurora-infos").to_uppercase(),
-            tr("ui-profile-aurora-account"),
-            tr("ui-profile-aurora-partner"),
-            tr("ui-profile-aurora-permissions"),
-            tr("ui-profile-aurora-key"),
-            &block_i18n::tr!("ui-profile-aurora-groups", count = 1).to_uppercase(),
+            &tr("ui-profile-block-infos").to_uppercase(),
+            tr("ui-profile-block-account"),
+            tr("ui-profile-block-partner"),
+            tr("ui-profile-block-permissions"),
+            tr("ui-profile-block-key"),
+            &block_i18n::tr!("ui-profile-block-groups", count = 1).to_uppercase(),
             "Aurora Builders",
-            &tr("ui-profile-aurora-private-notes").to_uppercase(),
+            &tr("ui-profile-block-private-notes").to_uppercase(),
             "Rencontrée à la plage",
         ],
     );
-    assert!(texts.iter().all(|t| !t.contains(tr("ui-profile-aurora-add-friend"))));
-    assert!(texts.iter().all(|t| t != tr("ui-profile-aurora-friendship")));
+    assert!(texts.iter().all(|t| !t.contains(tr("ui-profile-block-add-friend"))));
+    assert!(texts.iter().all(|t| t != tr("ui-profile-block-friendship")));
     // ending the friendship is in the "…" menu, giving a drop anywhere on
     // the window (#1089)
-    assert!(texts.iter().all(|t| !t.contains(tr("ui-profile-aurora-remove-friend"))));
+    assert!(texts.iter().all(|t| !t.contains(tr("ui-profile-block-remove-friend"))));
 }
 
 #[test]
@@ -173,7 +173,7 @@ fn a_friends_rights_can_be_hidden() {
     for width in [960.0, 380.0] {
         let mut w = Window::new(id);
         let texts = body_texts_with(&world, &mut w, width, false);
-        assert!(texts.iter().all(|t| t != tr("ui-profile-aurora-permissions")), "{width}");
+        assert!(texts.iter().all(|t| t != tr("ui-profile-block-permissions")), "{width}");
         assert!(
             texts.iter().any(|t| t.contains("Musicienne du dimanche")),
             "{width}: the cards stay"
@@ -188,10 +188,10 @@ fn a_friends_rights_can_be_hidden() {
     assert_in_order(
         &texts,
         &[
-            tr("ui-profile-aurora-partner"),
-            tr("ui-profile-aurora-friendship"),
-            tr("ui-profile-aurora-add-friend"),
-            tr("ui-profile-aurora-key"),
+            tr("ui-profile-block-partner"),
+            tr("ui-profile-block-friendship"),
+            tr("ui-profile-block-add-friend"),
+            tr("ui-profile-block-key"),
         ],
     );
 }
@@ -203,19 +203,19 @@ fn the_compact_window_stacks_its_cards() {
     let texts = body_texts(&world, &mut w, 380.0);
     let tr = block_i18n::text;
     // the tabs in a drop-down list, About and Info without their heads
-    assert!(texts.iter().any(|t| t == &block_i18n::tr!("ui-profile-aurora-sections", count = 6)));
-    assert!(texts.iter().all(|t| t != tr("ui-profile-aurora-tab-picks")));
-    assert!(texts.iter().all(|t| *t != tr("ui-profile-aurora-about").to_uppercase()));
-    assert!(texts.iter().all(|t| t != tr("ui-profile-aurora-view-in-people")));
+    assert!(texts.iter().any(|t| t == &block_i18n::tr!("ui-profile-block-sections", count = 6)));
+    assert!(texts.iter().all(|t| t != tr("ui-profile-block-tab-picks")));
+    assert!(texts.iter().all(|t| *t != tr("ui-profile-block-about").to_uppercase()));
+    assert!(texts.iter().all(|t| t != tr("ui-profile-block-view-in-people")));
     assert_in_order(
         &texts,
         &[
-            tr("ui-profile-aurora-tab-profile"),
+            tr("ui-profile-block-tab-profile"),
             "Musicienne du dimanche",
-            tr("ui-profile-aurora-account"),
-            tr("ui-profile-aurora-permissions"),
+            tr("ui-profile-block-account"),
+            tr("ui-profile-block-permissions"),
             "Aurora Builders",
-            &tr("ui-profile-aurora-private-notes").to_uppercase(),
+            &tr("ui-profile-block-private-notes").to_uppercase(),
         ],
     );
 }
@@ -243,11 +243,11 @@ fn our_own_profile_in_edit_mode() {
     assert_in_order(
         &texts,
         &[
-            tr("ui-profile-aurora-view-as-others"),
-            tr("ui-profile-aurora-done"),
-            &tr("ui-profile-aurora-visibility").to_uppercase(),
+            tr("ui-profile-block-view-as-others"),
+            tr("ui-profile-block-done"),
+            &tr("ui-profile-block-visibility").to_uppercase(),
             tr("common-show-in-search"),
-            &block_i18n::tr!("ui-profile-aurora-unsaved", parts = tr("ui-profile-aurora-part-bio")),
+            &block_i18n::tr!("ui-profile-block-unsaved", parts = tr("ui-profile-block-part-bio")),
         ],
     );
 }
@@ -299,7 +299,7 @@ fn a_blocked_stranger_and_our_own_profile() {
 #[test]
 fn the_header_buttons() {
     use Act::*;
-    let full = [Conversation, Call, OfferTeleport, Pay, Block, More];
+    let full = [Conversation, Call, OfferTeleport, RequestTeleport, Pay, Block, More];
     assert_eq!(header_acts(false, false, true, false), full);
     assert_eq!(
         header_acts(false, false, false, false),
@@ -309,7 +309,7 @@ fn the_header_buttons() {
     assert_eq!(header_acts(false, false, true, true), full);
     assert_eq!(
         header_acts(false, false, false, true),
-        [Conversation, AddFriend, OfferTeleport, Pay, Block, More],
+        [Conversation, AddFriend, OfferTeleport, RequestTeleport, Pay, Block, More],
         "a stranger's compact row offers the friendship"
     );
     assert_eq!(header_acts(true, false, false, false), [Edit]);
@@ -363,8 +363,8 @@ fn the_unsaved_bar_names_what_is_edited() {
     assert_eq!(
         unsaved_parts(&w),
         [
-            block_i18n::tr!("ui-profile-aurora-part-bio"),
-            block_i18n::tr!("ui-profile-aurora-part-notes")
+            block_i18n::tr!("ui-profile-block-part-bio"),
+            block_i18n::tr!("ui-profile-block-part-notes")
         ]
     );
     assert!(has_unsaved(&w));

@@ -57,7 +57,7 @@ fn lure(agent: Uuid) -> NetEvent {
     let invitation = format!(
         "{}\r\n{}",
         block_i18n::tr!("demo-come-see-the-lagoon-at-sunset"),
-        crate::slurl::make(block_i18n::tr!("common-aurora-demo"), glam::Vec3::new(128.0, 130.0, 25.0))
+        crate::slurl::make(block_i18n::tr!("common-block-demo"), glam::Vec3::new(128.0, 130.0, 25.0))
     );
     im(
         agent,

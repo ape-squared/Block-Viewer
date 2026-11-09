@@ -196,14 +196,14 @@ impl Inventory {
         kids.sort_by_cached_key(|id| {
             let f = self.folders.get(id);
             let sys = f.is_some_and(|f| f.info.type_default >= 0 && f.info.type_default != 8);
-            (!sys, f.map(|f| crate::natural_order::key(&f.info.name)).unwrap_or_default())
+            (!sys, f.map(|f| f.info.name.to_lowercase()).unwrap_or_default())
         });
         let mut items = f.items.clone();
         seen.clear();
         // FetchInventoryDescendents2 may include linked originals from other
         // folders. LLInventoryModel::updateItem indexes each by its parent.
         items.retain(|item| self.items.get(item).is_some_and(|it| it.parent == id) && seen.insert(*item));
-        items.sort_by_cached_key(|i| self.items.get(i).map(|it| crate::natural_order::key(&it.name)).unwrap_or_default());
+        items.sort_by_cached_key(|i| self.items.get(i).map(|it| it.name.to_lowercase()).unwrap_or_default());
         if let Some(f) = self.folders.get_mut(&id) {
             f.children = kids;
             f.items = items;
@@ -772,7 +772,7 @@ pub fn read_cache(path: &std::path::Path) -> Option<CachedInventory> {
         .map(|f| {
             let id = f["id"].as_uuid();
             let mut items = by_parent.remove(&id).unwrap_or_default();
-            items.sort_by_cached_key(|it| crate::natural_order::key(&it.name));
+            items.sort_by_cached_key(|it| it.name.to_lowercase());
             CachedFolder {
                 id,
                 version: f["version"].as_i32(),
@@ -789,7 +789,7 @@ pub fn read_cache(path: &std::path::Path) -> Option<CachedInventory> {
 /// no usable cache), or hangs up if the thread could not start.
 pub fn read_cache_in_background(path: std::path::PathBuf) -> crossbeam_channel::Receiver<Option<CachedInventory>> {
     let (tx, rx) = crossbeam_channel::bounded(1);
-    let spawned = std::thread::Builder::new().name("aurora-inventory-cache".into()).spawn(move || {
+    let spawned = std::thread::Builder::new().name("block-inventory-cache".into()).spawn(move || {
         let _ = tx.send(read_cache(&path));
     });
     if let Err(e) = spawned {
@@ -1025,7 +1025,7 @@ mod tests {
             .expect("outfit")
             .items
             .extend([item, item]);
-        let path = std::env::temp_dir().join(format!("aurora-inventory-{}.bin", Uuid::new_v4()));
+        let path = std::env::temp_dir().join(format!("block-inventory-{}.bin", Uuid::new_v4()));
         inv.save_cache(&path);
         let mut restored = fixture();
         for folder in restored.folders.values_mut() {
@@ -1054,7 +1054,7 @@ mod tests {
     }
 
     fn saved(inv: &Inventory) -> CachedInventory {
-        let path = std::env::temp_dir().join(format!("aurora-inventory-{}.bin", Uuid::new_v4()));
+        let path = std::env::temp_dir().join(format!("block-inventory-{}.bin", Uuid::new_v4()));
         inv.save_cache(&path);
         let cache = read_cache(&path).expect("synthetic cache");
         std::fs::remove_file(path).expect("synthetic cache cleanup");
@@ -1133,7 +1133,7 @@ mod tests {
 
     #[test]
     fn an_unreadable_cache_is_no_cache() {
-        let path = std::env::temp_dir().join(format!("aurora-inventory-{}.bin", Uuid::new_v4()));
+        let path = std::env::temp_dir().join(format!("block-inventory-{}.bin", Uuid::new_v4()));
         assert!(read_cache(&path).is_none());
         let old = block_llsd::llsd_map! { "version" => 2, "folders" => Llsd::Array(Vec::new()), "items" => Llsd::Array(Vec::new()) };
         std::fs::write(&path, block_llsd::to_binary(&old)).expect("old inventory cache");

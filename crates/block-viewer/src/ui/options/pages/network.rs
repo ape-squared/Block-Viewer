@@ -167,7 +167,7 @@ pub fn page(cx: &mut Cx) {
     cx.group(tr!("ui-options-logs-and-tools"), |cx| {
         cx.row(
             tr!("ui-options-session-log"),
-            tr!("ui-options-block-log-previous-session-aurora-previous-log"),
+            tr!("ui-options-block-log-previous-session-block-previous-log"),
             &Nothing,
             |ui, _| {
                 if action_button(

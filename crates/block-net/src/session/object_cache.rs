@@ -256,7 +256,7 @@ mod tests {
     use super::*;
 
     fn temp_dir() -> PathBuf {
-        std::env::temp_dir().join(format!("aurora-objc-{}", Uuid::new_v4()))
+        std::env::temp_dir().join(format!("block-objc-{}", Uuid::new_v4()))
     }
 
     /// A cache file of one object for this region.
@@ -345,7 +345,7 @@ mod tests {
             control_flags: 0,
             one_shot: 0,
             cam_warned: false,
-            far: FarStep::new(Instant::now()),
+            far: 128.0,
             refuse_neighbours: false,
             fov: DEFAULT_FOV,
             logout_started: None,
@@ -365,7 +365,6 @@ mod tests {
             estate_invoice: uuid::Uuid::nil(),
             terrain_raw: Default::default(),
             decode_failures: HashMap::new(),
-            rejected_full: Default::default(),
             inventory_uploads: Default::default(),
             asset_imports: Default::default(),
             inventory_previews: Default::default(),

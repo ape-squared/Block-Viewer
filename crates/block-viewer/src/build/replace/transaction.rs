@@ -22,11 +22,12 @@ const TIMEOUT: Duration = Duration::from_secs(30);
 /// before existing children, so submit the tail chunk first, root first
 /// in every message, and confirm it before submitting the preceding chunk.
 pub(super) fn link_batches(expected: &[Uuid]) -> Vec<Vec<Uuid>> {
-    if expected.len() < 2 {
-        return Vec::new();
-    }
-    // One acknowledged replacement step must remain one wire packet.
-    block_net::build::link_batches(expected).into_iter().rev().collect()
+    let Some(root) = expected.first() else { return Vec::new() };
+    expected[1..]
+        .chunks(254)
+        .rev()
+        .map(|chunk| std::iter::once(*root).chain(chunk.iter().copied()).collect())
+        .collect()
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]

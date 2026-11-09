@@ -25,11 +25,38 @@ impl App {
     /// as a command when it is one (cmd_line_chat). `true` = handled, the
     /// line must not be sent.
     pub(super) fn chat_command(&mut self, text: &str) -> bool {
+        if self.settings.lovense.enabled
+            && self.settings.lovense.chat_commands
+            && let Some(cmd) = crate::lovense::parse_chat_command(text.trim())
+        {
+            self.run_lovense_chat(cmd);
+            return true;
+        }
         let Some(cmd) = cmdline::parse(text.trim(), &self.settings.chat_commands, random_below) else {
             return false;
         };
         log::info!("chat command: {}", text.split_whitespace().next().unwrap_or_default());
         self.run_chat_command(cmd)
+    }
+
+    fn run_lovense_chat(&mut self, cmd: crate::lovense::ChatCmd) {
+        use crate::lovense::ChatCmd;
+        let s = &self.settings.lovense;
+        match cmd {
+            ChatCmd::Help => self.report_command("Lovense: /blocktoy vibrate [0-20] [seconds] | stop | list  (alias /lovense)"),
+            ChatCmd::Stop => {
+                self.lovense.stop_all(s);
+                self.report_command("Lovense: stop sent");
+            }
+            ChatCmd::Refresh => {
+                self.lovense.refresh(s);
+                self.report_command("Lovense: refreshing toy list…");
+            }
+            ChatCmd::Vibrate { strength, secs } => {
+                self.lovense.vibrate(s, None, strength, secs);
+                self.report_command(format!("Lovense: vibrate {strength} for {secs}s"));
+            }
+        }
     }
 
     /// FSCommon::report_cmdline_result: a line in the local chat, also
@@ -96,6 +123,7 @@ impl App {
                 let d = amount.apply(self.settings.draw_distance);
                 // Aurora's draw distance range (Firestorm does not clamp here).
                 self.settings.draw_distance = d.clamp(32.0, 512.0);
+                self.net.send(NetCommand::SetDrawDistance(self.settings.draw_distance));
                 self.report_command(block_i18n::tr!(
                     "app-chat-commands-draw-distance-set-to-m",
                     value0 = format!("{:.0}", self.settings.draw_distance)
@@ -162,6 +190,7 @@ impl App {
             },
             Command::StandUp => {
                 self.send(NetCommand::OneShotControl(block_net::control::STAND_UP));
+                self.stop_current_animations();
                 self.report_command(block_i18n::tr!("app-chat-commands-standing"));
             }
             Command::OfferTeleport(to) => {

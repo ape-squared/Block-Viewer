@@ -71,6 +71,7 @@ impl App {
         if self.gfx.is_none() {
             return;
         }
+        let now = Instant::now();
         let Some((picked, point)) = self.menu_pick() else {
             return;
         };
@@ -87,9 +88,6 @@ impl App {
         }
         // the previous menu's selection goes, as deselectUnused would
         self.build.release_menu_selection(&self.world);
-        // Shift or Ctrl alone adds to the selection or takes out of it
-        // (LLToolPie::handleRightClickPick, the click's mask)
-        let extend = crate::build::BuildTool::menu_extends(self.shift, self.ctrl, self.alt);
         let me = self.world.agent_id;
         let target = match picked.and_then(|i| self.world.objects.get(i).map(|o| (i, o))) {
             Some((_, o)) if o.is_avatar() => Target::Avatar {
@@ -101,7 +99,7 @@ impl App {
                 let (key, full_id) = (o.key, o.full_id);
                 match ui::context::wearer(&self.world, idx) {
                     Some(w) if w == me => {
-                        self.build.select_for_menu_with(&mut self.world, &self.settings.build, idx, extend);
+                        self.build.select_for_menu(&mut self.world, &self.settings.build, idx);
                         self.flush_build();
                         Target::Attachment { key }
                     }
@@ -113,12 +111,12 @@ impl App {
                         attachment: Some(full_id),
                     },
                     None => {
-                        let ray = self.object_menu.ray;
-                        let offset =
-                            super::object_actions::object_sit_offset(&self.world, &self.camera, idx, point, ray).unwrap_or(Vec3::ZERO);
+                        let offset = Scene::object_transform(&self.world, idx, now, 0)
+                            .map(|(pos, rot, _)| rot.inverse() * (point - pos))
+                            .unwrap_or(Vec3::ZERO);
                         // selected and outlined while the menu is open
                         // (LLToolSelect::handleObjectSelection, temp_select)
-                        self.build.select_for_menu_with(&mut self.world, &self.settings.build, idx, extend);
+                        self.build.select_for_menu(&mut self.world, &self.settings.build, idx);
                         self.flush_build();
                         Target::Object { key, full_id, offset }
                     }
@@ -368,7 +366,7 @@ impl App {
         let (commands, requests, properties) = self.object_profile.take_output();
         if !commands.is_empty() {
             self.interactions.on_properties(&properties);
-            self.build.on_properties(&self.world, properties);
+            self.build.on_properties(properties);
         }
         for command in commands {
             self.send(command);
@@ -579,7 +577,10 @@ impl App {
                 self.panels.appearance = true;
                 self.appearance_ui.open(tab, editing);
             }
-            CtxAction::StandUp => self.send(NetCommand::OneShotControl(control::STAND_UP)),
+            CtxAction::StandUp => {
+                self.send(NetCommand::OneShotControl(control::STAND_UP));
+                self.stop_current_animations();
+            }
             CtxAction::SitGround => self.send(NetCommand::OneShotControl(control::SIT_ON_GROUND)),
             CtxAction::ToggleFly => self.toggle_fly(),
             CtxAction::ResetCamera => self.reset_camera_view(),
@@ -795,9 +796,12 @@ impl App {
                     self.contacts_ui.ask_teleport_offer(vec![id], &self.world.rlva_region_label());
                 }
             }
-            CtxAction::OpenPeople(tab) => {
+            CtxAction::OpenPeople(tab, select) => {
                 self.panels.people = true;
                 self.panels.people_tab = tab;
+                if let Some(id) = select {
+                    self.people_ui.open_person(tab, id);
+                }
             }
             CtxAction::ZoomAvatar(id) => {
                 // a drawn avatar is followed; one only known by its map
@@ -806,6 +810,11 @@ impl App {
                     self.camera.zoom_avatar(avatar, &mut self.world.agent, &self.settings.camera);
                 } else if let Some(p) = ui::context::avatar_position(&self.world, &id) {
                     self.camera.zoom_to(p, None, &mut self.world.agent, &self.settings.camera);
+                }
+            }
+            CtxAction::PoseAvatar(id) => {
+                if let Some(key) = self.ik_editor.pose_avatar_from_menu(&self.world, id) {
+                    self.world.system_message(block_i18n::text(key));
                 }
             }
             CtxAction::TeleportToAvatar(id) | CtxAction::ShowOnMap(id) => {
@@ -823,9 +832,7 @@ impl App {
                 let Some(region) = self.grid_region(&region) else {
                     return;
                 };
-                // LLWorldMapHandler::handle: trackURL, then the map opens
-                // centred on the place ("center")
-                self.world.map.show_region(&region, pos);
+                self.world.map.track_region(&region, pos);
                 ui::widgets::open_floater(&self.egui_ctx, "worldmap", &mut self.panels.world_map);
             }
             CtxAction::TeleportToPlace(region, pos) if self.settings.confirm_teleports => self.place_confirm = Some((region, pos, false)),

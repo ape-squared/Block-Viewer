@@ -1,4 +1,4 @@
-//! AURORA_DEMO_MASK_255=<alpha>: a texture whose alpha is <alpha> (250 to
+﻿//! AURORA_DEMO_MASK_255=<alpha>: a texture whose alpha is <alpha> (250 to
 //! 254, 250 by default) on every texel, on two panels: left with no
 //! material, shown whole, and right with a Mask material of cutoff 255,
 //! which must hide it (#2276). With 255 the texture has no alpha channel

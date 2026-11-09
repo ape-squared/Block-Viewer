@@ -519,7 +519,7 @@ fn draw(
     });
     let read = device.create_buffer(&wgpu::BufferDescriptor {
         label: Some("photo look test"),
-        size: crate::readback::readback_size((padded * size.1) as u64),
+        size: (padded * size.1) as u64,
         usage: wgpu::BufferUsages::COPY_DST | wgpu::BufferUsages::MAP_READ,
         mapped_at_creation: false,
     });
@@ -699,17 +699,17 @@ fn looks_shader_is_valid() {
 }
 
 #[test]
-fn every_aurora_look_reads_into_its_section() {
-    let looks = aurora_looks();
+fn every_block_look_reads_into_its_section() {
+    let looks = block_looks();
     assert_eq!(looks.len(), 36);
     for look in looks {
         assert!(!look.ops.is_empty(), "{}", look.id);
         assert!(plan(&look.ops).passes.len() < MAX_PASSES, "{}", look.id);
     }
-    let instant = aurora_look("instant").expect("instant");
+    let instant = block_look("instant").expect("instant");
     assert_eq!(instant.section, AuroraSection::Film);
     assert!(matches!(instant.ops.last(), Some(LookOp::Frame { .. })));
-    assert!(plan(&aurora_look("subject").expect("subject").ops).focus);
+    assert!(plan(&block_look("subject").expect("subject").ops).focus);
 }
 
 #[test]
@@ -783,14 +783,14 @@ fn an_identity_table_changes_nothing() {
 }
 
 #[test]
-fn every_aurora_look_draws() {
+fn every_block_look_draws() {
     let _gpu = crate::test_gpu::lock();
     let Some((device, queue)) = gpu() else {
         return;
     };
     let (w, h) = (96u32, 64u32);
     let image = test_image(w as usize, h as usize);
-    for look in aurora_looks() {
+    for look in block_looks() {
         eprintln!("drawing {}", look.id);
         let out = draw(
             &device,

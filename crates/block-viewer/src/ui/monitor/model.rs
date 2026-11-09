@@ -4,7 +4,7 @@
 //!
 //! - **CPU** (share of the machine): the system's load of each group of
 //!   threads (`sys_probe`). A group that works for a single part counts for
-//!   it (`block-render` for rendering, `aurora-pages` for textures…); the
+//!   it (`block-render` for rendering, `block-pages` for textures…); the
 //!   main thread is shared out by the time of the frame's steps
 //!   (`frame_profile`), the render thread by its steps, the frame workers by
 //!   the steps they run in parallel, the decode pool by the time of its
@@ -301,8 +301,8 @@ const SHARED: [&str; 6] = [
     "main",
     "block-render",
     "block-render-finish",
-    "aurora-worker",
-    "aurora-jobs",
+    "block-worker",
+    "block-jobs",
     "block-net",
 ];
 
@@ -559,12 +559,12 @@ pub fn attribute(inp: &Inputs) -> Attribution {
             .filter(|(r, _)| matches!(r, RowId::SceneCull | RowId::SceneSync | RowId::AvPoses))
             .copied()
             .collect();
-        let workers = group("aurora-worker");
+        let workers = group("block-worker");
         if !share(&mut u, Column::Cpu, workers, &parallel) {
             u[RowId::Scene.index()].add(Column::Cpu, workers);
         }
         // the decode pool by the time of its jobs
-        let jobs = group("aurora-jobs");
+        let jobs = group("block-jobs");
         let job_weights: Vec<(RowId, f64)> = inp
             .probes
             .map(|p| {
@@ -649,7 +649,7 @@ mod tests {
         let cpu = CpuSnapshot {
             cores: 16,
             process: 6.25 + 1.0,
-            groups: vec![group("main", 100.0), group("aurora-pages", 16.0)],
+            groups: vec![group("main", 100.0), group("block-pages", 16.0)],
             ..CpuSnapshot::default()
         };
         // 3 ms of interface (2 of them in the bars), 1 ms of lists

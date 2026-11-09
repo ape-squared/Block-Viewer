@@ -30,6 +30,15 @@ pub fn home(grid: &crate::settings::GridChoice) -> Option<&'static str> {
     }
 }
 
+/// Open `url` in the system browser (Legacy loadURLExternal). Prefer this
+/// over `CtxAction::OpenUrl` for Marketplace pages: that path would reopen
+/// them inside this window.
+fn open_system_browser(url: &str) {
+    if let Err(err) = webbrowser::open(url) {
+        log::warn!("marketplace: cannot open system browser for {url}: {err}");
+    }
+}
+
 /// LLFloaterMarketplace::isMarketplaceURL: the address starts with the
 /// Marketplace's, scheme and trailing slashes left out.
 pub fn is_marketplace_url(url: &str, home: &str) -> bool {
@@ -152,18 +161,22 @@ impl MarketplaceUi {
                 self.web.navigate_again(home);
             }
             ui.add_space(6.0);
-            let location = if self.web.location.is_empty() {
-                home
-            } else {
+            // Prefer the address the page reported, then the one we asked for
+            // (plugins may still be missing), then the Marketplace home.
+            let location = if !self.web.location.is_empty() {
                 self.web.location.as_str()
+            } else if !self.web.url.is_empty() {
+                self.web.url.as_str()
+            } else {
+                home
             };
             let shown = location.to_owned();
             ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
                 let label = block_i18n::tr!("search-web-open-external");
-                // the page itself, in the system browser (loadURLExternal): not
-                // through the links' routing, which would bring it back here
+                // System browser only (loadURLExternal). CtxAction::OpenUrl would
+                // send Marketplace URLs back into this window.
                 if widgets::action_button(ui, p, "external-link-filled", label, ActionKind::Flat, Vec2::new(0.0, 22.0)).clicked() {
-                    ui.ctx().open_url(egui::OpenUrl::new_tab(shown.clone()));
+                    open_system_browser(&shown);
                 }
                 ui.add(egui::Label::new(RichText::new(shown).size(12.0).color(p.muted)).truncate());
             });
@@ -222,5 +235,13 @@ mod tests {
         // World › SL Marketplace: back to the home page (openMarketplace)
         m.open(None);
         assert!(m.home_loaded.is_empty());
+    }
+
+    #[test]
+    fn navigate_again_updates_the_address_before_plugins_run() {
+        let mut web = super::WebView::default();
+        web.navigate_again("https://marketplace.secondlife.com/p/x");
+        assert_eq!(web.url, "https://marketplace.secondlife.com/p/x");
+        assert_eq!(web.location, "https://marketplace.secondlife.com/p/x");
     }
 }

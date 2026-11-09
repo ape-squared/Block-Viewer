@@ -109,7 +109,6 @@ pub mod user_info;
 pub mod voice_moderation;
 pub mod windlight_presets;
 pub mod worldmap;
-pub mod worn_listed;
 
 #[cfg(test)]
 mod automated_chat_tests;
@@ -173,8 +172,6 @@ pub struct Region {
     pub currency_symbol: String,
     /// OpenSimExtras' ExportSupported: the export permission applies here.
     pub export_supported: bool,
-    pub max_link_children: Option<u32>,
-    pub animated_object_max_tris: u32,
 }
 
 fn dirty_east_edge(region: &mut Region, y0: u32, y1: u32) {
@@ -391,6 +388,8 @@ pub struct World {
     /// announcement (FSAnnounceIncomingIM, `im_announce.rs`), given every
     /// frame by the app.
     pub announce_incoming_im: bool,
+    /// Sender shown in the window title until the window is in front again.
+    pub incoming_im_title: Option<String>,
     /// Fly override (the Legacy Viewer's FSAlwaysFly, read by LLAgent::canFly
     /// in indra/newview/llagent.cpp): the parcel's and the region's no-fly
     /// no longer stop a takeoff nor land the avatar. Never saved, off at
@@ -419,11 +418,6 @@ pub struct World {
     /// them or they are in reach again (parked.rs).
     parked: HashMap<RegionHandle, parked::Parked>,
     appearances: HashMap<Uuid, (AvatarAppearance, u64)>,
-    /// The worn objects each avatar's last AvatarAppearance listed, kept
-    /// even when the message itself is dropped (stale, no parameters): the
-    /// Legacy Viewer fills mSimAttachments in parseAppearanceMessage, before
-    /// those checks. Read by the Dev Toolbox's J2 only (world/worn_listed.rs).
-    listed_worn: HashMap<Uuid, Vec<(Uuid, u8)>>,
     appearance_counter: u64,
     /// Bakes the scene swapped in, by avatar (`refresh_bakes`).
     bake_refreshes: HashMap<Uuid, u64>,
@@ -461,10 +455,6 @@ pub struct World {
     pub object_im_filter: object_im_filter::Settings,
     pub anti_spam: anti_spam::Registry,
     pub teleporting: bool,
-    /// Since when a teleport to another region waits for that region's
-    /// lists of our animations (`OWN_ANIMATIONS_WAIT` at most): the AO does
-    /// not act on the list of the region left (`awaiting_own_animations`).
-    own_animations_awaited: Option<Instant>,
     /// Only a teleport to another region needs a loading screen. Unknown
     /// destinations wait for TeleportFinish to identify the destination.
     pub tp_show_progress: bool,
@@ -648,12 +638,6 @@ pub struct World {
     crossing: bool,
     /// The last arrival was a border crossing: the agent was not placed.
     pub arrived_by_crossing: bool,
-    /// A TeleportLocal waits for its arrival (process_teleport_local).
-    local_teleport: bool,
-    /// The last arrival ended a teleport inside the region (TeleportLocal,
-    /// not TeleportFinish): the camera may stay where it is
-    /// (`Camera::on_teleport_arrival`).
-    pub arrived_by_local_teleport: bool,
     /// Inventory folders asked again after a failed fetch since the agent
     /// last changed region (`InventoryFetchFailed`).
     inventory_retried: HashSet<Uuid>,
@@ -712,9 +696,6 @@ const MAX_CHAT: usize = 2000;
 /// An arrival without teleport this far from where the agent is was not a
 /// walk into a neighbour: the agent is placed as for a teleport.
 const CROSSING_MAX_GAP: f32 = 64.0;
-/// The longest the AO waits, after a teleport to another region, for that
-/// region's first list of our animations (`World::awaiting_own_animations`).
-const OWN_ANIMATIONS_WAIT: std::time::Duration = std::time::Duration::from_secs(3);
 /// The typing notices of a conversation with one resident (llinstantmessage.h).
 pub const IM_TYPING_START: u8 = 41;
 pub const IM_TYPING_STOP: u8 = 42;
@@ -807,7 +788,6 @@ impl World {
             region_left: None,
             parked: HashMap::new(),
             appearances: HashMap::new(),
-            listed_worn: HashMap::new(),
             avatar_poses: HashMap::new(),
             avatar_models: HashMap::new(),
             avatar_shape_dz: HashMap::new(),
@@ -833,7 +813,6 @@ impl World {
             tp_progress: 0.0,
             tp_status: String::new(),
             tp_failed: false,
-            own_animations_awaited: None,
             outfit: Default::default(),
             diag_reported: HashSet::new(),
             events_this_frame: 0,
@@ -906,8 +885,6 @@ impl World {
             home_grid: None,
             crossing: false,
             arrived_by_crossing: false,
-            local_teleport: false,
-            arrived_by_local_teleport: false,
             inventory_retried: HashSet::new(),
             origin_shift: Vec3::ZERO,
             left_behind_since: None,
@@ -940,6 +917,7 @@ impl World {
             fly_after_teleport: false,
             open_ims_path: None,
             reopen_ims: Vec::new(),
+            incoming_im_title: None,
             cache_dir: None,
         }
     }
@@ -996,10 +974,10 @@ impl World {
             })
             .unwrap_or(Vec3::ZERO);
         let grid = self.main_region.and_then(|h| self.grid_of(h));
-        let slurl = match &grid {
-            Some(grid) => crate::slurl::make_on(Some(grid), &region, local),
-            None => String::new(),
-        };
+        // Second Life: maps.secondlife.com SLURL so Recent places / Places can
+        // teleport by text. OpenSim: hop:// naming the place's grid. Empty only
+        // while waiting for the region's grid (set_slurl fills it later).
+        let slurl = crate::slurl::make_on(grid.as_deref(), &region, local);
         self.tp_slurl_pending = (grid.is_none() && self.home_grid.is_some()).then(|| (global, region.clone(), local));
         self.tp_storage.add(&title, global, now, slurl);
     }
@@ -1207,19 +1185,6 @@ impl World {
         self.get_off_for_teleport();
         // teleportCore: gObjectList.resetDerenderList()
         self.clear_temporary_derenders();
-    }
-
-    /// After a teleport to another region, until that region's first list of
-    /// our animations (at most `OWN_ANIMATIONS_WAIT`): the list still held
-    /// is the region left's. The AO's sit and stand follow the stock states
-    /// of the arrival's list, as the Legacy AO's overrides do
-    /// (AOEngine::override from LLVOAvatar::processAnimationStateChanges).
-    /// The AO waits for that list before sending anything: its stops then
-    /// reach a region that has the animations, and a stale stock sit cannot
-    /// start its sit again.
-    pub fn awaiting_own_animations(&self, now: Instant) -> bool {
-        self.own_animations_awaited
-            .is_some_and(|since| now.saturating_duration_since(since) < OWN_ANIMATIONS_WAIT)
     }
 
     /// Offset of a region's origin relative to the render origin (main region).
@@ -2075,8 +2040,6 @@ impl World {
             max_tasks: 0,
             grid_status: Default::default(),
             currency_base_uri: String::new(),
-            max_link_children: None,
-            animated_object_max_tris: 0,
             opensim: Default::default(),
             currency_symbol: String::new(),
             export_supported: false,
@@ -2283,7 +2246,7 @@ impl World {
     /// Worn objects the simulator listed in the avatar's last appearance
     /// (LLVOAvatar::mSimAttachments); 0 when it listed none.
     pub fn announced_attachments(&self, avatar: &Uuid) -> usize {
-        self.appearances.get(avatar).map_or(0, |(a, _)| a.attachments.len())
+        self.appearances.get(avatar).map(|(a, _)| a.attachments as usize).unwrap_or(0)
     }
 
     /// Inventory items attached to our avatar (AttachItemID name-values).
@@ -2400,6 +2363,8 @@ impl World {
             }
             _ => {}
         }
+        let worn = self.outfit_attachment_items();
+        self.outfit.purge_removed(&worn);
     }
 
     /// "Force appearance update (rebake)": the server side (see
@@ -2578,9 +2543,6 @@ impl World {
                 if self.set_main_region(handle) {
                     // no agent update before the new region completes the move
                     self.movement_complete = false;
-                    if self.teleporting {
-                        self.own_animations_awaited = Some(Instant::now());
-                    }
                     // LLViewerParcelMgr::onTeleportFinished: the new region's
                     // parcel is awaited; the one left must not lend its rules
                     // (flight, build, the bar's icons) in the meantime. The
@@ -2618,13 +2580,8 @@ impl World {
                 }
                 None
             }
-            NetEvent::RegionLinkLimit { handle, max_children } => {
-                self.ensure_region(handle, (256, 256)).max_link_children = max_children;
-                None
-            }
             NetEvent::SimulatorFeatures {
                 handle,
-                animated_object_max_tris,
                 voice_server_type,
                 avatar_hover_height,
                 materials_rate,
@@ -2638,7 +2595,6 @@ impl World {
                 export_supported,
             } => {
                 let r = self.ensure_region(handle, (256, 256));
-                r.animated_object_max_tris = animated_object_max_tris;
                 r.lsl_syntax_id = Some(lsl_syntax_id);
                 r.grid_status = (grid_status_feed, grid_status_page);
                 r.currency_base_uri = currency_base_uri;
@@ -2726,7 +2682,6 @@ impl World {
                 }
                 self.crossing = false;
                 self.arrived_by_crossing = crossed && self.agent.position.distance(position) < CROSSING_MAX_GAP;
-                self.arrived_by_local_teleport = std::mem::take(&mut self.local_teleport) && !self.arrived_by_crossing;
                 if !self.arrived_by_crossing {
                     self.agent.position = position;
                     self.agent.set_look_at(look_at);
@@ -3034,7 +2989,6 @@ impl World {
             }
             NetEvent::Appearance(a) => {
                 let id = a.avatar_id;
-                self.listed_worn.insert(id, a.attachments.clone());
                 let own = id == self.agent_id;
                 let received = if own {
                     self.appearance_cof_version(&id).max(self.outfit.stepped_cof_version())
@@ -3158,9 +3112,6 @@ impl World {
                     self.ui_sounds.push(UiSound::TeleportOut);
                 }
                 self.tp_show_progress = remote;
-                // TeleportFinish: the arrival is TELEPORT_START_ARRIVAL's,
-                // whatever a stale TeleportLocal said
-                self.local_teleport = false;
                 self.tp_progress = self.tp_progress.max(0.5);
                 self.tp_status = block_i18n::tr!("common-connecting-to-region").into();
                 // Legacy Viewer process_teleport_finish: apply both states,
@@ -3180,7 +3131,6 @@ impl World {
                 // AgentMovementComplete must record the arrival in history.
                 self.teleporting = true;
                 self.tp_show_progress = false;
-                self.local_teleport = true;
                 // A friend hop preserves existing flight here, but defers
                 // taking off (even if flagged by the server) until its
                 // arrival position has been applied.
@@ -3503,23 +3453,7 @@ impl World {
                 let now = Instant::now();
                 self.drop_blacklisted_animations(avatar, &mut anims, &mut sources);
                 if avatar == self.agent_id {
-                    // which of ours start and stop, for teleport reports (#2700)
-                    let before = self.animations.get(&avatar).map(Vec::as_slice).unwrap_or_default();
-                    let started: Vec<_> = anims.iter().map(|a| a.0).filter(|id| !before.iter().any(|p| p.id == *id)).collect();
-                    let stopped: Vec<_> = before.iter().map(|p| p.id).filter(|id| !anims.iter().any(|a| a.0 == *id)).collect();
-                    // a new sequence id on a still-listed animation is a
-                    // restart (LLVOAvatar::processAnimationStateChanges), which
-                    // neither list above shows (#2869)
-                    let restarted: Vec<_> = anims
-                        .iter()
-                        .filter(|(id, seq)| before.iter().any(|p| p.id == *id && p.sequence != *seq))
-                        .map(|a| a.0)
-                        .collect();
-                    log::info!(
-                        "own animations: {} playing, started {started:?}, stopped {stopped:?}, restarted {restarted:?}",
-                        anims.len()
-                    );
-                    self.own_animations_awaited = None;
+                    log::info!("own animations: {} playing", anims.len());
                     self.agent.ground_sit = anims.iter().any(|(id, _)| *id == body::ANIM_SIT_GROUND_CONSTRAINED);
                     // Firestorm process_avatar_animation / processAnimationStateChanges:
                     // source blocks correspond by index, and previous source entries
@@ -4255,7 +4189,12 @@ impl World {
         if !own_attachment && !self.rlva.receive_chat(&mut c, self.agent_id) {
             return;
         }
-        if c.message.is_empty() || self.lsl_bridge.hides(&c) || self.chat_blocked(&c) || self.object_chat_filtered(&c) {
+        if c.message.is_empty()
+            || self.lsl_bridge.hides(&c)
+            || self.chat_blocked(&c)
+            || self.object_chat_filtered(&c)
+            || poseball_protocol_chat(&c)
+        {
             return;
         }
         if self.receive_hand_contacts(&c, Instant::now()) {
@@ -5159,9 +5098,7 @@ impl World {
         if let Some(item) = item
             && self.outfit.keeps_cof_link(item)
         {
-            // before the login restore has read the COF, or replaced by the
-            // region while it puts the outfit on: the link stays, and the
-            // restore wears it again (mAttachmentInvLinkEnabled)
+            // the region replaced it during the login restore: worn again
             return;
         }
         if let Some(item) = item
@@ -5373,13 +5310,6 @@ impl World {
 
     /// The sizes a prim may take on the agent's region (its OpenSimExtras,
     /// else Second Life's limits).
-    /// LLWorld::getMaxLinkedPrims plus the root: 255 children on Second
-    /// Life, 10,000 on OpenSim until OpenRegionInfo supplies another limit.
-    pub fn link_limit(&self) -> usize {
-        let default = if self.home_grid.is_some() { 10000 } else { 255 };
-        self.main().and_then(|r| r.max_link_children).unwrap_or(default) as usize + 1
-    }
-
     pub fn prim_limits(&self) -> crate::build::PrimLimits {
         crate::build::PrimLimits::from_extras(self.opensim_extras())
     }
@@ -5474,7 +5404,7 @@ impl World {
     /// Turn the drawn bodies of the standing avatars toward where they face
     /// or travel (LLVOAvatar::updateRootPositionAndRotation). Returns our
     /// own avatar's turn (+1 left, -1 right, 0) for the control flags.
-    pub fn update_bodies(&mut self, now: Instant, dt: f32, cam_at: Vec3, mouselook: bool, step_back: bool, turn_speed: f32) -> i8 {
+    pub fn update_bodies(&mut self, now: Instant, dt: f32, cam_at: Vec3, mouselook: bool, step_back: bool) -> i8 {
         let mut own_turn = 0;
         let mut seen = std::collections::HashSet::new();
         for (_, o) in self.objects.avatars() {
@@ -5504,7 +5434,6 @@ impl World {
                     mouselook_at: mouselook.then_some(cam_at),
                     flying: a.flying,
                     step_back: walking,
-                    turn_speed,
                 }
             } else {
                 body::Input {
@@ -5514,7 +5443,6 @@ impl World {
                     mouselook_at: None,
                     flying: false,
                     step_back: walking,
-                    turn_speed,
                 }
             };
             let no_rotate = self
@@ -5757,11 +5685,7 @@ impl World {
         if let Some(pos) = pos {
             self.agent.get_off(pos);
         }
-        // the arrival's "own animations" line says if a region lists one again
-        log::info!(
-            "teleport: our avatar gets off its seat (teleportCore), stops {:?}",
-            self.animation_stops
-        );
+        log::info!("teleport: our avatar gets off its seat (teleportCore)");
     }
 
     /// Port of LLVOAvatar::getOffObject / LLVOAvatarSelf::stopMotionFromSource
@@ -5775,19 +5699,15 @@ impl World {
         let Some(seat_key) = avatar.parent_key().filter(|k| *k != ObjKey { region, local_id: parent }) else {
             return;
         };
-        for source in self.seat_linkset_sources(seat_key) {
-            self.stop_motion_from_source(source);
-        }
-    }
-
-    /// The seat prim and its children: the sources LLVOAvatarSelf::
-    /// stopMotionFromSource releases when we get off it.
-    fn seat_linkset_sources(&self, seat_key: ObjKey) -> Vec<Uuid> {
         let seat = self.objects.index_of(&seat_key).into_iter();
         let children = self.objects.children_of(&seat_key).iter().copied();
-        seat.chain(children)
+        let sources: Vec<_> = seat
+            .chain(children)
             .filter_map(|idx| self.objects.get(idx).map(|o| o.full_id))
-            .collect()
+            .collect();
+        for source in sources {
+            self.stop_motion_from_source(source);
+        }
     }
 
     /// LLVOAvatarSelf::detachObject: only the linkset, never an avatar
@@ -5865,6 +5785,18 @@ impl World {
             }
         }
     }
+}
+
+/// Object chat used as an animation / MLP / nPose protocol (often
+/// `||stopanimation`, `||start`, …). It is not meant for the nearby
+/// transcript; scripts that shout it on channel 0 still reach other
+/// listeners on the simulator. Dropped for every object source.
+fn poseball_protocol_chat(c: &ChatMessage) -> bool {
+    if c.source_type != ChatSourceType::Object {
+        return false;
+    }
+    let t = c.message.trim_start();
+    t.starts_with("||")
 }
 
 /// What becomes of an AvatarAppearance message.
@@ -5990,7 +5922,7 @@ mod appearance_tests {
             cof_version,
             appearance_version: 1,
             hover_height: 0.0,
-            attachments: Vec::new(),
+            attachments: 0,
         }
     }
 
@@ -6709,55 +6641,6 @@ mod motion_tests {
         assert!(!world.agent.is_sitting());
     }
 
-    /// #2700: after a teleport to another region the AO waits for that
-    /// region's first list of our animations. A seat motion teleportCore
-    /// stopped in the region left is not stopped a second time: the Legacy
-    /// Viewer sends no such stop.
-    #[test]
-    fn a_teleport_to_another_region_waits_for_its_animations() {
-        let (mut world, _) = teleport_from_seat(true);
-        let motion = world.animation_stops[0];
-        world.animation_stops.clear();
-        let start = Instant::now();
-        assert!(!world.awaiting_own_animations(start), "nothing awaited before the region changes");
-        let destination = block_net::origin_to_handle(512 * 256, 512 * 256);
-        world.apply(NetEvent::MainRegionChanged { handle: destination });
-        world.apply(NetEvent::AgentMovementComplete {
-            handle: destination,
-            position: Vec3::new(40.0, 50.0, 30.0),
-            look_at: Vec3::X,
-        });
-        let now = Instant::now();
-        assert!(world.awaiting_own_animations(now), "the list held is the region left's");
-        assert!(!world.awaiting_own_animations(now + OWN_ANIMATIONS_WAIT), "never waits for good");
-        let other = Uuid::from_u128(74);
-        world.apply(NetEvent::AvatarAnimations {
-            avatar: world.agent_id,
-            anims: vec![(motion, 1), (other, 1)],
-            sources: Vec::new(),
-        });
-        assert!(!world.awaiting_own_animations(Instant::now()), "the first list ends the wait");
-        assert!(world.animation_stops.is_empty(), "no second stop");
-    }
-
-    /// Neither a teleport within the region nor a walk into the next one
-    /// waits for a new list of our animations.
-    #[test]
-    fn only_a_teleport_to_another_region_waits_for_our_animations() {
-        let (mut world, _) = teleport_fixture();
-        let next = block_net::origin_to_handle(512 * 256, 512 * 256);
-        world.apply(NetEvent::MainRegionChanged { handle: next });
-        assert!(!world.awaiting_own_animations(Instant::now()), "a crossing");
-        world.begin_teleport(false);
-        world.apply(NetEvent::TeleportLocal { flying: false });
-        world.apply(NetEvent::AgentMovementComplete {
-            handle: next,
-            position: Vec3::new(40.0, 50.0, 30.0),
-            look_at: Vec3::X,
-        });
-        assert!(!world.awaiting_own_animations(Instant::now()), "a teleport in the region");
-    }
-
     #[test]
     fn a_teleport_while_standing_changes_nothing_of_the_seat_state() {
         let (mut world, _) = teleport_fixture();
@@ -6993,14 +6876,6 @@ mod motion_tests {
         assert!(!world.teleporting && !world.tp_show_progress);
         assert_eq!(world.tp_history.previous().expect("previous arrival").position, previous);
         assert!(!world.ui_sounds.contains(&UiSound::TeleportOut));
-        // the camera may stay where it is (issue #2828), for this arrival only
-        assert!(world.arrived_by_local_teleport);
-        world.apply(NetEvent::AgentMovementComplete {
-            handle,
-            position: Vec3::new(61.0, 70.0, 30.0),
-            look_at: Vec3::X,
-        });
-        assert!(!world.arrived_by_local_teleport);
     }
 
     #[test]
@@ -7029,7 +6904,6 @@ mod motion_tests {
         assert!(!world.teleporting && world.tp_show_progress);
         assert_eq!(world.main_region, Some(destination));
         assert!(world.parcel_name.is_empty());
-        assert!(!world.arrived_by_local_teleport, "another region: the camera comes back");
     }
 
     #[test]
@@ -7608,6 +7482,39 @@ mod motion_tests {
         assert_eq!(world.notifications.list.len(), count);
     }
 
+    #[test]
+    fn a_new_script_dialog_replaces_the_unanswered_menu_of_the_same_object() {
+        let (mut world, _, _) = fixture();
+        let object_id = Uuid::from_u128(0xA0);
+        let other = Uuid::from_u128(0xA1);
+        let menu = |object_id, message: &str| NetEvent::ScriptDialog {
+            sender: ([127, 0, 0, 1], 13000).into(),
+            object_id,
+            object_name: "[H. Lab] PhysicsAO".into(),
+            owner_name: "heard Resident".into(),
+            owner_id: Uuid::nil(),
+            message: message.into(),
+            channel: -99,
+            buttons: vec!["Slower".into(), "Faster".into()],
+        };
+        world.apply(menu(object_id, "Breathe Menu"));
+        world.apply(menu(other, "Other HUD"));
+        assert_eq!(world.notifications.list.len(), 2);
+        world.apply(menu(object_id, "Breathe Menu again"));
+        let dialogs: Vec<_> = world
+            .notifications
+            .list
+            .iter()
+            .filter_map(|n| match &n.data {
+                notifications::Data::Dialog { object, .. } => Some((*object, n.body.as_str())),
+                _ => None,
+            })
+            .collect();
+        assert_eq!(dialogs.len(), 2, "one card per object, not a stack: {dialogs:?}");
+        assert!(dialogs.iter().any(|(o, b)| *o == object_id && *b == "Breathe Menu again"));
+        assert!(dialogs.iter().any(|(o, _)| *o == other));
+    }
+
     /// Our avatar wearing a prim in the demo region, and a second region.
     fn worn_fixture() -> (
         World,
@@ -8039,8 +7946,6 @@ mod motion_tests {
 
     fn scripted_detach_fixture(point: u8) -> (World, block_net::objects::ObjectUpdate, RegionHandle) {
         let (mut world, _, mut worn, here, _) = worn_fixture();
-        // later in the session: the login restore is over
-        world.outfit = outfit::OutfitRestore::finished();
         appearance::seed_demo(&mut world.inventory, world.agent_id);
         worn.state = point.rotate_left(4);
         worn.name_values = format!("AttachItemID STRING RW SV {}", Uuid::from_u128(717));
@@ -8460,7 +8365,6 @@ mod motion_tests {
             }
             let features = |enabled| NetEvent::SimulatorFeatures {
                 handle: here,
-                animated_object_max_tris: 0,
                 voice_server_type: String::new(),
                 avatar_hover_height: enabled,
                 materials_rate: None,
@@ -8647,7 +8551,7 @@ mod motion_tests {
     /// simulator's signals, which stay as they came; off, or seated, the
     /// simulator's list alone.
     #[test]
-    fn with_aurora_movement_our_walk_follows_the_keys_but_never_seated() {
+    fn with_block_movement_our_walk_follows_the_keys_but_never_seated() {
         use crate::own_motion::{ANIM_STAND, ANIM_WALK, Intent};
         let (mut world, _, _) = arrived_fixture();
         let me = world.agent_id;

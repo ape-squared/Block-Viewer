@@ -837,7 +837,7 @@ mod tests {
 
     #[test]
     fn animation_entries_persist_as_the_legacy_asset_type_and_never_derender() {
-        let dir = std::env::temp_dir().join(format!("aurora-animation-blacklist-{}", Uuid::new_v4()));
+        let dir = std::env::temp_dir().join(format!("block-animation-blacklist-{}", Uuid::new_v4()));
         let path = dir.join(FILE);
         let anim = Uuid::from_u128(404);
         let mut list = Derender::load(path.clone());
@@ -856,7 +856,7 @@ mod tests {
 
     #[test]
     fn sound_explorer_sound_flags_persist_merge_and_never_derender_the_owner() {
-        let dir = std::env::temp_dir().join(format!("aurora-sound-blacklist-{}", Uuid::new_v4()));
+        let dir = std::env::temp_dir().join(format!("block-sound-blacklist-{}", Uuid::new_v4()));
         let path = dir.join(FILE);
         let owner = Uuid::from_u128(101);
         let asset = Uuid::from_u128(202);
@@ -882,7 +882,7 @@ mod tests {
 
     #[test]
     fn avatar_sound_category_switches_set_and_clear_independent_persistent_bits() {
-        let dir = std::env::temp_dir().join(format!("aurora-avatar-sound-categories-{}", Uuid::new_v4()));
+        let dir = std::env::temp_dir().join(format!("block-avatar-sound-categories-{}", Uuid::new_v4()));
         let path = dir.join(FILE);
         let owner = Uuid::from_u128(101);
         let asset = Uuid::from_u128(202);
@@ -920,7 +920,7 @@ mod tests {
 
     #[test]
     fn blacklist_sound_categories_can_be_removed_independently_across_relogs() {
-        let dir = std::env::temp_dir().join(format!("aurora-blacklist-rows-{}", Uuid::new_v4()));
+        let dir = std::env::temp_dir().join(format!("block-blacklist-rows-{}", Uuid::new_v4()));
         let path = dir.join(FILE);
         let owner = Uuid::from_u128(101);
         let asset = Uuid::from_u128(202);
@@ -972,7 +972,7 @@ mod tests {
 
     #[test]
     fn permanent_entries_survive_a_relog_and_others_are_kept_untouched() {
-        let dir = std::env::temp_dir().join(format!("aurora-blacklist-{}", Uuid::new_v4()));
+        let dir = std::env::temp_dir().join(format!("block-blacklist-{}", Uuid::new_v4()));
         let path = dir.join(FILE);
         // a sound entry written by the Legacy Viewer, which Aurora keeps
         let sound = Uuid::from_u128(77);

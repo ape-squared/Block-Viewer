@@ -12,7 +12,8 @@ use super::App;
 use crate::snapshot::looks::{self, Placement, Resolved};
 use crate::snapshot::luts::{Imported, LutLibrary};
 use crate::snapshot::reel::Place;
-use crate::snapshot::{self, ContextPass, PausedPart, TilePass, gallery, inventory, profile, save};
+use crate::snapshot::web_upload;
+use crate::snapshot::{self, ContextPass, TilePass, gallery, inventory, profile, save};
 use crate::ui::snapshot::{Action, Destination, EmailView, InventoryView, ProfileView};
 use crate::ui_sound::UiSound;
 use block_net::NetCommand;
@@ -49,6 +50,8 @@ pub(super) enum Purpose {
     Profile,
     /// By e-mail.
     Postcard,
+    /// Anonymous host (catbox.moe).
+    Web,
 }
 
 /// A photo on its way to the inventory or the profile feed.
@@ -71,6 +74,11 @@ enum Upload {
         rx: crossbeam_channel::Receiver<PostcardStep>,
         encoded: bool,
     },
+    /// Encoded PNG posted to catbox.moe.
+    Web {
+        rx: crossbeam_channel::Receiver<WebStep>,
+        encoded: bool,
+    },
 }
 
 /// How a postcard goes.
@@ -83,6 +91,12 @@ enum PostcardStep {
 enum ProfileStep {
     Encoded(usize),
     Done(Result<(), profile::Error>),
+}
+
+/// How a Catbox upload goes.
+enum WebStep {
+    Encoded,
+    Done(Result<String, web_upload::Error>),
 }
 
 struct Job {
@@ -117,8 +131,6 @@ struct Job {
     hold: Option<snapshot::Hold>,
     /// The whole photo drawn small before its tiles, for their occlusion.
     context: ContextPass,
-    /// Its parts wait while the 3D drawing is paused behind.
-    paused: snapshot::PausedWait,
 }
 
 /// A held photo (freeze frame) and what shows it.
@@ -504,18 +516,6 @@ impl App {
         self.snapshots.world_freeze
     }
 
-    /// Whether this frame's 3D drawing is paused behind
-    /// (texture_budget::Background::paused, busy_pause.rs): not for a frame
-    /// that carries a part of a photo. No part is asked while the drawing is
-    /// paused for memory (`snapshot::PausedWait`), but the pause can begin
-    /// after the part of the frame was asked, or while one asked is still on
-    /// its way; the busy card's pause only ends after the frame of a photo's
-    /// first part. Drawn paused, it was only sky (the empty lists, at a
-    /// sixteenth of its size).
-    pub(super) fn scene_paused(&self) -> bool {
-        self.drawing_paused() && self.snapshots.capturing.is_none()
-    }
-
     /// Whether the photo mode holds the world still.
     pub(super) fn photo_world_frozen(&self) -> bool {
         self.snapshots.world_freeze.is_some()
@@ -523,36 +523,9 @@ impl App {
 
     /// Before a frame is laid out: the photo frame it carries, if any.
     pub(super) fn photo_frame(&mut self, renderer: &mut Renderer) -> Option<PhotoFrame> {
-        let textures = &self.scene.textures;
-        let (paused, pending, passes) = (textures.drawing_paused(), textures.pending_in_view(), textures.wants_passes());
-        let occlusion = self.settings.ssao > 0;
         let s = &mut self.snapshots;
         s.capturing = None;
         let job = s.job.as_mut()?;
-        // (a part already asked is drawn all the same: the frame that
-        // carries it draws the scene, `App::scene_paused`)
-        if !job.asked {
-            let waited = job.paused.waiting();
-            match job.paused.next(Instant::now(), paused, pending, passes) {
-                PausedPart::Draw if waited => {
-                    log::info!("photo: the 3D drawing resumed, drawn from its first part ({pending} textures in view left)");
-                }
-                PausedPart::Draw => {}
-                PausedPart::Wait => return None,
-                PausedPart::StartOver => {
-                    log::info!(
-                        "photo: the 3D drawing is paused behind, the photo waits for it ({} of {} part(s) drawn, drawn again)",
-                        job.next,
-                        job.tiles.len()
-                    );
-                    job.next = 0;
-                    job.pixels = Vec::new();
-                    job.hold = None;
-                    job.context = ContextPass::plan(job.size, job.tiles.len(), occlusion);
-                    return None;
-                }
-            }
-        }
         if job.asked {
             if renderer.failed() || renderer.device_lost() {
                 // the frame asked never came back (the render thread is gone)
@@ -777,6 +750,7 @@ impl App {
             Purpose::Inventory(cost) => self.photo_encode(job.size, job.pixels, cost, job.cutout),
             Purpose::Profile => self.photo_post(job.size, job.pixels, job.cutout),
             Purpose::Postcard => self.photo_postcard(job.size, job.pixels, job.cutout),
+            Purpose::Web => self.photo_web(job.size, job.pixels),
         }
     }
 
@@ -820,7 +794,7 @@ impl App {
         match destination {
             Destination::Disk => s.size(window),
             Destination::Inventory => inventory::capture_size(s.aspect, s.inventory_size, window),
-            Destination::Profile => profile::capture_size(s.aspect, s.profile_size, window),
+            Destination::Profile | Destination::Web => profile::capture_size(s.aspect, s.profile_size, window),
             Destination::Email => profile::capture_size(s.aspect, s.postcard_size, window),
         }
     }
@@ -922,6 +896,83 @@ impl App {
         });
         self.snapshots.upload = Some(Upload::Profile { rx, bytes: None });
         self.photo_shutter();
+    }
+
+    /// "Catbox": the held photo or a new one, then a free anonymous host.
+    fn photo_to_web(&mut self, renderer: &Renderer) {
+        if self.photo_busy() {
+            return;
+        }
+        if let Some(held) = &self.snapshots.held {
+            let (size, rgba) = ((held.width, held.height), held.rgba.clone());
+            self.photo_web(size, rgba);
+            return;
+        }
+        self.photo_job(Purpose::Web, renderer);
+    }
+
+    /// Encode a PNG and POST it to catbox.moe off the main thread.
+    pub(crate) fn photo_web(&mut self, size: (u32, u32), rgba: Vec<u8>) {
+        let (tx, rx) = crossbeam_channel::unbounded();
+        self.net.runtime().spawn(async move {
+            let encoded = tokio::task::spawn_blocking(move || web_upload::encode_png(size.0, size.1, &rgba)).await;
+            let png = match encoded {
+                Ok(Ok(png)) => png,
+                Ok(Err(e)) => {
+                    log::warn!("photo: Catbox PNG not encoded: {e}");
+                    let _ = tx.send(WebStep::Done(Err(web_upload::Error::BadReply)));
+                    return;
+                }
+                Err(_) => return,
+            };
+            let _ = tx.send(WebStep::Encoded);
+            let name = format!("block-{}.png", snapshot::local_stamp());
+            let result = web_upload::upload_png(png, &name).await;
+            let _ = tx.send(WebStep::Done(result));
+        });
+        self.snapshots.upload = Some(Upload::Web { rx, encoded: false });
+        self.photo_shutter();
+    }
+
+    /// Catbox upload progress and outcome.
+    fn photo_web_poll(&mut self) {
+        let Some(Upload::Web { rx, encoded }) = &mut self.snapshots.upload else {
+            return;
+        };
+        let mut done = None;
+        while let Ok(step) = rx.try_recv() {
+            match step {
+                WebStep::Encoded => *encoded = true,
+                WebStep::Done(result) => done = Some(result),
+            }
+        }
+        let Some(result) = done else {
+            return;
+        };
+        self.snapshots.upload = None;
+        self.snapshots.message_item = None;
+        self.snapshots.message_profile = false;
+        match result {
+            Ok(url) => {
+                log::info!("photo: uploaded to Catbox");
+                self.egui_ctx.copy_text(url.clone());
+                self.snapshots.message = Some((
+                    format!(
+                        "{} · {}",
+                        block_i18n::tr!("photo-web-uploaded"),
+                        block_i18n::tr!("photo-web-copied")
+                    ),
+                    false,
+                ));
+                self.photo_review_show();
+            }
+            Err(e) => {
+                log::warn!("photo: Catbox upload failed: {e}");
+                let text = block_i18n::tr!("photo-web-failed").to_owned();
+                self.snapshots.message = Some((text.clone(), true));
+                self.photo_vf_error(&text);
+            }
+        }
     }
 
     /// What the window shows of a postcard: the region takes them
@@ -1135,7 +1186,6 @@ impl App {
             photo: full,
             hold: None,
             context,
-            paused: Default::default(),
         });
         let stack = self.settings.snapshot.looks.clone();
         let settings = self.settings.snapshot.look_settings.clone();
@@ -1541,6 +1591,7 @@ impl App {
         self.photo_quality(renderer);
         self.photo_light();
         self.photo_free_camera();
+        self.photo_web_poll();
         if let Some(t) = self.snapshots.detail_wait {
             let pending = self.scene.textures.pending_in_view();
             let off = self.settings.photo_held.is_none();
@@ -1753,6 +1804,7 @@ impl App {
                     Destination::Inventory => self.photo_to_inventory(renderer),
                     Destination::Profile => self.photo_to_profile(renderer),
                     Destination::Email => self.photo_to_postcard(renderer),
+                    Destination::Web => self.photo_to_web(renderer),
                 }
             }
             Action::Confirm(yes) => {
@@ -2053,8 +2105,11 @@ LUT_3D_SIZE {n}
                 Upload::Sent(_) => (0.85, block_i18n::tr!("photo-uploading").to_owned()),
                 Upload::Profile { bytes: None, .. } => (0.6, block_i18n::tr!("photo-profile-encoding").to_owned()),
                 Upload::Profile { bytes: Some(_), .. } => (0.85, block_i18n::tr!("photo-profile-posting").to_owned()),
-                Upload::Postcard { encoded: false, .. } => (0.6, block_i18n::tr!("photo-profile-encoding").to_owned()),
+                Upload::Postcard { encoded: false, .. } | Upload::Web { encoded: false, .. } => {
+                    (0.6, block_i18n::tr!("photo-profile-encoding").to_owned())
+                }
                 Upload::Postcard { encoded: true, .. } => (0.85, block_i18n::tr!("photo-email-sending").to_owned()),
+                Upload::Web { encoded: true, .. } => (0.85, block_i18n::tr!("photo-web-uploading").to_owned()),
             })
         } else {
             s.job.as_ref().filter(|j| j.purpose != Purpose::Preview).map(|j| {
@@ -2236,8 +2291,11 @@ LUT_3D_SIZE {n}
                     Upload::Sent(_) => (0.85, block_i18n::tr!("photo-uploading").to_owned()),
                     Upload::Profile { bytes: None, .. } => (0.6, block_i18n::tr!("photo-profile-encoding").to_owned()),
                     Upload::Profile { bytes: Some(_), .. } => (0.85, block_i18n::tr!("photo-profile-posting").to_owned()),
-                    Upload::Postcard { encoded: false, .. } => (0.6, block_i18n::tr!("photo-profile-encoding").to_owned()),
+                    Upload::Postcard { encoded: false, .. } | Upload::Web { encoded: false, .. } => {
+                        (0.6, block_i18n::tr!("photo-profile-encoding").to_owned())
+                    }
                     Upload::Postcard { encoded: true, .. } => (0.85, block_i18n::tr!("photo-email-sending").to_owned()),
+                    Upload::Web { encoded: true, .. } => (0.85, block_i18n::tr!("photo-web-uploading").to_owned()),
                 })
             } else {
                 s.job.as_ref().filter(|j| j.purpose != Purpose::Preview).map(|j| {

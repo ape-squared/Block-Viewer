@@ -145,16 +145,16 @@ fn person(
     let name = world.social.avatar_names.complete(&id).unwrap_or_else(|| row_name.to_owned());
     let gear = |ui: &mut egui::Ui| context::avatar_list_menu(ui, p, world, id, context::AvatarList::Name);
     let buttons = [
-        Btn::new("user-filled", block_i18n::tr!("search-aurora-profile")).primary(),
-        Btn::new("message-circle-filled", block_i18n::tr!("search-aurora-message")).enabled(!own),
-        Btn::new("send-filled", block_i18n::tr!("search-aurora-offer-teleport")).enabled(!own),
+        Btn::new("user-filled", block_i18n::tr!("search-block-profile")).primary(),
+        Btn::new("message-circle-filled", block_i18n::tr!("search-block-message")).enabled(!own),
+        Btn::new("send-filled", block_i18n::tr!("search-block-offer-teleport")).enabled(!own),
         Btn::new("user-plus", block_i18n::tr!("ui-profile-add-friend")).enabled(friend.is_none() && !own),
         Btn::new("dots-filled", block_i18n::tr!("ui-profile-more")).menu(&gear),
     ];
     let now = std::time::SystemTime::now()
         .duration_since(std::time::UNIX_EPOCH)
         .map_or(0.0, |d| d.as_secs_f64());
-    let clicked = pane(ui, p, ("aurora-search-person", Key::Id(id)), &buttons, |ui| {
+    let clicked = pane(ui, p, ("block-search-person", Key::Id(id)), &buttons, |ui| {
         ui.spacing_mut().item_spacing.y = 5.0;
         let status = profiles::online_status(profile, own, friend.map(|f| (f.online, f.rights_has & 1 != 0)));
         let (text, color) = match status {
@@ -175,16 +175,16 @@ fn person(
             return;
         };
         ui.add_space(4.0);
-        field(ui, p, block_i18n::tr!("search-aurora-key"), |ui| key_line(ui, p, id));
+        field(ui, p, block_i18n::tr!("search-block-key"), |ui| key_line(ui, p, id));
         if let Some(birth) = profiles::birth_text(pr, own, now) {
-            text_field(ui, p, block_i18n::tr!("search-aurora-born"), &birth.replace('\n', " "));
+            text_field(ui, p, block_i18n::tr!("search-block-born"), &birth.replace('\n', " "));
         }
         text_field(ui, p, block_i18n::tr!("ui-profile-account"), &profiles::account_text(pr));
         field(ui, p, block_i18n::tr!("ui-profile-partner"), |ui| agent_link(ui, c, pr.partner));
         // the legacy reply (no AgentProfile capability) has no groups
         if !pr.legacy {
             let mut groups: Vec<&str> = pr.groups.iter().map(|g| g.name.as_str()).collect();
-            groups.sort_by_key(|g| crate::natural_order::key(g));
+            groups.sort_by_key(|g| g.to_lowercase());
             let text = if groups.is_empty() {
                 block_i18n::tr!("common-none").to_owned()
             } else {
@@ -192,7 +192,7 @@ fn person(
             };
             text_field(ui, p, block_i18n::tr!("ui-profile-groups"), &text);
         }
-        caps(ui, p, block_i18n::tr!("search-aurora-about"));
+        caps(ui, p, block_i18n::tr!("search-block-about"));
         text_box(ui, c, &pr.sl_about, 60.0);
     });
     let act = |a: CtxAction| context::request(ui.ctx(), a);
@@ -230,11 +230,11 @@ fn group(ui: &mut egui::Ui, c: &mut Ctx, id: Uuid, row_name: &str, actions: &mut
         Btn::new("users-plus", block_i18n::tr!("search-group-join")).enabled(data.is_some_and(|g| g.open_enrollment))
     };
     let buttons = [
-        Btn::new("users-group", block_i18n::tr!("search-aurora-group-profile")).primary(),
+        Btn::new("users-group", block_i18n::tr!("search-block-group-profile")).primary(),
         second,
         Btn::new("dots-filled", block_i18n::tr!("ui-profile-more")).menu(&more),
     ];
-    let clicked = pane(ui, p, ("aurora-search-group", Key::Id(id)), &buttons, |ui| {
+    let clicked = pane(ui, p, ("block-search-group", Key::Id(id)), &buttons, |ui| {
         ui.spacing_mut().item_spacing.y = 5.0;
         let content = data.map(|g| {
             if g.mature_publish {
@@ -267,7 +267,7 @@ fn group(ui: &mut egui::Ui, c: &mut Ctx, id: Uuid, row_name: &str, actions: &mut
                     .map_or_else(String::new, |n| block_i18n::tr!("search-group-members", count = n));
                 head(ui, p, &name, None, content, &members);
                 if member {
-                    pill(ui, block_i18n::tr!("search-aurora-member"), p.violet_pale, p.raised);
+                    pill(ui, block_i18n::tr!("search-block-member"), p.violet_pale, p.raised);
                 }
             });
         });
@@ -295,8 +295,8 @@ fn group(ui: &mut egui::Ui, c: &mut Ctx, id: Uuid, row_name: &str, actions: &mut
         if member && !g.member_title.is_empty() {
             text_field(ui, p, block_i18n::tr!("search-group-my-title"), &g.member_title);
         }
-        field(ui, p, block_i18n::tr!("search-aurora-key"), |ui| key_line(ui, p, id));
-        caps(ui, p, block_i18n::tr!("search-aurora-charter"));
+        field(ui, p, block_i18n::tr!("search-block-key"), |ui| key_line(ui, p, id));
+        caps(ui, p, block_i18n::tr!("search-block-charter"));
         text_box(ui, c, &g.charter, 70.0);
     });
     if refresh.get() {
@@ -345,7 +345,7 @@ fn place(ui: &mut egui::Ui, c: &mut Ctx, parcel: Uuid, tab: Tab, row: Option<&Ro
     // LLPanelPlaceInfo::processParcelInfo never shows it.
     let auction = row.is_some_and(|r| r.icon == RowIcon::Auction);
     let for_sale = land.is_some() || auction || row.is_some_and(|r| r.icon == RowIcon::ForSale);
-    let clicked = pane(ui, p, ("aurora-search-place", Key::Id(parcel)), &buttons, |ui| {
+    let clicked = pane(ui, p, ("block-search-place", Key::Id(parcel)), &buttons, |ui| {
         ui.spacing_mut().item_spacing.y = 5.0;
         media(ui, c, data.map_or(Uuid::nil(), |d| d.snapshot), |ui| {
             if for_sale {
@@ -368,7 +368,7 @@ fn place(ui: &mut egui::Ui, c: &mut Ctx, parcel: Uuid, tab: Tab, row: Option<&Ro
                 ("walk", block_i18n::integer(d.dwell as i64)),
                 (
                     "dimensions",
-                    block_i18n::tr!("search-aurora-area", area = block_i18n::integer(d.actual_area as i64)),
+                    block_i18n::tr!("search-block-area", area = block_i18n::integer(d.actual_area as i64)),
                 ),
             ],
         );
@@ -376,14 +376,14 @@ fn place(ui: &mut egui::Ui, c: &mut Ctx, parcel: Uuid, tab: Tab, row: Option<&Ro
         if let Some(row) = land {
             let price = match row.values.get(1) {
                 Some(Value::Int(n)) if !auction => linden(*n),
-                _ => block_i18n::tr!("search-aurora-auction").to_owned(),
+                _ => block_i18n::tr!("search-block-auction").to_owned(),
             };
-            text_field(ui, p, block_i18n::tr!("search-aurora-price"), &price);
+            text_field(ui, p, block_i18n::tr!("search-block-price"), &price);
             if let Some(Value::Real(per_meter)) = row.values.get(3).filter(|_| !auction) {
                 text_field(
                     ui,
                     p,
-                    block_i18n::tr!("search-aurora-price-per-meter"),
+                    block_i18n::tr!("search-block-price-per-meter"),
                     &block_i18n::number(*per_meter, 2),
                 );
             }
@@ -391,10 +391,10 @@ fn place(ui: &mut egui::Ui, c: &mut Ctx, parcel: Uuid, tab: Tab, row: Option<&Ro
                 text_field(ui, p, block_i18n::tr!("common-type-2"), kind);
             }
         } else if for_sale && !auction && d.sale_price > 0 {
-            text_field(ui, p, block_i18n::tr!("search-aurora-price"), &linden(d.sale_price as i64));
+            text_field(ui, p, block_i18n::tr!("search-block-price"), &linden(d.sale_price as i64));
         }
         content_field(ui, p, maturity);
-        caps(ui, p, block_i18n::tr!("search-aurora-description"));
+        caps(ui, p, block_i18n::tr!("search-block-description"));
         text_box(ui, c, &d.desc, 60.0);
     });
     match (clicked, global) {
@@ -414,7 +414,7 @@ fn classified(ui: &mut egui::Ui, c: &mut Ctx, id: Uuid, row_name: &str, actions:
             .enabled(global.is_some()),
         Btn::new("map", block_i18n::tr!("common-map")).enabled(global.is_some()),
     ];
-    let clicked = pane(ui, p, ("aurora-search-classified", Key::Id(id)), &buttons, |ui| {
+    let clicked = pane(ui, p, ("block-search-classified", Key::Id(id)), &buttons, |ui| {
         ui.spacing_mut().item_spacing.y = 5.0;
         media(ui, c, info.map_or(Uuid::nil(), |i| i.snapshot), |_| {});
         ui.add_space(4.0);
@@ -444,12 +444,12 @@ fn classified(ui: &mut egui::Ui, c: &mut Ctx, id: Uuid, row_name: &str, actions:
         text_field(
             ui,
             p,
-            block_i18n::tr!("search-aurora-published-on"),
+            block_i18n::tr!("search-block-published-on"),
             &profiles::slt_date(info.creation_date),
         );
         text_field(ui, p, block_i18n::tr!("ui-profile-listing-cost"), &linden(info.price as i64));
         content_field(ui, p, content);
-        caps(ui, p, block_i18n::tr!("search-aurora-description"));
+        caps(ui, p, block_i18n::tr!("search-block-description"));
         text_box(ui, c, &info.desc, 60.0);
     });
     match (clicked, global) {
@@ -469,7 +469,7 @@ fn event(ui: &mut egui::Ui, c: &mut Ctx, id: u32, row_name: &str, row: Option<&R
             .enabled(global.is_some()),
         Btn::new("map", block_i18n::tr!("common-map")).enabled(global.is_some()),
         // onBtnEventReminder: LLEventNotifier is not ported
-        Btn::new("bell-filled", block_i18n::tr!("search-aurora-remind")).not_yet(),
+        Btn::new("bell-filled", block_i18n::tr!("search-block-remind")).not_yet(),
     ];
     let start = info
         .map(|e| e.date_utc as i64)
@@ -478,7 +478,7 @@ fn event(ui: &mut egui::Ui, c: &mut Ctx, id: u32, row_name: &str, row: Option<&R
             Some(Value::Dated { unix, .. }) => Some(*unix as i64),
             _ => None,
         });
-    let clicked = pane(ui, p, ("aurora-search-event", Key::Event(id)), &buttons, |ui| {
+    let clicked = pane(ui, p, ("block-search-event", Key::Event(id)), &buttons, |ui| {
         ui.spacing_mut().item_spacing.y = 5.0;
         if let Some(t) = start {
             date_banner(ui, p, t, info.map(|e| search::event_duration(e.duration)));
@@ -516,7 +516,7 @@ fn event(ui: &mut egui::Ui, c: &mut Ctx, id: u32, row_name: &str, row: Option<&R
         };
         text_field(ui, p, block_i18n::tr!("search-event-fee"), &fee);
         content_field(ui, p, content);
-        caps(ui, p, block_i18n::tr!("search-aurora-description"));
+        caps(ui, p, block_i18n::tr!("search-block-description"));
         text_box(ui, c, &e.desc, 60.0);
     });
     match (clicked, global) {
@@ -552,7 +552,7 @@ fn date_banner(ui: &mut egui::Ui, p: &Palette, start: i64, duration: Option<Stri
                     ui.spacing_mut().item_spacing.y = 2.0;
                     ui.add_space(3.0);
                     ui.label(RichText::new(format!("{hour:02}:{minute:02}")).size(15.0).strong().color(p.ink));
-                    let mut sub = block_i18n::tr!("search-aurora-slt").to_owned();
+                    let mut sub = block_i18n::tr!("search-block-slt").to_owned();
                     if let Some(d) = duration {
                         sub = format!("{sub} · {d}");
                     }

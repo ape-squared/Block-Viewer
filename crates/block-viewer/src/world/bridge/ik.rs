@@ -1,7 +1,9 @@
 //! Provisioning and authenticated owner-chat ingress for the separate IK relay.
 use super::*;
 
-pub(super) const NAME: &str = "#Aurora Bridge IK";
+pub(super) const NAME: &str = "#Block Bridge IK";
+#[allow(dead_code)] // matched when renaming leftover inventory scripts
+pub(super) const OLD_NAMES: &[&str] = &["#Aurora Bridge IK"];
 pub(super) const SOURCE: &str = include_str!("ik.lsl");
 
 #[derive(Default)]

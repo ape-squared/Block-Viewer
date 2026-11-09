@@ -6,8 +6,11 @@ use block_net::inventory::InvItem;
 use std::collections::{HashSet, VecDeque};
 use uuid::Uuid;
 
-pub const AURORA: &str = "#Aurora";
-pub const LIBRARY: &str = "Aurora Library";
+pub const AURORA: &str = "#Block";
+/// Former brand folder name, still recognised in existing inventories.
+pub const OLD_AURORA: &str = "#Aurora";
+pub const LIBRARY: &str = "Block Library";
+pub const OLD_LIBRARY: &str = "Aurora Library";
 pub const LEGACY_TEXTURES: &str = "Textures Library";
 pub const OBJECTS_LIBRARY: &str = "Objects Library";
 pub const DEFAULT_FOLDERS: [&str; 8] = [
@@ -105,7 +108,8 @@ pub fn child(inv: &Inventory, parent: Uuid, name: &str) -> Option<Uuid> {
         .min()
 }
 pub fn root(inv: &Inventory) -> Option<Uuid> {
-    child(inv, child(inv, inv.root, AURORA)?, LIBRARY)
+    let brand = child(inv, inv.root, AURORA).or_else(|| child(inv, inv.root, OLD_AURORA))?;
+    child(inv, brand, LIBRARY).or_else(|| child(inv, brand, OLD_LIBRARY))
 }
 /// Follow actual parent IDs; folder names inside the library have no type meaning.
 pub fn contains(inv: &Inventory, item: Uuid) -> bool {
@@ -424,7 +428,7 @@ mod tests {
         );
         assert!(catalogue.entries[0].matches("marble", Some(source)));
         assert!(catalogue.entries[0].matches("nested", Some(nested)));
-        assert_eq!(catalogue.entries[0].path, "Aurora Library / Stone / Nested");
+        assert_eq!(catalogue.entries[0].path, "Block Library / Stone / Nested");
     }
     #[test]
     fn library_objects_use_thumbnails_and_distinct_single_and_group_fallbacks() {

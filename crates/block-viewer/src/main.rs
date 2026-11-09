@@ -11,6 +11,8 @@ mod atomic_file;
 mod autopilot;
 mod autoreplace;
 mod blender_live;
+mod block_env;
+mod lovense;
 // Bug report form, disabled for now: "Report a bug" (login screen, top bar,
 // crash window) opens GitHub's issue chooser in the browser instead
 // (`links::NEW_ISSUE`). Its code stays in the tree, out of the build
@@ -18,7 +20,6 @@ mod blender_live;
 // `crash/report.rs`): to bring it back, uncomment every line marked "Bug
 // report form (disabled, see main.rs)".
 // mod bug_report;
-mod block_env;
 mod build;
 mod cache;
 mod cache_key;
@@ -36,6 +37,7 @@ mod demo;
 mod dev_toolbox;
 mod discord_presence;
 mod disk_io;
+mod display_sleep;
 mod dof;
 mod external_url;
 mod fast_hash;
@@ -75,7 +77,6 @@ mod machine_id;
 mod medal_tv;
 mod media;
 mod movement;
-mod natural_order;
 mod net_adapters;
 mod net_profile;
 mod open_path;
@@ -281,7 +282,7 @@ fn run_viewer() -> anyhow::Result<()> {
     set_raised(PriorityMode::from_env() != PriorityMode::Normal);
     let _ = rayon::ThreadPoolBuilder::new()
         .num_threads(threads.saturating_sub(1).max(2))
-        .thread_name(|i| format!("aurora-worker-{i}"))
+        .thread_name(|i| format!("block-worker-{i}"))
         .build_global();
 
     let mut event_loop = winit::event_loop::EventLoop::builder();
@@ -295,21 +296,21 @@ fn run_viewer() -> anyhow::Result<()> {
     // private browser profiles a crash left behind (search web tab)
     let private_profiles = settings::cache_dir().join(media::private_profile::ROOT);
     let _ = std::thread::Builder::new()
-        .name("aurora-web-profile".into())
+        .name("block-web-profile".into())
         .spawn(move || media::private_profile::sweep(&private_profiles));
     // the browser profiles of the earlier runs: set aside before the first
     // browser starts, deleted in the background (cef_cache.rs)
     let browser_cache = media::browser_cache(&settings::cache_dir());
     media::cef_cache::set_aside(&browser_cache);
     let _ = std::thread::Builder::new()
-        .name("aurora-web-cache".into())
+        .name("block-web-cache".into())
         .spawn(move || media::cef_cache::purge(&browser_cache));
     // the browser profiles of the earlier builds, kept in the wrong folder
     #[cfg(unix)]
     {
         let cache = settings::cache_dir();
         let _ = std::thread::Builder::new()
-            .name("aurora-web-misplaced".into())
+            .name("block-web-misplaced".into())
             .spawn(move || media::remove_misplaced_cache(&cache));
     }
     let mut app = app::App::new()?;

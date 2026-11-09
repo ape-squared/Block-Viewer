@@ -317,7 +317,7 @@ mod tests {
 
     #[test]
     fn roundtrip_and_crc_check() {
-        let dir = std::env::temp_dir().join(format!("aurora-objc-{}", Uuid::new_v4()));
+        let dir = std::env::temp_dir().join(format!("block-objc-{}", Uuid::new_v4()));
         let region = Uuid::new_v4();
         let mut c = RegionObjectCache::load(&dir, region);
         assert!(c.is_empty());
@@ -354,7 +354,7 @@ mod tests {
 
     #[test]
     fn a_snapshot_holds_what_the_cache_held_when_it_was_taken() {
-        let dir = std::env::temp_dir().join(format!("aurora-objc-{}", Uuid::new_v4()));
+        let dir = std::env::temp_dir().join(format!("block-objc-{}", Uuid::new_v4()));
         let region = Uuid::new_v4();
         let mut c = RegionObjectCache::empty(&dir, region);
         assert!(c.snapshot().is_none(), "an untouched cache is not written");
@@ -378,7 +378,7 @@ mod tests {
     #[test]
     fn a_snapshot_that_could_not_be_written_is_taken_again() {
         // the folder of the cache is a file: nothing can be written in it
-        let blocker = std::env::temp_dir().join(format!("aurora-objc-{}", Uuid::new_v4()));
+        let blocker = std::env::temp_dir().join(format!("block-objc-{}", Uuid::new_v4()));
         std::fs::write(&blocker, b"").expect("file");
         let mut c = RegionObjectCache::empty(&blocker, Uuid::new_v4());
         c.put(1, 10, 0, &[1]);
@@ -391,7 +391,7 @@ mod tests {
 
     #[test]
     fn concurrent_snapshots_publish_complete_files() {
-        let dir = std::env::temp_dir().join(format!("aurora-objc-{}", Uuid::new_v4()));
+        let dir = std::env::temp_dir().join(format!("block-objc-{}", Uuid::new_v4()));
         let region = Uuid::new_v4();
         let barrier = Arc::new(std::sync::Barrier::new(2));
         let writers: Vec<_> = [1_u8, 2]

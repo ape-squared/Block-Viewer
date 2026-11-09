@@ -34,7 +34,7 @@ const JITTER_WINDOW_SECS: f64 = 5.0;
 /// (`NetClient::set_viewer_stats`).
 #[derive(Debug, Clone, Default, PartialEq)]
 pub struct ViewerSide {
-    /// LLVersionInfo::getChannelAndVersion: "Aurora Viewer 0.7.5.0".
+    /// LLVersionInfo::getChannelAndVersion: "Block Viewer 0.7.5.0".
     pub version: String,
     /// The interface language (LLUI::getLanguage).
     pub language: String,
@@ -268,7 +268,7 @@ impl NetCounters {
             bytes_out: l(&stats.bytes_out),
             packets_out: l(&stats.packets_out),
             send_failures: l(&stats.send_errors),
-            dropped: l(&stats.packets_lost),
+            dropped: l(&stats.seq_gaps).saturating_sub(l(&stats.seq_late)),
             resent: l(&stats.resent),
             failed_resends: l(&stats.dropped_reliable),
             off_circuit: l(&stats.off_circuit),

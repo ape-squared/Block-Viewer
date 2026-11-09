@@ -225,7 +225,7 @@ fn blender_live_removal_runs_only_where_aurora_is_installed_and_keeps_backups() 
             return Err("timed out".into());
         }
         Ok(Report {
-            removed: vec![PathBuf::from(path).join("block_live_mesh")],
+            removed: vec![PathBuf::from(path).join("aurora_live_mesh")],
             ..Default::default()
         })
     });
@@ -234,7 +234,7 @@ fn blender_live_removal_runs_only_where_aurora_is_installed_and_keeps_backups() 
         ["installed", "disabled", "enabled-only", "failing"].map(PathBuf::from),
         "never a Blender without Aurora's add-on, nor one whose profile could not be read"
     );
-    assert_eq!(removals[0].removed, [PathBuf::from("installed/block_live_mesh")]);
+    assert_eq!(removals[0].removed, [PathBuf::from("installed/aurora_live_mesh")]);
     assert_eq!(removals[0].backups.as_deref(), Some(with_backups.join("aurora-backups").as_path()));
     assert!(removals[1..].iter().all(|r| r.backups.is_none()));
     assert_eq!(removals[3].error.as_deref(), Some("timed out"));

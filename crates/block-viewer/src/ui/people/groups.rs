@@ -58,29 +58,34 @@ fn list(ui: &mut egui::Ui, c: &mut Ctx, _data: &super::RadarData, st: &mut Peopl
     ui.add_space(6.0);
     count_line(ui, c);
     ui.add_space(5.0);
-    let sorted = c.world.groups.sorted();
-    let plan = crate::world::groups::plan_group_list(&sorted, &st.filter, |g| &g.name);
+    let filter = st.filter.trim().to_lowercase();
+    let groups: Vec<GroupMembership> = c
+        .world
+        .groups
+        .sorted()
+        .into_iter()
+        .filter(|g| filter.is_empty() || g.name.to_lowercase().contains(&filter))
+        .collect();
     egui::ScrollArea::vertical()
         .id_salt("people-groups-rows")
         .auto_shrink([false, false])
         .show(ui, |ui| {
             ui.spacing_mut().item_spacing.y = RICH_GAP;
-            if sorted.is_empty() {
+            if c.world.groups.groups.is_empty() {
                 rows::empty(ui, p, block_i18n::tr!("ui-contacts-looking-for-a-group-to-join-try-search"));
                 return;
             }
-            // "None (no group tag)" on top, kept while filtering (#2788)
-            if plan.show_none {
+            // "none" on top when not filtering (LLGroupList::refresh)
+            if filter.is_empty() {
                 none_row(ui, c);
-            }
-            if let Some(query) = &plan.no_match {
+            } else if groups.is_empty() {
                 rows::empty(
                     ui,
                     p,
-                    &block_i18n::tr!("ui-contacts-no-group-containing-was-found", value0 = query.clone()),
+                    &block_i18n::tr!("ui-contacts-no-group-containing-was-found", value0 = st.filter.trim().to_string()),
                 );
             }
-            for &g in &plan.items {
+            for g in &groups {
                 row(ui, c, st, g);
             }
         });
@@ -127,8 +132,7 @@ fn none_row(ui: &mut egui::Ui, c: &mut Ctx) {
     ui.set_opacity(opacity * 0.8);
     rows::face(ui, p, rect, false, hot);
     let left = rows::tile(ui, p, rect, None, "ban", "", p.raised);
-    let (tag_ink, tag_fill) = widgets::active_tag_colors(p);
-    let tag = active.then(|| (block_i18n::tr!("people-groups-active-tag"), tag_ink, tag_fill));
+    let tag = active.then(|| (block_i18n::tr!("people-groups-active-tag"), p.teal, p.teal.gamma_multiply(0.14)));
     rows::names(
         ui,
         p,
@@ -146,7 +150,7 @@ fn none_row(ui: &mut egui::Ui, c: &mut Ctx) {
         context::request(ui.ctx(), CtxAction::ActivateGroup(Uuid::nil()));
     }
     menu::context_menu(&resp, p, |ui| {
-        if menu::item_if(ui, p, "circle-check-filled", block_i18n::tr!("common-activate"), !active) {
+        if menu::item_if(ui, p, "circle-check-filled", block_i18n::tr!("common-enable"), !active) {
             context::request(ui.ctx(), CtxAction::ActivateGroup(Uuid::nil()));
         }
     });
@@ -243,8 +247,7 @@ fn row(ui: &mut egui::Ui, c: &mut Ctx, st: &mut PeopleUi, g: &GroupMembership) {
         rows::paint_more(ui, p, cell, n);
     }
     let active = world.groups.active == g.id;
-    let (tag_ink, tag_fill) = widgets::active_tag_colors(p);
-    let tag = active.then(|| (block_i18n::tr!("people-groups-active-tag"), tag_ink, tag_fill));
+    let tag = active.then(|| (block_i18n::tr!("people-groups-active-tag"), p.teal, p.teal.gamma_multiply(0.14)));
     let color = if g.list_in_profile { p.ink } else { p.ink.gamma_multiply(0.85) };
     rows::names(ui, p, rect, left, end.names_right, &g.name, color, &second_line(c, g), None, tag);
     if resp.clicked() {
@@ -442,7 +445,7 @@ fn buttons(ui: &mut egui::Ui, c: &mut Ctx, g: &GroupMembership) {
         {
             c.actions.push(PeopleAction::GroupChat(g.id));
         }
-        let call = block_i18n::tr!("ui-profile-aurora-call");
+        let call = block_i18n::tr!("ui-profile-block-call");
         if widgets::action_button_if(
             ui,
             p,

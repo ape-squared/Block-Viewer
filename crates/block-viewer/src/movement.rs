@@ -47,9 +47,9 @@ impl Style {
     pub const ALL: [Self; 3] = [Self::Breaststroke, Self::Backstroke, Self::Crawl];
     pub fn name(self) -> &'static str {
         match self {
-            Self::Breaststroke => "Aurora Swim Breaststroke",
-            Self::Backstroke => "Aurora Swim Backstroke",
-            Self::Crawl => "Aurora Swim Crawl",
+            Self::Breaststroke => "Block Swim Breaststroke",
+            Self::Backstroke => "Block Swim Backstroke",
+            Self::Crawl => "Block Swim Crawl",
         }
     }
 }

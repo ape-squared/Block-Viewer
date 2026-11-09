@@ -9,7 +9,7 @@ $id = 'FEDCBA9876543210FEDCBA98765432101'
 function New-Report([string]$Crash, [string[]]$Stack, [string]$Extra = '') {
     @"
 $CrashMarker
-Sent from the crash window of Aurora Viewer.
+Sent from the crash window of Block Viewer.
 
 | Field | Value |
 |---|---|
@@ -40,8 +40,8 @@ kernelbase id=0123456789ABCDEF0123456789ABCDEF1 code=6712ABCD3f0000
 $sym = @'
 MODULE windows x86_64 FEDCBA9876543210FEDCBA98765432101 block_viewer.pdb
 INFO CODE_ID 6700000Ac5e0000 block-viewer.exe
-FILE 0 D:\a\Aurora-Viewer\Aurora-Viewer\crates\block-render\src\draw.rs
-FILE 1 D:\a\Aurora-Viewer\Aurora-Viewer\crates\block-render\src\cull.rs
+FILE 0 D:\a\Block-Viewer\Block-Viewer\crates\block-render\src\draw.rs
+FILE 1 D:\a\Block-Viewer\Block-Viewer\crates\block-render\src\cull.rs
 FILE 2 /rustc/0123abcd/library\std\src\panicking.rs
 FILE 3 C:\Users\runneradmin\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\wgpu-core-27.0.3\src\lib.rs
 INLINE_ORIGIN 0 block_render::cull<block_render::Mesh>
@@ -59,7 +59,7 @@ FUNC 4000 10 0 wgpu_core::submit
 PUBLIC 5000 0 __scrt_common_main_seh
 PUBLIC 4ff0 0 earlier_public
 '@
-$work = Join-Path ([IO.Path]::GetTempPath()) "aurora-triage-test-$([Guid]::NewGuid().ToString('N'))"
+$work = Join-Path ([IO.Path]::GetTempPath()) "block-triage-test-$([Guid]::NewGuid().ToString('N'))"
 New-Item -ItemType Directory $work | Out-Null
 try {
     $symFile = Join-Path $work 'block_viewer.sym'
@@ -79,7 +79,7 @@ try {
     Assert-Triage ($null -eq (Get-ReleaseTag '0.7.3+13.gabcdef')) 'A development build has no release.'
 
     foreach ($case in @(
-            @('D:\a\Aurora-Viewer\Aurora-Viewer\crates\block-net\src\udp.rs', 'crates/block-net/src/udp.rs'),
+            @('D:\a\Block-Viewer\Block-Viewer\crates\block-net\src\udp.rs', 'crates/block-net/src/udp.rs'),
             @('C:\Users\runneradmin\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\wgpu-core-27.0.3\src\lib.rs', 'wgpu-core-27.0.3/src/lib.rs'),
             @('/rustc/0123abcd/library\core\src\option.rs', 'library/core/src/option.rs'),
             @('D:\a\_work\1\s\src\vctools\crt\vcstartup\src\startup\exe_common.inl', 'exe_common.inl'))) {
@@ -142,7 +142,7 @@ try {
     Assert-Triage ($null -eq (Get-TriageTitle $r $bareSig)) 'Without symbols the title stays as the viewer wrote it.'
 
     # The section: added once, replaced on a new run, the report kept.
-    $section = Format-TriageSection $frames 'Aurora-Viewer-v0.8.0-windows-x64-symbols.zip' $sig
+    $section = Format-TriageSection $frames 'Block-Viewer-v0.8.0-windows-x64-symbols.zip' $sig
     $body = Merge-TriageSection $native $section
     Assert-Triage ($body.StartsWith($native.TrimEnd()) -and $body.Contains("<!-- crash-signature: $($sig.Id) -->")) 'The section must follow the report.'
     $again = Merge-TriageSection $body (Format-TriageSection $bare $null $bareSig)

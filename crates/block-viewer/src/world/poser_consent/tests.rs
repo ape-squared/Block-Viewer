@@ -76,7 +76,9 @@ fn incoming_privacy_defaults_to_friends_and_acceptance_is_never_implicit() {
     let id = Uuid::new_v4();
     assert_eq!(state.preferences.policy, Policy::Friends);
     state.receive(&world, &wire(id, PoseKind::Request, peer), now);
-    assert!(state.incoming.is_empty());
+    assert_eq!(state.incoming.len(), 1, "Ask opens a prompt even when they are not friends");
+    assert!(state.granted_to.is_empty());
+    state.incoming.clear();
     state.preferences.policy = Policy::Everyone;
     state.receive(&world, &wire(id, PoseKind::Request, peer), now);
     assert_eq!(state.incoming.len(), 1);
@@ -95,6 +97,9 @@ fn incoming_privacy_defaults_to_friends_and_acceptance_is_never_implicit() {
     state.receive(&world, &wire(Uuid::new_v4(), PoseKind::Request, peer), now + COOLDOWN);
     assert!(state.incoming.is_empty());
     state.preferences.policy = Policy::Nobody;
+    state.receive(&world, &wire(Uuid::new_v4(), PoseKind::Request, peer), now);
+    assert!(state.incoming.is_empty(), "Nobody refuses without a prompt");
+    assert!(state.out.iter().any(|(_, kind, _)| *kind == PoseKind::Refuse));
     assert!(state.commands(None).is_empty());
     world.main_region = Some(2);
     state.sync(&world, now);

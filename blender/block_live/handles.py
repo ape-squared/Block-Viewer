@@ -86,7 +86,7 @@ def apply(rig, replace=False):
     from . import rigging
     if rig.type != "ARMATURE" or rig.library or rig.data.library or rig.mode == "EDIT" or not rigging.ready(rig):
         return
-    factor = getattr(rig, "block_live_ik_handle_size", 1)
+    factor = getattr(rig, "aurora_live_ik_handle_size", 1)
     for key in rigging.LIMBS:
         names = rigging.chain(rig, key)
         root, middle, end = (rig.data.bones[name] for name in names)
@@ -130,7 +130,7 @@ def apply(rig, replace=False):
                 bone.color.palette = "CUSTOM"
                 colors = bone.color.custom
             else:
-                label = "Aurora IK " + ("Left" if side == "L" else "Right")
+                label = "Block Viewer IK " + ("Left" if side == "L" else "Right")
                 group = rig.pose.bone_groups.get(label) or rig.pose.bone_groups.new(name=label)
                 group.color_set = "CUSTOM"
                 bone.bone_group = group

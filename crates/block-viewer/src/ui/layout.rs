@@ -154,7 +154,7 @@ impl Autosave {
         if self.mark(released || resized, now) {
             let (generation, mem) = snapshot(ctx);
             let spawned = std::thread::Builder::new()
-                .name("aurora-layout-save".into())
+                .name("block-layout-save".into())
                 .spawn(move || write(generation, &mem));
             if let Err(e) = spawned {
                 log::warn!("ui layout not saved: {e}");
@@ -1194,14 +1194,14 @@ mod tests {
         restore(&ctx, &saved).expect("restore");
         crate::theme::Theme::default().apply(&ctx, 1.4);
         crate::ui::fonts::apply(&ctx, crate::ui::fonts::DEFAULT);
-        assert_eq!(first_font(&ctx), "aurora-main");
+        assert_eq!(first_font(&ctx), "block-main");
         assert_eq!(crate::ui::fonts::scale(&ctx), 1.4);
-        ctx.fonts(|fonts| assert_eq!(fonts.definitions().font_data["aurora-main"].tweak.scale, 1.4));
+        ctx.fonts(|fonts| assert_eq!(fonts.definitions().font_data["block-main"].tweak.scale, 1.4));
 
         let ctx = egui::Context::default();
         crate::ui::fonts::apply(&ctx, crate::ui::fonts::DEFAULT);
         super::restore(&ctx, &saved).expect("restore");
-        assert_ne!(first_font(&ctx), "aurora-main", "egui keeps pending fonts now: the order is free");
+        assert_ne!(first_font(&ctx), "block-main", "egui keeps pending fonts now: the order is free");
     }
 
     const ALL: Edges = Edges {

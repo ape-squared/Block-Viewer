@@ -1,16 +1,7 @@
-//! The Aurora profile window (mock-up A of the profiles, asked for by the
-//! human on 2026-10-14, its head redrawn for #1089): a banner drawn from the
-//! profile picture, as tall as what it holds (`widgets::hero`), with the
-//! picture and its status dot, who it is (names, birth date and age,
-//! badges) and what to do (conversation, call, teleport, pay, block, more)
-//! centred on one line, the tabs along its bottom; then the Profile tab in
-//! cards, a friend's rights on the Info card. Under `COMPACT_W` the header
-//! shrinks, the actions keep their icons and the tabs go into a drop-down
-//! list.
-//!
-//! The data, requests and actions are those of the classic window (`super`,
-//! Firestorm's LLFloaterProfile), which Preferences › Aurora › Profiles
-//! brings back: only the drawing differs. The other tabs are in `tabs`.
+//! Block profile window: banner from the profile picture, who it is, actions
+//! and tabs — Legacy Viewer data (LLFloaterProfile) with a flatter Block look
+//! (neutral banner, squared photo, less violet chrome). Preferences › Block ›
+//! Profiles can switch back to the classic tabbed window. Other tabs: `tabs`.
 
 mod tabs;
 
@@ -118,14 +109,14 @@ pub(super) fn window(ctx: &egui::Context, env: &mut Env, w: &mut Window, index: 
     let world = env.world;
     let own = w.id == world.agent_id;
     let title = if own {
-        block_i18n::tr!("ui-profile-aurora-my-profile").to_owned()
+        block_i18n::tr!("ui-profile-block-my-profile").to_owned()
     } else {
         display_name(world, &w.id)
     };
     let screen = ctx.content_rect();
     let pos = screen.center() - DEFAULT_SIZE * 0.5 + Vec2::splat(24.0 * (index % 6) as f32);
     let win_id = window_id(w.id);
-    let mut floater = Floater::new(&win_id, title.clone(), pos, DEFAULT_SIZE).help(block_i18n::tr!("ui-profile-aurora-help"));
+    let mut floater = Floater::new(&win_id, title.clone(), pos, DEFAULT_SIZE).help(block_i18n::tr!("ui-profile-block-help"));
     floater.min_size = MIN_SIZE;
     let mut open = true;
     if floater.show(ctx, env.p, &mut open, |ui| body(ui, env, w)).is_some() && !own {
@@ -292,6 +283,7 @@ enum Act {
     Call,
     AddFriend,
     OfferTeleport,
+    RequestTeleport,
     Pay,
     Block,
     More,
@@ -307,8 +299,8 @@ fn header_acts(own: bool, editing: bool, friend: bool, compact: bool) -> Vec<Act
     match (own, editing) {
         (true, true) => vec![ViewAsOthers, Done],
         (true, false) => vec![Edit],
-        _ if compact && !friend => vec![Conversation, AddFriend, OfferTeleport, Pay, Block, More],
-        _ => vec![Conversation, Call, OfferTeleport, Pay, Block, More],
+        _ if compact && !friend => vec![Conversation, AddFriend, OfferTeleport, RequestTeleport, Pay, Block, More],
+        _ => vec![Conversation, Call, OfferTeleport, RequestTeleport, Pay, Block, More],
     }
 }
 
@@ -341,19 +333,19 @@ fn tabs_of() -> Vec<usize> {
 fn unsaved_parts(w: &Window) -> Vec<String> {
     let mut parts = Vec::new();
     if w.about.dirty() {
-        parts.push(block_i18n::tr!("ui-profile-aurora-part-bio").to_owned());
+        parts.push(block_i18n::tr!("ui-profile-block-part-bio").to_owned());
     }
     if w.fl_about.dirty() {
-        parts.push(block_i18n::tr!("ui-profile-aurora-part-first-life").to_owned());
+        parts.push(block_i18n::tr!("ui-profile-block-part-first-life").to_owned());
     }
     if w.notes.dirty() {
-        parts.push(block_i18n::tr!("ui-profile-aurora-part-notes").to_owned());
+        parts.push(block_i18n::tr!("ui-profile-block-part-notes").to_owned());
     }
     if w.pick_edit.as_ref().is_some_and(|(e, base)| e != base) {
-        parts.push(block_i18n::tr!("ui-profile-aurora-part-places", count = 1));
+        parts.push(block_i18n::tr!("ui-profile-block-part-places", count = 1));
     }
     if w.classified_edit.as_ref().is_some_and(|(e, base)| e != base) {
-        parts.push(block_i18n::tr!("ui-profile-aurora-part-classified").to_owned());
+        parts.push(block_i18n::tr!("ui-profile-block-part-classified").to_owned());
     }
     parts
 }
@@ -494,7 +486,7 @@ fn header(ui: &mut egui::Ui, env: &mut Env, w: &mut Window, f: &Facts) {
             p,
             banner,
             "info-circle-filled",
-            block_i18n::tr!("ui-profile-aurora-banner-follows"),
+            block_i18n::tr!("ui-profile-block-banner-follows"),
         );
     }
     let photo_rect = Rect::from_center_size(pos2(full.left() + 22.0 + PHOTO / 2.0, line.center().y), Vec2::splat(PHOTO));
@@ -614,7 +606,7 @@ fn photo(ui: &mut egui::Ui, env: &mut Env, w: &mut Window, rect: Rect, ring: f32
     let status = status_of(world, &id, own, profile, friend);
     paint_photo(ui, p, rect, ring, pic, &display_name(world, &id), status, w.editing);
     let resp = ui.interact(rect, ui.scope_id().with(("profile-photo", id)), Sense::click());
-    if pic.is_some() && !w.editing && resp.on_hover_text(block_i18n::tr!("ui-profile-aurora-big-photo")).clicked() {
+    if pic.is_some() && !w.editing && resp.on_hover_text(block_i18n::tr!("ui-profile-block-big-photo")).clicked() {
         w.open_photo(PictureSlot::SecondLife, profile.map_or(Uuid::nil(), |pr| pr.sl_image));
     }
     if w.editing {
@@ -745,9 +737,10 @@ fn paint_banner(ui: &egui::Ui, p: &Palette, rect: Rect, tex: Option<&egui::Textu
                 .paint_at(ui, rect);
         }
         None => {
+            // Flat navy/raised band — not the violet brand wash.
             ui.painter().rect_filled(rect, radius, p.navy);
             let mut m = egui::Mesh::default();
-            let (a, b) = (p.violet.gamma_multiply(0.55), p.indigo.gamma_multiply(0.45));
+            let (a, b) = (p.raised.gamma_multiply(0.55), p.navy.gamma_multiply(0.9));
             for (pos, c) in [
                 (rect.left_top(), a),
                 (rect.right_top(), b),
@@ -791,8 +784,7 @@ fn banner_chip(ui: &egui::Ui, p: &Palette, banner: Rect, icon: &str, text: &str)
     widgets::paint_ink_left(ui.painter(), galley, pos2(rect.left() + 24.0, rect.center().y), ink);
 }
 
-/// The round picture in its ring, with the status dot at its bottom right
-/// (round like the plates' and the conversations', docs/BRANDING.md).
+/// Squared profile photo (theme corner radius) with status at the bottom right.
 #[allow(clippy::too_many_arguments)]
 fn paint_photo(
     ui: &egui::Ui,
@@ -805,13 +797,25 @@ fn paint_photo(
     editing: bool,
 ) {
     let painter = ui.painter();
-    let r = rect.width() / 2.0;
-    painter.circle_filled(rect.center(), r, p.panel);
-    widgets::avatar_disc(ui, p, rect.shrink(ring), pic, name, false);
-    if editing {
-        painter.circle_stroke(rect.center(), r + 1.0, egui::Stroke::new(2.0, p.violet_light));
+    let radius = ui.visuals().window_corner_radius;
+    painter.rect_filled(rect, radius, p.panel);
+    let inner = rect.shrink(ring);
+    if let Some(tex) = pic {
+        egui::Image::from_texture(egui::load::SizedTexture::new(tex.id(), inner.size()))
+            .corner_radius(radius)
+            .paint_at(ui, inner);
+    } else {
+        widgets::avatar_disc(ui, p, inner, None, name, false);
     }
-    // the dot: 24 px with its ring in the large header, 16 in the compact one
+    painter.rect_stroke(
+        rect,
+        radius,
+        egui::Stroke::new(1.0, if editing { p.ink } else { p.raised }),
+        egui::StrokeKind::Inside,
+    );
+    if editing {
+        painter.rect_stroke(rect.expand(1.0), radius, egui::Stroke::new(2.0, p.ink), egui::StrokeKind::Outside);
+    }
     let dot = if rect.width() > 80.0 { 12.0 } else { 8.0 };
     let inset = if rect.width() > 80.0 { 4.0 } else { 0.0 };
     let c = rect.right_bottom() - Vec2::splat(inset + dot);
@@ -826,9 +830,9 @@ fn camera_button(ui: &mut egui::Ui, env: &mut Env, photo: Rect, profile: Option<
     let c = photo.min + Vec2::new(99.0, 101.0) * (photo.width() / 116.0);
     let rect = Rect::from_center_size(c, Vec2::splat(34.0));
     let resp = ui.interact(rect, ui.scope_id().with("profile-camera"), Sense::click());
-    let fill = if resp.hovered() { p.violet_light } else { p.violet };
+    let fill = if resp.hovered() { p.ink } else { p.raised };
     ui.painter().circle_filled(c, 17.0, fill);
-    paint_icon(ui, "camera-filled", c, 17.0, p.on_accent);
+    paint_icon(ui, "camera-filled", c, 17.0, if resp.hovered() { p.on_accent } else { p.ink });
     let resp = resp.on_hover_text(block_i18n::tr!("ui-profile-change-picture"));
     let image = profile.map(|pr| pr.sl_image).unwrap_or_default();
     let mut choose = false;
@@ -838,16 +842,16 @@ fn camera_button(ui: &mut egui::Ui, env: &mut Env, photo: Rect, profile: Option<
             ui,
             p,
             "file-upload-filled",
-            block_i18n::tr!("ui-profile-aurora-upload-image"),
+            block_i18n::tr!("ui-profile-block-upload-image"),
             false,
             block_i18n::tr!("ui-profile-coming-soon"),
         );
-        choose = menu::item(ui, p, "photo-filled", block_i18n::tr!("ui-profile-aurora-choose-from-inventory"));
+        choose = menu::item(ui, p, "photo-filled", block_i18n::tr!("ui-profile-block-choose-from-inventory"));
         remove = menu::item_if(
             ui,
             p,
             "trash-filled",
-            block_i18n::tr!("ui-profile-aurora-remove-photo"),
+            block_i18n::tr!("ui-profile-block-remove-photo"),
             !image.is_nil(),
         );
     });
@@ -881,7 +885,7 @@ fn act_button(ui: &mut egui::Ui, env: &mut Env, w: &mut Window, act: Act, f: &Fa
     let (icon, label, kind, enabled, tip): (&str, &str, ActionKind, bool, Option<&str>) = match act {
         Act::Conversation => (
             "message-circle-filled",
-            block_i18n::tr!("ui-profile-aurora-conversation"),
+            block_i18n::tr!("ui-profile-block-conversation"),
             ActionKind::Primary,
             true,
             None,
@@ -891,7 +895,7 @@ fn act_button(ui: &mut egui::Ui, env: &mut Env, w: &mut Window, act: Act, f: &Fa
             let voice = env.world.calls.voice_enabled;
             (
                 "phone-filled",
-                block_i18n::tr!("ui-profile-aurora-call"),
+                block_i18n::tr!("ui-profile-block-call"),
                 ActionKind::Flat,
                 voice,
                 (!voice).then(|| block_i18n::tr!("ui-call-voice-off")),
@@ -899,14 +903,21 @@ fn act_button(ui: &mut egui::Ui, env: &mut Env, w: &mut Window, act: Act, f: &Fa
         }
         Act::AddFriend => (
             "user-plus",
-            block_i18n::tr!("ui-profile-aurora-add-friend"),
+            block_i18n::tr!("ui-profile-block-add-friend"),
             ActionKind::Flat,
             true,
             None,
         ),
         Act::OfferTeleport => (
             "send-filled",
-            block_i18n::tr!("ui-profile-aurora-offer-tp"),
+            block_i18n::tr!("ui-profile-block-offer-tp"),
+            ActionKind::Flat,
+            true,
+            None,
+        ),
+        Act::RequestTeleport => (
+            "plane-arrival-filled",
+            block_i18n::tr!("ui-profile-block-request-tp"),
             ActionKind::Flat,
             true,
             None,
@@ -923,19 +934,19 @@ fn act_button(ui: &mut egui::Ui, env: &mut Env, w: &mut Window, act: Act, f: &Fa
         Act::More => ("dots-filled", block_i18n::tr!("ui-profile-more"), ActionKind::Flat, true, None),
         Act::Edit => (
             "pencil-filled",
-            block_i18n::tr!("ui-profile-aurora-edit"),
+            block_i18n::tr!("ui-profile-block-edit"),
             ActionKind::Primary,
             true,
             None,
         ),
         Act::ViewAsOthers => (
             "eye-filled",
-            block_i18n::tr!("ui-profile-aurora-view-as-others"),
+            block_i18n::tr!("ui-profile-block-view-as-others"),
             ActionKind::Flat,
             true,
             None,
         ),
-        Act::Done => ("check", block_i18n::tr!("ui-profile-aurora-done"), ActionKind::Primary, true, None),
+        Act::Done => ("check", block_i18n::tr!("ui-profile-block-done"), ActionKind::Primary, true, None),
     };
     // the block button and "…" are icons in the large header too
     let alone = look != Look::Labelled || matches!(act, Act::Block | Act::More);
@@ -969,6 +980,7 @@ fn act_button(ui: &mut egui::Ui, env: &mut Env, w: &mut Window, act: Act, f: &Fa
         Act::Conversation => env.actions.push(ProfileAction::Im(id)),
         Act::AddFriend => context::request(ui.ctx(), CtxAction::AddFriend(id)),
         Act::OfferTeleport => env.actions.push(ProfileAction::OfferTeleport(id)),
+        Act::RequestTeleport => context::request(ui.ctx(), CtxAction::RequestTeleport(id)),
         // LLAvatarActions::pay
         Act::Pay => context::request(ui.ctx(), CtxAction::PayResident(id)),
         Act::Block => env.actions.push(ProfileAction::ToggleBlock(id)),
@@ -1000,13 +1012,11 @@ fn more_menu(resp: &Response, env: &Env, w: &Window, f: &Facts, compact: bool) {
         }
         // no Share: it only brought the inventory forward, and an item
         // dropped anywhere on the window is given (`super::give_drop`)
-        if menu::item(ui, p, "plane-arrival-filled", block_i18n::tr!("ui-profile-aurora-request-tp")) {
-            act(CtxAction::RequestTeleport(id));
+        // Request TP is a header button; keep overflow for less common actions.
+        if compact && menu::item(ui, p, "users", block_i18n::tr!("ui-profile-block-view-in-people")) {
+            act(CtxAction::OpenPeople(people_tab(f), Some(id)));
         }
-        if compact && menu::item(ui, p, "users", block_i18n::tr!("ui-profile-aurora-view-in-people")) {
-            act(CtxAction::OpenPeople(people_tab(f)));
-        }
-        if f.friend && menu::item(ui, p, "user-minus", block_i18n::tr!("ui-profile-aurora-remove-friend")) {
+        if f.friend && menu::item(ui, p, "user-minus", block_i18n::tr!("ui-profile-block-remove-friend")) {
             act(CtxAction::RemoveFriend(id));
         }
         menu::separator(ui, p);
@@ -1022,7 +1032,7 @@ fn more_menu(resp: &Response, env: &Env, w: &Window, f: &Facts, compact: bool) {
         if menu::item_if(ui, p, "copy-filled", block_i18n::tr!("common-copy-name"), legacy.is_some()) {
             ui.ctx().copy_text(legacy.clone().unwrap_or_default());
         }
-        if menu::item(ui, p, "key-filled", block_i18n::tr!("ui-profile-aurora-copy-key")) {
+        if menu::item(ui, p, "key-filled", block_i18n::tr!("ui-profile-block-copy-key")) {
             ui.ctx().copy_text(id.to_string());
         }
         if menu::item(ui, p, "link-filled", block_i18n::tr!("ui-profile-copy-uri")) {
@@ -1037,7 +1047,7 @@ fn more_menu(resp: &Response, env: &Env, w: &Window, f: &Facts, compact: bool) {
             ui,
             p,
             "history",
-            block_i18n::tr!("ui-profile-aurora-history"),
+            block_i18n::tr!("ui-profile-block-history"),
             world.chat_log.dir().is_some(),
         ) {
             act(CtxAction::ShowHistory(Some(id)));
@@ -1045,8 +1055,7 @@ fn more_menu(resp: &Response, env: &Env, w: &Window, f: &Facts, compact: bool) {
     });
 }
 
-/// The People tab that has the resident: Friends, Blocked, else Nearby
-/// (the People window does not select them yet).
+/// The People tab that has the resident: Friends, Blocked, else Nearby.
 fn people_tab(f: &Facts) -> u8 {
     if f.friend {
         1
@@ -1075,7 +1084,7 @@ fn meta_line(ui: &mut egui::Ui, env: &Env, id: Uuid, own: bool, profile: Option<
                 })
                 .response;
             if let Some(full) = profiles::birth_text(pr, own, now()) {
-                r.on_hover_text(format!("{}\n{full}", block_i18n::tr!("ui-profile-aurora-birth-date")));
+                r.on_hover_text(format!("{}\n{full}", block_i18n::tr!("ui-profile-block-birth-date")));
             }
         }
         // our own status is the top bar's (the mock-up of our profile has none)
@@ -1154,8 +1163,8 @@ fn badge_widget(ui: &mut egui::Ui, env: &Env, id: Uuid, b: &Badge, is_friend: bo
             }
             pill(
                 ui,
-                Some(Lead::Icon("heart-filled")),
-                block_i18n::tr!("ui-profile-aurora-friend"),
+                Some(Lead::Icon("user-filled")),
+                block_i18n::tr!("ui-profile-block-friend"),
                 None,
                 p.success,
                 soft(p.success),
@@ -1164,9 +1173,9 @@ fn badge_widget(ui: &mut egui::Ui, env: &Env, id: Uuid, b: &Badge, is_friend: bo
         }
         Badge::Common(n) => {
             let text = if compact {
-                block_i18n::tr!("ui-profile-aurora-in-common-short", count = *n as i64)
+                block_i18n::tr!("ui-profile-block-in-common-short", count = *n as i64)
             } else {
-                block_i18n::tr!("ui-profile-aurora-groups-in-common", count = *n as i64)
+                block_i18n::tr!("ui-profile-block-groups-in-common", count = *n as i64)
             };
             pill(ui, Some(Lead::Icon("users-group")), &text, None, p.muted, p.bar, Sense::hover());
         }
@@ -1181,7 +1190,7 @@ fn badge_widget(ui: &mut egui::Ui, env: &Env, id: Uuid, b: &Badge, is_friend: bo
                 .map(|icon| Lead::Icon(crate::world::contact_sets::appearance::ICONS[icon.icon]))
                 .unwrap_or(Lead::Dot(*color));
             let ink = icon.map(|icon| crate::ui::colors::set_color(icon.color)).unwrap_or(p.muted);
-            pill(ui, Some(lead), name, None, ink, p.bar, Sense::hover()).on_hover_text(block_i18n::tr!("ui-profile-aurora-contact-set"));
+            pill(ui, Some(lead), name, None, ink, p.bar, Sense::hover()).on_hover_text(block_i18n::tr!("ui-profile-block-contact-set"));
         }
         Badge::Blocked => {
             pill(
@@ -1198,9 +1207,9 @@ fn badge_widget(ui: &mut egui::Ui, env: &Env, id: Uuid, b: &Badge, is_friend: bo
             let resp = pill(
                 ui,
                 None,
-                block_i18n::tr!("ui-profile-aurora-view-in-people"),
+                block_i18n::tr!("ui-profile-block-view-in-people"),
                 Some("chevron-right"),
-                p.violet_light,
+                p.ink,
                 Color32::TRANSPARENT,
                 Sense::click(),
             );
@@ -1210,7 +1219,7 @@ fn badge_widget(ui: &mut egui::Ui, env: &Env, id: Uuid, b: &Badge, is_friend: bo
                     blocked: env.world.is_avatar_blocked(&id),
                     ..Facts::default()
                 };
-                context::request(ui.ctx(), CtxAction::OpenPeople(people_tab(&facts)));
+                context::request(ui.ctx(), CtxAction::OpenPeople(people_tab(&facts), Some(id)));
             }
         }
     }
@@ -1251,7 +1260,7 @@ fn rights_line(ui: &mut egui::Ui, env: &mut Env, id: Uuid, f: &Friend) {
                 block_i18n::tr!("ui-profile-not-allowed")
             };
             right_icon(ui, p, icon, on, false).on_hover_text(block_i18n::tr!(
-                "ui-profile-aurora-received-tip",
+                "ui-profile-block-received-tip",
                 right = block_i18n::text(tip),
                 state = state
             ));
@@ -1272,25 +1281,24 @@ const GRANTS: [(i32, &str, &str); 3] = [
 
 /// The same rights, received.
 const RECEIVED: [(i32, &str, &str); 3] = [
-    (rights::ONLINE_STATUS, "eye-filled", "ui-profile-aurora-their-online"),
-    (rights::MAP_LOCATION, "map-pin-filled", "ui-profile-aurora-their-map"),
-    (rights::MODIFY_OBJECTS, "pencil-filled", "ui-profile-aurora-their-objects"),
+    (rights::ONLINE_STATUS, "eye-filled", "ui-profile-block-their-online"),
+    (rights::MAP_LOCATION, "map-pin-filled", "ui-profile-block-their-map"),
+    (rights::MODIFY_OBJECTS, "pencil-filled", "ui-profile-block-their-objects"),
 ];
 
-/// A right of the bar: lit in violet when granted by us, in turquoise when
-/// received.
+/// A right of the bar: lit when granted by us, teal when received.
 fn right_icon(ui: &mut egui::Ui, p: &Palette, icon: &str, on: bool, ours: bool) -> Response {
     let (rect, resp) = ui.allocate_exact_size(Vec2::splat(19.0), if ours { Sense::click() } else { Sense::hover() });
     let radius = widgets::inner_radius(ui.visuals());
     if ours && on {
-        ui.painter().rect_filled(rect, radius, p.violet.gamma_multiply(0.15));
+        ui.painter().rect_filled(rect, radius, p.ink.gamma_multiply(0.12));
     }
     if ours && resp.hovered() {
         ui.painter().rect_filled(rect, radius, p.raised.gamma_multiply(0.6));
         ui.ctx().set_cursor_icon(egui::CursorIcon::PointingHand);
     }
     let tint = match (on, ours) {
-        (true, true) => p.violet_light,
+        (true, true) => p.ink,
         (true, false) => p.teal,
         _ => p.muted_dim,
     };
@@ -1315,12 +1323,12 @@ fn tab_looks(env: &Env, w: &Window, own: bool) -> Vec<TabLook> {
         .into_iter()
         .map(|tab| {
             let (icon, label) = match tab {
-                TAB_PICKS => ("map-pin-filled", block_i18n::tr!("ui-profile-aurora-tab-picks")),
-                TAB_CLASSIFIEDS => ("speakerphone", block_i18n::tr!("ui-profile-aurora-tab-classifieds")),
-                TAB_RL => ("user-heart", block_i18n::tr!("ui-profile-aurora-tab-first-life")),
-                TAB_FEED => ("world-filled", block_i18n::tr!("ui-profile-aurora-tab-web")),
+                TAB_PICKS => ("map-pin-filled", block_i18n::tr!("ui-profile-block-tab-picks")),
+                TAB_CLASSIFIEDS => ("speakerphone", block_i18n::tr!("ui-profile-block-tab-classifieds")),
+                TAB_RL => ("user-heart", block_i18n::tr!("ui-profile-block-tab-first-life")),
+                TAB_FEED => ("world-filled", block_i18n::tr!("ui-profile-block-tab-web")),
                 TAB_NOTES => ("lock-filled", block_i18n::tr!("common-notes")),
-                _ => ("id-filled", block_i18n::tr!("ui-profile-aurora-tab-profile")),
+                _ => ("id-filled", block_i18n::tr!("ui-profile-block-tab-profile")),
             };
             let count = match tab {
                 TAB_PICKS => profile.map(|pr| {
@@ -1413,7 +1421,7 @@ fn tab_dropdown(ui: &mut egui::Ui, env: &Env, w: &mut Window, own: bool) {
     paint_icon(ui, current.icon, pos2(rect.left() + 17.0, rect.center().y), 14.0, p.ink);
     let galley = ui.painter().layout_no_wrap(current.label.to_owned(), semibold(ui, 12.5), p.ink);
     widgets::paint_ink_left(ui.painter(), galley, pos2(rect.left() + 30.0, rect.center().y), p.ink);
-    let sections = block_i18n::tr!("ui-profile-aurora-sections", count = looks.len() as i64);
+    let sections = block_i18n::tr!("ui-profile-block-sections", count = looks.len() as i64);
     let right = ui.painter().layout_no_wrap(sections, semibold(ui, 12.5), p.muted);
     let rw = right.size().x;
     paint_icon(ui, "caret-down-filled", pos2(rect.right() - 16.0, rect.center().y), 12.0, p.muted);
@@ -1488,7 +1496,7 @@ fn card(
                     if let Some(link) = link {
                         ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
                             ui.spacing_mut().item_spacing.x = 3.0;
-                            let color = if link.waiting.is_some() { p.muted_dim } else { p.violet_light };
+                            let color = if link.waiting.is_some() { p.muted_dim } else { p.ink };
                             let sense = if link.waiting.is_some() { Sense::hover() } else { Sense::click() };
                             // right to left: a chevron after the text, a
                             // leading icon before it
@@ -1575,7 +1583,7 @@ fn profile_tab(ui: &mut egui::Ui, env: &mut Env, w: &mut Window, compact: bool) 
 fn about_card(ui: &mut egui::Ui, env: &mut Env, w: &mut Window, compact: bool) {
     let (p, world) = (env.p, env.world);
     let profile = world.profiles.get(&w.id);
-    let head = (!compact).then_some(("quote-filled", block_i18n::tr!("ui-profile-aurora-about")));
+    let head = (!compact).then_some(("quote-filled", block_i18n::tr!("ui-profile-block-about")));
     card(ui, p, head, None, false, |ui| {
         if profile.is_none() {
             loading(ui, p);
@@ -1587,7 +1595,7 @@ fn about_card(ui: &mut egui::Ui, env: &mut Env, w: &mut Window, compact: bool) {
         }
         if w.about.text.trim().is_empty() {
             ui.label(
-                RichText::new(block_i18n::tr!("ui-profile-aurora-no-about"))
+                RichText::new(block_i18n::tr!("ui-profile-block-no-about"))
                     .size(12.5)
                     .color(p.muted_dim),
             );
@@ -1603,8 +1611,8 @@ fn about_editor(ui: &mut egui::Ui, env: &mut Env, w: &mut Window) {
     let p = env.p;
     ui.horizontal(|ui| {
         let options = [
-            (block_i18n::tr!("ui-profile-aurora-write"), true),
-            (block_i18n::tr!("ui-profile-aurora-preview"), true),
+            (block_i18n::tr!("ui-profile-block-write"), true),
+            (block_i18n::tr!("ui-profile-block-preview"), true),
         ];
         let mut selected = usize::from(w.about_preview);
         if widgets::segmented(ui, p, &mut selected, &options) {
@@ -1612,7 +1620,7 @@ fn about_editor(ui: &mut egui::Ui, env: &mut Env, w: &mut Window) {
         }
         ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
             let count = block_i18n::tr!(
-                "ui-profile-aurora-char-count",
+                "ui-profile-block-char-count",
                 count = block_i18n::integer(w.about.text.chars().count() as i64),
                 max = block_i18n::integer(ABOUT_MAX as i64)
             );
@@ -1656,9 +1664,9 @@ fn info_card(ui: &mut egui::Ui, env: &mut Env, w: &Window, compact: bool) {
     let profile = world.profiles.get(&id);
     let head = (!compact).then(|| {
         if w.editing {
-            ("info-circle-filled", block_i18n::tr!("ui-profile-aurora-account"))
+            ("info-circle-filled", block_i18n::tr!("ui-profile-block-account"))
         } else {
-            ("info-circle-filled", block_i18n::tr!("ui-profile-aurora-infos"))
+            ("info-circle-filled", block_i18n::tr!("ui-profile-block-infos"))
         }
     });
     card(ui, p, head, None, false, |ui| {
@@ -1667,10 +1675,10 @@ fn info_card(ui: &mut egui::Ui, env: &mut Env, w: &Window, compact: bool) {
             return;
         };
         ui.spacing_mut().item_spacing.y = 7.0;
-        kv(ui, p, block_i18n::tr!("ui-profile-aurora-account"), |ui| {
+        kv(ui, p, block_i18n::tr!("ui-profile-block-account"), |ui| {
             ui.label(RichText::new(profiles::account_line(pr)).size(12.5).color(p.ink));
         });
-        kv(ui, p, block_i18n::tr!("ui-profile-aurora-partner"), |ui| {
+        kv(ui, p, block_i18n::tr!("ui-profile-block-partner"), |ui| {
             if pr.partner.is_nil() {
                 ui.label(RichText::new(block_i18n::tr!("common-none")).size(12.5).color(p.muted));
             } else {
@@ -1681,16 +1689,16 @@ fn info_card(ui: &mut egui::Ui, env: &mut Env, w: &Window, compact: bool) {
         match friend {
             // can be hidden (Preferences › Aurora › Profiles): the rights
             // stay in Contacts
-            Some(fr) if env.friend_rights => kv(ui, p, block_i18n::tr!("ui-profile-aurora-permissions"), |ui| {
+            Some(fr) if env.friend_rights => kv(ui, p, block_i18n::tr!("ui-profile-block-permissions"), |ui| {
                 rights_line(ui, env, id, fr)
             }),
             // a stranger's way to it; the compact header has its own
-            None if !compact && id != world.agent_id => kv(ui, p, block_i18n::tr!("ui-profile-aurora-friendship"), |ui| {
+            None if !compact && id != world.agent_id => kv(ui, p, block_i18n::tr!("ui-profile-block-friendship"), |ui| {
                 if widgets::action_button(
                     ui,
                     p,
                     "user-plus",
-                    block_i18n::tr!("ui-profile-aurora-add-friend"),
+                    block_i18n::tr!("ui-profile-block-add-friend"),
                     ActionKind::Flat,
                     Vec2::new(0.0, 24.0),
                 )
@@ -1702,14 +1710,14 @@ fn info_card(ui: &mut egui::Ui, env: &mut Env, w: &Window, compact: bool) {
             _ => {}
         }
         if !compact && !w.editing {
-            kv(ui, p, block_i18n::tr!("ui-profile-aurora-key"), |ui| {
+            kv(ui, p, block_i18n::tr!("ui-profile-block-key"), |ui| {
                 ui.horizontal(|ui| {
                     ui.spacing_mut().item_spacing.x = 6.0;
                     let s = id.to_string();
                     let short = format!("{}…{}", &s[..8], &s[s.len() - 4..]);
                     ui.label(RichText::new(short).monospace().size(11.0).color(p.muted))
                         .on_hover_text(&s);
-                    if widgets::icon_button(ui, p, "copy-filled", block_i18n::tr!("ui-profile-aurora-copy-key"), true) {
+                    if widgets::icon_button(ui, p, "copy-filled", block_i18n::tr!("ui-profile-block-copy-key"), true) {
                         ui.ctx().copy_text(s);
                     }
                 });
@@ -1751,12 +1759,12 @@ fn picks_card(ui: &mut egui::Ui, env: &mut Env, w: &mut Window) {
     if pr.picks.is_empty() {
         return;
     }
-    let all = block_i18n::tr!("ui-profile-aurora-see-all", count = pr.picks.len() as i64);
+    let all = block_i18n::tr!("ui-profile-block-see-all", count = pr.picks.len() as i64);
     let mut open: Option<Option<Uuid>> = None;
     let clicked = card(
         ui,
         p,
-        Some(("map-pin-filled", block_i18n::tr!("ui-profile-aurora-tab-picks"))),
+        Some(("map-pin-filled", block_i18n::tr!("ui-profile-block-tab-picks"))),
         Some(Link {
             icon: Some("chevron-right"),
             ..Link::new(&all)
@@ -1918,10 +1926,10 @@ fn groups_card(ui: &mut egui::Ui, env: &mut Env, w: &Window) {
     if w.editing {
         return;
     }
-    let title = block_i18n::tr!("ui-profile-aurora-groups", count = pr.groups.len() as i64);
+    let title = block_i18n::tr!("ui-profile-block-groups", count = pr.groups.len() as i64);
     // inviting to a group is not ported yet: the link waits greyed
     let invite = (!own).then(|| Link {
-        text: block_i18n::tr!("ui-profile-aurora-invite"),
+        text: block_i18n::tr!("ui-profile-block-invite"),
         icon: Some("user-plus"),
         waiting: Some(block_i18n::tr!("ui-profile-invite-to-group-coming-soon")),
     });
@@ -1931,7 +1939,7 @@ fn groups_card(ui: &mut egui::Ui, env: &mut Env, w: &Window) {
             return;
         }
         let mut groups: Vec<_> = pr.groups.iter().collect();
-        groups.sort_by_key(|g| crate::natural_order::key(&g.name));
+        groups.sort_by_key(|g| g.name.to_lowercase());
         ui.spacing_mut().item_spacing.y = 0.0;
         for g in groups {
             let member = world.groups.is_member(&g.id);
@@ -1948,7 +1956,7 @@ fn groups_card(ui: &mut egui::Ui, env: &mut Env, w: &Window) {
             widgets::avatar_picture(ui, p, tile, env.images.get(&g.insignia), &g.name, false);
             let mut name_w = rect.width() - 34.0;
             if member && !own {
-                let tag = block_i18n::tr!("ui-profile-aurora-in-common");
+                let tag = block_i18n::tr!("ui-profile-block-in-common");
                 let galley = ui.painter().layout_no_wrap(tag.to_owned(), semibold(ui, 10.5), p.teal);
                 let tw = galley.size().x + 12.0;
                 let t = Rect::from_min_size(pos2(rect.right() - tw, rect.center().y - 8.0), Vec2::new(tw, 16.0));
@@ -1966,9 +1974,9 @@ fn groups_card(ui: &mut egui::Ui, env: &mut Env, w: &Window) {
                 p.ink,
             );
             let tip = if member {
-                block_i18n::tr!("ui-profile-aurora-group-tip-member")
+                block_i18n::tr!("ui-profile-block-group-tip-member")
             } else {
-                block_i18n::tr!("ui-profile-aurora-group-tip")
+                block_i18n::tr!("ui-profile-block-group-tip")
             };
             let resp = resp.on_hover_text(tip);
             if resp.double_clicked() && member {
@@ -1987,13 +1995,13 @@ fn notes_card(ui: &mut egui::Ui, env: &Env, w: &mut Window) {
     let clicked = card(
         ui,
         p,
-        Some(("lock-filled", block_i18n::tr!("ui-profile-aurora-private-notes"))),
-        Some(Link::new(block_i18n::tr!("ui-profile-aurora-edit-note"))),
+        Some(("lock-filled", block_i18n::tr!("ui-profile-block-private-notes"))),
+        Some(Link::new(block_i18n::tr!("ui-profile-block-edit-note"))),
         true,
         |ui| {
             if text.is_empty() {
                 ui.label(
-                    RichText::new(block_i18n::tr!("ui-profile-aurora-no-note"))
+                    RichText::new(block_i18n::tr!("ui-profile-block-no-note"))
                         .size(12.5)
                         .color(p.muted_dim),
                 );
@@ -2016,7 +2024,7 @@ fn visibility_card(ui: &mut egui::Ui, env: &mut Env, w: &Window) {
     card(
         ui,
         p,
-        Some(("eye-filled", block_i18n::tr!("ui-profile-aurora-visibility"))),
+        Some(("eye-filled", block_i18n::tr!("ui-profile-block-visibility"))),
         None,
         false,
         |ui| {
@@ -2074,7 +2082,7 @@ fn unsaved_bar(ui: &mut egui::Ui, env: &mut Env, w: &mut Window, closing: bool) 
     let text = if parts.is_empty() {
         block_i18n::tr!("ui-profile-there-are-unsaved-changes").to_owned()
     } else {
-        block_i18n::tr!("ui-profile-aurora-unsaved", parts = parts.join(", "))
+        block_i18n::tr!("ui-profile-block-unsaved", parts = parts.join(", "))
     };
     let resp = egui::Frame::new()
         .fill(p.amber.gamma_multiply(0.10))

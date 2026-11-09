@@ -15,7 +15,7 @@
 
 use super::knobs;
 use super::luts::LutLibrary;
-use block_render::looks::{AuroraSection, LookLayer, LookOp, Lut, PhotoLook, aurora_look, aurora_looks, legacy_look, legacy_looks};
+use block_render::looks::{AuroraSection, LookLayer, LookOp, Lut, PhotoLook, block_look, block_looks, legacy_look, legacy_looks};
 use serde::{Deserialize, Serialize};
 use std::borrow::Cow;
 use std::collections::BTreeMap;
@@ -168,7 +168,7 @@ fn legacy_name(file: &str) -> Option<&'static str> {
 }
 
 /// The name and the description of one of Aurora's looks.
-fn aurora_text(id: &str) -> Option<(&'static str, &'static str)> {
+fn block_text(id: &str) -> Option<(&'static str, &'static str)> {
     use block_i18n::tr;
     Some(match id {
         "fine-grain" => (tr!("photo-look-a-fine-grain"), tr!("photo-look-a-fine-grain-tip")),
@@ -224,7 +224,7 @@ pub fn section_name(section: AuroraSection) -> &'static str {
 /// The name of a look: translated, or a table's file name.
 pub fn name(id: &str) -> Option<Cow<'static, str>> {
     if let Some(aurora) = id.strip_prefix(AURORA) {
-        aurora_text(aurora).map(|(name, _)| Cow::Borrowed(name))
+        block_text(aurora).map(|(name, _)| Cow::Borrowed(name))
     } else if let Some(lut) = id.strip_prefix(LUT) {
         Some(Cow::Owned(lut_display(lut).to_owned()))
     } else {
@@ -286,10 +286,10 @@ pub fn legacy_list() -> Vec<Entry> {
 }
 
 /// Aurora's looks by section.
-pub fn aurora_list() -> Vec<(AuroraSection, Vec<Entry>)> {
+pub fn block_list() -> Vec<(AuroraSection, Vec<Entry>)> {
     let mut sections: Vec<(AuroraSection, Vec<Entry>)> = Vec::new();
-    for look in aurora_looks() {
-        let Some((name, tip)) = aurora_text(look.id) else { continue };
+    for look in block_looks() {
+        let Some((name, tip)) = block_text(look.id) else { continue };
         let entry = Entry {
             id: format!("{AURORA}{}", look.id),
             name: Cow::Borrowed(name),
@@ -320,7 +320,7 @@ pub fn search(query: &str, lut_names: &[String]) -> Vec<Entry> {
     let query = fold(query.trim());
     legacy_list()
         .into_iter()
-        .chain(aurora_list().into_iter().flat_map(|(_, entries)| entries))
+        .chain(block_list().into_iter().flat_map(|(_, entries)| entries))
         .chain(lut_list(lut_names))
         .filter(|e| fold(&e.name).contains(&query) || e.tip.is_some_and(|t| fold(t).contains(&query)))
         .collect()
@@ -340,7 +340,7 @@ pub type Settings = BTreeMap<String, Vec<f32>>;
 /// None (it is being read, on a worker).
 pub fn resolve(id: &str, settings: &Settings, luts: &mut LutLibrary) -> Option<Resolved> {
     if let Some(aurora) = id.strip_prefix(AURORA) {
-        let look = aurora_look(aurora)?;
+        let look = block_look(aurora)?;
         let ops = match settings.get(id) {
             Some(values) => knobs::apply(knobs::knobs(aurora), &look.ops, values).into(),
             None => look.ops.clone(),
@@ -413,7 +413,7 @@ mod tests {
     fn every_look_has_a_name() {
         // a missing message gives its key back (the French catalogue has
         // every English key, block-i18n's tests)
-        let all = legacy_list().into_iter().chain(aurora_list().into_iter().flat_map(|(_, e)| e));
+        let all = legacy_list().into_iter().chain(block_list().into_iter().flat_map(|(_, e)| e));
         let mut count = 0;
         for entry in all {
             assert!(!entry.name.starts_with("photo-look"), "{}: {}", entry.id, entry.name);
@@ -421,7 +421,7 @@ mod tests {
             count += 1;
         }
         assert_eq!(count, 30 + 36);
-        assert_eq!(aurora_list().len(), 5);
+        assert_eq!(block_list().len(), 5);
     }
 
     #[test]
@@ -449,7 +449,7 @@ mod tests {
             photo: (3840, 2160),
             scale: 0.5,
         };
-        let mut luts = LutLibrary::new(std::env::temp_dir().join("aurora-no-luts"));
+        let mut luts = LutLibrary::new(std::env::temp_dir().join("block-no-luts"));
         let settings = Settings::new();
         let mut stack = vec![Layer::new("Sepia"), Layer::new("aurora:vhs"), Layer::new("Nothing")];
         stack[0].strength = 140;
@@ -467,8 +467,8 @@ mod tests {
     }
 
     #[test]
-    fn settings_change_an_aurora_look() {
-        let mut luts = LutLibrary::new(std::env::temp_dir().join("aurora-no-luts"));
+    fn settings_change_an_block_look() {
+        let mut luts = LutLibrary::new(std::env::temp_dir().join("block-no-luts"));
         let mut settings = Settings::new();
         let plain = resolve("aurora:glitch", &settings, &mut luts).expect("glitch");
         settings.insert("aurora:glitch".into(), vec![0.05, 0.02, 9.0]);

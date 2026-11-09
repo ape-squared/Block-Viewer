@@ -6,7 +6,6 @@ pub mod ao;
 pub mod appearance;
 pub mod area_search;
 pub mod audio;
-pub mod aurora_bg;
 pub mod avatar_picker;
 pub mod avatar_render_settings;
 pub mod backdrop;
@@ -34,7 +33,6 @@ pub mod context;
 pub mod controls;
 pub mod crosshair;
 pub mod debug_overlay;
-pub mod debug_settings;
 pub mod dev_toolbox;
 pub mod display_name;
 pub mod emoji;
@@ -49,6 +47,7 @@ mod floating_text;
 pub mod fly_override;
 pub mod follow;
 pub mod fonts;
+pub mod friend_kit;
 pub mod friend_prompt;
 pub mod gestures;
 pub(crate) mod give_drop;
@@ -81,6 +80,7 @@ pub mod menu;
 pub mod minimap;
 pub mod money_tracker;
 pub mod monitor;
+pub mod motd_tips;
 pub mod movelock;
 pub mod movement;
 pub mod nameplate;
@@ -150,7 +150,6 @@ pub struct Panels {
     pub chat: bool,
     pub perf: bool,
     /// The Dev Toolbox (Advanced › Dev Toolbox, Ctrl+Alt+D).
-    pub debug_settings: bool,
     pub dev_toolbox: bool,
     /// Advanced › Region console (SimConsoleAsync, estate managers).
     pub sim_console: bool,
@@ -210,7 +209,7 @@ pub struct Panels {
     pub quick_prefs: bool,
     /// "Voice controls" (toolbar): who is in the voice channel and who speaks.
     pub voice_controls: bool,
-    /// "About Aurora Viewer" (Help menu): the version, the system
+    /// "About Block Viewer" (Help menu): the version, the system
     /// information and the licences.
     pub about: bool,
     /// World › Stream title (kept in `audio.stream_title_window`), and its
@@ -236,7 +235,6 @@ impl Panels {
         Panels {
             chat: settings.show_chat,
             perf: settings.show_perf,
-            debug_settings: false,
             dev_toolbox: false,
             sim_console: false,
             group_titles: false,

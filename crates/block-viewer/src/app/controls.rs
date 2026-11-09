@@ -8,6 +8,10 @@ use crate::ui::controls::{ControlAction, FreeView, View};
 use block_net::{NetCommand, control};
 
 impl App {
+    pub(crate) fn object_view_sync(&mut self) {}
+
+    pub(crate) fn object_view_attach_selection(&mut self) {}
+
     pub(super) fn controls_window(&mut self, ctx: &egui::Context, p: &Palette) {
         self.joystick_status(ctx, p);
         self.controls_demo();
@@ -17,7 +21,6 @@ impl App {
             roll: self.camera.roll,
             preset: self.settings.camera.preset,
             shots: &self.settings.camera_shots,
-            views: &self.settings.camera_views,
             flying: self.world.agent.flying,
             always_run: self.always_run,
             seated: self.world.agent.seated,
@@ -66,11 +69,7 @@ impl App {
         if self.world.rlva.camera_preset_locked(uuid::Uuid::nil())
             && matches!(
                 action,
-                ControlAction::Preset(_)
-                    | ControlAction::UseShot(_)
-                    | ControlAction::SaveShot(_)
-                    | ControlAction::SaveView(_)
-                    | ControlAction::RestoreView(_)
+                ControlAction::Preset(_) | ControlAction::UseShot(_) | ControlAction::SaveShot(_)
             )
         {
             return;
@@ -82,7 +81,12 @@ impl App {
                 self.snapshots.ui.free.on = false;
                 self.photo_free_camera();
             }
-            ControlAction::Preset(preset) => self.switch_camera_view(preset),
+            ControlAction::Preset(preset) => {
+                // LLFloaterCamera::switchToPreset: the view, from behind
+                self.settings.camera.apply_preset(preset);
+                self.camera.reset_to_defaults(&mut self.world.agent, &self.settings.camera);
+                self.settings.save();
+            }
             ControlAction::ResetOrbit => self.reset_camera_view(),
             ControlAction::ResetCamera => {
                 self.reset_camera_all();
@@ -96,7 +100,14 @@ impl App {
             ControlAction::LevelRoll => self.camera.roll = 0.0,
             ControlAction::Zoom(fraction) => self.camera.set_zoom_fraction(fraction),
             ControlAction::Mouselook => self.toggle_mouselook(),
-            ControlAction::ObjectView => self.object_view = !self.object_view,
+            ControlAction::ObjectView => {
+                self.object_view = !self.object_view;
+                if self.object_view {
+                    // Keep following the focused object while this mode is on.
+                    self.settings.camera.track_focus_object = true;
+                    self.object_view_attach_selection();
+                }
+            }
             ControlAction::Walk | ControlAction::Run => {
                 if self.world.agent.flying {
                     self.toggle_fly();
@@ -104,18 +115,18 @@ impl App {
                 self.set_always_run(action == ControlAction::Run);
             }
             ControlAction::Fly => self.toggle_fly(),
-            ControlAction::StandUp => self.send(NetCommand::OneShotControl(control::STAND_UP)),
+            ControlAction::StandUp => {
+                self.send(NetCommand::OneShotControl(control::STAND_UP));
+                // Pose / seat scripts often keep TRIGGER_ANIMATION after
+                // stand; clear them so the avatar does not keep posing.
+                self.stop_current_animations();
+            }
             ControlAction::UseShot(i) => {
                 if let Err(text) = self.apply_camera_preset(i) {
                     self.camera_preset_message(text);
                 }
             }
             ControlAction::SaveShot(name) => {
-                // a view's name replaces the view, as in the Legacy Viewer
-                if let Some(view) = crate::camera::CameraPreset::from_preset_name(&name) {
-                    self.save_camera_view(view);
-                    return;
-                }
                 // LLFloaterSaveCameraPreset::onBtnSave: where the camera is,
                 // in the avatar's frame, which becomes the view (the
                 // viewfinder's presets keep more)
@@ -131,8 +142,6 @@ impl App {
                 }
             }
             ControlAction::DeleteShot(i) => self.delete_camera_preset(i),
-            ControlAction::SaveView(view) => self.save_camera_view(view),
-            ControlAction::RestoreView(view) => self.restore_camera_view(view),
         }
     }
 
@@ -143,29 +152,6 @@ impl App {
     /// photo window's free camera on, which opens it, `free-compact` the
     /// same minimized; 40 frames later the free camera has flown 2 m to the
     /// left and 1 m up and turned toward the avatar, which stayed.
-    /// AURORA_DEMO_CONTROLS=views | classic-views (issue #2755): the
-    /// window open at 600 (Aurora's or the Legacy Viewer's); the camera
-    /// turned away at 610 and saved as the Front view at 620, as its right
-    /// click does; the Rear view at 640, the Front view again at 660. The log
-    /// gives the camera when saved and at 700: the same place.
-    fn controls_views_demo(&mut self) {
-        if !matches!(std::env::var("AURORA_DEMO_CONTROLS").as_deref(), Ok("views" | "classic-views")) {
-            return;
-        }
-        let preset = crate::camera::CameraPreset::Front;
-        match self.frame_count {
-            610 => self.camera.demo_orbit(0.9, 0.25, Some(4.0), &self.settings.camera),
-            620 => {
-                log::info!("demo controls: camera at {:.2?} when saved", self.camera.position);
-                self.control_action(ControlAction::SaveView(preset));
-            }
-            640 => self.control_action(ControlAction::Preset(crate::camera::CameraPreset::Rear)),
-            660 => self.control_action(ControlAction::Preset(preset)),
-            700 => log::info!("demo controls: camera at {:.2?} on the saved Front view", self.camera.position),
-            _ => {}
-        }
-    }
-
     fn controls_demo(&mut self) {
         if !self.demo {
             return;
@@ -183,7 +169,6 @@ impl App {
             self.request_controls(true, true);
             log::info!("demo controls: Move pressed on the minimized window");
         }
-        self.controls_views_demo();
         if self.frame_count != 600 {
             return;
         }
@@ -211,11 +196,6 @@ impl App {
                 self.settings.classic_controls = true;
                 self.panels.camera_controls = true;
                 self.panels.movement_controls = true;
-            }
-            Ok("views") => self.panels.camera_controls = true,
-            Ok("classic-views") => {
-                self.settings.classic_controls = true;
-                self.panels.camera_controls = true;
             }
             _ => {}
         }

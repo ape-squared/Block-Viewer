@@ -29,7 +29,6 @@ mod im_queries;
 mod inventory;
 pub mod last_points;
 pub mod login;
-pub mod modifiers;
 mod naming;
 pub mod offers;
 mod policy;
@@ -778,7 +777,7 @@ impl Rlva {
                     _ => None,
                 };
                 if let Some(text) = reply {
-                    self.reply(channel, &c.behaviour, text);
+                    self.reply(channel, text);
                 } else if self.pending.len() < 256 {
                     self.pending.push((source, c));
                     outcome = Outcome::Queued;
@@ -804,10 +803,9 @@ impl Rlva {
         outcome
     }
 
-    /// `behaviour` is the query answered (the console masks a texture id).
-    pub fn reply(&mut self, channel: i32, behaviour: &str, message: String) {
+    pub fn reply(&mut self, channel: i32, message: String) {
         if self.enabled && channel == 0 && self.diagnostics.console_source.is_some() {
-            self.diagnostics.push_reply(behaviour, message);
+            self.diagnostics.push_reply(message);
             return;
         }
         if self.enabled && channel > 0 && channel != i32::MAX && self.out.len() < 256 {

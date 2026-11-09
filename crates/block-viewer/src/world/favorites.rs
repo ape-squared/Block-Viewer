@@ -64,7 +64,7 @@ impl Favorites {
     pub fn load(path: PathBuf) -> Self {
         let (loaded_tx, loaded) = mpsc::unbounded();
         let (writer, writes) = mpsc::unbounded::<HashMap<Uuid, i32>>();
-        let worker = std::thread::Builder::new().name("aurora-favorites".into()).spawn(move || {
+        let worker = std::thread::Builder::new().name("block-favorites".into()).spawn(move || {
             let order = match std::fs::read(&path) {
                 Ok(bytes) => serde_json::from_slice::<HashMap<Uuid, i32>>(&bytes).unwrap_or_else(|error| {
                     log::warn!("Cannot read the favourites' order: {error}");
@@ -349,7 +349,7 @@ mod tests {
 
     #[test]
     fn the_order_survives_a_restart_per_account() {
-        let dir = std::env::temp_dir().join(format!("aurora-favorites-{}", Uuid::new_v4()));
+        let dir = std::env::temp_dir().join(format!("block-favorites-{}", Uuid::new_v4()));
         let path = dir.join("account").join(FILE);
         let inv = inventory(&[(10, "A", 3), (11, "B", 2), (12, "C", 1)]);
         {

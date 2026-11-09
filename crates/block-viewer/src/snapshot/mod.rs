@@ -237,6 +237,8 @@ pub struct Settings {
     /// Preferences › Privacy and › Sound, and Advanced › Quiet snapshots
     /// all switch it.
     pub sound: bool,
+    /// Target capture rate for in-viewer camera video (MP4), frames per second.
+    pub video_fps: u8,
     /// Size of a photo for the inventory (LastSnapshotToInventoryResolution).
     pub inventory_size: inventory::TextureSize,
     /// Size of a photo for the profile feed (LastSnapshotToProfileResolution).
@@ -285,6 +287,7 @@ impl Default for Settings {
             base_name: "Snapshot".into(),
             guide: Guide::Thirds,
             sound: true,
+            video_fps: crate::video_record::DEFAULT_FPS as u8,
             inventory_size: inventory::TextureSize::S512,
             profile_size: profile::ProfileSize::S640,
             profile_location: true,
@@ -303,6 +306,7 @@ impl Default for Settings {
 impl Settings {
     /// Bring loaded values back into their ranges.
     pub fn sanitize(&mut self) {
+        self.video_fps = crate::video_record::clamp_fps(u32::from(self.video_fps)) as u8;
         self.custom = [clamp_side(self.custom[0]), clamp_side(self.custom[1])];
         self.jpeg_quality = self.jpeg_quality.min(100);
         if self.base_name.trim().is_empty() {

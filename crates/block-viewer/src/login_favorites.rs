@@ -569,3 +569,78 @@ mod tests {
         assert_eq!(store.favorites(&key("synthetic-grid", "Example 3")).len(), 1);
     }
 }
+
+/// Cached favourite landmarks for the login destination list. Written while
+/// in-world when the favourites bar resolves a place; read on the login
+/// screen without inventory.
+const LOGIN_LIST_FILE: &str = "login_favorites.json";
+const LOGIN_LIST_MAX: usize = 24;
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct Entry {
+    pub name: String,
+    /// `Region/x/y/z` or a map link — anything `slurl::parse` takes.
+    pub place: String,
+}
+
+fn login_list_path(agent: &Uuid) -> PathBuf {
+    crate::settings::account_dir(agent).join(LOGIN_LIST_FILE)
+}
+
+pub fn load(agent: Option<&Uuid>) -> Vec<Entry> {
+    let Some(agent) = agent else {
+        return Vec::new();
+    };
+    let Ok(bytes) = std::fs::read(login_list_path(agent)) else {
+        return Vec::new();
+    };
+    serde_json::from_slice::<Vec<Entry>>(&bytes)
+        .unwrap_or_default()
+        .into_iter()
+        .filter(|e| !e.name.trim().is_empty() && !e.place.trim().is_empty())
+        .take(LOGIN_LIST_MAX)
+        .collect()
+}
+
+/// Replace the cache when the favourites bar has resolved places.
+pub fn save(agent: &Uuid, entries: &[Entry]) {
+    let trimmed: Vec<Entry> = entries
+        .iter()
+        .filter(|e| !e.name.trim().is_empty() && !e.place.trim().is_empty())
+        .take(LOGIN_LIST_MAX)
+        .cloned()
+        .collect();
+    let Ok(bytes) = serde_json::to_vec_pretty(&trimmed) else {
+        return;
+    };
+    let target = login_list_path(agent);
+    if let Some(parent) = target.parent() {
+        let _ = std::fs::create_dir_all(parent);
+    }
+    let _ = crate::atomic_file::write(&target, &bytes);
+}
+
+/// Build cache rows from the favourites currently shown in the bars.
+pub fn from_view(list: &[crate::ui::bars::favorites::Favorite]) -> Vec<Entry> {
+    list.iter()
+        .filter_map(|f| {
+            let place = f.slurl.clone().or_else(|| {
+                (!f.region.is_empty()).then(|| {
+                    if let Some(g) = f.global {
+                        let x = g.x.rem_euclid(256.0).round() as i32;
+                        let y = g.y.rem_euclid(256.0).round() as i32;
+                        let z = g.z.round() as i32;
+                        format!("{}/{x}/{y}/{z}", f.region)
+                    } else {
+                        f.region.clone()
+                    }
+                })
+            })?;
+            Some(Entry {
+                name: f.name.clone(),
+                place,
+            })
+        })
+        .take(LOGIN_LIST_MAX)
+        .collect()
+}

@@ -13447,3 +13447,38 @@ ui-options-attached-particles-hint = Affiche les particules de ce que portent le
 # Preferences › Graphics: progressive draw distance (FSRenderFarClipStepping)
 ui-options-draw-distance-stepping = Distance d'affichage progressive
 ui-options-draw-distance-stepping-hint = Après la connexion et après une téléportation vers une autre région, la distance d'affichage part de 32 m et double jusqu'à la vôtre, pour que ce qui est proche se charge d'abord.
+
+# Camera video and Medal.tv
+ui-options-medal-clip = Profondeur des voiles / attaches
+ui-options-medal-clip-help = Empêche les médailles et les couches de mesh transparentes de traverser le corps en triant leur profondeur comme les cheveux en couches. Activé par défaut.
+ui-options-medal-tv = Medal.tv
+ui-options-medal-tv-help = Quand Medal.tv tourne et enregistre sur ce PC, Block Viewer peut lui demander de sauvegarder un clip depuis son tampon (F8). Désactivé par défaut.
+ui-options-medal-tv-enabled = Envoyer des clips à Medal.tv
+ui-options-medal-tv-enabled-help = Envoie un événement SaveClip à l'API locale Auto Clipping de Medal. Medal doit être ouvert et en enregistrement.
+ui-options-medal-tv-public-key = Clé publique
+ui-options-medal-tv-public-key-help = Clé publique du jeu depuis le portail Medal Auto Clipping. Vous pouvez aussi définir AURORA_MEDAL_PUBLIC_KEY.
+ui-options-medal-tv-event-id = Id d'événement
+ui-options-medal-tv-event-id-help = Identifiant d'événement du portail Medal (souvent 1).
+ui-options-medal-tv-event-name = Titre du clip
+ui-options-medal-tv-event-name-help = Titre affiché dans la bibliothèque Medal (40 caractères max).
+ui-options-medal-tv-duration = Durée du clip
+ui-options-medal-tv-duration-help = Nombre de secondes du tampon à conserver.
+ui-options-medal-tv-delay = Délai de capture
+ui-options-medal-tv-delay-help = Millisecondes d'attente après l'événement avant que Medal enregistre (post-roll).
+ui-options-medal-tv-clip-on-photo = Clip à la prise de photo
+ui-options-medal-tv-clip-on-photo-help = Demander aussi un clip à Medal quand Instantané sur disque réussit.
+medal-tv-sent-clip = Medal.tv : clip demandé
+medal-tv-sent-screenshot = Medal.tv : capture demandée
+medal-tv-disabled = Clips Medal.tv désactivés — activez-les dans Préférences › Confidentialité
+medal-tv-need-key = Medal.tv a besoin d'une clé publique dans Préférences › Confidentialité
+medal-tv-failed = Medal.tv : impossible d'envoyer la demande de clip
+keybinds-medal-clip = Clip Medal.tv
+camera-vf-record-tip = Enregistrer une video (MP4)
+camera-vf-record-stop-tip = Arreter l enregistrement
+camera-vf-record-started = Enregistrement a { $fps } img/s…
+camera-vf-record-stopping = Enregistrement de la video…
+camera-vf-record-saved = Video enregistree : { $path }
+camera-vf-fps-label = { $fps } img/s
+camera-vf-fps-tip = Cadence video — clic pour 15 / 24 / 30 / 60
+camera-video-fps = Cadence video
+camera-video-fps-help = Frequence de capture pendant l enregistrement. Plus haute = PC plus rapide ; la duree du fichier suit toujours le temps d enregistrement.

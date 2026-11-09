@@ -684,9 +684,22 @@ pub fn show(
     }
     if let Some(width) = layout.sidebar
         && card_rect.is_positive()
-        && super::chrome::sidebar(&ctx, p, icons, info, card_rect, width, screen.bottom() - 92.0)
     {
-        action = LoginAction::CheckUpdates;
+        let favorites = super::login_favorites_for(settings);
+        if super::chrome::sidebar(
+            &ctx,
+            p,
+            icons,
+            info,
+            card_rect,
+            width,
+            screen.bottom() - 92.0,
+            &mut settings.start_location,
+            &mut form.start_slurl,
+            &favorites,
+        ) {
+            action = LoginAction::CheckUpdates;
+        }
     }
     let chrome_action = super::chrome::footer(&ctx, p, icons, info, layout.sidebar.is_some(), form);
     if !matches!(chrome_action, LoginAction::None) {

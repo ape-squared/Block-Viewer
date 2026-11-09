@@ -61,6 +61,50 @@ pub fn mark(world: &World, id: &Uuid) -> Option<Mark> {
     (linden || crate::demo::staff::is_linden(id)).then_some(Mark::Linden)
 }
 
+/// Normalize an SL username / legacy name for team checks:
+/// `Heard Resident`, `heard.resident`, `heard` → `heard`.
+pub fn normalize_username(raw: &str) -> String {
+    let mut s = raw.trim().to_ascii_lowercase().replace(' ', ".");
+    while s.ends_with('.') {
+        s.pop();
+    }
+    if let Some(stripped) = s.strip_suffix(".resident") {
+        s = stripped.to_string();
+    }
+    s
+}
+
+/// Block developers recognised by username (legacy or modern form).
+const DEV_USERNAMES: &[&str] = &["heard", "4krazy"];
+
+/// Block moderators recognised by username.
+const MOD_USERNAMES: &[&str] = &["fr3sh3r"];
+
+/// Whether `raw` is a known Block developer username.
+pub fn is_block_dev_name(raw: &str) -> bool {
+    let n = normalize_username(raw);
+    DEV_USERNAMES.iter().any(|d| n == *d)
+}
+
+/// Whether `raw` is a known Block moderator username.
+pub fn is_block_mod_name(raw: &str) -> bool {
+    let n = normalize_username(raw);
+    MOD_USERNAMES.iter().any(|d| n == *d)
+}
+
+/// Whether this avatar is Block team (by UUID and/or username).
+pub fn is_block_team(world: &World, id: &Uuid) -> bool {
+    if is_staff(id) {
+        return true;
+    }
+    world.social.avatar_names.get(id).is_some_and(|n| {
+        is_block_dev_name(&n.user_name())
+            || is_block_dev_name(&n.legacy_first)
+            || is_block_mod_name(&n.user_name())
+            || is_block_mod_name(&n.legacy_first)
+    })
+}
+
 /// The mark of a resident whose legacy name is `legacy` (the name plates,
 /// which already have it).
 pub fn mark_named(id: &Uuid, legacy: &str) -> Option<Mark> {

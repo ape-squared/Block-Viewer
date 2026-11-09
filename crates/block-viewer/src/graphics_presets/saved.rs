@@ -42,6 +42,7 @@ quality_fields! {
     exposure: f32,
     water_effects: crate::settings::WaterEffectsSettings,
     specular_aa: bool,
+    medal_clip_layers: bool,
     colored_sky_ambient: bool,
     tonemapper: u8,
     tonemap_mix: f32,

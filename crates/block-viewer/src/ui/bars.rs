@@ -205,6 +205,9 @@ pub struct RecentPlace {
     pub name: String,
     pub region: String,
     pub slurl: String,
+    /// Global position for teleports when the saved SLURL is empty (older
+    /// Second Life history rows written before maps URLs were stored).
+    pub global: glam::DVec3,
 }
 
 pub struct StatusInfo<'a> {

@@ -177,7 +177,7 @@ mod freedesktop {
     const DEST: &str = "org.freedesktop.Notifications";
     const PATH: &str = "/org/freedesktop/Notifications";
     /// The application name the server groups the notices by.
-    const APP_NAME: &str = "Aurora Viewer";
+    const APP_NAME: &str = "Block Viewer";
     /// The desktop entry's id (`block-viewer.desktop`), from which a server
     /// takes the name and icon it shows and its per-application rules.
     const DESKTOP_ENTRY: &str = "block-viewer";
@@ -374,7 +374,7 @@ mod win {
     fn register() {
         let key = format!("Software\\Classes\\AppUserModelId\\{AUMID}");
         let icon = icon_file();
-        let mut values = vec![("DisplayName", "Aurora Viewer".to_owned())];
+        let mut values = vec![("DisplayName", "Block Viewer".to_owned())];
         if let Some(icon) = icon {
             values.push(("IconUri", icon.display().to_string()));
         }

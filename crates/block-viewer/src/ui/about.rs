@@ -1,4 +1,4 @@
-//! Help › About Aurora Viewer. Port of LLFloaterAbout
+//! Help › About Block Viewer. Port of LLFloaterAbout
 //! (indra/newview/llfloaterabout.cpp, floater_about.xml, the About* strings
 //! of strings.xml, originally LGPL 2.1): the version, then the system
 //! information with "Copy to clipboard", and the licences. Redrawn in the
@@ -120,7 +120,7 @@ pub fn release_notes(version: &str) -> Option<String> {
 /// its English labels).
 pub fn copy_text(sections: &[Section]) -> String {
     let version = block_version::version();
-    let mut out = format!("Aurora Viewer {version}\n");
+    let mut out = format!("Block Viewer {version}\n");
     if let Some(url) = release_notes(version) {
         out.push_str(&format!("Release notes: {url}\n"));
     }
@@ -259,7 +259,7 @@ fn hero(ui: &mut egui::Ui, p: &Palette, logo: Option<&egui::TextureHandle>) {
         }
         ui.vertical(|ui| {
             ui.spacing_mut().item_spacing.y = 4.0;
-            ui.label(sheet::semibold(ui, "Aurora Viewer", 22.0, p.ink));
+            ui.label(sheet::semibold(ui, "Block Viewer", 22.0, p.ink));
             ui.label(RichText::new(crate::ui::login::client_tagline()).size(12.0).color(p.violet_pale));
             ui.add(egui::Label::new(RichText::new(block_i18n::tr!("about-third-party-viewer")).size(11.5).color(p.muted)).wrap());
             ui.add_space(4.0);
@@ -284,7 +284,7 @@ fn hero(ui: &mut egui::Ui, p: &Palette, logo: Option<&egui::TextureHandle>) {
     ui.painter()
         .set(face, Shape::rect_filled(rect, ui.visuals().window_corner_radius, p.field));
     if let Some(logo) = logo_rect {
-        let glow = crate::ui::aurora_bg::radial_glow_shape(logo.center(), LOGO * 1.6, p.violet, 0.38);
+        let glow = crate::ui::block_bg::radial_glow_shape(logo.center(), LOGO * 1.6, p.violet, 0.38);
         // the light stays in the banner: a shape set keeps the clip of the
         // painter that sets it
         ui.painter().with_clip_rect(rect.intersect(ui.clip_rect())).set(light, glow);
@@ -450,7 +450,7 @@ mod tests {
         ];
         let text = copy_text(&sections);
         let blocks: Vec<&str> = text.split("\n\n").collect();
-        assert!(blocks[0].starts_with(&format!("Aurora Viewer {}", block_version::version())));
+        assert!(blocks[0].starts_with(&format!("Block Viewer {}", block_version::version())));
         assert_eq!(
             blocks[1],
             format!(

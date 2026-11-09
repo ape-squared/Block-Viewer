@@ -932,7 +932,7 @@ notecard-markdown-demo =
 
     > Embedded items remain part of the notecard.
 
-    { "[" }Aurora Viewer](https://block-viewer.org)
+    { "[" }Block Viewer](https://block-viewer.org)
 
     ```text
     A plain code block
@@ -1009,9 +1009,9 @@ script-experience-choose = Choose an experience…
 script-experiences-unavailable = Unable to load your experiences. The current association is preserved; try again.
 script-experience-demo = Demo experience
 script-disconnected = Disconnected. The unsaved source has been kept; you can copy it.
-exit-title = Close Aurora Viewer?
+exit-title = Close Block Viewer?
 exit-world-body = Quit the viewer or return to the login screen?
-exit-login-body = Do you want to quit Aurora Viewer?
+exit-login-body = Do you want to quit Block Viewer?
 exit-waiting = Logging out…
 exit-logout = Log out
 exit-logout-hint = End the session and return to the login screen.
@@ -1683,17 +1683,17 @@ ui-texture-picker-no-textures-in-the-loaded-inventory = No textures in the loade
 world-tphistory-today = Today
 app-aurora-elsewhere = Aurora Elsewhere
 common-aurora-demo = Aurora Demo
-demo-block-viewer-rust-vulkan = { "Aurora Viewer\u000ARust · Vulkan" }
-demo-block-viewer-rust-metal = { "Aurora Viewer\u000ARust · Metal" }
-ui-login-block-viewer-v = Aurora Viewer v{ $value0 }
-cli-block-viewer = { "Aurora Viewer " }{ $version }
-cli-block-viewer-2 = { "Aurora Viewer " }{ $version }{ " - " }{ $t }
+demo-block-viewer-rust-vulkan = { "Block Viewer\u000ARust · Vulkan" }
+demo-block-viewer-rust-metal = { "Block Viewer\u000ARust · Metal" }
+ui-login-block-viewer-v = Block Viewer v{ $value0 }
+cli-block-viewer = { "Block Viewer " }{ $version }
+cli-block-viewer-2 = { "Block Viewer " }{ $version }{ " - " }{ $t }
 common-block-viewer = { "Block Viewer " }{ $value0 }
-app-block-viewer-unable-to-initialize-vulkan = { "Aurora Viewer: unable to initialize Vulkan: " }{ $e }
-app-block-viewer-unable-to-initialize-metal = { "Aurora Viewer: unable to initialize Metal: " }{ $e }
-app-graphics-start-failed-title = Aurora Viewer cannot start
+app-block-viewer-unable-to-initialize-vulkan = { "Block Viewer: unable to initialize Vulkan: " }{ $e }
+app-block-viewer-unable-to-initialize-metal = { "Block Viewer: unable to initialize Metal: " }{ $e }
+app-graphics-start-failed-title = Block Viewer cannot start
 app-graphics-start-failed =
-    Aurora Viewer could not open a graphics card to draw its window.
+    Block Viewer could not open a graphics card to draw its window.
 
     What to try:
     • update the graphics card driver;
@@ -1704,7 +1704,7 @@ app-graphics-start-failed =
     Details: { $e }
 
     The log of this start: { $log }
-app-gpu-stall-title = Aurora Viewer: the graphics card is not responding
+app-gpu-stall-title = Block Viewer: the graphics card is not responding
 app-gpu-stall =
     The graphics card has not finished an image for { $seconds } seconds. Aurora still works (the world, the sound, the chat go on) but nothing can be drawn until the card answers again.
 
@@ -1718,7 +1718,7 @@ app-gpu-stall =
 app-gpu-recovered-title = The graphics card was reset
 app-gpu-recovered = The graphics card's driver was reset (an image took too long to draw, its video memory was full, or another program took the card). Aurora reopened its window on the card again: you stayed logged in, and the world reloads in a moment.
 app-gpu-recovered-safe = The graphics card's driver was reset again within a few minutes. Aurora reopened its window with the safe graphics (the Potato level) so that it does not happen again: you stayed logged in. Your graphics settings are kept: the login screen offers them back.
-app-gpu-lost-title = Aurora Viewer: the graphics card was lost
+app-gpu-lost-title = Block Viewer: the graphics card was lost
 app-gpu-lost =
     The graphics card stopped working for Aurora: its driver was reset (it took too long to draw an image, or its video memory was full), or the card was removed or taken by another program. Nothing can be drawn any more: Aurora closes when you press OK (you are logged out properly).
 
@@ -1918,7 +1918,7 @@ ui-environment-based-on-day-cycle = Based on day cycle
 build-ui-object-bias = Bias
 common-library = Library
 app-welcome = Welcome!
-demo-welcome-to-the-block-viewer-demo = Welcome to the Aurora Viewer demo! 🐺✨❤️
+demo-welcome-to-the-block-viewer-demo = Welcome to the Block Viewer demo! 🐺✨❤️
 demo-region-day-cycle = Nordic Dawn
 demo-region-telehub = Arrival point
 demo-region-telehub-object = Arrival stone
@@ -2417,7 +2417,7 @@ ui-options-flash-conversations-nearby-hint = A resident's line in nearby chat fl
 ui-options-announce-incoming-im = Announce incoming IMs as soon as the sender starts typing
 ui-options-announce-incoming-im-hint = When a resident starts typing an IM to you, their conversation opens right away with "Incoming message from" and their name, before the message arrives.
 ui-options-unread-ims-in-window-title = Show the number of unread IMs in the window title
-ui-options-unread-ims-in-window-title-hint = While private messages, group chats or conferences wait unread, their count comes first in the window title, "(3) Aurora Viewer", which the taskbar shows too.
+ui-options-unread-ims-in-window-title-hint = While private messages, group chats or conferences wait unread, their count comes first in the window title, "(3) Block Viewer", which the taskbar shows too.
 common-copy = Copy
 build-ui-features-copy-attributes = Copy attributes
 build-ui-object-copy-object-settings-to-clipboard = Copy object settings to clipboard
@@ -3060,7 +3060,7 @@ ui-place-details-location-details-2 = { "Location details: " }{ $value0 }
 common-expand = Expand
 ui-inventory-controls-expand-displayed-folders = Expand displayed folders
 ui-places-expand-all-folders = Expand all folders
-demo-block-viewer-developer = Aurora Viewer developer.
+demo-block-viewer-developer = Block Viewer developer.
 common-water = Water
 world-inventory-preview-water-haze-density-refraction-wave-scale-normal-texture = { "Water\u000A\u000AHaze density: " }{ $value0 }{ "\u000ARefraction: " }{ $value1 }{ "\u000AWave scale: " }{ $value2 }{ "\u000ANormal texture: " }{ $value3 }
 demo-env-turquoise-water = Turquoise water
@@ -3858,9 +3858,9 @@ build-ui-general-next-owner = Next owner:
 build-ui-floaters-next-owner-can = Next owner can:
 world-mod-could-not-save-the-profile = Could not save the profile ({ $reason }).
 ui-land-general-owner-contributes-when-deeding-land = Owner contributes when deeding land
-world-status-the-resident-you-messaged-has-enabled-block-viewer-s = The resident you messaged has enabled Aurora Viewer's mode that rejects all friendship requests. They do not want to be disturbed by friendship requests, but you can still send them an IM.
-world-status-the-resident-you-messaged-has-enabled-block-viewer-s-2 = The resident you messaged has enabled Aurora Viewer's mode that rejects all teleport offers and requests. They do not want to be disturbed by teleport requests, but you can still send them an IM.
-world-status-the-resident-you-messaged-has-enabled-block-viewer-s-3 = The resident you messaged has enabled Aurora Viewer's auto-response mode and does not want to be disturbed. Your message will still appear in their IM window for later reading.
+world-status-the-resident-you-messaged-has-enabled-block-viewer-s = The resident you messaged has enabled Block Viewer's mode that rejects all friendship requests. They do not want to be disturbed by friendship requests, but you can still send them an IM.
+world-status-the-resident-you-messaged-has-enabled-block-viewer-s-2 = The resident you messaged has enabled Block Viewer's mode that rejects all teleport offers and requests. They do not want to be disturbed by teleport requests, but you can still send them an IM.
+world-status-the-resident-you-messaged-has-enabled-block-viewer-s-3 = The resident you messaged has enabled Block Viewer's auto-response mode and does not want to be disturbed. Your message will still appear in their IM window for later reading.
 world-status-the-resident-you-messaged-is-away-your-message-will = The resident you messaged is away. Your message will appear in their IM window for later reading.
 world-status-the-resident-you-messaged-has-blocked-all-messages-from = The resident you messaged has blocked all messages from you.
 inventory-operations-the-script-contains-compilation-errors-check-the-code-and = The script contains compilation errors. Check the code and try again.
@@ -4537,8 +4537,8 @@ demo-fav-cats-island = Cats Island
 demo-fav-prism-gallery = Prism Gallery
 demo-fav-shadow-forest = Shadow Forest
 demo-fav-orbital-station = Orbital Station
-demo-land-block-viewer-s-offline-demo-parcel-visit-the-fountain = { "Aurora Viewer's offline demo parcel.\u000AVisit the fountain, beach and hill." }
-demo-block-viewer-s-offline-demo-parcel = Aurora Viewer's offline demo parcel.
+demo-land-block-viewer-s-offline-demo-parcel-visit-the-fountain = { "Block Viewer's offline demo parcel.\u000AVisit the fountain, beach and hill." }
+demo-block-viewer-s-offline-demo-parcel = Block Viewer's offline demo parcel.
 ui-parcel-icons-isolated-parcel-you-cannot-see-residents-on-other-parcels = Isolated parcel: you cannot see residents on other parcels, they cannot see you, and nearby chat does not cross the boundary.
 ui-parcel-icons-frozen-you-cannot-move-or-interact = Frozen by a parcel owner or an estate manager: you cannot move or interact with the world until you are released.
 ui-minimap-banned-parcels = Banned parcels
@@ -4940,7 +4940,7 @@ world-mod-someone = Someone
 demo-has-anyone-seen-the-new-eep-sky = Has anyone seen the new EEP sky?
 demo-conference-invitation = Anyone up for a tour of the plaza?
 common-quit = Quit
-ui-bars-quit-block-viewer = Quit Aurora Viewer
+ui-bars-quit-block-viewer = Quit Block Viewer
 ui-options-camera-exit-with-mouse-wheel = Exit with mouse wheel
 ui-contacts-leave-group = Leave group
 ui-contacts-leave-group-2 = Leave group '{ $n }'?
@@ -5378,7 +5378,7 @@ ui-options-no-neighbour-regions = Only the region I am in
 ui-options-no-neighbour-regions-help = Do not connect to the neighbouring regions: lighter on the network and the computer, but they are not shown, crossings on foot or in vehicles are less reliable and a teleport may be needed. Takes full effect after the next teleport.
 ui-perf-network-to-world = Network to world
 common-resident = Resident
-demo-resident-in-block-viewer-s-offline-demo = Resident in Aurora Viewer's offline demo 🐺✨
+demo-resident-in-block-viewer-s-offline-demo = Resident in Block Viewer's offline demo 🐺✨
 ui-land-options-residential = Residential
 ui-options-residents = Residents
 ui-options-cascaded-shadow-resolution-and-distance = Cascaded shadow resolution and distance
@@ -5685,9 +5685,9 @@ stream-list-failed = The stream list file could not be written or read.
 ui-bars-market-data = L$ market data
 ui-bars-script-library = Script library
 ui-bars-message-of-the-day = Message of the day
-ui-bars-wiki = Aurora Viewer wiki
+ui-bars-wiki = Block Viewer wiki
 ui-bars-knowledge-base = Knowledge base
-ui-bars-about = About Aurora Viewer
+ui-bars-about = About Block Viewer
 cmdline-dice-successes = { "Successes: " }{ $successes }
 build-manip-south = South
 common-next = Next
@@ -5748,7 +5748,7 @@ common-area = Area:
 build-ui-tools-area-m2 = { "Area: " }{ $area }{ " m²" }
 ui-hud-area-m2 = { "Area: " }{ $value0 }{ " m²" }
 nameplate-aurora-staff = Aurora Team
-nameplate-aurora-staff-tooltip = A member of the Aurora Viewer team
+nameplate-aurora-staff-tooltip = A member of the Block Viewer team
 nameplate-linden-lab = Linden Lab
 nameplate-linden-lab-tooltip = A Linden Lab employee
 ui-perf-water-surface-refraction-waves = Water surface (refraction, waves)
@@ -6082,7 +6082,7 @@ ui-options-crash-github-hint = Forgets the GitHub authorization kept on this com
 ui-options-crash-github-forget = Forget
 ui-options-your-data = Your data
 ui-options-privacy-policy = Privacy policy
-ui-options-privacy-policy-hint = What Aurora Viewer sends, to whom, and what it keeps on this computer, on block-viewer.org.
+ui-options-privacy-policy-hint = What Block Viewer sends, to whom, and what it keeps on this computer, on block-viewer.org.
 ui-options-privacy-policy-open = Read
 ui-options-bars = Bars
 ui-options-at-startup = At startup
@@ -7790,7 +7790,7 @@ hud-move-locked = Lock quick movement
 hud-local-scale-reset = Reset to 100%
 hud-local-scale-forget = Forget saved size
 hud-local-scale-help = Hold the HUD key: left drag to move, wheel to resize, Shift for finer steps. Size is saved on this PC by name and creator, for this account. While editing a HUD, the wheel without this key zooms the view of all HUDs.
-cli-help = { "Aurora Viewer\u000A\u000AUsage: block-viewer [--title <text>] [--fps-limit <fps>] [--vr] [--language <code>] [--grid <name>]\u000A                     [--login <first> <last> <password>] [--version] [--uninstall] [<slurl>]\u000A\u000A  --title <text>   Name this window (\"Aurora Viewer <version> - <text>\") and its log\u000A                   file (aurora-<text>.log, aurora-demo-<text>.log in demo mode)\u000A  --fps-limit <fps>  Cap this process at 1..500 FPS without saving preferences\u000A  --language <code>  Override this process's UI language (" }{ $languages }{ ")\u000A  --grid <name>    Start on agni, aditi, a saved grid name or a login URI (also --loginuri <uri>)\u000A  --login <first> <last> <password>  Log in with this account at once\u000A  <slurl>, --url <slurl>  Start at this place; nothing after it is read. A viewer\u000A                   already running receives it instead\u000A  --vr             Enter VR once the world shows (headset connected)\u000A  -V, --version   Show the compiled viewer version without starting it\u000A  --uninstall      Remove what Aurora registered outside its folders (link handler,\u000A                   credential store, Blender add-on), print it and the folders left, then exit\u000A  -h, --help       Show this help\u000A\u000ATest switches are environment variables (AURORA_DEMO=1, AURORA_CAPTURE=...):\u000Asee README.md." }
+cli-help = { "Block Viewer\u000A\u000AUsage: block-viewer [--title <text>] [--fps-limit <fps>] [--vr] [--language <code>] [--grid <name>]\u000A                     [--login <first> <last> <password>] [--version] [--uninstall] [<slurl>]\u000A\u000A  --title <text>   Name this window (\"Block Viewer <version> - <text>\") and its log\u000A                   file (aurora-<text>.log, aurora-demo-<text>.log in demo mode)\u000A  --fps-limit <fps>  Cap this process at 1..500 FPS without saving preferences\u000A  --language <code>  Override this process's UI language (" }{ $languages }{ ")\u000A  --grid <name>    Start on agni, aditi, a saved grid name or a login URI (also --loginuri <uri>)\u000A  --login <first> <last> <password>  Log in with this account at once\u000A  <slurl>, --url <slurl>  Start at this place; nothing after it is read. A viewer\u000A                   already running receives it instead\u000A  --vr             Enter VR once the world shows (headset connected)\u000A  -V, --version   Show the compiled viewer version without starting it\u000A  --uninstall      Remove what Aurora registered outside its folders (link handler,\u000A                   credential store, Blender add-on), print it and the folders left, then exit\u000A  -h, --help       Show this help\u000A\u000ATest switches are environment variables (AURORA_DEMO=1, AURORA_CAPTURE=...):\u000Asee README.md." }
 demo-media-page = { "data:text/html;charset=utf-8,<html><body style='margin:0;height:100vh;background:linear-gradient(135deg,%232a1f4a,%230f6d6d);color:white;font:56px sans-serif;text-align:center'><h1 style='margin:40px 0 10px'>Aurora media</h1><p id='t' style='font-size:90px;margin:10px'>--</p><button onclick=\"document.body.style.background='%237a3b9c';this.textContent='Clicked!'\" style='font-size:48px;padding:10px 40px'>Click</button><br><input placeholder='Type here' style='font-size:44px;margin-top:30px;width:70%'><script>setInterval(function(){document.getElementById('t').textContent=new Date().toLocaleTimeString()},250)</script></body></html>" }
 
 # Secondary labels and status messages
@@ -7830,7 +7830,7 @@ status-fps-fps = { $fps }{ " fps" }
 status-unknown = (unknown)
 status-public = (public)
 status-readme-txt = README.txt
-status-block-viewer-skin-theme-json-colors = { "Aurora Viewer skin\u000A\u000Atheme.json  : colors (#RRGGBB), corners, font sizes\u000Alayout.json : toolbar buttons (icon + command), chat options\u000A(copy the *.example.json files to start with default values)\u000Aicons/      : PNG files replacing built-in icons (same filename)\u000A\u000AChanges are reloaded automatically while in world.\u000ACommands: help, conversations, speak, fly, mouselook, people, friends, inventory,\u000Aappearance, search, worldmap, minimap, performance, sit, home, preferences.\u000A" }
+status-block-viewer-skin-theme-json-colors = { "Block Viewer skin\u000A\u000Atheme.json  : colors (#RRGGBB), corners, font sizes\u000Alayout.json : toolbar buttons (icon + command), chat options\u000A(copy the *.example.json files to start with default values)\u000Aicons/      : PNG files replacing built-in icons (same filename)\u000A\u000AChanges are reloaded automatically while in world.\u000ACommands: help, conversations, speak, fly, mouselook, people, friends, inventory,\u000Aappearance, search, worldmap, minimap, performance, sit, home, preferences.\u000A" }
 status-area-m-l-price-l-m = { $value0 }{ "\u000A" }{ $area }{ " m² L$ " }{ $price }{ " (" }{ $value1 }{ " L$/m²)" }
 status-days = { " days" }
 status-hours = { " hours" }
@@ -8277,8 +8277,8 @@ monitor-media-marketplace = Marketplace
 monitor-media-profile = Profile web page
 
 # Independent crash recovery window
-crash-title = Aurora Viewer — Crash report
-crash-heading = Aurora Viewer stopped unexpectedly
+crash-title = Block Viewer — Crash report
+crash-heading = Block Viewer stopped unexpectedly
 crash-explanation = Your session has ended. The details below can help identify the problem.
 crash-local-only = These details are saved on this computer. Nothing has been sent.
 crash-details = Technical details
@@ -8319,9 +8319,9 @@ crash-publish = Publish on GitHub
 crash-open-browser = Open in the browser
 crash-body-copied = The report is in the clipboard: paste it into the issue that just opened.
 crash-back = Back
-crash-report-summary = Aurora Viewer crash
+crash-report-summary = Block Viewer crash
 crash-report-expected = The viewer should continue running.
-crash-report-actual = Aurora Viewer stopped unexpectedly.
+crash-report-actual = Block Viewer stopped unexpectedly.
 crash-report-reason = Crash type
 crash-report-exit-code = Process exit code
 bug-log-native = native exception
@@ -8376,7 +8376,7 @@ update-error-integrity = The download does not match the published checksum. It 
 update-error-filesystem = Unable to prepare installation. Check free space and folder write permissions, and close other Aurora instances.
 update-error-package = The package is incomplete or invalid. The current installation is preserved.
 update-error-unsupported = This release cannot be installed automatically from this folder. Download it from its page and extract it into a dedicated folder.
-update-error-unsupported-macos = On macOS, a new version is installed by hand. Download it from its page, then replace Aurora Viewer in your Applications folder with the new one.
+update-error-unsupported-macos = On macOS, a new version is installed by hand. Download it from its page, then replace Block Viewer in your Applications folder with the new one.
 update-error-startup = The update helper could not start. The current installation is preserved.
 update-rollback = The new version did not start correctly. The previous installation was restored.
 update-settings = Updates
@@ -10809,7 +10809,7 @@ buy-land-can-not-change = May not be joined or subdivided.
 buy-land-covenant-section = Estate covenant
 buy-land-must-agree = You must agree to the Estate Covenant:
 buy-land-agree-covenant = I agree to the covenant defined above.
-buy-land-cannot-close = You cannot close the Buy Land window until Aurora Viewer estimates the price of this transaction.
+buy-land-cannot-close = You cannot close the Buy Land window until Block Viewer estimates the price of this transaction.
 buy-land-nothing-selected = Unable to buy land: no parcel selected.
 buy-land-across-regions = Unable to buy land because selection spans multiple regions. Please select a smaller area and try again.
 buy-land-only-officer = Unable to buy land for the group: you do not have permission to buy land for your active group.
@@ -13099,7 +13099,7 @@ scene-nav-character-detail = CPU: { $cpu } µs · Length: { $length } m · Radiu
 scene-nav-horizontal = Horizontal character
 scene-nav-vertical = Vertical character
 
-# About Aurora Viewer (#1126)
+# About Block Viewer (#1126)
 about-tab-info = Info
 about-tab-licences = Licenses
 about-copy = Copy to clipboard
@@ -13107,9 +13107,9 @@ about-copied = Copied
 about-copy-hint = Copies all of the above in English, for a support request or a bug report.
 about-click-to-copy = Click to copy this value
 about-build-pill = { $profile } build
-about-third-party-viewer = Aurora Viewer is a third-party viewer, not provided or supported by Linden Lab, the makers of Second Life.
+about-third-party-viewer = Block Viewer is a third-party viewer, not provided or supported by Linden Lab, the makers of Second Life.
 about-release-notes = Release notes
-about-licence-title = Aurora Viewer's license
+about-licence-title = Block Viewer's license
 about-licence-gpl = GNU GPL v3
 about-source-code = Source code
 about-section-viewer = Viewer

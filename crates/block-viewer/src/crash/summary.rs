@@ -250,7 +250,7 @@ fn build_at(record: &super::Record, dir: &Path, boot_unix: Option<u64>) -> Summa
     }
 
     let mut body = format!(
-        "{MARKER}\nSent from the crash window of Aurora Viewer. Raw addresses, messages, paths and the log stay on the tester's PC.\n\n| Field | Value |\n|---|---|\n"
+        "{MARKER}\nSent from the crash window of Block Viewer. Raw addresses, messages, paths and the log stay on the tester's PC.\n\n| Field | Value |\n|---|---|\n"
     );
     for (field, value) in rows {
         body.push_str(&format!("| {field} | {value} |\n"));
@@ -550,7 +550,7 @@ const STATE_ROWS: &[(&str, &str)] = &[
     ("loss_cause", "GPU loss: what the message is about"),
     ("loss_seen_by", "GPU loss: first seen by"),
     ("stall_ms", "GPU held the render thread past 2 s, longest (ms)"),
-    ("other_viewers", "Other Aurora viewers on this card (count / in front)"),
+    ("other_viewers", "Other Block Viewers on this card (count / in front)"),
     ("card_used_mb", "Card memory in use by all programs (MB)"),
     ("card_others_mb", "Card memory in use by other programs (MB)"),
     ("loading", "Still loading (textures in flight / awaiting upload / geometry)"),
@@ -1718,7 +1718,7 @@ mod tests {
             "| GPU loss: first seen by | callback |",
             "| GPU held the render thread past 2 s, longest (ms) | 2300 |",
             "| Ambient occlusion / contact shadows of that frame (ms) | 20.5/2100.0 |",
-            "| Other Aurora viewers on this card (count / in front) | 2/1 |",
+            "| Other Block Viewers on this card (count / in front) | 2/1 |",
             "| Card memory in use by all programs (MB) | 6100 |",
             "| Card memory in use by other programs (MB) | 3200 |",
         ] {

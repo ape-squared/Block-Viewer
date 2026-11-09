@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Puts the built viewer and its files in a folder ready to launch (or to
     zip): exe, assets, licences. The GitHub release and build-release.ps1
@@ -37,6 +37,14 @@ Get-ChildItem -LiteralPath $dictionaries -Directory -ErrorAction Stop | ForEach-
 }
 $docs = 'LICENSE', 'NOTICE.md', 'README.md' | ForEach-Object { Join-Path $Source $_ }
 Copy-Item -LiteralPath $docs -Destination $Out -ErrorAction Stop
+# Windows portable zip: double-click Uninstall.cmd next to the exe (does not
+# need the viewer to start — useful when GPU init fails). Listed in the
+# updater ALLOWED set so in-place updates keep accepting the folder.
+if ([IO.Path]::GetExtension($Exe) -ieq '.exe') {
+    $winPack = Join-Path $Source 'packaging/windows'
+    Copy-Item -LiteralPath (Join-Path $winPack 'Uninstall.cmd') -Destination $Out -ErrorAction Stop
+    Copy-Item -LiteralPath (Join-Path $winPack 'Uninstall.ps1') -Destination $Out -ErrorAction Stop
+}
 # Linux (an executable without extension): the desktop entry and its icon,
 # named after the viewer's Wayland app_id / X11 WM_CLASS (cli.rs DESKTOP_ID)
 # so the desktop matches the window to them. docs/LINUX.md installs them.

@@ -1,19 +1,32 @@
 name: Release
 
 # A version tag (SemVer: v0.2.0, v0.2.1…) pushed by a human builds the
-# viewer and publishes the release with notes grouped by PR label: the
-# Windows zip (the one the updater installs) and its crash symbols, then the
-# Linux archive and the macOS application. A pull request that changes these
-# release files gets a dry run of the three jobs (the version Git describes,
-# the symbols, the Linux archive and the macOS application kept as the run's
-# artifacts, nothing published): no agent can try the Linux or macOS build
-# on its PC, and the symbols need the release build.
+# viewer and publishes the release with notes: the Windows zip (the one the
+# updater installs), its crash symbols, and the macOS DMG. Linux still
+# dry-runs on packaging PRs only. Use workflow_dispatch with an existing
+# tag and only=macos to attach a Mac build to a release that already has
+# Windows. Nightly may call this workflow with a beta tag.
 # The Nightly workflow calls it with the beta tag it has just pushed (a tag
 # pushed with the workflow token starts no workflow by itself); a tag with
 # a pre-release part is published as a GitHub pre-release.
 on:
   push:
     tags: ['v[0-9]+.[0-9]+.[0-9]+*']
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Existing version tag to build for (e.g. v0.1.0)
+        required: true
+        type: string
+      only:
+        description: Build only this platform (empty = Windows + macOS)
+        required: false
+        type: choice
+        options:
+          - ''
+          - macos
+          - windows
+        default: ''
   workflow_call:
     inputs:
       tag:
@@ -27,7 +40,7 @@ on:
       - packaging/linux/**
       - packaging/macos/**
       - scripts/package-macos.ps1
-      - assets/branding/aurora.icns
+      - assets/branding/block.icns
       - scripts/verify-version.ps1
 
 # a new push to a pull request stops its previous dry run; a release (a
@@ -41,13 +54,17 @@ permissions:
 
 jobs:
   windows:
+    if: ${{ !(github.event_name == 'workflow_dispatch' && inputs.only == 'macos') }}
     runs-on: windows-latest
     env:
       TAG: ${{ inputs.tag || github.event_name == 'push' && github.ref_name || 'dry-run' }}
     steps:
+      # Tag / dispatch must build the tagged commit (AURORA_VERSION_TAG refuses
+      # a tree ahead of the tag). PRs keep the PR head.
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
+          ref: ${{ github.event_name == 'pull_request' && github.ref || inputs.tag || github.ref }}
       - name: Rust stable
         run: rustup update stable
       - uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0 # v2.9.3
@@ -57,8 +74,7 @@ jobs:
         shell: pwsh
         run: |
           if ($env:TAG -ne 'dry-run') { $env:AURORA_VERSION_TAG = $env:TAG }
-          # the OpenXR loader built in: the published exe needs nothing beside it
-          cargo build --release --locked -p block-viewer --features xr-static-loader
+          cargo build --release --locked -p block-viewer
       - name: Verify compiled version
         if: env.TAG != 'dry-run'
         shell: pwsh
@@ -101,11 +117,44 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           $v = $env:TAG
-          # The header (Linden Lab disclaimer, support, privacy: Third-Party
-          # Viewer Policy §1.c) comes before the generated notes.
-          $ghArgs = @($v, $env:ZIP, "$($env:ZIP).sha256", $env:SYMBOLS, "$($env:SYMBOLS).sha256", 'aurora-update-policy.json', '--title', "Aurora Viewer $v", '--notes-file', '.github/release-notes-header.md', '--generate-notes', '--verify-tag')
-          if ($v -match '-') { $ghArgs += '--prerelease' }   # v0.3.0-beta.1
-          gh release create @ghArgs
+          # Title must say Block Viewer (not Aurora). GITHUB_TOKEN creates do
+          # not fire other workflows' `release` events, so Discord is notified
+          # by the notify-discord job below (DISCORD_RELEASES_WEBHOOK).
+          # Notes: header + commit subjects since the previous tag. Pure
+          # --generate-notes is empty on this fork (no labeled PRs), so the
+          # release page only showed a compare link; list the commits instead.
+          $header = Get-Content -LiteralPath .github/release-notes-header.md -Raw
+          $prev = git tag --list 'v*' --sort=-v:refname |
+            Where-Object { $_ -ne $v -and $_ -notmatch '-' } |
+            Select-Object -First 1
+          $range = if ($prev) { "$prev..$v" } else { $v }
+          $commits = @(git log --pretty=format:'- %s' $range)
+          if (-not $commits -or $commits.Count -eq 0) {
+            $commits = @('- See the repository history for this tag.')
+          }
+          $notesPath = Join-Path $env:RUNNER_TEMP "release-notes-$v.md"
+          $body = ($header.TrimEnd() + "`n`n## What's new`n`n" + ($commits -join "`n") + "`n")
+          if ($prev) {
+            $body += "`n**Full Changelog**: https://github.com/$($env:GITHUB_REPOSITORY)/compare/$prev...$v`n"
+          }
+          Set-Content -LiteralPath $notesPath -Value $body -Encoding utf8
+          $title = "Block Viewer $($v.TrimStart('v'))"
+          $assets = @($env:ZIP, "$($env:ZIP).sha256", $env:SYMBOLS, "$($env:SYMBOLS).sha256", 'block-update-policy.json')
+          # Rebuilding an existing tag (Windows-only re-dispatch) must replace
+          # the zip, not fail on "release already exists".
+          $exists = $false
+          gh release view $v 2>$null | Out-Null
+          if ($LASTEXITCODE -eq 0) { $exists = $true }
+          if ($exists) {
+            gh release upload $v @assets --clobber
+            $edit = @($v, '--title', $title, '--notes-file', $notesPath)
+            if ($v -match '-') { $edit += '--prerelease' } else { $edit += '--latest' }
+            gh release edit @edit
+          } else {
+            $ghArgs = @($v) + $assets + @('--title', $title, '--notes-file', $notesPath, '--verify-tag')
+            if ($v -match '-') { $ghArgs += '--prerelease' }   # v0.3.0-beta.1
+            gh release create @ghArgs
+          }
       - name: Dry-run symbols
         if: github.event_name == 'pull_request'
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
@@ -116,14 +165,107 @@ jobs:
             ${{ env.SYMBOLS }}.sha256
           compression-level: 0
 
-  # The Linux archive joins the release once it is published: a Linux build
-  # that fails leaves the Windows release in place and the run red (re-run
-  # this job alone after a passing failure; a fix in the code needs a new
-  # version). Ubuntu 24.04: glibc 2.39, so current distributions (Arch,
-  # Fedora, Ubuntu 24.04 and later) run it.
+  # GITHUB_TOKEN release creates do not trigger discord-release.yml (`release`
+  # events from the default token are swallowed). Post here once Windows has
+  # published the zip the Stable updater installs.
+  notify-discord:
+    needs: windows
+    if: ${{ !cancelled() && needs.windows.result == 'success' && github.event_name != 'pull_request' }}
+    runs-on: ubuntu-latest
+    env:
+      TAG: ${{ inputs.tag || github.event_name == 'push' && github.ref_name || 'dry-run' }}
+    steps:
+      - name: Post release embed
+        env:
+          WEBHOOK: ${{ secrets.DISCORD_RELEASES_WEBHOOK }}
+          TESTER_ROLE: ${{ secrets.DISCORD_TESTER_ROLE_ID }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          if [ -z "${WEBHOOK:-}" ]; then
+            echo "DISCORD_RELEASES_WEBHOOK secret is missing; skipping Discord notify" >&2
+            exit 0
+          fi
+          if [ "${TAG}" = dry-run ]; then
+            echo "dry-run: no Discord notify"
+            exit 0
+          fi
+          RELEASE_JSON=$(gh api "repos/${GITHUB_REPOSITORY}/releases/tags/${TAG}")
+          export RELEASE_JSON
+          python3 - <<'PY'
+          import json, os, re, urllib.request
+          release = json.loads(os.environ["RELEASE_JSON"])
+          webhook = os.environ["WEBHOOK"].rstrip("/")
+          if webhook.endswith("/github"):
+              webhook = webhook[: -len("/github")]
+          tag = release.get("tag_name") or ""
+          name = (release.get("name") or tag or "Release").strip()
+          url = release.get("html_url") or ""
+          prerelease = bool(release.get("prerelease"))
+          body = (release.get("body") or "").strip()
+          body = re.sub(r"<!--.*?-->", "", body, flags=re.S)
+          body = re.sub(r"(?im)^#+\s*Block Viewer\s*$", "", body)
+          body = re.sub(r"(?im)^Support:.*$", "", body)
+          body = re.sub(r"(?im)^Sister project.*$", "", body)
+          body = re.sub(r"\n{3,}", "\n\n", body).strip()
+          if len(body) > 1800:
+              body = body[:1797].rstrip() + "…"
+          if not body:
+              body = "Release notes are on GitHub."
+          assets = release.get("assets") or []
+          windows = next(
+              (a for a in assets if a.get("name", "").endswith("-windows-x64.zip") and not a.get("name", "").endswith("-symbols.zip")),
+              None,
+          )
+          macos = next(
+              (a for a in assets if a.get("name", "").endswith("-macos-arm64.dmg")),
+              None,
+          )
+          fields = []
+          if windows and windows.get("browser_download_url"):
+              fields.append({"name": "Windows", "value": f"[Download zip]({windows['browser_download_url']})", "inline": True})
+          if macos and macos.get("browser_download_url"):
+              fields.append({"name": "macOS", "value": f"[Download DMG]({macos['browser_download_url']})", "inline": True})
+          fields.append({"name": "Tag", "value": f"[`{tag}`]({url})" if tag and url else (tag or "—"), "inline": True})
+          color = 0x38BDF8 if prerelease else 0xD4FF3F
+          title = name if name.lower().startswith("block") else f"Block Viewer {name}"
+          embed = {
+              "title": title, "url": url, "description": body, "color": color, "fields": fields,
+              "thumbnail": {"url": "https://raw.githubusercontent.com/ape-squared/Block-Viewer/main/assets/branding/block-logo-bg.png"},
+              "footer": {"text": "Block Viewer · GitHub Releases"},
+          }
+          if release.get("published_at"):
+              embed["timestamp"] = release["published_at"]
+          kind = "New pre-release" if prerelease else "New release"
+          role = (os.environ.get("TESTER_ROLE") or "").strip()
+          allowed = {"parse": []}
+          if role.isdigit():
+              content = f"{kind} <@&{role}>"
+              allowed = {"roles": [role]}
+          else:
+              content = f"{kind} — testers welcome"
+          payload = {
+              "username": "Block Viewer",
+              "avatar_url": "https://raw.githubusercontent.com/ape-squared/Block-Viewer/main/assets/branding/block-logo-bg.png",
+              "content": content,
+              "embeds": [embed],
+              "allowed_mentions": allowed,
+          }
+          req = urllib.request.Request(
+              webhook + "?wait=true",
+              data=json.dumps(payload).encode(),
+              headers={"Content-Type": "application/json", "User-Agent": "Block-Viewer-Release-Notify"},
+              method="POST",
+          )
+          with urllib.request.urlopen(req, timeout=30) as resp:
+              print(f"Discord {resp.status}")
+          PY
+
+  # Linux is not published yet (Windows-first). Dry-run only on PRs that
+  # touch packaging / this workflow. Ubuntu 24.04: glibc 2.39.
   linux:
     needs: windows
-    if: ${{ !cancelled() && (needs.windows.result == 'success' || github.event_name == 'pull_request') }}
+    if: ${{ github.event_name == 'pull_request' }}
     runs-on: ubuntu-24.04
     env:
       TAG: ${{ inputs.tag || github.event_name == 'push' && github.ref_name || 'dry-run' }}
@@ -131,6 +273,7 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
+          ref: ${{ github.event_name == 'pull_request' && github.ref || inputs.tag || github.ref }}
       # ALSA for the sound, the rest for winit's X11 / Wayland back ends
       - name: System libraries
         run: |
@@ -166,7 +309,8 @@ jobs:
           "$hash  $dir.tar.gz" | Set-Content -LiteralPath "$dir.tar.gz.sha256" -Encoding utf8NoBOM
           "ARCHIVE=$dir.tar.gz" >> $env:GITHUB_ENV
       - name: Publish
-        if: env.TAG != 'dry-run'
+        # Kept off public releases (Windows-first); dry-run PRs never hit this.
+        if: false
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: gh release upload "$TAG" "$ARCHIVE" "$ARCHIVE.sha256"
@@ -180,25 +324,38 @@ jobs:
             ${{ env.ARCHIVE }}.sha256
           compression-level: 0
 
-  # The macOS application (Apple Silicon) joins the release like the Linux
-  # archive: "Aurora Viewer.app" in a disk image, next to a link to
-  # Applications to drag it onto, as Mac applications are installed. Signed with the Developer ID, then notarized and stapled,
-  # when the repository has the Apple secrets (docs/MACOS.md, "Signing");
-  # signed ad hoc otherwise, which macOS opens only after "Open Anyway" in
-  # Privacy & Security. The updater does not install it: the viewer points
-  # to the release page, as on Linux.
+  # App bundle + DMG; signing/notarization when Apple secrets exist (docs/MACOS.md).
+  # Tag pushes and workflow_dispatch publish to the release; PRs only dry-run.
   macos:
     needs: windows
-    if: ${{ !cancelled() && (needs.windows.result == 'success' || github.event_name == 'pull_request') }}
+    if: |
+      always() &&
+      (needs.windows.result == 'success' || needs.windows.result == 'skipped') &&
+      !(github.event_name == 'workflow_dispatch' && inputs.only == 'windows') &&
+      (github.event_name == 'pull_request' || github.event_name == 'push' ||
+       github.event_name == 'workflow_call' || github.event_name == 'workflow_dispatch')
     runs-on: macos-15
     env:
       TAG: ${{ inputs.tag || github.event_name == 'push' && github.ref_name || 'dry-run' }}
-      APP: Aurora Viewer.app
+      APP: Block Viewer.app
       SIGNED: ${{ secrets.MACOS_CERTIFICATE_P12 != '' && secrets.APPLE_API_KEY_P8 != '' }}
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      # Tag / dispatch must build the tagged commit (AURORA_VERSION_TAG refuses
+      # a tree ahead of the tag). PRs keep the PR head. A macos-only dispatch
+      # then overlays packaging from the workflow commit so Block.app branding
+      # shipped after the tag still applies to that release.
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
+          ref: ${{ github.event_name == 'pull_request' && github.ref || inputs.tag || github.ref }}
+      - name: Packaging from workflow commit
+        if: github.event_name == 'workflow_dispatch' && inputs.tag != ''
+        run: |
+          git checkout "${{ github.sha }}" -- \
+            packaging/macos/Info.plist \
+            scripts/package-macos.ps1 \
+            assets/branding/block.icns \
+            assets/branding/block/02-app-icon
       - name: Rust stable
         run: rustup update stable
       - uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0 # v2.9.3
@@ -273,14 +430,17 @@ jobs:
           mkdir -p "$stage"
           ditto "$APP" "$stage/$APP"
           ln -s /Applications "$stage/Applications"
-          hdiutil create -volname "Aurora Viewer" -srcfolder "$stage" -fs HFS+ -format UDZO -ov "$dmg"
+          hdiutil create -volname "Block Viewer" -srcfolder "$stage" -fs HFS+ -format UDZO -ov "$dmg"
           shasum -a 256 "$dmg" > "$dmg.sha256"
           echo "ARCHIVE=$dmg" >> "$GITHUB_ENV"
       - name: Publish
         if: env.TAG != 'dry-run'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: gh release upload "$TAG" "$ARCHIVE" "$ARCHIVE.sha256"
+        run: |
+          # Attach to the existing GitHub release for this tag (clobber if a
+          # previous Mac asset for the same name is already there).
+          gh release upload "$TAG" "$ARCHIVE" "$ARCHIVE.sha256" --clobber
       - name: Dry-run application
         if: github.event_name == 'pull_request'
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2

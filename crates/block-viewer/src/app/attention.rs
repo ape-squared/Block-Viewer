@@ -92,7 +92,7 @@ const MAX_TITLE_COUNT: usize = 99;
 /// LLStringUtil::truncate(window_title, 255), in characters here.
 const MAX_TITLE: usize = 255;
 
-/// The window title with the unread IMs before it, "(3) Aurora Viewer…"
+/// The window title with the unread IMs before it, "(3) Block Viewer…"
 /// (FSShowMessageCountInWindowTitle,
 /// LLIMWellChiclet::updateApplicationWindowTitle, llchiclet.cpp).
 pub fn titled(title: &str, unread: usize, on: bool) -> String {
@@ -439,12 +439,12 @@ mod tests {
 
     #[test]
     fn the_title_counts_the_unread_ims_up_to_99_plus() {
-        let t = "Aurora Viewer 0.8 (Dev)";
+        let t = "Block Viewer 0.8 (Dev)";
         assert_eq!(titled(t, 3, false), t, "off by default");
         assert_eq!(titled(t, 0, true), t);
-        assert_eq!(titled(t, 3, true), "(3) Aurora Viewer 0.8 (Dev)");
-        assert_eq!(titled(t, 99, true), "(99) Aurora Viewer 0.8 (Dev)");
-        assert_eq!(titled(t, 100, true), "(99+) Aurora Viewer 0.8 (Dev)");
+        assert_eq!(titled(t, 3, true), "(3) Block Viewer 0.8 (Dev)");
+        assert_eq!(titled(t, 99, true), "(99) Block Viewer 0.8 (Dev)");
+        assert_eq!(titled(t, 100, true), "(99+) Block Viewer 0.8 (Dev)");
         assert_eq!(titled(&"é".repeat(300), 1, true).chars().count(), MAX_TITLE);
     }
 }

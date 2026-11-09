@@ -6977,7 +6977,7 @@ mod script_dialog_tests {
         let main_addr = main.local_addr().expect("main address");
         let (events, _received) = crossbeam_channel::unbounded();
         let sh = test_shared(events);
-        sh.viewer_stats.lock().version = "Aurora Viewer 0.7.5.0".into();
+        sh.viewer_stats.lock().version = "Block Viewer 0.7.5.0".into();
         let (url, mut posted) = stats_capability().await;
         let mut sim = Sim::new(main_addr, 10);
         sim.caps = Arc::new([("ViewerStats".to_string(), url)].into());
@@ -7000,7 +7000,7 @@ mod script_dialog_tests {
         session.regions_visited.insert(10);
         session.tick();
         let first = next(&mut posted).await;
-        assert!(first.contains("Aurora Viewer 0.7.5.0"), "{first}");
+        assert!(first.contains("Block Viewer 0.7.5.0"), "{first}");
         assert!(first.contains(&Uuid::from_u128(2).to_string()), "the session id: {first}");
         assert!(first.contains("<key>regions_visited</key><integer>1</integer>"), "{first}");
 

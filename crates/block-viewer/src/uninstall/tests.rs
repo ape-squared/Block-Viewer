@@ -114,11 +114,11 @@ fn the_store_entries_are_the_ones_the_viewer_writes() {
     let [password, mfa] = crate::credentials::store_entries(AGNI, "Jane Resident");
     assert_eq!(Secret::Password(jane.clone()).entry(), password);
     assert_eq!(Secret::SecondFactor(jane).entry(), mfa);
-    assert_eq!(password.0, "Aurora Viewer");
-    assert_eq!(mfa.0, "Aurora Viewer MFA");
+    assert_eq!(password.0, "Block Viewer");
+    assert_eq!(mfa.0, "Block Viewer MFA");
     assert_eq!(password.1, format!("{AGNI}|jane resident"));
-    assert_eq!(Secret::CacheKey.entry(), ("Aurora Viewer cache", "disk cache key v1".to_owned()));
-    assert_eq!(Secret::CrashReports.entry(), ("Aurora Viewer GitHub", "crash-reports".to_owned()));
+    assert_eq!(Secret::CacheKey.entry(), ("Block Viewer cache", "disk cache key v1".to_owned()));
+    assert_eq!(Secret::CrashReports.entry(), ("Block Viewer GitHub", "crash-reports".to_owned()));
 }
 
 #[test]
@@ -188,7 +188,7 @@ fn the_remaining_places_exist_and_nest_once() {
         // macOS: the logs and the media plugins live in the settings folder
         (Kind::Logs, root.join("support/logs")),
         (Kind::MediaPlugins, root.join("support/media-plugins")),
-        (Kind::ChosenCache, PathBuf::from("D:/cache/AuroraViewerCache")),
+        (Kind::ChosenCache, PathBuf::from("D:/cache/BlockViewerCache")),
         (Kind::Transcripts, PathBuf::from("gone")),
         (Kind::Viewer, PathBuf::new()),
     ];
@@ -206,7 +206,7 @@ fn the_remaining_places_exist_and_nest_once() {
             },
             Remaining {
                 kinds: vec![Kind::ChosenCache],
-                path: PathBuf::from("D:/cache/AuroraViewerCache"),
+                path: PathBuf::from("D:/cache/BlockViewerCache"),
             },
         ]
     );
@@ -239,8 +239,8 @@ fn a_file_opens_the_folder_that_holds_it() {
 #[test]
 fn the_viewer_is_its_bundle_on_macos() {
     assert_eq!(
-        viewer_location(Path::new("/Applications/Aurora Viewer.app/Contents/MacOS/block-viewer")),
-        PathBuf::from("/Applications/Aurora Viewer.app")
+        viewer_location(Path::new("/Applications/Block Viewer.app/Contents/MacOS/block-viewer")),
+        PathBuf::from("/Applications/Block Viewer.app")
     );
     assert_eq!(
         viewer_location(Path::new("viewers/block-viewer.exe")),
@@ -260,8 +260,8 @@ fn paths_are_shown_without_the_user_name() {
     let sep = std::path::MAIN_SEPARATOR;
     // the longest base wins
     assert_eq!(
-        shown(&local.join("Aurora").join("AuroraViewer"), &bases),
-        format!("%LOCALAPPDATA%{sep}{}", Path::new("Aurora").join("AuroraViewer").display())
+        shown(&local.join("Aurora").join("BlockViewer"), &bases),
+        format!("%LOCALAPPDATA%{sep}{}", Path::new("Aurora").join("BlockViewer").display())
     );
     assert_eq!(shown(&home.join("Desktop"), &bases), format!("%USERPROFILE%{sep}Desktop"));
     assert_eq!(shown(&home, &bases), "%USERPROFILE%");

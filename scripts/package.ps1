@@ -6,9 +6,9 @@
     runs it too (PowerShell 7), with the executable without extension.
 
 .EXAMPLE
-    ./scripts/package.ps1 -Exe target/release/block-viewer.exe -Out Aurora-Viewer
+    ./scripts/package.ps1 -Exe target/release/block-viewer.exe -Out Block-Viewer
 .EXAMPLE
-    ./scripts/package.ps1 -Exe target/release/block-viewer -Out Aurora-Viewer-v0.8.0-linux-x64
+    ./scripts/package.ps1 -Exe target/release/block-viewer -Out Block-Viewer-v0.8.0-linux-x64
 #>
 param(
     [Parameter(Mandatory)][string]$Exe,
@@ -44,7 +44,7 @@ Copy-Item -LiteralPath $docs -Destination $Out -ErrorAction Stop
 # false, in Windows PowerShell 5.1.)
 if (-not [IO.Path]::GetExtension($Exe) -and -not $IsMacOS) {
     Copy-Item -LiteralPath (Join-Path $Source 'packaging/linux/block-viewer.desktop') -Destination $Out -ErrorAction Stop
-    Copy-Item -LiteralPath (Join-Path $Source 'assets/branding/aurora-logo.svg') -Destination (Join-Path $Out 'block-viewer.svg') -ErrorAction Stop
+    Copy-Item -LiteralPath (Join-Path $Source 'assets/branding/block-logo.svg') -Destination (Join-Path $Out 'block-viewer.svg') -ErrorAction Stop
 }
 $taskExePath = (Resolve-Path -LiteralPath $Exe).Path
 $taskVersion = (& $taskExePath --version | Out-String).Trim() -replace '^Aurora Viewer ', ''

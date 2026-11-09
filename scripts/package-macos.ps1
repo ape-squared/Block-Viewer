@@ -1,12 +1,12 @@
 <#
 .SYNOPSIS
-    Builds "Aurora Viewer.app" from the built viewer: the executable in
+    Builds "Block Viewer.app" from the built viewer: the executable in
     Contents/MacOS, the files of package.ps1 (licences, notices, install
     metadata) with the icon and the translated texts of Info.plist in
     Contents/Resources. The macOS job of the release runs it (PowerShell 7);
     signing and notarization come after, in the workflow.
 .EXAMPLE
-    ./scripts/package-macos.ps1 -Exe target/release/block-viewer -Out "Aurora Viewer.app"
+    ./scripts/package-macos.ps1 -Exe target/release/block-viewer -Out "Block Viewer.app"
 #>
 param(
     [Parameter(Mandatory)][string]$Exe,
@@ -29,14 +29,50 @@ Move-Item -LiteralPath (Join-Path $resources (Split-Path $Exe -Leaf)) -Destinati
 
 # MAJOR.MINOR.PATCH of the build, the only form CFBundleShortVersionString
 # takes (a beta's pre-release part and the commits since the tag are left out)
-$version = (Get-Content -LiteralPath (Join-Path $resources 'aurora-install.json') -Raw | ConvertFrom-Json).version
+$version = (Get-Content -LiteralPath (Join-Path $resources 'block-install.json') -Raw | ConvertFrom-Json).version
 if ($version -notmatch '^(\d+\.\d+\.\d+)') { throw "Invalid package version: $version" }
 $plist = Get-Content -LiteralPath (Join-Path $Source 'packaging/macos/Info.plist') -Raw
 Set-Content -LiteralPath (Join-Path $contents 'Info.plist') -Value $plist.Replace('@VERSION@', $Matches[1]) -Encoding utf8NoBOM -NoNewline
 Set-Content -LiteralPath (Join-Path $contents 'PkgInfo') -Value 'APPL????' -Encoding ascii -NoNewline
 
-Copy-Item -LiteralPath (Join-Path $Source 'assets/branding/aurora.icns') -Destination (Join-Path $resources 'Aurora.icns')
+# App icon: the Block mark in assets/branding/block/02-app-icon (not the
+# legacy aurora.icns copy that lived at assets/branding/block.icns). Prefer
+# iconutil on the Mac runner; fall back to a committed block.icns built from
+# the same PNGs. CFBundleIconFile is "Block".
+$icnsDest = Join-Path $resources 'Block.icns'
+$iconDir = Join-Path $Source 'assets/branding/block/02-app-icon'
+$iconutil = Get-Command iconutil -ErrorAction SilentlyContinue
+if ($iconutil -and (Test-Path -LiteralPath $iconDir)) {
+    $iconset = Join-Path ([System.IO.Path]::GetTempPath()) ("block-viewer-{0}.iconset" -f [guid]::NewGuid().ToString('N'))
+    New-Item -ItemType Directory -Force -Path $iconset | Out-Null
+    # iconutil retina names use "@2x"; build them so the literal is not mangled.
+    $r = [char]64 + '2x'
+    $pairs = [ordered]@{
+        'icon_16x16.png'                    = 'block-app-icon-16.png'
+        ("icon_16x16{0}.png" -f $r)         = 'block-app-icon-32.png'
+        'icon_32x32.png'                    = 'block-app-icon-32.png'
+        ("icon_32x32{0}.png" -f $r)         = 'block-app-icon-64.png'
+        'icon_128x128.png'                  = 'block-app-icon-128.png'
+        ("icon_128x128{0}.png" -f $r)       = 'block-app-icon-256.png'
+        'icon_256x256.png'                  = 'block-app-icon-256.png'
+        ("icon_256x256{0}.png" -f $r)       = 'block-app-icon-512.png'
+        'icon_512x512.png'                  = 'block-app-icon-512.png'
+        ("icon_512x512{0}.png" -f $r)       = 'block-app-icon-1024.png'
+    }
+    foreach ($name in $pairs.Keys) {
+        Copy-Item -LiteralPath (Join-Path $iconDir $pairs[$name]) -Destination (Join-Path $iconset $name)
+    }
+    & iconutil -c icns $iconset -o $icnsDest
+    if ($LASTEXITCODE -ne 0) { throw "iconutil failed ($LASTEXITCODE)" }
+    Remove-Item -LiteralPath $iconset -Recurse -Force
+} else {
+    $icnsSrc = Join-Path $Source 'assets/branding/block.icns'
+    if (-not (Test-Path -LiteralPath $icnsSrc)) {
+        throw "Missing Block.icns source (no iconutil and no assets/branding/block.icns)"
+    }
+    Copy-Item -LiteralPath $icnsSrc -Destination $icnsDest
+}
 Get-ChildItem -LiteralPath (Join-Path $Source 'packaging/macos') -Directory -Filter '*.lproj' | ForEach-Object {
     Copy-Item -LiteralPath $_.FullName -Destination $resources -Recurse
 }
-"${Out}: Aurora Viewer $version"
+"${Out}: Block Viewer $version"

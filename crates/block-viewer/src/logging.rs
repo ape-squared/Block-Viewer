@@ -501,7 +501,7 @@ pub fn init() {
         drain(DRAIN_WAIT);
     }));
     log::info!(
-        "Aurora Viewer {} starting ({} {}, {} allocator), log: {}",
+        "Block Viewer {} starting ({} {}, {} allocator), log: {}",
         block_version::version(),
         std::env::consts::OS,
         std::env::consts::ARCH,

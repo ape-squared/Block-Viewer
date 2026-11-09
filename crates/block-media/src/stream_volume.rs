@@ -41,7 +41,7 @@ use std::time::{Duration, Instant};
 /// Property of the stream that says which plugin it belongs to.
 const TAG: &CStr = c"aurora.media";
 /// Name of the streams in the system's mixer, and of the saved volume.
-const STREAM_NAME: &str = "Aurora Viewer media";
+const STREAM_NAME: &str = "Block Viewer media";
 /// Longest wait for an answer of the server, on the worker's thread.
 const ANSWER_TIMEOUT: Duration = Duration::from_secs(2);
 /// Volumes this close (of 65,536 at full volume) are the same one.
@@ -230,8 +230,8 @@ struct Server {
 
 impl Server {
     fn open(events: Sender<Request>) -> Result<Server> {
-        let control = Connection::open("Aurora Viewer media volume")?;
-        let mut watch = Connection::open("Aurora Viewer media watch")?;
+        let control = Connection::open("Block Viewer media volume")?;
+        let mut watch = Connection::open("Block Viewer media watch")?;
         watch.send(&protocol::Command::Subscribe(protocol::SubscriptionMask::SINK_INPUT))?;
         protocol::read_ack_message(&mut watch.sock)?;
         // events come when they come; closed by `Drop`
@@ -328,7 +328,7 @@ mod tests {
         assert_eq!(name, "PULSE_PROP_OVERRIDE");
         assert_eq!(
             value,
-            format!("application.name='Aurora Viewer media' aurora.media='{}'", volume.tag)
+            format!("application.name='Block Viewer media' aurora.media='{}'", volume.tag)
         );
     }
 

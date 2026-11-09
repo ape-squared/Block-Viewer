@@ -929,7 +929,7 @@ notecard-markdown-demo =
 
     > 埋め込まれたアイテムはノートカードの一部のままです。
 
-    { "[" }Auroraビューア](https://block-viewer.org)
+    { "[" }Blockビューア](https://block-viewer.org)
 
     ```text
     プレーンなコードブロック
@@ -1006,9 +1006,9 @@ script-experience-choose = 体験を選択…
 script-experiences-unavailable = 体験を読み込めません。現在の関連付けは保持されています。再試行してください。
 script-experience-demo = デモ体験
 script-disconnected = 切断されました。保存されていないソースは保持されているので、コピーできます。
-exit-title = Auroraビューアを閉じますか？
+exit-title = Blockビューアを閉じますか？
 exit-world-body = ビューアを終了しますか？それともログイン画面に戻りますか？
-exit-login-body = Auroraビューアを終了しますか？
+exit-login-body = Blockビューアを終了しますか？
 exit-waiting = ログアウトしています…
 exit-logout = ログアウト
 exit-logout-hint = セッションを終了してログイン画面に戻ります。
@@ -1680,17 +1680,17 @@ ui-texture-picker-no-textures-in-the-loaded-inventory = 読み込まれたイン
 world-tphistory-today = 今日
 app-aurora-elsewhere = Auroraの別エリア
 common-aurora-demo = Auroraのデモ
-demo-block-viewer-rust-vulkan = { "Auroraビューア\u000ARust・Vulkan" }
-demo-block-viewer-rust-metal = { "Auroraビューア\u000ARust・Metal" }
-ui-login-block-viewer-v = Auroraビューア　v{ $value0 }
-cli-block-viewer = { "Auroraビューア" }{ $version }
-cli-block-viewer-2 = { "Auroraビューア" }{ $version }{ "‐" }{ $t }
+demo-block-viewer-rust-vulkan = { "Blockビューア\u000ARust・Vulkan" }
+demo-block-viewer-rust-metal = { "Blockビューア\u000ARust・Metal" }
+ui-login-block-viewer-v = Blockビューア　v{ $value0 }
+cli-block-viewer = { "Blockビューア" }{ $version }
+cli-block-viewer-2 = { "Blockビューア" }{ $version }{ "‐" }{ $t }
 common-block-viewer = { "Blockビューア" }{ $value0 }
-app-block-viewer-unable-to-initialize-vulkan = { "Auroraビューア：Vulkanを初期化できませんでした：" }{ $e }
-app-block-viewer-unable-to-initialize-metal = { "Auroraビューア：Metalを初期化できませんでした：" }{ $e }
-app-graphics-start-failed-title = Auroraビューアを起動できません
+app-block-viewer-unable-to-initialize-vulkan = { "Blockビューア：Vulkanを初期化できませんでした：" }{ $e }
+app-block-viewer-unable-to-initialize-metal = { "Blockビューア：Metalを初期化できませんでした：" }{ $e }
+app-graphics-start-failed-title = Blockビューアを起動できません
 app-graphics-start-failed =
-    Auroraビューアはウィンドウを描画するためのグラフィックカードを開けませんでした。
+    Blockビューアはウィンドウを描画するためのグラフィックカードを開けませんでした。
 
     試すべきこと：
     ・グラフィックカードのドライバを更新する。
@@ -1701,7 +1701,7 @@ app-graphics-start-failed =
     詳細：{ $e }
 
     今回の起動のログ：{ $log }
-app-gpu-stall-title = Auroraビューア：グラフィックカードが応答していません
+app-gpu-stall-title = Blockビューア：グラフィックカードが応答していません
 app-gpu-stall =
     グラフィックカードが{ $seconds }秒間画像を完成させていません。Auroraは動作を続けています（ワールド、サウンド、チャットは継続）が、カードが再び応答するまで何も描画できません。
 
@@ -1715,7 +1715,7 @@ app-gpu-stall =
 app-gpu-recovered-title = グラフィックカードがリセットされました
 app-gpu-recovered = グラフィックカードのドライバーがリセットされました（画像の描画に時間がかかりすぎた、ビデオメモリがいっぱいになった、または他のプログラムがグラフィックカードを使用した可能性があります）。Auroraはグラフィックカードでウィンドウを開き直しました。ログインしたままで、ワールドはまもなく再読み込みされます。
 app-gpu-recovered-safe = 数分のうちに、グラフィックカードのドライバーが再びリセットされました。再発を防ぐため、Auroraは安全なグラフィック設定（Potatoレベル）でウィンドウを開き直しました。ログインしたままです。グラフィック設定は保存されており、ログイン画面で元に戻すことができます。
-app-gpu-lost-title = Auroraビューア：グラフィックカードが失われました
+app-gpu-lost-title = Blockビューア：グラフィックカードが失われました
 app-gpu-lost =
     Auroraでグラフィックカードが動作しなくなりました。ドライバーがリセットされた（画像の描画に時間がかかりすぎた、またはビデオメモリがいっぱいになった）、あるいはグラフィックカードが取り外されたか、他のプログラムによって使用された可能性があります。これ以上何も描画できません。ＯＫをクリックするとAuroraが終了します（正常にログアウトされます）。
 
@@ -1915,7 +1915,7 @@ ui-environment-based-on-day-cycle = デイサイクルに基づく
 build-ui-object-bias = 強度
 common-library = ライブラリ
 app-welcome = ようこそ！
-demo-welcome-to-the-block-viewer-demo = Auroraビューアのデモへようこそ！🐺✨❤️
+demo-welcome-to-the-block-viewer-demo = Blockビューアのデモへようこそ！🐺✨❤️
 demo-region-day-cycle = 北欧の夜明け
 demo-region-telehub = テレハブ
 demo-region-telehub-object = テレハブの石
@@ -2413,7 +2413,7 @@ ui-options-flash-conversations-nearby-hint = 会話ウィンドウを閉じて�
 ui-options-announce-incoming-im = 相手が入力を始めたらIMの着信を知らせる
 ui-options-announce-incoming-im-hint = 住人があなたへのIMを入力し始めると、メッセージが届く前にその会話が開き、「着信メッセージ：」と名前が表示されます。
 ui-options-unread-ims-in-window-title = ウィンドウのタイトルに未読IMの数を表示する
-ui-options-unread-ims-in-window-title-hint = 未読のIM、グループチャット、会議があるあいだ、その数がウィンドウのタイトルの先頭に「(3) Aurora Viewer」のように表示されます。タスクバーにも表示されます。
+ui-options-unread-ims-in-window-title-hint = 未読のIM、グループチャット、会議があるあいだ、その数がウィンドウのタイトルの先頭に「(3) Block Viewer」のように表示されます。タスクバーにも表示されます。
 common-copy = コピー
 build-ui-features-copy-attributes = 属性をコピー
 build-ui-object-copy-object-settings-to-clipboard = オブジェクト設定をクリップボードにコピー
@@ -3056,7 +3056,7 @@ ui-place-details-location-details-2 = { "場所の詳細：" }{ $value0 }
 common-expand = 展開
 ui-inventory-controls-expand-displayed-folders = 表示中のフォルダを展開
 ui-places-expand-all-folders = すべてのフォルダを展開
-demo-block-viewer-developer = Auroraビューアの開発者。
+demo-block-viewer-developer = Blockビューアの開発者。
 common-water = 水
 world-inventory-preview-water-haze-density-refraction-wave-scale-normal-texture = { "水\u000A\u000A霞の濃度：" }{ $value0 }{ "\u000A屈折：" }{ $value1 }{ "\u000A波のスケール：" }{ $value2 }{ "\u000A法線テクスチャ：" }{ $value3 }
 demo-env-turquoise-water = ターコイズ色の水
@@ -3855,8 +3855,8 @@ build-ui-general-next-owner = 次の所有者：
 build-ui-floaters-next-owner-can = 次の所有者ができること：
 world-mod-could-not-save-the-profile = プロフィールを保存できませんでした（{ $reason }）。
 ui-land-general-owner-contributes-when-deeding-land = 土地をグループに譲渡するとき所有者が拠出
-world-status-the-resident-you-messaged-has-enabled-block-viewer-s = メッセージを送った住人は、すべてのフレンド申請を拒否するAuroraビューアのモードを有効にしています。フレンド申請で煩わされたくないようですが、ＩＭは送信できます。
-world-status-the-resident-you-messaged-has-enabled-block-viewer-s-2 = メッセージを送った住人は、すべてのテレポートの提案とリクエストを拒否するAuroraビューアのモードを有効にしています。テレポートのリクエストで煩わされたくないようですが、ＩＭは送信できます。
+world-status-the-resident-you-messaged-has-enabled-block-viewer-s = メッセージを送った住人は、すべてのフレンド申請を拒否するBlockビューアのモードを有効にしています。フレンド申請で煩わされたくないようですが、ＩＭは送信できます。
+world-status-the-resident-you-messaged-has-enabled-block-viewer-s-2 = メッセージを送った住人は、すべてのテレポートの提案とリクエストを拒否するBlockビューアのモードを有効にしています。テレポートのリクエストで煩わされたくないようですが、ＩＭは送信できます。
 world-status-the-resident-you-messaged-has-enabled-block-viewer-s-3 = メッセージを送った住人は自動返信モードを有効にしており、煩わされたくないようです。あなたのメッセージは後で読めるよう、相手のＩＭウィンドウに表示されます。
 world-status-the-resident-you-messaged-is-away-your-message-will = メッセージを送った住人は離席中です。あなたのメッセージは後で読めるよう、相手のＩＭウィンドウに表示されます。
 world-status-the-resident-you-messaged-has-blocked-all-messages-from = メッセージを送った住人は、あなたからのすべてのメッセージをブロックしています。
@@ -4534,8 +4534,8 @@ demo-fav-cats-island = 猫島
 demo-fav-prism-gallery = プリズムギャラリー
 demo-fav-shadow-forest = 影の森
 demo-fav-orbital-station = 軌道ステーション
-demo-land-block-viewer-s-offline-demo-parcel-visit-the-fountain = { "Auroraビューアのオフラインデモ区画です。\u000A噴水、ビーチ、丘を訪れてみてください。" }
-demo-block-viewer-s-offline-demo-parcel = Auroraビューアのオフラインデモ区画です。
+demo-land-block-viewer-s-offline-demo-parcel-visit-the-fountain = { "Blockビューアのオフラインデモ区画です。\u000A噴水、ビーチ、丘を訪れてみてください。" }
+demo-block-viewer-s-offline-demo-parcel = Blockビューアのオフラインデモ区画です。
 ui-parcel-icons-isolated-parcel-you-cannot-see-residents-on-other-parcels = 隔離された区画：他の区画の住人は見えず、相手からもあなたは見えません。近くのチャットも境界を越えません。
 ui-parcel-icons-frozen-you-cannot-move-or-interact = 区画所有者または不動産の管理者によりフリーズされています：解放されるまで、移動したりワールドに干渉したりできません。
 ui-minimap-banned-parcels = バンされている区画
@@ -4937,7 +4937,7 @@ world-mod-someone = 誰か
 demo-has-anyone-seen-the-new-eep-sky = 新しいＥＥＰの空、誰か見た？
 demo-conference-invitation = 誰か広場の見学に行かない？
 common-quit = 終了
-ui-bars-quit-block-viewer = Auroraビューアを終了
+ui-bars-quit-block-viewer = Blockビューアを終了
 ui-options-camera-exit-with-mouse-wheel = マウスホイールで解除
 ui-contacts-leave-group = グループを脱退
 ui-contacts-leave-group-2 = グループ「{ $n }」を脱退しますか？
@@ -5375,7 +5375,7 @@ ui-options-no-neighbour-regions = 現在いるリージョンのみ
 ui-options-no-neighbour-regions-help = 隣接するリージョンに接続しません：ネットワークとコンピュータの負荷は軽くなりますが、隣接リージョンは表示されず、徒歩や乗り物での境界越えの信頼性が下がり、テレポートが必要になることがあります。次のテレポート後に完全に反映されます。
 ui-perf-network-to-world = ネットワークからワールドへ
 common-resident = 住人
-demo-resident-in-block-viewer-s-offline-demo = Auroraビューアのオフラインデモの住人 🐺✨
+demo-resident-in-block-viewer-s-offline-demo = Blockビューアのオフラインデモの住人 🐺✨
 ui-land-options-residential = 住宅用
 ui-options-residents = 住人
 ui-options-cascaded-shadow-resolution-and-distance = カスケードシャドウの解像度と距離
@@ -5678,9 +5678,9 @@ stream-list-failed = ストリームのリストのファイルを書き込み�
 ui-bars-market-data = L$マーケットデータ
 ui-bars-script-library = スクリプトライブラリ
 ui-bars-message-of-the-day = 本日のメッセージ
-ui-bars-wiki = Auroraビューア wiki
+ui-bars-wiki = Blockビューア wiki
 ui-bars-knowledge-base = ナレッジベース
-ui-bars-about = Auroraビューアについて
+ui-bars-about = Blockビューアについて
 cmdline-dice-successes = { "成功数：" }{ $successes }
 build-manip-south = 南
 common-next = 次へ
@@ -5741,7 +5741,7 @@ common-area = 面積：
 build-ui-tools-area-m2 = { "面積：" }{ $area }{ "㎡" }
 ui-hud-area-m2 = { "面積：" }{ $value0 }{ "㎡" }
 nameplate-aurora-staff = Aurora Team
-nameplate-aurora-staff-tooltip = Auroraビューアチームのメンバー
+nameplate-aurora-staff-tooltip = Blockビューアチームのメンバー
 nameplate-linden-lab = Linden Lab
 nameplate-linden-lab-tooltip = Linden Labの社員
 ui-perf-water-surface-refraction-waves = 水面（屈折、波）
@@ -6075,7 +6075,7 @@ ui-options-crash-github-hint = クラッシュレポート用にこのコンピ�
 ui-options-crash-github-forget = 忘れる
 ui-options-your-data = あなたのデータ
 ui-options-privacy-policy = プライバシーポリシー
-ui-options-privacy-policy-hint = Auroraビューアが何を誰に送信し、このコンピュータに何を保存するか（block-viewer.org）。
+ui-options-privacy-policy-hint = Blockビューアが何を誰に送信し、このコンピュータに何を保存するか（block-viewer.org）。
 ui-options-privacy-policy-open = 読む
 ui-options-bars = バー
 ui-options-at-startup = 起動時
@@ -7780,7 +7780,7 @@ hud-move-locked = クイック移動をロック
 hud-local-scale-reset = １００％にリセット
 hud-local-scale-forget = 保存したサイズを消去
 hud-local-scale-help = ＨＵＤでキーを押したまま、左ドラッグで移動、ホイールでサイズ変更、Shiftでより細かく調整します。サイズは名前と制作者ごとに、このアカウント用としてこのＰＣに保存されます。ＨＵＤの編集中は、このキーを押さずにホイールを回すとすべてのＨＵＤの表示がズームします。
-cli-help = { "Auroraビューア\u000A\u000A使い方：block-viewer [--title <text>] [--fps-limit <fps>] [--vr] [--language <code>] [--grid <name>]\u000A                     [--login <first> <last> <password>] [--version] [--uninstall] [<slurl>]\u000A\u000A  --title <text>   このウィンドウ（\"Auroraビューア <version> - <text>\"）とログファイル\u000A                   （aurora-<text>.log、デモモードでは aurora-demo-<text>.log）に名前を付ける\u000A  --fps-limit <fps>  初期設定を保存せずに、このプロセスを1～500 ＦＰＳに制限する\u000A  --language <code>  このプロセスのＵＩ言語を上書きする（" }{ $languages }{ "）\u000A  --grid <name>    agni、aditi、保存されたグリッド名、またはログインＵＲＩで起動する（--loginuri <uri> も可）\u000A  --login <first> <last> <password>  このアカウントですぐにログインする\u000A  <slurl>, --url <slurl>  この場所から開始する。以降の引数は読み込まれない。すでに\u000A                   起動しているビューアがあれば、そちらが受け取る\u000A  --vr             ワールドが表示されたらVRに入ります（ヘッドセット接続時）\u000A  -V, --version   起動せずにコンパイルされたビューアのバージョンを表示する\u000A  --uninstall      Auroraがフォルダの外に登録したもの（リンクハンドラ、資格情報ストア、\u000A                   Blenderアドオン）を削除し、その内容と残りのフォルダを表示して終了する\u000A  -h, --help       このヘルプを表示する\u000A\u000Aテスト用のスイッチは環境変数です（AURORA_DEMO=1、AURORA_CAPTURE=...）：\u000AREADME.md を参照してください。" }
+cli-help = { "Blockビューア\u000A\u000A使い方：block-viewer [--title <text>] [--fps-limit <fps>] [--vr] [--language <code>] [--grid <name>]\u000A                     [--login <first> <last> <password>] [--version] [--uninstall] [<slurl>]\u000A\u000A  --title <text>   このウィンドウ（\"Blockビューア <version> - <text>\"）とログファイル\u000A                   （aurora-<text>.log、デモモードでは aurora-demo-<text>.log）に名前を付ける\u000A  --fps-limit <fps>  初期設定を保存せずに、このプロセスを1～500 ＦＰＳに制限する\u000A  --language <code>  このプロセスのＵＩ言語を上書きする（" }{ $languages }{ "）\u000A  --grid <name>    agni、aditi、保存されたグリッド名、またはログインＵＲＩで起動する（--loginuri <uri> も可）\u000A  --login <first> <last> <password>  このアカウントですぐにログインする\u000A  <slurl>, --url <slurl>  この場所から開始する。以降の引数は読み込まれない。すでに\u000A                   起動しているビューアがあれば、そちらが受け取る\u000A  --vr             ワールドが表示されたらVRに入ります（ヘッドセット接続時）\u000A  -V, --version   起動せずにコンパイルされたビューアのバージョンを表示する\u000A  --uninstall      Auroraがフォルダの外に登録したもの（リンクハンドラ、資格情報ストア、\u000A                   Blenderアドオン）を削除し、その内容と残りのフォルダを表示して終了する\u000A  -h, --help       このヘルプを表示する\u000A\u000Aテスト用のスイッチは環境変数です（AURORA_DEMO=1、AURORA_CAPTURE=...）：\u000AREADME.md を参照してください。" }
 demo-media-page = { "data:text/html;charset=utf-8,<html><body style='margin:0;height:100vh;background:linear-gradient(135deg,%232a1f4a,%230f6d6d);color:white;font:56px sans-serif;text-align:center'><h1 style='margin:40px 0 10px'>Auroraメディア</h1><p id='t' style='font-size:90px;margin:10px'>--</p><button onclick=\"document.body.style.background='%237a3b9c';this.textContent='クリックされました！'\" style='font-size:48px;padding:10px 40px'>クリック</button><br><input placeholder='ここに記入' style='font-size:44px;margin-top:30px;width:70%'><script>setInterval(function(){document.getElementById('t').textContent=new Date().toLocaleTimeString()},250)</script></body></html>" }
 
 # Secondary labels and status messages
@@ -7820,7 +7820,7 @@ status-fps-fps = { $fps }{ "fps" }
 status-unknown = （不明）
 status-public = （公開）
 status-readme-txt = README.txt
-status-block-viewer-skin-theme-json-colors = { "Auroraビューアのスキン\u000A\u000Atheme.json  : 色（#RRGGBB）、角、フォントサイズ\u000Alayout.json : ツールバーのボタン（アイコン＋コマンド）、チャットのオプション\u000A（デフォルト値から始めるには *.example.json ファイルをコピーしてください）\u000Aicons/      : 組み込みのアイコンを置き換えるPNGファイル（同じファイル名）\u000A\u000Aワールド内にいる間、変更は自動的に再読み込みされます。\u000Aコマンド：help, conversations, speak, fly, mouselook, people, friends, inventory,\u000Aappearance, search, worldmap, minimap, performance, sit, home, preferences。\u000A" }
+status-block-viewer-skin-theme-json-colors = { "Blockビューアのスキン\u000A\u000Atheme.json  : 色（#RRGGBB）、角、フォントサイズ\u000Alayout.json : ツールバーのボタン（アイコン＋コマンド）、チャットのオプション\u000A（デフォルト値から始めるには *.example.json ファイルをコピーしてください）\u000Aicons/      : 組み込みのアイコンを置き換えるPNGファイル（同じファイル名）\u000A\u000Aワールド内にいる間、変更は自動的に再読み込みされます。\u000Aコマンド：help, conversations, speak, fly, mouselook, people, friends, inventory,\u000Aappearance, search, worldmap, minimap, performance, sit, home, preferences。\u000A" }
 status-area-m-l-price-l-m = { $value0 }{ "\u000A" }{ $area }{ "㎡　L$ " }{ $price }{ "（" }{ $value1 }{ "L$／㎡）" }
 status-days = { "日" }
 status-hours = { "時間" }
@@ -8267,8 +8267,8 @@ monitor-media-marketplace = マーケットプレイス
 monitor-media-profile = プロフィールのWebページ
 
 # Independent crash recovery window
-crash-title = Auroraビューア‐クラッシュレポート
-crash-heading = Auroraビューアが予期せず停止しました
+crash-title = Blockビューア‐クラッシュレポート
+crash-heading = Blockビューアが予期せず停止しました
 crash-explanation = セッションは終了しました。以下の詳細が問題の特定に役立つ場合があります。
 crash-local-only = これらの詳細はこのコンピュータに保存されています。何も送信されていません。
 crash-details = 技術的な詳細
@@ -8309,9 +8309,9 @@ crash-publish = GitHubで公開
 crash-open-browser = ブラウザで開く
 crash-body-copied = レポートはクリップボードにあります：開いたissueに貼り付けてください。
 crash-back = 戻る
-crash-report-summary = Auroraビューアのクラッシュ
+crash-report-summary = Blockビューアのクラッシュ
 crash-report-expected = ビューアは実行を続けるはずです。
-crash-report-actual = Auroraビューアが予期せず停止しました。
+crash-report-actual = Blockビューアが予期せず停止しました。
 crash-report-reason = クラッシュの種類
 crash-report-exit-code = プロセスの終了コード
 bug-log-native = ネイティブ例外
@@ -8366,7 +8366,7 @@ update-error-integrity = ダウンロードしたファイルが公開されて�
 update-error-filesystem = インストールの準備ができません。空き容量とフォルダの書き込み権限を確認し、他のAuroraを閉じてください。
 update-error-package = パッケージが不完全または無効です。現在のインストールは保持されています。
 update-error-unsupported = このリリースはこのフォルダから自動的にインストールできません。リリースページからダウンロードし、専用のフォルダに展開してください。
-update-error-unsupported-macos = macOSでは、新しいバージョンは手動でインストールします。リリースページからダウンロードし、アプリケーションフォルダのAurora Viewerを新しいものに置き換えてください。
+update-error-unsupported-macos = macOSでは、新しいバージョンは手動でインストールします。リリースページからダウンロードし、アプリケーションフォルダのBlock Viewerを新しいものに置き換えてください。
 update-error-startup = アップデートのヘルパーを起動できませんでした。現在のインストールは保持されています。
 update-rollback = 新しいバージョンが正しく起動しませんでした。以前のインストールを復元しました。
 update-settings = アップデート
@@ -10793,7 +10793,7 @@ buy-land-can-not-change = 統合・再分割不可
 buy-land-covenant-section = 不動産約款
 buy-land-must-agree = 不動産約款に同意してください：
 buy-land-agree-covenant = 上記の約款に同意します。
-buy-land-cannot-close = Auroraビューアがこの取引の価格を見積もるまで、土地の購入ウィンドウは閉じられません。
+buy-land-cannot-close = Blockビューアがこの取引の価格を見積もるまで、土地の購入ウィンドウは閉じられません。
 buy-land-nothing-selected = 土地を購入できません：区画が選択されていません。
 buy-land-across-regions = 選択範囲が複数のリージョンにまたがっているため、土地を購入できません。より小さい範囲を選択して再試行してください。
 buy-land-only-officer = グループのために土地を購入できません：アクティブなグループのために土地を購入する権限がありません。
@@ -13074,7 +13074,7 @@ scene-nav-character-detail = ＣＰＵ：{ $cpu }㎲ · 長さ：{ $length }ｍ 
 scene-nav-horizontal = 水平のキャラクター
 scene-nav-vertical = 垂直のキャラクター
 
-# About Aurora Viewer (#1126)
+# About Block Viewer (#1126)
 about-tab-info = 情報
 about-tab-licences = ライセンス
 about-copy = クリップボードにコピー
@@ -13082,9 +13082,9 @@ about-copied = コピーしました
 about-copy-hint = サポートへの問い合わせやバグレポート用に、上記のすべてを英語でコピーします。
 about-click-to-copy = クリックしてこの値をコピー
 about-build-pill = { $profile }ビルド
-about-third-party-viewer = Aurora Viewerはサードパーティ製のビューアです。Second Lifeの開発元であるLinden Labが提供またはサポートするものではありません。
+about-third-party-viewer = Block Viewerはサードパーティ製のビューアです。Second Lifeの開発元であるLinden Labが提供またはサポートするものではありません。
 about-release-notes = リリースノート
-about-licence-title = Auroraビューアのライセンス
+about-licence-title = Blockビューアのライセンス
 about-licence-gpl = GNU GPL v3
 about-source-code = ソースコード
 about-section-viewer = ビューア

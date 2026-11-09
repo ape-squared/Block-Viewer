@@ -204,8 +204,8 @@ fn progress_light(painter: &egui::Painter, p: &Palette, fill: Rect, k: f32, t: f
     // head: a soft halo breathing around a bright core
     let head = Pos2::new(fill.right(), fill.center().y);
     let breathe = 0.8 + 0.2 * (t * 3.1).sin();
-    super::aurora_bg::radial_glow(painter, head, 30.0 * k, p.teal, 0.5 * breathe * a);
-    super::aurora_bg::radial_glow(painter, head, 9.0 * k, p.ink, 0.95 * a);
+    super::block_bg::radial_glow(painter, head, 30.0 * k, p.teal, 0.5 * breathe * a);
+    super::block_bg::radial_glow(painter, head, 9.0 * k, p.ink, 0.95 * a);
 }
 
 /// What starts a fact about the place: an icon or a colored letter.
@@ -292,7 +292,7 @@ fn banner(
         let size = 40.0 * k;
         let rect = Rect::from_min_size(Pos2::new(brand.x, brand.y - size / 2.0), Vec2::splat(size));
         let breathe = 0.85 + 0.15 * (t * 1.4).sin();
-        super::aurora_bg::radial_glow(painter, rect.center(), size * 1.1, p.violet, 0.4 * breathe * a);
+        super::block_bg::radial_glow(painter, rect.center(), size * 1.1, p.violet, 0.4 * breathe * a);
         painter.image(
             l.id(),
             rect,
@@ -304,7 +304,7 @@ fn banner(
     painter.text(
         Pos2::new(brand_text, brand.y),
         egui::Align2::LEFT_CENTER,
-        "Aurora Viewer",
+        "Block Viewer",
         egui::FontId::proportional(15.0 * k),
         p.violet_pale.gamma_multiply(a),
     );
@@ -343,7 +343,7 @@ fn banner(
                 rect.bottom() - rect.height() * y.clamp(0.0, 1.0),
             );
             let pulse = 0.6 + 0.4 * (t * 2.4).sin().abs();
-            super::aurora_bg::radial_glow(&painter.with_clip_rect(rect), at, 16.0 * k, p.violet_light, 0.7 * pulse * a);
+            super::block_bg::radial_glow(&painter.with_clip_rect(rect), at, 16.0 * k, p.violet_light, 0.7 * pulse * a);
             painter.circle_filled(at, 3.5 * k, p.ink.gamma_multiply(a));
             painter.circle_stroke(at, 3.5 * k, egui::Stroke::new(1.5 * k, p.violet.gamma_multiply(a)));
         }
@@ -529,7 +529,7 @@ pub fn teleport_overlay(
     // that frame between the loading screen and its fade out.
     let painter = ctx.layer_painter(layer).with_clip_rect(rect);
     if !backdrop.is_some_and(|b| b.paint(&painter, p, rect, a)) {
-        super::aurora_bg::paint(&painter, p, rect, t, a);
+        super::block_bg::paint(&painter, p, rect, t, a);
     }
     banner(ctx, &painter, p, rect, logo, title, dest, detail, fraction, place, t, a);
     ctx.request_repaint();

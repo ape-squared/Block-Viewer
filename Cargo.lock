@@ -516,292 +516,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "block-assets"
-version = "0.1.0"
-dependencies = [
- "block-llsd",
- "base64 0.23.1",
- "cc",
- "crossbeam-channel",
- "flate2",
- "glam 0.34.1",
- "image",
- "log",
- "meshopt",
- "openjpeg-sys",
- "parking_lot 0.13.0",
- "parry3d",
- "rayon",
- "ring",
- "serde_json",
- "thiserror 2.0.21",
- "uuid",
- "vorbis_rs",
-]
-
-[[package]]
-name = "block-audio"
-version = "0.1.0"
-dependencies = [
- "block-version",
- "cpal",
- "crossbeam-channel",
- "log",
- "parking_lot 0.13.0",
- "rcgen",
- "rtrb",
- "rustls",
- "rustls-platform-verifier",
- "sonora",
- "symphonia",
- "thiserror 2.0.21",
- "url",
-]
-
-[[package]]
-name = "block-i18n"
-version = "0.1.0"
-dependencies = [
- "fluent-bundle",
- "fluent-syntax",
- "log",
- "sys-locale",
- "unic-langid",
-]
-
-[[package]]
-name = "block-llsd"
-version = "0.1.0"
-dependencies = [
- "base64 0.23.1",
- "chrono",
- "thiserror 2.0.21",
- "uuid",
-]
-
-[[package]]
-name = "block-media"
-version = "0.1.0"
-dependencies = [
- "block-llsd",
- "env_logger",
- "image",
- "libc",
- "log",
- "pulseaudio",
- "rfd",
- "windows-sys 0.61.2",
-]
-
-[[package]]
-name = "block-msg"
-version = "0.1.0"
-dependencies = [
- "glam 0.34.1",
- "thiserror 2.0.21",
- "uuid",
-]
-
-[[package]]
-name = "block-net"
-version = "0.1.0"
-dependencies = [
- "block-assets",
- "block-i18n",
- "block-llsd",
- "block-msg",
- "block-prim",
- "block-version",
- "base64 0.23.1",
- "bitflags 2.13.2",
- "crossbeam-channel",
- "glam 0.34.1",
- "log",
- "md5",
- "parking_lot 0.13.0",
- "rcgen",
- "reqwest",
- "rustls",
- "rustls-webpki",
- "serde",
- "serde_json",
- "socket2",
- "thiserror 2.0.21",
- "tokio",
- "uuid",
- "webpki-root-certs",
-]
-
-[[package]]
-name = "block-prim"
-version = "0.1.0"
-dependencies = [
- "glam 0.34.1",
- "thiserror 2.0.21",
- "uuid",
-]
-
-[[package]]
-name = "block-render"
-version = "0.1.0"
-dependencies = [
- "ash",
- "block-assets",
- "block-llsd",
- "bcdec_rs",
- "bytemuck",
- "egui",
- "egui-wgpu",
- "glam 0.34.1",
- "intel_tex_2",
- "libc",
- "log",
- "naga",
- "objc2 0.6.5",
- "objc2-metal 0.3.2",
- "openxr",
- "parking_lot 0.13.0",
- "pollster 1.0.1",
- "rayon",
- "thiserror 2.0.21",
- "uuid",
- "wgpu",
- "windows-sys 0.61.2",
-]
-
-[[package]]
-name = "block-updater"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "block-version",
- "directories",
- "log",
- "reqwest",
- "semver",
- "serde",
- "serde_json",
- "sha2",
- "tokio",
- "uuid",
- "windows-sys 0.61.2",
- "zip",
-]
-
-[[package]]
-name = "block-version"
-version = "0.1.0"
-dependencies = [
- "semver",
-]
-
-[[package]]
-name = "block-viewer"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "arboard",
- "block-assets",
- "block-audio",
- "block-i18n",
- "block-llsd",
- "block-media",
- "block-net",
- "block-prim",
- "block-render",
- "block-updater",
- "block-version",
- "block-voice",
- "base64 0.23.1",
- "bevy_mikktspace",
- "chrono",
- "chrono-tz",
- "crossbeam-channel",
- "directories",
- "egui",
- "egui-wgpu",
- "egui-winit",
- "emojis",
- "encoding_rs",
- "env_logger",
- "fancy-regex",
- "flate2",
- "foldhash 0.2.0",
- "fontconfig-parser",
- "gilrs-core",
- "glam 0.34.1",
- "hidapi",
- "iana-time-zone",
- "image",
- "keyring",
- "libc",
- "libmimalloc-sys",
- "log",
- "md5",
- "memmap2",
- "mimalloc",
- "objc2 0.6.5",
- "objc2-app-kit 0.3.2",
- "objc2-core-foundation",
- "parking_lot 0.13.0",
- "png",
- "pulldown-cmark",
- "rayon",
- "regex",
- "reqwest",
- "resvg",
- "rfd",
- "ron",
- "roxmltree 0.21.1",
- "serde",
- "serde_json",
- "serde_path_to_error",
- "sha2",
- "softbuffer",
- "spellbook",
- "sysinfo",
- "tokio",
- "trash",
- "ttf-parser",
- "unicode-bidi",
- "unicode-bidi-mirroring",
- "uuid",
- "wayland-client",
- "wgpu",
- "windows",
- "windows-sys 0.61.2",
- "winit",
- "winresource",
- "x11rb",
- "xkbcommon-dl",
- "zbus",
- "zip",
-]
-
-[[package]]
-name = "block-voice"
-version = "0.1.0"
-dependencies = [
- "async-trait",
- "block-audio",
- "block-llsd",
- "bytes",
- "glam 0.34.1",
- "log",
- "opus-decoder",
- "parking_lot 0.13.0",
- "reqwest",
- "rtc",
- "rustls",
- "rusty-opus",
- "serde_json",
- "thiserror 2.0.21",
- "tokio",
- "uuid",
- "webrtc",
-]
-
-[[package]]
 name = "autocfg"
 version = "1.5.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -903,6 +617,49 @@ dependencies = [
 ]
 
 [[package]]
+name = "block-assets"
+version = "0.1.0"
+dependencies = [
+ "base64 0.23.1",
+ "block-llsd",
+ "cc",
+ "crossbeam-channel",
+ "flate2",
+ "glam 0.34.1",
+ "image",
+ "log",
+ "meshopt",
+ "openjpeg-sys",
+ "parking_lot 0.13.0",
+ "parry3d",
+ "rayon",
+ "ring",
+ "serde_json",
+ "thiserror 2.0.21",
+ "uuid",
+ "vorbis_rs",
+]
+
+[[package]]
+name = "block-audio"
+version = "0.1.0"
+dependencies = [
+ "block-version",
+ "cpal",
+ "crossbeam-channel",
+ "log",
+ "parking_lot 0.13.0",
+ "rcgen",
+ "rtrb",
+ "rustls",
+ "rustls-platform-verifier",
+ "sonora",
+ "symphonia",
+ "thiserror 2.0.21",
+ "url",
+]
+
+[[package]]
 name = "block-buffer"
 version = "0.10.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -921,12 +678,255 @@ dependencies = [
 ]
 
 [[package]]
+name = "block-i18n"
+version = "0.1.0"
+dependencies = [
+ "fluent-bundle",
+ "fluent-syntax",
+ "log",
+ "sys-locale",
+ "unic-langid",
+]
+
+[[package]]
+name = "block-llsd"
+version = "0.1.0"
+dependencies = [
+ "base64 0.23.1",
+ "chrono",
+ "thiserror 2.0.21",
+ "uuid",
+]
+
+[[package]]
+name = "block-media"
+version = "0.1.0"
+dependencies = [
+ "block-llsd",
+ "env_logger",
+ "image",
+ "libc",
+ "log",
+ "pulseaudio",
+ "rfd",
+ "windows-sys 0.61.2",
+]
+
+[[package]]
+name = "block-msg"
+version = "0.1.0"
+dependencies = [
+ "glam 0.34.1",
+ "thiserror 2.0.21",
+ "uuid",
+]
+
+[[package]]
+name = "block-net"
+version = "0.1.0"
+dependencies = [
+ "base64 0.23.1",
+ "bitflags 2.13.2",
+ "block-assets",
+ "block-i18n",
+ "block-llsd",
+ "block-msg",
+ "block-prim",
+ "block-version",
+ "crossbeam-channel",
+ "glam 0.34.1",
+ "log",
+ "md5",
+ "parking_lot 0.13.0",
+ "rcgen",
+ "reqwest",
+ "rustls",
+ "rustls-webpki",
+ "serde",
+ "serde_json",
+ "socket2",
+ "thiserror 2.0.21",
+ "tokio",
+ "uuid",
+ "webpki-root-certs",
+]
+
+[[package]]
 name = "block-padding"
 version = "0.4.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "710f1dd022ef4e93f8a438b4ba958de7f64308434fa6a87104481645cc30068b"
 dependencies = [
  "hybrid-array",
+]
+
+[[package]]
+name = "block-prim"
+version = "0.1.0"
+dependencies = [
+ "glam 0.34.1",
+ "thiserror 2.0.21",
+ "uuid",
+]
+
+[[package]]
+name = "block-render"
+version = "0.1.0"
+dependencies = [
+ "ash",
+ "bcdec_rs",
+ "block-assets",
+ "block-llsd",
+ "bytemuck",
+ "egui",
+ "egui-wgpu",
+ "glam 0.34.1",
+ "intel_tex_2",
+ "libc",
+ "log",
+ "naga",
+ "objc2 0.6.5",
+ "objc2-metal 0.3.2",
+ "openxr",
+ "parking_lot 0.13.0",
+ "pollster 1.0.1",
+ "rayon",
+ "thiserror 2.0.21",
+ "uuid",
+ "wgpu",
+ "windows-sys 0.61.2",
+]
+
+[[package]]
+name = "block-updater"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "block-version",
+ "directories",
+ "log",
+ "reqwest",
+ "semver",
+ "serde",
+ "serde_json",
+ "sha2",
+ "tokio",
+ "uuid",
+ "windows-sys 0.61.2",
+ "zip",
+]
+
+[[package]]
+name = "block-version"
+version = "0.1.0"
+dependencies = [
+ "semver",
+]
+
+[[package]]
+name = "block-viewer"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "arboard",
+ "base64 0.23.1",
+ "bevy_mikktspace",
+ "block-assets",
+ "block-audio",
+ "block-i18n",
+ "block-llsd",
+ "block-media",
+ "block-net",
+ "block-prim",
+ "block-render",
+ "block-updater",
+ "block-version",
+ "block-voice",
+ "chrono",
+ "chrono-tz",
+ "crossbeam-channel",
+ "directories",
+ "egui",
+ "egui-wgpu",
+ "egui-winit",
+ "emojis",
+ "encoding_rs",
+ "env_logger",
+ "fancy-regex",
+ "flate2",
+ "foldhash 0.2.0",
+ "fontconfig-parser",
+ "gilrs-core",
+ "glam 0.34.1",
+ "hidapi",
+ "iana-time-zone",
+ "image",
+ "keyring",
+ "libc",
+ "libmimalloc-sys",
+ "log",
+ "md5",
+ "memmap2",
+ "mimalloc",
+ "objc2 0.6.5",
+ "objc2-app-kit 0.3.2",
+ "objc2-core-foundation",
+ "parking_lot 0.13.0",
+ "png",
+ "pulldown-cmark",
+ "rayon",
+ "regex",
+ "reqwest",
+ "resvg",
+ "rfd",
+ "ron",
+ "roxmltree 0.21.1",
+ "serde",
+ "serde_json",
+ "serde_path_to_error",
+ "sha2",
+ "softbuffer",
+ "spellbook",
+ "sysinfo",
+ "tokio",
+ "trash",
+ "ttf-parser",
+ "unicode-bidi",
+ "unicode-bidi-mirroring",
+ "uuid",
+ "wayland-client",
+ "wgpu",
+ "windows",
+ "windows-sys 0.61.2",
+ "winit",
+ "winresource",
+ "x11rb",
+ "xkbcommon-dl",
+ "zbus",
+ "zip",
+]
+
+[[package]]
+name = "block-voice"
+version = "0.1.0"
+dependencies = [
+ "async-trait",
+ "block-audio",
+ "block-llsd",
+ "bytes",
+ "glam 0.34.1",
+ "log",
+ "opus-decoder",
+ "parking_lot 0.13.0",
+ "reqwest",
+ "rtc",
+ "rustls",
+ "rusty-opus",
+ "serde_json",
+ "thiserror 2.0.21",
+ "tokio",
+ "uuid",
+ "webrtc",
 ]
 
 [[package]]

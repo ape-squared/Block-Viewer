@@ -174,7 +174,7 @@ pub fn draw_background(ui: &egui::Ui, p: &Palette) {
     let rect = ctx.content_rect();
     let painter = ctx.layer_painter(egui::LayerId::background());
     let t = ctx.input(|i| i.time) as f32;
-    super::aurora_bg::paint(&painter, p, rect, t, 1.0);
+    super::block_bg::paint(&painter, p, rect, t, 1.0);
     // slow animation: ~30 images/s are plenty
     ctx.request_repaint_after(std::time::Duration::from_millis(33));
 }
@@ -453,7 +453,7 @@ fn strip(r: egui::Rect, stops: &[(f32, Color32)]) -> egui::Shape {
 
 /// Card of the login screen: a pane of frosted glass. Under the tint of the
 /// in-world windows it shows the sky behind it out of focus
-/// (`aurora_bg::frosted`) and two lights of the aurora, which also spill
+/// (`block_bg::frosted`) and two lights of the aurora, which also spill
 /// around the card; its top edge catches the light, and the card the screen
 /// is for (`accent`) wears the brand line. An opaque skin (panel_alpha =
 /// 255) keeps its plain surface.
@@ -502,13 +502,13 @@ fn glass_card<R>(
         let rect = outer.shrink(1.0);
         let strength = if accent { 1.0 } else { 0.6 } + hover * 0.45;
         let lights = vec![
-            super::aurora_bg::radial_glow_shape(
+            super::block_bg::radial_glow_shape(
                 outer.left_top() + Vec2::new(outer.width() * 0.18, outer.height() * 0.12),
                 outer.width() * 0.95,
                 p.violet,
                 0.24 * strength,
             ),
-            super::aurora_bg::radial_glow_shape(
+            super::block_bg::radial_glow_shape(
                 outer.right_bottom() - Vec2::new(outer.width() * 0.12, outer.height() * 0.14),
                 outer.width() * 0.8,
                 p.teal,
@@ -516,7 +516,7 @@ fn glass_card<R>(
             ),
         ];
         behind.0.set(behind.1, egui::Shape::Vec(lights.clone()));
-        let mut shapes = super::aurora_bg::frosted_pane(p, ctx.content_rect(), ctx.input(|i| i.time) as f32, rect, lights);
+        let mut shapes = super::block_bg::frosted_pane(p, ctx.content_rect(), ctx.input(|i| i.time) as f32, rect, lights);
         let top = |height: f32| egui::Rect::from_min_size(rect.min, Vec2::new(rect.width(), height));
         if accent {
             shapes.push(strip(top(2.0), &[(0.0, p.violet), (1.0, p.teal)]));
@@ -712,10 +712,10 @@ pub fn show(
                     let r = ui.add(egui::Image::new(l).fit_to_exact_size(Vec2::splat(logo_size))).rect;
                     // soft light behind the logo (additive)
                     let painter = ctx.layer_painter(egui::LayerId::new(egui::Order::Background, egui::Id::unique("halo")));
-                    super::aurora_bg::radial_glow(&painter, r.center(), 150.0, p.violet, 0.42);
+                    super::block_bg::radial_glow(&painter, r.center(), 150.0, p.violet, 0.42);
                 }
                 ui.add_space(2.0);
-                ui.label(RichText::new("Aurora Viewer").size(34.0).strong().color(p.ink));
+                ui.label(RichText::new("Block Viewer").size(34.0).strong().color(p.ink));
                 ui.label(RichText::new(client_tagline()).size(13.0).color(p.violet_pale));
                 ui.add_space(18.0);
             });

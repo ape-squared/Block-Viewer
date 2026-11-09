@@ -1,4 +1,4 @@
-﻿<#
+<#
 .SYNOPSIS
     Checks that a built viewer reports exactly the number of the release
     tag. --version exits before the logs, the window and the network.

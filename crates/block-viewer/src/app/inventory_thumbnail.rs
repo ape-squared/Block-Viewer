@@ -371,8 +371,8 @@ fn square(image: &image::RgbaImage) -> Result<image::RgbaImage, String> {
     Ok(image::imageops::resize(&crop, 256, 256, image::imageops::FilterType::Lanczos3))
 }
 fn rgba(data: &[u8]) -> Result<image::RgbaImage, String> {
-    let info =
-        block_assets::j2k_info(data).ok_or_else(|| block_i18n::tr!("app-inventory-thumbnail-the-jpeg2000-image-is-invalid").to_owned())?;
+    let info = block_assets::j2k_info(data)
+        .ok_or_else(|| block_i18n::tr!("app-inventory-thumbnail-the-jpeg2000-image-is-invalid").to_owned())?;
     if info.width > 4096 || info.height > 4096 {
         return Err(block_i18n::tr!("app-inventory-thumbnail-the-image-exceeds-4096-pixels").into());
     }
@@ -393,8 +393,8 @@ fn rgba(data: &[u8]) -> Result<image::RgbaImage, String> {
         .ok_or_else(|| block_i18n::tr!("app-inventory-thumbnail-invalid-image-pixels").into())
 }
 fn texture_thumbnail(asset: Uuid, resize: bool, bytes: &[u8]) -> Result<Prepared, String> {
-    let info =
-        block_assets::j2k_info(bytes).ok_or_else(|| block_i18n::tr!("app-inventory-thumbnail-the-selected-image-is-invalid").to_owned())?;
+    let info = block_assets::j2k_info(bytes)
+        .ok_or_else(|| block_i18n::tr!("app-inventory-thumbnail-the-selected-image-is-invalid").to_owned())?;
     if info.width != info.height || info.width < 64 {
         return Err(block_i18n::tr!("app-inventory-thumbnail-the-image-must-be-square-and-at-least-64").into());
     }
@@ -510,7 +510,7 @@ mod tests {
     }
     #[test]
     fn uploaded_pngs_become_valid_square_jpeg2000_with_alpha() {
-        let path = std::env::temp_dir().join(format!("block-inventory-thumbnail-{}.png", Uuid::new_v4()));
+        let path = std::env::temp_dir().join(format!("aurora-inventory-thumbnail-{}.png", Uuid::new_v4()));
         let source = image::RgbaImage::from_pixel(96, 80, image::Rgba([21, 42, 63, 170]));
         source.save(&path).expect("generated PNG");
         let result = file_thumbnails(&path);
@@ -535,7 +535,7 @@ mod tests {
         let source = image::RgbaImage::from_fn(128, 512, |x, y| image::Rgba([x as u8, (y / 2) as u8, 63, 170]));
         let expected = file_choices(&source).expect("source choices");
         for extension in ["png", "j2c"] {
-            let path = std::env::temp_dir().join(format!("block-thumbnail-{}.{}", Uuid::new_v4(), extension));
+            let path = std::env::temp_dir().join(format!("aurora-thumbnail-{}.{}", Uuid::new_v4(), extension));
             if extension == "png" {
                 source.save(&path).expect("generated PNG");
             } else {

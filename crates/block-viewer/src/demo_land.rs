@@ -158,7 +158,7 @@ fn initial(role: Role) -> ParcelInfo {
     ParcelInfo {
         local_id: 1,
         sequence_id: block_net::land::SELECTED_PARCEL_SEQ_ID,
-        name: block_i18n::tr!("demo-land-block-plaza-offline-demo").into(),
+        name: block_i18n::tr!("demo-land-aurora-plaza-offline-demo").into(),
         desc: block_i18n::tr!("demo-land-block-viewer-s-offline-demo-parcel-visit-the-fountain").into(),
         owner_id,
         group_id,
@@ -439,7 +439,7 @@ fn found_experiences() -> Vec<block_net::land::FoundExperience> {
         properties,
     };
     vec![
-        e(XP_AURORA, block_i18n::tr!("demo-land-block-experience"), 13, 0),
+        e(XP_AURORA, block_i18n::tr!("demo-land-aurora-experience"), 13, 0),
         e(XP_SITTER, "AVSitter", 13, 0),
         e(XP_INTERACT, block_i18n::tr!("demo-land-interactions-general"), 21, 0),
         e(XP_BEACH, block_i18n::tr!("demo-land-beach-games"), 13, 0),
@@ -560,12 +560,12 @@ pub fn reply(c: &LandCommand) -> Vec<NetEvent> {
                 handle: super::HANDLE,
                 covenant_id,
                 timestamp,
-                estate_name: block_i18n::tr!("common-block-demo").into(),
+                estate_name: block_i18n::tr!("common-aurora-demo").into(),
                 estate_owner: super::region::estate_owner(),
             })];
             if !covenant_id.is_nil() {
                 let text = super::region::covenant_text(covenant_id)
-                    .unwrap_or(block_i18n::tr!("demo-land-welcome-to-the-block-demo-estate-by-buying-land"));
+                    .unwrap_or(block_i18n::tr!("demo-land-welcome-to-the-aurora-demo-estate-by-buying-land"));
                 out.push(ev(LandEvent::CovenantText {
                     covenant_id,
                     text: Some(text.into()),
@@ -722,7 +722,7 @@ pub fn reply(c: &LandCommand) -> Vec<NetEvent> {
                     urls: Some((urls, 750)),
                 }))),
                 ev(LandEvent::ScriptDetails(Ok(vec![block_net::land::ScriptParcel {
-                    name: block_i18n::tr!("demo-land-block-plaza-offline-demo").into(),
+                    name: block_i18n::tr!("demo-land-aurora-plaza-offline-demo").into(),
                     local_id: Some(1),
                     objects,
                 }]))),
@@ -807,7 +807,7 @@ pub fn reply(c: &LandCommand) -> Vec<NetEvent> {
             ids.iter()
                 .map(|id| {
                     let name = match *id {
-                        XP_AURORA => block_i18n::tr!("demo-land-block-experience"),
+                        XP_AURORA => block_i18n::tr!("demo-land-aurora-experience"),
                         XP_SITTER => "AVSitter",
                         XP_INTERACT => block_i18n::tr!("demo-land-interactions-general"),
                         XP_BEACH => block_i18n::tr!("demo-land-beach-games"),

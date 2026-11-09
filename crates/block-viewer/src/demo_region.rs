@@ -326,7 +326,7 @@ const QUINN: Uuid = Uuid::from_u128(0x6E6E_0000_0000_0000_0000_0000_0000_0010);
 /// but no join / subdivide, parcels with their own environment.
 pub fn region_details() -> RegionDetails {
     RegionDetails {
-        name: block_i18n::tr!("common-block-demo").into(),
+        name: block_i18n::tr!("common-aurora-demo").into(),
         estate_id: ESTATE_ID,
         parent_estate_id: 1,
         flags: u64::from(rf::BLOCK_TERRAFORM | rf::RESTRICT_PUSHOBJECT | rf::ALLOW_VOICE) | ef::ALLOW_ENVIRONMENT_OVERRIDE,
@@ -842,7 +842,7 @@ fn now_stamp() -> String {
 
 fn estate_info() -> EstateInfo {
     EstateInfo {
-        name: block_i18n::tr!("common-block-demo").into(),
+        name: block_i18n::tr!("common-aurora-demo").into(),
         owner: estate_owner(),
         id: ESTATE_ID,
         flags: with_sent(|s| s.1),
@@ -962,7 +962,7 @@ pub fn reply(c: &EstateCommand) -> Vec<NetEvent> {
         EstateCommand::Restart { seconds, .. } if *seconds < 0 => vec![NetEvent::RegionRestartCancelled],
         EstateCommand::Restart { seconds, .. } => vec![NetEvent::RegionRestart(block_net::region_restart::Notice {
             seconds: *seconds,
-            region: Some(block_i18n::tr!("common-block-demo").into()),
+            region: Some(block_i18n::tr!("common-aurora-demo").into()),
             opensim: false,
         })],
         EstateCommand::SetRestartSchedule { handle, days, seconds } => {

@@ -1366,7 +1366,7 @@ mod tests {
             ("https://redd.it/demo01", Service::Reddit),
             ("https://www.reddit.com/media?url=https%3A%2F%2Fi.redd.it%2Fa.jpeg", Service::Reddit),
             (
-                "https://bsky.app/profile/block-demo.bsky.social/post/3demopost2abc",
+                "https://bsky.app/profile/aurora-demo.bsky.social/post/3demopost2abc",
                 Service::Bluesky,
             ),
             ("https://x.com/AuroraDemo/status/1850000000000000001", Service::X),

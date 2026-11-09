@@ -276,7 +276,7 @@ pub fn system_fonts() -> Vec<SystemFont> {
             out.push(SystemFont { name, path });
         }
     }
-    out.sort_by_key(|f| f.name.to_lowercase());
+    out.sort_by_key(|f| crate::natural_order::key(&f.name));
     out
 }
 
@@ -478,9 +478,9 @@ fn definitions_for(choice: &str, system: &[fallback::SystemFace]) -> egui::FontD
 }
 
 /// Name of the semi-bold family and of its face.
-const SEMIBOLD: &str = "block-semibold";
+const SEMIBOLD: &str = "aurora-semibold";
 /// Name of the interface font's regular face.
-const MAIN: &str = "block-main";
+const MAIN: &str = "aurora-main";
 const ICON_FALLBACK: &str = "emoji-icon-font";
 
 fn semibold_family() -> egui::FontFamily {
@@ -921,7 +921,7 @@ mod tests {
             assert_eq!(fonts.last().map(String::as_str), Some(ICON_FALLBACK));
             assert_eq!(fonts.len() - embedded.len(), system.len(), "{family}");
         }
-        assert_eq!(with.families[&egui::FontFamily::Proportional][0], "block-main");
+        assert_eq!(with.families[&egui::FontFamily::Proportional][0], "aurora-main");
         // egui panics on a family that names an unknown font
         for name in with.families.values().flatten() {
             assert!(with.font_data.contains_key(name), "{name}");
@@ -1047,7 +1047,7 @@ mod tests {
         for family in [egui::FontFamily::Proportional, semibold_family()] {
             let inter = faces_drawing(definitions_for(INTER, system), family.clone(), &text);
             let noto = faces_drawing(definitions_for(NOTO, system), family.clone(), &text);
-            let own = |face: &Option<String>| matches!(face.as_deref(), Some("block-main" | SEMIBOLD));
+            let own = |face: &Option<String>| matches!(face.as_deref(), Some("aurora-main" | SEMIBOLD));
             let (mut gained, mut lost) = (std::collections::BTreeSet::new(), std::collections::BTreeSet::new());
             for ((c, with_inter), (_, with_noto)) in inter.iter().zip(&noto) {
                 match (own(with_inter), own(with_noto)) {
@@ -1080,7 +1080,7 @@ mod tests {
         ] {
             let defs = definitions_for(choice, &[]);
             let b = builtin(choice).unwrap_or(&BUILTINS[0]);
-            assert_eq!(face(&defs, "block-main").as_deref(), Some(b.regular), "{choice}");
+            assert_eq!(face(&defs, "aurora-main").as_deref(), Some(b.regular), "{choice}");
             assert_eq!(face(&defs, SEMIBOLD).as_deref(), Some(b.semibold), "{choice}");
             assert_eq!(defs.families[&semibold_family()][0], SEMIBOLD, "{choice}");
         }
@@ -1109,8 +1109,8 @@ mod tests {
         };
         let defs = definitions_for(&format!("system:{}", font.path.display()), &[]);
         assert!(!defs.font_data.contains_key(SEMIBOLD));
-        assert_eq!(defs.families[&semibold_family()][0], "block-main");
-        assert_eq!(defs.font_data["block-main"].bytes(), std::fs::read(&font.path).expect("font file"));
+        assert_eq!(defs.families[&semibold_family()][0], "aurora-main");
+        assert_eq!(defs.font_data["aurora-main"].bytes(), std::fs::read(&font.path).expect("font file"));
     }
 
     /// Typographic family name of an embedded face (name ID 16, else 1).

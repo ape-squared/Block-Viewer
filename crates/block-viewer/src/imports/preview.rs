@@ -60,7 +60,7 @@ pub(crate) fn material_geometry(shape: MaterialShape) -> Result<Vec<(Arc<[Vertex
                 .get_or_init(|| {
                     let result = (|| {
                         let doc =
-                            block_assets::import_gltf::Document::parse(include_bytes!("../../../../assets/models/block-3d.glb"), |_| {
+                            block_assets::import_gltf::Document::parse(include_bytes!("../../../../assets/models/aurora-3d.glb"), |_| {
                                 Err(block_assets::AssetError::invalid("bundled model must be self-contained"))
                             })?;
                         let skeleton = block_assets::Skeleton::parse(include_bytes!("../../assets/character/avatar_skeleton.xml"))?;
@@ -1002,8 +1002,8 @@ mod tests {
     }
 
     #[test]
-    fn bundled_block_model_resource_names_are_consistent_and_self_contained() {
-        let doc = block_assets::import_gltf::Document::parse(include_bytes!("../../../../assets/models/block-3d.glb"), |_| {
+    fn bundled_aurora_model_resource_names_are_consistent_and_self_contained() {
+        let doc = block_assets::import_gltf::Document::parse(include_bytes!("../../../../assets/models/aurora-3d.glb"), |_| {
             panic!("bundled model must not load external resources")
         })
         .expect("bundled GLB");

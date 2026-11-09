@@ -913,7 +913,10 @@ impl Editor {
                 chosen = Some(id);
             }
             if ui
-                .add_enabled(self.graph.selected.is_some(), egui::Button::new(block_i18n::tr!("ik-graph-delete")))
+                .add_enabled(
+                    self.graph.selected.is_some(),
+                    egui::Button::new(block_i18n::tr!("ik-graph-delete")),
+                )
                 .clicked()
                 && let Some(id) = self.graph.selected
             {

@@ -146,7 +146,7 @@ impl HudScales {
             .filter(|p| p.item.is_some() || p.identity.is_some())
             .collect();
         let (tx, rx) = mpsc::channel::<Vec<Profile>>();
-        let worker = std::thread::Builder::new().name("block-hud-scales".into()).spawn(move || {
+        let worker = std::thread::Builder::new().name("aurora-hud-scales".into()).spawn(move || {
             while let Ok(mut profiles) = rx.recv() {
                 while let Ok(newer) = rx.try_recv() {
                     profiles = newer;
@@ -790,7 +790,7 @@ mod tests {
 
     #[test]
     fn temporary_hud_shared_profile_survives_restart_without_any_inventory_uuid() {
-        let folder = std::env::temp_dir().join(format!("block-hud-temp-{}", Uuid::new_v4()));
+        let folder = std::env::temp_dir().join(format!("aurora-hud-temp-{}", Uuid::new_v4()));
         let path = folder.join(FILE);
         let mut world = hud_world();
         let id = crate::demo::hud::object(31, false).full_id;
@@ -1012,7 +1012,7 @@ mod tests {
 
     #[test]
     fn a_size_from_a_newer_build_costs_only_that_size() {
-        let folder = std::env::temp_dir().join(format!("block-hud-scales-{}", Uuid::new_v4()));
+        let folder = std::env::temp_dir().join(format!("aurora-hud-scales-{}", Uuid::new_v4()));
         std::fs::create_dir_all(&folder).unwrap();
         let path = folder.join(FILE);
         let kept = Uuid::from_u128(7);
@@ -1031,7 +1031,7 @@ mod tests {
 
     #[test]
     fn asynchronous_save_is_flushed_and_account_files_are_independent() {
-        let folder = std::env::temp_dir().join(format!("block-hud-scales-{}", Uuid::new_v4()));
+        let folder = std::env::temp_dir().join(format!("aurora-hud-scales-{}", Uuid::new_v4()));
         let path = folder.join(FILE);
         let id = Uuid::from_u128(1);
         let profile = identity("HUD", 10);

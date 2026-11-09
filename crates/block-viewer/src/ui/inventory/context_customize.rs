@@ -29,18 +29,18 @@ impl super::InventoryUi {
         *profile = Profile::default();
         profile.locked = !matches!(
             mode,
-            "block-menu-custom"
-                | "block-menu-hidden"
-                | "block-menu-bars"
-                | "block-menu-drop"
-                | "block-menu-all-texture"
-                | "block-menu-all-folder"
-                | "block-menu-folder-uuid"
-                | "block-menu-all-trash"
-                | "block-menu-empty-custom"
+            "aurora-menu-custom"
+                | "aurora-menu-hidden"
+                | "aurora-menu-bars"
+                | "aurora-menu-drop"
+                | "aurora-menu-all-texture"
+                | "aurora-menu-all-folder"
+                | "aurora-menu-folder-uuid"
+                | "aurora-menu-all-trash"
+                | "aurora-menu-empty-custom"
         );
-        self.menu_editor.demo_drag = (mode == "block-menu-drop").then_some(0);
-        if matches!(mode, "block-menu-empty" | "block-menu-empty-custom") {
+        self.menu_editor.demo_drag = (mode == "aurora-menu-drop").then_some(0);
+        if matches!(mode, "aurora-menu-empty" | "aurora-menu-empty-custom") {
             // Reproduce a saved attachment group whose options were moved out.
             for id in [
                 "wear",
@@ -60,7 +60,7 @@ impl super::InventoryUi {
                 .layout
                 .create_group(&[], block_i18n::tr!("inventory-menu-demo-group"), Direction::Vertical, None);
         }
-        if mode == "block-menu-filter" {
+        if mode == "aurora-menu-filter" {
             profile.layout.filters.insert("attach-body".into());
             profile.layout.directions.insert("attach-body".into(), Direction::Vertical);
             profile.open.insert("attach-body".into(), true);
@@ -68,19 +68,19 @@ impl super::InventoryUi {
             self.menu_editor.queries.insert("attach-body".into(), "main".into());
         }
         if let Some(mode) = match mode {
-            "block-menu-export" => Some(super::context_notecards::Mode::Export),
-            "block-menu-load" => Some(super::context_notecards::Mode::Load),
+            "aurora-menu-export" => Some(super::context_notecards::Mode::Export),
+            "aurora-menu-load" => Some(super::context_notecards::Mode::Load),
             _ => None,
         } {
             self.menu_editor.notecard = Some(mode);
         }
-        if mode == "block-menu-organize" {
+        if mode == "aurora-menu-organize" {
             profile.open.insert("organize".into(), true);
         }
-        if mode == "block-menu-textures-export" {
+        if mode == "aurora-menu-textures-export" {
             profile.open.insert("save-textures".into(), true);
         }
-        if matches!(mode, "block-menu-custom" | "block-menu-locked" | "block-menu-hidden") {
+        if matches!(mode, "aurora-menu-custom" | "aurora-menu-locked" | "aurora-menu-hidden") {
             let group = "custom:demo";
             profile.layout.groups.insert(
                 group.into(),
@@ -98,14 +98,14 @@ impl super::InventoryUi {
             profile.layout.directions.insert("organize".into(), Direction::Horizontal);
             profile.locked = mode.ends_with("locked");
         }
-        if mode == "block-menu-hidden" {
+        if mode == "aurora-menu-hidden" {
             profile.layout.placements.insert("image".into(), HIDDEN.into());
             profile.layout.placements.insert("organize".into(), HIDDEN.into());
         }
-        if mode == "block-menu-folder-uuid-restored" {
+        if mode == "aurora-menu-folder-uuid-restored" {
             profile.layout.placements.insert("folder-uuid".into(), TEXT.into());
         }
-        if mode == "block-menu-bars" {
+        if mode == "aurora-menu-bars" {
             let catalog = super::context_catalog::build(inv, id, self, prefs, &super::Facts::default());
             let profile = prefs
                 .context_menus
@@ -122,10 +122,10 @@ impl super::InventoryUi {
             profile.layout.remove_container(&catalog.entries, "bar:bottom");
             profile.layout.add_icon_bar(&catalog.entries);
         }
-        if mode == "block-menu-restored" {
+        if mode == "aurora-menu-restored" {
             super::context_notecards::demo_restore(self, prefs);
         }
-        if matches!(mode, "block-menu-load" | "block-menu-load-search") {
+        if matches!(mode, "aurora-menu-load" | "aurora-menu-load-search") {
             super::context_notecards::demo_picker(self, mode.ends_with("search"));
         }
     }

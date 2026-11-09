@@ -1141,8 +1141,10 @@ impl App {
                         .any(|i| i.asset_id == item.asset_id && i.asset_type as i32 == item.asset_type)
                 }) && super::inventory_drag::target_allowed(&self.world, *idx, &item, true).is_err()
                 {
-                    self.world
-                        .system_notice(block_i18n::tr!("texture-library-locked"), crate::world::notice_topics::Topic::Items);
+                    self.world.system_notice(
+                        block_i18n::tr!("texture-library-locked"),
+                        crate::world::notice_topics::Topic::Items,
+                    );
                     return;
                 }
             }

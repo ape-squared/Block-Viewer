@@ -146,7 +146,7 @@ impl App {
         self.search_ui.open_tab(tab);
         ui::widgets::open_floater(&self.egui_ctx, ui::search::WINDOW, &mut self.panels.search);
         self.world.search.show_one(tab, key);
-        self.search_ui.block_show_one(tab, key, &self.settings.search);
+        self.search_ui.aurora_show_one(tab, key, &self.settings.search);
     }
 
     /// LLSearchHandler: Search on the category ("all", "standard",
@@ -172,7 +172,7 @@ impl App {
                 .into_iter()
                 .collect()
         } else {
-            self.search_ui.block_requests(&self.settings.search)
+            self.search_ui.aurora_requests(&self.settings.search)
         };
         let access = self.world.agent_access();
         for request in requests {

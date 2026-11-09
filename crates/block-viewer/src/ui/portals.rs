@@ -98,7 +98,8 @@ impl PortalUi {
                 && !matches!(self.access, Access::Group(id) if id.is_nil());
             ui.add_space(8.0);
             ui.add_enabled_ui(ready && valid && !world.teleporting, |ui| {
-                let create = widgets::primary_button_sized(ui, p, block_i18n::tr!("portal-create"), egui::vec2(ui.available_width(), 30.0));
+                let create =
+                    widgets::primary_button_sized(ui, p, block_i18n::tr!("portal-create"), egui::vec2(ui.available_width(), 30.0));
                 actions.create = create.clicked();
                 #[cfg(test)]
                 {

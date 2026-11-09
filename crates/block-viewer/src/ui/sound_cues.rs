@@ -27,11 +27,11 @@ use egui::{Context, Event, Id, Key, Role};
 use std::collections::HashSet;
 
 fn requests_id() -> Id {
-    Id::unique("block_ui_sound_requests")
+    Id::unique("aurora_ui_sound_requests")
 }
 
 fn floaters_id() -> Id {
-    Id::unique("block_ui_sound_floaters")
+    Id::unique("aurora_ui_sound_floaters")
 }
 
 /// Plays `s` after this frame (gated by the sound settings).
@@ -40,7 +40,7 @@ pub fn request(ctx: &Context, s: UiSound) {
 }
 
 fn previews_id() -> Id {
-    Id::unique("block_ui_sound_previews")
+    Id::unique("aurora_ui_sound_previews")
 }
 
 /// Plays the asset `id` whatever the settings (preview button, force_sound).

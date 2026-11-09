@@ -168,7 +168,10 @@ pub fn document_demo_events(ctx: &egui::Context, frame: u64, st: &mut InventoryU
     };
     if frame == 650 && mode != "note-drop" {
         ctx.memory_mut(|m| m.request_focus(egui::Id::unique(("inventory_document_text", st.ui_id, item))));
-        return vec![key(egui::Key::End), egui::Event::Text(block_i18n::tr!("notecard-demo-edit").into())];
+        return vec![
+            key(egui::Key::End),
+            egui::Event::Text(block_i18n::tr!("notecard-demo-edit").into()),
+        ];
     }
     if frame == 670
         && matches!(

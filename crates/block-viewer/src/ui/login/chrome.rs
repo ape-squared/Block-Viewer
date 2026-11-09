@@ -9,25 +9,13 @@ use crate::ui::{
 };
 use egui::{Context, Id, Rect, RichText, Vec2};
 
-pub fn sidebar(
-    ctx: &Context,
-    p: &Palette,
-    icons: &Icons,
-    info: &LoginInfo,
-    card: Rect,
-    width: f32,
-    lowest: f32,
-    start_location: &mut String,
-    start_slurl: &mut Option<crate::slurl::Location>,
-    favorites: &[crate::login_favorites::Entry],
-) -> bool {
+pub fn sidebar(ctx: &Context, p: &Palette, icons: &Icons, info: &LoginInfo, card: Rect, width: f32, lowest: f32) -> bool {
     let left = ctx.content_rect().right() - 32.0 - width;
-    egui::Area::new(Id::unique("login_destinations"))
+    egui::Area::new(Id::unique("login_news"))
         .fixed_pos(egui::pos2(left, card.top()))
         .show(ctx, |ui| {
             ui.set_width(width);
-            let height = card.height().min(lowest - card.top()).max(120.0);
-            super::destinations::panel(ui, p, icons, start_location, start_slurl, favorites, height, &mut || {});
+            super::news_panel(ui, p, icons, info, card.height().min(lowest - card.top()).max(120.0));
         });
     egui::Area::new(Id::unique("login_version"))
         .pivot(egui::Align2::LEFT_BOTTOM)

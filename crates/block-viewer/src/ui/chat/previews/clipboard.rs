@@ -143,7 +143,7 @@ mod native {
 
         #[test]
         fn explorer_source_is_a_complete_png_with_original_alpha_and_a_stable_name() {
-            let root = std::env::temp_dir().join(format!("block-clipboard-test-{}", uuid::Uuid::new_v4()));
+            let root = std::env::temp_dir().join(format!("aurora-clipboard-test-{}", uuid::Uuid::new_v4()));
             let image = ColorImage::new(
                 [2, 1],
                 vec![

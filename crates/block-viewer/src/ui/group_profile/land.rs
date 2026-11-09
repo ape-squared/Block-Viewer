@@ -593,7 +593,11 @@ fn details(ui: &mut egui::Ui, p: &Palette, lines: &[AccountLine]) {
         kv(ui, p, &l.description, &lindens(l.amount), amount_color(p, l.amount), false);
     }
     if !any {
-        ui.label(egui::RichText::new(block_i18n::tr!("ui-group-land-none")).size(12.5).color(p.muted));
+        ui.label(
+            egui::RichText::new(block_i18n::tr!("ui-group-land-none"))
+                .size(12.5)
+                .color(p.muted),
+        );
     }
     let total: i32 = lines.iter().map(|l| l.amount).fold(0, i32::saturating_add);
     kv(
@@ -624,7 +628,11 @@ fn verb(kind: i32) -> &'static str {
 fn sales(ui: &mut egui::Ui, p: &Palette, list: &[Transaction]) {
     let shown: Vec<&Transaction> = list.iter().filter(|t| t.amount != 0).collect();
     if list.is_empty() {
-        ui.label(egui::RichText::new(block_i18n::tr!("ui-group-land-none")).size(12.5).color(p.muted));
+        ui.label(
+            egui::RichText::new(block_i18n::tr!("ui-group-land-none"))
+                .size(12.5)
+                .color(p.muted),
+        );
         return;
     }
     const TIME_W: f32 = 128.0;

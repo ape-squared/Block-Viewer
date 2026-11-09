@@ -94,7 +94,7 @@ pub fn events(frame: u64, agent: Uuid) -> Vec<NetEvent> {
             b"Aurora Builders\0",
         ),
         880 => {
-            let location = format!("{}/128/128/25\0", block_i18n::tr!("common-block-demo"));
+            let location = format!("{}/128/128/25\0", block_i18n::tr!("common-aurora-demo"));
             im(
                 agent,
                 agent,

@@ -491,7 +491,11 @@ pub fn menu_body(ui: &mut egui::Ui, p: &Palette, icons: &Icons, view: &View, out
             .show(ui, |ui| {
                 ui.spacing_mut().item_spacing.y = ROW_GAP;
                 if rows.is_empty() {
-                    ui.label(egui::RichText::new(block_i18n::tr!("favorites-no-match")).size(12.0).color(p.muted));
+                    ui.label(
+                        egui::RichText::new(block_i18n::tr!("favorites-no-match"))
+                            .size(12.0)
+                            .color(p.muted),
+                    );
                 }
                 for (i, fav) in &rows {
                     let r = menu_row(ui, p, icons, fav, view.added == Some(fav.item), dragging, out);

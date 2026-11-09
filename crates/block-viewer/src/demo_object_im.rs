@@ -57,7 +57,7 @@ fn im(n: u128, owner: Uuid, agent: Uuid, location: &str, text: &str) -> NetEvent
 
 /// The events of `frame`. The demo parcel is the square 64..192 m.
 pub fn events(frame: u64, agent: Uuid) -> Vec<NetEvent> {
-    let here = block_i18n::tr!("common-block-demo");
+    let here = block_i18n::tr!("common-aurora-demo");
     let ev = match frame {
         700 => im(
             1,

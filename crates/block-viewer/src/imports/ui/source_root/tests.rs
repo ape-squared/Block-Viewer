@@ -71,9 +71,7 @@ fn loose_file_controls_update_names_immediately_and_block_invalid_names_in_full_
         assert!(imports.folders.roots.loose.is_none(), "default folders disable custom grouping");
         prefs.use_default_folders = false;
         let output = frame(&mut imports, &mut prefs, vec![]);
-        assert!(!output.shapes.iter().any(
-            |shape| matches!(&shape.shape, egui::Shape::Text(text) if text.galley.text() == block_i18n::tr!("import-include-source-folder"))
-        ));
+        assert!(!output.shapes.iter().any(|shape| matches!(&shape.shape, egui::Shape::Text(text) if text.galley.text() == block_i18n::tr!("import-include-source-folder"))));
         click(&mut imports, &mut prefs, "import_create_folder");
         frame(&mut imports, &mut prefs, vec![]);
         assert!(!imports.folder_plan_valid(&world));

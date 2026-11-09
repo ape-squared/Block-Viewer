@@ -117,7 +117,7 @@ fn badges(p: &Palette, row: &Row) -> Vec<(&'static str, Color32, String)> {
         out.push(("ban", p.muted_dim, block_i18n::tr!("common-blocked").to_owned()));
     }
     if row.friend {
-        out.push(("heart-filled", p.success, block_i18n::tr!("ui-profile-block-friend").to_owned()));
+        out.push(("heart-filled", p.success, block_i18n::tr!("ui-profile-aurora-friend").to_owned()));
     }
     match row.voice {
         Some(true) => out.push(("microphone-filled", p.success, block_i18n::tr!("radar-voice-speaking").to_owned())),
@@ -376,8 +376,9 @@ fn list_part(
                 let bounds = Rect::from_min_size(ui.cursor().min, Vec2::new(width, if compact { COMPACT_H } else { RICH_H }));
                 let count = 4 + usize::from(!row.friend && row.id != world.agent_id);
                 let badge_count = badges(p, row).len();
-                let (rect, resp) = ui.allocate_exact_size(bounds.size(), Sense::click_and_drag());
+                let (rect, resp) = super::rows::allocate(ui, row.id, bounds.size());
                 if !ui.is_rect_visible(rect) {
+                    super::rows::list_menu(&resp, p, world, &st.radar_selected, row.id, AvatarList::Nearby);
                     continue;
                 }
                 if !data.pics.contains_key(&row.id) {
@@ -412,15 +413,7 @@ fn list_part(
                     }
                 }
                 // menu_fs_radar.xml, menu_fs_radar_multiselect.xml for several
-                let several = st.radar_selected.len() > 1 && st.radar_selected.contains(&row.id);
-                let chosen = st.radar_selected.clone();
-                menu::context_menu(&resp, p, |ui| {
-                    if several {
-                        context::avatars_menu(ui, p, world, &chosen);
-                    } else {
-                        context::avatar_list_menu(ui, p, world, row.id, AvatarList::Nearby);
-                    }
-                });
+                super::rows::list_menu(&resp, p, world, &st.radar_selected, row.id, AvatarList::Nearby);
                 super::rows::contact_tip(resp, tip.as_deref());
             }
         });
@@ -432,7 +425,7 @@ fn toolbar(ui: &mut egui::Ui, p: &Palette, data: &mut RadarData, st: &mut People
     ui.allocate_ui_with_layout(line, egui::Layout::right_to_left(egui::Align::Center), |ui| {
         ui.spacing_mut().item_spacing.x = 6.0;
         let resp = super::rows::gear(ui, p, block_i18n::tr!("people-alerts-options"));
-        if crate::block_env::demo_mode() && std::env::var("AURORA_DEMO_BRIDGE_QUERY").is_ok_and(|m| m == "radar") {
+        if std::env::var_os("AURORA_DEMO").is_some() && std::env::var("AURORA_DEMO_BRIDGE_QUERY").is_ok_and(|m| m == "radar") {
             egui::Popup::open_id(ui.ctx(), egui::Popup::default_response_id(&resp));
         }
         menu::dropdown(&resp, p, egui::PopupCloseBehavior::CloseOnClick, |ui| {

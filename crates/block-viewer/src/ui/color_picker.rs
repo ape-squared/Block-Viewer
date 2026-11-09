@@ -195,77 +195,82 @@ impl ColorPicker {
                 widgets::move_floater(ctx, window_id, pos);
             }
         }
-        Floater::new(window_id, block_i18n::tr!("color-picker-title"), screen.center() - size * 0.5, size)
-            .fixed()
-            .auto_height()
-            .framed_header("palette-filled")
-            .help(block_i18n::tr!("color-picker-help"))
-            .show(ctx, p, &mut open, |ui| {
-                egui::Frame::new().inner_margin(10).show(ui, |ui| {
-                    ui.spacing_mut().item_spacing = Vec2::new(6.0, 4.0);
-                    ui.horizontal_top(|ui| {
-                        ui.vertical(|ui| {
-                            ui.set_width(160.0);
-                            ui.set_min_height(220.0);
-                            edited |= self.fields(ui, p, &mut draft);
-                        });
-                        ui.add_space(2.0);
-                        edited |= self.canvas(ui, p, &mut draft);
+        Floater::new(
+            window_id,
+            block_i18n::tr!("color-picker-title"),
+            screen.center() - size * 0.5,
+            size,
+        )
+        .fixed()
+        .auto_height()
+        .framed_header("palette-filled")
+        .help(block_i18n::tr!("color-picker-help"))
+        .show(ctx, p, &mut open, |ui| {
+            egui::Frame::new().inner_margin(10).show(ui, |ui| {
+                ui.spacing_mut().item_spacing = Vec2::new(6.0, 4.0);
+                ui.horizontal_top(|ui| {
+                    ui.vertical(|ui| {
+                        ui.set_width(160.0);
+                        ui.set_min_height(220.0);
+                        edited |= self.fields(ui, p, &mut draft);
                     });
                     ui.add_space(2.0);
-                    self.previews(ui, p, &draft);
-                    ui.add_space(2.0);
-                    edited |= self.palette(ui, p, prefs, &mut draft);
-                    ui.label(RichText::new(block_i18n::tr!("color-picker-save-hint")).size(11.0).color(p.muted));
-                    ui.horizontal(|ui| {
-                        let label = RichText::new(block_i18n::tr!("color-picker-pipette")).size(12.0).color(p.ink);
-                        let button = if let Some(icon) = super::icons::global("color-picker") {
-                            egui::Button::image_and_text(egui::Image::new((icon.id(), Vec2::splat(16.0))).tint(p.ink), label)
-                        } else {
-                            egui::Button::new(label)
-                        };
-                        let pipette = ui.add(button.selected(self.pipette).min_size(Vec2::new(88.0, 26.0)));
-                        self.record(Control::Pipette, pipette.rect);
-                        if pipette.on_hover_text(block_i18n::tr!("color-picker-pipette-hint")).clicked() {
-                            self.pipette = !self.pipette;
-                            self.sample_cursor = None;
-                            self.sampled = None;
-                            self.notice.clear();
-                        }
-                        let copy = widgets::flat_button(ui, p, block_i18n::tr!("color-picker-copy-lsl"));
-                        self.record(Control::CopyLsl, copy.rect);
-                        if copy.clicked() {
-                            ctx.copy_text(lsl(draft.rgb));
-                            self.notice = block_i18n::tr!("color-picker-copied").to_owned();
-                        }
-                    });
-                    let status = if self.pipette && self.notice.is_empty() {
-                        block_i18n::tr!("color-picker-pipette-hint")
+                    edited |= self.canvas(ui, p, &mut draft);
+                });
+                ui.add_space(2.0);
+                self.previews(ui, p, &draft);
+                ui.add_space(2.0);
+                edited |= self.palette(ui, p, prefs, &mut draft);
+                ui.label(RichText::new(block_i18n::tr!("color-picker-save-hint")).size(11.0).color(p.muted));
+                ui.horizontal(|ui| {
+                    let label = RichText::new(block_i18n::tr!("color-picker-pipette")).size(12.0).color(p.ink);
+                    let button = if let Some(icon) = super::icons::global("color-picker") {
+                        egui::Button::image_and_text(egui::Image::new((icon.id(), Vec2::splat(16.0))).tint(p.ink), label)
                     } else {
-                        &self.notice
+                        egui::Button::new(label)
                     };
-                    ui.add_sized(
-                        [ui.available_width(), 16.0],
-                        egui::Label::new(RichText::new(status).size(11.0).color(p.muted)),
-                    );
-                    widgets::divider(ui, p);
-                    ui.horizontal(|ui| {
-                        let apply = widgets::checkbox(ui, p, &mut prefs.apply, block_i18n::tr!("color-picker-apply"));
-                        self.record(Control::Apply, apply.rect);
-                        apply.on_hover_text(block_i18n::tr!("color-picker-apply-hint"));
-                        ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
-                            let cancel = widgets::flat_button_sized(ui, p, block_i18n::tr!("common-cancel"), Vec2::new(80.0, 28.0));
-                            self.record(Control::Cancel, cancel.rect);
-                            canceled = cancel.clicked();
-                            ui.add_enabled_ui(parse_hex(&draft.hex).is_some(), |ui| {
-                                let ok = widgets::primary_button_sized(ui, p, block_i18n::tr!("color-picker-ok"), Vec2::new(68.0, 28.0));
-                                self.record(Control::Accept, ok.rect);
-                                accepted = ok.clicked();
-                            });
+                    let pipette = ui.add(button.selected(self.pipette).min_size(Vec2::new(88.0, 26.0)));
+                    self.record(Control::Pipette, pipette.rect);
+                    if pipette.on_hover_text(block_i18n::tr!("color-picker-pipette-hint")).clicked() {
+                        self.pipette = !self.pipette;
+                        self.sample_cursor = None;
+                        self.sampled = None;
+                        self.notice.clear();
+                    }
+                    let copy = widgets::flat_button(ui, p, block_i18n::tr!("color-picker-copy-lsl"));
+                    self.record(Control::CopyLsl, copy.rect);
+                    if copy.clicked() {
+                        ctx.copy_text(lsl(draft.rgb));
+                        self.notice = block_i18n::tr!("color-picker-copied").to_owned();
+                    }
+                });
+                let status = if self.pipette && self.notice.is_empty() {
+                    block_i18n::tr!("color-picker-pipette-hint")
+                } else {
+                    &self.notice
+                };
+                ui.add_sized(
+                    [ui.available_width(), 16.0],
+                    egui::Label::new(RichText::new(status).size(11.0).color(p.muted)),
+                );
+                widgets::divider(ui, p);
+                ui.horizontal(|ui| {
+                    let apply = widgets::checkbox(ui, p, &mut prefs.apply, block_i18n::tr!("color-picker-apply"));
+                    self.record(Control::Apply, apply.rect);
+                    apply.on_hover_text(block_i18n::tr!("color-picker-apply-hint"));
+                    ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+                        let cancel = widgets::flat_button_sized(ui, p, block_i18n::tr!("common-cancel"), Vec2::new(80.0, 28.0));
+                        self.record(Control::Cancel, cancel.rect);
+                        canceled = cancel.clicked();
+                        ui.add_enabled_ui(parse_hex(&draft.hex).is_some(), |ui| {
+                            let ok = widgets::primary_button_sized(ui, p, block_i18n::tr!("color-picker-ok"), Vec2::new(68.0, 28.0));
+                            self.record(Control::Accept, ok.rect);
+                            accepted = ok.clicked();
                         });
                     });
                 });
             });
+        });
         if let Some(parent) = parent.filter(|_| following)
             && let Some(rect) = ctx.memory(|m| m.area_rect(egui::Id::unique(window_id)))
         {

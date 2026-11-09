@@ -506,7 +506,8 @@ fn compose(st: &mut GroupProfileUi, ui: &mut egui::Ui, c: &mut Ctx, v: &View, ac
                     if widgets::action_button_if(ui, p, "send-filled", &label, ActionKind::Primary, Vec2::new(0.0, 28.0), ready).clicked() {
                         send = true;
                     }
-                    if widgets::action_button(ui, p, "", block_i18n::tr!("common-cancel"), ActionKind::Flat, Vec2::new(0.0, 28.0)).clicked()
+                    if widgets::action_button(ui, p, "", block_i18n::tr!("common-cancel"), ActionKind::Flat, Vec2::new(0.0, 28.0))
+                        .clicked()
                     {
                         cancel = true;
                     }

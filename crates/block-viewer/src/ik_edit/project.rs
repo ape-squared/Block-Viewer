@@ -16,7 +16,7 @@ const MAX_BYTES: usize = 65_536;
 #[derive(Clone, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 struct Document {
-    block_ik_project: u8,
+    aurora_ik_project: u8,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     project: Option<library::Identity>,
     definition: crate::world::rig_graph::Definition,
@@ -43,7 +43,7 @@ impl Document {
             return Err(invalid());
         }
         let document: Self = serde_json::from_slice(bytes).map_err(|_| invalid())?;
-        if document.block_ik_project != 1
+        if document.aurora_ik_project != 1
             || document.project.as_ref().is_some_and(|p| !p.valid())
             || document.definition.validate().is_err()
             || if document.definition.profiles.is_empty() {
@@ -223,7 +223,7 @@ impl Editor {
             *stack = self.animations.save();
         }
         Document {
-            block_ik_project: 1,
+            aurora_ik_project: 1,
             project: self.project.library.active.clone(),
             definition: self.stored_definition(),
             animations,
@@ -382,7 +382,7 @@ impl Editor {
         }
         let path = crate::settings::account_dir(&world.agent_id)
             .join("ik-projects")
-            .join("draft.block-ik.json");
+            .join("draft.aurora-ik.json");
         if !self.project.checked {
             self.project.busy = true;
             self.project.autosave_blocked = true;
@@ -463,7 +463,7 @@ impl Editor {
             let work = || -> Result<Output, String> {
                 match action {
                     Some(Action::Open) => {
-                        let Some(path) = rfd::FileDialog::new().add_filter("Block IK", &["json"]).pick_file() else {
+                        let Some(path) = rfd::FileDialog::new().add_filter("Aurora IK", &["json"]).pick_file() else {
                             return Ok(Output::Cancelled);
                         };
                         Ok(Output::Loaded(read(&path)?))
@@ -496,7 +496,7 @@ impl Editor {
                 self.project.out.push(NetCommand::CreateNotecardItem {
                     request,
                     parent,
-                    name: format!("Block IK - {title}"),
+                    name: format!("Aurora IK - {title}"),
                     data,
                     permissions: None,
                 });
@@ -533,7 +533,7 @@ impl Editor {
                         it.asset_type == 7 && it.name.to_lowercase().contains(&filter) && !world.inventory.in_folder_type(it.id, 14)
                     })
                     .collect();
-                candidates.sort_by(|a, b| a.name.cmp(&b.name).then(a.id.cmp(&b.id)));
+                candidates.sort_by(|a, b| crate::natural_order::cmp(&a.name, &b.name).then(a.id.cmp(&b.id)));
                 self.project.candidates = candidates.iter().map(|it| it.id).collect();
                 self.project.candidates_at = Some(signature);
             }

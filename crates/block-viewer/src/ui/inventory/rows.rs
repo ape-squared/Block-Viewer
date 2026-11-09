@@ -42,7 +42,7 @@ pub(super) fn folders(view: &ViewCache, inv: &Inventory, root: Uuid, show_root: 
 /// The height of the rows of this window: Aurora's are taller.
 pub fn row_height(st: &InventoryUi) -> f32 {
     if st.aurora.is_some() {
-        super::block::rows::HEIGHT
+        super::aurora::rows::HEIGHT
     } else {
         ROW_HEIGHT
     }
@@ -250,8 +250,10 @@ pub(super) fn scroll(
     if let Some(open) = st.expand_all.take() {
         st.plain.expand(&st.view, inv, root, show_root, prefs.show_library, open);
     }
-    // Back from a search: where the list was (a revealed row below wins).
-    let mut offset = st.plain_scroll_restore.take();
+    // Back from a search: where the list was; else the place `list` gives it
+    // (a revealed row below wins).
+    let restore = st.scroll_restore.take();
+    let mut offset = st.plain_scroll_restore.take().or(restore);
     // The root opens the first time it is shown, scrolled to the top.
     if show_root && st.roots_seen.insert(root) {
         st.plain.set_open(root, true);
@@ -272,6 +274,9 @@ pub(super) fn scroll(
     }
     let height_of_row = row_height(st);
     let pitch = height_of_row + ui.spacing().item_spacing.y;
+    if navigated {
+        st.scroll_hold = None;
+    }
     if navigated && let Some(index) = st.selected.and_then(|id| st.plain.position(id)) {
         offset = Some(keyboard::scroll_offset(st, index, height_of_row, pitch, height));
     }
@@ -319,6 +324,7 @@ pub(super) fn scroll(
     });
     st.plain_scroll = out.state.unclamped_offset().y;
     st.list_viewport = Some((out.state.unclamped_offset().y, out.inner_rect.height()));
+    super::record_list_shown(ui, st, &out);
     drag::navigation::scroll(ui, &out, st.ui_id);
     out
 }
@@ -374,7 +380,7 @@ fn rows(
                         block_i18n::tr!("ui-inventory-loading-folder")
                     };
                     if st.aurora.is_some() {
-                        ui.add_space(super::block::rows::LEAD);
+                        ui.add_space(super::aurora::rows::LEAD);
                     }
                     ui.label(RichText::new(text).size(12.0).color(p.muted_dim));
                 }

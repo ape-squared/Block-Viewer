@@ -17,7 +17,7 @@ pub(super) struct State {
 #[derive(Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
 struct Clipboard {
-    block_ik_binding: u8,
+    aurora_ik_binding: u8,
     binding: Binding,
     nodes: Vec<Node>,
 }
@@ -256,7 +256,7 @@ impl Editor {
             target = &node.parent;
         }
         let text = serde_json::to_string(&Clipboard {
-            block_ik_binding: 1,
+            aurora_ik_binding: 1,
             binding,
             nodes,
         })
@@ -299,7 +299,7 @@ impl Editor {
         let Ok(mut copied) = serde_json::from_str::<Clipboard>(text) else {
             return false;
         };
-        if copied.block_ik_binding != 1 || !world.avatar_lib.rig.names.contains_key(&copied.binding.bone) {
+        if copied.aurora_ik_binding != 1 || !world.avatar_lib.rig.names.contains_key(&copied.binding.bone) {
             return false;
         }
         let check = Definition {

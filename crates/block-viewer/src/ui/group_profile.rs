@@ -50,21 +50,21 @@ const WINDOW: &str = "group_profile";
 /// Ask for the profile of a group from anywhere in the interface (a link, a
 /// name); the app opens it at the end of the frame.
 pub fn request_open(ctx: &egui::Context, id: Uuid) {
-    ctx.data_mut(|d| d.insert_temp(egui::Id::unique("block_open_group_profile"), id));
+    ctx.data_mut(|d| d.insert_temp(egui::Id::unique("aurora_open_group_profile"), id));
 }
 
 pub fn take_open_request(ctx: &egui::Context) -> Option<Uuid> {
-    ctx.data_mut(|d| d.remove_temp::<Uuid>(egui::Id::unique("block_open_group_profile")))
+    ctx.data_mut(|d| d.remove_temp::<Uuid>(egui::Id::unique("aurora_open_group_profile")))
 }
 
 /// Ask for the "Create a group" window (LLGroupActions::createGroup) from
 /// anywhere in the interface; the app opens it at the end of the frame.
 pub fn request_create(ctx: &egui::Context) {
-    ctx.data_mut(|d| d.insert_temp(egui::Id::unique("block_create_group"), true));
+    ctx.data_mut(|d| d.insert_temp(egui::Id::unique("aurora_create_group"), true));
 }
 
 pub fn take_create_request(ctx: &egui::Context) -> bool {
-    ctx.data_mut(|d| d.remove_temp::<bool>(egui::Id::unique("block_create_group")))
+    ctx.data_mut(|d| d.remove_temp::<bool>(egui::Id::unique("aurora_create_group")))
         .unwrap_or(false)
 }
 

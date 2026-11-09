@@ -2,7 +2,7 @@
 
 "Report a bug", in the top bar, the Help menu and on the login screen, opens
 the project's
-[GitHub issue forms](https://github.com/ape-squared/Block-Viewer/issues/new/choose)
+[GitHub issue forms](https://github.com/Aurora-Viewer/Aurora-Viewer/issues/new/choose)
 in the browser. The tester needs a GitHub account, chooses the bug report
 template and fills it in on GitHub. "Copy trace" and "Open report folder",
 in the crash window, give the full technical details, to review before
@@ -25,7 +25,7 @@ browser" opens a new issue with the same title and text instead (text in
 the clipboard when the link would be too long).
 
 The authorization is kept in the system credential store (Windows
-Credential Manager, entry "Block Viewer GitHub"), never in the settings,
+Credential Manager, entry "Aurora Viewer GitHub"), never in the settings,
 the reports or the logs: an expiring user token and its refresh token,
 refreshed without any client secret (allowed for the Device Flow) and
 replaced at each refresh. "Forget the GitHub connection", in the crash
@@ -49,7 +49,7 @@ crash report would publish (version, commit, crash kind, system, GPU, the
 stack as `module+0xoffset` with the modules' PDB identities, the panic
 location inside the sources, recognised warning categories). It never
 contains raw addresses, panic messages, paths or log lines; the
-`<!-- block-crash v1 -->` marker at its top is for the repository's crash
+`<!-- aurora-crash v1 -->` marker at its top is for the repository's crash
 triage.
 
 What each part tells the one who fixes it:
@@ -86,28 +86,68 @@ What each part tells the one who fixes it:
 - **Window**: answering until the end, or not answering for the last N s.
 - **GPU device lost**: the renderer's device-lost callback fired (driver
   reset, GPU removed).
+- **Risk factors** (GPU loss or stall only): what was stacked up, from
+  what the report already has: the heavy effects first (contact shadows,
+  GTAO, SSR…), video-memory headroom of 10 % or less, an overlay hook, a
+  region change in the last 60 s, then the preset, driver and session
+  length. A list, not a diagnosis: no rating comes with it, since the order
+  is a guess at weight and no crash statistics back it yet.
 - **GPU work at the loss**: the frame last submitted to the card and the
   last one it finished, each with its age at the loss, and what that says:
   a hang (the last frame not finished 0.5 s or more after its submission:
   the driver reset the card; a real hang on an RTX 5070 Ti was declared
   1.1 s after), a fault the driver found in a frame's work (the loss within
   0.1 s of the submission, or after the frame ended), or undecided between
-  the two. Frame numbers and ages only.
+  the two. Frame numbers and ages only. It describes the loss that began
+  the end of the session: the first of the last losses less than five
+  minutes apart, not a recovery's new device lost after it.
+- **GPU work at the later losses**: when the viewer recovered (or tried
+  to) and the card was lost again, each later loss in the same words,
+  numbered (`loss 2: …`). "nothing submitted yet (lost while starting)"
+  there is a recovery whose new device was lost before its first frame.
 - **GPU recoveries**: the graphics card resets the viewer recovered from
-  during the session (`AURORA_GPU_RECOVERY=1`), how many, and for the first
+  during the session (Preferences › Graphics, on by default), how many, and for the first
   five when in the session, how long the recovery took and whether it came
   back with the safe graphics. Only shown when the session ended badly later.
 - **Overlay hooks**: the overlay or capture programs that injected their
   hook into the viewer during the session (Discord, Steam, RivaTuner, OBS
-  game capture), named from the viewer's fixed list only.
-- **Vulkan layers on offer**: the `VK_LAYER_*` names the Vulkan loader offers
-  to the viewer, noted at the very start, so a crash while Vulkan starts has
-  them too.
+  game capture), named from the viewer's fixed list only (Windows).
+- **Overlay hooks at GPU loss**: the known hooks loaded when the first GPU
+  loss of the session happened, recovered from or not, or `none loaded`
+  (Windows).
+- **Vulkan layers installed**: the `VK_LAYER_*` names the Vulkan loader
+  lists, noted at the very start, so a crash while Vulkan starts has them
+  too. A listed layer was not necessarily enabled. **Vulkan layers eligible
+  (known ones)**: those of the viewer's known list that no variable or
+  loader filter turned off, which still does not prove they ran.
 - **GPU errors**: the errors wgpu reported, first of each in the order they
-  came: `out-of-memory` or the wgpu operation that failed
-  (`Queue::write_buffer`). Their messages stay in the local log.
+  came, with their count, ten at most: `out-of-memory`, with the call when
+  the log names it (`out-of-memory in Device::create_bind_group (x2)`), or
+  the wgpu operation that failed (`Queue::write_buffer (x155)`). On a GPU
+  loss with none, the row says so. Their messages stay local: in the log,
+  and up to 50 distinct ones with their labels, counts and age in
+  `gpu-errors-private.txt`.
+- **OS GPU reset records** (GPU loss or stall, or when the OS recorded
+  something): what the operating system noted of a GPU reset from two
+  minutes before to five minutes after the session's end. Linux: the kernel
+  lines of a GPU driver (`journalctl`, else `dmesg`), published as fixed
+  labels (`amdgpu timeout`, `DRM reset`). Windows: Display 4101 and
+  LiveKernelEvent 141 / 117 / 1a8, with their times. The row also says
+  whether the query worked: collected, partial (one event channel
+  unavailable), incomplete (a cap reached) or not collected and why. The
+  kernel lines, event text, TDR / HAGS / MPO registry values and WATCHDOG
+  dump names stay local; the registry values and dumps are read when the
+  report is built and may have changed since the crash. The queries share
+  one two-second budget.
+- **XR runtime**: the VR runtime of the session, as a fixed name (SteamVR,
+  Meta, Virtual Desktop, Monado, Windows Mixed Reality or other), and
+  whether it created the Vulkan device. Only shown when one was loaded.
 - **Last state**: screen, frame rate, frame time, window size, graphics
-  preset, memory, video memory used / budget, texture memory pressure,
+  preset, memory, video memory used / budget, the tightest video memory
+  headroom of the last 60 seconds (the driver's budget less what it
+  counted for the viewer, in MB, negative while the viewer was past its
+  budget: a card shared with another program, where the driver moves
+  memory out and the frames slow down together), texture memory pressure,
   objects, avatars, regions, as noted every 2 seconds, and the swapchain
   recreations of the last 10 seconds (window resizes among them), frozen
   when the graphics card is lost. It also tells the cause of a GPU loss
@@ -131,7 +171,7 @@ What each part tells the one who fixes it:
 
 ### Crash symbols
 
-Each Windows release carries `Block-Viewer-vX.Y.Z-windows-x64-symbols.zip`:
+Each Windows release carries `Aurora-Viewer-vX.Y.Z-windows-x64-symbols.zip`:
 the Breakpad symbol file of the exe, made by `dump_syms` from the release
 build's PDB (line tables only) and stored as
 `block_viewer.pdb/<debug id>/block_viewer.sym`. The debug id is the
@@ -146,7 +186,7 @@ contains it and the line record under it; or use the triage script below.
 ### Crash triage
 
 The Crash triage workflow (`.github/workflows/crash-triage.yml`) runs on
-every new issue whose body carries the `<!-- block-crash v1 -->` marker.
+every new issue whose body carries the `<!-- aurora-crash v1 -->` marker.
 `scripts/crash-triage.ps1` reads the issue through the API and validates
 each value again (anyone can write an issue). For a released version whose
 symbol file has the report's debug id, it resolves the viewer's frames,
@@ -201,7 +241,7 @@ that form, as it works once enabled, and its GitHub setup.
 `AURORA_DEMO_BUG_REPORT` has no effect while it is disabled.
 
 The shared form can be reached from the top bar, Help and the login screen.
-"Send from Block" is the first choice and the default mode of new reports.
+"Send from Aurora" is the first choice and the default mode of new reports.
 The sending options are independent of the report template.
 The browser mode is available without any application setup; both modes
 require the tester to have a GitHub account. Without an account, a local
@@ -220,7 +260,7 @@ new authorisation from the tester.
 
 ### Setting up direct sending
 
-Create a **GitHub App**, in the developer settings of the Block-Viewer
+Create a **GitHub App**, in the developer settings of the Aurora-Viewer
 organisation, then:
 
 - turn on **Enable Device Flow**, keep the expiry of the authorisations;
@@ -228,7 +268,7 @@ organisation, then:
 - repository permissions: **Issues — Read and write**, read-only metadata,
   no other permission;
 - public application (**Any account**) for the testers; install it on the
-  organisation with only the Block-Viewer repository selected;
+  organisation with only the Aurora-Viewer repository selected;
 - copy the **public Client ID** into `bug_report/github.rs::CLIENT_ID`.
   The numeric App ID is not suitable. No Client secret and no private key
   may be added to the viewer.
@@ -293,7 +333,7 @@ The `public` subfolder contains the chosen text and, if included,
 local diagnostics and must never be attached to a public issue. Nothing
 leaves the PC besides the text of the issue: GitHub's API takes no
 attachment, so in both modes the viewer opens the `public` folder and the
-tester drags `screenshot.png` into the issue themselves. The viewer runs no
+tester drags `screenshot.png` into the issue themselves. Aurora runs no
 server of its own for the reports.
 
 ### Validation

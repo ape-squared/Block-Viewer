@@ -11,9 +11,9 @@
 //! This is the classic window (Preferences › Aurora › Profiles); the
 //! default one is drawn by `aurora`, on the same state, data and actions.
 
-mod block;
+mod aurora;
 
-pub use block::banner_image;
+pub use aurora::banner_image;
 
 use super::menu;
 use super::texture_library::texture_view::{self, ImageView};
@@ -34,11 +34,11 @@ use uuid::Uuid;
 /// Ask to open a profile from anywhere in the interface (names and agent
 /// links in text); the app reads it once per frame (LLAgentHandler).
 pub fn request_open(ctx: &egui::Context, id: Uuid) {
-    ctx.data_mut(|d| d.insert_temp(egui::Id::unique("block_open_profile"), id));
+    ctx.data_mut(|d| d.insert_temp(egui::Id::unique("aurora_open_profile"), id));
 }
 
 pub fn take_open_request(ctx: &egui::Context) -> Option<Uuid> {
-    ctx.data_mut(|d| d.remove_temp::<Uuid>(egui::Id::unique("block_open_profile")))
+    ctx.data_mut(|d| d.remove_temp::<Uuid>(egui::Id::unique("aurora_open_profile")))
 }
 
 pub enum ProfileAction {
@@ -377,7 +377,7 @@ impl ProfileUi {
     /// (unsaved edits still ask).
     pub fn toggle_mine(&mut self, ctx: &egui::Context, world: &mut World, classic: bool) {
         let me = world.agent_id;
-        let win_id = if classic { format!("profile-{me}") } else { block::window_id(me) };
+        let win_id = if classic { format!("profile-{me}") } else { aurora::window_id(me) };
         if let Some(w) = self.windows.iter_mut().find(|w| w.id == me && w.open) {
             if widgets::floater_minimized(ctx, &win_id) {
                 widgets::expand_floater(ctx, &win_id);
@@ -402,7 +402,7 @@ impl ProfileUi {
     /// second press with Picks shown closes it (unsaved edits still ask).
     pub fn toggle_picks(&mut self, ctx: &egui::Context, world: &mut World, classic: bool) {
         let me = world.agent_id;
-        let win_id = if classic { format!("profile-{me}") } else { block::window_id(me) };
+        let win_id = if classic { format!("profile-{me}") } else { aurora::window_id(me) };
         if let Some(w) = self.windows.iter_mut().find(|w| w.id == me && w.open) {
             if w.tab == TAB_PICKS && !widgets::floater_minimized(ctx, &win_id) {
                 close_or_confirm(w, false);
@@ -470,7 +470,7 @@ impl ProfileUi {
                 "compact" => {
                     let size = Vec2::new(380.0, 640.0);
                     let pos = ctx.content_rect().center() - size * 0.5;
-                    widgets::place_floater(ctx, &block::window_id(id), pos, size);
+                    widgets::place_floater(ctx, &aurora::window_id(id), pos, size);
                 }
                 tab => w.tab = tab.parse::<usize>().unwrap_or(TAB_SL).min(TAB_NOTES),
             }
@@ -481,7 +481,7 @@ impl ProfileUi {
     /// (`AURORA_DEMO_GIVE=profile`).
     pub fn demo_window_rect(&self, ctx: &egui::Context) -> Option<egui::Rect> {
         let w = self.windows.iter().find(|w| w.open)?;
-        [block::window_id(w.id), format!("profile-{}", w.id)]
+        [aurora::window_id(w.id), format!("profile-{}", w.id)]
             .iter()
             .find_map(|id| ctx.memory(|m| m.area_rect(egui::Id::unique(id.as_str()))))
     }
@@ -536,11 +536,11 @@ impl ProfileUi {
                     continue;
                 }
                 if std::mem::take(&mut w.raise) {
-                    let win_id = block::window_id(w.id);
+                    let win_id = aurora::window_id(w.id);
                     widgets::expand_floater(ctx, &win_id);
                 }
                 world.social.avatar_names.want(&w.id);
-                let mut env = block::Env {
+                let mut env = aurora::Env {
                     p,
                     emoji,
                     pics,
@@ -555,7 +555,7 @@ impl ProfileUi {
                     pick_picture: &mut pick_picture,
                     friend_rights,
                 };
-                let open = block::window(ctx, &mut env, w, i);
+                let open = aurora::window(ctx, &mut env, w, i);
                 photo_window(ctx, p, world, pics, images, w);
                 close_or_confirm(w, open);
                 continue;
@@ -668,7 +668,7 @@ impl ProfileUi {
             let title = match slot {
                 PictureSlot::SecondLife => block_i18n::tr!("ui-profile-profile-picture"),
                 PictureSlot::FirstLife => block_i18n::tr!("ui-profile-rl-picture"),
-                PictureSlot::Pick(_) | PictureSlot::Classified(_) => block_i18n::tr!("ui-profile-block-snapshot"),
+                PictureSlot::Pick(_) | PictureSlot::Classified(_) => block_i18n::tr!("ui-profile-aurora-snapshot"),
             };
             self.picker.open(title, current);
             self.picker_slot = Some(slot);
@@ -759,7 +759,7 @@ fn photo_window(
     window: &mut Window,
 ) {
     let Some(photo) = &mut window.photo else { return };
-    let name = block::display_name(world, &window.id);
+    let name = aurora::display_name(world, &window.id);
     let caption = match photo.slot {
         PictureSlot::FirstLife => block_i18n::tr!("ui-profile-rl-picture"),
         PictureSlot::SecondLife => block_i18n::tr!("ui-profile-profile-picture"),
@@ -1253,7 +1253,7 @@ fn second_life_tab(
             *pick_picture = Some((PictureSlot::SecondLife, pr.sl_image));
         } else if !own
             && let Some(pr) = profile.filter(|pr| !pr.sl_image.is_nil())
-            && r.on_hover_text(block_i18n::tr!("ui-profile-block-big-photo")).clicked()
+            && r.on_hover_text(block_i18n::tr!("ui-profile-aurora-big-photo")).clicked()
         {
             w.open_photo(PictureSlot::SecondLife, pr.sl_image);
         }
@@ -1414,7 +1414,7 @@ fn groups_list(
         return;
     }
     let mut groups: Vec<_> = pr.groups.iter().collect();
-    groups.sort_by_key(|g| g.name.to_lowercase());
+    groups.sort_by_key(|g| crate::natural_order::key(&g.name));
     ui.spacing_mut().item_spacing.y = 1.0;
     for g in groups {
         let member = world.groups.is_member(&g.id);
@@ -1547,7 +1547,13 @@ fn overflow_menu(ui: &mut egui::Ui, p: &Palette, world: &World, id: Uuid, blocke
             actions.push(ProfileAction::Share(id));
         }
         // LLAvatarActions::startCall (canCall: voice enabled)
-        if menu::item_if(ui, p, "phone-filled", block_i18n::tr!("ui-profile-call"), world.calls.voice_enabled) {
+        if menu::item_if(
+            ui,
+            p,
+            "phone-filled",
+            block_i18n::tr!("ui-profile-call"),
+            world.calls.voice_enabled,
+        ) {
             crate::ui::context::request(ui.ctx(), crate::ui::context::CtxAction::Call(id));
         }
         let block = if blocked {
@@ -2041,7 +2047,10 @@ fn pick_detail(
                     *base = e.clone();
                     actions.push(ProfileAction::Net(NetCommand::PickUpdate(Box::new(pick_of(e)))));
                 }
-                if ui.add_enabled(dirty, egui::Button::new(block_i18n::tr!("common-cancel"))).clicked() {
+                if ui
+                    .add_enabled(dirty, egui::Button::new(block_i18n::tr!("common-cancel")))
+                    .clicked()
+                {
                     *e = base.clone();
                 }
             }
@@ -2250,7 +2259,7 @@ fn first_life_tab(
             if r.on_hover_text(block_i18n::tr!("ui-profile-click-change-image")).clicked() {
                 *pick_picture = Some((PictureSlot::FirstLife, pr.fl_image));
             }
-        } else if !pr.fl_image.is_nil() && r.on_hover_text(block_i18n::tr!("ui-profile-block-big-photo")).clicked() {
+        } else if !pr.fl_image.is_nil() && r.on_hover_text(block_i18n::tr!("ui-profile-aurora-big-photo")).clicked() {
             w.open_photo(PictureSlot::FirstLife, pr.fl_image);
         }
         if c.own {
@@ -2443,7 +2452,7 @@ mod tests {
         let me = Uuid::from_u128(1);
         world.agent_id = me;
         for classic in [false, true] {
-            let win_id = if classic { format!("profile-{me}") } else { block::window_id(me) };
+            let win_id = if classic { format!("profile-{me}") } else { aurora::window_id(me) };
             let mut ui = ProfileUi::default();
             ui.toggle_picks(&ctx, &mut world, classic);
             assert!(ui.picks_shown(me), "classic {classic}: opens on Picks");

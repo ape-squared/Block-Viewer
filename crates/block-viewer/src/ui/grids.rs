@@ -235,7 +235,10 @@ impl Manager {
                         ui,
                         p,
                         &mut self.tab,
-                        &[(block_i18n::tr!("grids-connection"), true), (block_i18n::tr!("grids-pages"), true)],
+                        &[
+                            (block_i18n::tr!("grids-connection"), true),
+                            (block_i18n::tr!("grids-pages"), true),
+                        ],
                     );
                     egui::ScrollArea::vertical()
                         .id_salt(("grid_fields", self.tab))

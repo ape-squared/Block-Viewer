@@ -89,7 +89,7 @@ pub struct AutoResponse {
 
 impl Default for AutoResponse {
     fn default() -> Self {
-        // Firestorm's French defaults (strings.xml), [APP_NAME] = Block Viewer
+        // Firestorm's French defaults (strings.xml), [APP_NAME] = Aurora Viewer
         AutoResponse {
             autorespond: false,
             autorespond_nonfriends: false,
@@ -528,7 +528,7 @@ mod tests {
 
     #[test]
     fn invisible_takes_the_online_right_and_gives_it_back_to_who_had_it() {
-        let dir = std::env::temp_dir().join(format!("block-invisible-{}", Uuid::new_v4()));
+        let dir = std::env::temp_dir().join(format!("aurora-invisible-{}", Uuid::new_v4()));
         let path = dir.join(INVISIBLE_FILE);
         let mut world = World::new(std::sync::Arc::new(crate::scene::avatar::AvatarLibrary::load()));
         // online + map + modify, online only, map without online, nothing
@@ -566,7 +566,7 @@ mod tests {
 
     #[test]
     fn a_friend_shown_by_hand_while_invisible_is_left_to_the_user() {
-        let dir = std::env::temp_dir().join(format!("block-invisible-{}", Uuid::new_v4()));
+        let dir = std::env::temp_dir().join(format!("aurora-invisible-{}", Uuid::new_v4()));
         let path = dir.join(INVISIBLE_FILE);
         let mut world = World::new(std::sync::Arc::new(crate::scene::avatar::AvatarLibrary::load()));
         world.social.friends = vec![friend(1, 1), friend(2, 3)];

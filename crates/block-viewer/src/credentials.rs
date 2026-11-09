@@ -3,8 +3,8 @@
 //! the system credential store (Windows Credential Manager, protected by the
 //! user's session) instead of Firestorm's bin_conf.dat file.
 
-const SERVICE: &str = "Block Viewer";
-const MFA_SERVICE: &str = "Block Viewer MFA";
+const SERVICE: &str = "Aurora Viewer";
+const MFA_SERVICE: &str = "Aurora Viewer MFA";
 const MFA_LIFETIME: u64 = 30 * 24 * 60 * 60;
 
 /// Firestorm LLLoginInstance::saveMFAHash: separate protected map per user/grid.
@@ -273,7 +273,7 @@ mod tests {
     #[test]
     #[ignore]
     fn store_round_trip() {
-        let (grid, user) = ("test-grid", "block-selftest");
+        let (grid, user) = ("test-grid", "aurora-selftest");
         let h = "$1$00000000000000000000000000000000";
         store(grid, user, h);
         assert_eq!(load(grid, user).as_deref(), Some(h));

@@ -1,10 +1,10 @@
-// Aurora LSL Bridge v1.42. Movelock physics follow the Legacy Viewer's movelockMe
+// Aurora LSL Bridge v1.41. Movelock physics follow the Legacy Viewer's movelockMe
 // (EBEDD1D2-A320-43f5-88CF-DD47BBCA5DFB.lsltxt, originally LGPL 2.1).
 // Mono's 64 KB holds this compiled controller too, with little to spare: the
 // read-only queries run in query.lsl, so a busy region cannot halt Movelock
 // with a Stack-Heap Collision. Keep new services out of this script.
 string FOLDER = "__FOLDER__";
-string VERSION = "1.42";
+string VERSION = "1.41";
 string gURL;
 key gToken;
 key gURLRequest;
@@ -761,7 +761,7 @@ default {
         if (change & CHANGED_OWNER) llResetScript();
         else if (gInitialized && llGetAttached() && (change & (CHANGED_REGION | CHANGED_REGION_START | CHANGED_TELEPORT))) {
             // Pairing belongs to this login, not an endpoint. Duplicate region
-            // events must still renew a confirmed Block session without a new
+            // events must still renew a confirmed Aurora session without a new
             // probe. Unpaired crossings retain the original detach deadline.
             setLock(FALSE);
             releaseMotion();

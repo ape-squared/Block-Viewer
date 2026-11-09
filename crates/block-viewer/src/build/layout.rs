@@ -246,7 +246,7 @@ impl Profile {
     pub fn capture(tool: &super::BuildTool, s: &super::BuildSettings) -> Self {
         use super::EditMode;
         Self {
-            format: "block-construction-settings".into(),
+            format: "aurora-construction-settings".into(),
             version: 1,
             layout: s.layout.clone(),
             options: Options {
@@ -298,7 +298,7 @@ impl Profile {
             (r.grid_opacity, 0.0, 1.0),
         ];
         let mut seen = HashSet::new();
-        if profile.format != "block-construction-settings"
+        if profile.format != "aurora-construction-settings"
             || profile.version != 1
             || profile.layout.order.is_empty()
             || profile.layout.locations.iter().any(|(item, panel)| !item.accepts(*panel))

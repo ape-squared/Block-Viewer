@@ -28,8 +28,6 @@ pub enum EnvAction {
     Shared,
     /// A time of day preset (1..=4).
     Preset(u8),
-    /// Open the Fixed Environment editor on a sky or water snapshot.
-    Edit(SettingsKind),
 }
 
 /// LLFloaterEnvironmentAdjust slider scales.
@@ -40,8 +38,8 @@ const SLIDER_SCALE_GLOW_B: f32 = -5.0;
 /// F_APPROXIMATELY_ZERO (llmath.h).
 const APPROXIMATELY_ZERO: f32 = 0.00001;
 
-const LABEL_W: f32 = 118.0;
-const COMBO_W: f32 = 200.0;
+const LABEL_W: f32 = 74.0;
+const COMBO_W: f32 = 216.0;
 /// Height of a list's entries under its search field.
 const LIST_H: f32 = 420.0;
 
@@ -102,13 +100,10 @@ impl EnvironmentUi {
         // left of the notification toasts (top right)
         let pos = egui::pos2(screen.right() - 740.0, screen.top() + 90.0);
         Floater::new(
-            // New id so a remembered 440-wide layout does not keep clipping Edit Water.
-            "environment_selector_v13",
+            "environment_selector",
             block_i18n::tr!("common-environment"),
             pos,
-            // Wide enough for Edit Sky / Edit Water + the shared-environment
-            // restore without clipping (People-sized; was 440 and cramped).
-            Vec2::new(520.0, 340.0),
+            Vec2::new(440.0, 300.0),
         )
         .fixed()
         .help(block_i18n::tr!("ui-environment-choose-a-sky-water-or-day-cycle-from-your"))
@@ -176,32 +171,14 @@ impl EnvironmentUi {
         }
         ui.add_space(6.0);
         widgets::divider(ui, p);
-        // Restore sits on the right with a reserved slot so Edit Water is
-        // never drawn under its tooltip / hit target.
         ui.horizontal(|ui| {
-            const RESTORE: f32 = 28.0;
-            let left = (ui.available_width() - RESTORE - ui.spacing().item_spacing.x).max(0.0);
-            ui.allocate_ui_with_layout(Vec2::new(left, 28.0), egui::Layout::left_to_right(egui::Align::Center), |ui| {
-                ui.spacing_mut().item_spacing.x = 6.0;
-                if widgets::flat_button(ui, p, block_i18n::tr!("common-personal-lighting"))
-                    .on_hover_text(block_i18n::tr!("ui-environment-adjust-the-current-sky-for-your-view-only"))
-                    .clicked()
-                {
-                    *lighting = !*lighting;
-                }
-                if widgets::flat_button(ui, p, block_i18n::tr!("ui-env-editor-edit-sky"))
-                    .on_hover_text(block_i18n::tr!("ui-environment-edit-sky-hint"))
-                    .clicked()
-                {
-                    out.push(EnvAction::Edit(SettingsKind::Sky));
-                }
-                if widgets::flat_button(ui, p, block_i18n::tr!("ui-env-editor-edit-water"))
-                    .on_hover_text(block_i18n::tr!("ui-environment-edit-water-hint"))
-                    .clicked()
-                {
-                    out.push(EnvAction::Edit(SettingsKind::Water));
-                }
-            });
+            ui.add_space(label_w + 4.0);
+            if widgets::flat_button(ui, p, block_i18n::tr!("common-personal-lighting"))
+                .on_hover_text(block_i18n::tr!("ui-environment-adjust-the-current-sky-for-your-view-only"))
+                .clicked()
+            {
+                *lighting = !*lighting;
+            }
             ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
                 if widgets::icon_button(
                     ui,

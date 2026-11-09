@@ -423,7 +423,7 @@ impl Rendered {
             let color = if let Some(role) = s.role {
                 settings.color(role, p)
             } else if s.link.is_some() {
-                p.violet_light
+                p.teal
             } else if s.quote {
                 p.muted
             } else {

@@ -200,7 +200,7 @@ fn demo_hair_cards(head: Vec3, joint: usize, n: u32, layered: bool, outer_first:
                     if let Some(s) = &mut face.skin {
                         s.push(block_render::SkinVertex {
                             joints: [joint as u8, 0, 0, 0],
-                            weights: [255, 0, 0, 0],
+                            weights: [u16::MAX, 0, 0, 0],
                         });
                     }
                 }
@@ -333,7 +333,7 @@ impl super::Scene {
                             if let Some(s) = &mut face.skin {
                                 s.push(SkinVertex {
                                     joints: [j as u8, 0, 0, 0],
-                                    weights: [255, 0, 0, 0],
+                                    weights: [u16::MAX, 0, 0, 0],
                                 });
                             }
                         }
@@ -388,7 +388,7 @@ impl super::Scene {
                     if let Some(s) = &mut face.skin {
                         s.push(SkinVertex {
                             joints: [j as u8, 0, 0, 0],
-                            weights: [255, 0, 0, 0],
+                            weights: [u16::MAX, 0, 0, 0],
                         });
                     }
                 }
@@ -409,7 +409,7 @@ impl super::Scene {
                     skin: Some(vec![
                         SkinVertex {
                             joints: [j as u8, 0, 0, 0],
-                            weights: [255, 0, 0, 0],
+                            weights: [u16::MAX, 0, 0, 0],
                         };
                         (SIDE + 1) * (SIDE + 1)
                     ]),
@@ -420,7 +420,8 @@ impl super::Scene {
                         let (u, v) = (seg as f32 / SIDE as f32, ring as f32 / SIDE as f32);
                         let (sin, cos) = (u * std::f32::consts::TAU).sin_cos();
                         let p = center + Vec3::new(cos * radius, sin * radius, (v - 0.5) * 0.5);
-                        tube.vertices.push(block_render::Vertex::new(p.to_array(), [cos, sin, 0.0], [u, v]));
+                        tube.vertices
+                            .push(block_render::Vertex::new(p.to_array(), [cos, sin, 0.0], [u, v]));
                     }
                 }
                 for ring in 0..SIDE {
@@ -490,7 +491,7 @@ impl super::Scene {
                     if let Some(s) = &mut face.skin {
                         s.push(SkinVertex {
                             joints: [j as u8, 0, 0, 0],
-                            weights: [255, 0, 0, 0],
+                            weights: [u16::MAX, 0, 0, 0],
                         });
                     }
                 }
@@ -623,7 +624,7 @@ impl super::Scene {
                 let skin = vec![
                     SkinVertex {
                         joints: [j as u8, 0, 0, 0],
-                        weights: [255, 0, 0, 0],
+                        weights: [u16::MAX, 0, 0, 0],
                     };
                     vertices.len()
                 ];
@@ -698,7 +699,7 @@ impl super::Scene {
             face.skin = Some(vec![
                 SkinVertex {
                     joints: [0, 0, 0, 0],
-                    weights: [255, 0, 0, 0],
+                    weights: [u16::MAX, 0, 0, 0],
                 };
                 face.vertices.len()
             ]);
@@ -755,7 +756,7 @@ impl super::Scene {
                 v.pos = p.to_array();
                 skin.push(SkinVertex {
                     joints: [joint, 0, 0, 0],
-                    weights: [255, 0, 0, 0],
+                    weights: [u16::MAX, 0, 0, 0],
                 });
             }
             face.skin = Some(skin);

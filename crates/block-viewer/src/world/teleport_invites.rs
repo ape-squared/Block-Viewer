@@ -529,7 +529,7 @@ mod tests {
     const LURE: Uuid = Uuid::from_u128(0x10);
 
     fn temp() -> PathBuf {
-        let dir = std::env::temp_dir().join(format!("block-tp-invites-{}", Uuid::new_v4()));
+        let dir = std::env::temp_dir().join(format!("aurora-tp-invites-{}", Uuid::new_v4()));
         std::fs::create_dir_all(&dir).unwrap();
         dir
     }

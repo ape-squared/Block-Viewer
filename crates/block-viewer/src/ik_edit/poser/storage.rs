@@ -120,7 +120,7 @@ fn list(root: &Path, rig: &Rig) -> Result<Vec<Entry>, String> {
     for entry in std::fs::read_dir(root).map_err(|e| e.to_string())?.take(512) {
         let path = entry.map_err(|e| e.to_string())?.path();
         if path.is_file()
-            && path.file_name().is_some_and(|n| n.to_string_lossy().ends_with(".block-pose.json"))
+            && path.file_name().is_some_and(|n| n.to_string_lossy().ends_with(".aurora-pose.json"))
             && let Ok(document) = read(&path).and_then(|bytes| serde_json::from_slice::<Document>(&bytes).map_err(|e| e.to_string()))
         {
             if !document.valid(rig) {
@@ -207,7 +207,10 @@ impl Service {
                         if path.extension().is_some_and(|e| e.eq_ignore_ascii_case("anim")) {
                             Output::Loaded(
                                 subject,
-                                Loaded::Animation(block_assets::anim::parse_animation_upload(&bytes).map_err(|e| e.to_string())?, mode),
+                                Loaded::Animation(
+                                    block_assets::anim::parse_animation_upload(&bytes).map_err(|e| e.to_string())?,
+                                    mode,
+                                ),
                             )
                         } else if path.extension().is_some_and(|e| e.eq_ignore_ascii_case("bvh")) {
                             let skeleton = skeleton.as_ref().ok_or_else(|| block_i18n::tr!("anim-edit-invalid").to_string())?;
@@ -233,7 +236,7 @@ impl Service {
                             return Err(block_i18n::tr!("anim-edit-invalid").to_string());
                         }
                         let name = clip::files::basename(&document.name);
-                        let path = root.join(format!("{name}.block-pose.json"));
+                        let path = root.join(format!("{name}.aurora-pose.json"));
                         if confirm && (path.exists() || bvh && root.join(format!("{name}.bvh")).exists()) {
                             return Ok(Output::Overwrite(document, pose, bvh, unlock));
                         }

@@ -72,7 +72,7 @@ impl Writer {
         let (tx, rx) = crossbeam_channel::unbounded::<(PathBuf, Vec<u8>)>();
         let queued = Arc::new(AtomicU64::new(0));
         let left = queued.clone();
-        let spawned = std::thread::Builder::new().name("block-texcache".into()).spawn(move || {
+        let spawned = std::thread::Builder::new().name("aurora-texcache".into()).spawn(move || {
             for (path, file) in rx {
                 // (written apart then renamed: a reader never sees a part of it)
                 let _ = crate::cache::write(&path, &file);
@@ -137,13 +137,13 @@ pub enum Transcoded {
 }
 
 /// Alpha class as stored. A mask's mips depend on whether its alpha
-/// coverage is kept (`super::textures::alpha_coverage_on`): 3 when it is, 1
-/// when not, so that a file made the other way reads as missing and its
-/// texture is decoded again; the other textures' files stay valid.
+/// coverage is kept (`super::textures::alpha_coverage_on`): 4 when it is, 1
+/// when not. The old code 3 could lower alpha below a material's cutoff;
+/// rebuild those chains, retaining opaque/blended textures and plain mips.
 fn alpha_code(a: AlphaKind) -> u8 {
     match a {
         AlphaKind::Opaque => 0,
-        AlphaKind::Mask if super::textures::alpha_coverage_on() => 3,
+        AlphaKind::Mask if super::textures::alpha_coverage_on() => 4,
         AlphaKind::Mask => 1,
         AlphaKind::Blend => 2,
     }
@@ -400,7 +400,7 @@ mod tests {
     }
 
     fn file(name: &str, bytes: &[u8]) -> std::path::PathBuf {
-        let dir = std::env::temp_dir().join(format!("block-texture-cache-test-{}", std::process::id()));
+        let dir = std::env::temp_dir().join(format!("aurora-texture-cache-test-{}", std::process::id()));
         std::fs::create_dir_all(&dir).expect("test folder");
         let path = dir.join(name);
         std::fs::write(&path, bytes).expect("test file");
@@ -565,10 +565,9 @@ mod tests {
         check("magic", &|b| b[0] = b'X');
         check("version", &|b| b[4] = VERSION + 1);
         check("kind", &|b| b[5] = 9);
-        check("alpha", &|b| b[7] = 4);
-        // a mask whose mips were made without keeping its alpha coverage
-        // (files of before, or AURORA_ALPHA_COVERAGE=0): decoded again
-        check("mask-mips", &|b| b[7] = 1);
+        check("alpha", &|b| b[7] = u8::MAX);
+        // The other coverage mode needs its own decode.
+        check("mask-mips", &|b| b[7] = if alpha_code(AlphaKind::Mask) == 1 { 4 } else { 1 });
         check("levels", &|b| b[11] = 17);
         check("no-level", &|b| b[11] = 0);
         check("short", &|b| b.truncate(b.len() - 1));
@@ -582,6 +581,19 @@ mod tests {
         // what cannot be stored is refused when writing
         assert!(encode(&meta(0), None, &[]).is_none());
         assert!(encode(&meta(0), None, &[(16, 8, vec![0; 3])]).is_none());
+    }
+
+    #[test]
+    fn alpha_coverage_chains_that_could_erase_huds_are_decoded_again() {
+        let mut old = encode(&meta(0), Some((8, 4, &[0u8; 5])), &chain()).expect("file");
+        old[7] = 3;
+        assert_eq!(read(&file("old-coverage.bc7", &old), 0), None);
+        let current = encode(&meta(0), Some((8, 4, &[0u8; 5])), &chain()).expect("file");
+        assert!(matches!(read(&file("current-coverage.bc7", &current), 0), Some(Transcoded::Bc7(_))));
+        for alpha in [AlphaKind::Opaque, AlphaKind::Blend] {
+            let bytes = encode(&Meta { alpha, ..meta(0) }, None, &chain()).expect("file");
+            assert!(matches!(read(&file("unaffected.bc7", &bytes), 0), Some(Transcoded::Bc7(_))));
+        }
     }
 
     #[test]

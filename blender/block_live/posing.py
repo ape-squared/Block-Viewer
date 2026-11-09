@@ -1,7 +1,7 @@
 """Optional Blender-only root/COG and eye targets; never SL deform joints.
 
 Avastar's animation and Eye Rig manuals describe the control/deform distinction
-and the two independent eye pairs. These are Block Viewer controls, not Avastar data.
+and the two independent eye pairs. These are Aurora controls, not Avastar data.
 SL's runtime mRoot/LookAtPoint (llheadrotmotion.cpp) are viewer mechanisms;
 the helpers below do not add network joints or stream Blender animation.
 """
@@ -12,7 +12,7 @@ from mathutils import Matrix, Vector
 from . import rigging
 
 ROOT, COG = "auroraPose.Root", "auroraPose.COG"
-ROOT_CONSTRAINT = "Block Viewer pose root"
+ROOT_CONSTRAINT = "Aurora pose root"
 EYES = {
     "CLASSIC": ("Classic eyes", "mEyeLeft", "mEyeRight"),
     "BENTO": ("Bento eyes", "mFaceEyeAltLeft", "mFaceEyeAltRight"),
@@ -24,7 +24,7 @@ def target(key):
 
 
 def eye_constraint(key):
-    return "Block look " + key
+    return "Aurora look " + key
 
 
 def joints(rig, names):
@@ -87,7 +87,7 @@ def _preflight(rig, names, driven):
     if any(name in rig.data.bones for name in names):
         raise ValueError("Pose control names are already used; keep the existing rig unchanged")
     if any(rig.pose.bones[name].constraints for name in driven):
-        raise ValueError("These joints already have constraints; use a simple SL rig for Block Viewer pose controls")
+        raise ValueError("These joints already have constraints; use a simple SL rig for Aurora pose controls")
 
 
 def _bone(rig, name, head, size, kind, parent=None):
@@ -100,7 +100,7 @@ def _bone(rig, name, head, size, kind, parent=None):
 
 
 def _group(rig, names, kind):
-    label = "Block Root" if kind == "ROOT" else "Block Look"
+    label = "Aurora Root" if kind == "ROOT" else "Aurora Look"
     if hasattr(rig.data, "collections"):
         group = rig.data.collections.get(label) or rig.data.collections.new(label)
         group.is_visible = True

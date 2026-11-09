@@ -36,7 +36,6 @@ impl App {
                 self.folders.pick = Some((folder, rx));
                 let title = match folder {
                     Folder::LegacyLogs => block_i18n::tr!("ui-options-chat-logs-import-choose"),
-                    Folder::Photos => block_i18n::tr!("photo-folder-dialog"),
                     _ => block_i18n::tr!("ui-options-change-folder"),
                 };
                 let _ = std::thread::Builder::new().name("aurora-folder-dialog".into()).spawn(move || {
@@ -88,21 +87,6 @@ impl App {
                 if self.world.chat_log.relocate(chat_log_root(&self.settings.chat_log_location)) {
                     self.folders.chat_log_previous = Some(previous);
                 }
-                self.folders.settings_changed = true;
-            }
-            Folder::Photos => {
-                if location.is_empty() {
-                    if self.settings.snapshot.folder.take().is_some() {
-                        self.folders.settings_changed = true;
-                    }
-                    return;
-                }
-                let path = PathBuf::from(location);
-                if self.settings.snapshot.folder.as_ref() == Some(&path) {
-                    return;
-                }
-                self.settings.snapshot.folder = Some(path);
-                self.settings.snapshot.remember_folder = true;
                 self.folders.settings_changed = true;
             }
         }

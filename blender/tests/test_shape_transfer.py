@@ -15,8 +15,8 @@ import bpy
 from mathutils import Matrix, Vector
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-import aurora_live
-from aurora_live import exporter, shape_apply, shape_transfer, starter, tracking, rigging, posing
+import block_live
+from block_live import exporter, shape_apply, shape_transfer, starter, tracking, rigging, posing
 
 PAYLOAD = json.loads(Path(sys.argv[sys.argv.index("--") + 1]).read_text(encoding="utf-8"))
 
@@ -28,34 +28,34 @@ def matrix(values):
 class ShapeTransferTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        aurora_live.register()
+        block_live.register()
 
     @classmethod
     def tearDownClass(cls):
-        aurora_live.unregister()
+        block_live.unregister()
 
     def setUp(self):
-        aurora_live._stop()
+        block_live._stop()
         if bpy.context.object and bpy.context.object.mode != "OBJECT":
             bpy.ops.object.mode_set(mode="OBJECT")
         bpy.ops.object.select_all(action="SELECT")
         bpy.ops.object.delete(use_global=False)
-        bpy.context.scene.aurora_live.objects.clear()
+        bpy.context.scene.block_live.objects.clear()
         bpy.context.scene.unit_settings.scale_length = 1
-        bpy.context.scene.aurora_live.forward = "AUTO"
+        bpy.context.scene.block_live.forward = "AUTO"
 
     def test_import_preserves_existing_work_and_keeps_shape_reference_out_of_live_list(self):
         old, shirt = starter.create(bpy.context)
         tracking.add(bpy.context.scene, [shirt])
-        bpy.context.scene.aurora_live.objects[0].enabled = False
+        bpy.context.scene.block_live.objects[0].enabled = False
         before = [bone.matrix_local.copy() for bone in old.data.bones]
         rig = shape_transfer.apply(bpy.context, PAYLOAD)
         self.assertEqual(len(rig.data.bones), 159)
         self.assertEqual(json.loads(rig["aurora_shape_parameters"])["80"], 1)
-        self.assertIs(bpy.context.scene.aurora_live.rig, rig)
+        self.assertIs(bpy.context.scene.block_live.rig, rig)
         self.assertEqual([bone.matrix_local for bone in old.data.bones], before)
-        self.assertEqual(len(bpy.context.scene.aurora_live.objects), 1)
-        self.assertFalse(bpy.context.scene.aurora_live.objects[0].enabled)
+        self.assertEqual(len(bpy.context.scene.block_live.objects), 1)
+        self.assertFalse(bpy.context.scene.block_live.objects[0].enabled)
         self.assertIs(shape_transfer.apply(bpy.context, PAYLOAD), rig, "a repeated delivery is idempotent")
 
     def test_reference_skin_round_trips_without_applying_shape_twice(self):
@@ -78,12 +78,12 @@ class ShapeTransferTests(unittest.TestCase):
         self.assertGreater(rig.data.bones["mShoulderLeft"].head_local.x, rig.data.bones["mShoulderRight"].head_local.x)
 
     def test_main_thread_receive_operator_supports_explicit_undo(self):
-        aurora_live._incoming_shape = PAYLOAD
+        block_live._incoming_shape = PAYLOAD
         try:
             self.assertEqual(bpy.ops.aurora.receive_shape("EXEC_DEFAULT", True), {"FINISHED"})
             self.assertEqual(len([obj for obj in bpy.context.scene.objects if obj.get("aurora_shape_reference")]), 6)
         finally:
-            aurora_live._incoming_shape = None
+            block_live._incoming_shape = None
 
     def test_scene_units_and_cursor_are_respected(self):
         bpy.context.scene.unit_settings.scale_length = 0.01
@@ -126,14 +126,14 @@ class ShapeTransferTests(unittest.TestCase):
         fake.take_import.return_value = None
         fake.take_shape.return_value = None
         fake.rest_axes.return_value = {}
-        with patch.object(aurora_live, "Client", return_value=fake):
+        with patch.object(block_live, "Client", return_value=fake):
             self.assertEqual(bpy.ops.aurora.live_connect(), {"FINISHED"})
-            self.assertIs(aurora_live._client, fake)
-            aurora_live._tick()
+            self.assertIs(block_live._client, fake)
+            block_live._tick()
             self.assertEqual(fake.submit.call_args[0][0]["meshes"], [])
             fake.take_import.return_value = None
             fake.take_shape.return_value = PAYLOAD
-            aurora_live._tick()
+            block_live._tick()
             self.assertTrue(bpy.context.object.get("aurora_shape_id"))
             fake.shape_result.assert_called_with(PAYLOAD["id"])
 
@@ -143,8 +143,8 @@ class ShapeTransferTests(unittest.TestCase):
         fake.take_import.return_value = None
         fake.take_shape.return_value = self.apply_payload()
         fake.rest_axes.return_value = {}
-        with patch.object(aurora_live, "_client", fake):
-            aurora_live._tick()
+        with patch.object(block_live, "_client", fake):
+            block_live._tick()
         error = fake.shape_result.call_args[0][1]
         self.assertIn("Select the target SL skeleton", error)
         self.assertNotIn("Traceback", error)
@@ -152,7 +152,7 @@ class ShapeTransferTests(unittest.TestCase):
 
     def test_apply_preserves_object_weights_keys_pose_controls_and_paused_list(self):
         rig, shirt = starter.create(bpy.context)
-        bpy.context.scene.aurora_live.rig = rig
+        bpy.context.scene.block_live.rig = rig
         posing.setup_root(bpy.context, rig)
         rigging.setup(bpy.context, rig)
         # Keep a second user of the old mesh/armature data untouched.
@@ -169,7 +169,7 @@ class ShapeTransferTests(unittest.TestCase):
         constraints = [(bone.name, [(con.name, con.type) for con in bone.constraints]) for bone in rig.pose.bones]
         pose = {bone.name: bone.matrix_basis.copy() for bone in rig.pose.bones}
         tracking.add(bpy.context.scene, [shirt])
-        bpy.context.scene.aurora_live.objects[0].enabled = False
+        bpy.context.scene.block_live.objects[0].enabled = False
         bpy.context.view_layer.objects.active = rig
         payload = self.apply_payload()
         result = shape_transfer.apply(bpy.context, payload)
@@ -180,7 +180,7 @@ class ShapeTransferTests(unittest.TestCase):
         self.assertTrue(any((v.co - old).length > 1e-4 for v, old in zip(shirt.data.vertices, old_vertices)))
         self.assertEqual([(b.name, [(c.name, c.type) for c in b.constraints]) for b in rig.pose.bones], constraints)
         self.assertEqual({b.name: b.matrix_basis for b in rig.pose.bones}, pose)
-        self.assertFalse(bpy.context.scene.aurora_live.objects[0].enabled)
+        self.assertFalse(bpy.context.scene.block_live.objects[0].enabled)
         self.assertNotEqual(other_rig.data, rig.data)
         self.assertEqual(len(rig.data.bones), len(other_rig.data.bones))
         before = [v.co.copy() for v in shirt.data.vertices]
@@ -247,7 +247,7 @@ class ShapeTransferTests(unittest.TestCase):
 
     def test_shaped_root_and_ik_keep_pelvis_and_foot_targets_coherent(self):
         rig, _ = starter.create(bpy.context)
-        bpy.context.scene.aurora_live.rig = rig
+        bpy.context.scene.block_live.rig = rig
         posing.setup_root(bpy.context, rig)
         rigging.setup(bpy.context, rig)
         bpy.context.view_layer.objects.active = rig

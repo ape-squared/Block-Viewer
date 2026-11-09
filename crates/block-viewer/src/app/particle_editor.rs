@@ -7,7 +7,7 @@
 //! LGPL 2.1.
 //!
 //! Inject, as the Legacy Viewer: a "New Particle Script" item is created in
-//! the viewer's own folder (#Block, created when missing, else the Scripts
+//! the viewer's own folder (#Aurora, created when missing, else the Scripts
 //! folder), its source uploaded (UpdateScriptAgent, Mono), then the item put
 //! into the prim, running (RezScript, LLViewerObject::saveScript). The copy
 //! stays in the inventory.
@@ -23,8 +23,7 @@ use std::time::{Duration, Instant};
 use uuid::Uuid;
 
 /// The viewer's folder at the root (ROOT_FIRESTORM_FOLDER).
-const FOLDER: &str = "#Block";
-const OLD_FOLDER: &str = "#Aurora";
+const FOLDER: &str = "#Aurora";
 /// FT_LSL_TEXT: the Scripts system folder, when ours cannot be made.
 const FT_LSL_TEXT: i32 = 10;
 /// AT_LSL_TEXT.
@@ -172,9 +171,7 @@ impl App {
             since: Instant::now(),
         };
         let inv = &self.world.inventory;
-        if let Some(folder) =
-            crate::ao::inventory::child(inv, inv.root, FOLDER).or_else(|| crate::ao::inventory::child(inv, inv.root, OLD_FOLDER))
-        {
+        if let Some(folder) = crate::ao::inventory::child(inv, inv.root, FOLDER) {
             self.particle_inject.pending = Some(pending(Step::Item { folder }));
             self.particle_create_script(folder);
             return;

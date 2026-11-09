@@ -1430,34 +1430,8 @@ fn gltf_offset(saved_offset: f32, saved_scale: f32, scale: f32) -> f32 {
 
 /// Write new world transforms to the objects (local echo). `targets` maps
 /// mover index -> (world pos, world rot, scale, uniform factor for children).
-fn scale_texture_entry(te: &mut block_prim::te::TextureEntry, old: Vec3, new: Vec3) {
-    let r = new / old.max(Vec3::splat(1e-6));
-    for (i, face) in te.faces.iter_mut().enumerate() {
-        let (fs, ft) = match i % 6 {
-            0 | 1 => (r.y, r.z),
-            2 | 3 => (r.x, r.z),
-            _ => (r.x, r.y),
-        };
-        face.scale_s = (face.scale_s * fs).clamp(0.01, 100.0);
-        face.scale_t = (face.scale_t * ft).clamp(0.01, 100.0);
-    }
-}
-
-fn push_set_textures(world: &World, idx: usize, out: &mut Vec<BuildCmd>) {
-    let Some(o) = world.objects.get(idx) else { return };
-    let Some(te) = o.te.as_deref() else { return };
-    let n = te.faces.len().clamp(1, 256);
-    out.push(BuildCmd::SetTextures {
-        handle: o.key.region,
-        local_id: o.key.local_id,
-        media_url: o.media_url.clone(),
-        texture_entry: block_prim::te::pack_texture_entry(te, n),
-    });
-}
-
-fn apply(world: &mut World, d: &Drag, targets: &[(Vec3, Quat, Vec3)], stretch_textures: bool, out: &mut Vec<BuildCmd>) {
+fn apply(world: &mut World, d: &Drag, targets: &[(Vec3, Quat, Vec3)]) {
     let new_world: HashMap<usize, (Vec3, Quat)> = d.movers.iter().zip(targets).map(|(m, t)| (m.idx, (t.0, t.1))).collect();
-    let mut te_changed = Vec::new();
     for (m, &(wp, wr, sc)) in d.movers.iter().zip(targets) {
         let mut parent = m.parent_idx.and_then(|p| new_world.get(&p).copied()).or(m.parent);
         if let Some((id, offset)) = m.hud_offset {
@@ -1469,7 +1443,6 @@ fn apply(world: &mut World, d: &Drag, targets: &[(Vec3, Quat, Vec3)], stretch_te
             _ => (wp - m.region_off, wr.normalize()),
         };
         if let Some(o) = world.objects.get_mut(m.idx) {
-            let old_scale = o.scale;
             o.position = lp;
             o.rotation = lr;
             o.scale = sc;
@@ -1477,15 +1450,6 @@ fn apply(world: &mut World, d: &Drag, targets: &[(Vec3, Quat, Vec3)], stretch_te
             o.acceleration = Vec3::ZERO;
             o.angular_velocity = Vec3::ZERO;
             o.render.needs_records = true;
-            // #1784: Stretch Textures unchecked must retile, not stretch.
-            if !stretch_textures
-                && d.mode == EditMode::Stretch
-                && (sc - old_scale).length_squared() > 1e-10
-                && let Some(te) = o.te.as_mut()
-            {
-                scale_texture_entry(std::sync::Arc::make_mut(te), old_scale, sc);
-                te_changed.push(m.idx);
-            }
         }
         if !m.root {
             continue;
@@ -1504,23 +1468,12 @@ fn apply(world: &mut World, d: &Drag, targets: &[(Vec3, Quat, Vec3)], stretch_te
             let f = sc / m.scale.max(Vec3::splat(1e-6));
             for c in &m.children {
                 if let Some(o) = world.objects.get_mut(c.idx) {
-                    let old_scale = o.scale;
                     o.position = c.local_pos * f;
                     o.scale = d.limits.clamp3(c.scale * f);
                     o.render.needs_records = true;
-                    if !stretch_textures
-                        && d.mode == EditMode::Stretch
-                        && let Some(te) = o.te.as_mut()
-                    {
-                        scale_texture_entry(std::sync::Arc::make_mut(te), old_scale, o.scale);
-                        te_changed.push(c.idx);
-                    }
                 }
             }
         }
-    }
-    for idx in te_changed {
-        push_set_textures(world, idx, out);
     }
 }
 
@@ -1705,7 +1658,7 @@ fn drag_update(
             EditMode::Stretch => scale_target(d, m),
         })
         .collect();
-    apply(world, d, &targets, d.stretch_textures, out);
+    apply(world, d, &targets);
     if d.mode == EditMode::Stretch && adjust_textures(world, &d.textures, d.stretch_textures) {
         d.te_due = true;
     }
@@ -2252,7 +2205,7 @@ mod tests {
                             _ => (mover.pos, mover.rot, mover.scale * 1.5),
                         };
                         let child_before = Scene::object_transform(&world, child, now, 0).unwrap();
-                        apply(&mut world, &drag, &[target], true, &mut Vec::new());
+                        apply(&mut world, &drag, &[target]);
                         for (i, pos, rot, scale) in occupants {
                             let o = world.objects.get(i).unwrap();
                             assert_eq!(
@@ -2580,7 +2533,9 @@ mod tests {
         assert!((new_pos - new_rot * Vec3::Z * (new_scale.z * 0.5)).abs_diff_eq(anchor, 1e-5));
 
         // Disabling flexibility restores the ordinary centered edit pivot.
-        world.objects.get_mut(idx).unwrap().extra.flexible = None;
+        let object = world.objects.get_mut(idx).unwrap();
+        object.extra.flexible = None;
+        object.volume.path.curve_type = block_prim::params::LL_PCODE_PATH_LINE;
         assert!(
             frame(&world, &settings, &[key], true, now, None)
                 .unwrap()

@@ -108,9 +108,9 @@ def apply(context, payload):
     if existing:
         return existing
     selected, active = list(context.selected_objects), context.view_layer.objects.active
-    previous_rig = context.scene.aurora_live.rig
+    previous_rig = context.scene.block_live.rig
     rig, _unused = starter.create(context, with_tshirt=False, definitions=definitions,
-                                 collection_name="Block Shape · " + payload["name"])
+                                 collection_name="Aurora Shape · " + payload["name"])
     collection = rig.users_collection[0]
     try:
         rig.name = "Shape · " + payload["name"]
@@ -147,7 +147,7 @@ def apply(context, payload):
             obj.location = (0, 0, 0)
             obj.modifiers.new("SL Avatar", "ARMATURE").object = rig
             obj["aurora_shape_reference"] = True
-        context.scene.aurora_live.rig = rig
+        context.scene.block_live.rig = rig
         context.view_layer.objects.active = rig
         context.view_layer.update()
         return rig
@@ -158,7 +158,7 @@ def apply(context, payload):
             if data.users == 0:
                 (bpy.data.meshes if isinstance(data, bpy.types.Mesh) else bpy.data.armatures).remove(data)
         bpy.data.collections.remove(collection)
-        context.scene.aurora_live.rig = previous_rig
+        context.scene.block_live.rig = previous_rig
         for obj in selected:
             obj.select_set(True)
         context.view_layer.objects.active = active

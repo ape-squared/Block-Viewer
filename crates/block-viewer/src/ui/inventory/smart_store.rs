@@ -58,7 +58,7 @@ pub fn load(path: PathBuf) {
         };
         store.writer = Some(writer.clone());
     });
-    let spawned = std::thread::Builder::new().name("block-smart-searches".into()).spawn(move || {
+    let spawned = std::thread::Builder::new().name("aurora-smart-searches".into()).spawn(move || {
         let read = match std::fs::read(&path) {
             Ok(bytes) => serde_json::from_slice::<Vec<Saved>>(&bytes).unwrap_or_else(|error| {
                 log::warn!("Cannot read the saved smart searches: {error}");

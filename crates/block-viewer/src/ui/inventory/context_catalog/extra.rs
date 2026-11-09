@@ -564,7 +564,12 @@ pub(super) fn build(c: &mut Catalog, inv: &Inventory, id: Uuid, st: &InventoryUi
         }
         for (kind, key, label, local) in [
             (1, "play-sound", block_i18n::tr!("common-play"), true),
-            (20, "play-world", block_i18n::tr!("ui-inventory-context-play-in-second-life"), false),
+            (
+                20,
+                "play-world",
+                block_i18n::tr!("ui-inventory-context-play-in-second-life"),
+                false,
+            ),
             (20, "play-local", block_i18n::tr!("common-play-locally"), true),
         ] {
             if complete_selection && selected.iter().all(|item| item.asset_type == kind) {

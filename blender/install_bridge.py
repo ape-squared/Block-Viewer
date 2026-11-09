@@ -1,12 +1,8 @@
-"""Block's bundled, offline installer, run by the selected Blender executable.
+"""Aurora's bundled, offline installer, run by the selected Blender executable.
 
 Blender loads its preferences normally (re-reading them via an operator crashes
-some 4.2 builds). Only Block LiveMesh's package/enable state is changed, and no
-scene is saved. Probe never saves preferences.
-
-The extension id is `block_live_mesh` (Blender 4.2+). Older Aurora installs
-(`aurora_live_mesh` / `aurora_live`) are disabled and left alone so the new
-package can enable cleanly.
+some 4.2 builds). Only Aurora's package/enable state is changed, and no scene is
+saved. Probe never saves preferences.
 """
 import ast
 from contextlib import contextmanager
@@ -29,12 +25,6 @@ import bpy
 AUTO_SAVE = getattr(bpy.context.preferences, "use_preferences_save", None)
 if AUTO_SAVE is not None:
     bpy.context.preferences.use_preferences_save = False
-
-PKG = "block_live_mesh"
-LEGACY_PKG = "block_live"
-# Former Aurora package names still found in some profiles.
-OLD_PKG = "aurora_live_mesh"
-OLD_LEGACY = "aurora_live"
 
 
 def checked(result):
@@ -63,28 +53,21 @@ def locations():
     overridden = os.environ.get("BLENDER_USER_CONFIG")
     if overridden and config.resolve() != Path(overridden).resolve():
         raise RuntimeError("Blender did not honor BLENDER_USER_CONFIG; refusing to touch a different profile.")
-    scripts = Path(bpy.utils.user_resource("SCRIPTS")) / "addons"
-    legacy = scripts / LEGACY_PKG
+    legacy = Path(bpy.utils.user_resource("SCRIPTS")) / "addons" / "block_live"
     repo = None
     if extension:
         repos = bpy.context.preferences.extensions.repos
-        # Prefer an existing Block install; fall back to User Default.
-        repo = next(
-            (
-                r
-                for r in repos
-                if r.enabled and not r.use_remote_url and (Path(r.directory) / PKG).is_dir()
-            ),
-            None,
-        )
+        # Update an existing local installation in place, including a custom repo.
+        repo = next((r for r in repos if r.enabled and not r.use_remote_url
+                     and (Path(r.directory) / "block_live_mesh").is_dir()), None)
         if repo is None:
             repo = next((r for r in repos if r.module == "user_default" and r.enabled and not r.use_remote_url), None)
         if repo is None:
             raise RuntimeError("No enabled local extension repository. Enable User Default in Blender preferences.")
-        target = Path(repo.directory) / PKG
-        module = "bl_ext." + repo.module + "." + PKG
+        target = Path(repo.directory) / "block_live_mesh"
+        module = "bl_ext." + repo.module + ".block_live_mesh"
     else:
-        target, module = legacy, LEGACY_PKG
+        target, module = legacy, "block_live"
     return extension, config, legacy, repo, target, module
 
 
@@ -114,53 +97,37 @@ def install_lock(path):
                 fcntl.flock(handle.fileno(), fcntl.LOCK_UN)
 
 
-def disable_old(addons):
-    """Turn off a former Aurora LiveMesh so Block's package can enable."""
-    for name in (OLD_LEGACY, "bl_ext.user_default." + OLD_PKG):
-        if name in addons:
-            try:
-                checked(bpy.ops.preferences.addon_disable(module=name))
-            except Exception:
-                pass
-
-
 def install(request, state):
     extension, config, legacy, repo, target, module = state
     expected = request["plugin_version"]
     old = package_version(target, extension) or (package_version(legacy, False) if extension else None)
     if old and tuple(int(v) for v in old.split(".")) > tuple(int(v) for v in expected.split(".")):
-        raise RuntimeError("A newer Block LiveMesh plug-in is already installed; downgrade refused.")
+        raise RuntimeError("A newer Aurora plug-in is already installed; downgrade refused.")
     package = Path(request["extension_zip"] if extension else request["legacy_zip"])
     with zipfile.ZipFile(package) as archive:
         files = {}
         for name in archive.namelist():
-            relative = Path(name if extension else name.removeprefix(LEGACY_PKG + "/"))
+            relative = Path(name if extension else name.removeprefix("block_live/"))
             if relative.is_absolute() or ".." in relative.parts:
-                raise RuntimeError("Invalid path in the bundled Block LiveMesh package.")
+                raise RuntimeError("Invalid path in the bundled Aurora package.")
             if not name.endswith("/"):
                 files[relative] = archive.read(name)
     if Path("__init__.py") not in files:
-        raise RuntimeError("The bundled Block LiveMesh package is incomplete.")
+        raise RuntimeError("The bundled Aurora package is incomplete.")
     config.parent.mkdir(parents=True, exist_ok=True)
     config.mkdir(parents=True, exist_ok=True)
-    backup = config.parent / "block-livemesh-backups" / (
-        datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ-") + uuid.uuid4().hex
-    )
+    backup = config.parent / "aurora-backups" / (datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ-") + uuid.uuid4().hex)
     backup.mkdir(parents=True)
     prefs = config / "userpref.blend"
     before_addons = set(bpy.context.preferences.addons.keys())
     directories = [(target, backup / "package")]
     if extension and legacy != target:
         directories.append((legacy, backup / "legacy"))
-    # Also snapshot a former Aurora extension folder so rollback stays clean.
-    if extension and repo is not None:
-        old_target = Path(repo.directory) / OLD_PKG
-        if old_target.is_dir() and old_target != target:
-            directories.append((old_target, backup / "aurora_package"))
+    # Resolve every path once; rollback only touches these exact owned targets.
     existed = []
     for path, saved in directories:
         if path.is_symlink() or (path.exists() and not path.is_dir()):
-            raise RuntimeError("LiveMesh package location is not a regular directory: " + str(path))
+            raise RuntimeError("Aurora package location is not a regular directory: " + str(path))
         existed.append(path.is_dir())
         if path.is_dir():
             shutil.copytree(path, saved, symlinks=True)
@@ -168,36 +135,29 @@ def install(request, state):
         shutil.copy2(prefs, backup / "userpref.blend")
     directories = [(path.resolve(), saved) for path, saved in directories]
     try:
-        disable_old(before_addons)
-        if extension and LEGACY_PKG in before_addons:
-            checked(bpy.ops.preferences.addon_disable(module=LEGACY_PKG))
+        if extension and "block_live" in before_addons:
+            checked(bpy.ops.preferences.addon_disable(module="block_live"))
         if extension:
-            checked(
-                bpy.ops.extensions.package_install_files(
-                    filepath=request["extension_zip"],
-                    repo=repo.module,
-                    enable_on_install=True,
-                    overwrite=True,
-                )
-            )
+            checked(bpy.ops.extensions.package_install_files(
+                filepath=request["extension_zip"], repo=repo.module, enable_on_install=True, overwrite=True))
         else:
             checked(bpy.ops.preferences.addon_install(filepath=request["legacy_zip"], overwrite=True))
             checked(bpy.ops.preferences.addon_enable(module=module))
         installed = importlib.import_module(module)
         if package_version(Path(installed.__file__).parent, extension) != expected:
-            raise RuntimeError("Installed Block LiveMesh version does not match the bundled package.")
+            raise RuntimeError("Installed Aurora plug-in version does not match the bundled package.")
+        # Some Blender operators return FINISHED after reporting an install error.
+        # A previously enabled package must never be mistaken for a new install.
         for relative, contents in files.items():
             if (target / relative).read_bytes() != contents:
-                raise RuntimeError(
-                    "Blender did not install the complete bundled Block LiveMesh package: " + str(relative)
-                )
-        # Scene property name is still aurora_live inside the Python add-on.
-        if not hasattr(bpy.types.Scene, "aurora_live") or module not in bpy.context.preferences.addons:
-            raise RuntimeError("Block LiveMesh plug-in did not enable correctly.")
+                raise RuntimeError("Blender did not install the complete bundled Aurora package: " + str(relative))
+        if not hasattr(bpy.types.Scene, "block_live") or module not in bpy.context.preferences.addons:
+            raise RuntimeError("Aurora plug-in did not enable correctly.")
         after_addons = set(bpy.context.preferences.addons.keys())
-        ignore = {module, LEGACY_PKG, OLD_LEGACY, "bl_ext.user_default." + OLD_PKG}
-        if after_addons - ignore != before_addons - ignore:
+        if after_addons - {module, "block_live"} != before_addons - {module, "block_live"}:
             raise RuntimeError("Unrelated enabled add-ons changed; restoring the previous installation.")
+        # Old Blender falls back to its normal config if an environment override
+        # points to a directory that does not exist at save time.
         config.mkdir(parents=True, exist_ok=True)
         try:
             if AUTO_SAVE is not None:
@@ -209,6 +169,7 @@ def install(request, state):
         if not prefs.is_file():
             raise RuntimeError("Blender did not save preferences in the selected profile.")
     except Exception as error:
+        # Preserve the backup even after a successful rollback. Never touch scenes.
         try:
             for (path, saved), was_present in zip(directories, existed):
                 if path.is_dir():
@@ -234,7 +195,7 @@ def uninstall(state):
     extension, config, legacy, repo, target, module = state
     removed = []
     disabled = False
-    for name in dict.fromkeys([module, "aurora_live"]):
+    for name in dict.fromkeys([module, "block_live"]):
         if name in bpy.context.preferences.addons:
             checked(bpy.ops.preferences.addon_disable(module=name))
             disabled = True
@@ -255,26 +216,17 @@ def uninstall(state):
 
 
 def run(request):
-    report = {
-        "version": list(bpy.app.version[:3]),
-        "plugin_version": None,
-        "enabled": False,
-        "profile": "",
-        "target": "",
-        "backup": None,
-        "error": None,
-    }
+    report = {"version": list(bpy.app.version[:3]), "plugin_version": None, "enabled": False,
+              "profile": "", "target": "", "backup": None, "error": None}
     if bpy.app.version < (2, 93, 0):
         return report
     state = locations()
     extension, config, legacy, repo, target, module = state
     report["profile"], report["target"] = str(config.parent), str(target)
-    report["plugin_version"] = package_version(target, extension) or (
-        package_version(legacy, False) if extension else None
-    )
+    report["plugin_version"] = package_version(target, extension) or (package_version(legacy, False) if extension else None)
     report["enabled"] = module in bpy.context.preferences.addons
     if request["operation"] == "install":
-        with install_lock(config.parent / ".block-livemesh-install.lock"):
+        with install_lock(config.parent / ".aurora-install.lock"):
             report["backup"] = install(request, state)
             report["plugin_version"], report["enabled"] = request["plugin_version"], True
     elif request["operation"] == "uninstall":
@@ -287,7 +239,7 @@ def run(request):
 
 
 if __name__ == "__main__":
-    arguments = sys.argv[sys.argv.index("--") + 1 :]
+    arguments = sys.argv[sys.argv.index("--") + 1:]
     request_file, report_file = map(Path, arguments)
     try:
         result = run(json.loads(request_file.read_text(encoding="utf-8")))

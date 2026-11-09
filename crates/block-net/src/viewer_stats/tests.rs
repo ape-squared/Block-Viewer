@@ -2,7 +2,7 @@ use super::*;
 
 fn viewer() -> ViewerSide {
     ViewerSide {
-        version: "Block Viewer 0.7.5.0".into(),
+        version: "Aurora Viewer 0.7.5.0".into(),
         language: "fr".into(),
         run_time: 400.0,
         foreground_time: 200.0,
@@ -234,7 +234,7 @@ fn the_report_carries_the_values_it_was_given() {
     assert_eq!(at(&report, "agent.sim_fps").as_f64(), 61.5);
     assert_eq!(at(&report, "agent.ping").as_f64(), 87.0);
     assert_eq!(at(&report, "agent.regions_visited").as_i32(), 2);
-    assert_eq!(at(&report, "agent.version").as_str(), "Block Viewer 0.7.5.0");
+    assert_eq!(at(&report, "agent.version").as_str(), "Aurora Viewer 0.7.5.0");
     assert_eq!(at(&report, "system.gpu").as_str(), "NVIDIA Class -1 NVIDIA NVIDIA GeForce RTX 4090");
     assert_eq!(at(&report, "system.gpu_vendor").as_str(), "NVIDIA");
     assert!(at(&report, "system.gl.is_nvidia").as_bool());
@@ -313,17 +313,18 @@ fn the_vendor_short_name_comes_from_the_pci_id() {
 }
 
 #[test]
-fn dropped_packets_are_the_gaps_no_late_packet_filled() {
+fn dropped_packets_are_confirmed_losses_not_provisional_gaps() {
     let stats = NetStats::default();
     stats.seq_gaps.store(10, Ordering::Relaxed);
     stats.seq_late.store(7, Ordering::Relaxed);
+    stats.packets_lost.store(2, Ordering::Relaxed);
     stats.ping_avg_ms.store(120, Ordering::Relaxed);
     let n = NetCounters::read(&stats);
-    assert_eq!(n.dropped, 3);
+    assert_eq!(n.dropped, 2);
     assert_eq!(n.ping_ms, 120.0);
-    // a late packet counted before its gap never wraps the counter
+    // Recoveries from another period do not undo already confirmed losses.
     stats.seq_late.store(12, Ordering::Relaxed);
-    assert_eq!(NetCounters::read(&stats).dropped, 0);
+    assert_eq!(NetCounters::read(&stats).dropped, 2);
 }
 
 #[tokio::test]

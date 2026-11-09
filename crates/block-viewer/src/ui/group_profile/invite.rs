@@ -63,7 +63,7 @@ struct GroupChoice {
 /// (removeNoneOption): our groups where we may invite, by name.
 pub fn invite_groups(groups: &[block_net::GroupMembership]) -> Vec<&block_net::GroupMembership> {
     let mut v: Vec<_> = groups.iter().filter(|g| g.powers & groups::powers::MEMBER_INVITE != 0).collect();
-    v.sort_by_cached_key(|g| g.name.to_lowercase());
+    v.sort_by_cached_key(|g| crate::natural_order::key(&g.name));
     v
 }
 
@@ -261,7 +261,7 @@ impl InviteUi {
             .map(|r| r.id)
             .collect();
         let mut out: Vec<&groups::GroupRole> = d.roles.values().filter(|r| allowed.contains(&r.id)).collect();
-        out.sort_by_cached_key(|r| (!r.id.is_nil(), role_name(&r.name).to_lowercase()));
+        out.sort_by_cached_key(|r| (!r.id.is_nil(), crate::natural_order::key(&role_name(&r.name))));
         out
     }
 
@@ -381,7 +381,11 @@ impl InviteUi {
             });
             foot.show(ui, |ui| {
                 // the role
-                ui.label(egui::RichText::new(block_i18n::tr!("ui-group-invite-role")).size(12.5).color(p.ink));
+                ui.label(
+                    egui::RichText::new(block_i18n::tr!("ui-group-invite-role"))
+                        .size(12.5)
+                        .color(p.ink),
+                );
                 let roles = Self::roles(v, c.world.agent_id);
                 if !roles.iter().any(|r| r.id == self.role) {
                     self.role = Uuid::nil();
@@ -410,8 +414,15 @@ impl InviteUi {
                     if widgets::action_button_if(ui, p, "send-filled", label, ActionKind::Primary, Vec2::new(0.0, 28.0), ready).clicked() {
                         send = true;
                     }
-                    if widgets::action_button(ui, p, "x", block_i18n::tr!("common-cancel"), ActionKind::Flat, Vec2::new(0.0, 28.0))
-                        .clicked()
+                    if widgets::action_button(
+                        ui,
+                        p,
+                        "x",
+                        block_i18n::tr!("common-cancel"),
+                        ActionKind::Flat,
+                        Vec2::new(0.0, 28.0),
+                    )
+                    .clicked()
                     {
                         self.open = false;
                     }

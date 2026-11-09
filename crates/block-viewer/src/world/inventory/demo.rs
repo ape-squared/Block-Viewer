@@ -453,7 +453,7 @@ pub fn seed_received_big(inv: &mut Inventory, agent: Uuid, folders: u128, items:
 }
 
 pub fn target(view: &str, inv: &Inventory) -> Option<Uuid> {
-    if let Some(mode) = view.strip_prefix("block-menu-") {
+    if let Some(mode) = view.strip_prefix("aurora-menu-") {
         return target(
             match mode {
                 "folder" | "all-folder" | "folder-uuid" | "folder-uuid-restored" => "folder",
@@ -488,7 +488,7 @@ pub fn target(view: &str, inv: &Inventory) -> Option<Uuid> {
         | "image-layout-folder-wide" => 8000,
         "move-item" | "move-multi" | "move-filter" | "move-window" | "move-menu" => 8100,
         "uuid" | "uuid-restricted" | "uuid-missing" | "uuid-multi" => 8104,
-        "landmark" | "block-landmark" => 8120,
+        "landmark" | "aurora-landmark" => 8120,
         "object"
         | "properties"
         | "properties-no-mod"
@@ -508,9 +508,9 @@ pub fn target(view: &str, inv: &Inventory) -> Option<Uuid> {
         | "clipboard-window"
         | "keyboard"
         | "keyboard-fold"
-        | "block-keyboard"
-        | "block-keyboard-fold"
-        | "block-keyboard-wide" => 8100,
+        | "aurora-keyboard"
+        | "aurora-keyboard-fold"
+        | "aurora-keyboard-wide" => 8100,
         "animation"
         | "animation-open"
         | "animation-play-local"
@@ -530,7 +530,7 @@ pub fn target(view: &str, inv: &Inventory) -> Option<Uuid> {
         "nocopy" => 8109,
         "notransfer" => 8110,
         "link" => 8113,
-        "link-icons" | "block-link-icons" => 83_000,
+        "link-icons" | "aurora-link-icons" => 83_000,
         _ => return None,
     }))
 }
@@ -644,7 +644,9 @@ pub fn note_asset(embedded: bool) -> Vec<u8> {
         }
         card.encode(&text).unwrap_or_default()
     } else {
-        block_net::inventory::notecard::Notecard::default().encode(text).unwrap_or_default()
+        block_net::inventory::notecard::Notecard::default()
+            .encode(text)
+            .unwrap_or_default()
     }
 }
 

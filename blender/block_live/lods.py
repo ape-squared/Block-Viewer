@@ -77,13 +77,13 @@ def _reduced(context, high, target):
         rest.calc_loop_triangles()
         triangles = len(rest.loop_triangles)
         if triangles > target:
-            mod = clone.modifiers.new("Block import LOD", "DECIMATE")
+            mod = clone.modifiers.new("Aurora import LOD", "DECIMATE")
             mod.ratio = max(0.000001, min(1.0, target / triangles))
             mod.use_collapse_triangulate = True
         # Reattach the rig solely for rest capture; exporter removes it on its
         # own temporary copy, so the current pose is never baked into a LOD.
         if exporter.armature_for(high):
-            clone.modifiers.new("Block import rig", "ARMATURE").object = exporter.armature_for(high)
+            clone.modifiers.new("Aurora import rig", "ARMATURE").object = exporter.armature_for(high)
         context.view_layer.update()
         return clone
     except Exception:
@@ -117,13 +117,13 @@ def prepare(context, request, supported, axes):
     from . import tracking
     uuid.UUID(request["id"])
     source = str(uuid.UUID(request["source"]))
-    entry = next((entry for entry in context.scene.aurora_live.objects if entry.source_id == source), None)
+    entry = next((entry for entry in context.scene.block_live.objects if entry.source_id == source), None)
     if entry is None or not tracking.valid(context.scene, entry.object):
         raise ValueError("The requested source is no longer in this scene's live list")
     initialize(entry)
     high = entry.object
     capture = materials.Capture()
-    forward = context.scene.aurora_live.forward
+    forward = context.scene.block_live.forward
     high_mesh, high_slots = _capture(high, supported, forward, axes, capture)
     high_count = sum(len(face["indices"]) // 3 for face in high_mesh["faces"])
     high_materials = [high.material_slots[index].material if index < len(high.material_slots) else None for index in high_slots]
@@ -174,7 +174,7 @@ def prepare(context, request, supported, axes):
 
 
 def draw(layout, context):
-    prefs = context.scene.aurora_live
+    prefs = context.scene.block_live
     if not 0 <= prefs.object_index < len(prefs.objects):
         return
     entry = prefs.objects[prefs.object_index]
@@ -195,7 +195,7 @@ def draw(layout, context):
             row = box.row(align=True)
             row.prop(spec, "budget", text="")
             row.prop(spec, "ratio" if spec.budget == "RATIO" else "triangles")
-    layout.label(text="Sources stay unchanged; inspect each LOD in Block Viewer.", icon="INFO")
+    layout.label(text="Sources stay unchanged; inspect each LOD in Aurora.", icon="INFO")
 
 
 CLASSES = (AURORA_PG_lod,)

@@ -151,7 +151,6 @@ fn lines(c: &Ctx, filter: &str, set: Option<&str>) -> Vec<Line> {
         sort,
         |id| by_name.get(id).map(|n| n.0.clone()).unwrap_or_default(),
         |id| by_name.get(id).map(|n| n.1.clone()).unwrap_or_default(),
-        |id| crate::world::staff::is_block_team(world, id),
     );
     let order: HashMap<Uuid, usize> = friends.iter().enumerate().map(|(i, f)| (f.id, i)).collect();
     out.sort_by_key(|l| order.get(&l.friend.id).copied().unwrap_or(usize::MAX));
@@ -378,12 +377,9 @@ fn row(ui: &mut egui::Ui, c: &mut Ctx, data: &super::RadarData, st: &mut PeopleU
     );
     let right = end.items.last().map_or(bounds.right(), |r| r.left()) - PARTS_GAP;
     let count = 4 + usize::from(f.online);
-    let (rect, resp) = ui.allocate_exact_size(Vec2::new(width, RICH_H), Sense::click_and_drag());
-    if st.scroll_to == Some(f.id) {
-        ui.scroll_to_rect(rect, Some(egui::Align::Center));
-        st.scroll_to = None;
-    }
+    let (rect, resp) = rows::allocate(ui, f.id, Vec2::new(width, RICH_H));
     if !ui.is_rect_visible(rect) {
+        rows::person_menu(&resp, p, c.world, &st.sel, f.id);
         return;
     }
     if !data.pics.contains_key(&f.id) {

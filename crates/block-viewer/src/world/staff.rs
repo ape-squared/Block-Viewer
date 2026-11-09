@@ -1,108 +1,57 @@
-//! Block team marks on name plates (`ui/nameplate`), lists, chat and
-//! profiles (`ui/staff.rs`). Matching is local to the viewer — nothing is
-//! sent to the grid. Linden Lab employees keep the star mark via the
-//! "Linden" last name rule.
+//! The staff Aurora marks: the Aurora team, with an aurora on their name
+//! plate (`ui/nameplate/aurora.rs`), and Linden Lab's employees, with
+//! twinkling stars and a running shine (`ui/nameplate/linden.rs`), on the
+//! Second Life grids only (Agni and Aditi); each
+//! with its tag next to their name in the lists, the chat and their
+//! profile (`ui/staff.rs`). Only Aurora draws them: the team's list ships
+//! with the viewer and nothing is sent to the grid. Aurora's own; the
+//! Legacy Viewer only colours Linden names (`ui::colors::is_linden`).
 
 use super::World;
 use std::sync::atomic::{AtomicBool, Ordering};
 use uuid::Uuid;
 
-/// The agent is on a Second Life grid: the only grids whose "Linden" last
-/// name is Linden Lab's. Set by the app (`set_second_life`); off until then.
+/// The agent is on a Second Life grid (Agni or Aditi): the only grids
+/// whose "Linden" last name is Linden Lab's. Set by the app with the grid
+/// it logged in to (`set_second_life`); off until then.
 static SECOND_LIFE: AtomicBool = AtomicBool::new(false);
 
-/// The grid of the session is Second Life's, or not.
+/// The grid of the session is Second Life's (Agni or Aditi), or not.
 pub fn set_second_life(on: bool) {
     SECOND_LIFE.store(on, Ordering::Relaxed);
 }
 
-/// Extra agent UUIDs for Block developers (optional; usernames below are enough).
-const TEAM_IDS: &[Uuid] = &[];
-
-/// Block moderators recognised by agent key (nameplate "Block Mod").
-const MOD_IDS: &[Uuid] = &[
-    // Fr3sh3r
-    uuid::uuid!("4250c4e6-4819-4b0e-a20e-44a3509bc4c5"),
+/// The team's avatar keys.
+const TEAM: &[Uuid] = &[
+    uuid::uuid!("348d7782-8438-4480-b482-608ca731b3a8"),
+    uuid::uuid!("eb902302-0a1a-4f51-9ca6-7148822d9e95"),
+    uuid::uuid!("322be05d-8851-4eaf-b4f2-a3347ebde023"),
+    uuid::uuid!("2401c1a6-0dde-4daf-b60f-420473687744"),
+    uuid::uuid!("d94d9882-b0bb-400b-9299-e51e021e921e"),
+    uuid::uuid!("64043ec6-40a2-44f2-8b50-d88c82b00548"),
+    uuid::uuid!("79e97f63-2410-43d0-aab2-92486a31b309"),
 ];
 
 /// Whose staff a resident is.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Mark {
-    /// Block Viewer developer / team.
-    Block,
-    /// Block Viewer moderator (community / support).
-    Mod,
-    /// A Linden Lab employee: the last name "Linden".
+    /// The Aurora team.
+    Aurora,
+    /// A Linden Lab employee: the last name "Linden" (LLMuteList::isLinden),
+    /// on the Second Life grids only (OpenSim names are anyone's).
     Linden,
 }
 
-/// Whether `id` is a known Block team agent key.
+/// Whether `id` is a member of the Aurora team.
 pub fn is_staff(id: &Uuid) -> bool {
-    !id.is_nil() && (TEAM_IDS.contains(id) || is_mod(id) || crate::demo::staff::is_staff(id))
+    !id.is_nil() && (TEAM.contains(id) || crate::demo::staff::is_staff(id))
 }
 
-/// Whether `id` is a known Block moderator agent key.
-pub fn is_mod(id: &Uuid) -> bool {
-    !id.is_nil() && MOD_IDS.contains(id)
-}
-
-/// Normalize an SL username / legacy name for team checks:
-/// `Heard Resident`, `heard.resident`, `heard` → `heard`.
-pub fn normalize_username(raw: &str) -> String {
-    let mut s = raw.trim().to_ascii_lowercase().replace(' ', ".");
-    while s.ends_with('.') {
-        s.pop();
-    }
-    if let Some(stripped) = s.strip_suffix(".resident") {
-        s = stripped.to_string();
-    }
-    s
-}
-
-/// Block developers recognised by username (legacy or modern form).
-const DEV_USERNAMES: &[&str] = &["heard", "4krazy"];
-
-/// Block moderators recognised by username.
-const MOD_USERNAMES: &[&str] = &["fr3sh3r"];
-
-/// Whether `raw` is a known Block developer username.
-pub fn is_block_dev_name(raw: &str) -> bool {
-    let n = normalize_username(raw);
-    DEV_USERNAMES.iter().any(|d| n == *d)
-}
-
-/// Whether `raw` is a known Block moderator username.
-pub fn is_block_mod_name(raw: &str) -> bool {
-    let n = normalize_username(raw);
-    MOD_USERNAMES.iter().any(|d| n == *d)
-}
-
-/// Whether this avatar is Block team (by UUID and/or username).
-pub fn is_block_team(world: &World, id: &Uuid) -> bool {
-    if is_staff(id) {
-        return true;
-    }
-    world.social.avatar_names.get(id).is_some_and(|n| {
-        is_block_dev_name(&n.user_name())
-            || is_block_dev_name(&n.legacy_first)
-            || is_block_mod_name(&n.user_name())
-            || is_block_mod_name(&n.legacy_first)
-    })
-}
-
-/// The mark of `id`, if any.
+/// The mark of `id`, if any: the Aurora team by key; Linden Lab by the
+/// legacy name of the cached avatar name (a display name can say anything).
 pub fn mark(world: &World, id: &Uuid) -> Option<Mark> {
-    if is_mod(id)
-        || world
-            .social
-            .avatar_names
-            .get(id)
-            .is_some_and(|n| is_block_mod_name(&n.user_name()) || is_block_mod_name(&n.legacy_first))
-    {
-        return Some(Mark::Mod);
-    }
-    if is_block_team(world, id) {
-        return Some(Mark::Block);
+    if is_staff(id) {
+        return Some(Mark::Aurora);
     }
     let names = &world.social.avatar_names;
     let linden = SECOND_LIFE.load(Ordering::Relaxed)
@@ -112,13 +61,17 @@ pub fn mark(world: &World, id: &Uuid) -> Option<Mark> {
     (linden || crate::demo::staff::is_linden(id)).then_some(Mark::Linden)
 }
 
-/// The mark of a resident whose legacy name is already known (name plates).
+/// The mark of a resident whose legacy name is `legacy` (the name plates,
+/// which already have it).
 pub fn mark_named(id: &Uuid, legacy: &str) -> Option<Mark> {
-    if is_mod(id) || is_block_mod_name(legacy) {
-        Some(Mark::Mod)
-    } else if (is_staff(id) && !is_mod(id)) || is_block_dev_name(legacy) {
-        Some(Mark::Block)
-    } else if super::mutes::is_linden(legacy) || crate::demo::staff::is_linden(id) {
+    mark_on(SECOND_LIFE.load(Ordering::Relaxed), id, legacy)
+}
+
+/// `mark_named` on a grid that is Second Life's (`second_life`) or not.
+fn mark_on(second_life: bool, id: &Uuid, legacy: &str) -> Option<Mark> {
+    if is_staff(id) {
+        Some(Mark::Aurora)
+    } else if (second_life && super::mutes::is_linden(legacy)) || crate::demo::staff::is_linden(id) {
         Some(Mark::Linden)
     } else {
         None
@@ -130,43 +83,32 @@ mod tests {
     use super::*;
 
     #[test]
-    fn heard_and_4krazy_are_block_devs() {
-        for name in ["heard", "Heard", "heard.resident", "Heard Resident", "HEARD.RESIDENT"] {
-            assert!(is_block_dev_name(name), "{name}");
-            assert_eq!(mark_named(&Uuid::from_u128(1), name), Some(Mark::Block));
-        }
-        for name in ["4krazy", "4Krazy", "4krazy.resident", "4Krazy Resident"] {
-            assert!(is_block_dev_name(name), "{name}");
-            assert_eq!(mark_named(&Uuid::from_u128(2), name), Some(Mark::Block));
-        }
-        assert!(!is_block_dev_name("hearing"));
-        assert!(!is_block_dev_name("heardish"));
-        assert!(!is_block_dev_name("4krazyy"));
-        assert_eq!(mark_named(&Uuid::from_u128(1), "Nova Example"), None);
+    fn nobody_is_staff_by_default() {
+        assert!(!is_staff(&Uuid::nil()));
+        assert!(!is_staff(&Uuid::from_u128(1)));
+        assert!(TEAM.iter().all(|id| !id.is_nil()));
     }
 
     #[test]
-    fn fr3sh3r_is_block_mod() {
-        let id = uuid::uuid!("4250c4e6-4819-4b0e-a20e-44a3509bc4c5");
-        assert!(is_mod(&id));
-        assert_eq!(mark_named(&id, "Someone Else"), Some(Mark::Mod));
-        for name in ["fr3sh3r", "Fr3sh3r", "fr3sh3r.resident", "Fr3sh3r Resident"] {
-            assert!(is_block_mod_name(name), "{name}");
-            assert_eq!(mark_named(&Uuid::from_u128(9), name), Some(Mark::Mod));
+    fn the_team_is_marked_by_key() {
+        assert!(TEAM.iter().all(is_staff));
+        for (i, id) in TEAM.iter().enumerate() {
+            assert!(!TEAM[i + 1..].contains(id), "{id} twice");
+            // whatever their name says, on any grid
+            assert_eq!(mark_on(true, id, "Someone Linden"), Some(Mark::Aurora));
+            assert_eq!(mark_on(false, id, "Someone Linden"), Some(Mark::Aurora));
         }
     }
 
     #[test]
-    fn lindens_are_marked_by_their_last_name() {
+    fn lindens_are_marked_by_their_last_name_on_second_life_only() {
         let id = Uuid::from_u128(7);
-        assert_eq!(mark_named(&id, "Philip Linden"), Some(Mark::Linden));
-        assert_eq!(mark_named(&id, "philip.linden"), Some(Mark::Linden));
-        assert_eq!(mark_named(&id, "Lindenberg Resident"), None);
-    }
-
-    #[test]
-    fn normalize_strips_resident() {
-        assert_eq!(normalize_username("Heard Resident"), "heard");
-        assert_eq!(normalize_username("heard.resident"), "heard");
+        assert_eq!(mark_on(true, &id, "Philip Linden"), Some(Mark::Linden));
+        assert_eq!(mark_on(true, &id, "philip.linden"), Some(Mark::Linden));
+        assert_eq!(mark_on(true, &id, "Lindenberg Resident"), None);
+        assert_eq!(mark_on(true, &id, "Nova Example"), None);
+        // an OpenSim or other grid: anyone may be named "Linden"
+        assert_eq!(mark_on(false, &id, "Philip Linden"), None);
+        assert_eq!(mark_on(false, &id, "philip.linden"), None);
     }
 }

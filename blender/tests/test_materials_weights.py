@@ -11,29 +11,29 @@ import bpy
 from mathutils import Vector
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-import aurora_live
-from aurora_live import exporter, materials, starter, weights
+import block_live
+from block_live import exporter, materials, starter, weights
 
 
 class MaterialWeightTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        aurora_live.register()
+        block_live.register()
 
     @classmethod
     def tearDownClass(cls):
-        aurora_live.unregister()
+        block_live.unregister()
 
     def setUp(self):
-        aurora_live._stop()
+        block_live._stop()
         if bpy.context.object and bpy.context.object.mode != "OBJECT":
             bpy.ops.object.mode_set(mode="OBJECT")
         bpy.ops.object.select_all(action="SELECT")
         bpy.ops.object.delete(use_global=False)
-        bpy.context.scene.aurora_live.objects.clear()
+        bpy.context.scene.block_live.objects.clear()
         bpy.context.scene.unit_settings.scale_length = 1
         bpy.context.scene.cursor.location = (0, 0, 0)
-        bpy.context.scene.aurora_live.forward = "NATIVE"
+        bpy.context.scene.block_live.forward = "NATIVE"
         self.rig, self.mesh = starter.create(bpy.context)
         self.material = self.mesh.data.materials[0]
         self.shader = next(n for n in self.material.node_tree.nodes if n.type == "BSDF_PRINCIPLED")
@@ -151,21 +151,21 @@ class MaterialWeightTests(unittest.TestCase):
         submitted = []
         fake = SimpleNamespace(state=lambda: ("Connected", self.names), rest_axes=lambda: {}, take_shape=lambda ready=True, pose=False: None, take_import=lambda ready=True: None,
                                submit=submitted.append, close=lambda: None)
-        aurora_live.tracking.add(bpy.context.scene, [self.mesh])
-        with patch.object(aurora_live, "_client", fake):
-            aurora_live._last_capture = 0
-            aurora_live._tick()
+        block_live.tracking.add(bpy.context.scene, [self.mesh])
+        with patch.object(block_live, "_client", fake):
+            block_live._last_capture = 0
+            block_live._tick()
             self.shader.inputs["Metallic"].default_value = 0.9
-            aurora_live._last_capture = 0
-            aurora_live._tick()
+            block_live._last_capture = 0
+            block_live._tick()
             self.assertEqual(len(submitted), 2)
             self.assertAlmostEqual(submitted[-1]["meshes"][0]["faces"][0]["material"]["metallic"], 0.9)
             bpy.ops.object.mode_set(mode="TEXTURE_PAINT")
             image.image.pixels.foreach_set([0, 1, 0, 1] * 4)
             image.image.update()
-            aurora_live._last_capture = 0
-            aurora_live._last_change = 0
-            aurora_live._tick()
+            block_live._last_capture = 0
+            block_live._last_change = 0
+            block_live._tick()
             self.assertEqual(len(submitted), 3)
             self.assertNotEqual(submitted[0]["images"][0]["rgba"], submitted[-1]["images"][0]["rgba"])
             bpy.ops.object.mode_set(mode="OBJECT")
@@ -356,7 +356,7 @@ class MaterialWeightTests(unittest.TestCase):
         other.select_set(False)
         original = other.data
         before = [[(g.group, g.weight) for g in v.groups] for v in original.vertices]
-        bpy.context.scene.aurora_live.rig = self.rig
+        bpy.context.scene.block_live.rig = self.rig
         bpy.ops.object.mode_set(mode="WEIGHT_PAINT")
         self.assertTrue(bpy.ops.aurora.auto_weights.poll())
         self.assertEqual(bpy.ops.aurora.auto_weights(), {"FINISHED"})

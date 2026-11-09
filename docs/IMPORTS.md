@@ -6,8 +6,8 @@ the errors, before the human validation on the grid. A window that is
 displayed is not enough to consider its import finished.
 
 Scope confirmed on 2026-10-12: textures, materials, meshes, sounds,
-animations, bulk uploads and local previews. Linksets, EEP and Windlight
-imports are still later work.
+animations, bulk uploads and local previews. The imports of linksets, EEP
+and Windlight are listed for later tasks in `TASKS.md`.
 
 Reference consulted: the Legacy Viewer `d942e1118d01c3383ef7d6b64f248af77452b0dc`
 (2026-10-12). The visible choices follow this revision of the sources.
@@ -53,7 +53,7 @@ Sources: `llviewermenufile.cpp`, `llviewerassetupload.cpp`,
   sculpted prim with rotation/zoom.
 - Former temporary texture checkbox: visible in the Legacy Viewer only without
   server-side baking, but `TemporaryUpload` is no longer read by its upload
-  path in this revision. Current SL regions use baking; Block offers no
+  path in this revision. Current SL regions use baking; Aurora offers no
   fake free upload. Local previews stay free and send no asset to the
   server.
 
@@ -67,7 +67,7 @@ Sources: `llfloaterimagepreview.cpp`, `floater_image_preview.xml`,
   parameters.
 - Name/description, fee and destination; local sound preview.
   The Play and Stop controls are placed side by side.
-- Block extension requested by the human: edit the selected interval and
+- Aurora extension requested by the human: edit the selected interval and
   import gain (0–400%) without changing the source. Amplified PCM is clipped
   to the digital ceiling, with orange waveform peaks and an explicit indicator.
   Audition uses the same processed PCM as upload; committing a gain adjustment
@@ -236,7 +236,7 @@ Sources: `llfloatermodelpreview.cpp`, `llmodelpreview.cpp`,
   erasing the source file. The changes are grouped on a dedicated writer,
   replace the file atomically and are flushed at logout or normal closing.
   An unreadable library is preserved.
-  This persistence is a Block improvement requested by the user.
+  This persistence is an Aurora improvement requested by the user.
 - The build picker exposes the published local diffuse textures and PBR
   materials. Choosing their row applies the overlay without a network
   command; OK keeps the link, Cancel restores the previous local

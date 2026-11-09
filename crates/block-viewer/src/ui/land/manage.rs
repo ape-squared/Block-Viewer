@@ -9,7 +9,7 @@
 //! What the agent may not change is shown greyed, with the power it lacks.
 
 use super::access::AccessState;
-use super::block::semibold;
+use super::aurora::semibold;
 use super::dialogs::{Confirm, SellForm};
 use super::options::{self, Shown};
 use super::{Dialog, LandUi, View};
@@ -347,8 +347,9 @@ fn access(ui: &mut egui::Ui, p: &Palette, s: &mut LandUi, v: &View, world: &mut 
     };
     see_region |= sheet::srow_ext(ui, p, &payment, 40.0, |ui| {
         editable(ui, now.public && can && !parcel.region_deny_anonymous, |ui| {
-            widgets::switch(ui, p, &mut now.payment)
-                .on_hover_text(block_i18n::tr!("ui-land-access-residents-must-have-payment-info-on-file-to-access"));
+            widgets::switch(ui, p, &mut now.payment).on_hover_text(block_i18n::tr!(
+                "ui-land-access-residents-must-have-payment-info-on-file-to-access"
+            ));
         });
     });
     if see_region {
@@ -387,7 +388,10 @@ fn access(ui: &mut egui::Ui, p: &Palette, s: &mut LandUi, v: &View, world: &mut 
             let pass_on = !now.public && now.pass && can;
             editable(ui, pass_on, |ui| {
                 let mut to = usize::from(now.pass_group);
-                let to_options = [(block_i18n::tr!("common-everyone"), true), (block_i18n::tr!("common-group"), true)];
+                let to_options = [
+                    (block_i18n::tr!("common-everyone"), true),
+                    (block_i18n::tr!("common-group"), true),
+                ];
                 if widgets::segmented(ui, p, &mut to, &to_options) {
                     now.pass_group = to == 1;
                 }
@@ -978,15 +982,9 @@ fn visibility(
         lock_line(ui, p, &m);
     }
     srow(ui, p, block_i18n::tr!("ui-land-manage-name"), "", 340.0, |ui| {
-        s.name.sync(&parcel.name);
-        let r = editable(ui, can_identity, |ui| {
-            widgets::restricted_text_field(ui, true, &mut s.name.text, widgets::TextPolicy::PrintableNoPipe, |b, _| {
-                egui::TextEdit::singleline(b).desired_width(330.0)
-            })
-        });
-        if let Some(name) = s.name.after(&r) {
-            world.land.update(|u| u.name = name);
-        }
+        let r = editable(ui, can_identity, |ui| super::parcel_name_field(ui, true, &mut s.name, 330.0));
+        let pending = s.name.after(&r);
+        s.apply_name(world, pending);
     });
     line(ui, p);
     srow(ui, p, block_i18n::tr!("ui-land-overview-description"), "", 340.0, |ui| {
@@ -1019,7 +1017,7 @@ fn visibility(
                 Some(t) => {
                     let [w, h] = t.size();
                     egui::Image::from_texture(egui::load::SizedTexture::new(t.id(), size))
-                        .uv(super::block::cover_uv(w, h, size))
+                        .uv(super::aurora::cover_uv(w, h, size))
                         .corner_radius(ui.visuals().window_corner_radius)
                         .paint_at(ui, rect);
                 }

@@ -9,7 +9,11 @@ pub(super) fn editor(ui: &mut egui::Ui, p: &Palette, world: &mut World, name: &s
     let order = world.contact_sets.ordered_set_names();
     let position = order.iter().position(|s| s == name).unwrap_or(0);
     ui.horizontal(|ui| {
-        ui.label(block_i18n::tr!("contact-visual-priority", rank = position + 1, total = order.len()));
+        ui.label(block_i18n::tr!(
+            "contact-visual-priority",
+            rank = position + 1,
+            total = order.len()
+        ));
         if widgets::icon_button(ui, p, "arrow-up", block_i18n::tr!("contact-visual-higher"), position > 0) {
             world.contact_sets.move_priority(name, true);
         }

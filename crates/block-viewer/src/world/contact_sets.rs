@@ -155,7 +155,7 @@ impl ContactSets {
             match key.as_str() {
                 GLOBAL_SETTINGS => {
                     self.default_color = color_from(&value["defaultColor"], GREY);
-                    self.stack_icons = value["block_stack_icons"].as_bool();
+                    self.stack_icons = value["aurora_stack_icons"].as_bool();
                 }
                 EXTRA_AVS => {
                     if let Some(m) = value.as_map() {
@@ -174,9 +174,9 @@ impl ContactSets {
                 k if Self::is_internal(k) => {}
                 name => {
                     let mut set = ContactSet::new(name, color_from(&value["color"], self.default_color));
-                    set.priority = value["block_priority"].as_i32();
-                    set.visuals = Visuals::read(&value["block_visuals"]);
-                    set.separate_chats = value["block_separate_chats"].as_bool();
+                    set.priority = value["aurora_priority"].as_i32();
+                    set.visuals = Visuals::read(&value["aurora_visuals"]);
+                    set.separate_chats = value["aurora_separate_chats"].as_bool();
                     set.notify = value["notify"].as_bool();
                     set.sort_by_online = !value.has("sort_by_online_status") || value["sort_by_online_status"].as_bool();
                     for k in AUTORESPONSE_KEYS {
@@ -200,7 +200,7 @@ impl ContactSets {
         let mut out = Llsd::new_map();
         let mut global = Llsd::new_map();
         global.insert("defaultColor", color_llsd(self.default_color));
-        global.insert("block_stack_icons", self.stack_icons);
+        global.insert("aurora_stack_icons", self.stack_icons);
         out.insert(GLOBAL_SETTINGS, global);
         let mut extra = Llsd::new_map();
         for id in &self.extra {
@@ -215,9 +215,9 @@ impl ContactSets {
         for (name, set) in &self.sets {
             let mut s = Llsd::new_map();
             s.insert("color", color_llsd(set.color));
-            s.insert("block_priority", set.priority);
-            s.insert("block_visuals", set.visuals.write());
-            s.insert("block_separate_chats", set.separate_chats);
+            s.insert("aurora_priority", set.priority);
+            s.insert("aurora_visuals", set.visuals.write());
+            s.insert("aurora_separate_chats", set.separate_chats);
             s.insert("notify", set.notify);
             s.insert("sort_by_online_status", set.sort_by_online);
             for (k, v) in &set.autoresponse {

@@ -50,7 +50,6 @@ fn demo_action() -> Option<PlateClick> {
             "profile" => PlateClick::Profile,
             "im" => PlateClick::InstantMessage,
             "tp" => PlateClick::OfferTeleport,
-            "request-tp" | "request_tp" | "rtp" => PlateClick::RequestTeleport,
             "menu" => PlateClick::Menu,
             _ => PlateClick::Nothing,
         })
@@ -97,7 +96,6 @@ pub(super) fn plate_ctx_action(action: PlateClick, id: Uuid) -> Option<CtxAction
         PlateClick::Profile => Some(CtxAction::Profile(id)),
         PlateClick::InstantMessage => Some(CtxAction::Im(id)),
         PlateClick::OfferTeleport => Some(CtxAction::OfferTeleport(id)),
-        PlateClick::RequestTeleport => Some(CtxAction::RequestTeleport(id)),
     }
 }
 
@@ -349,10 +347,6 @@ mod tests {
         assert!(matches!(
             plate_ctx_action(PlateClick::OfferTeleport, id),
             Some(CtxAction::OfferTeleport(i)) if i == id
-        ));
-        assert!(matches!(
-            plate_ctx_action(PlateClick::RequestTeleport, id),
-            Some(CtxAction::RequestTeleport(i)) if i == id
         ));
         // nothing runs nothing; the menu is opened apart
         assert!(plate_ctx_action(PlateClick::Nothing, id).is_none());

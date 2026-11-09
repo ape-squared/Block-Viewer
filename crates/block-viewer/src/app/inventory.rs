@@ -917,25 +917,8 @@ impl App {
                 | crate::world::appearance::Action::ImportJson { .. }
         );
         let attachments = crate::world::appearance::attachments_for_action(&self.world.inventory, self.world.agent_id, &action);
-        // Mark attachments this write is about to drop from the COF while
-        // they are still worn, before any interleaved RLVa force-wear can
-        // plan them back on (#1739).
-        let before: std::collections::HashSet<_> = crate::world::appearance::cof(&self.world.inventory)
-            .map(|cof| crate::world::outfit::cof_objects(&self.world.inventory, cof).into_iter().collect())
-            .unwrap_or_default();
-        match crate::world::appearance::plan(&self.world.inventory, action, &self.world.outfit_plan_points()) {
+        match crate::world::appearance::plan(&self.world.inventory, action, &self.world.outfit_attachment_points()) {
             Ok((change, sync)) => {
-                let after: std::collections::HashSet<_> = change
-                    .links
-                    .iter()
-                    .filter(|l| !l.folder && matches!(l.inv_type, 6 | 17))
-                    .map(|l| l.target)
-                    .collect();
-                let worn = self.world.outfit_attachment_items();
-                let leaving: Vec<_> = before.difference(&after).filter(|id| worn.contains(id)).copied().collect();
-                if !leaving.is_empty() {
-                    self.world.outfit.on_detach_requested(&leaving);
-                }
                 let request = uuid::Uuid::new_v4();
                 self.appearance_ui.pending = Some((request, sync));
                 self.appearance_ui.pending_actor = actor;

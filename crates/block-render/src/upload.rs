@@ -41,38 +41,10 @@ use std::sync::atomic::{AtomicBool, AtomicU32, Ordering};
 use std::sync::{Arc, Condvar, Mutex};
 use std::time::{Duration, Instant};
 
-/// Fill a buffer without `mapped_at_creation`. Some Windows / Intel drivers
-/// reject those ranges and panic inside `DeviceExt::create_buffer_init`
-/// (Iris Xe crash-on-open).
-pub(crate) fn create_buffer_data(
-    device: &wgpu::Device,
-    queue: &wgpu::Queue,
-    label: &str,
-    contents: &[u8],
-    usage: wgpu::BufferUsages,
-) -> wgpu::Buffer {
-    let unpadded = contents.len() as u64;
-    let align = wgpu::COPY_BUFFER_ALIGNMENT;
-    let size = ((unpadded + align - 1) & !(align - 1)).max(align);
-    let buffer = device.create_buffer(&wgpu::BufferDescriptor {
-        label: Some(label),
-        size,
-        usage: usage | wgpu::BufferUsages::COPY_DST,
-        mapped_at_creation: false,
-    });
-    if !contents.is_empty() {
-        queue.write_buffer(&buffer, 0, contents);
-    }
-    buffer
-}
-
 /// Chunks of the pool and their size: 8 × 32 MB (a 2048² texture with its
-/// mips is 22 MB), or 4 × 16 MB on a GPU with little memory. When those
-/// host-visible maps fail (some Windows drivers), [`StagingPool::new`]
-/// retries with a tiny layout so the viewer still starts.
+/// mips is 22 MB), or 4 × 16 MB on a GPU with little memory.
 const CHUNKS: (usize, u64) = (8, 32 << 20);
 const CHUNKS_SMALL: (usize, u64) = (4, 16 << 20);
-const CHUNKS_TINY: (usize, u64) = (2, 4 << 20);
 /// When every chunk is in use, a job waits this long for one to come back
 /// (they do within a few frames) before keeping its data for a main-thread
 /// write: under a burst (thousands of textures decoded at once) the jobs
@@ -87,64 +59,6 @@ pub const STAGING_ALIGN: u64 = wgpu::COPY_BYTES_PER_ROW_ALIGNMENT as u64;
 
 fn align(v: u64) -> u64 {
     v.div_ceil(STAGING_ALIGN) * STAGING_ALIGN
-}
-
-/// Create one persistently mapped staging buffer. Tries `mapped_at_creation`
-/// first (fast path), then `map_async` when that range is rejected; returns
-/// `None` when both fail so the pool can shrink or degrade instead of panicking.
-fn create_mapped_staging(device: &wgpu::Device, chunk_bytes: u64) -> Option<wgpu::Buffer> {
-    let usage = wgpu::BufferUsages::MAP_WRITE | wgpu::BufferUsages::COPY_SRC;
-    let label = Some("streaming staging");
-
-    // Path A: mapped at creation (original). Some drivers then reject
-    // get_mapped_range_mut ("failed to get mapped range for buffer created
-    // mapped at creation") — probe a tiny range and fall through.
-    {
-        let buffer = device.create_buffer(&wgpu::BufferDescriptor {
-            label,
-            size: chunk_bytes,
-            usage,
-            mapped_at_creation: true,
-        });
-        match buffer.get_mapped_range_mut(0..STAGING_ALIGN) {
-            Ok(view) => {
-                drop(view);
-                return Some(buffer);
-            }
-            Err(e) => {
-                log::warn!("staging: mapped_at_creation range rejected ({e}); trying map_async");
-                drop(buffer);
-            }
-        }
-    }
-
-    // Path B: create unmapped, map_async + poll (0.0.6). Can itself fail with
-    // BufferAsyncError on host-visible heaps that refuse large MAP_WRITE maps.
-    let buffer = device.create_buffer(&wgpu::BufferDescriptor {
-        label,
-        size: chunk_bytes,
-        usage,
-        mapped_at_creation: false,
-    });
-    let (tx, rx) = std::sync::mpsc::channel();
-    buffer.map_async(wgpu::MapMode::Write, .., move |r| {
-        let _ = tx.send(r);
-    });
-    if let Err(e) = device.poll(wgpu::PollType::wait_indefinitely()) {
-        log::warn!("staging: poll while mapping chunk failed: {e}");
-        return None;
-    }
-    match rx.recv() {
-        Ok(Ok(())) => Some(buffer),
-        Ok(Err(e)) => {
-            log::warn!("staging: map_async failed: {e}");
-            None
-        }
-        Err(_) => {
-            log::warn!("staging: map_async callback missing");
-            None
-        }
-    }
 }
 
 struct Chunk {
@@ -253,24 +167,26 @@ impl StagingPool {
     }
 
     /// `small`: a GPU with little memory (integrated, or under 4 GB).
-    ///
-    /// Never panics on map failures: some Windows drivers reject either
-    /// `mapped_at_creation` ranges or a fresh `map_async`. Failed chunks are
-    /// skipped; if none map, the pool stays empty and uploads fall back to
-    /// main-thread `write_*` (slower, but the viewer still starts).
     pub fn new(device: &wgpu::Device, small: bool) -> Arc<Self> {
         static NEXT: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(1);
         let id = NEXT.fetch_add(1, Ordering::Relaxed);
-        let preferred = if small { CHUNKS_SMALL } else { CHUNKS };
-        let (count, chunk_bytes, free) = Self::build_free_chunks(device, id, preferred)
-            .or_else(|| {
-                log::warn!("staging: {}×{} MiB maps failed; trying tiny layout", preferred.0, preferred.1 >> 20);
-                Self::build_free_chunks(device, id, CHUNKS_TINY)
+        let (count, chunk_bytes) = if small { CHUNKS_SMALL } else { CHUNKS };
+        let free = (0..count)
+            .map(|_| {
+                Arc::new(Chunk {
+                    buffer: device.create_buffer(&wgpu::BufferDescriptor {
+                        label: Some("streaming staging"),
+                        size: chunk_bytes,
+                        usage: wgpu::BufferUsages::MAP_WRITE | wgpu::BufferUsages::COPY_SRC,
+                        mapped_at_creation: true,
+                    }),
+                    pool: id,
+                    writers: AtomicU32::new(0),
+                    staged: AtomicU32::new(0),
+                    unmapped: AtomicBool::new(false),
+                })
             })
-            .unwrap_or_else(|| {
-                log::warn!("staging: no host-visible MAP_WRITE chunks; uploads use write_* fallback");
-                (0, preferred.1, Vec::new())
-            });
+            .collect();
         Arc::new(StagingPool {
             id,
             state: Mutex::new(PoolState {
@@ -283,28 +199,6 @@ impl StagingPool {
             returned: Default::default(),
             write_turn: Mutex::new(()),
         })
-    }
-
-    /// Build as many mapped chunks as the device accepts for `(count, size)`.
-    /// `None` when every attempt failed (caller may try a smaller layout).
-    fn build_free_chunks(device: &wgpu::Device, pool: u64, (count, chunk_bytes): (usize, u64)) -> Option<(usize, u64, Vec<Arc<Chunk>>)> {
-        let free: Vec<Arc<Chunk>> = (0..count)
-            .filter_map(|_| {
-                let buffer = create_mapped_staging(device, chunk_bytes)?;
-                Some(Arc::new(Chunk {
-                    buffer,
-                    pool,
-                    writers: AtomicU32::new(0),
-                    staged: AtomicU32::new(0),
-                    unmapped: AtomicBool::new(false),
-                }))
-            })
-            .collect();
-        if free.is_empty() {
-            None
-        } else {
-            Some((free.len(), chunk_bytes, free))
-        }
     }
 
     fn lock(&self) -> std::sync::MutexGuard<'_, PoolState> {
@@ -858,7 +752,7 @@ mod tests {
         const PER_ROUND: usize = 8;
         let dst = device.create_buffer(&wgpu::BufferDescriptor {
             label: None,
-            size: (REGION * PER_ROUND) as u64,
+            size: crate::readback::readback_size((REGION * PER_ROUND) as u64),
             usage: wgpu::BufferUsages::COPY_DST | wgpu::BufferUsages::MAP_READ,
             mapped_at_creation: false,
         });
@@ -911,8 +805,8 @@ mod tests {
 
     #[test]
     fn mesh_ranges_follow_each_other() {
-        // 3 vertices of 24 bytes, a skin stream of 8, 5 indices padded to 6
-        assert_eq!(mesh_ranges(3, 5, true), [(0, 72), (72, 24), (96, 12)]);
+        // 3 vertices of 24 bytes, a skin stream of 12, 5 indices padded to 6
+        assert_eq!(mesh_ranges(3, 5, true), [(0, 72), (72, 36), (108, 12)]);
         assert_eq!(mesh_ranges(3, 6, false), [(0, 72), (72, 0), (72, 12)]);
         // every offset and size suits a buffer copy
         for r in mesh_ranges(7, 9, true) {

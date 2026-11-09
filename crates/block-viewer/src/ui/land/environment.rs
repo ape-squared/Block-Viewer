@@ -33,9 +33,9 @@ pub(super) fn unavailable(v: &View, env: &EnvState) -> Option<&'static str> {
         (Some(pa), _) if !pa.region_allow_env_override => Some(block_i18n::tr!(
             "ui-land-environment-the-estate-manager-does-not-allow-parcel-environment-changes"
         )),
-        (Some(pa), _) if pa.area < MIN_PARCEL_AREA => {
-            Some(block_i18n::tr!("ui-land-environment-the-parcel-must-be-at-least-128-square-meters"))
-        }
+        (Some(pa), _) if pa.area < MIN_PARCEL_AREA => Some(block_i18n::tr!(
+            "ui-land-environment-the-parcel-must-be-at-least-128-square-meters"
+        )),
         _ => None,
     }
 }

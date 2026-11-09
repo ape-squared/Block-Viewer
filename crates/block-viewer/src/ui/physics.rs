@@ -83,7 +83,8 @@ pub fn show(ctx: &egui::Context, p: &Palette, world: &mut World, st: &mut State,
                     {
                         st.copy_name = Some(draft.item.name.clone());
                     }
-                    if widgets::action_button_if(ui, p, "restore", block_i18n::tr!("common-cancel"), ActionKind::Flat, size, true).clicked()
+                    if widgets::action_button_if(ui, p, "restore", block_i18n::tr!("common-cancel"), ActionKind::Flat, size, true)
+                        .clicked()
                     {
                         revert = true;
                         close = true;

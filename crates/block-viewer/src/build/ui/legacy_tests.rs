@@ -22,7 +22,7 @@ fn legacy() -> Inspector {
 }
 
 #[test]
-fn legacy_build_tabs_reuse_native_panels_and_ignore_hidden_block_sections() {
+fn legacy_build_tabs_reuse_native_panels_and_ignore_hidden_aurora_sections() {
     use crate::build::layout::{Item, Panel};
     let mut inspector = legacy();
     inspector.settings.layout.place(Item::Shape, Panel::Hidden, None, false);
@@ -312,20 +312,21 @@ fn legacy_object_keeps_vertical_vectors_left_of_the_shape_and_native_copy_paste(
         .center();
     click(&mut inspector, paste);
     assert_eq!(inspector.world.objects.get(index).unwrap().position, original);
-    assert!(
-        inspector
-            .tool
-            .out
-            .iter()
-            .any(|command| matches!(command, block_net::NetCommand::Build(block_net::build::BuildCmd::Transform { .. })))
-    );
+    assert!(inspector.tool.out.iter().any(|command| matches!(
+        command,
+        block_net::NetCommand::Build(block_net::build::BuildCmd::Transform { .. })
+    )));
 }
 
 #[test]
 fn legacy_general_places_sale_before_permissions_and_features_exposes_both_columns() {
     let mut inspector = legacy();
     let (_, texts) = inspector.show(vec![]);
-    let sale = texts.iter().find(|(text, _)| text == block_i18n::tr!("common-for-sale")).unwrap().1;
+    let sale = texts
+        .iter()
+        .find(|(text, _)| text == block_i18n::tr!("common-for-sale"))
+        .unwrap()
+        .1;
     let permissions = texts
         .iter()
         .find(|(text, _)| text == block_i18n::tr!("build-ui-general-anyone"))

@@ -20,7 +20,7 @@
 //! deletion; `legacy.rs` is the Legacy Viewer's window
 //! (`Settings::legacy_money_tracker`).
 
-mod block;
+mod aurora;
 mod legacy;
 
 use crate::theme::Palette;

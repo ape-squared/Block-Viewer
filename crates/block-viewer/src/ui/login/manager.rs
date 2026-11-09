@@ -79,7 +79,7 @@ fn summary(ui: &mut egui::Ui, p: &Palette, icon: &str, label: &str, remembered: 
 }
 
 pub fn show(ctx: &Context, p: &Palette, icons: &Icons, settings: &mut Settings, form: &mut LoginForm) {
-    show_impl(ctx, p, icons, settings, form, crate::block_env::demo_mode());
+    show_impl(ctx, p, icons, settings, form, std::env::var_os("AURORA_DEMO").is_some());
 }
 
 fn show_impl(ctx: &Context, p: &Palette, icons: &Icons, settings: &mut Settings, form: &mut LoginForm, offline: bool) {
@@ -314,7 +314,11 @@ fn show_impl(ctx: &Context, p: &Palette, icons: &Icons, settings: &mut Settings,
                     ui.set_width(width - 20.0);
                     ui.horizontal(|ui| {
                         widgets::glyph(ui, "alert-triangle-filled", p.warn, 22.0);
-                        ui.label(RichText::new(block_i18n::tr!("login-accounts-confirm-title")).strong().color(p.ink));
+                        ui.label(
+                            RichText::new(block_i18n::tr!("login-accounts-confirm-title"))
+                                .strong()
+                                .color(p.ink),
+                        );
                     });
                     ui.label(match pending.action {
                         Action::Password => block_i18n::tr!("login-accounts-confirm-password", name = pending.account.username.as_str()),
@@ -322,9 +326,15 @@ fn show_impl(ctx: &Context, p: &Palette, icons: &Icons, settings: &mut Settings,
                         Action::Remove => block_i18n::tr!("login-accounts-confirm-remove", name = pending.account.username.as_str()),
                     });
                     ui.horizontal(|ui| {
-                        cancel =
-                            widgets::action_button(ui, p, "x", block_i18n::tr!("common-cancel"), ActionKind::Flat, Vec2::new(0.0, 32.0))
-                                .clicked();
+                        cancel = widgets::action_button(
+                            ui,
+                            p,
+                            "x",
+                            block_i18n::tr!("common-cancel"),
+                            ActionKind::Flat,
+                            Vec2::new(0.0, 32.0),
+                        )
+                        .clicked();
                         confirmed = widgets::action_button(
                             ui,
                             p,
@@ -353,8 +363,15 @@ fn show_impl(ctx: &Context, p: &Palette, icons: &Icons, settings: &mut Settings,
                         .color(p.muted),
                 );
                 ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
-                    close = widgets::action_button(ui, p, "x", block_i18n::tr!("common-close"), ActionKind::Flat, Vec2::new(90.0, 32.0))
-                        .clicked();
+                    close = widgets::action_button(
+                        ui,
+                        p,
+                        "x",
+                        block_i18n::tr!("common-close"),
+                        ActionKind::Flat,
+                        Vec2::new(90.0, 32.0),
+                    )
+                    .clicked();
                 });
             });
         });
@@ -465,6 +482,10 @@ fn apply(settings: &mut Settings, form: &mut LoginForm, pending: Confirmation, o
             }
             // LLFloaterForgetUser: its stored favourites go with it
             form.favorites.forget(&account.key());
+            // FSPanelLogin::onClickRemove: UserLoginInfo goes with its account
+            if settings.last_login.as_ref() == Some(&account.key()) {
+                settings.last_login = None;
+            }
             if form.start_favorite.as_ref().is_some_and(|(key, _)| *key == account.key()) {
                 form.start_favorite = None;
             }
@@ -747,6 +768,7 @@ mod tests {
         assert!(form.stored.is_some());
         assert!(!form.remember_mfa);
         assert!(matches(&form.accounts[0], "SYNTHETIC-BETA".to_lowercase().as_str()));
+        settings.last_login = Some(alpha.key());
         apply(
             &mut settings,
             &mut form,
@@ -758,6 +780,8 @@ mod tests {
         );
         assert_eq!(form.accounts.len(), 1);
         assert_eq!(form.accounts[0].username, "synthetic-beta");
+        assert_eq!(settings.last_login, None, "the last login goes with its account");
+        settings.last_login = Some(form.accounts[0].key());
         apply(
             &mut settings,
             &mut form,
@@ -768,5 +792,10 @@ mod tests {
             true,
         );
         assert_eq!(form.accounts.len(), 1);
+        assert_eq!(
+            settings.last_login,
+            Some(form.accounts[0].key()),
+            "another account's removal keeps it"
+        );
     }
 }

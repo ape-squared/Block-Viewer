@@ -37,11 +37,11 @@ fn project_rejects_invalid_or_oversized_files_atomically_and_writes_a_replaceabl
     let (world, _, mut editor) = fixture();
     let before = editor.graph.definition.clone();
     let mut doc = editor.project_document();
-    doc.block_ik_project = 2;
+    doc.aurora_ik_project = 2;
     assert!(editor.apply_project(&world, &serde_json::to_vec(&doc).unwrap()).is_err());
     assert!(Document::decode(&vec![b' '; MAX_BYTES + 1]).is_err());
     assert_eq!(editor.graph.definition, before);
-    let root = std::env::temp_dir().join(format!("block-ik-project-{}", Uuid::new_v4()));
+    let root = std::env::temp_dir().join(format!("aurora-ik-project-{}", Uuid::new_v4()));
     let path = root.join("draft.json");
     let first = editor.project_document().encode().unwrap();
     write(&path, &first).unwrap();

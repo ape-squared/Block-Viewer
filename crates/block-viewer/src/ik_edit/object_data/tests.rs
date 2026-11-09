@@ -4,8 +4,8 @@ use crate::{
     scene::avatar::AvatarLibrary,
     world::rig_graph::{Definition, Target},
 };
-use base64::{Engine, engine::general_purpose::STANDARD};
 use block_net::{NetCommand, NetEvent};
+use base64::{Engine, engine::general_purpose::STANDARD};
 use std::{sync::Arc, time::Duration};
 
 fn fixture() -> (World, Frame, Editor) {

@@ -53,7 +53,7 @@ fn sources_without_tags_or_git_are_clearly_identified() {
 
 #[test]
 fn runtime_and_http_read_the_compiled_version() {
-    assert_eq!(block_version::user_agent(), format!("BlockViewer/{}", block_version::version()));
+    assert_eq!(block_version::user_agent(), format!("AuroraViewer/{}", block_version::version()));
     let version = semver::Version::parse(block_version::version()).unwrap();
     assert!(block_version::login_version().starts_with(&format!("{}.{}.{}.", version.major, version.minor, version.patch)));
 }

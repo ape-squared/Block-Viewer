@@ -289,7 +289,7 @@ fn demo_mode() -> Option<&'static str> {
             mode.starts_with("clipboard")
                 || mode.starts_with("search-selection")
                 || mode.starts_with("keyboard")
-                || mode.starts_with("block-keyboard")
+                || mode.starts_with("aurora-keyboard")
         })
     })
     .as_deref()
@@ -325,7 +325,7 @@ pub fn demo_events(ctx: &egui::Context, frame: u64, st: &mut InventoryUi) -> Vec
     let Some(mode) = demo_mode().filter(|mode| *mode != "clipboard") else {
         return Vec::new();
     };
-    if mode.starts_with("keyboard") || mode.starts_with("block-keyboard") {
+    if mode.starts_with("keyboard") || mode.starts_with("aurora-keyboard") {
         if matches!(frame, 650 | 651)
             && let Some(pos) =
                 ctx.data(|data| data.get_temp::<egui::Pos2>(egui::Id::unique(("clipboard_demo_row", st.ui_id, Uuid::from_u128(8100)))))

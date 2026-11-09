@@ -13,10 +13,10 @@
 //! Legacy look (Preferences › Aurora); Aurora's own, one field and the
 //! details beside rich rows, is `search/aurora.rs`, on the same lists.
 
-mod block;
-mod block_details;
+mod aurora;
+mod aurora_details;
 #[cfg(test)]
-mod block_tests;
+mod aurora_tests;
 mod details;
 
 use super::place_details::Ctx;
@@ -24,7 +24,9 @@ use super::web_view::WebView;
 use super::widgets::{self, ActionKind, Floater};
 use crate::theme::Palette;
 use crate::world::search::{Key, List, RatingBoxes, Request, Row, RowIcon, SearchSettings, Status, Tab, Value};
-use block_net::search::{AgentAccess, EventsMode, LandFilter, LandKind, LandSort, PLACE_CATEGORY_ANY, SIM_ACCESS_ADULT, SIM_ACCESS_MATURE};
+use block_net::search::{
+    AgentAccess, EventsMode, LandFilter, LandKind, LandSort, PLACE_CATEGORY_ANY, SIM_ACCESS_ADULT, SIM_ACCESS_MATURE,
+};
 use egui::{Rect, RichText, Sense, Vec2};
 use glam::DVec3;
 use std::collections::{HashMap, HashSet};
@@ -145,7 +147,7 @@ pub struct SearchUi {
     /// Profile pictures of the residents shown.
     pub wanted_pics: HashSet<Uuid>,
     /// Aurora's window: its field, type and selection.
-    aurora: block::Aurora,
+    aurora: aurora::Aurora,
 }
 
 impl Default for SearchUi {
@@ -175,7 +177,7 @@ impl Default for SearchUi {
             web_edit: None,
             web_home: String::new(),
             wanted_pics: HashSet::new(),
-            aurora: block::Aurora::default(),
+            aurora: aurora::Aurora::default(),
         }
     }
 }
@@ -421,12 +423,12 @@ impl SearchUi {
         self.tab = tab.index();
         self.restored = true;
         self.focus = true;
-        self.aurora.open(block::Kind::of(tab));
+        self.aurora.open(aurora::Kind::of(tab));
     }
 
     /// Aurora's window on its "All" chip (demo).
     pub fn open_all(&mut self) {
-        self.aurora.open(block::Kind::All);
+        self.aurora.open(aurora::Kind::All);
         self.focus = true;
     }
 
@@ -536,7 +538,7 @@ impl SearchUi {
         floater.min_size = MIN_SIZE;
         floater.show(ctx, p, open, |ui| {
             if !classic {
-                self.block_body(ui, c, pics, settings, web, &mut actions);
+                self.aurora_body(ui, c, pics, settings, web, &mut actions);
                 return;
             }
             // "ls_tabs" of floater_fs_search.xml, in its order (Tab::ALL)
@@ -837,11 +839,7 @@ impl SearchUi {
             }
             if widgets::action_button(ui, p, "external-link-filled", label, ActionKind::Flat, external).clicked() {
                 let url = external_address(&self.web.location, home, env.session);
-                // System browser: CtxAction::OpenUrl would keep Marketplace
-                // (and other in-viewer) sites inside a floater.
-                if let Err(err) = webbrowser::open(&url) {
-                    log::warn!("search: cannot open system browser for {url}: {err}");
-                }
+                super::context::request(ui.ctx(), super::context::CtxAction::OpenUrl(url));
             }
         });
         if env.anonymous {

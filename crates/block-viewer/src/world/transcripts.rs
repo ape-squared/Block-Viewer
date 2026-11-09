@@ -544,7 +544,7 @@ mod tests {
     const WAIT: Duration = Duration::from_secs(10);
 
     fn temp() -> PathBuf {
-        let dir = std::env::temp_dir().join(format!("block-transcripts-{}", Uuid::new_v4()));
+        let dir = std::env::temp_dir().join(format!("aurora-transcripts-{}", Uuid::new_v4()));
         std::fs::create_dir_all(&dir).unwrap();
         dir
     }

@@ -147,29 +147,7 @@ impl App {
         {
             self.world.system_message(message);
         }
-        self.tick_block_peer_announce(endpoint.as_ref());
         endpoint
-    }
-
-    /// When Advertise is on and the query bridge is Ready, periodically ask
-    /// it to RegionSay so nearby Block clients can light the nameplate badge.
-    fn tick_block_peer_announce(&mut self, endpoint: Option<&block_net::bridge::Endpoint>) {
-        let Some(endpoint) = endpoint.filter(|_| self.settings.advertise_block_viewer && self.settings.use_bridge) else {
-            return;
-        };
-        let now = Instant::now();
-        if self
-            .peer_announce_at
-            .is_some_and(|at| now.duration_since(at) < crate::world::block_peers::ANNOUNCE_INTERVAL)
-        {
-            return;
-        }
-        self.peer_announce_at = Some(now);
-        self.send(NetCommand::BridgeQuery {
-            request: Uuid::new_v4(),
-            endpoint: endpoint.clone(),
-            query: block_net::bridge::query::Query::PeerAnnounce,
-        });
     }
     pub(super) fn inspect_scripts(&mut self, object: Uuid) {
         self.inspect_bridge_information(object, false);

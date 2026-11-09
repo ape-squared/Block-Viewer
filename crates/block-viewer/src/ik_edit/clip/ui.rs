@@ -31,7 +31,10 @@ impl Editor {
                 self.enter_clip(world, frame);
             }
             if ui
-                .add_enabled(self.clip.history.len() < 15, egui::Button::new(block_i18n::tr!("anim-edit-create")))
+                .add_enabled(
+                    self.clip.history.len() < 15,
+                    egui::Button::new(block_i18n::tr!("anim-edit-create")),
+                )
                 .on_hover_text(block_i18n::tr!("anim-edit-drafts-hint"))
                 .clicked()
             {

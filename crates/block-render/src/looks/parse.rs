@@ -64,14 +64,14 @@ pub struct AuroraLook {
     pub ops: Arc<[LookOp]>,
 }
 
-macro_rules! block_files {
+macro_rules! aurora_files {
     ($($section:ident: [$($id:literal),* $(,)?]),* $(,)?) => {
         [$($((AuroraSection::$section, $id, include_str!(concat!("aurora/", $id, ".xml")))),*),*]
     };
 }
 
 /// Aurora's looks, by section.
-const AURORA: [(AuroraSection, &str, &str); 36] = block_files!(
+const AURORA: [(AuroraSection, &str, &str); 36] = aurora_files!(
     Film: ["fine-grain", "silver-grain", "teal-orange", "bleach-bypass", "cross-process", "instant", "chrome", "halation", "cyanotype", "infrared"],
     Color: ["vivid", "faded", "keep-red", "keep-yellow", "keep-green", "keep-blue", "duotone", "sunset", "night-vision"],
     Lens: ["chromatic", "fisheye", "old-lens", "scope", "widescreen", "dreamy"],
@@ -80,7 +80,7 @@ const AURORA: [(AuroraSection, &str, &str); 36] = block_files!(
 );
 
 /// Aurora's looks, in their sections' order, read once.
-pub fn block_looks() -> &'static [AuroraLook] {
+pub fn aurora_looks() -> &'static [AuroraLook] {
     static LOOKS: OnceLock<Vec<AuroraLook>> = OnceLock::new();
     LOOKS.get_or_init(|| {
         AURORA
@@ -101,8 +101,8 @@ pub fn block_looks() -> &'static [AuroraLook] {
 }
 
 /// One of Aurora's looks by its id.
-pub fn block_look(id: &str) -> Option<&'static AuroraLook> {
-    block_looks().iter().find(|look| look.id == id)
+pub fn aurora_look(id: &str) -> Option<&'static AuroraLook> {
+    aurora_looks().iter().find(|look| look.id == id)
 }
 
 /// The Legacy Viewer's looks, by name, read once.

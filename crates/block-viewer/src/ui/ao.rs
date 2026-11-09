@@ -190,9 +190,6 @@ pub fn show(
     let title = block_i18n::tr!("ao-title");
     prototype::workbench(ctx, p, state, open);
     Floater::new("ao", title, egui::pos2(220.0, 120.0), Vec2::new(560.0, 760.0))
-        // Hold width/height once opened so UI scale ≠ 100% cannot inflate the
-        // body through ScrollArea + set_min_size (Aurora #1824 / #1761).
-        .steady_size()
         .help(block_i18n::tr!("ao-help"))
         .show(ctx, p, open, |ui| {
             if prototype::before(ui, p, state) {

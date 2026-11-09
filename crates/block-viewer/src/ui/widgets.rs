@@ -1049,7 +1049,7 @@ struct HiddenWindows {
 }
 
 fn hidden_windows_id() -> egui::Id {
-    egui::Id::unique("block_hidden_windows")
+    egui::Id::unique("aurora_hidden_windows")
 }
 
 /// The interface is hidden (`hide_windows`).
@@ -2595,8 +2595,11 @@ pub fn glass_action_icon(ui: &mut egui::Ui, p: &Palette, icon: &str, label: &str
         );
         ui.painter().add(frame.paint(rect.shrink(frame.stroke.width)));
         if p.panel_alpha < 255 {
-            ui.painter()
-                .add(block_render::glass_panel(rect.shrink(1.0), f32::from(frame.corner_radius.nw), tint));
+            ui.painter().add(block_render::glass_panel(
+                rect.shrink(1.0),
+                f32::from(frame.corner_radius.nw),
+                tint,
+            ));
         }
         if let Some(texture) = super::icons::global(icon) {
             ui.painter().image(
@@ -2745,7 +2748,7 @@ pub fn region_rating(ctx: &egui::Context, ratings: &crate::world::worldmap::Regi
 }
 
 fn wanted_regions_id() -> egui::Id {
-    egui::Id::unique("block-wanted-region-ratings")
+    egui::Id::unique("aurora-wanted-region-ratings")
 }
 
 fn want_region(ctx: &egui::Context, region: &str) {
@@ -2957,6 +2960,27 @@ pub fn row_tag_width(ui: &egui::Ui, text: &str) -> f32 {
 /// Text colour shared by row tags and the names that follow their state.
 pub fn row_tag_ink(p: &Palette, active: bool) -> Color32 {
     if active { p.teal } else { p.muted }
+}
+
+/// Colors `(ink, fill)` for the active group tag pill.
+pub fn active_tag_colors(p: &Palette) -> (Color32, Color32) {
+    (p.teal, p.teal.gamma_multiply(0.14))
+}
+
+/// Measures a small row tag pill (such as "active" next to a group). Returns `(galley, total_width)`.
+pub fn tag_pill_layout(ui: &egui::Ui, text: &str, ink: Color32) -> (std::sync::Arc<egui::Galley>, f32) {
+    let g = ui
+        .painter()
+        .layout_no_wrap(text.to_owned(), egui::FontId::new(10.5, crate::ui::fonts::semibold(ui.ctx())), ink);
+    let w = g.size().x + 12.0;
+    (g, w)
+}
+
+/// Paints a small row tag pill (such as "active" next to a group) into `rect`.
+pub fn paint_tag_pill(ui: &egui::Ui, g: std::sync::Arc<egui::Galley>, rect: egui::Rect, ink: Color32, fill: Color32) {
+    ui.painter().rect_filled(rect, ui.visuals().window_corner_radius, fill);
+    let left = rect.center().x - g.size().x / 2.0;
+    paint_row_text(ui.painter(), g, left, rect.center().y, ink);
 }
 
 /// A small tag after an item's name, the same in every list: teal when

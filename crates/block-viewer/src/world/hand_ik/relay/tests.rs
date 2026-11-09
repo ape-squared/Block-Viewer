@@ -1,7 +1,7 @@
 use super::*;
 use crate::{demo, scene::avatar::AvatarLibrary};
-use base64::{Engine, engine::general_purpose::STANDARD};
 use block_net::NetEvent;
+use base64::{Engine, engine::general_purpose::STANDARD};
 use std::sync::Arc;
 
 const RIDER: Uuid = Uuid::from_u128(0x9840_bbbb);

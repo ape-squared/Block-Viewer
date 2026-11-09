@@ -1,7 +1,7 @@
 # Swimming animations
 
 Swimming pack contributed by the project maintainer, retained for local
-and offline previews in Block Viewer. Original QAvimator BVH files are preserved here.
+and offline previews in Aurora Viewer. Original QAvimator BVH files are preserved here.
 The loader removes root translations, closes the loops and orients the
 backwards stroke for head-first travel. No personal source path is embedded.
 

@@ -61,7 +61,11 @@ pub(super) fn show(ui: &mut egui::Ui, p: &Palette, s: &mut LandUi, v: &View, wor
         },
     );
     line(ui, block_i18n::tr!("ui-land-objects-parcel-capacity"), max.to_string());
-    line(ui, block_i18n::tr!("ui-land-objects-parcel-impact"), parcel.total_prims.to_string());
+    line(
+        ui,
+        block_i18n::tr!("ui-land-objects-parcel-impact"),
+        parcel.total_prims.to_string(),
+    );
 
     let can_owned = v.can(powers::LAND_RETURN_GROUP_OWNED);
     let can_group = v.can(powers::LAND_RETURN_GROUP_SET);
@@ -251,7 +255,7 @@ fn owners_list(ui: &mut egui::Ui, p: &Palette, s: &mut LandUi, world: &mut World
                     rows.sort_by(|a, b| {
                         let o = match col {
                             0 => a.0.is_group.cmp(&b.0.is_group),
-                            1 => a.1.to_lowercase().cmp(&b.1.to_lowercase()),
+                            1 => crate::natural_order::cmp(&a.1, &b.1),
                             2 => a.0.count.cmp(&b.0.count),
                             _ => a.0.most_recent.cmp(&b.0.most_recent),
                         };

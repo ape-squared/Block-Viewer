@@ -149,13 +149,13 @@ pub fn removable(inv: &Inventory, id: Uuid, protected: &HashSet<Uuid>) -> bool {
 /// The viewer support folders the Legacy Viewer keeps in place at the root
 /// (FIRE-28977 in LLFolderBridge::isItemMovable, llinventorybridge.cpp):
 /// #RLV, which RLVa only finds there (RlvInventory::getSharedRootID),
-/// #Firestorm and this viewer's `#Block` (plus the former `#Aurora` name).
-/// Deleting and renaming stay allowed. Unlike the Legacy Viewer, only a
-/// root child is held: one misplaced elsewhere can still be moved back.
+/// #Firestorm and its Aurora counterpart #Aurora. Deleting and renaming
+/// stay allowed. Unlike the Legacy Viewer, only a root child is held: one
+/// misplaced elsewhere can still be moved back.
 pub fn pinned(inv: &Inventory, id: Uuid) -> bool {
-    inv.folders.get(&id).is_some_and(|f| {
-        !f.library && f.info.parent == inv.root && matches!(f.info.name.as_str(), "#RLV" | "#Firestorm" | "#Block" | "#Aurora")
-    })
+    inv.folders
+        .get(&id)
+        .is_some_and(|f| !f.library && f.info.parent == inv.root && matches!(f.info.name.as_str(), "#RLV" | "#Firestorm" | "#Aurora"))
 }
 /// Can move to another folder than the trash: drag, cut, Move to.
 pub fn relocatable(inv: &Inventory, id: Uuid, protected: &HashSet<Uuid>) -> bool {
@@ -325,12 +325,6 @@ pub fn clean_name(name: &str) -> Result<String, String> {
     Ok(name.chars().take(63).collect())
 }
 pub fn create_folder(parent: Uuid, name: &str) -> Result<Mutation, String> {
-    create_folder_typed(parent, name, -1)
-}
-
-/// Create a folder with a system `type_default` (56 = Settings), so Save As
-/// for environment settings lands where the Legacy Viewer keeps them.
-pub fn create_folder_typed(parent: Uuid, name: &str, type_default: i32) -> Result<Mutation, String> {
     let id = Uuid::new_v4();
     Ok(Mutation {
         operations: vec![Operation::Folder {
@@ -339,7 +333,7 @@ pub fn create_folder_typed(parent: Uuid, name: &str, type_default: i32) -> Resul
             // Names can come from translated defaults or object/file labels,
             // rather than an edit. Keep creation usable after prevalidation.
             name: crate::text_validation::generated_name(&clean_name(name)?, 63),
-            type_default,
+            type_default: -1,
         }],
         refresh: vec![parent, id],
         ..Default::default()

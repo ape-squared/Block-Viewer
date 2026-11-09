@@ -117,14 +117,13 @@ fn micros(d: Duration) -> u32 {
     u32::try_from(d.as_micros()).unwrap_or(u32::MAX)
 }
 
-/// The output buffer to ask for. On Windows, prefer the host's shared-mode
-/// period (`Default`): a fixed 40 ms buffer made some Realtek / Nahimic /
-/// Dolby stacks take the default endpoint down for every app until reboot.
-/// [`OUTPUT_QUEUE_SECS`] still sizes the gap-detection tolerance. Other
-/// hosts keep their own choice.
-fn output_buffer(_rate: u32) -> (cpal::BufferSize, Duration) {
-    if cfg!(windows) {
-        (cpal::BufferSize::Default, Duration::from_secs_f64(OUTPUT_QUEUE_SECS))
+/// The output buffer to ask for. WASAPI's shared mode takes any length
+/// (cpal reports only the device period as its range there); other hosts
+/// keep their own choice.
+fn output_buffer(rate: u32) -> (cpal::BufferSize, Duration) {
+    if cfg!(windows) && rate > 0 {
+        let frames = (f64::from(rate) * OUTPUT_QUEUE_SECS).round() as u32;
+        (cpal::BufferSize::Fixed(frames), Duration::from_secs_f64(OUTPUT_QUEUE_SECS))
     } else {
         (cpal::BufferSize::Default, Duration::ZERO)
     }
@@ -498,13 +497,13 @@ mod tests {
     }
 
     #[test]
-    fn output_buffer_uses_host_default_on_windows() {
+    fn output_buffer_queues_forty_ms_on_windows() {
         let (size, queued) = output_buffer(44_100);
-        assert_eq!(size, cpal::BufferSize::Default);
         if cfg!(windows) {
+            assert_eq!(size, cpal::BufferSize::Fixed(1764));
             assert_eq!(queued, Duration::from_millis(40));
         } else {
-            assert_eq!(queued, Duration::ZERO);
+            assert_eq!(size, cpal::BufferSize::Default);
         }
     }
 

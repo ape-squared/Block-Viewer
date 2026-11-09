@@ -676,7 +676,10 @@ fn sale_line(price: i32) -> String {
 fn impact_text(prims: usize, impact: Option<f32>) -> String {
     let prims = block_i18n::tr!("hover-tips-prims", count = prims as i64);
     match impact {
-        Some(li) => format!("{prims} · {}", block_i18n::tr!("hover-tips-land-impact", count = li.round() as i64)),
+        Some(li) => format!(
+            "{prims} · {}",
+            block_i18n::tr!("hover-tips-land-impact", count = li.round() as i64)
+        ),
         None => prims,
     }
 }

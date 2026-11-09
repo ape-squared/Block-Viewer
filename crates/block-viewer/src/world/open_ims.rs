@@ -193,7 +193,7 @@ mod tests {
 
     #[test]
     fn the_list_comes_back_in_its_order_without_bad_entries() {
-        let dir = std::env::temp_dir().join(format!("block-open-ims-{}", Uuid::new_v4()));
+        let dir = std::env::temp_dir().join(format!("aurora-open-ims-{}", Uuid::new_v4()));
         let path = dir.join(FILE);
         assert!(load(&path).is_empty(), "no file yet");
         let (a, b) = (Uuid::from_u128(2), Uuid::from_u128(1));

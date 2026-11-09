@@ -6,7 +6,7 @@
 //! its icon and its letters.
 
 use crate::theme::Palette;
-use crate::ui::nameplate::{block, mark::Look};
+use crate::ui::nameplate::{aurora, mark::Look};
 use crate::world::staff::Mark;
 use egui::text::LayoutJob;
 use egui::{Galley, Mesh, Pos2, Rect, Shape, Vec2};
@@ -29,7 +29,7 @@ fn time(ui: &egui::Ui) -> f32 {
     if !still {
         ui.ctx().request_repaint_after(std::time::Duration::from_millis(33));
     }
-    block::time(ui.input(|i| i.time), still)
+    aurora::time(ui.input(|i| i.time), still)
 }
 
 /// The light of a staff member's mark over their profile's banner, inside

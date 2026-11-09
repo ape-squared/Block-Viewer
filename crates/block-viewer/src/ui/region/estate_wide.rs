@@ -240,7 +240,11 @@ pub(super) fn environment(ui: &mut egui::Ui, p: &Palette, s: &mut RegionUi, v: &
     );
     if let Some((h, m, pct)) = summary.as_ref().filter(|e| e.has_day).and_then(|e| e.apparent_time(now())) {
         desc.push(' ');
-        desc.push_str(&block_i18n::tr!("region-env-apparent", time = format!("{h}:{m:02}"), percent = pct));
+        desc.push_str(&block_i18n::tr!(
+            "region-env-apparent",
+            time = format!("{h}:{m:02}"),
+            percent = pct
+        ));
     }
     srow(ui, p, &name, &desc, 200.0, |ui| {
         if v.manages() {
@@ -719,7 +723,13 @@ fn show_dialog(ctx: &egui::Context, p: &Palette, s: &mut RegionUi, v: &View, wor
         ui.set_width(420.0);
         match &mut dialog {
             Dialog::Environment { track, filter, selected } => {
-                if super::interventions::head(ui, p, "sun-high-filled", block_i18n::tr!("ui-land-picker-environment-title"), false) {
+                if super::interventions::head(
+                    ui,
+                    p,
+                    "sun-high-filled",
+                    block_i18n::tr!("ui-land-picker-environment-title"),
+                    false,
+                ) {
                     answer = Some(false);
                 }
                 let loading = crate::world::env_select::scan_step(&mut world.inventory) > 0;

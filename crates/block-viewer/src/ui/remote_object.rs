@@ -79,7 +79,16 @@ pub fn show(ctx: &egui::Context, p: &Palette, world: &World, shown: &mut Option<
         ui.add_space(10.0);
         ui.horizontal(|ui| {
             let size = Vec2::new(0.0, 26.0);
-            if action_button_if(ui, p, "map", block_i18n::tr!("common-map"), ActionKind::Flat, size, place.is_some()).clicked()
+            if action_button_if(
+                ui,
+                p,
+                "map",
+                block_i18n::tr!("common-map"),
+                ActionKind::Flat,
+                size,
+                place.is_some(),
+            )
+            .clicked()
                 && let Some(l) = &place
             {
                 request(ui.ctx(), CtxAction::ShowPlace(l.location.target(), l.location.pos));

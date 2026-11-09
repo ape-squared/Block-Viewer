@@ -260,7 +260,7 @@ mod tests {
     }
     #[test]
     fn file_import_is_bounded_utf8_with_optional_tab_conversion() {
-        let directory = std::env::temp_dir().join(format!("block-script-file-test-{}", uuid::Uuid::new_v4()));
+        let directory = std::env::temp_dir().join(format!("aurora-script-file-test-{}", uuid::Uuid::new_v4()));
         fs::create_dir(&directory).unwrap();
         let path = directory.join("source.lsl");
         fs::write(&path, b"\xef\xbb\xbf\tcode\r\n").unwrap();
@@ -275,7 +275,7 @@ mod tests {
     }
     #[test]
     fn external_export_is_private_and_never_reuses_a_path() {
-        let directory = std::env::temp_dir().join(format!("block-script-export-test-{}", uuid::Uuid::new_v4()));
+        let directory = std::env::temp_dir().join(format!("aurora-script-export-test-{}", uuid::Uuid::new_v4()));
         let path = directory.join("source.lsl");
         write_private(&directory, &path, "default {}").unwrap();
         assert_eq!(fs::read_to_string(&path).unwrap(), "default {}");

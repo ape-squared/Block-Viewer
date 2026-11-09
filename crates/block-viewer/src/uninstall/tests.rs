@@ -114,11 +114,11 @@ fn the_store_entries_are_the_ones_the_viewer_writes() {
     let [password, mfa] = crate::credentials::store_entries(AGNI, "Jane Resident");
     assert_eq!(Secret::Password(jane.clone()).entry(), password);
     assert_eq!(Secret::SecondFactor(jane).entry(), mfa);
-    assert_eq!(password.0, "Block Viewer");
-    assert_eq!(mfa.0, "Block Viewer MFA");
+    assert_eq!(password.0, "Aurora Viewer");
+    assert_eq!(mfa.0, "Aurora Viewer MFA");
     assert_eq!(password.1, format!("{AGNI}|jane resident"));
-    assert_eq!(Secret::CacheKey.entry(), ("Block Viewer cache", "disk cache key v1".to_owned()));
-    assert_eq!(Secret::CrashReports.entry(), ("Block Viewer GitHub", "crash-reports".to_owned()));
+    assert_eq!(Secret::CacheKey.entry(), ("Aurora Viewer cache", "disk cache key v1".to_owned()));
+    assert_eq!(Secret::CrashReports.entry(), ("Aurora Viewer GitHub", "crash-reports".to_owned()));
 }
 
 #[test]
@@ -133,7 +133,7 @@ fn the_run_removes_every_part_and_reports_absent_and_failed_ones() {
         secret_fail: Some("store locked".into()),
         blender: vec![AddonRemoval {
             executable: "blender".into(),
-            removed: vec!["profile/aurora_live_mesh".into()],
+            removed: vec!["profile/block_live_mesh".into()],
             backups: None,
             error: None,
         }],
@@ -239,8 +239,8 @@ fn a_file_opens_the_folder_that_holds_it() {
 #[test]
 fn the_viewer_is_its_bundle_on_macos() {
     assert_eq!(
-        viewer_location(Path::new("/Applications/Block Viewer.app/Contents/MacOS/block-viewer")),
-        PathBuf::from("/Applications/Block Viewer.app")
+        viewer_location(Path::new("/Applications/Aurora Viewer.app/Contents/MacOS/block-viewer")),
+        PathBuf::from("/Applications/Aurora Viewer.app")
     );
     assert_eq!(
         viewer_location(Path::new("viewers/block-viewer.exe")),

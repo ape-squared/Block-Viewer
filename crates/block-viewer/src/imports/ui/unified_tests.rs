@@ -103,7 +103,8 @@ fn unified_import_selects_the_first_entry_and_pins_destinations_above_the_existi
     let output = f.settle();
     assert_eq!(f.imports.active, Some(first));
     assert!(
-        text_position(&output, block_i18n::tr!("import-use-default-folders")).y < text_position(&output, block_i18n::tr!("common-name")).y
+        text_position(&output, block_i18n::tr!("import-use-default-folders")).y
+            < text_position(&output, block_i18n::tr!("common-name")).y
     );
     text_position(&output, block_i18n::tr!("import-mesh-section-physics"));
     text_position(&output, block_i18n::tr!("import-queue"));

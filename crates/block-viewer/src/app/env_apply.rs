@@ -221,7 +221,6 @@ impl App {
                     self.panels.time_of_day = 0;
                 }
                 EnvAction::Preset(n) => self.panels.time_of_day = n,
-                EnvAction::Edit(kind) => self.open_env_editor_snapshot(kind),
             }
         }
     }

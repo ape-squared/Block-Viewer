@@ -104,7 +104,12 @@ fn rows(view: &View) -> Vec<Row> {
             })
         })
         .collect();
-    rest.sort_by_cached_key(|r| (r.target.title.to_lowercase(), r.target.group_name.to_lowercase()));
+    rest.sort_by_cached_key(|r| {
+        (
+            crate::natural_order::key(&r.target.title),
+            crate::natural_order::key(&r.target.group_name),
+        )
+    });
     out.extend(rest);
     out
 }
@@ -224,7 +229,14 @@ impl GroupTitlesUi {
         widgets::section_header(ui, p, "map-pin-filled", block_i18n::tr!("group-titles-rules"));
         let saved = &view.titles.saved;
         if saved.rules.is_empty() {
-            ui.add(egui::Label::new(RichText::new(block_i18n::tr!("group-titles-rules-empty")).size(12.0).color(p.muted)).wrap());
+            ui.add(
+                egui::Label::new(
+                    RichText::new(block_i18n::tr!("group-titles-rules-empty"))
+                        .size(12.0)
+                        .color(p.muted),
+                )
+                .wrap(),
+            );
             return;
         }
         let radius = ui.visuals().window_corner_radius;

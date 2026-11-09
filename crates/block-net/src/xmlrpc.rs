@@ -1,8 +1,8 @@
 //! Tiny XML-RPC codec mapping values to/from LLSD (used by login).
 
-use base64::Engine as _;
 use block_llsd::xml::{self, Element};
 use block_llsd::{Llsd, Map};
+use base64::Engine as _;
 
 fn write_value(v: &Llsd, out: &mut String) {
     out.push_str("<value>");

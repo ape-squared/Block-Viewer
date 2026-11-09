@@ -103,7 +103,7 @@ pub fn page(cx: &mut Cx) {
     cx.group(tr!("ui-options-plugins"), |cx| {
         cx.row(
             tr!("ui-options-plugins-folder"),
-            tr!("ui-options-folder-containing-llplugin-blank-block-s-own-plugins"),
+            tr!("ui-options-folder-containing-llplugin-blank-aurora-s-own-plugins"),
             &field!(media.plugin_dir),
             |ui, s| {
                 ui.add(

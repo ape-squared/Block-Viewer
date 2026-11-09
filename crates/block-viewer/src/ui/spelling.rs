@@ -40,7 +40,7 @@ struct Cache {
 }
 
 fn cache_id(field: Id) -> Id {
-    field.with("block_spelling")
+    field.with("aurora_spelling")
 }
 
 /// The misspelled words of `field`, if it was drawn checked at the last

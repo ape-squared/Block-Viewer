@@ -234,7 +234,10 @@ fn poll_dialog(st: &mut SpellingPage) {
             st.dialog = None;
             let mut lists = crate::autoreplace::lists().as_ref().clone();
             list.name = crate::autoreplace::unique_name(&lists, &list.name);
-            st.message = Some((false, block_i18n::tr!("ui-options-auto-replace-imported", name = list.name.clone())));
+            st.message = Some((
+                false,
+                block_i18n::tr!("ui-options-auto-replace-imported", name = list.name.clone()),
+            ));
             lists.push(list);
             st.list = lists.len() - 1;
             crate::autoreplace::set_lists(lists);
@@ -260,7 +263,7 @@ fn dialog(st: &mut SpellingPage, run: impl FnOnce() -> Option<Dialog> + Send + '
     let (tx, rx) = mpsc::channel();
     st.dialog = Some(rx);
     st.message = None;
-    let spawned = std::thread::Builder::new().name("block-autoreplace-dialog".into()).spawn(move || {
+    let spawned = std::thread::Builder::new().name("aurora-autoreplace-dialog".into()).spawn(move || {
         if let Some(answer) = run() {
             let _ = tx.send(answer);
         }

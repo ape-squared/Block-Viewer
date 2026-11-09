@@ -15,7 +15,7 @@ impl Storage {
     pub(super) fn start(path: PathBuf) -> Option<Self> {
         let (loaded_tx, loaded) = crossbeam_channel::unbounded();
         let (writer, writes) = crossbeam_channel::unbounded::<Saved>();
-        let worker = std::thread::Builder::new().name("block-received-read".into()).spawn(move || {
+        let worker = std::thread::Builder::new().name("aurora-received-read".into()).spawn(move || {
             let saved = match std::fs::read(&path) {
                 Ok(bytes) => {
                     crate::disk_io::read(crate::disk_io::Origin::Other, bytes.len());

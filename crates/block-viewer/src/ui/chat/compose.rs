@@ -185,7 +185,10 @@ pub(super) fn show(
                         }
                         let has_text = !draft.trim().is_empty();
                         send_clicked = send_button(ui, p, has_text).clicked() && has_text;
-                        output.response.response.on_hover_text(block_i18n::tr!("ui-chat-compose-shortcuts"))
+                        output
+                            .response
+                            .response
+                            .on_hover_text(block_i18n::tr!("ui-chat-compose-shortcuts"))
                     })
                     .inner
                 });

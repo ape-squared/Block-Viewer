@@ -1,7 +1,7 @@
 # LiveMesh
 
 LiveMesh sends rigged mesh edits to your own animated avatar and static
-mesh edits to local world objects or attachments in Block Viewer. You can sculpt,
+mesh edits to local world objects or attachments in Aurora. You can sculpt,
 move vertices, paint weights, edit UVs, adjust shape keys and geometry modifiers,
 and see the result without saving or uploading. The preview is local: other
 residents do not see it, and it does not create inventory items or charge an
@@ -37,7 +37,7 @@ save/load, renaming, list reordering and Undo/Redo.
 Existing entries without an explicit group still follow Blender parenting:
 the highest synchronized static mesh parent is the root, including through
 intermediate empties. Explicit grouping overrides this hierarchy; Ungroup also
-keeps parented meshes independent in the viewer. The source list groups the prims under one
+keeps parented meshes independent in Aurora. The source list groups the prims under one
 root, numbered #1, #2 and onward, with an object/prim counter matching the build
 tools. Clicking Edit uses the whole linkset by default. Enable **Edit linked parts**
 in the normal build tools or object context menu to select a child alone.
@@ -49,13 +49,13 @@ independent previews and preserves their current placement. Paused or absent
 roots are not referenced. Linksets require the viewer's `object-links` capability.
 
 Static objects initially appear on the floor two metres in front of your
-avatar. Select the source in Block's **LiveMesh** window to **Edit**, **Drop
+avatar. Select the source in Aurora's **LiveMesh** window to **Edit**, **Drop
 to ground**, **Derez**, **Attach to** a body point or **Attach to HUD**. **Detach**
 removes a worn preview; **Rez** brings it back. Derez/detach keep the source in
 the list and subsequent Blender edits never rez it automatically. The visible
 checkbox remains independent. **Stop** clears all session previews and placement.
 
-**Edit** uses the normal Block Viewer translation, rotation and size tools, with the
+**Edit** uses the normal Aurora translation, rotation and size tools, with the
 same controls for body attachments and HUDs. Right-clicking any prim opens the
 ordinary object context menu, with Edit, Edit linked parts, Inspect and supported
 local attachment/removal actions.
@@ -72,7 +72,7 @@ updates. Size edits act as a multiplier over subsequent Blender dimensions.
 Render batches for extra materials stay part of one local source. Import/LOD
 preparation also accepts static sources, through the existing explicit importer.
 The optional `static-meshes` handshake feature protects older viewers: update
-Block Viewer if the plug-in reports it cannot preview non-rigged meshes.
+Aurora if the plug-in reports it cannot preview non-rigged meshes.
 
 These objects remain local previews visible only in your viewer. They are not
 uploaded, saved in grid inventory or simulated by the server; no physics or
@@ -80,24 +80,24 @@ script is started. Rigged sources continue to follow the avatar as before.
 
 ## Install and connect
 
-1. In Block Viewer, open **Build → LiveMesh**. In the **Plugins** tab, click **Install in Blender…**
-   and select Blender's executable (`blender.exe` on Windows). The viewer checks only
+1. In Aurora, open **Build → LiveMesh**. In the **Plugins** tab, click **Install in Blender…**
+   and select Blender's executable (`blender.exe` on Windows). Aurora checks only
    this executable, installs and enables the matching bundled plug-in, and shows
    the current step followed by a completion message with the Blender version.
    To list all installations instead, click **Search for Blender**. It shows
-   each executable's version, path and installed Block LiveMesh plug-in version. Click **Install**, **Update** or
-   **Enable** on the desired row. The viewer chooses the compatible bundled package,
+   each executable's version, path and installed Aurora plug-in version. Click **Install**, **Update** or
+   **Enable** on the desired row. Aurora chooses the compatible bundled package,
    installs it and saves its enabled state in that Blender profile.
 2. If Blender is already open, restart it when convenient to load the updated
-   plug-in. The viewer never closes its windows or changes your scene. **Search for Blender**
+   plug-in. Aurora never closes its windows or changes your scene. **Search for Blender**
    rescans installations. **Install in Blender…** also supports custom or portable
    locations and remembers the selected executable for later searches. It never
    searches or launches other Blender executables. Standard application folders,
    common portable folders, PATH and Windows application registrations are
    searched without recursively scanning your disks. Removable drives are added
    through **Install in Blender…**, avoiding empty card readers during
-   detection. Prior LiveMesh package files and `userpref.blend` are preserved under the selected profile's
-   `block-backups` directory; failed installation restores these files. Newer
+   detection. Prior Aurora package files and `userpref.blend` are preserved under the selected profile's
+   `aurora-backups` directory; failed installation restores these files. Newer
    plug-in versions are never downgraded. Multiple executables of the same
    Blender major/minor version can share one profile.
 
@@ -105,22 +105,22 @@ script is started. Rigged sources continue to follow the avatar as before.
    **Manual installation (ZIP)** and click **Save Blender plug-in…**. The viewer
    bundles both matching formats; no source checkout, download or external Python
    installation is needed. Install the ZIP matching your Blender version:
-   - **Blender 4.2 or later:** choose the **extension** package in the viewer.
+   - **Blender 4.2 or later:** choose the **extension** package in Aurora.
      In Blender, open Preferences → Get Extensions → the top-right menu →
      Install from Disk, choose that ZIP, and enable it. Allow its network
      permission: it communicates with `127.0.0.1` only.
-   - **Blender 2.93–4.1:** choose the **classic add-on** package in the viewer.
+   - **Blender 2.93–4.1:** choose the **classic add-on** package in Aurora.
      In Blender, open Preferences → Add-ons → Install, select the ZIP,
-     then enable **3D View: Block LiveMesh**. Keep the ZIP intact.
-3. In Block's **LiveMesh** window, open the **Connection** tab and click **Enable preview**.
+     then enable **3D View: Aurora LiveMesh**. Keep the ZIP intact.
+3. In Aurora's **LiveMesh** window, open the **Connection** tab and click **Enable preview**.
    The default port is **17655**. Change it in both applications if another
    program is already using that port, or to preview in another viewer.
-4. In Blender, open the 3D view sidebar (`N`) → **Block** → **Live**, then
-   **Connect to Block Viewer**. No object selection or rigged mesh is required.
+4. In Blender, open the 3D view sidebar (`N`) → **Aurora** → **Live**, then
+   **Connect to Aurora**. No object selection or rigged mesh is required.
    To preview meshes, select them and click **Add selected meshes** at any time.
 5. Edit your mesh. **Automatic updates** is enabled by default, with an
    **Interval (seconds)** of **2**. Larger meshes can take longer to capture
-   and prepare. The viewer supplies the
+   and prepare. Aurora supplies the
    animation and avatar shape, independently of Blender's current pose.
 
 Automatic captures wait for a short 150 ms pause during mesh editing, sculpting
@@ -162,7 +162,7 @@ New starter rigs face **Blender -Y**, like Avastar, with the arms along X.
 **Coordinates → Automatic (Avastar / SL)** is the default. It detects each
 armature's rest orientation and converts its mesh, normals and joint binds to
 Second Life's +X axes together. Imported compatible Avastar rigs do not need
-Block-specific bone properties. Older +X LiveMesh rigs and -Y rigs can share one
+Aurora-specific bone properties. Older Aurora +X rigs and -Y rigs can share one
 live list without rotating the Blender objects or editing their weights.
 The explicit **SL / Z up** and **Blender -Y forward** choices remain available
 and retain their saved values. If an older scene explicitly selected native
@@ -189,20 +189,20 @@ The interval is expressed in seconds independently of Blender's frame rate.
 Uncheck this option to work in **manual mode**: edits remain pending until
 you click **Update now**. This button captures immediately while connected,
 bypassing the interval and resending even unchanged content. During the
-connection handshake, its request waits until the viewer is ready. Connecting
+connection handshake, its request waits until Aurora is ready. Connecting
 always sends an initial preview, including in manual mode. The interval and
 automatic/manual choice are saved per scene in the `.blend` file.
 
 The **Synchronized objects** list is saved with each scene in the `.blend`
 file. **Add selected meshes** appends mesh objects without duplicates, keeping
 existing entries and their enabled/paused state. You can prepare the list before
-connecting. If it is empty, **Connect to Block Viewer** adds the current mesh selection
+connecting. If it is empty, **Connect to Aurora** adds the current mesh selection
 for convenience; an existing list is used independently of the current selection.
 
 Each row has a selectable name, a synchronization chain toggle and a remove
 button. Selected names are highlighted; the counter below the list shows the
 selection size. Turning synchronization off removes the object from the
-viewer preview while retaining its list entry. Turning it back on sends its
+Aurora preview while retaining its list entry. Turning it back on sends its
 latest geometry, weights and materials. Clicking a name only selects entries
 for the list actions; it does not change the preview or the scene's 3D selection.
 Paused entries can also be selected and grouped. The remove button
@@ -218,16 +218,16 @@ scenes schedules the new scene's enabled entries according to its update setting
 changes respect the update mode and interval; in manual mode, click **Update now**
 to publish additions, pauses, resumptions, removals or grouping changes.
 
-The add-on reconnects automatically when the viewer becomes available again,
+The add-on reconnects automatically when Aurora becomes available again,
 resending its latest snapshot. Disconnecting Blender leaves the last good
-preview visible. Block's **Stop and remove** closes the listener and removes
+preview visible. Aurora's **Stop and remove** closes the listener and removes
 the preview; **Remove meshes** withdraws all current objects until restored.
 Closing the window keeps the bridge active. The listener is
 off on each viewer launch, and changing accounts stops it.
 
-## Manage objects and upload in Block Viewer
+## Manage objects and upload in Aurora
 
-Block's **Build → LiveMesh** lists each source object by its Blender
+Aurora's **Build → LiveMesh** lists each source object by its Blender
 name, even if it spans several render batches. The window separates
 **Connection**, **Objects** and **Plugins** with horizontal lines and plain headings.
 Connection status appears beside the section title; port, loopback address and
@@ -236,7 +236,7 @@ Uncheck an object to hide it
 temporarily; rechecking displays its latest geometry and materials.
 **Remove meshes** withdraws all sources from the list and avatar preview.
 Subsequent live revisions keep them removed. To bring them back, restart the
-preview and use **Update now** in Blender. These controls affect the viewer's
+preview and use **Update now** in Blender. These controls affect Aurora's
 local preview and do not
 change the synchronization list or scene in Blender.
 
@@ -276,14 +276,14 @@ joint/bind palette. Generation bakes current shape keys and geometry modifiers
 on copies at rest, retaining interpolated weights, UVs and material assignments.
 Original meshes, modifiers, keys, pose, selection and list flags stay intact.
 
-In Block Viewer, select each LOD row to inspect its geometry and triangle count. The
+In Aurora, select each LOD row to inspect its geometry and triangle count. The
 skinned preview's **Test bend (°)** slider bends elbows and knees to inspect
 deformations; it changes only the preview pose. Review the reductions visually,
 especially seams and small details, before confirming an import. Automatic
 triangle counts are approximate and may require adjusting the target.
 
 Preparation waits for Blender's Object Mode, with an actionable error after
-30 seconds; the viewer abandons an unanswered request after 180 seconds or a
+30 seconds; Aurora abandons an unanswered request after 180 seconds or a
 disconnect. Each bundle is bounded to 600,000 exported corners and 64 MiB.
 Older plug-ins can still synchronize live, but must be updated for this import
 workflow. A paused source can be imported without enabling its live preview.
@@ -295,15 +295,15 @@ continues to show its supported PBR materials.
 
 Both packages contain the same rig, automatic weights, live materials and
 transport. Install only one format in each Blender profile; disable any older
-Block LiveMesh installation before switching between the two formats.
+Aurora LiveMesh installation before switching between the two formats.
 Updating within the same format replaces the existing add-on. Blender 2.93 LTS
 is the minimum supported version; Blender 2.79 is not supported.
 
 Developers can build either format from the repository root:
 
 ```powershell
-python blender/package.py .scratch/block-live-mesh-0.8.7.zip
-python blender/package.py --legacy .scratch/block-live-mesh-0.8.7-legacy.zip
+python blender/package.py .scratch/aurora-live-mesh-0.8.7.zip
+python blender/package.py --legacy .scratch/aurora-live-mesh-0.8.7-legacy.zip
 ```
 
 The extension ZIP has a root manifest and targets Blender 4.2+. The classic
@@ -311,7 +311,7 @@ ZIP contains an `block_live/` directory with `bl_info` and targets 2.93–4.1.
 
 ## Create a rig and test T-shirt
 
-In Blender's 3D view, open the sidebar (`N`) → **Block** → **Skeleton**,
+In Blender's 3D view, open the sidebar (`N`) → **Aurora** → **Skeleton**,
 then expand **Create an SL avatar**. Click
 **Create SL avatar rig** to add a new armature at the 3D cursor. Leave
 **Add rigged test T-shirt** enabled to create a garment with it, or disable
@@ -319,21 +319,21 @@ the option for the armature alone. Use Object Mode to create a starter.
 The operator supports Undo and never replaces existing scene objects.
 
 The rig contains **all 133 Second Life Bento bones and 26 Fitted Mesh
-collision bones**, using the same `avatar_skeleton.xml` as Block Viewer. Original
+collision bones**, using the same `avatar_skeleton.xml` as Aurora. Original
 joint names, parents and rest positions are preserved. Bone collections
 separate the body, hands, face, wings, tail and other extensions in Blender
 4.0+. Blender 2.93–3.x uses matching named pose groups and one armature layer
 per group. Body and hand sets are visible initially; enable other collections
 or layers in Armature Data Properties when needed. All 159 bones can deform
 meshes. Classic layer indices are recorded in the rig's
-`block_bone_layers` custom property.
+`aurora_bone_layers` custom property.
 
 The optional T-shirt has editable quad topology, open neck/hem/cuffs, a UV
 map, a fabric material, an Armature modifier and normalized vertex weights
 (up to four influences). It is selected when created: click **Connect to
-Block Viewer** to preview it. Creating a T-shirt adds it to the synchronization list,
+Aurora** to preview it. Creating a T-shirt adds it to the synchronization list,
 keeping existing entries, whether or not a connection is active. Pose the
-armature to inspect its weights in Blender; the viewer still receives the rest
+armature to inspect its weights in Blender; Aurora still receives the rest
 mesh and uses its own animations.
 
 The starter respects the current **Coordinates** choice and scene unit
@@ -393,7 +393,7 @@ Custom rigs can deliberately reposition and animate them.
 [Avastar's display documentation](https://avalab.org/avastar/300/help/n-panel/avastar/rig-display/)
 similarly separates torso visibility from the advanced folded spine.
 
-The viewer changes visibility only: it keeps all 159 deform bones, their parents,
+Aurora changes visibility only: it keeps all 159 deform bones, their parents,
 rest matrices, animation and existing weights. Hidden spine weights still
 transfer, normalize and export. This display action does not unfold or
 reparent joints. Custom joint-position overrides and Blender animation
@@ -404,7 +404,7 @@ streaming remain outside the live bridge's current scope.
 In **Controls**, **Create IK controls** adds eight non-deforming target/pole bones
 and four independent two-bone IK chains. The 159 SL deformation bones retain
 their rest matrices and canonical joint names. The controls are optional,
-excluded from live export, and kept in a **Block Viewer IK** collection (layer 32
+excluded from live export, and kept in an **Aurora IK** collection (layer 32
 in Blender 2.93–3.x). Creating controls again is idempotent. Use a simple,
 editable SL armature; limbs already constrained by another rigging tool are
 rejected before adding controls.
@@ -418,7 +418,7 @@ native wire width; earlier versions use Blender's native custom-shape lines.
 Shape size follows limb proportions, independent of the tiny underlying
 helper bone's length. All eight outlines remain directly selectable.
 Hand frames lie flat in the palm's plane, with their long side pointing
-toward the fingers, and follow wrist rotation. Earlier vertical LiveMesh hand
+toward the fingers, and follow wrist rotation. Earlier vertical Aurora hand
 frames migrate automatically without rotating bones or changing a pose.
 
 In **Controls**, adjust **Handle size** (0.4–3 times normal) for the current
@@ -462,7 +462,7 @@ describe the same distinction between endpoint targets and elbow/knee poles.
 The native [Blender custom-shape display system](https://docs.blender.org/manual/en/4.2/animation/armatures/bones/properties/display.html)
 keeps these shapes outside rendered geometry.
 
-Existing LiveMesh rigs receive missing/older Block widgets on plug-in enable
+Existing Aurora rigs receive missing/older Aurora widgets on plug-in enable
 or file load. Hand-authored custom shapes are preserved during automatic
 migration and size changes; the explicit refresh action replaces them.
 Widget templates are unlinked datablocks, never scene meshes or synchronized
@@ -480,7 +480,7 @@ singular straight-chain solve; the SL rest skeleton stays unchanged. Native
 SL joint gaps can introduce pose differences of about one millimetre during switching.
 Use Pose Position and leave Edit Mode before switching IK.
 
-These controls support fitting and weight inspection in Blender. The viewer
+These controls support fitting and weight inspection in Blender. Aurora
 continues receiving the rest mesh and playing its own avatar animations;
 Blender IK poses and animation playback are not streamed. This is a focused
 set of SL rigging tools, not an Avastar import/export or animation replacement.
@@ -507,7 +507,7 @@ and the alternate Bento eyes (`mFaceEyeAltLeft`/`mFaceEyeAltRight`). Moving a
 target rotates the corresponding eyes toward it. A nearby target makes them
 converge more strongly. These targets are editing handles, not new SL joints.
 
-### Use Block's root and COG
+### Use Aurora's root and COG
 
 Click **Add root / COG**. **Root** selects the global ring at the armature
 origin; move or rotate it to place the whole posed avatar in Blender. **COG**
@@ -519,7 +519,7 @@ orders (IK first or Root first) work. Existing look targets also follow Root.
 The new bones are `auroraPose.Root` and `auroraPose.COG`, both non-deforming.
 A pose constraint connects COG to the pelvis without changing any SL rest
 matrix or parent. The original pelvis pose/keyframes remain intact. These
-are Block helpers, not Avastar rig data or the viewer's runtime `mRoot`.
+are Aurora helpers, not Avastar rig data or the viewer's runtime `mRoot`.
 
 ### Use classic and Bento gaze
 
@@ -542,7 +542,7 @@ All controls stay outside automatic weights, deform-weight transfer/cleanup
 and the live joint palette. The existing 159 SL bones, hierarchy and rest
 positions remain unchanged. These tools pose the character **in Blender**;
 Blender's current Root/COG/eye poses and their animation are not streamed or
-exported as SL animation by the live bridge. The viewer keeps animating the rest
+exported as SL animation by the live bridge. Aurora keeps animating the rest
 mesh itself. Only the supported SL bones should receive garment weights.
 
 ## Automatic weight painting
@@ -554,7 +554,7 @@ Under **Automatic weights**, click **Recalculate weights** in Object
 Mode or Weight Paint mode.
 This replaces the selected meshes' bone weights using Blender's native heat
 solver, keeps the strongest four influences and normalizes them. Undo restores
-the previous result. An existing Block connection immediately tracks these
+the previous result. An existing Aurora connection immediately tracks these
 meshes and sends the updated weights. Existing list entries remain; paused
 objects keep their pause state.
 
@@ -585,7 +585,7 @@ and excluding target topology modifiers and armature posing.
 **Max distance** rejects any vertex too far from the source; zero is unlimited.
 
 The donor is evaluated on a disposable copy, with shape keys and geometry
-modifiers but without armature posing. Bone aliases map through `block_joint`.
+modifiers but without armature posing. Bone aliases map through `aurora_joint`.
 Bento and Fitted Mesh deform weights are included; non-deforming IK controls
 are excluded. A donor without deform weights, an unweighted target vertex,
 a locked target bone group, or an exceeded distance rejects the entire
@@ -601,7 +601,7 @@ entries, and weight changes trigger a new capture.
 
 ## Live materials
 
-Plug-in **0.8.5 requires Block Viewer with live PBR support**. It recognizes the
+Plug-in **0.8.5 requires an Aurora viewer with live PBR support**. It recognizes the
 connected Principled BSDF of each material: base color, alpha, metallic,
 roughness, emission color/strength and backface culling. Older Principled
 input names and Separate RGB channel nodes are supported. Direct RGB/Value
@@ -611,7 +611,7 @@ at the normal update interval.
 
 The supported image maps are base color, tangent-space normal, metallic/
 roughness and emission. Images are embedded from Blender's loaded pixel data;
-no paths are sent to the viewer. Metallic/roughness channels are packed automatically.
+no paths are sent to Aurora. Metallic/roughness channels are packed automatically.
 Use a Normal Map node in Tangent space with strength 1; connect an image's Alpha
 output to Principled Alpha to use its transparency. Otherwise image alpha is
 ignored, as in Blender. Alpha is opaque or blended.
@@ -639,9 +639,9 @@ externally edited image in Blender; **Update now** also refreshes image caches.
 
 ### Send your shape to Blender
 
-With plug-in **0.10.0+** connected, Block's LiveMesh **Connection** section
+With plug-in **0.10.0+** connected, Aurora's LiveMesh **Connection** section
 offers **Add a skeleton with my shape** and **Apply my shape to the selected
-skeleton**. The viewer requires the worn shape's resolved inventory item
+skeleton**. Aurora requires the worn shape's resolved inventory item
 to belong to you and grant **Modify**. Missing inventory data or a no-modify
 shape disables the action; Copy/Transfer rights do not substitute for Modify.
 Rights, worn item and asset identity are checked again after loading and just
@@ -653,7 +653,7 @@ It retains the shape parameters on the new rig. Existing rigs, meshes, weights
 and synchronization-list entries remain intact. The reference faces -Y in
 Automatic mode and respects scene units and the 3D cursor. Object Mode is
 required; an import waiting in another mode expires after 30 seconds. The
-creation is undoable. The viewer reports success only after Blender imports it.
+creation is undoable. Aurora reports success only after Blender imports it.
 
 The second action requires the target armature to be the active selected object
 in Blender (the sidebar's saved rig choice is not a substitute). It keeps the
@@ -678,12 +678,12 @@ This transfers the saved worn **shape**, not worn mesh bodies, heads, clothes,
 skin textures, animations or unsaved shape-editor changes. Use the reference
 to fit a garment or transfer its weights. It is not added to the live list
 automatically. Shape-specific bind matrices keep a garment rigged to this new
-skeleton from receiving the shape twice when previewed in Block Viewer.
+skeleton from receiving the shape twice when previewed in Aurora.
 
 Use a Second Life compatible armature and its deform vertex groups (`mPelvis`,
 `mTorso`, `mChest`, Bento joints, supported aliases and collision volumes).
-An optional string custom property **`block_joint`** on a Blender bone maps
-its name to a viewer joint. Unrecognized weighted bones are reported.
+An optional string custom property **`aurora_joint`** on a Blender bone maps
+its name to an Aurora joint. Unrecognized weighted bones are reported.
 Unweighted vertices
 inherit the nearest weighted vertex's influences in the exported copy, using
 the same normalized-distance rule as mesh import. A wholly unweighted rigged
@@ -698,12 +698,12 @@ scene are removed; its authored scale, the mesh's relative transform, normals,
 mirrored winding, UV seams and material assignments are preserved.
 
 Inverse binds use source rest joint heads in the SL coordinate frame and
-the viewer's neutral joint axes, including collision-volume rotation and scale. Blender
+Aurora's neutral joint axes, including collision-volume rotation and scale. Blender
 bone roll is a rigging aid, not an SL joint rest rotation. The current Blender
 pose is excluded: capture evaluates temporary mesh copies with Armature
 modifiers removed, keeping geometry modifiers and shape keys. The source mesh,
 selection, object mode and modifier settings remain intact. Custom joint
-position overrides are not applied to the viewer's skeleton.
+position overrides are not applied to Aurora's skeleton.
 
 ## Current limits
 
@@ -722,7 +722,7 @@ position overrides are not applied to the viewer's skeleton.
 - Saving the `.blend` file does not save the connection. File loading and
   disabling the extension stop its worker.
 
-The viewer retains the last valid geometry while a replacement is prepared.
+Aurora retains the last valid geometry while a replacement is prepared.
 Invalid snapshots are rejected as a whole. Obsolete preview GPU buffers are
 freed when no draw object refers to them. Render objects occupy a private
 namespace and cannot be selected for simulator edits or touches.
@@ -763,12 +763,12 @@ arguments. Its optional `--save-blend <absolute-path.blend>` saves the final lis
 with one active object, one paused object and a packed test image.
 Add `--save-blend <absolute-path.blend>` with `--pbr` to save the prepared
 rig, weighted T-shirt and packed test images before connecting. The saved file
-can be opened normally and connected through the Block sidebar.
+can be opened normally and connected through the Aurora sidebar.
 
 ## Wire protocol v1
 
 TCP listens on IPv4 loopback only. The client sends the eight bytes
-`AURBLD1\n`. The viewer responds with one newline-terminated JSON object containing
+`AURBLD1\n`. Aurora responds with one newline-terminated JSON object containing
 `protocol`, the supported `joints`, their inverse neutral `rest_axes` (column-major,
 translation removed), negotiated `features`, `max_bytes` (64 MiB), and
 `max_decoded_bytes` (256 MiB). Every subsequent client message is a four-byte

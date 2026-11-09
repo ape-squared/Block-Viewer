@@ -220,7 +220,7 @@ pub fn members(world: &World, session: Uuid) -> Vec<Person> {
         None if world.is_group_session(&session) => Vec::new(),
         None => person(world, session).into_iter().collect(),
     };
-    out.sort_by_cached_key(|p| p.display.to_lowercase());
+    out.sort_by_cached_key(|p| crate::natural_order::key(&p.display));
     out
 }
 
@@ -457,8 +457,7 @@ pub fn after(
     let chars: Vec<char> = text.chars().collect();
     let range = output.cursor_range.map(|r| {
         let (a, b) = (r.primary.index.0, r.secondary.index.0);
-        let n = chars.len();
-        (a.min(b).min(n), a.max(b).min(n))
+        (a.min(b), a.max(b))
     });
     let mut token = None;
     if focused && let Some((from, to)) = range {
@@ -472,7 +471,6 @@ pub fn after(
             && to == chars.len()
             && chars.first() == Some(&'/')
             && from >= GESTURE_CHARS
-            && from <= chars.len()
         {
             token = Some(Token::Gesture(chars[..from].iter().collect()));
         }

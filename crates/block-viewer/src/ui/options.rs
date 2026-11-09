@@ -49,6 +49,7 @@ pub enum Page {
     Graphics,
     Camera,
     Avatars,
+    Build,
     Chat,
     Sound,
     Media,
@@ -69,11 +70,12 @@ pub enum Page {
 }
 
 impl Page {
-    pub const ALL: [Page; 21] = [
+    pub const ALL: [Page; 22] = [
         Page::Aurora,
         Page::Graphics,
         Page::Camera,
         Page::Avatars,
+        Page::Build,
         Page::Chat,
         Page::Sound,
         Page::Media,
@@ -100,6 +102,7 @@ impl Page {
             Page::Graphics => "graphics",
             Page::Camera => "camera",
             Page::Avatars => "avatars",
+            Page::Build => "build",
             Page::Chat => "chat",
             Page::Sound => "sound",
             Page::Media => "media",
@@ -126,6 +129,7 @@ impl Page {
             Page::Graphics => block_i18n::tr!("ui-options-graphics"),
             Page::Camera => block_i18n::tr!("common-camera"),
             Page::Avatars => block_i18n::tr!("ui-options-avatars"),
+            Page::Build => block_i18n::tr!("common-build"),
             Page::Chat => block_i18n::tr!("common-chat"),
             Page::Sound => block_i18n::tr!("ui-options-sound-and-voice"),
             Page::Media => block_i18n::tr!("ui-options-page-media"),
@@ -149,10 +153,11 @@ impl Page {
     /// The line under the page's title.
     pub fn about(self) -> &'static str {
         match self {
-            Page::Aurora => block_i18n::tr!("ui-options-block-intro"),
+            Page::Aurora => block_i18n::tr!("ui-options-aurora-intro"),
             Page::Graphics => block_i18n::tr!("ui-options-about-graphics"),
             Page::Camera => block_i18n::tr!("ui-options-about-camera"),
             Page::Avatars => block_i18n::tr!("ui-options-about-avatars"),
+            Page::Build => block_i18n::tr!("ui-options-about-build"),
             Page::Chat => block_i18n::tr!("ui-options-about-chat"),
             Page::Sound => block_i18n::tr!("ui-options-about-sound"),
             Page::Media => block_i18n::tr!("ui-options-about-media"),
@@ -179,6 +184,8 @@ impl Page {
             Page::Graphics => "device-desktop-filled",
             Page::Camera => "camera-filled",
             Page::Avatars => "user-filled",
+            // the build tools' icon (Command_Build_Icon)
+            Page::Build => "box",
             Page::Chat => "messages-filled",
             Page::Sound => "headset-filled",
             Page::Media => "player-play-filled",
@@ -282,7 +289,7 @@ pub fn demo(st: &mut OptionsUi, value: &str) {
         "joystick-zoom" => row(Page::Controls, 1, tr!("joystick-zoom-mode")),
         "recent" | "recent-period" => row(Page::Inventory, 0, tr!("ui-inventory-recent-period")),
         "auto-accept" => row(Page::Inventory, 0, tr!("received-auto-accept")),
-        "animations" | "animations-sync" => row(Page::Aurora, 2, tr!("ui-options-block-animation-clock")),
+        "animations" | "animations-sync" => row(Page::Aurora, 2, tr!("ui-options-aurora-animation-clock")),
         "remove-aurora" => row(Page::System, 0, tr!("ui-options-remove-aurora")),
         _ => None,
     };
@@ -424,6 +431,8 @@ pub struct OptionsUi {
     /// Audio devices (set by the app) and microphone level (0..1).
     pub output_devices: Vec<String>,
     pub input_devices: Vec<String>,
+    /// The device lists are being read again (set by the app).
+    pub devices_listing: bool,
     pub mic_level: f32,
     /// Media plugins folder found (empty: none) and plugins running.
     pub media_plugins: String,
@@ -643,7 +652,7 @@ pub struct OptionsResult {
     pub friends_only_keep: Option<bool>,
     /// Open the Dev Toolbox (Network and cache › Logs and tools).
     pub open_dev_toolbox: bool,
-    /// "Remove Block Viewer from this computer" (Language and updates): the app
+    /// "Remove Aurora from this computer" (Language and updates): the app
     /// asks for the confirmation.
     pub uninstall: bool,
     /// Back up the settings to a file the user chooses.
@@ -661,8 +670,6 @@ pub enum Folder {
     ChatLogs,
     /// A Legacy Viewer's transcripts, to import.
     LegacyLogs,
-    /// Photos and in-viewer camera videos (Preferences › Graphics › Camera).
-    Photos,
 }
 
 /// The window that shows what will be imported.
@@ -682,14 +689,14 @@ pub enum FolderChoice {
 }
 
 /// Width of the sidebar, height of the footer.
-const SIDEBAR_W: f32 = 248.0;
-const FOOTER_H: f32 = 56.0;
+const SIDEBAR_W: f32 = 236.0;
+const FOOTER_H: f32 = 52.0;
 /// The controls' widths (a slider's rail, a drop-down list).
 const SLIDER_W: f32 = 150.0;
 const COMBO_W: f32 = 190.0;
 
 /// A path as shown in the preferences: elided to the width, whole on hover.
-pub(super) fn path_label(ui: &mut egui::Ui, p: &Palette, dir: &std::path::Path, width: f32) {
+fn path_label(ui: &mut egui::Ui, p: &Palette, dir: &std::path::Path, width: f32) {
     // without the verbatim prefix Windows gives a canonical path
     let path = dir.display().to_string();
     let path = path.strip_prefix(r"\\?\").unwrap_or(&path).to_owned();
@@ -929,8 +936,19 @@ fn preset_choice(ui: &mut egui::Ui, p: &Palette, s: &mut Settings) -> bool {
 
 /// Device combo: "" = system default. Returns (a device was chosen, the
 /// list is unfolded).
-pub(super) fn device_combo(ui: &mut egui::Ui, id: &str, value: &mut String, devices: &[String], width: f32) -> (bool, bool) {
-    named_combo(ui, id, value, devices, width, block_i18n::tr!("ui-options-system-default"))
+/// `listing`: the devices are being listed again (off the UI thread); the
+/// list shows the last ones and says so, and the current choice is not
+/// called missing meanwhile.
+pub(super) fn device_combo(ui: &mut egui::Ui, id: &str, value: &mut String, devices: &[String], width: f32, listing: bool) -> (bool, bool) {
+    choice_combo(
+        ui,
+        id,
+        value,
+        devices,
+        width,
+        block_i18n::tr!("ui-options-system-default"),
+        listing,
+    )
 }
 
 /// `device_combo` whose empty choice reads `default_label`.
@@ -941,6 +959,18 @@ pub(super) fn named_combo(
     devices: &[String],
     width: f32,
     default_label: &str,
+) -> (bool, bool) {
+    choice_combo(ui, id, value, devices, width, default_label, false)
+}
+
+fn choice_combo(
+    ui: &mut egui::Ui,
+    id: &str,
+    value: &mut String,
+    devices: &[String],
+    width: f32,
+    default_label: &str,
+    listing: bool,
 ) -> (bool, bool) {
     let mut changed = false;
     let shown = if value.is_empty() {
@@ -957,7 +987,9 @@ pub(super) fn named_combo(
             for d in devices {
                 changed |= ui.selectable_value(value, d.clone(), d).changed();
             }
-            if !value.is_empty() && !devices.contains(value) {
+            if listing {
+                ui.label(RichText::new(block_i18n::tr!("ui-options-listing-devices")).size(12.0).weak());
+            } else if !value.is_empty() && !devices.contains(value) {
                 ui.label(
                     RichText::new(block_i18n::tr!("status-value-missing", value = value.to_string()))
                         .size(12.0)
@@ -1059,6 +1091,30 @@ fn run_page(cx: &mut Cx, page: Page, tab: Option<usize>) {
     }
 }
 
+/// What Preferences says of each setting, in the interface's language: its
+/// path (`camera.fov`, with no space), the row's label and its hint. For the
+/// Debug Settings window, whose list is the settings themselves.
+pub fn describe_settings() -> Vec<(String, String, String)> {
+    let ctx = egui::Context::default();
+    let p = crate::theme::Theme::default().palette();
+    let mut s = Settings::default();
+    let d = Settings::default();
+    let mut st = OptionsUi::default();
+    let mut r = OptionsResult::default();
+    let mut out = Vec::new();
+    run_ui(&ctx, egui::RawInput::default(), |ui| {
+        let mut cx = Cx::new(ui, p, &mut s, &d, &mut st, &mut r, Mode::Collect, "");
+        for page in Page::ALL {
+            run_page(&mut cx, page, None);
+        }
+        out = std::mem::take(&mut cx.described)
+            .into_iter()
+            .map(|(path, label, hint)| (path.replace(' ', ""), label, hint))
+            .collect();
+    });
+    out
+}
+
 /// The pages counted (modified rows, search hits), nothing drawn.
 fn count(ui: &mut egui::Ui, p: &Palette, s: &mut Settings, d: &Settings, st: &mut OptionsUi, r: &mut OptionsResult) {
     let query = st.query.clone();
@@ -1109,9 +1165,8 @@ fn count_due(st: &OptionsUi, now: f64, input: bool) -> bool {
             .is_none_or(|(at, query)| now - at >= COUNT_REFRESH || now < *at || *query != st.query)
 }
 
-/// One frame of `body` outside the window (tests), its textures dropped as
-/// a renderer would take them.
-#[cfg(test)]
+/// One frame of `body` outside the window (tests, `describe_settings`), its
+/// textures dropped as a renderer would take them.
 pub(crate) fn run_ui(ctx: &egui::Context, raw: egui::RawInput, body: impl FnMut(&mut egui::Ui)) {
     let mut output = ctx.run_ui(raw, body);
     output.textures_delta.clear();
@@ -1408,8 +1463,8 @@ fn sidebar(
     now: f64,
 ) {
     let _ = (s, d, r, now);
-    // Block prefs chrome: deep field rail, signal-lime brand strip, quiet
-    // search card — reads as Block, not the older Aurora prefs shell.
+    // the column of the Conversations workspace: the bar's colour at 75 %,
+    // a hairline at its right
     let corner = ui.visuals().window_corner_radius;
     ui.painter().rect_filled(
         side,
@@ -1417,56 +1472,28 @@ fn sidebar(
             sw: corner.sw,
             ..egui::CornerRadius::ZERO
         },
-        p.field,
-    );
-    // Brand accent bar along the sidebar's outer edge.
-    ui.painter().rect_filled(
-        Rect::from_min_max(side.left_top(), pos2(side.left() + 3.0, side.bottom())),
-        egui::CornerRadius::ZERO,
-        p.violet,
+        p.bar.gamma_multiply(0.75),
     );
     ui.painter().vline(
         side.right() - 0.5,
         side.y_range(),
-        egui::Stroke::new(1.0, p.ink.gamma_multiply(0.10)),
+        egui::Stroke::new(1.0, p.ink.gamma_multiply(0.04)),
     );
     let mut ui = ui.new_child(
         egui::UiBuilder::new()
-            .max_rect(side.shrink2(vec2(14.0, 0.0)))
+            .max_rect(side.shrink2(vec2(10.0, 0.0)))
             .layout(egui::Layout::top_down(egui::Align::Min)),
     );
-    ui.add_space(16.0);
-    {
-        let brand = egui::FontId::new(11.0, super::fonts::semibold(ui.ctx()));
-        ui.label(RichText::new(block_i18n::tr!("prefs-sidebar-brand")).font(brand).color(p.violet));
-        ui.add_space(4.0);
-        let font = egui::FontId::new(18.0, super::fonts::semibold(ui.ctx()));
-        ui.label(RichText::new(block_i18n::tr!("common-preferences")).font(font).color(p.ink));
-        ui.add_space(2.0);
-        ui.label(RichText::new(block_i18n::tr!("prefs-sidebar-hint")).size(11.5).color(p.muted));
-        ui.add_space(12.0);
-    }
+    ui.add_space(12.0);
     let width = ui.available_width();
-    let search_top = ui.cursor().top();
-    let search_rect = Rect::from_min_size(pos2(ui.min_rect().left(), search_top), vec2(width, 42.0));
-    ui.painter()
-        .rect_filled(search_rect, ui.visuals().widgets.inactive.corner_radius, p.raised);
-    ui.painter().rect_stroke(
-        search_rect,
-        ui.visuals().widgets.inactive.corner_radius,
-        egui::Stroke::new(1.0, p.violet.gamma_multiply(0.35)),
-        egui::StrokeKind::Inside,
-    );
-    ui.add_space(6.0);
     ui.horizontal(|ui| {
-        ui.add_space(6.0);
         let clear_w = if st.query.is_empty() { 0.0 } else { 26.0 };
         let field = super::widgets::search_box(
             ui,
             p,
             &mut st.query,
             block_i18n::tr!("ui-options-search-settings"),
-            width - clear_w - 12.0,
+            width - clear_w,
         );
         if st.focus_search && !ui.is_sizing_pass() && ui.is_enabled() {
             st.focus_search = false;
@@ -1483,7 +1510,7 @@ fn sidebar(
             st.query.clear();
         }
     });
-    ui.add_space(10.0);
+    ui.add_space(6.0);
     let searching = !st.query.trim().is_empty();
     let list_h = (side.bottom() - ui.cursor().top() - 4.0).max(0.0);
     egui::ScrollArea::vertical()
@@ -1501,7 +1528,7 @@ fn sidebar(
                     if dim {
                         ui.multiply_opacity(0.4);
                     }
-                    let entry = pages::block::nav_entry(ui, p, Page::Aurora.name(), Page::Aurora.icon(), on);
+                    let entry = pages::aurora::nav_entry(ui, p, Page::Aurora.name(), Page::Aurora.icon(), on);
                     paint_chip(ui, p, entry.rect, nav_chip(st, Page::Aurora, searching), searching);
                     entry
                 })
@@ -1528,11 +1555,11 @@ fn sidebar(
             }
             for page in Page::ALL.into_iter().skip(1) {
                 if let Some(title) = page.section() {
-                    ui.add_space(12.0);
-                    let font = egui::FontId::new(10.5, super::fonts::semibold(ui.ctx()));
-                    let galley = ui.painter().layout_no_wrap(title.to_uppercase(), font, p.muted);
-                    let (rect, _) = ui.allocate_exact_size(vec2(ui.available_width(), 18.0), Sense::hover());
-                    super::widgets::paint_row_text(ui.painter(), galley, rect.left() + 8.0, rect.center().y, p.muted);
+                    ui.add_space(10.0);
+                    let font = egui::FontId::new(11.0, super::fonts::semibold(ui.ctx()));
+                    let galley = ui.painter().layout_no_wrap(title.to_uppercase(), font, p.violet_light);
+                    let (rect, _) = ui.allocate_exact_size(vec2(ui.available_width(), 20.0), Sense::hover());
+                    super::widgets::paint_row_text(ui.painter(), galley, rect.left() + 8.0, rect.center().y, p.violet_light);
                 }
                 let on = !searching && !st.modified_view && st.page == page;
                 let dim = searching && st.counts.hits(page) == 0;
@@ -1602,14 +1629,14 @@ fn chip_room(ui: &egui::Ui, n: Option<usize>) -> f32 {
     n.map_or(0.0, |n| chip_width(&chip_galley(ui, n, egui::Color32::PLACEHOLDER)) + 12.0)
 }
 
-/// A count in a pill at the right end of a sidebar entry: ink wash for
-/// modified settings, teal for search hits (calmer than the old Aurora chips).
+/// A count in a pill at the right end of a sidebar entry: violet for the
+/// modified settings, teal for the search's hits.
 fn paint_chip(ui: &egui::Ui, p: &Palette, entry: Rect, n: Option<usize>, hit: bool) {
     let Some(n) = n else { return };
     let (ink, face) = if hit {
-        (p.bar, p.teal.gamma_multiply(0.85))
+        (p.bar, p.teal)
     } else {
-        (p.ink, p.ink.gamma_multiply(0.10))
+        (p.violet_pale, p.violet.gamma_multiply(0.24))
     };
     let galley = chip_galley(ui, n, ink);
     let w = chip_width(&galley);
@@ -1670,8 +1697,8 @@ fn page_area(
         (page.name().to_owned(), page.about().to_owned())
     };
 
-    // Page head: Block signal underline, larger title, airy subtitle.
-    ui.add_space(22.0);
+    // the head: title, its line, and the page's own buttons at the right
+    ui.add_space(18.0);
     let head_w = ui.available_width();
     ui.horizontal_top(|ui| {
         ui.set_width(head_w);
@@ -1684,15 +1711,10 @@ fn page_area(
         };
         ui.vertical(|ui| {
             ui.set_width((head_w - buttons_w - 12.0).max(120.0));
-            let font = egui::FontId::new(26.0, super::fonts::semibold(ui.ctx()));
+            let font = egui::FontId::new(20.0, super::fonts::semibold(ui.ctx()));
             ui.label(RichText::new(&title).font(font).color(p.ink));
-            ui.add_space(6.0);
-            let mark = Rect::from_min_size(ui.cursor().left_top(), vec2(36.0, 3.0));
-            ui.painter()
-                .rect_filled(mark, ui.visuals().widgets.inactive.corner_radius, p.violet);
-            ui.add_space(10.0);
             if !about.is_empty() {
-                ui.add(egui::Label::new(RichText::new(&about).size(13.0).color(p.muted)).wrap());
+                ui.add(egui::Label::new(RichText::new(&about).size(12.5).color(p.muted)).wrap());
             }
         });
         if buttons_w > 0.0 {
@@ -1729,7 +1751,7 @@ fn page_area(
                         ui,
                         p,
                         "history",
-                        block_i18n::tr!("ui-options-block-all-firestorm"),
+                        block_i18n::tr!("ui-options-aurora-all-firestorm"),
                         ActionKind::Flat,
                         size,
                     );
@@ -1737,16 +1759,16 @@ fn page_area(
                         ui,
                         p,
                         "sparkles-filled",
-                        block_i18n::tr!("ui-options-block-all-aurora"),
+                        block_i18n::tr!("ui-options-aurora-all-aurora"),
                         ActionKind::Primary,
                         size,
                     );
                     if aurora.clicked() {
-                        pages::block::set_all(s, pages::block::Look::Aurora);
+                        pages::aurora::set_all(s, pages::aurora::Look::Aurora);
                         r.changed = true;
                     }
                     if legacy.clicked() {
-                        pages::block::set_all(s, pages::block::Look::Legacy);
+                        pages::aurora::set_all(s, pages::aurora::Look::Legacy);
                         r.changed = true;
                     }
                 }

@@ -375,11 +375,11 @@ pub fn apply(knobs: &[Knob], ops: &[LookOp], values: &[f32]) -> Vec<LookOp> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use block_render::looks::block_looks;
+    use block_render::looks::aurora_looks;
 
     #[test]
     fn every_setting_names_a_number_of_its_look() {
-        for look in block_looks() {
+        for look in aurora_looks() {
             let knobs = knobs(look.id);
             assert!(!knobs.is_empty(), "{} has no setting", look.id);
             for knob in knobs {
@@ -402,7 +402,7 @@ mod tests {
 
     #[test]
     fn a_setting_changes_its_numbers() {
-        let look = block_render::looks::block_look("instant").expect("instant");
+        let look = block_render::looks::aurora_look("instant").expect("instant");
         let knobs = knobs("instant");
         let mut values = defaults(knobs, &look.ops);
         // the warmth sets the three alphas of its colorize

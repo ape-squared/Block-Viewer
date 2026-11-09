@@ -493,13 +493,6 @@ pub fn plan(inv: &Inventory, action: Action, worn: &HashMap<Uuid, u8>) -> Result
     ) {
         for id in worn.keys() {
             if !current.iter().any(|l| l.target == *id) {
-                // Experience temp attachments often use an AttachItemID that
-                // isn't the agent's inventory item (#1812). Once the fetch
-                // answers missing, leave them out of the outfit plan instead
-                // of blocking every Wear/Add for the session.
-                if inv.missing_items.contains(id) {
-                    continue;
-                }
                 let it = inv
                     .items
                     .get(id)
@@ -1383,10 +1376,10 @@ pub fn seed_demo(inv: &mut Inventory, agent: Uuid) {
     }
     let mut items = Vec::new();
     for (i, (name, kind, flags)) in [
-        (block_i18n::tr!("world-appearance-block-silhouette"), 13, 0),
-        (block_i18n::tr!("world-appearance-block-skin"), 13, 1),
-        (block_i18n::tr!("world-appearance-block-hair"), 13, 2),
-        (block_i18n::tr!("world-appearance-block-eyes"), 13, 3),
+        (block_i18n::tr!("world-appearance-aurora-silhouette"), 13, 0),
+        (block_i18n::tr!("world-appearance-aurora-skin"), 13, 1),
+        (block_i18n::tr!("world-appearance-aurora-hair"), 13, 2),
+        (block_i18n::tr!("world-appearance-aurora-eyes"), 13, 3),
         (block_i18n::tr!("world-appearance-star-tattoo"), 5, 14),
         (block_i18n::tr!("world-appearance-leather-jacket-2"), 5, 8),
         (block_i18n::tr!("world-appearance-black-pants"), 5, 5),
@@ -1767,7 +1760,11 @@ pub(super) fn demo_replace(inv: &mut Inventory, agent: Uuid, id: Uuid, links: &[
     }]);
 }
 
-pub fn demo_mutate(inv: &mut Inventory, agent: Uuid, change: &OutfitMutation) -> Result<Vec<block_net::inventory::FolderContents>, String> {
+pub fn demo_mutate(
+    inv: &mut Inventory,
+    agent: Uuid,
+    change: &OutfitMutation,
+) -> Result<Vec<block_net::inventory::FolderContents>, String> {
     if let Some(cat) = &change.create {
         inv.folders.insert(
             cat.id,
@@ -2347,7 +2344,14 @@ mod tests {
         let trash = system_folder(&inv, 14).expect("Trash");
         let current = base(&inv).expect("base");
         assert!(category_plan(&inv, current, Update::Trash(trash)).is_err());
-        assert!(category_plan(&inv, cof(&inv).expect("COF"), Update::Rename(block_i18n::tr!("common-name").into())).is_err());
+        assert!(
+            category_plan(
+                &inv,
+                cof(&inv).expect("COF"),
+                Update::Rename(block_i18n::tr!("common-name").into())
+            )
+            .is_err()
+        );
         assert!(category_plan(&inv, Uuid::from_u128(704), Update::Rename("  ".into())).is_err());
         let selected = Uuid::from_u128(704);
         let links = folder_links(&inv, selected);

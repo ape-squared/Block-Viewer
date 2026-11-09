@@ -205,7 +205,7 @@ mod tests {
 
     #[test]
     fn contact_set_import_persists_and_failed_save_leaves_live_state_intact() {
-        let root = std::env::temp_dir().join(format!("block-contact-import-{}", Uuid::new_v4()));
+        let root = std::env::temp_dir().join(format!("aurora-contact-import-{}", Uuid::new_v4()));
         std::fs::create_dir_all(&root).expect("directory");
         let path = root.join(CONTACT_SETS_FILE);
         let mut cs = ContactSets::load(path.clone());

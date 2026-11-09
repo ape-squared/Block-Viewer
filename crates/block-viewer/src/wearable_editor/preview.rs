@@ -453,7 +453,7 @@ mod tests {
         }
         assert!(missing_eyes);
         let mut scene = Scene::new(
-            std::env::temp_dir().join(format!("block-shirt-preview-{}", Uuid::new_v4())),
+            std::env::temp_dir().join(format!("aurora-shirt-preview-{}", Uuid::new_v4())),
             world.avatar_lib.clone(),
         );
         scene.textures.register_local(texture, 0);
@@ -488,7 +488,7 @@ mod tests {
             }
         }
         let mut scene = Scene::new(
-            std::env::temp_dir().join(format!("block-local-tattoo-{}", Uuid::new_v4())),
+            std::env::temp_dir().join(format!("aurora-local-tattoo-{}", Uuid::new_v4())),
             world.avatar_lib.clone(),
         );
         scene.textures.register_local(id, 0);

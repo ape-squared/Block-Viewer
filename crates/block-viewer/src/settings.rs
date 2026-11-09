@@ -2117,7 +2117,7 @@ impl Default for Settings {
             tonemap_mix: TONEMAP_MIX,
             hdr_emissive: true,
             fps_cap: true,
-            fps_limit: 120,
+            fps_limit: 60,
             graphics_saved: Default::default(),
             graphics_saved_active: None,
             background_fps_cap: true,
@@ -2550,7 +2550,7 @@ impl Settings {
             self.vsync = false;
             self.fps_cap = self.fps_limit >= 2;
             if !self.fps_cap {
-                self.fps_limit = 120;
+                self.fps_limit = 60;
             }
         }
         self.fps_limit = self.fps_limit.clamp(10, 500);
@@ -3942,11 +3942,11 @@ mod tests {
     fn fps_defaults_and_saved_preferences() {
         let defaults = Settings::default().sanitized();
         assert!(defaults.fps_cap);
-        assert_eq!(defaults.fps_limit, 120);
+        assert_eq!(defaults.fps_limit, 60);
         let missing: Settings = serde_json::from_str("{}").expect("synthetic settings without FPS preferences");
         let missing = missing.sanitized();
         assert!(missing.fps_cap);
-        assert_eq!(missing.fps_limit, 120);
+        assert_eq!(missing.fps_limit, 60);
         for enabled in [false, true] {
             for limit in [30, 60, 144, 500] {
                 let original = Settings {

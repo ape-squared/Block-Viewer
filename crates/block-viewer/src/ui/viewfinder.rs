@@ -826,7 +826,16 @@ impl Viewfinder {
                         next_size(s, panel.destination);
                     }
                     dot(ui, p);
-                    if text_button(ui, p, aspect_label(s.aspect), font.clone(), p.ink, block_i18n::tr!("photo-vf-format-tip")).clicked() {
+                    if text_button(
+                        ui,
+                        p,
+                        aspect_label(s.aspect),
+                        font.clone(),
+                        p.ink,
+                        block_i18n::tr!("photo-vf-format-tip"),
+                    )
+                    .clicked()
+                    {
                         let i = Aspect::ALL.iter().position(|a| *a == s.aspect).unwrap_or(0);
                         s.set_aspect(Aspect::ALL[(i + 1) % Aspect::ALL.len()], f.window);
                     }

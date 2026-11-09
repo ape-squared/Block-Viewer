@@ -12,6 +12,7 @@ pub mod calling_cards;
 
 mod arrival_wait;
 pub mod beacons;
+pub mod block_peers;
 pub mod bridge;
 pub mod calls;
 pub mod chat_log;
@@ -95,7 +96,6 @@ pub mod search;
 pub mod sim_console;
 pub mod social;
 pub mod sound_parcels;
-pub mod block_peers;
 pub mod staff;
 pub mod status;
 pub mod suitcase;

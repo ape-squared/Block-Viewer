@@ -153,7 +153,7 @@ impl Page {
     /// The line under the page's title.
     pub fn about(self) -> &'static str {
         match self {
-            Page::Aurora => block_i18n::tr!("ui-options-aurora-intro"),
+            Page::Aurora => block_i18n::tr!("ui-options-block-intro"),
             Page::Graphics => block_i18n::tr!("ui-options-about-graphics"),
             Page::Camera => block_i18n::tr!("ui-options-about-camera"),
             Page::Avatars => block_i18n::tr!("ui-options-about-avatars"),

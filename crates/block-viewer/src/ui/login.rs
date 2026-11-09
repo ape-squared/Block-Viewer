@@ -15,6 +15,7 @@ mod carousel;
 mod chrome;
 mod credentials_form;
 mod derez;
+mod destinations;
 mod driver_notice;
 mod fade;
 mod layout;
@@ -129,14 +130,9 @@ pub enum LoginAction {
     Accessibility,
 }
 
-/// "Second Life client · Rust · <graphics API>" under the name (login
-/// screen, its carousel, About), with the API this build draws with.
+/// Tagline under the product name (login, carousel, About).
 pub(crate) fn client_tagline() -> &'static str {
-    if cfg!(target_os = "macos") {
-        block_i18n::tr!("ui-login-second-life-client-rust-metal")
-    } else {
-        block_i18n::tr!("ui-login-second-life-client-rust-vulkan")
-    }
+    "Build your look, block by block · Vulkan"
 }
 
 /// The Terms of Service page of Linden Lab's grids (the `real_url` of
@@ -340,6 +336,16 @@ pub(super) fn demo_open_start_menu(ui: &egui::Ui, salt: &str, favorites: &StartF
 /// comes first and stays chosen until another entry is, as the Legacy
 /// Viewer's location combo shows the start SLURL
 /// (FSPanelLogin::onUpdateStartSLURL).
+/// Favourites cached for the account matching the typed username.
+fn login_favorites_for(settings: &Settings) -> Vec<crate::login_favorites::Entry> {
+    let key = (settings.login_uri(), settings.username.trim().to_lowercase());
+    let agent = crate::login_accounts::load()
+        .into_iter()
+        .find(|a| a.key() == key)
+        .and_then(|a| a.agent);
+    crate::login_favorites::load(agent.as_ref())
+}
+
 pub(super) fn start_menu(
     ui: &mut egui::Ui,
     combo: egui::ComboBox,
@@ -457,7 +463,13 @@ fn strip(r: egui::Rect, stops: &[(f32, Color32)]) -> egui::Shape {
 /// around the card; its top edge catches the light, and the card the screen
 /// is for (`accent`) wears the brand line. An opaque skin (panel_alpha =
 /// 255) keeps its plain surface.
-fn card<R>(ui: &mut egui::Ui, p: &Palette, margin: i8, accent: bool, body: impl FnOnce(&mut egui::Ui) -> R) -> egui::InnerResponse<R> {
+pub(super) fn card<R>(
+    ui: &mut egui::Ui,
+    p: &Palette,
+    margin: i8,
+    accent: bool,
+    body: impl FnOnce(&mut egui::Ui) -> R,
+) -> egui::InnerResponse<R> {
     card_hover(ui, p, margin, accent, 0.0, body)
 }
 
@@ -814,6 +826,7 @@ pub fn show(
                         );
                     }
                     if settings.start_location == "region" && form.start_slurl.is_none() && !favorite_chosen {
+                        let before = settings.start_region.clone();
                         field(
                             ui,
                             p,
@@ -824,6 +837,13 @@ pub fn show(
                             &mut settings.start_region,
                             None,
                         );
+                        // Legacy-like: paste a secondlife:// / maps.secondlife.com link into Region.
+                        if settings.start_region != before
+                            && let Some(loc) = crate::slurl::parse(settings.start_region.trim())
+                        {
+                            settings.start_region = loc.region.clone();
+                            form.start_slurl = Some(loc);
+                        }
                     }
                     ui.add_space(2.0);
                     ui.horizontal(|ui| {
@@ -840,9 +860,11 @@ pub fn show(
                         .on_hover_text(block_i18n::tr!("ui-login-stored-in-windows-credential-manager-as-the-hash-sent"));
                     });
                     ui.add_space(10.0);
+                    let mfa_ready = !form.show_mfa || form.mfa_token.chars().any(|c| !c.is_whitespace());
                     let can = form.block_reason.is_none()
                         && !settings.username.trim().is_empty()
-                        && (!form.password.is_empty() || form.stored.is_some());
+                        && (!form.password.is_empty() || form.stored.is_some())
+                        && mfa_ready;
                     let (r, resp) = ui.allocate_exact_size(
                         Vec2::new(ui.available_width(), 38.0),
                         if can { Sense::click() } else { Sense::hover() },
@@ -852,8 +874,8 @@ pub fn show(
                     // returns to the user-name field when both are present.
                     if !form.focused && enabled {
                         form.focused = true;
-                        match mfa {
-                            Some(m) if form.mfa_token.is_empty() => m.request_focus(),
+                        match mfa.as_ref() {
+                            Some(m) if !mfa_ready => m.request_focus(),
                             _ if settings.username.trim().is_empty() => user.request_focus(),
                             _ if can => resp.request_focus(),
                             _ => pass.request_focus(),
@@ -892,8 +914,11 @@ pub fn show(
                     if hot {
                         ui.ctx().set_cursor_icon(egui::CursorIcon::PointingHand);
                     }
-                    let enter =
-                        (user.lost_focus() || pass.lost_focus() || resp.has_focus()) && ui.input(|i| i.key_pressed(egui::Key::Enter));
+                    // Enter from the MFA field must submit too (classic path
+                    // only watched username / password / the button).
+                    let mfa_enter = mfa.as_ref().is_some_and(|r| r.has_focus() || r.lost_focus());
+                    let enter = (user.lost_focus() || pass.lost_focus() || mfa_enter || resp.has_focus())
+                        && ui.input(|i| i.key_pressed(egui::Key::Enter));
                     if (resp.clicked() || enter) && can && enabled {
                         action = LoginAction::Login;
                     }
@@ -962,9 +987,21 @@ pub fn show(
             .rect;
         });
 
-    // ---- version + news (right)
+    // ---- version + destinations (right)
     if wide {
-        if chrome::sidebar(&ctx, p, icons, info, login_card, 330.0, lowest) {
+        let favorites = login_favorites_for(settings);
+        if chrome::sidebar(
+            &ctx,
+            p,
+            icons,
+            info,
+            login_card,
+            330.0,
+            lowest,
+            &mut settings.start_location,
+            &mut form.start_slurl,
+            &favorites,
+        ) {
             action = LoginAction::CheckUpdates;
         }
     } else if info.can_check_updates {

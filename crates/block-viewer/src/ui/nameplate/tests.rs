@@ -17,6 +17,7 @@ fn content() -> Content {
         render_never: false,
         blocked: false,
         mark: None,
+        block_viewer: false,
     }
 }
 

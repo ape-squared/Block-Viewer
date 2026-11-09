@@ -18,6 +18,7 @@ mod blender_live;
 // `crash/report.rs`): to bring it back, uncomment every line marked "Bug
 // report form (disabled, see main.rs)".
 // mod bug_report;
+mod block_env;
 mod build;
 mod cache;
 mod cache_key;
@@ -33,6 +34,7 @@ mod cursors;
 mod deep_profile;
 mod demo;
 mod dev_toolbox;
+mod discord_presence;
 mod disk_io;
 mod dof;
 mod external_url;
@@ -70,6 +72,7 @@ mod lsl_keywords;
 #[cfg(target_os = "macos")]
 mod mac_quit;
 mod machine_id;
+mod medal_tv;
 mod media;
 mod movement;
 mod natural_order;
@@ -102,6 +105,7 @@ mod ui_sound;
 mod uninstall;
 mod updater;
 mod url_scheme;
+mod video_record;
 mod voice;
 mod wearable_editor;
 mod window_hold;

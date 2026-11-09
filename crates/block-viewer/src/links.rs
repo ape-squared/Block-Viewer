@@ -24,3 +24,5 @@ pub const NEWS_FEED: &str = "https://raw.githubusercontent.com/Aurora-Viewer/Aur
 /// Files of the source repository as GitHub serves them unrendered; a branch
 /// name and a path follow.
 pub const RAW_FILES: &str = "https://raw.githubusercontent.com/Aurora-Viewer/Aurora-Viewer/";
+/// Curated Block Viewer peer list (nameplate badge). A branch and `peers/block-peers.json` follow.
+pub const BLOCK_PEERS: &str = "https://raw.githubusercontent.com/ape-squared/Block-Viewer/main/peers/block-peers.json";

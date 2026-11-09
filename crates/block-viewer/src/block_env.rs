@@ -9,6 +9,7 @@ pub fn demo_mode() -> bool {
 }
 
 /// Read `BLOCK_{suffix}` first, then `AURORA_{suffix}`.
+#[allow(dead_code)]
 pub fn var(suffix: &str) -> Option<OsString> {
     let block = format!("BLOCK_{suffix}");
     std::env::var_os(&block).filter(|v| !v.is_empty()).or_else(|| {
@@ -18,6 +19,7 @@ pub fn var(suffix: &str) -> Option<OsString> {
 }
 
 /// String form of [`var`].
+#[allow(dead_code)]
 pub fn var_string(suffix: &str) -> Option<String> {
     var(suffix).map(|v| v.to_string_lossy().into_owned())
 }

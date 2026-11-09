@@ -712,6 +712,8 @@ pub struct App {
     /// Capture the 3D view on the next frame; a capture is on its way.
     want_scene_capture: bool,
     scene_capture_pending: bool,
+    /// Next captured frame belongs to in-viewer video recording.
+    video_capture_pending: bool,
     scene_capture_place: Option<(crate::login_accounts::Account, String)>,
     /// Teleport screen: start, end (fade out), destination.
     tp_overlay: Option<TpOverlay>,
@@ -1051,6 +1053,12 @@ pub struct App {
     ao_missing: HashSet<uuid::Uuid>,
     ao_demo: Option<String>,
     ao_default_applied: bool,
+    /// Discord Rich Presence (Legacy Viewer FSDiscordConnect).
+    discord_presence: crate::discord_presence::Presence,
+    /// Medal.tv Auto Clipping client (local HTTP to the Medal desktop app).
+    medal_tv: crate::medal_tv::Client,
+    /// In-viewer camera mode video (Media Foundation H.264 on Windows).
+    video_record: crate::video_record::VideoRecorder,
     /// AURORA_DEMO_LINK: the demo's simulated link for our avatar
     /// (demo_link.rs), created at the first frame in the world.
     demo_link_cfg: Option<crate::demo::link::Config>,
@@ -1672,6 +1680,7 @@ impl App {
             backdrop,
             want_scene_capture: false,
             scene_capture_pending: false,
+            video_capture_pending: false,
             scene_capture_place: None,
             tp_overlay: None,
             was_teleporting: false,
@@ -1889,6 +1898,9 @@ impl App {
             ao_missing: Default::default(),
             ao_demo: std::env::var("AURORA_DEMO_AO").ok(),
             ao_default_applied: false,
+            discord_presence: Default::default(),
+            medal_tv: Default::default(),
+            video_record: Default::default(),
             demo_link_cfg: crate::demo::link::Config::from_env(),
             demo_link: None,
             own_motion_logged: None,
@@ -3115,6 +3127,7 @@ impl App {
         self.chat_import_closed();
         self.chat_ui = ChatUi::from_settings(&self.settings);
         self.ao_agent = uuid::Uuid::nil();
+        self.discord_presence.clear();
         self.appearance_ui = Default::default();
         self.shape_ui = Default::default();
         self.shape_camera = None;
@@ -4659,6 +4672,7 @@ impl App {
             Action::RefreshAttachments => self.refresh_attachments(),
             Action::PhotoWindow => ui::widgets::toggle_floater(&self.egui_ctx, ui::snapshot::WINDOW, &mut self.panels.snapshot),
             Action::PhotoToDisk => self.photo_to_disk(),
+            Action::MedalClip => self.medal_clip(false),
             Action::EnvSunrise | Action::EnvMidday | Action::EnvSunset | Action::EnvMidnight | Action::EnvShared => {
                 self.env_shortcut(action)
             }
@@ -6396,10 +6410,59 @@ impl App {
         true
     }
 
+    fn update_discord_presence(&mut self) {
+        let in_world = self.in_world();
+        if in_world && self.discord_presence.started_unix == 0 {
+            self.discord_presence.session_start();
+        }
+        let snap = if in_world && self.settings.discord.enabled {
+            let share_loc = !self.world.rlva.has("showloc");
+            let share_name = self.world.rlva_can_name(self.world.agent_id);
+            let party_size = self.radar.entries().filter(|e| !e.left_behind).count() as i32;
+            let grid = crate::world::chat_log::grid_name(&self.settings.grid, &self.settings.custom_login_uri, self.demo);
+            Some(crate::discord_presence::snapshot_from_world(
+                &self.settings.discord,
+                &self.world,
+                self.discord_presence.started_unix,
+                share_loc,
+                share_name,
+                party_size,
+                40,
+                &grid,
+            ))
+        } else {
+            None
+        };
+        self.discord_presence.sync(&self.settings.discord, in_world, snap);
+    }
+
+    /// Ask Medal.tv to save a clip (or screenshot) from its replay buffer.
+    pub(crate) fn medal_clip(&mut self, screenshot: bool) {
+        match self.medal_tv.save_clip(&self.settings.medal, screenshot) {
+            Ok(()) => {
+                self.world.system_message(if screenshot {
+                    block_i18n::tr!("medal-tv-sent-screenshot")
+                } else {
+                    block_i18n::tr!("medal-tv-sent-clip")
+                });
+            }
+            Err("medal-disabled") => {
+                self.world.system_message(block_i18n::tr!("medal-tv-disabled"));
+            }
+            Err("medal-no-key") => {
+                self.world.system_message(block_i18n::tr!("medal-tv-need-key"));
+            }
+            Err(_) => {
+                self.world.system_message(block_i18n::tr!("medal-tv-failed"));
+            }
+        }
+    }
+
     /// Radar of the People window: one sweep a second (also with the
     /// window closed, for its alerts), the profiles its columns show and
     /// the crossings it reports (FSRadar::updateRadarList, fsradar.cpp).
     fn update_radar(&mut self) {
+        self.update_discord_presence();
         use crate::world::radar::Event;
         let now = self.radar_clock.elapsed().as_secs_f64();
         // not during a teleport: our position is still the one we had in
@@ -10083,6 +10146,7 @@ impl App {
                     .then_some(self.settings.camera.show_avatar_in_mouselook),
             );
             self.scene.update_portal_clipping(&mut gfx.renderer, &self.world);
+            self.scene.medal_clip_layers = self.settings.medal_clip_layers;
             self.scene.build_lists(&mut gfx.renderer, &cull, self.settings.shadows);
             let preview = if (self.focused || self.demo && self.capture.is_some())
                 && !covered
@@ -10552,7 +10616,7 @@ impl App {
                         .filter(|s| (1..=3).contains(s))
                         .unwrap_or(3) as f32
                 });
-                let mut g = self.palette.aurora_gradient().map(|c| egui::Rgba::from(c).to_array());
+                let mut g = self.palette.block_gradient().map(|c| egui::Rgba::from(c).to_array());
                 g[0][3] = style;
                 // (faces still grey are drawn as the grid only with it on)
                 g[1][3] = if self.scene.rez.enabled { 1.0 } else { 0.0 };
@@ -11367,6 +11431,38 @@ impl App {
             gfx.renderer.capture_scene = true;
             self.scene_capture_pending = true;
         }
+
+        // Camera-mode video: scene capture on a cadence (no UI chrome in the MP4).
+        match self.video_record.tick() {
+            crate::video_record::Tick::RequestCapture
+                if !self.scene_capture_pending
+                    && self.inventory_images.capturing.is_none()
+                    && !self.inventory_images.auto_capture_pending
+                    && !self.report_abuse.capture_pending
+                    && !gfx.renderer.capture_request
+                    && gfx.renderer.snapshot_request.is_none() =>
+            {
+                gfx.renderer.capture_scene = true;
+                self.video_capture_pending = true;
+            }
+            crate::video_record::Tick::RequestCapture => self.video_record.capture_missed(),
+            _ => {}
+        }
+        if let Some(result) = self.video_record.finished.take() {
+            let now = self.egui_ctx.input(|i| i.time);
+            match result {
+                Ok(path) => {
+                    log::info!("camera video saved to {}", path.display());
+                    let text = block_i18n::tr!("camera-vf-record-saved", path = path.display().to_string());
+                    self.snapshots.vf.say(text.clone(), false, now);
+                    self.world.system_message(text);
+                }
+                Err(e) => {
+                    log::warn!("camera video failed: {e}");
+                    self.snapshots.vf.say(e, true, now);
+                }
+            }
+        }
         self.frame_profile.lap(Lap::Actions);
         // ---- render: the frame is closed and leaves as a packet for the
         // render thread (block-render, main_thread.rs), which draws it
@@ -11967,6 +12063,22 @@ impl App {
         //     self.bug_report.captured(w, h, pixels);
         // }
         self.report_abuse_captured(&mut gfx.renderer);
+        if self.video_capture_pending
+            && let Some((w, h, px)) = gfx.renderer.captured.take()
+        {
+            self.video_capture_pending = false;
+            // Match the viewfinder Format crop (Window = full frame).
+            let crop = match self.settings.snapshot.aspect {
+                crate::snapshot::Aspect::Window => None,
+                aspect => Some(aspect.ratio((w.max(1), h.max(1)))),
+            };
+            self.video_record.push_frame(w, h, px, crop);
+        } else if self.video_capture_pending {
+            // Render already ran above: empty means the GPU skipped us or
+            // another consumer won the slot — ask again next cadence tick.
+            self.video_capture_pending = false;
+            self.video_record.capture_missed();
+        }
         if self.inventory_images.capturing.is_some()
             && let Some((w, h, pixels)) = gfx.renderer.captured.take()
             && let Some(request) = self.inventory_images.capturing.take()
@@ -14280,6 +14392,7 @@ impl App {
                     name,
                     region,
                     slurl: item.slurl.clone(),
+                    global: item.global,
                 }
             })
             .collect()
@@ -15417,6 +15530,13 @@ impl App {
                 let favorites_shown = ui::bars::favorites::take_shown(&ctx);
                 let here = parcel_landmark.as_ref().is_some_and(|lm| lm.favorite);
                 let favorites = self.favorites_view(favorites_shown, here);
+                // Cache resolved favourites for the login destination list.
+                if favorites_shown && !favorites.list.is_empty() && !self.world.agent_id.is_nil() {
+                    let entries = crate::login_favorites::from_view(&favorites.list);
+                    if !entries.is_empty() {
+                        crate::login_favorites::save(&self.world.agent_id, &entries);
+                    }
+                }
                 let location_landmarks = self.world.landmarks.named(&self.world.inventory);
                 let (classic_bars, islands) = self.bars_look();
                 self.poser_consent_ui(&ctx, &p);

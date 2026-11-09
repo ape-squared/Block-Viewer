@@ -552,6 +552,7 @@ fn badge_icon(p: &Palette, badge: Badge) -> Option<(&'static str, Color32)> {
         ),
         Badge::More(_) => return None,
         Badge::Voice => ("microphone-filled", p.success),
+        Badge::BlockViewer => ("box", p.violet),
         Badge::Friend => ("heart-filled", p.success),
         Badge::TooComplex => ("alert-triangle-filled", p.amber),
         Badge::RenderNever => ("eye-off", p.amber),

@@ -484,6 +484,12 @@ pub struct Settings {
     pub contacts: crate::ui::contacts::ContactsSettings,
     /// Radar of the People window.
     pub radar: crate::ui::people::RadarSettings,
+    /// Discord Rich Presence (Legacy Viewer Comm › Discord).
+    #[serde(default)]
+    pub discord: crate::discord_presence::Settings,
+    /// Medal.tv Auto Clipping (local desktop app).
+    #[serde(default)]
+    pub medal: crate::medal_tv::Settings,
     /// Friends tab of the People window.
     pub friends_list: crate::ui::people::FriendsSettings,
     pub inventory: crate::ui::inventory::InventoryPreferences,
@@ -806,6 +812,9 @@ pub struct Settings {
     /// classic tags (FSShowTypingStateInNameTag). On, unlike the Legacy
     /// Viewer's off: the plates have shown it since their redesign.
     pub typing_in_name_tags: bool,
+    /// Show the Block badge on our own nameplate, and prefer being listed as
+    /// a Block Viewer peer when others refresh the GitHub peers file.
+    pub advertise_block_viewer: bool,
     /// A "> " before "… is typing" in the tab of a conversation with one
     /// resident (FSTypingChevronPrefix, off).
     pub typing_chevron: bool,
@@ -1278,6 +1287,11 @@ pub struct Settings {
     /// pixel, so they stop shimmering as the camera moves. An Aurora
     /// improvement, on by default.
     pub specular_aa: bool,
+    /// Medal / sheer attachment depth sorting (RiggedBlendDepth::Layers):
+    /// keeps chest medals and sheer mesh layers from clipping through the
+    /// body. On by default; off uses Legacy write-depth. Overridden by
+    /// AURORA_RIGGED_BLEND when that variable is set.
+    pub medal_clip_layers: bool,
     /// The sky ambient keeps its colour at full strength (x 0.7), as the
     /// first PBR release lit it (tag Second_Life_Release#843866d-DRTVWR-559),
     /// instead of a softened ambient (pow 0.9, x 0.57) turned grey under
@@ -1850,6 +1864,8 @@ impl Default for Settings {
             hover_height_account: None,
             contacts: Default::default(),
             radar: Default::default(),
+            discord: Default::default(),
+            medal: Default::default(),
             friends_list: Default::default(),
             inventory: Default::default(),
             texture_library: Default::default(),
@@ -1900,7 +1916,8 @@ impl Default for Settings {
             texture_budget_mb: 1536,
             max_texture_resolution: MAX_TEXTURE_RESOLUTION,
             ui_scale: 1.0,
-            use_pie_menu: false,
+            // Pie is the Legacy-style default; list menus stay available in Preferences.
+            use_pie_menu: true,
             world_context_menus: Default::default(),
             particle_filters: Default::default(),
             snap_windows: true,
@@ -1988,6 +2005,7 @@ impl Default for Settings {
             play_typing_anim: true,
             type_during_emote: false,
             typing_in_name_tags: true,
+            advertise_block_viewer: true,
             typing_chevron: false,
             chat_bubbles: false,
             chat_bubbles_hide_console: true,
@@ -2153,6 +2171,7 @@ impl Default for Settings {
             fsr_sharpness: 80,
             render_scale_percent: 100,
             specular_aa: true,
+            medal_clip_layers: true,
             colored_sky_ambient: false,
             tonemapper: 1,
             tonemap_mix: TONEMAP_MIX,

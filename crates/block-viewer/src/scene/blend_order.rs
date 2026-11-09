@@ -167,18 +167,24 @@ pub enum Mode {
     Alternate,
 }
 
-pub fn mode() -> Mode {
-    static MODE: std::sync::OnceLock<Mode> = std::sync::OnceLock::new();
+fn env_mode() -> Option<Mode> {
+    static MODE: std::sync::OnceLock<Option<Mode>> = std::sync::OnceLock::new();
     *MODE.get_or_init(|| match std::env::var("AURORA_RIGGED_BLEND").as_deref().map(str::trim) {
-        Ok("split") => Mode::Split,
-        Ok("runs") => Mode::Runs,
-        Ok("copy") => Mode::Copy,
-        Ok("depth05") => Mode::Depth05,
-        Ok("write") => Mode::Write,
-        Ok("sorted") => Mode::Sorted,
-        Ok("alt") => Mode::Alternate,
-        _ => Mode::Layers,
+        Ok("split") => Some(Mode::Split),
+        Ok("runs") => Some(Mode::Runs),
+        Ok("copy") => Some(Mode::Copy),
+        Ok("depth05") => Some(Mode::Depth05),
+        Ok("write") => Some(Mode::Write),
+        Ok("sorted") => Some(Mode::Sorted),
+        Ok("alt") => Some(Mode::Alternate),
+        Ok("layers") | Ok("") => Some(Mode::Layers),
+        Err(_) => None,
+        Ok(_) => Some(Mode::Layers),
     })
+}
+
+pub fn mode() -> Mode {
+    env_mode().unwrap_or(Mode::Layers)
 }
 
 /// With `alt`: the current second draws as `split`.
@@ -194,8 +200,17 @@ pub fn rigged_apart() -> bool {
 }
 
 /// How the rigged faces write their depth this frame (see the module).
+#[allow(dead_code)]
 pub fn depth_mode() -> RiggedBlendDepth {
-    depth_mode_in(mode(), OLD_NOW.load(std::sync::atomic::Ordering::Relaxed))
+    depth_mode_prefer(true)
+}
+
+/// How the rigged faces write their depth this frame. When `AURORA_RIGGED_BLEND`
+/// is unset, `medal_layers` chooses Layers (medal / sheer attachment depth)
+/// or Write (Legacy).
+pub fn depth_mode_prefer(medal_layers: bool) -> RiggedBlendDepth {
+    let mode = env_mode().unwrap_or(if medal_layers { Mode::Layers } else { Mode::Write });
+    depth_mode_in(mode, OLD_NOW.load(std::sync::atomic::Ordering::Relaxed))
 }
 
 fn depth_mode_in(mode: Mode, old_now: bool) -> RiggedBlendDepth {

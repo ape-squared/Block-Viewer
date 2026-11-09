@@ -415,7 +415,7 @@ pub(super) fn card(
                 let w = (ui.available_width() - 34.0 - time_width(ui, &time)).max(40.0);
                 ui.allocate_ui(Vec2::new(w, 18.0), |ui| {
                     if update && aurora {
-                        let title = super::notification_center::aurora::title(ui, p, &n.title, 12.5);
+                        let title = super::notification_center::block::title(ui, p, &n.title, 12.5);
                         ui.add(egui::Label::new(title).wrap());
                     } else {
                         text::show(ui, p, &n.title, &n.name_links, 12.5, p.ink, true, true);

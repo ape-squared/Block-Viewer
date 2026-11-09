@@ -17,7 +17,7 @@ pub struct WearCopyGroup {
     pub pending: usize,
     pub failed: bool,
 }
-mod aurora;
+mod block;
 mod bulk_permissions;
 pub use bulk_permissions::demo_menu as bulk_permissions_demo;
 mod clipboard;
@@ -61,7 +61,7 @@ pub(crate) mod task_selection;
 pub mod thumbnail;
 pub(crate) mod tree;
 pub(crate) mod view;
-pub use aurora::{DEMO_FOLDER_WINDOW as AURORA_DEMO_FOLDER_WINDOW, demo_place as aurora_demo};
+pub use block::{DEMO_FOLDER_WINDOW as AURORA_DEMO_FOLDER_WINDOW, demo_place as block_demo};
 
 /// A demo scenario written for the Legacy Viewer's window (its tabs, its
 /// footer): every `AURORA_DEMO_INVENTORY` mode but Aurora's own.
@@ -70,8 +70,8 @@ pub fn legacy_demo() -> bool {
 }
 
 /// Aurora's own demo scenarios show its window whatever the preference.
-pub fn aurora_demo_active() -> bool {
-    aurora::demo_active()
+pub fn block_demo_active() -> bool {
+    block::demo_active()
 }
 pub use clipboard::appearance_request as appearance_clipboard;
 pub use view::InventoryPreferences;
@@ -587,14 +587,14 @@ pub struct InventoryUi {
     pub animation_details: bool,
     /// Aurora's window this frame (`aurora`): its width and how its rows
     /// draw; `None` for the Legacy Viewer's window and the folder windows.
-    aurora: Option<aurora::Frame>,
+    block: Option<block::Frame>,
     /// The folder the explorer lists (Aurora's medium and wide widths),
     /// nil for the root.
     browse: Uuid,
     /// The explorer's rows of `browse`: its folders never open in place.
     flat: rows::PlainTree,
-    side: aurora::Sidebar,
-    counts: aurora::Counts,
+    side: block::Sidebar,
+    counts: block::Counts,
     /// A row's "more actions" menu, opened by its button: the row, where.
     row_menu: Option<(Uuid, egui::Pos2)>,
     /// The folder a folder window shows (nil: the whole inventory). Its
@@ -1062,7 +1062,7 @@ fn resolved_item_type_icon(ui: &mut egui::Ui, icons: &Icons, inv: &Inventory, it
 }
 
 /// The height of an item row in Aurora's lists, shared with Appearance.
-pub const AURORA_ROW_HEIGHT: f32 = aurora::rows::HEIGHT;
+pub const AURORA_ROW_HEIGHT: f32 = block::rows::HEIGHT;
 
 /// The tint of an item's type icon, the same in every window that lists
 /// items (inventory, Appearance, contents, properties): one colour per
@@ -1095,8 +1095,8 @@ fn item_row(
     facts: &Facts,
     actions: &mut Vec<InvAction>,
 ) {
-    if st.aurora.is_some() {
-        aurora::rows::item(ui, p, icons, inv, *id, st, prefs, facts, actions);
+    if st.block.is_some() {
+        block::rows::item(ui, p, icons, inv, *id, st, prefs, facts, actions);
         return;
     }
     tree_spacing(ui);
@@ -1190,8 +1190,8 @@ fn folder_row(
     facts: &Facts,
     actions: &mut Vec<InvAction>,
 ) {
-    if state.aurora.is_some() {
-        aurora::rows::folder(ui, p, icons, inv, id, open, state, prefs, facts, actions);
+    if state.block.is_some() {
+        block::rows::folder(ui, p, icons, inv, id, open, state, prefs, facts, actions);
         return;
     }
     let Some(folder) = inv.folders.get(&id) else { return };
@@ -1599,7 +1599,7 @@ fn search_rows(
         // Measure only viewport rows. Retain their natural width while scrolling
         // vertically, so the horizontal range doesn't vanish with a long label.
         // A rebuilt tree clears it; the viewport width itself is never retained.
-        if st.aurora.is_none() {
+        if st.block.is_none() {
             let width = row_width(
                 ui,
                 p,
@@ -2186,26 +2186,26 @@ pub fn show(
     .help(block_i18n::tr!("ui-inventory-right-click-item-actions-ctrl-shift-multi-select"));
     let mut widen = false;
     if classic {
-        st.aurora = None;
+        st.block = None;
         floater.show(ctx, p, open, |ui| {
             inventory_contents(ui, p, icons, inv, st, prefs, &facts, &mut actions)
         });
     } else {
         // The title bar follows the width the window had last frame.
-        let layout = aurora::Layout::of_window(ctx, "inventory");
-        floater = floater.title_note(aurora::item_count(inv, layout));
-        if layout != aurora::Layout::Compact {
-            let (dot, text) = aurora::sync_state(p, inv, st);
+        let layout = block::Layout::of_window(ctx, "inventory");
+        floater = floater.title_note(block::item_count(inv, layout));
+        if layout != block::Layout::Compact {
+            let (dot, text) = block::sync_state(p, inv, st);
             floater = floater.title_state(dot, text);
         }
-        if layout == aurora::Layout::Compact {
+        if layout == block::Layout::Compact {
             floater = floater.action("arrow-autofit-width-filled", block_i18n::tr!("inventory-widen"), &mut widen);
         }
         floater.show(ctx, p, open, |ui| {
-            aurora::contents(ui, p, icons, inv, st, prefs, &facts, images, &mut actions)
+            block::contents(ui, p, icons, inv, st, prefs, &facts, images, &mut actions)
         });
         if widen {
-            aurora::widen(ctx, "inventory");
+            block::widen(ctx, "inventory");
         }
     }
     st.hover.show(p, inv, prefs, hover_images, &mut st.wanted_hover_images);
@@ -2280,7 +2280,7 @@ pub fn show(
         }
         .compact_header();
         if classic {
-            w.state.aurora = None;
+            w.state.block = None;
             floater.show(ctx, p, &mut w.open, |ui| {
                 if w.additional {
                     inventory_contents(ui, p, icons, &mut world.inventory, &mut w.state, prefs, &facts, &mut actions);
@@ -2303,20 +2303,20 @@ pub fn show(
             // for the additional window).
             w.state.scope = w.root;
             let mut widen = false;
-            let layout = aurora::Layout::of_window(ctx, &window_id);
+            let layout = block::Layout::of_window(ctx, &window_id);
             let mut floater = floater;
             if w.additional {
-                floater = floater.title_note(aurora::item_count(&world.inventory, layout));
-                if layout != aurora::Layout::Compact {
-                    let (dot, text) = aurora::sync_state(p, &world.inventory, &w.state);
+                floater = floater.title_note(block::item_count(&world.inventory, layout));
+                if layout != block::Layout::Compact {
+                    let (dot, text) = block::sync_state(p, &world.inventory, &w.state);
                     floater = floater.title_state(dot, text);
                 }
             }
-            if layout == aurora::Layout::Compact {
+            if layout == block::Layout::Compact {
                 floater = floater.action("arrow-autofit-width-filled", block_i18n::tr!("inventory-widen"), &mut widen);
             }
             floater.show(ctx, p, &mut w.open, |ui| {
-                aurora::contents(
+                block::contents(
                     ui,
                     p,
                     icons,
@@ -2329,7 +2329,7 @@ pub fn show(
                 )
             });
             if widen {
-                aurora::widen(ctx, &window_id);
+                block::widen(ctx, &window_id);
             }
         }
         w.state
@@ -2795,7 +2795,7 @@ mod tests {
                     if classic {
                         inventory_contents(ui, &p, &Icons::default(), &mut inv, st, &mut prefs, &Facts::default(), &mut vec![]);
                     } else {
-                        aurora::contents(
+                        block::contents(
                             ui,
                             &p,
                             &Icons::default(),

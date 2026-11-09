@@ -1049,7 +1049,7 @@ struct HiddenWindows {
 }
 
 fn hidden_windows_id() -> egui::Id {
-    egui::Id::unique("aurora_hidden_windows")
+    egui::Id::unique("block_hidden_windows")
 }
 
 /// The interface is hidden (`hide_windows`).

@@ -16,7 +16,7 @@ use egui::{Color32, Pos2, Rect, Vec2};
 use std::collections::{HashMap, HashSet};
 use uuid::Uuid;
 
-pub(crate) mod aurora;
+pub(crate) mod block;
 pub(crate) mod combo;
 mod fidget;
 mod linden;

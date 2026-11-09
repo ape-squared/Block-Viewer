@@ -125,7 +125,7 @@ impl Page {
 
     pub fn name(self) -> &'static str {
         match self {
-            Page::Aurora => block_i18n::tr!("ui-options-aurora"),
+            Page::Aurora => block_i18n::tr!("ui-options-block"),
             Page::Graphics => block_i18n::tr!("ui-options-graphics"),
             Page::Camera => block_i18n::tr!("common-camera"),
             Page::Avatars => block_i18n::tr!("ui-options-avatars"),
@@ -289,7 +289,7 @@ pub fn demo(st: &mut OptionsUi, value: &str) {
         "joystick-zoom" => row(Page::Controls, 1, tr!("joystick-zoom-mode")),
         "recent" | "recent-period" => row(Page::Inventory, 0, tr!("ui-inventory-recent-period")),
         "auto-accept" => row(Page::Inventory, 0, tr!("received-auto-accept")),
-        "animations" | "animations-sync" => row(Page::Aurora, 2, tr!("ui-options-aurora-animation-clock")),
+        "animations" | "animations-sync" => row(Page::Aurora, 2, tr!("ui-options-block-animation-clock")),
         "remove-aurora" => row(Page::System, 0, tr!("ui-options-remove-aurora")),
         _ => None,
     };
@@ -1514,7 +1514,7 @@ fn sidebar(
                     if dim {
                         ui.multiply_opacity(0.4);
                     }
-                    let entry = pages::aurora::nav_entry(ui, p, Page::Aurora.name(), Page::Aurora.icon(), on);
+                    let entry = pages::block::nav_entry(ui, p, Page::Aurora.name(), Page::Aurora.icon(), on);
                     paint_chip(ui, p, entry.rect, nav_chip(st, Page::Aurora, searching), searching);
                     entry
                 })
@@ -1737,7 +1737,7 @@ fn page_area(
                         ui,
                         p,
                         "history",
-                        block_i18n::tr!("ui-options-aurora-all-firestorm"),
+                        block_i18n::tr!("ui-options-block-all-firestorm"),
                         ActionKind::Flat,
                         size,
                     );
@@ -1745,16 +1745,16 @@ fn page_area(
                         ui,
                         p,
                         "sparkles-filled",
-                        block_i18n::tr!("ui-options-aurora-all-aurora"),
+                        block_i18n::tr!("ui-options-block-all-aurora"),
                         ActionKind::Primary,
                         size,
                     );
                     if aurora.clicked() {
-                        pages::aurora::set_all(s, pages::aurora::Look::Aurora);
+                        pages::block::set_all(s, pages::block::Look::Aurora);
                         r.changed = true;
                     }
                     if legacy.clicked() {
-                        pages::aurora::set_all(s, pages::aurora::Look::Legacy);
+                        pages::block::set_all(s, pages::block::Look::Legacy);
                         r.changed = true;
                     }
                 }

@@ -350,7 +350,7 @@ mod tests {
                 if width == 0.0 {
                     inventory_contents(ui, &p, &Icons::default(), &mut inv, &mut st, &mut prefs, &facts, &mut actions);
                 } else {
-                    aurora::contents(
+                    block::contents(
                         ui,
                         &p,
                         &Icons::default(),

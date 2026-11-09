@@ -778,7 +778,7 @@ fn reflections_and_water(cx: &mut Cx) {
         );
     });
     // Aurora's own water effects, experimental and off by default
-    cx.group(tr!("ui-options-aurora-water"), |cx| {
+    cx.group(tr!("ui-options-block-water"), |cx| {
         cx.experimental().toggle(
             tr!("water-effects-enabled"),
             tr!("water-effects-help"),

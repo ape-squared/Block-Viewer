@@ -348,7 +348,7 @@ pub(in super::super) fn item(
     facts: &Facts,
     actions: &mut Vec<InvAction>,
 ) {
-    let (Some(it), Some(frame)) = (inv.items.get(&id), st.aurora) else {
+    let (Some(it), Some(frame)) = (inv.items.get(&id), st.block) else {
         return;
     };
     st.visible.push(id);
@@ -469,7 +469,7 @@ pub(in super::super) fn folder(
     facts: &Facts,
     actions: &mut Vec<InvAction>,
 ) {
-    let (Some(folder), Some(frame)) = (inv.folders.get(&id), st.aurora) else {
+    let (Some(folder), Some(frame)) = (inv.folders.get(&id), st.block) else {
         return;
     };
     st.visible.push(id);
@@ -629,11 +629,11 @@ pub(super) mod tests {
 
     /// Where a row was drawn, for the tests that click it.
     pub(in super::super) fn record(ui: &egui::Ui, id: Uuid, rect: Rect) {
-        ui.ctx().data_mut(|d| d.insert_temp(egui::Id::unique(("aurora_row", id)), rect));
+        ui.ctx().data_mut(|d| d.insert_temp(egui::Id::unique(("block_row", id)), rect));
     }
 
     pub(in super::super) fn drawn(ctx: &egui::Context, id: Uuid) -> Option<Rect> {
-        ctx.data(|d| d.get_temp::<Rect>(egui::Id::unique(("aurora_row", id))))
+        ctx.data(|d| d.get_temp::<Rect>(egui::Id::unique(("block_row", id))))
     }
 
     fn frame(layout: Layout, rights: Rights) -> Frame {

@@ -13,10 +13,10 @@
 //! Legacy look (Preferences › Aurora); Aurora's own, one field and the
 //! details beside rich rows, is `search/aurora.rs`, on the same lists.
 
-mod aurora;
-mod aurora_details;
+mod block;
+mod block_details;
 #[cfg(test)]
-mod aurora_tests;
+mod block_tests;
 mod details;
 
 use super::place_details::Ctx;
@@ -145,7 +145,7 @@ pub struct SearchUi {
     /// Profile pictures of the residents shown.
     pub wanted_pics: HashSet<Uuid>,
     /// Aurora's window: its field, type and selection.
-    aurora: aurora::Aurora,
+    block: block::Aurora,
 }
 
 impl Default for SearchUi {
@@ -175,7 +175,7 @@ impl Default for SearchUi {
             web_edit: None,
             web_home: String::new(),
             wanted_pics: HashSet::new(),
-            aurora: aurora::Aurora::default(),
+            block: block::Aurora::default(),
         }
     }
 }
@@ -421,12 +421,12 @@ impl SearchUi {
         self.tab = tab.index();
         self.restored = true;
         self.focus = true;
-        self.aurora.open(aurora::Kind::of(tab));
+        self.block.open(block::Kind::of(tab));
     }
 
     /// Aurora's window on its "All" chip (demo).
     pub fn open_all(&mut self) {
-        self.aurora.open(aurora::Kind::All);
+        self.block.open(block::Kind::All);
         self.focus = true;
     }
 
@@ -449,7 +449,7 @@ impl SearchUi {
     /// Demo: the text typed in the tab's field (the price field of the land
     /// sales, which have no search field).
     pub fn set_text(&mut self, tab: Tab, text: &str) {
-        self.aurora.text = text.to_owned();
+        self.block.text = text.to_owned();
         if tab == Tab::Land {
             self.land_price = text.to_owned();
         } else if let Some(t) = tab.list_index().and_then(|i| self.texts.get_mut(i)) {
@@ -536,7 +536,7 @@ impl SearchUi {
         floater.min_size = MIN_SIZE;
         floater.show(ctx, p, open, |ui| {
             if !classic {
-                self.aurora_body(ui, c, pics, settings, web, &mut actions);
+                self.block_body(ui, c, pics, settings, web, &mut actions);
                 return;
             }
             // "ls_tabs" of floater_fs_search.xml, in its order (Tab::ALL)

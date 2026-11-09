@@ -1,22 +1,17 @@
-//! The northern light on the plate of a member of the Aurora team
-//! (`world::staff`): curtains of light rising from behind its top edge, a
-//! border whose colors flow around it over a soft halo, and on the full and
-//! compact plates the "Aurora Team" tag over its top left edge. Built every
-//! frame, since it moves, for the few plates that have it.
-//!
-//! Aurora's own: the Legacy Viewer has no staff mark but the Linden color
-//! of the names.
+//! Block Dev mark on a team plate (`world::staff`): stacked signal/data
+//! cubes rising behind the top edge, a border whose colors flow around it
+//! over a soft halo, and on the full and compact plates the "Block Dev"
+//! tag over its top left edge. Built every frame for the few plates that
+//! have it.
 
 use crate::theme::Palette;
 use egui::{Color32, Mesh, Pos2, Rect, Vec2};
 use std::f32::consts::{PI, TAU};
 
-/// Height of the curtains over the plate's height.
-const CURTAIN_HEIGHT: f32 = 1.05;
-/// Share of their light that covers what is behind them; the rest is added
-/// to it (premultiplied with less alpha than color): the curtains glow over
-/// the night and still show over a bright sky.
-const CURTAIN_COVER: f32 = 0.55;
+/// Height of the Block cube stack over the plate's height.
+const CURTAIN_HEIGHT: f32 = 0.95;
+/// Premultiplied cover for additive cube faces.
+const CURTAIN_COVER: f32 = 0.62;
 /// The halo around the border, in mockup pixels, and its brightness.
 const HALO: f32 = 7.0;
 const HALO_LIGHT: f32 = 0.42;
@@ -31,6 +26,12 @@ pub const TAG_TEXT: f32 = 10.5;
 /// How far the tag's middle stands above the plate's top edge: it floats
 /// mostly outside, clear of the name.
 pub const TAG_RISE: f32 = 3.0;
+
+/// Squarer corner radius than a stadium pill (kept local: nameplate mesh
+/// geometry no longer exports this helper after the Aurora sync).
+fn plate_corner(rect: Rect) -> f32 {
+    (rect.height() * 0.18).clamp(2.5, 6.0).min(rect.width() * 0.4)
+}
 
 /// Width of the tag around a text `text` points wide, at `scale`.
 pub fn tag_width(text: f32, scale: f32) -> f32 {
@@ -56,59 +57,51 @@ fn smooth(x: f32) -> f32 {
     x * x * (3.0 - 2.0 * x)
 }
 
-/// The color where the border is `s` of the way around (0..1) at `t`: the
-/// borealis twice around the plate, turning slowly, with brighter glints
-/// running faster.
+/// Border color around a Block Dev plate: signal ↔ data, with a running glint.
 pub fn border_color(p: &Palette, s: f32, t: f32) -> Color32 {
-    let u = 0.5 + 0.5 * (TAU * (2.0 * s - 0.07 * t)).sin();
-    let glint = 0.78 + 0.22 * (TAU * (5.0 * s + 0.21 * t)).sin();
-    p.borealis_at(u).to_opaque().gamma_multiply(glint)
+    let u = 0.5 + 0.5 * (TAU * (2.0 * s - 0.09 * t)).sin();
+    let glint = 0.82 + 0.18 * (TAU * (5.0 * s + 0.24 * t)).sin();
+    p.violet.lerp_to_gamma(p.indigo, u).to_opaque().gamma_multiply(glint)
 }
 
-/// The curtains behind a plate whose rectangle is `rect`, at `alpha`. Two
-/// layers: a bright green one, folded, with fine rays, and a fainter one
-/// higher up turning violet, slower, like the top of a real aurora.
+/// Stacked Block cubes rising behind a team plate (replaces aurora curtains).
 pub fn curtains(mesh: &mut Mesh, p: &Palette, rect: Rect, ppp: f32, t: f32, alpha: f32) {
-    let r = rect.height() * 0.5;
-    // the whole width of the plate, the foot following its round ends
-    let (left, right) = (rect.left(), rect.right());
-    let w = (right - left).max(1.0);
-    let foot_y = |x: f32| {
-        let off = (rect.left() + r - x).max(x - (rect.right() - r)).max(0.0);
-        rect.center().y - (r * r - off * off).max(0.0).sqrt() + 1.0
-    };
-    let full = rect.height() * CURTAIN_HEIGHT;
-    let columns = ((w * ppp / 3.0).ceil() as usize).clamp(8, 180);
-    // only the very tips fade out
-    let end = (0.25 * r / w).clamp(0.03, 0.12);
-    // (phase, speed, height, brightness, colors of the foot, middle and top)
-    let layers = [(0.0, 1.0, 1.0, 1.0, [0.0, 0.22, 0.5]), (2.1, 0.68, 1.3, 0.65, [0.35, 0.68, 1.0])];
-    for (phase, speed, high, bright, colors) in layers {
-        let [foot, middle, top] = colors.map(|c| p.borealis_at(c));
-        let first = mesh.vertices.len() as u32;
-        for i in 0..=columns {
-            let u = i as f32 / columns as f32;
-            let x = left + u * w;
-            let ts = t * speed;
-            let fold = (u * 6.3 + 0.8 * ts + phase + 1.2 * (u * 2.7 - 0.45 * ts).sin()).sin();
-            // folds that brighten and dim, never quite dark
-            let band = 0.3 + 0.7 * (0.5 + 0.5 * fold).powf(1.3);
-            let rays = 0.6 + 0.4 * (u * 38.0 + 1.9 * ts + 2.5 * (u * 11.0 + 0.6 * ts + phase).sin()).sin();
-            let fade = smooth(u / end) * smooth((1.0 - u) / end);
-            let i = (band * rays).powf(0.8) * fade * bright * alpha;
-            let h = full * high * (0.55 + 0.45 * (0.5 + 0.5 * (u * 4.1 - 0.5 * ts + phase).sin())) * (0.7 + 0.3 * band);
-            // the rays lean a little as the curtain sways
-            let lean = 0.12 * h * (u * 3.0 + 0.3 * ts + phase).sin();
-            let base = foot_y(x);
-            mesh.colored_vertex(Pos2::new(x, base), light(foot, i, CURTAIN_COVER));
-            mesh.colored_vertex(Pos2::new(x + lean * 0.3, base - 0.32 * h), light(middle, i * 0.8, CURTAIN_COVER));
-            mesh.colored_vertex(Pos2::new(x + lean, base - h), light(top, 0.0, CURTAIN_COVER));
-        }
-        for i in 0..columns as u32 {
-            let (a, b) = (first + 3 * i, first + 3 * (i + 1));
-            for k in 0..2 {
-                mesh.indices
-                    .extend_from_slice(&[a + k, b + k, b + k + 1, a + k, b + k + 1, a + k + 1]);
+    let _ = ppp;
+    let h = rect.height().max(1.0);
+    let full = h * CURTAIN_HEIGHT;
+    let cell = (h * 0.42).clamp(8.0, 18.0);
+    let base_y = rect.center().y - h * 0.15;
+    // three staggered columns of cubes across the plate width
+    let cols = [(0.18, 0.0, 3usize), (0.50, 0.35, 4usize), (0.82, 0.15, 3usize)];
+    for (cx, phase, n) in cols {
+        let x0 = rect.left() + cx * rect.width() - cell * 0.5;
+        for i in 0..n {
+            let bob = (t * 1.4 + phase + i as f32 * 0.7).sin() * cell * 0.08;
+            let y1 = base_y - (i as f32 + 1.0) * cell * 0.92 - bob;
+            let y0 = y1 + cell * 0.78;
+            let fade = smooth(1.0 - i as f32 / n as f32);
+            let pulse = 0.55 + 0.45 * (0.5 + 0.5 * (t * 2.0 + phase + i as f32).sin());
+            let inten = fade * pulse * alpha;
+            let fill = if i % 2 == 0 { p.violet } else { p.indigo };
+            let r = Rect::from_min_max(Pos2::new(x0, y1), Pos2::new(x0 + cell, y0.min(base_y)));
+            if r.height() < 1.0 {
+                continue;
+            }
+            let first = mesh.vertices.len() as u32;
+            mesh.colored_vertex(r.left_top(), light(fill, inten * 0.15, CURTAIN_COVER));
+            mesh.colored_vertex(r.right_top(), light(fill, inten * 0.55, CURTAIN_COVER));
+            mesh.colored_vertex(r.right_bottom(), light(fill, inten, CURTAIN_COVER));
+            mesh.colored_vertex(r.left_bottom(), light(p.indigo, inten * 0.35, CURTAIN_COVER));
+            mesh.indices
+                .extend_from_slice(&[first, first + 1, first + 2, first, first + 2, first + 3]);
+            // soft glow above the top of the stack
+            if i + 1 == n {
+                let tip = Pos2::new(r.center().x, r.top() - full * 0.08);
+                let g0 = mesh.vertices.len() as u32;
+                mesh.colored_vertex(tip, light(p.violet_light, inten * 0.5, 0.35));
+                mesh.colored_vertex(r.left_top(), light(p.violet, 0.0, 0.35));
+                mesh.colored_vertex(r.right_top(), light(p.indigo, 0.0, 0.35));
+                mesh.indices.extend_from_slice(&[g0, g0 + 1, g0 + 2]);
             }
         }
     }
@@ -123,9 +116,9 @@ struct Perimeter {
 }
 
 impl Perimeter {
-    /// A pill: round ends.
+    /// Name-plate outline: squarer corners than a stadium pill.
     fn of(rect: Rect, ppp: f32) -> Perimeter {
-        Perimeter::rounded(rect, rect.height() * 0.5, ppp)
+        Perimeter::rounded(rect, plate_corner(rect), ppp)
     }
 
     fn rounded(rect: Rect, radius: f32, ppp: f32) -> Perimeter {
@@ -252,12 +245,13 @@ pub(super) fn tag(
     o.band(mesh, c, d);
 }
 
-/// The color of the `i`th of `n` letters of the tag at `t`: the borealis
-/// from green to violet across the word, a wave of light running along it.
+/// Tag letter color: signal → data across the word, with a running shine.
 pub fn letter_color(p: &Palette, i: usize, n: usize, t: f32) -> Color32 {
     let u = i as f32 / n.saturating_sub(1).max(1) as f32;
     let shine = (TAU * (u * 0.8 - 0.25 * t)).sin().max(0.0).powi(3);
-    p.borealis_at(0.1 + 0.85 * u).lerp_to_gamma(p.ink, 0.25 + 0.45 * shine)
+    p.violet
+        .lerp_to_gamma(p.indigo, 0.15 + 0.7 * u)
+        .lerp_to_gamma(p.ink, 0.2 + 0.45 * shine)
 }
 
 #[cfg(test)]
@@ -269,20 +263,22 @@ mod tests {
     }
 
     #[test]
-    fn the_perimeter_goes_once_around_the_pill() {
-        let o = Perimeter::of(pill(), 1.0);
-        assert!(o.points.len() > 60);
-        let r = 25.0;
+    fn the_perimeter_goes_once_around_the_plate() {
+        let rect = pill();
+        let o = Perimeter::of(rect, 1.0);
+        assert!(o.points.len() > 40);
+        let r = plate_corner(rect);
         for &(pos, n, s) in &o.points {
             assert!((0.0..=1.0).contains(&s));
             assert!((n.length() - 1.0).abs() < 1e-4);
-            // every point is on the edge
-            let cx = pos.x.clamp(125.0, 235.0);
-            assert!(((pos.x - cx).hypot(pos.y - 75.0) - r).abs() < 0.01, "{pos:?}");
+            let half = rect.size() * 0.5 - Vec2::splat(r);
+            let d = (pos - rect.center()).abs() - half;
+            let dist = d.x.max(d.y).min(0.0) + Vec2::new(d.x.max(0.0), d.y.max(0.0)).length() - r;
+            assert!(dist.abs() < 0.05, "{pos:?} dist={dist}");
         }
         assert!(o.points.windows(2).all(|w| w[1].2 > w[0].2));
         // the straight edges are cut too: the colors flow along them
-        assert!(o.points.iter().filter(|(pos, ..)| pos.y == 50.0).count() > 20);
+        assert!(o.points.iter().filter(|(pos, ..)| (pos.y - rect.top()).abs() < 0.01).count() > 10);
     }
 
     #[test]
@@ -297,14 +293,10 @@ mod tests {
                 .iter()
                 .all(|v| v.pos.y <= 76.0 && v.pos.y >= 50.0 - 50.0 * CURTAIN_HEIGHT * 1.31)
         );
-        // over the whole width, the feet on the plate's outline (its round
-        // ends included), never under it
-        let feet: Vec<_> = mesh.vertices.iter().step_by(3).map(|v| v.pos).collect();
-        assert!(feet.iter().any(|f| f.x < 101.0) && feet.iter().any(|f| f.x > 259.0));
-        for f in &feet {
-            let cx = f.x.clamp(125.0, 235.0);
-            assert!(((f.x - cx).hypot(f.y - 1.0 - 75.0) - 25.0).abs() < 0.05, "{f:?}");
-        }
+        // three cube columns across the plate, staying inside its width
+        let xs: Vec<_> = mesh.vertices.iter().map(|v| v.pos.x).collect();
+        assert!(xs.iter().any(|&x| x < 140.0) && xs.iter().any(|&x| x > 220.0));
+        assert!(xs.iter().all(|&x| (100.0..260.0).contains(&x)));
         // the tops are dark, the feet lit somewhere
         assert!(mesh.vertices.iter().any(|v| v.color.g() > 40));
         let mut ring = Mesh::default();

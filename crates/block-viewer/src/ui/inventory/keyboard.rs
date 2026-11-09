@@ -14,7 +14,7 @@ pub(super) fn navigate(ui: &egui::Ui, inv: &Inventory, st: &mut InventoryUi, fil
     }
     // The explorer lists one folder flat (the Legacy Viewer's single folder
     // mode): its folders never open in place, so Left and Right stay unused.
-    let explorer = st.aurora.is_some_and(|frame| frame.explorer);
+    let explorer = st.block.is_some_and(|frame| frame.explorer);
     let mut keys = Vec::new();
     ui.input_mut(|input| {
         input.events.retain(|event| {

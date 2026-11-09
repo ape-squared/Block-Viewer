@@ -41,8 +41,8 @@ pub(super) fn folders(view: &ViewCache, inv: &Inventory, root: Uuid, show_root: 
 
 /// The height of the rows of this window: Aurora's are taller.
 pub fn row_height(st: &InventoryUi) -> f32 {
-    if st.aurora.is_some() {
-        super::aurora::rows::HEIGHT
+    if st.block.is_some() {
+        super::block::rows::HEIGHT
     } else {
         ROW_HEIGHT
     }
@@ -243,7 +243,7 @@ pub(super) fn scroll(
 ) -> egui::scroll_area::ScrollAreaOutput<()> {
     tree_spacing(ui);
     // The explorer's list opens no folder: nothing of it to keep.
-    if st.ui_id.is_nil() && !st.aurora.is_some_and(|frame| frame.explorer) {
+    if st.ui_id.is_nil() && !st.block.is_some_and(|frame| frame.explorer) {
         st.plain.persist(ui.ctx(), egui::Id::unique("inventory_open_folders"));
     }
     st.view.prepare(inv, prefs.sort_for(st.tab));
@@ -346,7 +346,7 @@ fn rows(
     for index in range {
         let Some(row) = st.plain.rows.get(index).copied() else { break };
         // Aurora's rows fit the list's width: they cut long names short.
-        if row.kind != Kind::Empty && st.aurora.is_none() {
+        if row.kind != Kind::Empty && st.block.is_none() {
             let width = row_width(
                 ui,
                 p,
@@ -379,8 +379,8 @@ fn rows(
                     } else {
                         block_i18n::tr!("ui-inventory-loading-folder")
                     };
-                    if st.aurora.is_some() {
-                        ui.add_space(super::aurora::rows::LEAD);
+                    if st.block.is_some() {
+                        ui.add_space(super::block::rows::LEAD);
                     }
                     ui.label(RichText::new(text).size(12.0).color(p.muted_dim));
                 }

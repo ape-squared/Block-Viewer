@@ -7,7 +7,7 @@
 use egui::{AsIdSalt, Context, Id, IdSalt, ScrollArea, Ui, Vec2};
 
 fn pending_id(area: Id) -> Id {
-    area.with("aurora_pending_scroll_offset")
+    area.with("block_pending_scroll_offset")
 }
 
 /// Moves the scroll area `area` (its `ScrollAreaOutput::id`) to `offset` at

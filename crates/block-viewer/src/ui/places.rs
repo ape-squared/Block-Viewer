@@ -17,7 +17,7 @@
 //! the data of `places/model.rs`; Preferences › Aurora › Places brings these
 //! tabs back.
 
-pub mod aurora;
+pub mod block;
 pub(crate) mod drag;
 pub mod model;
 
@@ -279,7 +279,7 @@ pub struct PlacesUi {
     /// (spot, global point, region id or nil), for `World::place_snapshots`.
     pub want_snapshots: Vec<(crate::world::place_snapshots::Spot, glam::DVec3, Uuid)>,
     /// Aurora's look.
-    pub aurora: aurora::AuroraState,
+    pub block: block::AuroraState,
     /// Inventory changes asked from a menu, sent with the window's actions.
     pending_edits: Vec<block_net::inventory::operations::Mutation>,
     raise: bool,
@@ -290,7 +290,7 @@ impl PlacesUi {
     pub fn open_tab(&mut self, tab: usize) {
         self.tab = tab.min(TAB_HISTORY);
         self.selected = None;
-        self.aurora.open_tab(self.tab);
+        self.block.open_tab(self.tab);
         self.raise = true;
     }
 
@@ -300,7 +300,7 @@ impl PlacesUi {
         if classic {
             self.tab == TAB_HISTORY
         } else {
-            self.aurora.source == aurora::Source::History
+            self.block.source == block::Source::History
         }
     }
 
@@ -325,12 +325,12 @@ impl PlacesUi {
         open: &mut bool,
         by_date: bool,
         confirm_teleports: bool,
-        aurora: Option<&aurora::Env>,
+        block_env: Option<&block::Env>,
     ) -> Vec<PlacesAction> {
         let mut actions = Vec::new();
         self.show_confirm(ctx, c.p, confirm_teleports, &mut actions);
         if !*open {
-            self.aurora.pending_click = None;
+            self.block.pending_click = None;
             return actions;
         }
         if std::mem::take(&mut self.raise) {
@@ -342,7 +342,7 @@ impl PlacesUi {
         let pos = screen.center() - size * 0.5 + Vec2::new(120.0, 0.0);
         let mut floater = Floater::new("places", block_i18n::tr!("common-places"), pos, size);
         floater.min_size = Vec2::new(260.0, 300.0);
-        if let Some(env) = aurora {
+        if let Some(env) = block_env {
             // the mockup's panes reach the window's edges
             floater.flush_body = true;
             floater.min_size = Vec2::new(320.0, 360.0);
@@ -354,12 +354,12 @@ impl PlacesUi {
                         .layout(egui::Layout::top_down(egui::Align::Min)),
                 );
                 child.set_clip_rect(body.intersect(ui.clip_rect()));
-                self.aurora_body(&mut child, c, env, &mut actions);
+                self.block_body(&mut child, c, env, &mut actions);
                 ui.allocate_rect(body, Sense::hover());
             });
             return actions;
         }
-        self.aurora.pending_click = None;
+        self.block.pending_click = None;
         floater.show(ctx, c.p, open, |ui| {
             let body = egui::Rect::from_min_max(ui.cursor().min, ui.max_rect().max);
             ui.allocate_rect(body, Sense::hover());

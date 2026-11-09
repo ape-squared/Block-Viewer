@@ -350,7 +350,7 @@ struct RowOut {
 
 impl PlacesUi {
     /// The body of Aurora's window.
-    pub(super) fn aurora_body(&mut self, ui: &mut egui::Ui, c: &mut Ctx, env: &Env, actions: &mut Vec<PlacesAction>) {
+    pub(super) fn block_body(&mut self, ui: &mut egui::Ui, c: &mut Ctx, env: &Env, actions: &mut Vec<PlacesAction>) {
         let world = c.world;
         let history = &world.tp_storage.items;
         // rebuilt only when the inventory, a landmark asset, the history or
@@ -363,11 +363,11 @@ impl PlacesUi {
             history.last().map_or(0, |h| h.date.to_bits()),
             world.map.sims.len(),
         );
-        let cat = match &self.aurora.catalog {
+        let cat = match &self.block.catalog {
             Some((k, cat)) if *k == key => Arc::clone(cat),
             _ => {
                 let cat = Arc::new(model::catalog(&world.inventory, &world.landmarks, &world.map, history, true));
-                self.aurora.catalog = Some((key, Arc::clone(&cat)));
+                self.block.catalog = Some((key, Arc::clone(&cat)));
                 cat
             }
         };
@@ -390,38 +390,38 @@ impl PlacesUi {
             .filter(|p| matches!(p.source, Profile::Link { .. } | Profile::Parcel(_)))
             .map(|p| p.source.clone());
         if let Some(l) = &link
-            && self.aurora.previewed.as_ref() != Some(l)
+            && self.block.previewed.as_ref() != Some(l)
         {
-            self.aurora.pending_click = None;
-            self.aurora.selected = None;
-            self.aurora.previewed = Some(l.clone());
+            self.block.pending_click = None;
+            self.block.selected = None;
+            self.block.previewed = Some(l.clone());
         }
         // a selection whose place went away (deleted, moved out)
-        if let Some(k) = self.aurora.selected
+        if let Some(k) = self.block.selected
             && cat.place(k, history).is_none()
         {
-            self.aurora.selected = None;
+            self.block.selected = None;
         }
         // a folder of the rail that went away
-        if let Source::Folder(f) = self.aurora.source
+        if let Source::Folder(f) = self.block.source
             && !world.inventory.folders.contains_key(&f)
         {
-            self.aurora.source = Source::All;
+            self.block.source = Source::All;
         }
         let lines = self.lines(cat, history, env);
         let wide = ui.max_rect().width() >= WIDE;
         // (a landmark: the history's places come before the folders are read)
-        if self.aurora.demo_open
+        if self.block.demo_open
             && let Some(Line::Place(k, place)) = lines.iter().find(|l| match l {
                 Line::Place(Key::Landmark(_), _) => true,
-                Line::Place(Key::Visit(_), _) => self.aurora.source == Source::History,
+                Line::Place(Key::Visit(_), _) => self.block.source == Source::History,
                 Line::Title(_) => false,
             })
         {
-            self.aurora.demo_open = false;
+            self.block.demo_open = false;
             self.select(*k, place, &world.inventory, history, actions);
         }
-        if wide && self.aurora.selected.is_none() && link.is_none() {
+        if wide && self.block.selected.is_none() && link.is_none() {
             // the preview always shows something: the first place
             if let Some(Line::Place(k, place)) = lines.iter().find(|l| matches!(l, Line::Place(..))) {
                 self.select(*k, place, &world.inventory, history, actions);
@@ -437,21 +437,21 @@ impl PlacesUi {
 
     /// Select a line and ask for its profile.
     fn select(&mut self, key: Key, place: &Place, inv: &Inventory, history: &[HistoryItem], actions: &mut Vec<PlacesAction>) {
-        self.aurora.pending_click = None;
-        self.aurora.selected = Some(key);
-        if self.aurora.note.as_ref().is_some_and(|(k, _)| *k != key) {
-            self.aurora.note = None;
+        self.block.pending_click = None;
+        self.block.selected = Some(key);
+        if self.block.note.as_ref().is_some_and(|(k, _)| *k != key) {
+            self.block.note = None;
         }
-        if self.aurora.rename.as_ref().is_some_and(|(k, _)| *k != key) {
-            self.aurora.rename = None;
+        if self.block.rename.as_ref().is_some_and(|(k, _)| *k != key) {
+            self.block.rename = None;
         }
         let profile = profile_of(place, inv, history);
-        if profile != self.aurora.previewed {
+        if profile != self.block.previewed {
             match &profile {
                 Some(s) => actions.push(PlacesAction::OpenProfile(s.clone())),
                 None => actions.push(PlacesAction::CloseProfile),
             }
-            self.aurora.previewed = profile;
+            self.block.previewed = profile;
         }
     }
 
@@ -459,7 +459,7 @@ impl PlacesUi {
     fn lines(&self, cat: &Catalog, history: &[HistoryItem], env: &Env) -> Vec<Line> {
         let filter = self.filter.trim();
         let landmark = |p: &Place| Line::Place(Key::Landmark(p.asset.unwrap_or_default()), p.clone());
-        match self.aurora.source {
+        match self.block.source {
             Source::Favorites => model::favorites(cat, env.favorites)
                 .into_iter()
                 .filter(|p| p.matches(filter))
@@ -483,7 +483,7 @@ impl PlacesUi {
                 out
             }
             Source::All | Source::Folder(_) => {
-                let folder = match self.aurora.source {
+                let folder = match self.block.source {
                     Source::Folder(f) => Some(f),
                     _ => None,
                 };
@@ -565,7 +565,7 @@ impl PlacesUi {
     }
 
     fn sort_label(&self, sort: PlacesSort) -> &'static str {
-        match self.aurora.source {
+        match self.block.source {
             Source::Favorites => block_i18n::tr!("ui-places-sort-bar"),
             Source::History => block_i18n::tr!("ui-places-sort-newest"),
             _ => match sort {
@@ -579,7 +579,7 @@ impl PlacesUi {
     /// The order button and its menu; the history's offers to clear it.
     fn sort_button(&mut self, ui: &mut egui::Ui, p: &Palette, world: &World, sort: PlacesSort, actions: &mut Vec<PlacesAction>) {
         let resp = widgets::action_menu_button(ui, p, "arrows-sort", self.sort_label(sort), false, 28.0);
-        menu::dropdown(&resp, p, egui::PopupCloseBehavior::CloseOnClick, |ui| match self.aurora.source {
+        menu::dropdown(&resp, p, egui::PopupCloseBehavior::CloseOnClick, |ui| match self.block.source {
             Source::Favorites => {
                 menu::check(ui, p, "star-filled", block_i18n::tr!("ui-places-sort-bar"), true, false);
             }
@@ -638,7 +638,7 @@ impl PlacesUi {
             ),
         ];
         for (source, icon, tint, label, n) in sources {
-            if rail_row(ui, p, icon, tint, label, Some(n), self.aurora.source == source, 0).clicked() {
+            if rail_row(ui, p, icon, tint, label, Some(n), self.block.source == source, 0).clicked() {
                 self.set_source(source);
             }
         }
@@ -655,7 +655,7 @@ impl PlacesUi {
                 p.muted,
                 &f.name,
                 Some(n),
-                self.aurora.source == Source::Folder(f.id),
+                self.block.source == Source::Folder(f.id),
                 f.depth,
             );
             if resp.clicked() {
@@ -670,7 +670,7 @@ impl PlacesUi {
                     block_i18n::tr!("common-rename"),
                     actions::renameable(inv, f.id),
                 ) {
-                    self.aurora.rename_folder = Some((f.id, f.name.clone()));
+                    self.block.rename_folder = Some((f.id, f.name.clone()));
                 }
                 if menu::item_if(
                     ui,
@@ -697,15 +697,15 @@ impl PlacesUi {
         )
         .clicked()
         {
-            self.aurora.new_folder = Some(String::new());
+            self.block.new_folder = Some(String::new());
         }
     }
 
     fn set_source(&mut self, source: Source) {
-        if self.aurora.source != source {
-            self.aurora.pending_click = None;
-            self.aurora.source = source;
-            self.aurora.selected = None;
+        if self.block.source != source {
+            self.block.pending_click = None;
+            self.block.source = source;
+            self.block.selected = None;
         }
     }
 
@@ -714,7 +714,7 @@ impl PlacesUi {
         let p = c.p;
         let world = c.world;
         let full = ui.max_rect();
-        let (title, hint) = match self.aurora.source {
+        let (title, hint) = match self.block.source {
             Source::All => (block_i18n::tr!("ui-places-all").to_owned(), block_i18n::tr!("ui-places-all-hint")),
             Source::Favorites => (
                 block_i18n::tr!("common-favorites").to_owned(),
@@ -741,7 +741,7 @@ impl PlacesUi {
         let mut list = ui.new_child(egui::UiBuilder::new().max_rect(rows));
         list.set_clip_rect(rows);
         egui::ScrollArea::vertical()
-            .id_salt(("places-aurora-list", self.aurora.source == Source::History))
+            .id_salt(("places-aurora-list", self.block.source == Source::History))
             .auto_shrink([false, false])
             .show(&mut list, |ui| self.rows(ui, c, lines, true, actions));
         self.here_bar(ui, p, world, footer, true, actions);
@@ -754,17 +754,17 @@ impl PlacesUi {
         let history = &world.tp_storage.items;
         ui.spacing_mut().item_spacing.y = 1.0;
         if self
-            .aurora
+            .block
             .pending_click
             .is_some_and(|(key, _)| !lines.iter().any(|l| matches!(l, Line::Place(k, _) if *k == key)))
         {
-            self.aurora.pending_click = None;
+            self.block.pending_click = None;
         }
         if lines.is_empty() {
             self.empty(ui, p, world);
             return;
         }
-        let reorder = self.aurora.source == Source::Favorites && self.filter.trim().is_empty();
+        let reorder = self.block.source == Source::Favorites && self.filter.trim().is_empty();
         let mut rects: Vec<(Rect, Uuid)> = Vec::new();
         for l in lines {
             let (key, place) = match l {
@@ -777,7 +777,7 @@ impl PlacesUi {
                 }
                 Line::Place(k, place) => (*k, place),
             };
-            let selected = self.aurora.selected == Some(key);
+            let selected = self.block.selected == Some(key);
             let spot = if place.thumbnail.is_nil() {
                 snapshot_spot(place, &world.landmarks)
             } else {
@@ -787,7 +787,7 @@ impl PlacesUi {
                 Some((s, ..)) => world.place_snapshots.snapshot(s, &world.profiles.parcels).unwrap_or_default(),
                 None => place.thumbnail,
             };
-            let out = place_row(ui, p, c, place, selected, snapshot, self.aurora.source == Source::Favorites, wide);
+            let out = place_row(ui, p, c, place, selected, snapshot, self.block.source == Source::Favorites, wide);
             let target = match key {
                 Key::Visit(_) => place.global.map(super::drag::Target::History),
                 Key::Landmark(_) => place.item.map(super::drag::Target::Landmark),
@@ -810,10 +810,10 @@ impl PlacesUi {
             if let Some(fav) = place.favorite.filter(|_| reorder) {
                 rects.push((out.resp.rect, fav));
             }
-            if self.aurora.row_clicked(key, &out.resp, wide) {
+            if self.block.row_clicked(key, &out.resp, wide) {
                 if !wide && selected {
                     // a second click folds the row back
-                    self.aurora.selected = None;
+                    self.block.selected = None;
                 } else {
                     self.select(key, place, &world.inventory, history, actions);
                 }
@@ -834,7 +834,7 @@ impl PlacesUi {
                 self.select(key, place, &world.inventory, history, actions);
                 self.place_menu(ui, p, world, key, place, actions);
             });
-            if !wide && self.aurora.selected == Some(key) {
+            if !wide && self.block.selected == Some(key) {
                 self.narrow_details(ui, c, place, actions);
             }
         }
@@ -870,10 +870,10 @@ impl PlacesUi {
         });
         let text = if !filter.is_empty() {
             block_i18n::tr!("ui-places-no-match", text = filter.to_string()).to_owned()
-        } else if loading && self.aurora.source != Source::History {
+        } else if loading && self.block.source != Source::History {
             place_details::loading().to_owned()
         } else {
-            match self.aurora.source {
+            match self.block.source {
                 Source::Favorites => block_i18n::tr!("ui-places-no-favorites").to_owned(),
                 Source::History => block_i18n::tr!("ui-places-teleport-history-is-empty-try-search").to_owned(),
                 _ => block_i18n::tr!("ui-places-no-landmarks").to_owned(),
@@ -970,14 +970,14 @@ impl PlacesUi {
             }
             let renameable = place.item.is_some_and(|i| actions::renameable(inv, i));
             if menu::item_if(ui, p, "pencil-filled", block_i18n::tr!("common-rename"), renameable) {
-                self.aurora.rename = Some((key, place.name.clone()));
+                self.block.rename = Some((key, place.name.clone()));
             }
             menu::separator(ui, p);
             if menu::item(ui, p, "trash-filled", block_i18n::tr!("ui-places-delete-landmark"))
                 && let Some(change) = delete_place(inv, place)
             {
                 actions.push(PlacesAction::Edit(change));
-                self.aurora.selected = None;
+                self.block.selected = None;
             }
         }
         if let Key::Visit(i) = key {
@@ -988,13 +988,13 @@ impl PlacesUi {
                 actions.push(PlacesAction::RemoveHistory(i));
                 // the entries after it move up one index: nothing stays
                 // keyed by one (#798)
-                self.aurora.selected = None;
+                self.block.selected = None;
                 let by_index = |k: &Key| matches!(k, Key::Visit(_));
-                if self.aurora.note.as_ref().is_some_and(|(k, _)| by_index(k)) {
-                    self.aurora.note = None;
+                if self.block.note.as_ref().is_some_and(|(k, _)| by_index(k)) {
+                    self.block.note = None;
                 }
-                if self.aurora.rename.as_ref().is_some_and(|(k, _)| by_index(k)) {
-                    self.aurora.rename = None;
+                if self.block.rename.as_ref().is_some_and(|(k, _)| by_index(k)) {
+                    self.block.rename = None;
                 }
             }
         }
@@ -1015,7 +1015,7 @@ impl PlacesUi {
             widgets::action_button(ui, p, "plus", label, widgets::ActionKind::Flat, Vec2::new(bw, 26.0))
         });
         if resp.inner.clicked() {
-            let dest = match self.aurora.source {
+            let dest = match self.block.source {
                 Source::Folder(f) => Some(f),
                 _ => None,
             };
@@ -1074,18 +1074,18 @@ impl PlacesUi {
         let world = c.world;
         let history = &world.tp_storage.items;
         let width = ui.available_width();
-        let place = self.aurora.selected.and_then(|k| cat.place(k, history));
+        let place = self.block.selected.and_then(|k| cat.place(k, history));
         let panel = world
             .place_details
             .panel
             .as_ref()
-            .filter(|pl| self.aurora.previewed.as_ref() == Some(&pl.source));
+            .filter(|pl| self.block.previewed.as_ref() == Some(&pl.source));
         let parcel = panel.and_then(|pl| pl.parcel()).and_then(|id| world.profiles.parcels.get(&id));
         let failed = panel.and_then(|pl| match pl.stage {
             Stage::Failed(e) => Some(e),
             _ => None,
         });
-        let (key, place) = match (self.aurora.selected, place) {
+        let (key, place) = match (self.block.selected, place) {
             (Some(k), Some(pl)) => (k, pl),
             _ if link => {
                 // a place link: what the parcel says
@@ -1255,7 +1255,7 @@ impl PlacesUi {
         width: f32,
         actions: &mut Vec<PlacesAction>,
     ) {
-        match self.aurora.rename.as_mut().filter(|(k, _)| *k == key) {
+        match self.block.rename.as_mut().filter(|(k, _)| *k == key) {
             Some((_, name)) => {
                 let r = ui.add(egui::TextEdit::singleline(name).char_limit(63).desired_width(width));
                 // the field takes the keyboard when it appears, and a click
@@ -1267,7 +1267,7 @@ impl PlacesUi {
                 }
                 let (enter, escape) = ui.input(|i| (i.key_pressed(egui::Key::Enter), i.key_pressed(egui::Key::Escape)));
                 if escape {
-                    self.aurora.rename = None;
+                    self.block.rename = None;
                 } else if enter || r.lost_focus() {
                     if let Ok(name) = actions::clean_name(name)
                         && name != place.name
@@ -1275,9 +1275,9 @@ impl PlacesUi {
                     {
                         actions.push(PlacesAction::Edit(change));
                     }
-                    self.aurora.rename = None;
+                    self.block.rename = None;
                 }
-                if self.aurora.rename.is_none() {
+                if self.block.rename.is_none() {
                     ui.data_mut(|d| d.remove::<bool>(fresh));
                 }
             }
@@ -1287,7 +1287,7 @@ impl PlacesUi {
                 ui.painter().galley(rect.min, g, p.ink);
                 let renameable = place.item.is_some_and(|i| actions::renameable(&world.inventory, i));
                 if renameable && resp.double_clicked() {
-                    self.aurora.rename = Some((key, place.name.clone()));
+                    self.block.rename = Some((key, place.name.clone()));
                 }
             }
         }
@@ -1340,11 +1340,11 @@ impl PlacesUi {
         ui.add_space(8.0);
         ui.label(egui::RichText::new(block_i18n::tr!("ui-places-note")).size(12.0).color(p.muted));
         ui.add_space(2.0);
-        if self.aurora.note.as_ref().is_none_or(|(k, _)| *k != key) {
-            self.aurora.note = Some((key, place.note.clone()));
+        if self.block.note.as_ref().is_none_or(|(k, _)| *k != key) {
+            self.block.note = Some((key, place.note.clone()));
         }
         let editable = place.item.is_some_and(|i| actions::renameable(inv, i));
-        if let Some((_, text)) = self.aurora.note.as_mut() {
+        if let Some((_, text)) = self.block.note.as_mut() {
             let r = crate::ui::widgets::text_field(ui, editable, text, |b, _| {
                 egui::TextEdit::multiline(b)
                     .hint_text(block_i18n::tr!("ui-places-note-hint"))
@@ -1442,7 +1442,7 @@ impl PlacesUi {
             ui.horizontal(|ui| {
                 if widgets::icon_button(ui, p, "caret-left-filled", block_i18n::tr!("common-back"), true) {
                     actions.push(PlacesAction::CloseProfile);
-                    self.aurora.previewed = None;
+                    self.block.previewed = None;
                 }
                 ui.label(
                     egui::RichText::new(block_i18n::tr!("common-place-profile"))
@@ -1469,7 +1469,7 @@ impl PlacesUi {
             (Source::All, block_i18n::tr!("common-landmarks"), cat.landmarks.len()),
             (Source::History, block_i18n::tr!("ui-places-history"), world.tp_storage.items.len()),
         ];
-        let current = match self.aurora.source {
+        let current = match self.block.source {
             Source::Folder(_) => Source::All,
             s => s,
         };
@@ -1487,13 +1487,13 @@ impl PlacesUi {
                 .show(ui, |ui| {
                     ui.horizontal(|ui| {
                         ui.spacing_mut().item_spacing.x = 4.0;
-                        if widgets::pills::filter_pill(ui, p, "", block_i18n::tr!("ui-places-chip-all"), self.aurora.source == Source::All)
+                        if widgets::pills::filter_pill(ui, p, "", block_i18n::tr!("ui-places-chip-all"), self.block.source == Source::All)
                             .clicked()
                         {
                             self.set_source(Source::All);
                         }
                         for f in model::folders(&world.inventory) {
-                            let on = self.aurora.source == Source::Folder(f.id);
+                            let on = self.block.source == Source::Folder(f.id);
                             if widgets::pills::filter_pill(ui, p, "", &f.name, on).clicked() {
                                 self.set_source(Source::Folder(f.id));
                             }
@@ -1505,14 +1505,14 @@ impl PlacesUi {
         // the narrow list keeps the landmarks of the Landmarks tab only
         let shown: Vec<Line> = lines
             .iter()
-            .filter(|l| !matches!(l, Line::Place(Key::Visit(_), _)) || self.aurora.source == Source::History)
+            .filter(|l| !matches!(l, Line::Place(Key::Visit(_), _)) || self.block.source == Source::History)
             .map(|l| match l {
                 Line::Title(t) => Line::Title(t),
                 Line::Place(k, pl) => Line::Place(*k, pl.clone()),
             })
             .collect();
         egui::ScrollArea::vertical()
-            .id_salt(("places-narrow", self.aurora.source == Source::History))
+            .id_salt(("places-narrow", self.block.source == Source::History))
             .auto_shrink([false, false])
             .show(ui, |ui| self.rows(ui, c, &shown, false, actions));
     }
@@ -1526,13 +1526,13 @@ impl PlacesUi {
             .place_details
             .panel
             .as_ref()
-            .filter(|pl| self.aurora.previewed.as_ref() == Some(&pl.source));
+            .filter(|pl| self.block.previewed.as_ref() == Some(&pl.source));
         let parcel = panel.and_then(|pl| pl.parcel()).and_then(|id| world.profiles.parcels.get(&id));
         let failed = panel.and_then(|pl| match pl.stage {
             Stage::Failed(e) => Some(e),
             _ => None,
         });
-        let key = self.aurora.selected.unwrap_or(Key::Visit(usize::MAX));
+        let key = self.block.selected.unwrap_or(Key::Visit(usize::MAX));
         let left = ui.max_rect().left() + 68.0;
         let width = (ui.max_rect().right() - 10.0 - left).max(60.0);
         let rect = Rect::from_min_size(Pos2::new(left, ui.cursor().top() + 2.0), Vec2::new(width, 400.0));
@@ -1602,7 +1602,7 @@ impl PlacesUi {
             });
         });
         // the rename asked from the menu, under the actions
-        if self.aurora.rename.as_ref().is_some_and(|(k, _)| *k == key) {
+        if self.block.rename.as_ref().is_some_and(|(k, _)| *k == key) {
             self.title(&mut d, p, world, key, place, width, actions);
         }
         let used = d.min_rect().height() + 12.0;
@@ -1614,7 +1614,7 @@ impl PlacesUi {
         for change in self.pending_edits.drain(..) {
             actions.push(PlacesAction::Edit(change));
         }
-        if let Some(name) = self.aurora.new_folder.as_mut() {
+        if let Some(name) = self.block.new_folder.as_mut() {
             match name_dialog(ctx, p, "places_new_folder", block_i18n::tr!("ui-places-new-folder-prompt"), name) {
                 Some(true) => {
                     if let Some(root) = system_folder(inv, model::FOLDER_LANDMARKS)
@@ -1622,13 +1622,13 @@ impl PlacesUi {
                     {
                         actions.push(PlacesAction::Edit(change));
                     }
-                    self.aurora.new_folder = None;
+                    self.block.new_folder = None;
                 }
-                Some(false) => self.aurora.new_folder = None,
+                Some(false) => self.block.new_folder = None,
                 None => {}
             }
         }
-        if let Some((id, name)) = self.aurora.rename_folder.as_mut() {
+        if let Some((id, name)) = self.block.rename_folder.as_mut() {
             match name_dialog(ctx, p, "places_rename_folder", block_i18n::tr!("common-rename"), name) {
                 Some(true) => {
                     if let Ok(clean) = actions::clean_name(name)
@@ -1636,9 +1636,9 @@ impl PlacesUi {
                     {
                         actions.push(PlacesAction::Edit(change));
                     }
-                    self.aurora.rename_folder = None;
+                    self.block.rename_folder = None;
                 }
-                Some(false) => self.aurora.rename_folder = None,
+                Some(false) => self.block.rename_folder = None,
                 None => {}
             }
         }
@@ -2008,7 +2008,7 @@ mod tests {
                 };
                 let cat = model::catalog(&world.inventory, &world.landmarks, &world.map, history, false);
                 let mut places = PlacesUi::default();
-                places.aurora.source = source;
+                places.block.source = source;
                 let lines = places.lines(&cat, history, &env);
                 let key = lines
                     .iter()
@@ -2018,7 +2018,7 @@ mod tests {
                     })
                     .expect("a place in every source");
                 let initial = initially_open.then_some(key);
-                places.aurora.selected = initial;
+                places.block.selected = initial;
                 let images = HashMap::new();
                 let mut emoji = crate::ui::emoji::Emoji::load();
                 let mut names = HashSet::new();
@@ -2056,12 +2056,12 @@ mod tests {
                 let (pos, _) = frame(0.01, vec![], &mut places);
                 frame(1.0, pointer(pos, true), &mut places);
                 let (_, actions) = frame(1.01, pointer(pos, false), &mut places);
-                assert_eq!(places.aurora.selected, initial, "first click: {source:?}");
+                assert_eq!(places.block.selected, initial, "first click: {source:?}");
                 assert!(actions.is_empty());
                 assert!(places.confirm.is_none());
                 frame(1.1, pointer(pos, true), &mut places);
                 let (_, actions) = frame(1.11, pointer(pos, false), &mut places);
-                assert_eq!(places.aurora.selected, initial, "double click: {source:?}");
+                assert_eq!(places.block.selected, initial, "double click: {source:?}");
                 assert!(actions.is_empty(), "no profile request for a double click");
                 match source {
                     Source::History => {
@@ -2070,25 +2070,25 @@ mod tests {
                     _ => assert!(matches!(places.confirm, Some(Confirm::Landmark { asset, .. }) if asset == id(1000))),
                 }
                 frame(1.8, vec![], &mut places);
-                assert_eq!(places.aurora.selected, initial, "no delayed toggle after teleport");
+                assert_eq!(places.block.selected, initial, "no delayed toggle after teleport");
 
                 // A genuine single click still opens or closes the details, once.
                 places.confirm = None;
                 frame(2.0, pointer(pos, true), &mut places);
                 frame(2.01, pointer(pos, false), &mut places);
                 frame(2.35, vec![], &mut places);
-                assert_eq!(places.aurora.selected, initial, "wait for the full configured interval");
+                assert_eq!(places.block.selected, initial, "wait for the full configured interval");
                 frame(2.5, vec![], &mut places);
                 let toggled = (!initially_open).then_some(key);
-                assert_eq!(places.aurora.selected, toggled, "single click: {source:?}");
+                assert_eq!(places.block.selected, toggled, "single click: {source:?}");
                 frame(2.8, vec![], &mut places);
-                assert_eq!(places.aurora.selected, toggled, "only one toggle");
+                assert_eq!(places.block.selected, toggled, "only one toggle");
 
                 frame(3.0, pointer(pos, true), &mut places);
                 frame(3.01, pointer(pos, false), &mut places);
                 places.set_source(Source::Folder(id(11)));
                 frame(3.5, vec![], &mut places);
-                assert_eq!(places.aurora.selected, None, "navigation cancels the pending click");
+                assert_eq!(places.block.selected, None, "navigation cancels the pending click");
             }
         }
     }

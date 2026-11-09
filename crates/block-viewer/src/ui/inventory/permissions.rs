@@ -99,7 +99,7 @@ impl Permissions {
         job
     }
 
-    /// The letters of `aurora::rights`, as text: semi-bold, grey when
+    /// The letters of `block::rights`, as text: semi-bold, grey when
     /// allowed, dimmed and struck through when refused, the next owner's
     /// after an arrow.
     pub fn append_to(self, job: &mut LayoutJob, p: &Palette, family: &FontFamily) {

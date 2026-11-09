@@ -10921,7 +10921,7 @@ impl App {
             ));
             raw.events
                 .extend(ui::inventory::delete_demo_events(&ctx, self.frame_count, &self.inventory_ui));
-            ui::inventory::aurora_demo(&ctx, self.frame_count);
+            ui::inventory::block_demo(&ctx, self.frame_count);
             ui::inventory::folder_colors_demo_frame(&ctx, &mut self.inventory_ui, &self.settings.inventory, self.frame_count);
             ui::inventory::bulk_permissions_demo(self.frame_count, &mut self.inventory_ui);
             if std::env::var("AURORA_DEMO_INVENTORY").is_ok_and(|mode| matches!(mode.as_str(), "show-original" | "aurora-show-original")) {
@@ -16806,7 +16806,7 @@ impl App {
                     &self.settings.script_editor,
                     // the inventory scenarios were written for the Legacy window,
                     // but for Aurora's own
-                    if self.demo && ui::inventory::aurora_demo_active() {
+                    if self.demo && ui::inventory::block_demo_active() {
                         false
                     } else {
                         self.settings.classic_inventory || (self.demo && ui::inventory::legacy_demo())
@@ -17526,7 +17526,7 @@ impl App {
                 let window_acts = self.place_ui.show(&ctx, &mut c);
                 let mut open = self.panels.places;
                 // Aurora's look orders the favourites as the bar does
-                let places_env = (!self.settings.classic_places).then(|| ui::places::aurora::Env {
+                let places_env = (!self.settings.classic_places).then(|| ui::places::block::Env {
                     sort: self.settings.places_sort,
                     favorites: &favorites_order,
                 });
@@ -18679,7 +18679,7 @@ impl ApplicationHandler for App {
                 if demo_how.split(',').any(|w| w == "wide") {
                     ui::widgets::size_floater(&self.egui_ctx, "places", egui::vec2(1040.0, 640.0));
                 }
-                self.places_ui.aurora.demo_open = demo_how.split(',').any(|w| w == "open");
+                self.places_ui.block.demo_open = demo_how.split(',').any(|w| w == "open");
             }
             // AURORA_DEMO_MARKETPLACE=<page>: World › SL Marketplace on that
             // page, open at start

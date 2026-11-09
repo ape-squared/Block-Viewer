@@ -10,11 +10,15 @@ use block_net::inventory::operations::{Mutation, Operation};
 use block_net::outfits::OutfitLink;
 use std::collections::HashSet;
 
-pub const FOLDER: &str = "Aurora AO";
-pub(super) const OLD_FOLDER: &str = "AO";
-const STAGING: &str = "Aurora AO (Legacy Viewer import)";
+pub const FOLDER: &str = "Block AO";
+pub(super) const OLD_FOLDER: &str = "Aurora AO";
+const LEGACY_AO: &str = "AO";
+const STAGING: &str = "Block AO (Legacy Viewer import)";
 // Existing interrupted imports must still prevent an automatic second copy.
-const OLD_STAGING: &str = "AO (Firestorm import)";
+const OLD_STAGING: &str = "Aurora AO (Legacy Viewer import)";
+const FIRESTORM_STAGING: &str = "AO (Firestorm import)";
+const BRAND: &str = "#Block";
+const OLD_BRAND: &str = "#Aurora";
 /// ROOT_AO_FOLDER (Alchemy indra/newview/aoengine.h): the same set format as
 /// the Legacy Viewer, directly under the inventory root.
 pub const ALCHEMY_FOLDER: &str = "Animation Overrides";
@@ -32,7 +36,7 @@ impl Source {
     /// Inventory path shown to the user; folder names are not translated.
     pub fn path(self) -> &'static str {
         match self {
-            Self::Native => "#Aurora/Aurora AO",
+            Self::Native => "#Block/Block AO",
             Self::Legacy => "#Firestorm/#AO",
             Self::Alchemy => ALCHEMY_FOLDER,
         }
@@ -40,11 +44,17 @@ impl Source {
 
     fn root(self, inv: &Inventory) -> Option<Uuid> {
         match self {
-            Self::Native => child(inv, inv.root, "#Aurora").and_then(|brand| native_root(inv, brand)),
+            Self::Native => brand_folder(inv).and_then(|brand| native_root(inv, brand)),
             Self::Legacy => child(inv, inv.root, "#Firestorm").and_then(|fs| child(inv, fs, "#AO")),
             Self::Alchemy => child(inv, inv.root, ALCHEMY_FOLDER),
         }
     }
+}
+
+/// `#Block`, or the former `#Aurora` brand folder still present in an
+/// account that has not been migrated.
+fn brand_folder(inv: &Inventory) -> Option<Uuid> {
+    child(inv, inv.root, BRAND).or_else(|| child(inv, inv.root, OLD_BRAND))
 }
 
 #[derive(Default)]
@@ -75,7 +85,9 @@ pub fn child(inv: &Inventory, parent: Uuid, name: &str) -> Option<Uuid> {
 
 fn native_root(inv: &Inventory, brand: Uuid) -> Option<Uuid> {
     // Prefer the requested name when both exist; never merge or discard data.
-    child(inv, brand, FOLDER).or_else(|| child(inv, brand, OLD_FOLDER))
+    child(inv, brand, FOLDER)
+        .or_else(|| child(inv, brand, OLD_FOLDER))
+        .or_else(|| child(inv, brand, LEGACY_AO))
 }
 
 fn fetch(inv: &mut Inventory, id: Uuid, waiting: &mut Vec<(Uuid, FetchState)>, failed: &mut bool) -> bool {
@@ -173,12 +185,12 @@ impl Catalog {
         self.loading = !fetch(inv, inv.root, &mut self.waiting, &mut self.failed);
         // The brand folder must be fetched before its AO child can be found.
         let brand = match source {
-            Source::Native => Some("#Aurora"),
-            Source::Legacy => Some("#Firestorm"),
+            Source::Native => brand_folder(inv),
+            Source::Legacy => child(inv, inv.root, "#Firestorm"),
             Source::Alchemy => None,
         };
-        if let Some(name) = brand {
-            let Some(fs) = child(inv, inv.root, name) else {
+        if source != Source::Alchemy {
+            let Some(fs) = brand else {
                 self.root = None;
                 self.sets.clear();
                 return;
@@ -295,8 +307,7 @@ impl Catalog {
                 }
             }
         }
-        self.sets
-            .sort_by(|a, b| crate::natural_order::cmp(&a.name, &b.name).then_with(|| a.id.cmp(&b.id)));
+        self.sets.sort_by(|a, b| a.name.cmp(&b.name).then_with(|| a.id.cmp(&b.id)));
         self.missing.sort();
         self.missing.dedup();
     }
@@ -325,7 +336,7 @@ impl Catalog {
                 f.state = FetchState::Unknown;
             }
         }
-        for name in ["#Aurora", FOLDER, OLD_FOLDER, "#Firestorm", "#AO", ALCHEMY_FOLDER] {
+        for name in [BRAND, OLD_BRAND, FOLDER, OLD_FOLDER, LEGACY_AO, "#Firestorm", "#AO", ALCHEMY_FOLDER] {
             let ids: Vec<_> = inv
                 .folders
                 .values()
@@ -430,7 +441,7 @@ pub fn create(inv: &Inventory, catalog: &Catalog, set: &Set) -> Result<(Mutation
         return Err(block_i18n::tr!("ao-name-or-loading").into());
     }
     let mut change = Mutation::default();
-    let fs = child(inv, inv.root, "#Aurora").unwrap_or_else(|| folder(&mut change, inv.root, "#Aurora".into()));
+    let fs = brand_folder(inv).unwrap_or_else(|| folder(&mut change, inv.root, BRAND.into()));
     let root = catalog.root.unwrap_or_else(|| folder(&mut change, fs, FOLDER.into()));
     let id = append_set(&mut change, root, set)?;
     Ok((finish(change), id))
@@ -479,8 +490,12 @@ fn append_set(change: &mut Mutation, root: Uuid, set: &Set) -> Result<Uuid, Stri
 /// Publish only after every set/link was acknowledged. A partially failed
 /// import stays separate and is never blindly replayed over user AO data.
 pub(super) fn reconstruct(inv: &Inventory, source: &Catalog, selected: Uuid) -> Result<(Mutation, Option<Uuid>), String> {
-    let brand = child(inv, inv.root, "#Aurora").ok_or(block_i18n::tr!("ao-name-or-loading"))?;
-    if native_root(inv, brand).is_some() || [STAGING, OLD_STAGING].iter().any(|name| child(inv, brand, name).is_some()) {
+    let brand = brand_folder(inv).ok_or(block_i18n::tr!("ao-name-or-loading"))?;
+    if native_root(inv, brand).is_some()
+        || [STAGING, OLD_STAGING, FIRESTORM_STAGING]
+            .iter()
+            .any(|name| child(inv, brand, name).is_some())
+    {
         return Err(block_i18n::tr!("ao-bootstrap-interrupted").into());
     }
     let mut change = Mutation::default();
@@ -560,17 +575,8 @@ pub fn add(inv: &Inventory, set: &Set, state: State, item: Uuid, container: Opti
     Ok(finish(change))
 }
 
-/// AOEngine::updateSortOrder: only an entry whose stored order differs from
-/// its position is rewritten, so a plain add is a single request.
-fn in_place(stored: i32, index: usize) -> bool {
-    usize::try_from(stored).ok() == Some(index)
-}
-
 fn normalize_steps(inv: &Inventory, change: &mut Mutation, steps: &[Step]) -> Result<(), String> {
     for (order, step) in steps.iter().enumerate() {
-        if in_place(step.order, order) {
-            continue;
-        }
         let body = if step.group {
             llsd_map! { "name" => format!("{}:OR{order}", step.name) }
         } else {
@@ -585,9 +591,6 @@ fn normalize_steps(inv: &Inventory, change: &mut Mutation, steps: &[Step]) -> Re
 
 fn normalize_members(inv: &Inventory, change: &mut Mutation, members: &[Animation]) -> Result<(), String> {
     for (order, a) in members.iter().enumerate() {
-        if in_place(a.order, order) {
-            continue;
-        }
         let patch = actions::patch(inv, a.link, llsd_map! { "desc" => order.to_string() })?;
         change.operations.extend(patch.operations);
         change.refresh.extend(patch.refresh);

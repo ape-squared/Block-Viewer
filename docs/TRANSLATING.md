@@ -1,11 +1,12 @@
 # Translating the viewer
 
 Each language has a Fluent catalogue in `crates/block-i18n/locales/`.
-English is in `en.ftl`, French in `fr.ftl` and Japanese in `ja.ftl`. The
-files are embedded at build time; adding `de.ftl`, for example, adds a
-language to the Preferences without changing the Rust code. The file name
-must be a language identifier, such as `de` or `pt-BR`, and `language-name`
-holds the name that its speakers recognise.
+Bundled today: `en`, `fr`, `ja`, `es`, `de`, and `pt-BR`. The files
+are embedded at build time; adding another `.ftl` adds a language to the
+Preferences without changing the Rust code. The file name must be a
+language identifier, such as `de` or `pt-BR`, and `language-name` holds the
+name that its speakers recognise, with a flag emoji so the switcher is easy
+to scan (for example `🇪🇸 Español`).
 
 The embedded fonts only cover European scripts. Other scripts, Japanese
 included, are drawn by the system fallback fonts (Meiryo UI or Yu Gothic UI
@@ -24,10 +25,9 @@ English. The language and its visibility to scripts are sent to the
 simulator through `UpdateAgentLanguage`, after login, a region change or a
 change to the preferences, following the Legacy Viewer's `LLAgentLanguage::update`.
 
-A new text uses an explicit key and its version in every catalogue
-(English, French and Japanese) in the same PR, at the same place as in
-`en.ftl`. A key missing from one catalogue fails the parity test, in
-`scripts/check.ps1` and in the merge queue.
+A new text uses an explicit key and its version in every catalogue in the
+same PR, at the same place as in `en.ftl`. A key missing from one catalogue
+fails the parity test, in `scripts/check.ps1` and in the merge queue.
 
 ```rust
 ui.label(block_i18n::tr!("inventory-empty"));
@@ -90,11 +90,11 @@ Japanese, beyond the plural:
   tools (J2, L1).
 - Terms: アバター, インベントリ, フレンド, グループ, 区画 (parcel),
   リージョン, 不動産 (estate), オブジェクト, 装着 (attach), アウトフィット,
-  容姿 (appearance), 初期設定 (Preferences), 設定 (Aurora's own settings),
+  容姿 (appearance), 初期設定 (Preferences), 設定 (Block's own settings),
   近くのチャット, テレポート, ランドマーク, スクリプト, テクスチャ, フォルダ,
   ごみ箱; look an existing one up in `ja.ftl` before choosing a new one.
   Second Life, L$ and product names (Blender) stay in Latin letters. The
-  viewers are Auroraビューア and レガシービューア: "Legacy" is レガシー, as in
+  viewers are Blockビューア and レガシービューア: "Legacy" is レガシー, as in
   the option labels the Legacy Viewer's Japanese interface already
   translates (昼間（レガシー）).
 - A label quoted in a hint (「…」) is the exact text of that label in
@@ -110,7 +110,7 @@ Dates are messages with named components. For visible decimals, use
 `number` or `number_text`, and `integer` to group thousands; the egui
 controls use the same separator, and `parse_number` accepts it on input.
 
-Translate only what Aurora writes for the user. Protocol fields, command or
+Translate only what Block writes for the user. Protocol fields, command or
 widget identifiers, UUIDs, font names and saved identifiers stay stable.
 Names, descriptions and messages written by residents or received from the
 server stay as they are.
@@ -131,5 +131,6 @@ cargo run -p block-viewer -- --language ja --title "Test langue-viewer"
 ```
 
 Remove `--language` to check the saved choice and its change while the
-viewer is running. Screenshots use the variables described in
-[TESTING.md](TESTING.md).
+viewer is running. For screenshots in demo mode, set `AURORA_DEMO=1` and
+any `AURORA_DEMO_*` scenario you need, then capture the window titled with
+`--title`.

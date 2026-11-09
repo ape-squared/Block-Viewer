@@ -163,11 +163,7 @@ impl DepthPick {
         let buffer = |label: &str, usage: wgpu::BufferUsages| {
             device.create_buffer(&wgpu::BufferDescriptor {
                 label: Some(label),
-                size: if usage.contains(wgpu::BufferUsages::MAP_READ) {
-                    crate::readback::readback_size(BYTES)
-                } else {
-                    BYTES
-                },
+                size: BYTES,
                 usage,
                 mapped_at_creation: false,
             })
@@ -446,7 +442,7 @@ impl DepthPick {
         }
         let readback = device.create_buffer(&wgpu::BufferDescriptor {
             label: Some("depth pick click readback"),
-            size: crate::readback::readback_size(BYTES),
+            size: BYTES,
             usage: wgpu::BufferUsages::COPY_DST | wgpu::BufferUsages::MAP_READ,
             mapped_at_creation: false,
         });

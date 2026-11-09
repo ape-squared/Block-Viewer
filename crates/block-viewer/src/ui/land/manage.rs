@@ -978,9 +978,15 @@ fn visibility(
         lock_line(ui, p, &m);
     }
     srow(ui, p, block_i18n::tr!("ui-land-manage-name"), "", 340.0, |ui| {
-        let r = editable(ui, can_identity, |ui| super::parcel_name_field(ui, true, &mut s.name, 330.0));
-        let pending = s.name.after(&r);
-        s.apply_name(world, pending);
+        s.name.sync(&parcel.name);
+        let r = editable(ui, can_identity, |ui| {
+            widgets::restricted_text_field(ui, true, &mut s.name.text, widgets::TextPolicy::PrintableNoPipe, |b, _| {
+                egui::TextEdit::singleline(b).desired_width(330.0)
+            })
+        });
+        if let Some(name) = s.name.after(&r) {
+            world.land.update(|u| u.name = name);
+        }
     });
     line(ui, p);
     srow(ui, p, block_i18n::tr!("ui-land-overview-description"), "", 340.0, |ui| {

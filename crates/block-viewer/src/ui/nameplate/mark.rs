@@ -1,6 +1,6 @@
 //! What each staff mark (`world::staff::Mark`) looks like, for the plates
 //! (`paint.rs`) and the windows (`ui/staff.rs`): Block team's modular
-//! signal mark (`block.rs`) or Linden Lab's stars and shine (`linden.rs`).
+//! signal mark (`aurora.rs`) or Linden Lab's stars and shine (`linden.rs`).
 
 use super::{block, linden};
 use crate::theme::Palette;

@@ -118,7 +118,7 @@ pub fn mark_named(id: &Uuid, legacy: &str) -> Option<Mark> {
         Some(Mark::Mod)
     } else if (is_staff(id) && !is_mod(id)) || is_block_dev_name(legacy) {
         Some(Mark::Block)
-    } else if (SECOND_LIFE.load(Ordering::Relaxed) && super::mutes::is_linden(legacy)) || crate::demo::staff::is_linden(id) {
+    } else if super::mutes::is_linden(legacy) || crate::demo::staff::is_linden(id) {
         Some(Mark::Linden)
     } else {
         None
@@ -157,14 +157,11 @@ mod tests {
     }
 
     #[test]
-    fn lindens_are_marked_by_their_last_name_on_second_life_only() {
+    fn lindens_are_marked_by_their_last_name() {
         let id = Uuid::from_u128(7);
-        set_second_life(true);
         assert_eq!(mark_named(&id, "Philip Linden"), Some(Mark::Linden));
         assert_eq!(mark_named(&id, "philip.linden"), Some(Mark::Linden));
         assert_eq!(mark_named(&id, "Lindenberg Resident"), None);
-        set_second_life(false);
-        assert_eq!(mark_named(&id, "Philip Linden"), None);
     }
 
     #[test]

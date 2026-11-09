@@ -32,7 +32,7 @@ fn edit_then_cancel_restores_the_latest_authoritative_appearance() {
         cof_version: 4,
         appearance_version: 1,
         hover_height: 0.0,
-        attachments: Vec::new(),
+        attachments: 0,
     }));
     assert_ne!(world.visual_params(&world.agent_id).expect("preview"), latest);
     state.close(&mut world);

@@ -348,7 +348,7 @@ pub(in super::super) fn item(
     facts: &Facts,
     actions: &mut Vec<InvAction>,
 ) {
-    let (Some(it), Some(frame)) = (inv.items.get(&id), st.block) else {
+    let (Some(it), Some(frame)) = (inv.items.get(&id), st.aurora) else {
         return;
     };
     st.visible.push(id);
@@ -469,7 +469,7 @@ pub(in super::super) fn folder(
     facts: &Facts,
     actions: &mut Vec<InvAction>,
 ) {
-    let (Some(folder), Some(frame)) = (inv.folders.get(&id), st.block) else {
+    let (Some(folder), Some(frame)) = (inv.folders.get(&id), st.aurora) else {
         return;
     };
     st.visible.push(id);

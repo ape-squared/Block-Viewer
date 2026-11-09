@@ -183,7 +183,7 @@ pub fn content(
                 && !settings.username.trim().is_empty()
                 && !settings.login_uri().is_empty()
                 && (!form.password.is_empty() || form.stored.is_some())
-                && (!form.show_mfa || !form.mfa_token.trim().is_empty())
+                && (!form.show_mfa || form.mfa_token.chars().any(|c| !c.is_whitespace()))
                 && (form.tos_message.is_none() || form.agree_tos)
                 && (form.critical_message.is_none() || form.read_critical)
         })

@@ -273,8 +273,8 @@ impl App {
             // onSaveAsCommit without modify rights: the item is copied as it
             // is (copy_inventory_item), never re-uploaded with new permissions
             (Some(name), Some(it)) if !self.env_editor.rights.modify => {
+                let settings_folder = self.ensure_settings_folder();
                 let inv = &self.world.inventory;
-                let settings_folder = crate::world::inventory::actions::system(inv, 56).unwrap_or(inv.root);
                 let parent = if crate::world::inventory::actions::library(inv, it.id) {
                     settings_folder
                 } else {
@@ -308,8 +308,8 @@ impl App {
                 }
                 // the edited item's folder, else the Settings folder (a library
                 // or Marketplace item goes to the Settings folder)
+                let settings_folder = self.ensure_settings_folder();
                 let inv = &self.world.inventory;
-                let settings_folder = crate::world::inventory::actions::system(inv, 56).unwrap_or(inv.root);
                 let own = it.as_ref().filter(|it| !crate::world::inventory::actions::library(inv, it.id));
                 let parent = own.map_or(settings_folder, |it| it.parent);
                 // without transfer at the source, the new item's next owner
@@ -340,6 +340,31 @@ impl App {
         }
     }
 
+    /// Ensure a user Settings folder (type 56) exists; create one under the
+    /// inventory root when the account has none yet (Save As then targets it).
+    fn ensure_settings_folder(&mut self) -> uuid::Uuid {
+        let inv = &self.world.inventory;
+        if let Some(id) = crate::world::inventory::actions::system(inv, 56) {
+            return id;
+        }
+        let root = inv.root;
+        match crate::world::inventory::actions::create_folder_typed(root, block_i18n::tr!("demo-env-settings"), 56) {
+            Ok(change) => {
+                let id = change.operations.iter().find_map(|op| match op {
+                    block_net::inventory::operations::Operation::Folder { id, .. } => Some(*id),
+                    _ => None,
+                });
+                self.apply_inventory_action(crate::ui::inventory::InvAction::Edit(change));
+                self.env_editor.message = Some((block_i18n::tr!("env-editor-creating-settings-folder").into(), false));
+                id.unwrap_or(root)
+            }
+            Err(e) => {
+                log::warn!("could not create Settings folder: {e}");
+                root
+            }
+        }
+    }
+
     /// onInventoryCreated / onInventoryUpdated: the editor follows the
     /// saved item, clean.
     pub(super) fn env_editor_saved(&mut self, result: Result<block_net::inventory::InvItem, String>) {
@@ -353,7 +378,8 @@ impl App {
             }
             Err(e) => {
                 log::warn!("environment settings not saved: {e}");
-                self.env_editor.message = Some((e, true));
+                let msg = block_i18n::tr!("env-editor-save-failed", reason = e.as_str());
+                self.env_editor.message = Some((msg, true));
             }
         }
     }

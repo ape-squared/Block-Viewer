@@ -65,7 +65,7 @@ impl Window {
         crate::theme::Theme::default().apply(&ctx, 1.0);
         let mut st = SearchUi::default();
         st.open_all();
-        st.block.text = text.to_owned();
+        st.aurora.text = text.to_owned();
         Window {
             st,
             settings: SearchSettings::default(),
@@ -198,7 +198,7 @@ fn search_places_drag_to_the_world_before_details_load_in_both_styles_and_all() 
         let requests = if classic {
             w.st.request(tab, &w.settings).into_iter().collect()
         } else {
-            w.st.aurora_requests(&w.settings)
+            w.st.block_requests(&w.settings)
         };
         apply(&mut world, requests.into_iter().map(SearchAction::Find).collect());
         world.profiles.parcels.clear();
@@ -261,7 +261,7 @@ fn groups_window(world: &mut World, classic: bool) -> Window {
     w.st.open_tab(Tab::Groups);
     apply(
         world,
-        w.st.aurora_requests(&w.settings).into_iter().map(SearchAction::Find).collect(),
+        w.st.block_requests(&w.settings).into_iter().map(SearchAction::Find).collect(),
     );
     w
 }
@@ -410,7 +410,7 @@ fn search_groups_counts_follow_profile_then_complete_members_in_both_styles() {
         }
         apply(
             &mut world,
-            w.st.aurora_requests(&w.settings).into_iter().map(SearchAction::Find).collect(),
+            w.st.block_requests(&w.settings).into_iter().map(SearchAction::Find).collect(),
         );
         let list = world.search.list(Tab::Groups).expect("groups");
         let row = list.rows.iter().find(|r| r.key == Key::Id(group)).expect("group row");
@@ -428,11 +428,11 @@ fn search_groups_navigation_wraps_without_overlap_at_the_minimum_width() {
     w.screen_size = Vec2::new(750.0, 700.0);
     apply(
         &mut world,
-        w.st.aurora_requests(&w.settings).into_iter().map(SearchAction::Find).collect(),
+        w.st.block_requests(&w.settings).into_iter().map(SearchAction::Find).collect(),
     );
     let texts = w.settle(&mut world);
     let labels = [
-        "search-aurora-all",
+        "search-block-all",
         "common-people",
         "common-places",
         "search-tab-events",
@@ -461,14 +461,14 @@ fn search_groups_navigation_wraps_without_overlap_at_the_minimum_width() {
         rects.push(shape.1);
     }
     w.click(&mut world, block_i18n::tr!("search-tab-web"));
-    assert_eq!(w.st.aurora_kind(), Kind::Web, "the last chip remains clickable");
+    assert_eq!(w.st.block_kind(), Kind::Web, "the last chip remains clickable");
 }
 
 #[test]
 fn all_then_a_chip_rows_toggles_and_the_web() {
     let mut world = world();
     let mut w = Window::new("aurora");
-    let requests = w.st.aurora_requests(&w.settings);
+    let requests = w.st.block_requests(&w.settings);
     assert_eq!(requests.len(), 5);
     apply(&mut world, requests.into_iter().map(SearchAction::Find).collect());
     let texts = w.settle(&mut world);
@@ -476,11 +476,11 @@ fn all_then_a_chip_rows_toggles_and_the_web() {
     let places = block_i18n::text("common-places").to_uppercase();
     let people = block_i18n::text("common-people").to_uppercase();
     assert!(has(&texts, &places) && has(&texts, &people), "{texts:?}");
-    assert!(has(&texts, block_i18n::tr!("search-aurora-see-all")));
+    assert!(has(&texts, block_i18n::tr!("search-block-see-all")));
     // a chip shows the list All searched, without a new search
     let actions = w.click(&mut world, block_i18n::tr!("common-places"));
     assert!(actions.iter().all(|a| !matches!(a, SearchAction::Find(_))), "no second search");
-    assert_eq!(w.st.aurora_kind(), Kind::Places);
+    assert_eq!(w.st.block_kind(), Kind::Places);
     let texts = w.settle(&mut world);
     let list = world.search.list(Tab::Places).expect("places");
     assert!(list.rows.len() >= 3);
@@ -509,17 +509,17 @@ fn all_then_a_chip_rows_toggles_and_the_web() {
         assert!(actions.iter().any(|a| matches!(a, SearchAction::Find(r) if r.tab() == Tab::Places)));
     }
     // back to All, "See all" opens the section's chip
-    w.click(&mut world, block_i18n::tr!("search-aurora-all"));
-    assert_eq!(w.st.aurora_kind(), Kind::All);
-    w.click(&mut world, block_i18n::tr!("search-aurora-see-all"));
-    assert_ne!(w.st.aurora_kind(), Kind::All);
+    w.click(&mut world, block_i18n::tr!("search-block-all"));
+    assert_eq!(w.st.block_kind(), Kind::All);
+    w.click(&mut world, block_i18n::tr!("search-block-see-all"));
+    assert_ne!(w.st.block_kind(), Kind::All);
     // land sales are searched by their filters when their chip is chosen
     let actions = w.click(&mut world, block_i18n::tr!("search-tab-land"));
     assert!(actions.iter().any(|a| matches!(a, SearchAction::Find(r) if r.tab() == Tab::Land)));
     assert_eq!(world.search.list(Tab::Land).map(|l| &l.status), Some(&Status::Found));
     // the web page is asked with the field's text
     w.click(&mut world, block_i18n::tr!("search-tab-web"));
-    assert_eq!(w.st.aurora_kind(), Kind::Web);
+    assert_eq!(w.st.block_kind(), Kind::Web);
     assert_eq!(w.st.web_query(false), "aurora");
     assert_eq!(w.st.web_query(true), "", "the Legacy tab opens the page without a query");
 }
@@ -530,7 +530,7 @@ fn a_place_is_for_sale_by_its_row_not_by_its_parcel_price() {
     let mut w = Window::new("aurora");
     apply(
         &mut world,
-        w.st.aurora_requests(&w.settings).into_iter().map(SearchAction::Find).collect(),
+        w.st.block_requests(&w.settings).into_iter().map(SearchAction::Find).collect(),
     );
     w.click(&mut world, block_i18n::tr!("common-places"));
     w.settle(&mut world);
@@ -546,7 +546,7 @@ fn a_place_is_for_sale_by_its_row_not_by_its_parcel_price() {
     let texts = w.settle(&mut world);
     let for_sale = |r: &crate::world::search::Row| r.icon == RowIcon::ForSale;
     let expected = list.rows.iter().filter(|r| for_sale(r)).count() + usize::from(for_sale(&selected));
-    let drawn = texts.iter().filter(|(_, t)| t == block_i18n::tr!("search-aurora-for-sale")).count();
+    let drawn = texts.iter().filter(|(_, t)| t == block_i18n::tr!("search-block-for-sale")).count();
     assert_eq!(drawn, expected, "only the rows the search reply marked for sale, and their details");
 }
 
@@ -555,8 +555,8 @@ fn enter_searches_and_an_empty_field_says_what_to_do() {
     let mut world = world();
     let mut w = Window::new("");
     let texts = w.settle(&mut world);
-    assert!(has(&texts, block_i18n::tr!("search-aurora-start")), "nothing searched yet");
-    w.st.block.text = "nova".into();
+    assert!(has(&texts, block_i18n::tr!("search-block-start")), "nothing searched yet");
+    w.st.aurora.text = "nova".into();
     w.st.focus = true;
     w.settle(&mut world);
     let (_, actions) = w.frame(

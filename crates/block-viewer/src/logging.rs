@@ -1,5 +1,5 @@
-//! Logging to the console and to `aurora.log` in the logs directory (the
-//! previous run is kept as `aurora.previous.log`), so a session can be
+//! Logging to the console and to `block.log` in the logs directory (the
+//! previous run is kept as `block.previous.log`), so a session can be
 //! shared after a test even when the viewer was started without a console.
 //! Capability URLs are secrets for the session: their id is masked.
 //!
@@ -53,16 +53,12 @@ pub fn log_path() -> PathBuf {
 
 /// The offline demo logs apart, so it never rotates a live session's log;
 /// `--title` adds the window name (one log per test window) and
-/// AURORA_LOG_NAME picks any other name.
+/// `BLOCK_LOG_NAME` (or legacy `AURORA_LOG_NAME`) picks any other name.
 fn log_stem() -> String {
-    if let Some(name) = std::env::var_os("AURORA_LOG_NAME").filter(|n| !n.is_empty()) {
-        return name.to_string_lossy().into_owned();
+    if let Some(name) = crate::block_env::var_string("LOG_NAME").filter(|n| !n.is_empty()) {
+        return name;
     }
-    let base = if std::env::var_os("AURORA_DEMO").is_some() {
-        "aurora-demo"
-    } else {
-        "aurora"
-    };
+    let base = if crate::block_env::demo_mode() { "block-demo" } else { "block" };
     match crate::cli::title_slug() {
         Some(slug) => format!("{base}-{slug}"),
         None => format!("{base}-{}", std::process::id()),

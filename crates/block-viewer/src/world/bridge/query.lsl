@@ -1,10 +1,11 @@
-// Aurora LSL Bridge query and posing-consent services v1.41: the Legacy Viewer's getZOffsets
+// Aurora LSL Bridge query and posing-consent services v1.42: the Legacy Viewer's getZOffsets
 // and getScriptInfo equivalents (fsradar.cpp, fs_resources/EBEDD1D2-*.lsltxt,
 // originally LGPL 2.1). A separate script beside the movement controller:
 // Mono gives each script its own 64 KB, and a query can never halt Movelock.
 // It has its own HTTP-in URL and token, and never touches physics.
+// v1.42: optional region-local Block presence ping for nameplate badges.
 string FOLDER = "__FOLDER__";
-string VERSION = "1.41";
+string VERSION = "1.42";
 string gURL;
 key gToken;
 key gURLRequest;
@@ -13,10 +14,14 @@ integer DISCOVERY_CHANNEL;
 integer gListener;
 integer gPoseListener;
 integer gPortalListener;
+integer gPeerListener;
 integer PORTAL_CHANNEL = -184735221;
 list gPortalPeers;
 integer POSE_CHANNEL = -184735220;
 list gPosePeers;
+integer PEER_CHANNEL = -184735222;
+float gNextPeerSay;
+float gNextPeerHear;
 integer gPaired;
 float gNextHello;
 
@@ -50,6 +55,10 @@ initialize() {
     llListenRemove(gPortalListener);
     gPortalListener = llListen(PORTAL_CHANNEL, "", NULL_KEY, "");
     gPortalPeers = [];
+    llListenRemove(gPeerListener);
+    gPeerListener = llListen(PEER_CHANNEL, "", NULL_KEY, "");
+    gNextPeerSay = 0.0;
+    gNextPeerHear = 0.0;
     requestURL();
 }
 query(key request, string kind, string targets) {
@@ -85,6 +94,19 @@ query(key request, string kind, string targets) {
         }
         // Explicit commands only: no advertisement, discovery or viewer probe.
         llRegionSayTo(target, POSE_CHANNEL, "pose1|" + (string)nonce + "|" + action + "|" + (string)target);
+        llHTTPResponse(request, 200, "[]");
+    } else if (kind == "peer") {
+        // Opt-in Block presence for nameplates: the viewer only POSTs this
+        // when Preferences › Advertise is on. Region-local, rate-limited.
+        if (targets != "" || !llGetAttached() || !gPaired) {
+            llHTTPResponse(request, 400, "invalid"); return;
+        }
+        float now = llGetTime();
+        if (now < gNextPeerSay) {
+            llHTTPResponse(request, 200, "[]"); return;
+        }
+        gNextPeerSay = now + 8.0;
+        llRegionSay(PEER_CHANNEL, "block1|" + (string)gOwner);
         llHTTPResponse(request, 200, "[]");
     } else if (kind == "altitudes") {
         // Comma-separated 36-character keys, read at a fixed stride.
@@ -179,6 +201,22 @@ default {
             if (llGetListLength(gPortalPeers) >= 128) gPortalPeers = llDeleteSubList(gPortalPeers, 0, 1);
             gPortalPeers += [peer, now];
             llOwnerSay("<auroraPortal>" + (string)peer + "|" + llDeleteSubString(message, 0, 7) + "</auroraPortal>");
+            return;
+        }
+        if (channel == PEER_CHANNEL) {
+            if (!llGetAttached() || !gPaired || llStringLength(message) > 50) return;
+            list fields = llParseStringKeepNulls(message, ["|"], []);
+            if (llGetListLength(fields) != 2 || llList2String(fields, 0) != "block1") return;
+            key peer = llList2Key(fields, 1);
+            if (!validKey(peer) || peer == gOwner) return;
+            key owner = llGetOwnerKey(sender);
+            if (owner != peer) return;
+            list attached = llGetObjectDetails(sender, [OBJECT_ATTACHED_POINT]);
+            if (llGetListLength(attached) != 1 || llList2Integer(attached, 0) <= 0) return;
+            float now = llGetTime();
+            if (now < gNextPeerHear) return;
+            gNextPeerHear = now + 1.0;
+            llOwnerSay("<auroraBlock>" + (string)peer + "</auroraBlock>");
             return;
         }
         if (channel == POSE_CHANNEL) {

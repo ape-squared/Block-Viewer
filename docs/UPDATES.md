@@ -17,7 +17,7 @@ click outside can close it. The login button stays disabled as long as this
 update is required.
 
 The modes take up the choices of the Legacy Viewer's `UpdaterServiceSetting`:
-required only, ask, download automatically. Aurora chooses "Ask before
+required only, ask, download automatically. Block chooses "Ask before
 downloading" by default, to meet the request for an offer at launch;
 The Legacy Viewer chooses 0. The automatic mode prepares the files and waits for
 the user's agreement before quitting and restarting their session.
@@ -71,22 +71,21 @@ main a few days before a stable version, to catch crashes before everyone.
 next tag, the pruning and the policy line; the Nightly workflow runs them on
 the pull requests that change these files. `./scripts/nightly-tag.ps1
 -DryRun` prints the tag the next nightly would create. A beta update is
-tried locally with `scripts/test-update.ps1 -Beta`
-([TESTING.md](TESTING.md#interface)).
+tried locally with `scripts/test-update.ps1 -Beta`.
 
 ## Package and release policy
 
 The Release workflow publishes together:
 
-- `Aurora-Viewer-vX.Y.Z-windows-x64.zip`, with a single root folder of that name;
+- `Block-Viewer-vX.Y.Z-windows-x64.zip`, with a single root folder of that name;
 - its `.zip.sha256` file, in the format `hash  zip-name`;
-- `aurora-update-policy.json`: `schema: 1`, `version: X.Y.Z`,
+- `block-update-policy.json`: `schema: 1`, `version: X.Y.Z`,
   `minimum_supported_version`, `cache_invalidation_before` and
   `settings_reset_before`: `null` or a stable SemVer version ≤ X.Y.Z;
-- `Aurora-Viewer-vX.Y.Z-windows-x64-symbols.zip` and its `.zip.sha256`: the
+- `Block-Viewer-vX.Y.Z-windows-x64-symbols.zip` and its `.zip.sha256`: the
   exe's crash symbols ([crash reports](BUG_REPORTING.md#crash-symbols)),
   never downloaded by the viewer, which looks for the package's exact name;
-- then `Aurora-Viewer-vX.Y.Z-linux-x64.tar.gz` and its `.tar.gz.sha256`,
+- then `Block-Viewer-vX.Y.Z-linux-x64.tar.gz` and its `.tar.gz.sha256`,
   built on Ubuntu 24.04 by a second job once the release exists: a failed
   Linux build leaves the Windows release published.
 
@@ -95,7 +94,7 @@ On Linux the viewer checks the releases the same way, with the same policy
 "Open the release page" button leads to the archive, extracted by hand
 ([Installing on Linux](LINUX.md#updates)).
 
-`scripts/package.ps1` adds `aurora-install.json` (`schema: 1`, version read
+`scripts/package.ps1` adds `block-install.json` (`schema: 1`, version read
 by `--version`). The exe, the assets and the licence are mandatory in the
 package. The default thresholds come from `update-policy.json` at the root.
 `null` makes every update optional. Below a minimum version, the update is
@@ -125,12 +124,12 @@ A tag created by hand without this line uses the thresholds of the versioned
 file. To also keep the choices made earlier in the tools, use an annotated
 tag with this line (or copy the thresholds into the versioned file).
 The interface announces separately what happens to the cache and to the
-settings, both before the download and before "Install and restart Aurora".
+settings, both before the download and before "Install and restart Block".
 
 Old releases without a hash or a manifest go through their page for a manual
 installation. Platforms other than Windows remain out of scope. The current
 ZIP is kept: Velopack was studied, but its chain of packages and installers
-is not that of the Aurora releases.
+is not that of the Block releases.
 
 ## Replacement and rollback
 
@@ -150,14 +149,14 @@ errors offer the release page.
 
 Settings, layout, accounts and cache are outside the replaced folder. If the
 policy requires it, the helper moves the cache and/or `settings.json` to a
-sibling backup `*.aurora-before-update-<UUID>`, after the parent has closed.
+sibling backup `*.block-before-update-<UUID>`, after the parent has closed.
 This also works if the profile and the installation are on different disks.
 The new viewer recreates its cache and its default settings; the other files
 of the profile are kept. If the first start fails, the newly created data
 is removed and the backups are restored. On success, these backups are
 deleted; a clean-up error keeps them for recovery and does not trigger a
 rollback. A sudden interruption of the PC can prevent the automatic
-rollback; `.aurora-update-<UUID>/backup`, next to the installation, keeps
+rollback; `.block-update-<UUID>/backup`, next to the installation, keeps
 the old version. Do not delete it before having restored the installed
 folder. Failed transactions are kept for diagnosis; the new instance cleans
 up the successful transactions after the helper has finished.
@@ -170,5 +169,5 @@ cancellation, dangerous ZIP, lock, backup and rollback of the package and of
 the data. `scripts/test-update-policy.ps1` checks the release choices (minimum
 version included, typed or refused), their carry-over into an annotated tag and the refusal of an invalid threshold,
 without touching the current repository. The visual demo downloads nothing
-(`AURORA_DEMO_UPDATE`). The human test with two real executables is
-described in [TESTING.md](TESTING.md#interface).
+(`AURORA_DEMO_UPDATE`). For a human check, run two real executables and
+confirm the update prompt, download, and restart behave as expected.

@@ -563,7 +563,7 @@ mod tests {
     const ITEM: Uuid = Uuid::from_u128(0x20);
 
     fn temp() -> PathBuf {
-        let dir = std::env::temp_dir().join(format!("aurora-inv-offers-{}", Uuid::new_v4()));
+        let dir = std::env::temp_dir().join(format!("block-inv-offers-{}", Uuid::new_v4()));
         std::fs::create_dir_all(&dir).unwrap();
         dir
     }

@@ -1,10 +1,10 @@
-"""Blender editing to Aurora's animated avatar, without uploading assets."""
+"""Blender editing to Block Viewer's animated avatar, without uploading assets."""
 
 bl_info = {
-    "name": "Aurora LiveMesh", "author": "Aurora Viewer contributors",
+    "name": "Aurora LiveMesh", "author": "Block Viewer contributors",
     "version": (0, 14, 10), "blender": (2, 93, 0),
     "location": "View3D > Sidebar > Aurora", "category": "3D View",
-    "description": "Preview rigged and static mesh edits live in Aurora Viewer",
+    "description": "Preview rigged and static mesh edits live in Block Viewer",
 }
 
 _reloading = "bpy" in globals()
@@ -92,9 +92,9 @@ def _load_pre(_unused):
 @persistent
 def _refresh_handles(_unused=None):
     for scene in bpy.data.scenes:
-        if not any(entry.marked for entry in scene.block_live.objects):
-            scene.block_live.object_index = -1
-        for entry in scene.block_live.objects:
+        if not any(entry.marked for entry in scene.aurora_live.objects):
+            scene.aurora_live.object_index = -1
+        for entry in scene.aurora_live.objects:
             lods.initialize(entry)
     for obj in list(bpy.data.objects):
         if obj.type == "ARMATURE":
@@ -151,7 +151,7 @@ def _redraw_status(context=None):
         status = _client.state()[0] if _client else ""
     except Exception:
         status = ""
-    prefs = getattr(context.scene, "block_live", None)
+    prefs = getattr(context.scene, "aurora_live", None)
     signature = (status, _error, _revision,
                  tuple((entry.source_id, entry.name, entry.enabled, entry.error) for entry in prefs.objects) if prefs else ())
     if signature == _display_signature:
@@ -210,7 +210,7 @@ def _update():
             _incoming_shape = None
     tracking.prune(scene)
     objects = tracking.active(scene)
-    prefs = scene.block_live
+    prefs = scene.aurora_live
     # Polling also sees Undo/Redo, scene switches and names changed while idle.
     membership = (scene.as_pointer(), scene.unit_settings.scale_length, prefs.forward,
                   tuple((obj.as_pointer(), obj.name) for obj in objects), tracking.signature(scene))
@@ -352,7 +352,7 @@ class AURORA_PG_live(bpy.types.PropertyGroup):
     ], default="BODY")
     starter_tshirt: BoolProperty(name="Add rigged test T-shirt", default=True,
                                 description="Create a weighted, editable T-shirt on the new SL skeleton")
-    port: IntProperty(name="Aurora port", default=17655, min=1024, max=65535)
+    port: IntProperty(name="Block Viewer port", default=17655, min=1024, max=65535)
     auto_update: BoolProperty(name="Automatic updates", default=True,
                               description="Send changed objects and materials at the chosen interval; disable for manual updates")
     interval: FloatProperty(name="Interval (seconds)", default=2.0, min=0.1, max=3600.0, soft_max=60.0, precision=2,
@@ -378,8 +378,8 @@ class AURORA_OT_starter(bpy.types.Operator):
 
     def execute(self, context):
         try:
-            _rig, shirt = starter.create(context, self.with_tshirt, context.scene.block_live.forward)
-            context.scene.block_live.rig = _rig
+            _rig, shirt = starter.create(context, self.with_tshirt, context.scene.aurora_live.forward)
+            context.scene.aurora_live.rig = _rig
         except (ValueError, RuntimeError, OSError) as error:
             self.report({"ERROR"}, str(error))
             return {"CANCELLED"}
@@ -391,17 +391,17 @@ class AURORA_OT_starter(bpy.types.Operator):
 
 class AURORA_OT_connect(bpy.types.Operator):
     bl_idname = "aurora.live_connect"
-    bl_label = "Connect to Aurora"
+    bl_label = "Connect to Block Viewer"
 
     def execute(self, context):
         global _client, _force_capture
         tracking.prune(context.scene)
-        if not context.scene.block_live.objects:
+        if not context.scene.aurora_live.objects:
             tracking.add(context.scene, _selected(), context.view_layer.objects.active)
         _stop()
         _request_capture()
         _force_capture = True
-        _client = Client(context.scene.block_live.port)
+        _client = Client(context.scene.aurora_live.port)
         bpy.app.timers.register(_tick, first_interval=0.1)
         return {"FINISHED"}
 
@@ -418,7 +418,7 @@ class AURORA_OT_weights(bpy.types.Operator):
 
     def execute(self, context):
         selected = _selected()
-        prefs = context.scene.block_live
+        prefs = context.scene.aurora_live
         try:
             weights.rebind(context, selected, prefs.rig, prefs.weight_scope)
         except (ValueError, RuntimeError) as error:
@@ -459,11 +459,11 @@ class AURORA_OT_refresh(bpy.types.Operator):
 
 
 class AURORA_PT_live(bpy.types.Panel):
-    bl_label = "Aurora"
+    bl_label = "Block"
     bl_idname = "AURORA_PT_live"
     bl_space_type = "VIEW_3D"
     bl_region_type = "UI"
-    bl_category = "Aurora"
+    bl_category = "Block"
 
     def draw(self, context):
         layout = self.layout
@@ -471,20 +471,20 @@ class AURORA_PT_live(bpy.types.Panel):
             row = layout.row(align=True)
             row.scale_y = 1.15
             for value in values:
-                row.prop_enum(context.window_manager, "block_live_tab", value)
+                row.prop_enum(context.window_manager, "aurora_live_tab", value)
         if tools_ui.tab(context) != "LIVE":
             layout.label(text="Avatar rig", icon="ARMATURE_DATA")
-            layout.prop(context.scene.block_live, "rig", text="")
+            layout.prop(context.scene.aurora_live, "rig", text="")
         layout.separator(factor=0.5)
         current = tools_ui.tab(context)
         if current == "LIVE":
             _draw_live(layout, context)
-            settings = tools_ui.foldout(layout, context.window_manager, "block_live_show_connection", "Connection settings")
+            settings = tools_ui.foldout(layout, context.window_manager, "aurora_live_show_connection", "Connection settings")
             if settings:
                 _draw_connection(settings, context)
         elif current == "RIG":
             tools_ui.draw_rig(layout, context)
-            starter_box = tools_ui.foldout(layout, context.window_manager, "block_live_show_starter", "Create an SL avatar")
+            starter_box = tools_ui.foldout(layout, context.window_manager, "aurora_live_show_starter", "Create an SL avatar")
             if starter_box:
                 _draw_starter(starter_box, context)
         elif current == "IK":
@@ -498,7 +498,7 @@ class AURORA_PT_live(bpy.types.Panel):
 
 
 def _draw_live(layout, context):
-    prefs = context.scene.block_live
+    prefs = context.scene.aurora_live
     if _client:
         status, _supported = _client.state()
         row = layout.row(align=True)
@@ -530,12 +530,12 @@ def _draw_live(layout, context):
     else:
         layout.label(text="Add selected meshes to start syncing.")
     lods.draw(layout, context)
-    layout.label(text="Enable LiveMesh in Aurora first.")
+    layout.label(text="Enable LiveMesh in Block Viewer first.")
     layout.label(text="Local preview · no asset upload")
 
 
 def _draw_connection(layout, context):
-    prefs = context.scene.block_live
+    prefs = context.scene.aurora_live
     row = layout.row()
     row.enabled = _client is None
     row.prop(prefs, "port")
@@ -543,7 +543,7 @@ def _draw_connection(layout, context):
 
 
 def _draw_starter(layout, context):
-    prefs = context.scene.block_live
+    prefs = context.scene.aurora_live
     layout.prop(prefs, "starter_tshirt")
     layout.prop(prefs, "forward")
     layout.operator("aurora.create_sl_rig", icon="ADD").with_tshirt = prefs.starter_tshirt
@@ -558,12 +558,12 @@ _translations = {"fr_FR": {(context, key): value for context in ("*", "Operator"
     "Copy error": "Copier l’erreur", "Error copied": "Erreur copiée",
     "Copy the complete object name and synchronization error": "Copier le nom complet de l’objet et son erreur de synchronisation",
     "Show this object's synchronization error and copy its details": "Afficher l’erreur de synchronisation de cet objet et copier les détails",
-    "Update Aurora Viewer to preview this large object": "Mettez à jour Aurora Viewer pour afficher cet objet volumineux",
+    "Update Block Viewer to preview this large object": "Mettez à jour Block Viewer pour afficher cet objet volumineux",
     "This object exceeds the LiveMesh transfer limit; reduce its geometry or textures":
         "Cet objet dépasse la limite de transfert LiveMesh ; réduisez sa géométrie ou ses textures",
     "LiveMesh update failed: {error}": "Échec de la mise à jour LiveMesh : {error}",
     "LiveMesh material check failed: {error}": "Échec de la vérification des matériaux LiveMesh : {error}",
-    "Connecting to Aurora…": "Connexion à Aurora…", "Connected to Aurora": "Connecté à Aurora",
+    "Connecting to Block Viewer…": "Connexion à Block Viewer…", "Connected to Block Viewer": "Connecté à Block Viewer",
     "Import / LOD": "Import / LOD", "LOD source": "Source du LOD", "LOD object": "Objet LOD",
     "Existing or automatic": "Existant sinon automatique", "Existing object": "Objet existant",
     "Automatic": "Automatique", "Name suffix": "Suffixe du nom", "Reduction target": "Objectif de réduction",
@@ -575,15 +575,15 @@ _translations = {"fr_FR": {(context, key): value for context in ("*", "Operator"
     "Generate a disposable reduced copy of the High mesh": "Générer une copie réduite temporaire du maillage High",
     "Percentage of High triangles": "Pourcentage des triangles du niveau High",
     "Maximum triangle target": "Objectif maximal de triangles",
-    "Sources stay unchanged; inspect each LOD in Aurora.": "Sources préservées ; vérifiez chaque LOD dans Aurora.",
+    "Sources stay unchanged; inspect each LOD in Block Viewer.": "Sources préservées ; vérifiez chaque LOD dans Block Viewer.",
     "Choose a different LOD mesh in the current scene": "Choisissez un autre maillage LOD dans la scène actuelle",
     "LOD objects must use the same avatar rig as High": "Les LOD doivent utiliser le même squelette que High",
     "LOD materials must match High's material slots": "Les matériaux des LOD doivent correspondre à ceux de High",
     "LOD bind matrices disagree with High": "Les matrices de liaison des LOD diffèrent de celles de High",
     "Import LODs exceed 110 avatar joints": "Les LOD de l’import dépassent 110 articulations",
     "The requested source is no longer in this scene's live list": "L’objet demandé ne figure plus dans la liste live de cette scène",
-    "Waiting for Aurora: Update Aurora Viewer to use live PBR materials":
-        "Mettez à jour Aurora Viewer pour utiliser les matériaux PBR live",
+    "Waiting for Block Viewer: Update Block Viewer to use live PBR materials":
+        "Mettez à jour Block Viewer pour utiliser les matériaux PBR live",
     "Live materials use the mesh's active UV map": "Les matériaux live utilisent la carte UV active du maillage",
     "Use UV coordinates for live image textures": "Utilisez les coordonnées UV pour les textures image live",
     "Live UV mapping supports Z rotation only": "Le mapping UV live accepte uniquement la rotation autour de Z",
@@ -657,8 +657,8 @@ _translations = {"fr_FR": {(context, key): value for context in ("*", "Operator"
     "Leave Edit Mode before creating pose controls": "Quittez le mode Édition avant de créer les contrôles de pose",
     "Pose control names are already used; keep the existing rig unchanged":
         "Les noms des contrôles sont déjà utilisés ; le squelette existant est préservé",
-    "These joints already have constraints; use a simple SL rig for Aurora pose controls":
-        "Ces os ont déjà des contraintes ; utilisez un squelette SL simple pour les contrôles Aurora",
+    "These joints already have constraints; use a simple SL rig for Block Viewer pose controls":
+        "Ces os ont déjà des contraintes ; utilisez un squelette SL simple pour les contrôles Block Viewer",
     "Create the eye target first": "Créez d’abord la cible du regard",
     "The eye pair has no common forward direction": "Les deux yeux n’ont pas de direction commune vers l’avant",
     "Use Pose Position and leave Edit Mode to change eye focus":
@@ -700,7 +700,7 @@ _translations = {"fr_FR": {(context, key): value for context in ("*", "Operator"
     "Left hand IK": "IK main gauche", "Right hand IK": "IK main droite",
     "Left foot IK": "IK pied gauche", "Right foot IK": "IK pied droit", "Target": "Cible", "Pole": "Pôle",
     "IK poses stay in Blender.": "Les poses IK restent dans Blender.",
-    "Aurora animates the rest mesh.": "Aurora anime le maillage au repos.",
+    "Block Viewer animates the rest mesh.": "Block Viewer anime le maillage au repos.",
     "Transfer weights from source": "Transférer les poids du donneur",
     "Replace selected target bone weights from the source mesh, normalized to four influences":
         "Remplacer les poids des cibles sélectionnées depuis le donneur, normalisés à quatre influences",
@@ -712,10 +712,10 @@ _translations = {"fr_FR": {(context, key): value for context in ("*", "Operator"
     "This armature is missing the SL arm or leg chain": "Il manque une chaîne de bras ou de jambe SL dans cette armature",
     "The IK chain has zero length": "La chaîne IK a une longueur nulle",
     "Leave Edit Mode before creating IK controls": "Quittez le mode Édition avant de créer les contrôles IK",
-    "The limb already has constraints; use a simple SL rig for Aurora IK":
-        "Ce membre a déjà des contraintes ; utilisez un squelette SL simple pour l’IK Aurora",
+    "The limb already has constraints; use a simple SL rig for Block Viewer IK":
+        "Ce membre a déjà des contraintes ; utilisez un squelette SL simple pour l’IK Block Viewer",
     "An IK control name is already used by another bone": "Un nom de contrôle IK est déjà utilisé par un autre os",
-    "Create Aurora IK controls first": "Créez d’abord les contrôles IK Aurora",
+    "Create Block Viewer IK controls first": "Créez d’abord les contrôles IK Block Viewer",
     "Use Pose Position and leave Edit Mode to switch IK": "Utilisez la position de pose et quittez le mode Édition pour basculer l’IK",
     "Some vertices have no transferable deform weights; original weights were kept":
         "Certains sommets n’ont aucun poids de déformation transférable ; les poids précédents sont conservés",
@@ -744,7 +744,7 @@ _translations = {"fr_FR": {(context, key): value for context in ("*", "Operator"
         "Créer un T-shirt éditable et pondéré sur le nouveau squelette SL",
     "Switch to Object Mode to create a rig.": "Passez en mode Objet pour créer un squelette.",
     "Created 133 Bento bones and 26 Fitted Mesh bones": "133 os Bento et 26 os Fitted Mesh créés",
-    "Aurora LiveMesh": "Aurora LiveMesh", "Connect to Aurora": "Connecter à Aurora",
+    "Block LiveMesh": "Block LiveMesh", "Connect to Block Viewer": "Connecter à Block Viewer",
     "Disconnect": "Déconnecter", "Add selected meshes": "Ajouter la sélection",
     "Add the current selection without replacing listed objects or enabling paused entries":
         "Ajouter la sélection sans remplacer les objets listés ni réactiver les objets en pause",
@@ -763,16 +763,16 @@ _translations = {"fr_FR": {(context, key): value for context in ("*", "Operator"
     "Invalid LiveMesh grouping": "Groupement LiveMesh invalide",
     "Avatar bone weights must be finite": "Les poids des os de l’avatar doivent être finis",
     "Mesh positions must be finite": "Les positions du maillage doivent être finies",
-    "Include this object in Aurora's live preview": "Inclure cet objet dans l’aperçu live Aurora",
+    "Include this object in Block Viewer's live preview": "Inclure cet objet dans l’aperçu live Block Viewer",
     "Remove from synchronization": "Retirer de la synchronisation",
-    "Remove this entry from Aurora's preview list; keep the Blender object":
-        "Retirer cette entrée de la liste d’aperçu Aurora ; conserver l’objet Blender",
+    "Remove this entry from Block Viewer's preview list; keep the Blender object":
+        "Retirer cette entrée de la liste d’aperçu Block Viewer ; conserver l’objet Blender",
     "Missing object": "Objet manquant", "{enabled} / {total} enabled": "{enabled} / {total} actifs",
     "Add selected meshes to start syncing.": "Ajoutez la sélection pour commencer.",
-    "Update Aurora Viewer to preview non-rigged meshes": "Mettez Aurora Viewer à jour pour prévisualiser les maillages non riggés",
-    "Update Aurora Viewer to preview linked objects": "Mettez Aurora Viewer à jour pour prévisualiser les objets liés",
+    "Update Block Viewer to preview non-rigged meshes": "Mettez Block Viewer à jour pour prévisualiser les maillages non riggés",
+    "Update Block Viewer to preview linked objects": "Mettez Block Viewer à jour pour prévisualiser les objets liés",
     "Select one or more rigged meshes first": "Sélectionnez d’abord un ou plusieurs maillages riggés",
-    "Update now": "Mettre à jour maintenant", "Aurora port": "Port Aurora",
+    "Update now": "Mettre à jour maintenant", "Block Viewer port": "Port Block Viewer",
     "Automatic updates": "Mise à jour automatique", "Interval (seconds)": "Intervalle (secondes)",
     "Only changed content is sent.": "Envoi uniquement si modification.",
     "Manual updates only.": "Mise à jour par bouton uniquement.",
@@ -786,7 +786,7 @@ _translations = {"fr_FR": {(context, key): value for context in ("*", "Operator"
     "Receive avatar shape": "Recevoir la shape de l’avatar",
     "Automatic (Avastar / SL)": "Automatique (Avastar / SL)",
     "Detect each rig's rest axes; create new rigs facing Blender -Y": "Détectez les axes de repos de chaque squelette ; les nouveaux rigs regardent vers −Y comme Avastar",
-    "Enable LiveMesh in Aurora first.": "Activez d’abord LiveMesh dans Aurora.",
+    "Enable LiveMesh in Block Viewer first.": "Activez d’abord LiveMesh dans Block Viewer.",
     "Local preview · no asset upload": "Aperçu local · sans import automatique",
 }.items()}}
 
@@ -797,13 +797,13 @@ def register():
     bpy.app.translations.register(__name__, _translations)
     for cls in _classes:
         bpy.utils.register_class(cls)
-    bpy.types.Scene.block_live = PointerProperty(type=AURORA_PG_live)
-    bpy.types.Object.block_live_ik_handle_size = FloatProperty(name="Handle size", default=1, min=0.4, max=3,
+    bpy.types.Scene.aurora_live = PointerProperty(type=AURORA_PG_live)
+    bpy.types.Object.aurora_live_ik_handle_size = FloatProperty(name="Handle size", default=1, min=0.4, max=3,
                                                               update=_handle_size_changed)
-    bpy.types.WindowManager.block_live_tab = EnumProperty(name="Section", items=tools_ui.TABS, default="LIVE", options={"SKIP_SAVE"})
-    bpy.types.WindowManager.block_live_show_connection = BoolProperty(default=False, options={"SKIP_SAVE"})
-    bpy.types.WindowManager.block_live_show_starter = BoolProperty(default=False, options={"SKIP_SAVE"})
-    bpy.types.WindowManager.block_live_show_advanced_bones = BoolProperty(default=False, options={"SKIP_SAVE"})
+    bpy.types.WindowManager.aurora_live_tab = EnumProperty(name="Section", items=tools_ui.TABS, default="LIVE", options={"SKIP_SAVE"})
+    bpy.types.WindowManager.aurora_live_show_connection = BoolProperty(default=False, options={"SKIP_SAVE"})
+    bpy.types.WindowManager.aurora_live_show_starter = BoolProperty(default=False, options={"SKIP_SAVE"})
+    bpy.types.WindowManager.aurora_live_show_advanced_bones = BoolProperty(default=False, options={"SKIP_SAVE"})
     bpy.app.handlers.depsgraph_update_post.append(_changed)
     bpy.app.handlers.load_pre.append(_load_pre)
     bpy.app.handlers.load_post.append(_refresh_handles)
@@ -821,11 +821,11 @@ def unregister():
                                (bpy.app.handlers.load_post, _refresh_handles)):
         if callback in handlers:
             handlers.remove(callback)
-    if hasattr(bpy.types.Scene, "block_live"):
-        del bpy.types.Scene.block_live
-    if hasattr(bpy.types.Object, "block_live_ik_handle_size"):
-        del bpy.types.Object.block_live_ik_handle_size
-    for name in ("block_live_tab", "block_live_show_connection", "block_live_show_starter", "block_live_show_advanced_bones"):
+    if hasattr(bpy.types.Scene, "aurora_live"):
+        del bpy.types.Scene.aurora_live
+    if hasattr(bpy.types.Object, "aurora_live_ik_handle_size"):
+        del bpy.types.Object.aurora_live_ik_handle_size
+    for name in ("aurora_live_tab", "aurora_live_show_connection", "aurora_live_show_starter", "aurora_live_show_advanced_bones"):
         if hasattr(bpy.types.WindowManager, name):
             delattr(bpy.types.WindowManager, name)
     for cls in reversed(_classes):

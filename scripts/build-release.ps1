@@ -1,7 +1,7 @@
 <#
 .SYNOPSIS
     Builds the latest main of GitHub (or a PR) in --release, next to the
-    repository: ..\RELEASE\Aurora-Viewer\block-viewer.exe, ready to launch.
+    repository: ..\RELEASE\Block-Viewer\block-viewer.exe, ready to launch.
 
 .DESCRIPTION
     The code built always comes from GitHub, never from the local
@@ -22,7 +22,7 @@ param([int]$Pr)
 $p = Get-AuroraPaths
 $rel = Join-Path $p.Root 'RELEASE'
 $src = Join-Path $rel 'src'
-$out = Join-Path $rel 'Aurora-Viewer'
+$out = Join-Path $rel 'Block-Viewer'
 New-Item -ItemType Directory -Force -Path $rel -ErrorAction Stop | Out-Null
 
 # Double-click launcher (build-release.bat 42 builds PR 42). It runs the
@@ -110,7 +110,7 @@ $reportedVersion = $null
 $verifyVersion = Join-Path $src 'scripts\verify-version.ps1'
 if (Test-Path -LiteralPath $verifyVersion) {
     $reportedVersion = (& $builtExe --version | Out-String).Trim()
-    if ($LASTEXITCODE -ne 0 -or $reportedVersion -notmatch '^Aurora Viewer (\S+)$') {
+    if ($LASTEXITCODE -ne 0 -or $reportedVersion -notmatch '^Block Viewer (\S+)$') {
         throw "The built viewer did not report a valid version: '$reportedVersion'."
     }
     $exactTag = git -C $src describe --tags --match 'v[0-9]*.[0-9]*.[0-9]*' --exact-match 2>$null

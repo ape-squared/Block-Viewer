@@ -620,13 +620,18 @@ impl App {
         self.panels.ao = open;
         self.toolbar_ui.movement_active = prefs.swimming;
         self.toolbar_ui.water_walk_active = prefs.water_walk;
-        if actions.iter().any(|a| matches!(a, crate::ui::ao::Action::MovementPreferences)) {
+        let prefs_changed = actions.iter().any(|a| matches!(a, crate::ui::ao::Action::MovementPreferences));
+        let ao_changed = actions.iter().any(|a| matches!(a, crate::ui::ao::Action::Preferences));
+        if prefs_changed {
             self.settings.movements.insert(self.world.agent_id, prefs);
         }
         if actions.iter().any(|a| matches!(a, crate::ui::ao::Action::Preferences)) {
             let saved = self.settings.ao.accounts.entry(self.world.agent_id).or_default();
             saved.enabled = account.enabled;
             saved.selected = account.selected;
+        }
+        if ao_changed || prefs_changed {
+            self.settings.save();
         }
         for action in actions {
             self.apply_ao_action(action);

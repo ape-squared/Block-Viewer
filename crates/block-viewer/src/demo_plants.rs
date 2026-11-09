@@ -219,7 +219,7 @@ fn stand_in(id: &Uuid) -> Option<(Look, [u8; 3], [u8; 3])> {
 /// with this scenario: they are real asset ids on a grid.
 fn active() -> bool {
     static ACTIVE: std::sync::OnceLock<bool> = std::sync::OnceLock::new();
-    *ACTIVE.get_or_init(|| std::env::var_os("AURORA_DEMO").is_some() && mode().is_some())
+    *ACTIVE.get_or_init(|| crate::block_env::demo_mode() && mode().is_some())
 }
 
 /// Whether `id` is a stand-in species texture (they get mips).

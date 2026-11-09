@@ -21,26 +21,6 @@ fn arc_steps(radius_px: f32) -> usize {
     ((2.4 * radius_px.max(0.0).sqrt()).ceil() as usize).clamp(MIN_ARC, MAX_ARC)
 }
 
-/// Unit directions around a pill for `arc` steps per end, clockwise from
-/// the top of its right end: the first half belongs to the right end, the
-/// second to the left one.
-fn directions(arc: usize) -> &'static [Vec2] {
-    static TABLES: OnceLock<Vec<Vec<Vec2>>> = OnceLock::new();
-    let tables = TABLES.get_or_init(|| {
-        (MIN_ARC..=MAX_ARC)
-            .map(|arc| {
-                let end = (0..=arc).map(|i| {
-                    let angle = -std::f32::consts::FRAC_PI_2 + std::f32::consts::PI * i as f32 / arc as f32;
-                    Vec2::new(angle.cos(), angle.sin())
-                });
-                let right: Vec<Vec2> = end.collect();
-                right.iter().copied().chain(right.iter().map(|d| -*d)).collect()
-            })
-            .collect()
-    });
-    &tables[arc.clamp(MIN_ARC, MAX_ARC) - MIN_ARC]
-}
-
 /// Share of the light left at `x` blur widths from the edge of a blurred
 /// shape (a gaussian of sigma half the blur, as CSS): one half on the edge,
 /// nearly nothing one blur away.
@@ -108,29 +88,70 @@ impl Glow {
     }
 }
 
-/// The outline of a pill (a circle is a pill as wide as it is high), from
-/// which rings of vertices are laid at a distance.
+/// Corner radius for name plates: a rounded rectangle, not a stadium pill.
+pub fn plate_corner(rect: Rect) -> f32 {
+    (rect.height() * 0.18).clamp(2.5, 6.0).min(rect.width() * 0.4)
+}
+
+/// The outline of a rounded rectangle (a circle / pill when the corner is
+/// half the height), from which rings of vertices are laid at a distance.
 pub struct Outline {
+    /// Points on the outline with their outward unit normals.
+    edge: Vec<(Pos2, Vec2)>,
+    center: Pos2,
+    /// Half the shorter side: used to map a picture onto a disc.
     radius: f32,
-    right: Pos2,
-    left: Pos2,
-    dirs: &'static [Vec2],
     /// Width of the antialiased edge: one pixel, in points.
     pub feather: f32,
 }
 
 impl Outline {
-    pub fn pill(rect: Rect, pixels_per_point: f32) -> Outline {
-        let radius = rect.height() * 0.5;
-        let cy = rect.center().y;
-        let (right, left) = (rect.right() - radius, rect.left() + radius);
+    /// A rounded rectangle. `corner == height/2` recovers a stadium pill.
+    pub fn rounded(rect: Rect, corner: f32, pixels_per_point: f32) -> Outline {
+        let r = corner.clamp(0.0, rect.height().min(rect.width()) * 0.5);
+        let (w, h) = ((rect.width() - 2.0 * r).max(0.0), (rect.height() - 2.0 * r).max(0.0));
+        let (l, t) = (rect.left() + r, rect.top() + r);
+        let arc = arc_steps(r * pixels_per_point).max(2);
+        let mut edge = Vec::with_capacity(4 * (arc + 4));
+        let sides = [
+            (Pos2::new(l, rect.top()), Vec2::X, w, -Vec2::Y, Pos2::new(l + w, t)),
+            (Pos2::new(rect.right(), t), Vec2::Y, h, Vec2::X, Pos2::new(l + w, t + h)),
+            (Pos2::new(l + w, rect.bottom()), -Vec2::X, w, Vec2::Y, Pos2::new(l, t + h)),
+            (Pos2::new(rect.left(), t + h), -Vec2::Y, h, -Vec2::X, Pos2::new(l, t)),
+        ];
+        for (k, (start, dir, length, normal, corner)) in sides.into_iter().enumerate() {
+            let steps = if length > 0.01 {
+                ((length * pixels_per_point / 4.0).ceil() as usize).max(1)
+            } else {
+                0
+            };
+            for i in 0..steps {
+                edge.push((start + dir * (length * i as f32 / steps as f32), normal));
+            }
+            if r > 0.0 {
+                let from = -std::f32::consts::FRAC_PI_2 + k as f32 * std::f32::consts::FRAC_PI_2;
+                for i in 0..arc {
+                    let a = from + std::f32::consts::FRAC_PI_2 * i as f32 / arc as f32;
+                    let n = Vec2::new(a.cos(), a.sin());
+                    edge.push((corner + n * r, n));
+                }
+            }
+        }
         Outline {
-            radius,
-            right: Pos2::new(right.max(left), cy),
-            left: Pos2::new(left.min(right), cy),
-            dirs: directions(arc_steps(radius * pixels_per_point)),
+            edge,
+            center: rect.center(),
+            radius: r.max(rect.height() * 0.5),
             feather: 1.0 / pixels_per_point,
         }
+    }
+
+    pub fn pill(rect: Rect, pixels_per_point: f32) -> Outline {
+        Outline::rounded(rect, rect.height() * 0.5, pixels_per_point)
+    }
+
+    /// Name-plate surface: squarer corners than a pill.
+    pub fn plate(rect: Rect, pixels_per_point: f32) -> Outline {
+        Outline::rounded(rect, plate_corner(rect), pixels_per_point)
     }
 
     pub fn circle(center: Pos2, radius: f32, pixels_per_point: f32) -> Outline {
@@ -138,11 +159,7 @@ impl Outline {
     }
 
     fn points(&self) -> u32 {
-        self.dirs.len() as u32
-    }
-
-    fn center_of(&self, i: usize) -> Pos2 {
-        if i < self.dirs.len() / 2 { self.right } else { self.left }
+        self.edge.len() as u32
     }
 
     /// A ring of vertices `d` outside the outline (inside when negative),
@@ -150,9 +167,8 @@ impl Outline {
     /// of its first vertex.
     pub fn ring_with(&self, mesh: &mut Mesh, d: f32, mut color: impl FnMut(Vec2) -> Color32) -> u32 {
         let first = mesh.vertices.len() as u32;
-        let r = (self.radius + d).max(0.0);
-        for (i, dir) in self.dirs.iter().enumerate() {
-            mesh.colored_vertex(self.center_of(i) + *dir * r, color(*dir));
+        for &(pos, dir) in &self.edge {
+            mesh.colored_vertex(pos + dir * d, color(dir));
         }
         first
     }
@@ -174,7 +190,7 @@ impl Outline {
     /// Fill the inside of `ring` with `color`.
     pub fn fill(&self, mesh: &mut Mesh, ring: u32, color: Color32) {
         let center = mesh.vertices.len() as u32;
-        mesh.colored_vertex(self.left + (self.right - self.left) * 0.5, color);
+        mesh.colored_vertex(self.center, color);
         let n = self.points();
         for i in 0..n {
             mesh.indices.extend_from_slice(&[center, ring + i, ring + (i + 1) % n]);
@@ -236,7 +252,7 @@ impl Outline {
     /// A picture cropped to the disc: `uv` is the part of it the disc shows.
     pub fn picture(&self, mesh: &mut Mesh, uv: Rect, tint: Color32) {
         let f = self.feather * 0.5;
-        let center = self.left + (self.right - self.left) * 0.5;
+        let center = self.center;
         let first = mesh.vertices.len() as u32;
         let vertex = |pos: Pos2, color: Color32| egui::epaint::Vertex {
             pos,
@@ -246,8 +262,8 @@ impl Outline {
         mesh.vertices.push(vertex(center, tint));
         for d in [-f, f] {
             let color = if d < 0.0 { tint } else { Color32::TRANSPARENT };
-            for (i, dir) in self.dirs.iter().enumerate() {
-                mesh.vertices.push(vertex(self.center_of(i) + *dir * (self.radius + d), color));
+            for &(pos, dir) in &self.edge {
+                mesh.vertices.push(vertex(pos + dir * d, color));
             }
         }
         let n = self.points();
@@ -289,7 +305,7 @@ pub struct Ring {
 /// the `rings`.
 pub fn plate(mesh: &mut Mesh, rect: Rect, pixels_per_point: f32, fill: Color32, border: Border, lights: &[Glow], rings: &[Ring]) {
     lit_plate(mesh, rect, pixels_per_point, fill, border, lights);
-    let o = Outline::pill(rect, pixels_per_point);
+    let o = Outline::plate(rect, pixels_per_point);
     for r in rings.iter().filter(|r| r.color.a() > 0 && r.width > 0.0) {
         // thinner than a pixel, a line is a fainter pixel
         let width = r.width.max(o.feather);
@@ -299,7 +315,7 @@ pub fn plate(mesh: &mut Mesh, rect: Rect, pixels_per_point: f32, fill: Color32, 
 }
 
 fn lit_plate(mesh: &mut Mesh, rect: Rect, pixels_per_point: f32, fill: Color32, border: Border, lights: &[Glow]) {
-    let o = Outline::pill(rect, pixels_per_point);
+    let o = Outline::plate(rect, pixels_per_point);
     let n = o.points() as usize;
     // a light that has not moved is a halo: it needs the closer rings
     let rings: &[f32] = if lights.iter().any(|g| g.offset == Vec2::ZERO) {
@@ -357,11 +373,21 @@ mod tests {
         Rect::from_min_size(Pos2::new(100.0, 50.0), Vec2::new(160.0, 50.0))
     }
 
+    /// Signed distance from `p` to the edge of a rounded rect.
+    fn rounded_distance(rect: Rect, corner: f32, p: Pos2) -> f32 {
+        let r = corner.clamp(0.0, rect.height().min(rect.width()) * 0.5);
+        let half = rect.size() * 0.5 - Vec2::splat(r);
+        let d = (p - rect.center()).abs() - half;
+        d.x.max(d.y).min(0.0) + Vec2::new(d.x.max(0.0), d.y.max(0.0)).length() - r
+    }
+
     /// Signed distance from `p` to the edge of the pill `rect`.
     fn pill_distance(rect: Rect, p: Pos2) -> f32 {
-        let r = rect.height() * 0.5;
-        let cx = p.x.clamp(rect.left() + r, rect.right() - r);
-        (p.x - cx).hypot(p.y - rect.center().y) - r
+        rounded_distance(rect, rect.height() * 0.5, p)
+    }
+
+    fn plate_distance(rect: Rect, p: Pos2) -> f32 {
+        rounded_distance(rect, plate_corner(rect), p)
     }
 
     #[test]
@@ -435,11 +461,11 @@ mod tests {
             plate(&mut mesh, rect, 1.0, fill, border, lights, &[]);
             assert!(mesh.is_valid() && !mesh.indices.is_empty());
             let reach = lights.iter().map(Glow::reach).fold(0.0, f32::max);
-            let n = Outline::pill(rect, 1.0).points() as usize;
+            let n = Outline::plate(rect, 1.0).points() as usize;
             let last_ring = mesh.vertices.len() - n;
             let mut lit_outside = false;
             for (i, v) in mesh.vertices.iter().enumerate() {
-                let d = pill_distance(rect, v.pos);
+                let d = plate_distance(rect, v.pos);
                 assert!(d <= reach + 0.01, "{d}");
                 if d < -1.6 {
                     assert_eq!(v.color, fill, "only the surface under the glass");
@@ -482,7 +508,7 @@ mod tests {
         assert_eq!(mesh.vertices[..lit.vertices.len()], lit.vertices[..]);
         let added = &mesh.vertices[lit.vertices.len()..];
         for v in added {
-            let d = pill_distance(rect, v.pos);
+            let d = plate_distance(rect, v.pos);
             assert!((3.49..=6.51).contains(&d), "{d}");
             if (4.49..=5.51).contains(&d) {
                 assert_eq!(v.color, Color32::GREEN);

@@ -38,7 +38,7 @@ impl App {
                 let requests = if self.settings.classic_search {
                     self.search_ui.request(tab, &self.settings.search).into_iter().collect()
                 } else {
-                    self.search_ui.aurora_requests(&self.settings.search)
+                    self.search_ui.block_requests(&self.settings.search)
                 };
                 let access = self.world.agent_access();
                 for request in requests {

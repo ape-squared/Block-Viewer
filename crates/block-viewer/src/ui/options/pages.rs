@@ -5,7 +5,6 @@ pub mod accessibility;
 pub mod appearance;
 pub mod avatars;
 pub mod block;
-pub mod build;
 pub mod camera;
 pub mod chat;
 pub mod commands;
@@ -94,7 +93,6 @@ pub fn draw(cx: &mut Cx, page: Page, tab: usize) {
         Page::Graphics => graphics::page(cx, tab),
         Page::Camera => camera::page(cx, tab),
         Page::Avatars => avatars::page(cx, tab),
-        Page::Build => build::page(cx),
         Page::Chat => chat::page(cx, tab),
         Page::Sound => sound::page(cx, tab),
         Page::Media => media::page(cx),

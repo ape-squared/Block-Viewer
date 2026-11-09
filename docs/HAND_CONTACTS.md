@@ -56,7 +56,7 @@ Use `EXTERNAL_CONTROL = FALSE` only to start the first profile automatically
 while seated/worn. IK Edit itself stays independent of these commands.
 
 Keep the main script's `llStartAnimation("accel_F")` at the existing throttle
-event. All viewers receive exactly the same animations. Aurora applies IK
+event. All viewers receive exactly the same animations. Block applies IK
 after normal animation blending; no fallback animation is filtered or stopped.
 Rotate `Right` at that same event so its bound wrist follows the moving grip.
 [motorcycle-throttle.lsl](../scripts/lsl/motorcycle-throttle.lsl) can consume

@@ -281,7 +281,13 @@ impl Radar {
                     if same_region {
                         events.push(Event::RegionEnter(s.id, range));
                     } else if e.same_region {
-                        events.push(Event::RegionLeave(s.id));
+                        // In chat range, ChatLeave above already covers the
+                        // departure (gated by RadarReportChatRangeLeave). Do
+                        // not also fire RegionLeave or Chat prefs "leave
+                        // range" off still shows "left the region".
+                        if !within(e.range, CHAT_RANGE) {
+                            events.push(Event::RegionLeave(s.id));
+                        }
                     }
                 }
                 _ => {}
@@ -323,7 +329,9 @@ impl Radar {
             if within(e.range, draw_distance) {
                 events.push(Event::DrawLeave(*id));
             }
-            if e.same_region {
+            // Same as the region-change path: RegionLeave only when they
+            // were outside chat range (otherwise ChatLeave alone).
+            if e.same_region && !within(e.range, CHAT_RANGE) {
                 events.push(Event::RegionLeave(*id));
             }
             self.departed.push(*id);

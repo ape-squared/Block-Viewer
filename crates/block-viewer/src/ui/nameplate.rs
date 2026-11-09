@@ -21,7 +21,7 @@ pub(crate) mod combo;
 mod fidget;
 mod linden;
 pub(crate) mod mark;
-mod mesh;
+pub(crate) mod mesh;
 mod paint;
 pub(crate) mod playground;
 #[cfg(test)]

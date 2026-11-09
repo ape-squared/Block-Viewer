@@ -888,7 +888,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn aurora_contents_copy_feedback_shows_pending_then_the_expiring_result() {
+    fn block_contents_copy_feedback_shows_pending_then_the_expiring_result() {
         let palette = crate::theme::Theme::default().palette();
         let request = uuid::Uuid::from_u128(1410);
         for success in [false, true] {

@@ -343,7 +343,7 @@ impl DiskCache {
             let (root, limit, usage, clearing) = (root.clone(), limit.clone(), usage.clone(), clearing.clone());
             let (by_dir, last_trim) = (by_dir.clone(), last_trim.clone());
             let mut last_walk = Instant::now();
-            let _ = std::thread::Builder::new().name("aurora-cache".into()).spawn(move || {
+            let _ = std::thread::Builder::new().name("block-cache".into()).spawn(move || {
                 loop {
                     let cmd = match rx.recv_timeout(Duration::from_secs(30)) {
                         // coalesce queued trims (e.g. while the size slider moves)
@@ -566,7 +566,7 @@ mod tests {
 
     #[test]
     fn evicts_least_recently_used() {
-        let root = std::env::temp_dir().join(format!("aurora-cache-test-{}", uuid::Uuid::new_v4()));
+        let root = std::env::temp_dir().join(format!("block-cache-test-{}", uuid::Uuid::new_v4()));
         let cache = DiskCache::new(root.clone(), 1);
         // 3 files of 400 KB: over the 1 MB limit
         for (i, name) in ["a", "b", "c"].iter().enumerate() {
@@ -589,7 +589,7 @@ mod tests {
 
     #[test]
     fn sounds_and_settings_are_trimmed_and_counted() {
-        let root = std::env::temp_dir().join(format!("aurora-cache-test-{}", uuid::Uuid::new_v4()));
+        let root = std::env::temp_dir().join(format!("block-cache-test-{}", uuid::Uuid::new_v4()));
         let cache = DiskCache::new(root.clone(), 1);
         // 1210 KB against the 1 MB limit: the oldest file, a sound, goes
         let files = [

@@ -303,11 +303,10 @@ pub(super) fn strip(
     if clicked.double_clicked() {
         context::double_click(inv, id, st, prefs, facts, actions);
     }
-    let name = rules::name(inv, id);
-    let name = if id == inv.root || id == inv.lib_root {
+    let name = if inv.folders.contains_key(&id) {
         folder_name(inv, id)
     } else {
-        name
+        rules::name(inv, id)
     };
     body.add(egui::Label::new(sheet::semibold(&body, &name, 13.0, p.ink)).truncate());
     if let Some(folder) = inv.folders.get(&id) {
@@ -324,7 +323,7 @@ pub(super) fn strip(
             )
             .clicked()
             {
-                if st.block.is_some_and(|f| f.layout == Layout::Compact) {
+                if st.aurora.is_some_and(|f| f.layout == Layout::Compact) {
                     st.plain.set_open(id, true);
                 } else {
                     st.browse = folder.info.id;

@@ -106,7 +106,7 @@ mod tests {
         for event in events() {
             world.apply(event);
         }
-        let mut scene = Scene::new(std::env::temp_dir().join("aurora-pointing-demo"), library);
+        let mut scene = Scene::new(std::env::temp_dir().join("block-pointing-demo"), library);
         let mut build = BuildTool::default();
         let mut settings = BuildSettings::default();
         tick(&mut world, &mut scene, &mut build, &mut settings, 600, "remote-release");

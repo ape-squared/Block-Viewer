@@ -206,7 +206,7 @@ mod tests {
 
     #[test]
     fn a_theme_value_this_build_cannot_read_costs_only_that_value() {
-        let dir = std::env::temp_dir().join(format!("aurora-skin-{}", uuid::Uuid::new_v4()));
+        let dir = std::env::temp_dir().join(format!("block-skin-{}", uuid::Uuid::new_v4()));
         std::fs::create_dir_all(&dir).unwrap();
         let path = dir.join("theme.json");
         let file = serde_json::json!({ "violet": "#123456", "panel_alpha": "a newer kind of value", "a_newer_key": 1 });

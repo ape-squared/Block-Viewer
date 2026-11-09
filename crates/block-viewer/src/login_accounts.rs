@@ -256,7 +256,7 @@ mod tests {
 
     #[test]
     fn an_account_from_a_newer_build_is_shown_and_never_overwritten() {
-        let root = std::env::temp_dir().join(format!("aurora-newer-accounts-{}", uuid::Uuid::new_v4()));
+        let root = std::env::temp_dir().join(format!("block-newer-accounts-{}", uuid::Uuid::new_v4()));
         std::fs::create_dir_all(&root).unwrap();
         let path = root.join("accounts.json");
         let file = serde_json::json!([
@@ -276,7 +276,7 @@ mod tests {
 
     #[test]
     fn saved_order_uses_latest_metadata_and_keeps_concurrent_additions() {
-        let root = std::env::temp_dir().join(format!("aurora-order-{}", uuid::Uuid::new_v4()));
+        let root = std::env::temp_dir().join(format!("block-order-{}", uuid::Uuid::new_v4()));
         let path = root.join("accounts.json");
         let mut alpha = Account::from_settings(&crate::settings::Settings::default(), true, None);
         alpha.username = "synthetic-alpha".into();
@@ -358,7 +358,7 @@ mod tests {
     }
     #[test]
     fn concurrent_catalogue_changes_keep_every_account() {
-        let root = std::env::temp_dir().join(format!("aurora-accounts-{}", uuid::Uuid::new_v4()));
+        let root = std::env::temp_dir().join(format!("block-accounts-{}", uuid::Uuid::new_v4()));
         let path = root.join("accounts.json");
         std::thread::scope(|scope| {
             for i in 0..8 {

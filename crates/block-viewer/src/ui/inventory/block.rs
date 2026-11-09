@@ -82,7 +82,7 @@ pub fn widen(ctx: &egui::Context, id: &str) {
     widgets::size_floater(ctx, id, egui::vec2(WIDE_SIZE, height.max(DEFAULT_SIZE.y)));
 }
 
-/// `AURORA_DEMO_INVENTORY=aurora|aurora-medium|aurora-wide|aurora-rights`,
+/// `AURORA_DEMO_INVENTORY=aurora|block-medium|block-wide|block-rights`,
 /// each width also with `-no-details`.
 fn demo_mode() -> Option<&'static str> {
     static MODE: std::sync::OnceLock<Option<String>> = std::sync::OnceLock::new();
@@ -99,7 +99,7 @@ pub fn demo_active() -> bool {
     demo_mode().is_some()
 }
 
-/// The folder window of `aurora-folder-window` (its id names its layout).
+/// The folder window of `block-folder-window` (its id names its layout).
 pub const DEMO_FOLDER_WINDOW: Uuid = Uuid::from_u128(0xA0F0);
 
 /// The demo's window at the width of its layout, whatever size an earlier
@@ -109,23 +109,23 @@ pub fn demo_place(ctx: &egui::Context, frame: u64) {
     if frame == 2 {
         // "-no-details": the same width, the details hidden
         let size = match mode.strip_suffix("-no-details").unwrap_or(mode) {
-            "aurora-medium" | "aurora-sidebar-medium" | "aurora-worn-medium" => egui::vec2(800.0, 640.0),
-            "aurora-wide"
-            | "aurora-worn-wide"
-            | "aurora-sidebar-wide"
-            | "aurora-smart-wide"
-            | "aurora-keyboard-wide"
-            | "aurora-rights"
-            | "aurora-columns"
-            | "aurora-columns-hidden"
-            | "aurora-received-filing"
-            | "aurora-received-unread"
-            | "aurora-received-sort"
-            | "aurora-received-sort-name" => egui::vec2(WIDE_SIZE, 720.0),
-            _ if mode.starts_with("aurora-menu-") => egui::vec2(WIDE_SIZE, 720.0),
+            "block-medium" | "block-sidebar-medium" | "block-worn-medium" => egui::vec2(800.0, 640.0),
+            "block-wide"
+            | "block-worn-wide"
+            | "block-sidebar-wide"
+            | "block-smart-wide"
+            | "block-keyboard-wide"
+            | "block-rights"
+            | "block-columns"
+            | "block-columns-hidden"
+            | "block-received-filing"
+            | "block-received-unread"
+            | "block-received-sort"
+            | "block-received-sort-name" => egui::vec2(WIDE_SIZE, 720.0),
+            _ if mode.starts_with("block-menu-") => egui::vec2(WIDE_SIZE, 720.0),
             _ => egui::vec2(DEFAULT_SIZE.x, 640.0),
         };
-        if let Some(wide) = mode.strip_prefix("aurora-folder-window") {
+        if let Some(wide) = mode.strip_prefix("block-folder-window") {
             // the main window narrow at the left, the folder window beside it
             widgets::place_floater(ctx, "inventory", egui::pos2(30.0, 60.0), egui::vec2(DEFAULT_SIZE.x, 640.0));
             let size = if wide.is_empty() {
@@ -141,7 +141,7 @@ pub fn demo_place(ctx: &egui::Context, frame: u64) {
             widgets::place_floater(ctx, &format!("inventory_{DEMO_FOLDER_WINDOW}"), pos, size);
             return;
         }
-        if mode == "aurora-additional" {
+        if mode == "block-additional" {
             // the main window, the additional window opened on its left
             let main = egui::pos2(30.0 + DEFAULT_SIZE.x + 12.0, 60.0);
             widgets::place_floater(ctx, "inventory", main, egui::vec2(DEFAULT_SIZE.x, 640.0));
@@ -247,7 +247,7 @@ pub(super) fn contents(
     actions: &mut Vec<InvAction>,
 ) {
     let layout = Layout::for_width(ui.available_width());
-    st.block = Some(Frame {
+    st.aurora = Some(Frame {
         layout,
         rights: prefs.rights,
         columns: prefs.explorer,
@@ -457,12 +457,12 @@ fn explorer_list(
         _ => toolbar::breadcrumb_row(ui, p, inv, st),
     }
     let list_id = ui.scope_id().with("block_inventory_list");
-    let Some(mut frame) = st.block else { return };
+    let Some(mut frame) = st.aurora else { return };
     frame.rights = prefs.rights;
     frame.columns = prefs.explorer;
     rows::header(ui, p, frame, list_id, &mut prefs.explorer);
     frame.columns = prefs.explorer;
-    st.block = Some(frame);
+    st.aurora = Some(frame);
     ui.add_space(2.0);
     let (root, filtered) = list_scope(inv, st, prefs, facts);
     let message = toolbar::message(p, st);
@@ -491,13 +491,13 @@ fn explorer_list(
         st.expand_all = None;
         let browse = st.browse;
         std::mem::swap(&mut st.plain, &mut st.flat);
-        if let Some(frame) = &mut st.block {
+        if let Some(frame) = &mut st.aurora {
             frame.explorer = true;
         }
         let out = in_rect(ui, list_rect, "block_inventory_list_room", |ui| {
             list(ui, p, icons, inv, st, prefs, facts, actions, list_h, browse, false, false)
         });
-        if let Some(frame) = &mut st.block {
+        if let Some(frame) = &mut st.aurora {
             frame.explorer = false;
         }
         std::mem::swap(&mut st.plain, &mut st.flat);
@@ -508,7 +508,7 @@ fn explorer_list(
         })
     };
     widgets::remember_scroll_bar(ui, list_id, &out);
-    let zone = ui.interact(out.inner_rect, ui.scope_id().with("block_list_zone"), Sense::hover());
+    let zone = ui.interact(out.inner_rect, ui.scope_id().with("aurora_list_zone"), Sense::hover());
     task_drop::target(ui, p, &zone, inv, target, actions);
     drag::target(ui, p, &zone, inv, target, st, prefs, facts, actions);
     in_rect(ui, foot, "block_inventory_foot", |ui| match layout {
@@ -797,7 +797,7 @@ mod tests {
         for width in [DEFAULT_SIZE.x, 800.0, WIDE_SIZE] {
             let mut h = Harness::new(width);
             h.frames(3);
-            let layout = h.st.block.map(|frame| frame.layout);
+            let layout = h.st.aurora.map(|frame| frame.layout);
             assert_eq!(layout, Some(Layout::for_width(width - 20.0)), "{width} px");
             let (object, other, folder) = (Uuid::from_u128(8100), Uuid::from_u128(8101), Uuid::from_u128(8000));
             for selection in [vec![], vec![object], vec![folder], vec![object, other]] {

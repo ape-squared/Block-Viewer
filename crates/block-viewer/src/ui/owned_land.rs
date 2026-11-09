@@ -43,7 +43,7 @@ pub fn show(ctx: &egui::Context, p: &Palette, world: &mut World, open: &mut bool
             let list = world.group_money.get(&Uuid::nil()).and_then(|g| g.parcels.as_ref());
             if let Some(list) = list {
                 let mut order: Vec<_> = list.iter().collect();
-                order.sort_by_cached_key(|v| crate::natural_order::key(&v.name));
+                order.sort_by_cached_key(|v| v.name.to_lowercase());
                 for parcel in order {
                     ui.horizontal(|ui| {
                         ui.vertical(|ui| {
@@ -96,10 +96,8 @@ pub fn show(ctx: &egui::Context, p: &Palette, world: &mut World, open: &mut bool
             }
         });
     });
-    // LLFloaterLandHoldings::buttonCore: trackLocation, then the map opens
-    // centred on the parcel ("center")
     if let Some((x, y)) = map_destination {
-        world.map.show_location(x, y, agent_z);
+        world.map.track_location(x, y, agent_z, false);
     }
     if refresh {
         world.group_money.request_owned_land();

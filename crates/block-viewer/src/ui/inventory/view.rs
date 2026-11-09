@@ -6,7 +6,6 @@
 
 use super::smart::{Field as SmartField, Matcher, Subject};
 use super::{Facts, Inventory, folder_name, rules};
-use crate::natural_order::cmp_folded;
 use rayon::prelude::*;
 use serde::{Deserialize, Serialize};
 use std::cmp::Ordering;
@@ -89,7 +88,7 @@ fn received_filing_view_pins_marketplace_and_scopes_sender_search_without_server
         InvFolder {
             id: base,
             parent: inv.root,
-            name: "#Aurora".into(),
+            name: "#Block".into(),
             type_default: -1,
             ..Default::default()
         },
@@ -254,7 +253,7 @@ pub fn picker_order(ctx: &egui::Context, inv: &Inventory) -> std::sync::Arc<Pick
 }
 
 pub fn picker_name_cmp(a: &str, b: &str) -> Ordering {
-    cmp_folded(&a.to_lowercase(), &b.to_lowercase())
+    natural_cmp(&a.to_lowercase(), &b.to_lowercase())
 }
 
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Serialize, Deserialize)]
@@ -353,7 +352,6 @@ pub struct InventoryPreferences {
     pub show_recent: bool,
     pub show_worn: bool,
     pub show_favorites: bool,
-    pub show_hover_tooltips: bool,
     pub thumbnail_tooltips: bool,
     pub separate_searches: bool,
     pub double_click_add_objects: bool,
@@ -404,8 +402,6 @@ impl Default for InventoryPreferences {
             show_recent: true,
             show_worn: true,
             show_favorites: true,
-            // off until a better hover card replaces it
-            show_hover_tooltips: false,
             thumbnail_tooltips: true,
             separate_searches: false,
             double_click_add_objects: false,
@@ -559,9 +555,6 @@ pub struct ViewCache {
     built: u64,
     query: Option<Query>,
     pub results: Vec<Uuid>,
-    /// With Always show folders, the folders that hold a matching item: the
-    /// others it lists start closed (`TreeState::prepare`).
-    holding: Option<IdSet>,
 }
 
 impl ViewCache {
@@ -960,22 +953,6 @@ impl ViewCache {
                 parent = next;
             }
         }
-        // Always show folders lists every folder: like LLOpenFilteredFolders
-        // (indra/newview/llinventoryfunctions.cpp), a folder with no matching
-        // item below it is shown closed, the folders of the matches open.
-        // Advanced search keeps its own folder rules.
-        self.holding = (filters.always_folders && smart.is_none()).then(|| {
-            let mut holding = IdSet::default();
-            for id in self.results.iter().filter(|id| !self.folders.contains(*id)) {
-                let mut parent = rules::parent(inv, *id);
-                while let Some(folder) = parent
-                    && holding.insert(folder)
-                {
-                    parent = rules::parent(inv, folder);
-                }
-            }
-            holding
-        });
         self.result_children.clear();
         for (parent, children) in &self.children {
             let children: Vec<_> = children.iter().filter(|id| included.contains(id)).copied().collect();
@@ -1030,10 +1007,6 @@ pub struct TreeRow {
 pub struct TreeState {
     key: Option<(u64, Uuid, usize, bool)>,
     closed: [HashSet<Uuid>; 5],
-    /// The folders listed so far with Always show folders, and those of them
-    /// closed because no matching item was below them.
-    seen: [HashSet<Uuid>; 5],
-    hollow_closed: [HashSet<Uuid>; 5],
     pub rows: Vec<TreeRow>,
     pub order: Vec<Uuid>,
 }
@@ -1064,21 +1037,6 @@ impl TreeState {
                 continue;
             }
             let folder = view.folders.contains(&id);
-            // A folder with no matching item starts closed when first listed;
-            // closed that way, it opens once a match lands in it.
-            if folder
-                && id != root
-                && let Some(holding) = &view.holding
-            {
-                let hollow = !holding.contains(&id);
-                if self.seen[tab].insert(id) {
-                    if hollow && self.closed[tab].insert(id) {
-                        self.hollow_closed[tab].insert(id);
-                    }
-                } else if !hollow && self.hollow_closed[tab].remove(&id) {
-                    self.closed[tab].remove(&id);
-                }
-            }
             let open = folder && !self.closed[tab].contains(&id);
             if id != root || show_root {
                 self.rows.push(TreeRow { id, depth, folder, open });
@@ -1135,8 +1093,6 @@ impl TreeState {
     }
 
     pub fn set_all(&mut self, view: &ViewCache, root: Uuid, tab: usize, open: bool) {
-        // Expand all or Collapse all is the user's choice for every folder.
-        self.hollow_closed[tab.min(4)].clear();
         let closed = &mut self.closed[tab.min(4)];
         closed.clear();
         if !open {
@@ -1215,7 +1171,7 @@ fn compare(a: &Entry, b: &Entry, sort: Sort) -> Ordering {
     // including in date order, as for Firestorm's support folder. #RLV
     // joins them like the Legacy Viewer's FT_RLV (LLFolderBridge::getSortGroup
     // with FSSortFSFoldersToTop, llinventorybridge.cpp).
-    let support = |e: &Entry| e.folder && !e.library && matches!(e.name.as_str(), "#aurora" | "#firestorm" | "#rlv");
+    let support = |e: &Entry| e.folder && !e.library && matches!(e.name.as_str(), "#block" | "#aurora" | "#firestorm" | "#rlv");
     let pinned = support(b).cmp(&support(a));
     if pinned != Ordering::Equal {
         return pinned;
@@ -1234,12 +1190,47 @@ fn compare(a: &Entry, b: &Entry, sort: Sort) -> Ordering {
     groups
         .then_with(|| {
             if by_name {
-                cmp_folded(&a.name, &b.name).then_with(|| b.date.cmp(&a.date))
+                natural_cmp(&a.name, &b.name).then_with(|| b.date.cmp(&a.date))
             } else {
-                b.date.cmp(&a.date).then_with(|| cmp_folded(&a.name, &b.name))
+                b.date.cmp(&a.date).then_with(|| natural_cmp(&a.name, &b.name))
             }
         })
         .then_with(|| a.id.cmp(&b.id))
+}
+
+/// Dictionary order: numeric runs compare numerically ("2" before "10").
+fn natural_cmp(a: &str, b: &str) -> Ordering {
+    let (mut a, mut b) = (a.as_bytes(), b.as_bytes());
+    while let (Some(&x), Some(&y)) = (a.first(), b.first()) {
+        if x.is_ascii_digit() && y.is_ascii_digit() {
+            let (an, bn) = (
+                a.iter().take_while(|c| c.is_ascii_digit()).count(),
+                b.iter().take_while(|c| c.is_ascii_digit()).count(),
+            );
+            let (av, bv) = (&a[..an], &b[..bn]);
+            let (az, bz) = (
+                av.iter().take_while(|c| **c == b'0').count(),
+                bv.iter().take_while(|c| **c == b'0').count(),
+            );
+            let order = (an - az)
+                .cmp(&(bn - bz))
+                .then_with(|| av[az..].cmp(&bv[bz..]))
+                .then_with(|| an.cmp(&bn));
+            if order != Ordering::Equal {
+                return order;
+            }
+            a = &a[an..];
+            b = &b[bn..];
+        } else {
+            let order = x.cmp(&y);
+            if order != Ordering::Equal {
+                return order;
+            }
+            a = &a[1..];
+            b = &b[1..];
+        }
+    }
+    a.len().cmp(&b.len())
 }
 
 fn matches_text(value: &str, query: &str) -> bool {
@@ -1515,7 +1506,7 @@ mod tests {
         let ctx = egui::Context::default();
         let (mut inv, _) = fixture();
         let root = inv.root;
-        folder(&mut inv, 30, root, -1, "#Aurora");
+        folder(&mut inv, 30, root, -1, "#Block");
         folder(&mut inv, 31, id(2), -1, "Folder 10");
         folder(&mut inv, 32, id(2), -1, "folder 2");
         inv.add_items(vec![
@@ -1566,7 +1557,7 @@ mod tests {
     fn viewer_support_folders_stay_above_system_folders_with_every_sort() {
         let (mut inv, _) = fixture();
         let root = inv.root;
-        folder(&mut inv, 30, root, -1, "#Aurora");
+        folder(&mut inv, 30, root, -1, "#Block");
         folder(&mut inv, 31, root, -1, "#Firestorm");
         folder(&mut inv, 32, root, -1, "#RLV");
         for by_date in [false, true] {
@@ -1620,7 +1611,7 @@ mod tests {
         cache.prepare(&inv, prefs.sort);
         let root = cache.children(inv.root, &prefs, inv.lib_root);
         assert!(root.iter().position(|n| *n == id(6)) < root.iter().position(|n| *n == id(2)));
-        assert!(cmp_folded("folder 2", "folder 10").is_lt());
+        assert!(natural_cmp("folder 2", "folder 10").is_lt());
     }
 
     #[test]
@@ -1768,7 +1759,7 @@ mod tests {
 
     #[test]
     fn recent_and_worn_use_real_folders_and_separate_collapse_states() {
-        let (mut inv, mut facts) = fixture();
+        let (inv, mut facts) = fixture();
         let prefs = InventoryPreferences {
             last_logout: 200,
             ..Default::default()
@@ -1781,84 +1772,11 @@ mod tests {
         tree.toggle(id(2), 2);
         tree.prepare(&view, inv.root, 2, true);
         assert_eq!(tree.order, [id(1), id(2)]);
-        inv.generation += 1;
-        view.search(&inv, inv.root, "", &prefs, &Filters::default(), 2, None, &facts, facts.agent, 1000);
-        tree.prepare(&view, inv.root, 2, true);
-        assert_eq!(tree.order, [id(1), id(2)], "a Recent refresh keeps the user's collapse");
         facts.worn.insert(id(10));
         view.search(&inv, inv.root, "", &prefs, &Filters::default(), 3, None, &facts, facts.agent, 1000);
         tree.prepare(&view, inv.root, 3, true);
         assert_eq!(tree.order, [id(1), id(2), id(10)]);
         assert!(!tree.rows.last().unwrap().folder);
-
-        inv.items.get_mut(&id(11)).expect("favorite item").favorite = true;
-        inv.generation += 1;
-        view.search(&inv, inv.root, "", &prefs, &Filters::default(), 4, None, &facts, facts.agent, 1000);
-        tree.prepare(&view, inv.root, 4, true);
-        assert_eq!(
-            tree.order,
-            [id(1), id(2), id(11)],
-            "Favorites shows only the favorite item's ancestors"
-        );
-        tree.toggle(id(2), 4);
-        tree.prepare(&view, inv.root, 4, true);
-        assert_eq!(tree.order, [id(1), id(2)]);
-        inv.generation += 1;
-        view.search(&inv, inv.root, "", &prefs, &Filters::default(), 4, None, &facts, facts.agent, 1000);
-        tree.prepare(&view, inv.root, 4, true);
-        assert_eq!(tree.order, [id(1), id(2)], "a Favorites refresh keeps the user's collapse");
-    }
-
-    /// Recent with Always show folders (#2853): every folder is listed, only
-    /// those holding a recent item open, as LLOpenFilteredFolders leaves them.
-    #[test]
-    fn always_show_folders_opens_only_the_folders_of_the_matches() {
-        let (mut inv, facts) = fixture();
-        folder(&mut inv, 7, id(4), -1, "Inner");
-        let prefs = InventoryPreferences {
-            last_logout: 200,
-            ..Default::default()
-        };
-        let filters = Filters {
-            always_folders: true,
-            ..Default::default()
-        };
-        let mut view = ViewCache::default();
-        let mut tree = TreeState::default();
-        let open = |tree: &TreeState, n: u128| tree.rows.iter().find(|row| row.id == id(n)).map(|row| row.open);
-        view.search(&inv, inv.root, "", &prefs, &filters, 2, None, &facts, facts.agent, 1000);
-        tree.prepare(&view, inv.root, 2, true);
-        assert_eq!(open(&tree, 2), Some(true), "the folder of the recent item");
-        assert!(tree.order.contains(&id(11)));
-        assert_eq!(open(&tree, 4), Some(false), "a folder without recent items is listed closed");
-        assert_eq!(open(&tree, 7), None, "its folders wait for it to open");
-
-        // a recent item lands in it: it opens; its own empty folder stays closed
-        inv.add_items(vec![item(13, id(4), "New gift", 900)]);
-        view.search(&inv, inv.root, "", &prefs, &filters, 2, None, &facts, facts.agent, 1000);
-        tree.prepare(&view, inv.root, 2, true);
-        assert_eq!(open(&tree, 4), Some(true));
-        assert!(tree.order.contains(&id(13)));
-        assert_eq!(open(&tree, 7), Some(false));
-
-        // what the user closes stays closed through a refresh
-        tree.toggle(id(2), 2);
-        inv.generation += 1;
-        view.search(&inv, inv.root, "", &prefs, &filters, 2, None, &facts, facts.agent, 1000);
-        tree.prepare(&view, inv.root, 2, true);
-        assert_eq!(open(&tree, 2), Some(false));
-        // Expand all opens everything, Inner included
-        tree.set_all(&view, inv.root, 2, true);
-        tree.prepare(&view, inv.root, 2, true);
-        assert_eq!((open(&tree, 2), open(&tree, 7)), (Some(true), Some(true)));
-
-        // without the option, nothing changes: only the folders of the matches
-        let mut view = ViewCache::default();
-        let mut tree = TreeState::default();
-        view.search(&inv, inv.root, "", &prefs, &Filters::default(), 2, None, &facts, facts.agent, 1000);
-        tree.prepare(&view, inv.root, 2, true);
-        assert!(tree.rows.iter().all(|row| !row.folder || row.open));
-        assert_eq!(open(&tree, 7), None);
     }
 
     #[test]

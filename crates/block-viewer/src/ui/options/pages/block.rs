@@ -233,6 +233,11 @@ pub fn page(cx: &mut Cx, tab: usize) {
                 classic,
                 &field!(classic_inventory),
             );
+            cx.toggle(
+                tr!("ui-options-auto-group-region"),
+                tr!("ui-options-auto-group-region-help"),
+                &field!(auto_group_by_region),
+            );
             look(
                 cx,
                 tr!("ui-options-block-build"),
@@ -340,32 +345,37 @@ pub fn page(cx: &mut Cx, tab: usize) {
         _ => {
             cx.group(tr!("ui-options-block-building"), |cx| {
                 cx.wide().choice(
-                    tr!("ui-options-block-move-hologram"),
-                    tr!("ui-options-block-move-hologram-help"),
+                    tr!("ui-options-aurora-move-hologram"),
+                    tr!("ui-options-aurora-move-hologram-help"),
                     &field!(build.move_hologram),
                     &[
-                        (MoveHologram::Off, tr!("ui-options-block-move-hologram-off"), false),
-                        (MoveHologram::Moving, tr!("ui-options-block-move-hologram-moving"), true),
-                        (MoveHologram::Start, tr!("ui-options-block-move-hologram-start"), true),
+                        (MoveHologram::Off, tr!("ui-options-aurora-move-hologram-off"), false),
+                        (MoveHologram::Moving, tr!("ui-options-aurora-move-hologram-moving"), true),
+                        (MoveHologram::Start, tr!("ui-options-aurora-move-hologram-start"), true),
                     ],
+                );
+                cx.toggle(
+                    tr!("ui-options-live-decor"),
+                    tr!("ui-options-live-decor-help"),
+                    &field!(build.live_decor),
                 );
             });
             cx.group(tr!("ui-options-block-bridge"), |cx| {
                 cx.toggle(
-                    tr!("ui-options-block-use-bridge"),
-                    tr!("ui-options-block-use-bridge-help"),
+                    tr!("ui-options-aurora-use-bridge"),
+                    tr!("ui-options-aurora-use-bridge-help"),
                     &field!(use_bridge),
                 );
                 use crate::world::portals::Sources;
                 cx.combo(
-                    tr!("ui-options-block-portal-sources"),
-                    tr!("ui-options-block-portal-sources-help"),
+                    tr!("ui-options-aurora-portal-sources"),
+                    tr!("ui-options-aurora-portal-sources-help"),
                     &field!(portal_sources),
                     &[
-                        (Sources::Friends, tr!("ui-options-block-portal-sources-friends")),
-                        (Sources::FriendsAndGroups, tr!("ui-options-block-portal-sources-groups")),
-                        (Sources::Everyone, tr!("ui-options-block-portal-sources-everyone")),
-                        (Sources::Nobody, tr!("ui-options-block-portal-sources-nobody")),
+                        (Sources::Friends, tr!("ui-options-aurora-portal-sources-friends")),
+                        (Sources::FriendsAndGroups, tr!("ui-options-aurora-portal-sources-groups")),
+                        (Sources::Everyone, tr!("ui-options-aurora-portal-sources-everyone")),
+                        (Sources::Nobody, tr!("ui-options-aurora-portal-sources-nobody")),
                     ],
                 );
             });
@@ -508,8 +518,8 @@ mod tests {
         assert!(!s.classic_search && !fresh.classic_search, "the Aurora Search is the default");
         assert!(!s.classic_region_estate && !fresh.classic_region_estate);
         assert!(
-            !s.classic_inventory && !fresh.classic_inventory,
-            "the Aurora inventory is the default"
+            !s.classic_inventory && fresh.classic_inventory,
+            "Block defaults to the Legacy inventory tree; Aurora look turns it off"
         );
         assert!(!s.classic_places && !fresh.classic_places, "Aurora's Places is the default");
         assert!(!s.build.legacy_window && !fresh.build.legacy_window);

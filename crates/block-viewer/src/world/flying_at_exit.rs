@@ -48,7 +48,7 @@ mod tests {
 
     #[test]
     fn the_flight_at_logout_comes_back_for_the_same_account_only() {
-        let root = std::env::temp_dir().join(format!("aurora-flying-{}", uuid::Uuid::new_v4()));
+        let root = std::env::temp_dir().join(format!("block-flying-{}", uuid::Uuid::new_v4()));
         let first = root.join("first").join(FILE);
         let second = root.join("second").join(FILE);
         // nothing saved yet: walking

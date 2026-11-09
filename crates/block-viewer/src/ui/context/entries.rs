@@ -273,7 +273,8 @@ fn object_menu(ui: &mut Builder, f: &Facts, key: ObjKey, id: Uuid, offset: Vec3,
             ui.item_if(icon, label, o.scripts, CtxAction::Scripts { id, action });
         }
     });
-    ui.item("zoom-in-filled", block_i18n::tr!("common-zoom-2"), CtxAction::Zoom(point, None));
+    // Pass the object so TrackFocusObject can follow it (Legacy Zoom).
+    ui.item("zoom-in-filled", block_i18n::tr!("common-zoom-2"), CtxAction::Zoom(point, Some(id)));
     ui.item(
         "list-details-filled",
         block_i18n::tr!("ui-context-show-in-region-objects"),
@@ -635,6 +636,13 @@ fn avatar_navigation(ui: &mut Builder, f: &Facts, id: Uuid) {
         (block_i18n::tr!("common-follow"), CtxAction::FollowAvatar(id))
     };
     ui.item_if("current-location-filled", label, f.avatar_travel || f.following, action);
+    // Legacy Avatar.TeleportToAvatar — beside Go to / Follow.
+    ui.item_if(
+        "location-filled",
+        block_i18n::tr!("common-teleport-to"),
+        f.avatar_travel,
+        CtxAction::TeleportToAvatar(id),
+    );
 }
 
 fn sound_block_items(ui: &mut Builder, f: &Facts, owner: Uuid) {
@@ -698,6 +706,12 @@ fn avatar_social_items(ui: &mut Builder, f: &Facts, id: Uuid) {
         block_i18n::tr!("common-offer-teleport"),
         CtxAction::OfferTeleport(id),
     );
+    // Legacy menu_avatar_other.xml Avatar.RequestTeleport — keep beside Offer TP.
+    ui.item(
+        "plane-arrival-filled",
+        block_i18n::tr!("common-request-teleport"),
+        CtxAction::RequestTeleport(id),
+    );
 }
 
 fn avatar_menu(ui: &mut Builder, f: &Facts, id: Uuid, point: Vec3) {
@@ -718,6 +732,8 @@ fn avatar_groups(ui: &mut Builder, f: &Facts, id: Uuid, attachment: Option<Uuid>
         CtxAction::LookAtAvatar(id),
     );
     ui.item("zoom-in-filled", block_i18n::tr!("common-zoom-2"), CtxAction::Zoom(point, Some(id)));
+    // Local photo Poser: Ask / Pose through the subject consent flow.
+    ui.item("wand", block_i18n::tr!("ui-context-pose-avatar"), CtxAction::PoseAvatar(id));
     ui.item("coin-filled", block_i18n::tr!("common-pay"), CtxAction::PayResident(id));
     ui.separator();
     if let Some(object) = attachment {
@@ -1081,8 +1097,8 @@ fn reset_skeleton_items(ui: &mut Builder, avatar: Uuid) {
 
 fn community_submenu(ui: &mut Builder, me: Uuid) {
     ui.submenu("users-group", block_i18n::tr!("ui-context-community"), true, |ui| {
-        ui.item("users", block_i18n::tr!("common-friends"), CtxAction::OpenPeople(1));
-        ui.item("users-group", block_i18n::tr!("common-groups"), CtxAction::OpenPeople(2));
+        ui.item("users", block_i18n::tr!("common-friends"), CtxAction::OpenPeople(1, None));
+        ui.item("users-group", block_i18n::tr!("common-groups"), CtxAction::OpenPeople(2, None));
         ui.item("user-filled", block_i18n::tr!("common-profile"), CtxAction::Profile(me));
         ui.item("id-filled", block_i18n::tr!("ui-context-display-name"), CtxAction::DisplayName);
     });
@@ -1431,6 +1447,7 @@ mod tests {
                 "common-view-profile",
                 "ui-context-go-to-avatar",
                 "common-follow",
+                "common-teleport-to",
                 "common-become-friends",
                 "ui-context-add-to-contact-set>",
                 "ui-context-send-im",
@@ -1438,6 +1455,7 @@ mod tests {
                 "common-voice-call",
                 "ui-context-invite-to-group",
                 "common-offer-teleport",
+                "common-request-teleport",
                 "-",
                 "common-look-toward-avatar",
                 "common-zoom-2",

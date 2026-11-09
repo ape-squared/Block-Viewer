@@ -1,7 +1,5 @@
-//! AURORA_DEMO_ARRIVAL=<folder>[,net=<ms>][,bw=<Mb/s>][,n=<objects>][,turn=<s>][,avatars=<n>][,worn=<m>][,pbr=1][,meshfail=<s>]:
+//! AURORA_DEMO_ARRIVAL=<folder>[,net=<ms>][,bw=<Mb/s>][,n=<objects>][,turn=<s>][,avatars=<n>][,worn=<m>][,pbr=1]:
 //! an arrival in a busy region, to measure what the loading shows first.
-//! With `meshfail`, the server refuses mesh requests (403) for that many
-//! seconds, to see the meshes come back after their downloads failed.
 //!
 //! `n` objects (1,200 by default) arrive all around our avatar, the nearest
 //! first and about 600 a second as a simulator sends them, from 3 to 120 m
@@ -172,8 +170,6 @@ pub struct ArrivalDemo {
     worn: u32,
     /// `pbr=1`: PBR materials on one object in twelve.
     pbr: bool,
-    /// `meshfail=`: seconds during which the server refuses mesh requests.
-    mesh_outage: Option<Duration>,
     files: Arc<OnceLock<Files>>,
     armed: Option<Instant>,
     run: Option<Run>,
@@ -248,7 +244,6 @@ impl ArrivalDemo {
             avatars,
             worn,
             pbr,
-            mesh_outage: option::<f32>(&value, "meshfail").map(|s| Duration::from_secs_f32(s.max(0.0))),
             files,
             armed: None,
             run: None,
@@ -300,7 +295,7 @@ impl ArrivalDemo {
                 Some(path)
             })
         };
-        let link = super::asset_server::Link::refusing_meshes(self.delay, self.mbps, self.mesh_outage);
+        let link = super::asset_server::Link::new(self.delay, self.mbps);
         let url = match super::asset_server::start_assets(resolve, link.clone()) {
             Ok(url) => url,
             Err(e) => {

@@ -34,7 +34,7 @@ if (Test-Path $local) {
 $repo = 'Aurora-Viewer/Aurora-Viewer'
 $commit = (Invoke-RestMethod "https://api.github.com/repos/$repo/commits/main").sha
 if ($commit -notmatch '^[0-9a-f]{40}$') { throw "Could not read the commit of main ($commit)." }
-$dir = Join-Path $env:TEMP 'block-tools'
+$dir = Join-Path $env:TEMP 'aurora-tools'
 if (Test-Path $dir) { Remove-Item -LiteralPath $dir -Recurse -Force }
 New-Item -ItemType Directory -Path $dir | Out-Null
 Write-Host "Downloading the Aurora tools ($($commit.Substring(0, 9)))…"

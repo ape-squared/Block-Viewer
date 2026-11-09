@@ -168,7 +168,7 @@ mod tests {
 
     #[test]
     fn imports_list_read_and_remove_tables() {
-        let root = std::env::temp_dir().join(format!("aurora-luts-{}", std::process::id()));
+        let root = std::env::temp_dir().join(format!("block-luts-{}", std::process::id()));
         let _ = std::fs::remove_dir_all(&root);
         let dir = root.join("photo-luts");
         std::fs::create_dir_all(&root).expect("temp");

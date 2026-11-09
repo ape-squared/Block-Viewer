@@ -215,8 +215,8 @@ fn bluesky_and_x_posts_are_recognized() {
         )))
     };
     assert_eq!(
-        step("https://bsky.app/profile/aurora-demo.bsky.social/post/3demopost2abc"),
-        thread("aurora-demo.bsky.social", "3demopost2abc")
+        step("https://bsky.app/profile/block-demo.bsky.social/post/3demopost2abc"),
+        thread("block-demo.bsky.social", "3demopost2abc")
     );
     assert_eq!(
         step("https://bsky.app/profile/did:plc:auroraexampledemo2345abcd/post/3demopost2abc?ref=share"),
@@ -237,12 +237,12 @@ fn bluesky_and_x_posts_are_recognized() {
         assert_eq!(step(url), post, "{url}");
     }
     for url in [
-        "https://bsky.app/profile/aurora-demo.bsky.social",
-        "https://bsky.app/profile/aurora-demo.bsky.social/post/",
-        "https://bsky.app/profile/aurora-demo.bsky.social/feed/whats-hot",
+        "https://bsky.app/profile/block-demo.bsky.social",
+        "https://bsky.app/profile/block-demo.bsky.social/post/",
+        "https://bsky.app/profile/block-demo.bsky.social/feed/whats-hot",
         "https://bsky.app/profile/not a handle/post/3demopost2abc",
         "https://bsky.app/profile/nodot/post/3demopost2abc",
-        "https://bsky.app/profile/aurora-demo.bsky.social/post/..",
+        "https://bsky.app/profile/block-demo.bsky.social/post/..",
         "https://x.com/AuroraDemo",
         "https://x.com/AuroraDemo/status/",
         "https://x.com/AuroraDemo/status/12a4",
@@ -325,7 +325,7 @@ fn the_demo_s_links_use_the_saved_answers() {
         Some(("https://i.gyazo.com/0a1b2c3d4e5f60718293a4b5c6d7e8f9.png".into(), false))
     );
     assert_eq!(
-        demo_source("https://bsky.app/profile/aurora-demo.bsky.social/post/3demolabelled").map(|p| p.1),
+        demo_source("https://bsky.app/profile/block-demo.bsky.social/post/3demolabelled").map(|p| p.1),
         Some(true)
     );
     assert_eq!(

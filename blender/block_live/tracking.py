@@ -22,7 +22,7 @@ def valid(scene, obj):
 
 
 def prune(scene):
-    prefs = scene.block_live
+    prefs = scene.aurora_live
     missing = [index for index, entry in enumerate(prefs.objects) if not valid(scene, entry.object)]
     for index in reversed(missing):
         prefs.objects.remove(index)
@@ -33,14 +33,14 @@ def prune(scene):
 
 
 def active(scene):
-    return [entry.object for entry in scene.block_live.objects if entry.enabled and valid(scene, entry.object)]
+    return [entry.object for entry in scene.aurora_live.objects if entry.enabled and valid(scene, entry.object)]
 
 
 def source_ids(scene):
     """Persistent entry identities survive renaming, saving and list reordering."""
     result = {}
     seen = set()
-    for entry in scene.block_live.objects:
+    for entry in scene.aurora_live.objects:
         if not valid(scene, entry.object):
             continue
         try:
@@ -61,7 +61,7 @@ def is_static(scene, obj):
 
 def normalize_groups(scene):
     groups, repaired = {}, False
-    for entry in scene.block_live.objects:
+    for entry in scene.aurora_live.objects:
         if entry.group_id:
             if is_static(scene, entry.object):
                 groups.setdefault(entry.group_id, []).append(entry)
@@ -82,12 +82,12 @@ def normalize_groups(scene):
 
 def link_roots(scene):
     groups = {}
-    for entry in scene.block_live.objects:
+    for entry in scene.aurora_live.objects:
         if entry.group_id and is_static(scene, entry.object):
             if entry.group_id not in groups or entry.group_root:
                 groups[entry.group_id] = entry.object
     result = {}
-    for entry in scene.block_live.objects:
+    for entry in scene.aurora_live.objects:
         if not is_static(scene, entry.object):
             continue
         root = groups.get(entry.group_id)
@@ -99,11 +99,11 @@ def link_roots(scene):
 def signature(scene):
     # RNA update callbacks are not replayed by Undo/Redo.
     return tuple((entry.object.as_pointer(), entry.group_id, entry.group_root, entry.independent)
-                 for entry in scene.block_live.objects if valid(scene, entry.object))
+                 for entry in scene.aurora_live.objects if valid(scene, entry.object))
 
 
 def rows(scene):
-    entries = scene.block_live.objects
+    entries = scene.aurora_live.objects
     objects = [entry.object for entry in entries if valid(scene, entry.object)]
     roots = exporter.static_roots(objects, link_roots(scene))
     indices = {entry.object.as_pointer(): index for index, entry in enumerate(entries) if valid(scene, entry.object)}
@@ -122,18 +122,18 @@ def rows(scene):
 def families(scene):
     result = {}
     for index, root, _number, _count in rows(scene):
-        entry = scene.block_live.objects[index]
+        entry = scene.aurora_live.objects[index]
         if is_static(scene, entry.object):
             result.setdefault(root, []).append(entry)
     return list(result.values())
 
 
 def marked(scene):
-    return [entry for entry in scene.block_live.objects if entry.marked and is_static(scene, entry.object)]
+    return [entry for entry in scene.aurora_live.objects if entry.marked and is_static(scene, entry.object)]
 
 
 def select_entry(scene, index, extend=False, range_select=False):
-    prefs = scene.block_live
+    prefs = scene.aurora_live
     if not 0 <= index < len(prefs.objects) or not valid(scene, prefs.objects[index].object):
         return False
     source_ids(scene)
@@ -185,7 +185,7 @@ def ungroup(scene, entries, whole_roots=False):
         for family in current:
             if family[0].object.as_pointer() in selected:
                 selected.update(entry.object.as_pointer() for entry in family)
-        entries = [entry for entry in scene.block_live.objects if is_static(scene, entry.object)
+        entries = [entry for entry in scene.aurora_live.objects if is_static(scene, entry.object)
                    and entry.object.as_pointer() in selected]
     for family in current:
         remaining = [entry for entry in family if entry.object.as_pointer() not in selected]
@@ -198,7 +198,7 @@ def ungroup(scene, entries, whole_roots=False):
 
 def add(scene, objects, root=None):
     prune(scene)
-    prefs = scene.block_live
+    prefs = scene.aurora_live
     objects = [obj for obj in objects if valid(scene, obj)]
     seen = {entry.object.as_pointer() for entry in prefs.objects}
     added = 0
@@ -241,7 +241,7 @@ class AURORA_PG_sync_object(bpy.types.PropertyGroup):
     marked: BoolProperty(default=False, options={"HIDDEN", "SKIP_SAVE"})
     name: StringProperty(get=lambda self: self.object.name if self.object else "")
     enabled: BoolProperty(name="Synchronize", default=True, update=changed,
-                          description="Include this object in Aurora's live preview")
+                          description="Include this object in Block Viewer's live preview")
 
 
 class AURORA_OT_selection(bpy.types.Operator):
@@ -260,7 +260,7 @@ class AURORA_OT_selection(bpy.types.Operator):
 
 
 def focused(context):
-    prefs = context.scene.block_live
+    prefs = context.scene.aurora_live
     if 0 <= prefs.object_index < len(prefs.objects):
         entry = prefs.objects[prefs.object_index]
         if is_static(context.scene, entry.object):
@@ -335,12 +335,12 @@ class AURORA_OT_root(bpy.types.Operator):
 class AURORA_OT_remove(bpy.types.Operator):
     bl_idname = "aurora.live_remove"
     bl_label = "Remove from synchronization"
-    bl_description = "Remove this entry from Aurora's preview list; keep the Blender object"
+    bl_description = "Remove this entry from Block Viewer's preview list; keep the Blender object"
     bl_options = {"REGISTER", "UNDO"}
     index: IntProperty(default=0, min=0)
 
     def execute(self, context):
-        prefs = context.scene.block_live
+        prefs = context.scene.aurora_live
         if self.index >= len(prefs.objects):
             return {"CANCELLED"}
         entry = prefs.objects[self.index]
@@ -376,7 +376,7 @@ class AURORA_OT_sync_error(bpy.types.Operator):
 
     def invoke(self, context, _event):
         if self.index >= 0:
-            entries = context.scene.block_live.objects
+            entries = context.scene.aurora_live.objects
             if self.index >= len(entries) or not entries[self.index].error:
                 return {"CANCELLED"}
             entry = entries[self.index]

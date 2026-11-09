@@ -170,6 +170,31 @@ impl Editor {
     pub fn select_pose_subject(&mut self, world: &World, id: Uuid) {
         self.pick_subject(world, id);
     }
+    /// Context-menu Pose: open the window, pick when consent is already
+    /// granted, otherwise queue Ask when the query bridge is Ready.
+    /// Returns an i18n key when Ask cannot be sent (caller shows a toast).
+    pub fn pose_avatar_from_menu(&mut self, world: &World, id: Uuid) -> Option<&'static str> {
+        self.open_poser();
+        if id == world.agent_id || world.poser_consent.can_pose(world, id) {
+            self.pick_subject(world, id);
+            return None;
+        }
+        if !crate::world::poser_consent::nearby(world, id) {
+            return Some("poser-consent-too-far");
+        }
+        if self.poser.bridge != crate::world::bridge::QueryState::Ready {
+            return Some(match self.poser.bridge {
+                crate::world::bridge::QueryState::Starting => "poser-bridge-starting",
+                crate::world::bridge::QueryState::Silent => "poser-bridge-silent",
+                crate::world::bridge::QueryState::Failed => "poser-bridge-failed",
+                crate::world::bridge::QueryState::Detached => "poser-bridge-needed",
+                crate::world::bridge::QueryState::Off => "poser-bridge-disabled",
+                crate::world::bridge::QueryState::Ready => unreachable!(),
+            });
+        }
+        self.poser.requests.push(Request::Ask(id));
+        None
+    }
     pub fn sync_poser_settings(&mut self, config: &mut Config) -> bool {
         if !self.poser.active && !self.poser.settings_loaded {
             return false;

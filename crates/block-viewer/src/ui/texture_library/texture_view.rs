@@ -456,7 +456,7 @@ mod tests {
             rgba: (0..19 * 7).flat_map(|index| [index as u8, 103, 219, (index * 7) as u8]).collect(),
         };
         for (extension, format) in [("png", image::ImageFormat::Png), ("tga", image::ImageFormat::Tga)] {
-            let path = std::env::temp_dir().join(format!("aurora-texture-export-{}.{extension}", Uuid::new_v4()));
+            let path = std::env::temp_dir().join(format!("block-texture-export-{}.{extension}", Uuid::new_v4()));
             write_batch(&path, &pixels, format).expect("new export");
             let decoded = image::open(&path).expect("exported texture").into_rgba8();
             assert_eq!(decoded.dimensions(), (19, 7));

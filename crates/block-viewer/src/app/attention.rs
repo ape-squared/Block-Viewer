@@ -196,6 +196,26 @@ impl App {
             .show(crate::system_notify::Toast { id, title, body });
     }
 
+    /// Legacy FSAnnounceIncomingIM window title: show the sender until the
+    /// window is in front again, then restore the normal title.
+    fn sync_incoming_im_title(&mut self) {
+        let Some(g) = &self.gfx else {
+            return;
+        };
+        let in_front = window_in_front(&g.window);
+        if in_front {
+            if self.world.incoming_im_title.take().is_some() {
+                g.window.set_title(&crate::cli::window_title());
+            }
+            return;
+        }
+        if let Some(name) = self.world.incoming_im_title.as_ref() {
+            let base = crate::cli::window_title();
+            let notice = block_i18n::tr!("ui-im-announce-incoming", name = name.clone());
+            g.window.set_title(&format!("{base} — {notice}"));
+        }
+    }
+
     /// Between frames, the window at hand (the frame holds it): whether it
     /// is in front, the flash asked for, and the clicks on the notifications.
     pub(super) fn attention_window(&mut self) {
@@ -203,6 +223,7 @@ impl App {
             self.attention.behind = !window_in_front(&g.window);
         }
         self.unread_title();
+        self.sync_incoming_im_title();
         if std::mem::take(&mut self.attention.flash)
             && let Some(g) = &self.gfx
         {
@@ -242,10 +263,6 @@ impl App {
         if self.busy_pause.paused() {
             want = block_i18n::tr!("busy-pause-window-title", title = want.as_str());
         }
-        // (the render targets waiting for video memory)
-        if self.last_render.video_memory_full {
-            want = block_i18n::tr!("video-memory-full-window-title", title = want.as_str());
-        }
         if *shown != want {
             g.window.set_title(&want);
             *shown = want;
@@ -278,7 +295,6 @@ impl App {
                     }
                     self.world.social.session_mut(session);
                     self.world.social.focus_im = Some(session);
-                    self.chat_ui.conv_focus_request = true;
                     crate::ui::notifications::open_conversations(&self.egui_ctx, &mut self.panels.chat);
                 }
                 Some(Open::NearbyChat) => {

@@ -14,12 +14,12 @@ use egui::{Color32, FontId, Galley, Mesh, Pos2, Rect, Shape, Vec2};
 use std::sync::Arc;
 
 /// Opacity of the plate's tint over the blurred world, and of the far pill's.
-const TINT_GLASS: (f32, f32) = (0.52, 0.42);
+const TINT_GLASS: (f32, f32) = (0.58, 0.48);
 /// The same without the blur behind: denser, so the text stays readable
 /// over a busy scene.
-const TINT_PLAIN: (f32, f32) = (0.74, 0.62);
+const TINT_PLAIN: (f32, f32) = (0.78, 0.66);
 /// Opacity of the light border, and of the far pill's.
-const BORDER: (f32, f32) = (0.14, 0.10);
+const BORDER: (f32, f32) = (0.18, 0.12);
 /// Under the pointer (#473): how far the surface goes toward the ink, and
 /// the opacity the border gains. Faint: the plate answers, it does not flash.
 const HOVER_LIGHT: f32 = 0.12;
@@ -408,7 +408,7 @@ fn background(env: &Env<'_>, rect: Rect, st: &State, alpha: f32, far: f32, c: &C
     let s = SCALE;
     if st.glass > 0.0 {
         // inside the antialiased edge of the surface, which hides the blur's own
-        let radius = rect.height() * 0.5 - 0.5;
+        let radius = (mesh::plate_corner(rect) - 0.5).max(2.0);
         env.painter
             .add(block_render::glass_region(rect.shrink(0.5), radius, st.glass * alpha, GLASS_SHADE));
     }
@@ -553,7 +553,7 @@ fn badge_icon(p: &Palette, badge: Badge) -> Option<(&'static str, Color32)> {
         Badge::More(_) => return None,
         Badge::Voice => ("microphone-filled", p.success),
         Badge::BlockViewer => ("box", p.violet),
-        Badge::Friend => ("heart-filled", p.success),
+        Badge::Friend => ("user-filled", p.success),
         Badge::TooComplex => ("alert-triangle-filled", p.amber),
         Badge::RenderNever => ("eye-off", p.amber),
         Badge::Blocked => ("ban", p.danger),
@@ -569,11 +569,15 @@ fn marks(env: &Env<'_>, key: &MarksKey) -> Mesh {
     let (l, s, ppp) = (&key.layout, key.scale, key.pixels_per_point);
     let mut mesh = Mesh::default();
     if let Some(photo) = l.photo {
-        let disc = Outline::circle(photo.center, photo.radius, ppp);
+        // Squared profile picture matching the plate's boxed corners.
+        let rect = Rect::from_center_size(photo.center, Vec2::splat(photo.radius * 2.0));
+        let corner = (photo.radius * 0.28).clamp(2.5, 6.0);
+        let frame = Outline::rounded(rect, corner, ppp);
         if key.placeholder {
-            disc.dot(&mut mesh, p.raised);
+            let fill = frame.ring(&mut mesh, -0.5, p.raised);
+            frame.fill(&mut mesh, fill, p.raised);
         }
-        disc.stroke(&mut mesh, 2.0 * s, p.ink.gamma_multiply(0.22));
+        frame.stroke(&mut mesh, 2.0 * s, p.ink.gamma_multiply(0.22));
     }
     if let (Some(dot), Some(presence)) = (l.dot, key.dot) {
         use crate::ui::presence::Shape as Mark;
@@ -616,7 +620,8 @@ fn marks(env: &Env<'_>, key: &MarksKey) -> Mesh {
     let fill = env.tint.gamma_multiply(BADGE_OPACITY);
     let edge = mesh::over(p.ink.gamma_multiply(0.16), fill);
     for r in &l.badges[..key.badges] {
-        Outline::circle(r.center(), r.width() * 0.5, ppp).disc(&mut mesh, fill, edge, 1.0);
+        let corner = (r.width() * 0.22).clamp(2.0, 5.0);
+        Outline::rounded(*r, corner, ppp).disc(&mut mesh, fill, edge, 1.0);
     }
     mesh
 }
@@ -651,7 +656,9 @@ fn contents(
     if let (Some(photo), Some(texture)) = (l.photo, picture) {
         let mut mesh = Mesh::with_texture(texture.id());
         let tint = ink(crate::ui::widgets::PICTURE_TINT);
-        Outline::circle(photo.center + origin, photo.radius, ppp).picture(&mut mesh, cover(texture.size()), tint);
+        let rect = Rect::from_center_size(photo.center + origin, Vec2::splat(photo.radius * 2.0));
+        let corner = (photo.radius * 0.28).clamp(2.5, 6.0);
+        Outline::rounded(rect, corner, ppp).picture(&mut mesh, cover(texture.size()), tint);
         painter.add(Shape::mesh(mesh));
     }
     // the placeholder's disc, then the rings, discs and bars that lie over

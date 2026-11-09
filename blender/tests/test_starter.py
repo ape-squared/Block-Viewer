@@ -11,28 +11,28 @@ import bmesh
 from mathutils import Vector
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-import block_live
-from block_live import exporter, starter
+import aurora_live
+from aurora_live import exporter, starter
 
 
 class StarterTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        block_live.register()
+        aurora_live.register()
 
     @classmethod
     def tearDownClass(cls):
-        block_live.unregister()
+        aurora_live.unregister()
 
     def setUp(self):
         if bpy.context.object and bpy.context.object.mode != "OBJECT":
             bpy.ops.object.mode_set(mode="OBJECT")
         bpy.ops.object.select_all(action="SELECT")
         bpy.ops.object.delete(use_global=False)
-        bpy.context.scene.block_live.objects.clear()
+        bpy.context.scene.aurora_live.objects.clear()
         bpy.context.scene.unit_settings.scale_length = 1
         bpy.context.scene.cursor.location = (0, 0, 0)
-        bpy.context.scene.block_live.forward = "NATIVE"
+        bpy.context.scene.aurora_live.forward = "NATIVE"
 
     def test_all_bento_and_fitted_bones_keep_the_xml_hierarchy_and_heads(self):
         rig, shirt = starter.create(bpy.context, False)
@@ -186,12 +186,12 @@ class StarterTests(unittest.TestCase):
             view.language, view.use_translate_new_dataname, view.use_translate_interface = before
 
     def test_creating_a_shirt_while_connected_tracks_it_without_opening_another_connection(self):
-        with patch.object(block_live, "_client", object()), \
-                patch.object(block_live, "Client", side_effect=AssertionError("unexpected connection")):
+        with patch.object(aurora_live, "_client", object()), \
+                patch.object(aurora_live, "Client", side_effect=AssertionError("unexpected connection")):
             self.assertEqual(bpy.ops.aurora.create_sl_rig(with_tshirt=True), {"FINISHED"})
-            self.assertEqual(block_live.tracking.active(bpy.context.scene), [bpy.context.object])
-            self.assertTrue(block_live._dirty)
-            self.assertEqual(block_live._last_capture, 0)
+            self.assertEqual(aurora_live.tracking.active(bpy.context.scene), [bpy.context.object])
+            self.assertTrue(aurora_live._dirty)
+            self.assertEqual(aurora_live._last_capture, 0)
 
 
 result = unittest.TextTestRunner(verbosity=2).run(unittest.defaultTestLoader.loadTestsFromTestCase(StarterTests))

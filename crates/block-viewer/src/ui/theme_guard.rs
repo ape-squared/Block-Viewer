@@ -1,4 +1,4 @@
-//! Guard of the interface rules (AGENTS.md, section 7): the sources of the
+//! Guard of the interface rules (theme rules): the sources of the
 //! interface are read by a test, which fails when a window styles itself
 //! instead of taking the Aurora theme:
 //!
@@ -156,6 +156,11 @@ const ALLOWED: &[(&str, &str, &str)] = &[
         "`ui` is the builder of the menu entries there: its separators are drawn by menu::separator",
     ),
     (
+        "ui/login.rs",
+        ".separator()",
+        "start-location combo: section break before the favorites list (no Palette on that builder)",
+    ),
+    (
         "ui/minimap.rs",
         COLOR,
         "content: Firestorm's colors of the mini-map (objects, avatars, tracking) and its marks over the map",
@@ -171,14 +176,9 @@ const ALLOWED: &[(&str, &str, &str)] = &[
         "debug overlay: lines drawn in the world, not a window",
     ),
     (
-        "ui/aurora_bg.rs",
-        COLOR,
-        "brand: the painting of the aurora sky (stars, depths of the navy)",
-    ),
-    (
         "ui/block_bg.rs",
         COLOR,
-        "brand: the painting of the Block login sky (stars, depths of the navy)",
+        "brand: the painting of the aurora sky (stars, depths of the navy)",
     ),
     (
         "ui/voice_tag.rs",
@@ -406,8 +406,8 @@ fn windows_take_their_appearance_from_the_theme() {
     }
     assert!(
         violations.is_empty(),
-        "the interface styles itself instead of taking the Aurora theme (AGENTS.md, section 7 \"Interface et branding\", \
-         and docs/BRANDING.md: shared widgets of ui/widgets.rs, radii of the theme, colors of the Palette):\n{}\n\
+        "the interface styles itself instead of taking the theme (docs/BRANDING.md: shared widgets of ui/widgets.rs, \
+         radii of the theme, colors of the Palette):\n{}\n\
          If a shared widget itself must wrap the stock one, or a file paints content by nature (a map), add the file to \
          ALLOWED in ui/theme_guard.rs with the reason. If one radius or color is content rather than chrome (a legend, \
          a fixed badge color), end its line with `{MARKER} content — the reason`, or put that comment alone on the line above.",

@@ -1,7 +1,7 @@
 """Build an editable SL rest skeleton and a small, deterministic test garment.
 
 Joint placement follows LLAvatarAppearance::setupBone and LLXformMatrix
-(originally LGPL 2.1). The packaged XML is Aurora's unchanged avatar definition;
+(originally LGPL 2.1). The packaged XML is Block Viewer's unchanged avatar definition;
 see SKELETON-NOTICE.txt. Blender's bone roll is only an editing aid.
 """
 
@@ -219,7 +219,7 @@ def _tshirt(collection, rig, definitions, basis):
             group.add([index], weight, "REPLACE")
     modifier = mesh.modifiers.new("SL Avatar Rig", "ARMATURE")
     modifier.object = rig
-    material = bpy.data.materials.new("Aurora Test Fabric")
+    material = bpy.data.materials.new("Block Test Fabric")
     data.materials.append(material)
     material.diffuse_color = (0.34, 0.12, 0.72, 1)
     material.use_nodes = True
@@ -236,7 +236,7 @@ def _tshirt(collection, rig, definitions, basis):
 def create(context, with_tshirt=True, forward=None, definitions=None, collection_name="SL Avatar Starter"):
     """Create a new collection at the cursor; never reuse or overwrite a rig."""
     definitions = definitions if definitions is not None else joints()
-    forward = forward or context.scene.block_live.forward
+    forward = forward or context.scene.aurora_live.forward
     if forward == "AUTO":
         forward = "NEGATIVE_Y"
     basis = _basis(context, forward)

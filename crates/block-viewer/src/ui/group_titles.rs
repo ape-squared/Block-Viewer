@@ -104,12 +104,7 @@ fn rows(view: &View) -> Vec<Row> {
             })
         })
         .collect();
-    rest.sort_by_cached_key(|r| {
-        (
-            crate::natural_order::key(&r.target.title),
-            crate::natural_order::key(&r.target.group_name),
-        )
-    });
+    rest.sort_by_cached_key(|r| (r.target.title.to_lowercase(), r.target.group_name.to_lowercase()));
     out.extend(rest);
     out
 }

@@ -36,8 +36,6 @@ pub(super) struct ObjectMenu {
     pub particle_hits: Vec<crate::scene::particles::ParticleHit>,
     /// SurfaceInfo of send_ObjectGrab_message, using the original click ray.
     touch: Option<(ObjKey, block_net::TouchSurface)>,
-    /// The original cursor ray, including across asynchronous GPU readback.
-    pub ray: Option<(Vec3, Vec3)>,
 }
 
 enum Confirm {
@@ -155,7 +153,6 @@ impl App {
         m.particle_only = particle_only;
         m.particle_hits.clear();
         m.touch = None;
-        m.ray = ray;
         let Some((origin, dir)) = ray else {
             return;
         };
@@ -208,7 +205,7 @@ impl App {
             f.take_copy = each.iter().all(|e| e.take_copy);
             f.delete = each.iter().any(|e| e.delete);
         }
-        f.link = !edit_linked && self.build.link_allowed(w, &roots);
+        f.link = !edit_linked && crate::build::link_allowed(w, &roots);
         // EditableSelected: a prim we may modify among those selected
         let prims: Vec<usize> = if kept {
             self.build.highlighted(w).into_iter().map(|(i, _)| i).collect()

@@ -1,4 +1,4 @@
-//! Aurora Viewer network layer: login, UDP circuits, capabilities, event
+//! Block Viewer network layer: login, UDP circuits, capabilities, event
 //! queue and HTTP asset fetching, running on a dedicated tokio runtime.
 
 pub mod abuse_report;
@@ -30,7 +30,6 @@ pub mod objcache;
 pub mod objects;
 pub mod offline_im;
 pub mod outfits;
-mod packet_loss;
 pub mod pathfinding;
 pub mod postcard;
 pub mod probe;

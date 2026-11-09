@@ -114,7 +114,7 @@ mod tests {
     use super::*;
 
     fn root(name: &str) -> PathBuf {
-        let dir = std::env::temp_dir().join(format!("aurora-cef-cache-{}-{name}", std::process::id()));
+        let dir = std::env::temp_dir().join(format!("block-cef-cache-{}-{name}", std::process::id()));
         let _ = std::fs::remove_dir_all(&dir);
         dir
     }

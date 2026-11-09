@@ -82,7 +82,7 @@ impl TexRefreshDemo {
         if let Err(e) = std::fs::create_dir_all(&tex).and_then(|()| std::fs::write(tex.join(format!("{TEXTURE}.j2c")), &stale)) {
             log::warn!("demo texture refresh: stale file not written ({e})");
         }
-        let served: PathBuf = std::env::temp_dir().join("aurora-demo-texrefresh.j2c");
+        let served: PathBuf = std::env::temp_dir().join("block-demo-texrefresh.j2c");
         if let Err(e) = std::fs::write(&served, &right) {
             log::warn!("demo texture refresh: served file not written ({e})");
             return;

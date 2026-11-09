@@ -536,12 +536,8 @@ impl BuildTool {
     }
 
     /// Name / description of the property targets (ObjectName / ObjectDescription).
-    /// Port of `LLSelectMgr::selectionSetObjectName` and `selectionSetObjectDescription`
-    /// (`indra/newview/llselectmgr.cpp`, originally LGPL 2.1): send selected roots per region.
     pub fn set_name(&mut self, world: &World, name: &str, description: bool) {
         let targets = self.prop_targets(world);
-        let mut name_targets = Vec::new();
-        let mut description_targets = Vec::new();
         for idx in targets {
             if !self.can_modify(world, idx) {
                 continue;
@@ -562,31 +558,20 @@ impl BuildTool {
                     p.name = name.to_owned();
                 }
             }
-            if description {
-                description_targets.push(idx);
-            } else {
-                name_targets.push(idx);
-            }
-        }
-        if description {
-            let ids_by_region = Self::by_region(world, &description_targets);
-            for (handle, local_ids) in ids_by_region {
-                self.send(BuildCmd::SetDescription {
+            let (handle, local_id) = (o.key.region, o.key.local_id);
+            self.send(if description {
+                BuildCmd::SetDescription {
                     handle,
-                    local_ids,
+                    local_id,
                     description: name.to_owned(),
-                });
-            }
-        }
-        if !description {
-            let ids_by_region = Self::by_region(world, &name_targets);
-            for (handle, local_ids) in ids_by_region {
-                self.send(BuildCmd::SetName {
+                }
+            } else {
+                BuildCmd::SetName {
                     handle,
-                    local_ids,
+                    local_id,
                     name: name.to_owned(),
-                });
-            }
+                }
+            });
         }
     }
 

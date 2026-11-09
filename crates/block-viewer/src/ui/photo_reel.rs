@@ -372,6 +372,7 @@ fn send_button(d: Destination) -> (&'static str, &'static str) {
         Destination::Inventory => ("briefcase-filled", block_i18n::tr!("photo-reel-upload")),
         Destination::Profile => ("user-filled", block_i18n::tr!("photo-reel-apply")),
         Destination::Email => ("mail-filled", block_i18n::tr!("photo-reel-email")),
+        Destination::Web => ("world-www", block_i18n::tr!("photo-destination-web")),
     }
 }
 

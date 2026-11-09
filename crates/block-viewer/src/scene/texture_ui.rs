@@ -123,7 +123,7 @@ mod tests {
     fn resident_and_cache_only_default_textures_get_ui_pixels_without_an_upload() {
         let _inline = super::super::jobs::execute_inline_on_this_thread();
         let (jobs, _results) = Jobs::new();
-        let cache = std::env::temp_dir().join(format!("aurora-ui-textures-{}", Uuid::new_v4()));
+        let cache = std::env::temp_dir().join(format!("block-ui-textures-{}", Uuid::new_v4()));
         std::fs::create_dir_all(&cache).unwrap();
         let jpeg = cache.join("default.j2c");
         let bytes = block_assets::j2k::encode_texture_j2k(64, 64, 3, &vec![128; 64 * 64 * 3], true).unwrap();

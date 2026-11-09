@@ -36,7 +36,7 @@ impl HudLocks {
     pub fn load(path: PathBuf) -> Self {
         let (loaded_tx, loaded) = mpsc::unbounded();
         let (writer, writes) = mpsc::unbounded::<(Uuid, bool)>();
-        let worker = std::thread::Builder::new().name("aurora-hud-locks".into()).spawn(move || {
+        let worker = std::thread::Builder::new().name("block-hud-locks".into()).spawn(move || {
             let mut saved: HashSet<Uuid> = match std::fs::read(&path) {
                 Ok(bytes) => match serde_json::from_slice(&bytes) {
                     Ok(saved) => saved,
@@ -189,7 +189,7 @@ mod tests {
 
     #[test]
     fn hud_lock_disk_roundtrip_and_early_unlock_win_over_background_load() {
-        let path = std::env::temp_dir().join(format!("aurora-hud-locks-{}.json", Uuid::new_v4()));
+        let path = std::env::temp_dir().join(format!("block-hud-locks-{}.json", Uuid::new_v4()));
         let (id, item) = (Uuid::from_u128(1), Uuid::from_u128(2));
         {
             let mut locks = HudLocks::load(path.clone());

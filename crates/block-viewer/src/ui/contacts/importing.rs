@@ -23,7 +23,7 @@ impl ContactsUi {
         let ctx = ctx.clone();
         let title = block_i18n::tr!("contacts-import").to_owned();
         let filter = block_i18n::tr!("contacts-import-file-type").to_owned();
-        let _ = std::thread::Builder::new().name("aurora-contact-import".into()).spawn(move || {
+        let _ = std::thread::Builder::new().name("block-contact-import".into()).spawn(move || {
             let result = (|| {
                 let Some(path) = rfd::FileDialog::new()
                     .set_title(title)

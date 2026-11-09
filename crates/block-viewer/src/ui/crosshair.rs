@@ -259,7 +259,7 @@ impl Picture {
             let (tx, rx) = mpsc::channel();
             self.loading = Some(rx);
             let (owned, repaint) = (path.to_owned(), ctx.clone());
-            let spawned = std::thread::Builder::new().name("aurora-crosshair-picture".into()).spawn(move || {
+            let spawned = std::thread::Builder::new().name("block-crosshair-picture".into()).spawn(move || {
                 let _ = tx.send(read_picture(&owned));
                 repaint.request_repaint();
             });

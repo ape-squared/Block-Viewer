@@ -267,6 +267,7 @@ fn banner(
     label: &str,
     name: &str,
     stage: &str,
+    tip: &str,
     fraction: Option<f32>,
     place: &Place,
     t: f32,
@@ -362,10 +363,23 @@ fn banner(
         right = figures_at.x - 24.0 * k;
     }
 
-    // bottom left, built upwards: stage, facts, name, label
+    // bottom left, built upwards: tip, stage, facts, name, label
     let left = screen.left() + margin;
     let column = painter.with_clip_rect(Rect::from_min_max(screen.min, Pos2::new(right, screen.bottom())));
     let mut y = base;
+    if !tip.is_empty() {
+        let tip_ink = p.ink.gamma_multiply(0.78 * a);
+        let label_ink = p.violet_light.gamma_multiply(a);
+        let tip_label = block_i18n::tr!("loading-tip-label");
+        let head = column.layout_no_wrap(tip_label.to_uppercase(), egui::FontId::proportional(11.0 * k), label_ink);
+        let room = (right - left).max(160.0);
+        let body = column.layout(tip.to_owned(), egui::FontId::proportional(14.0 * k), tip_ink, room);
+        y -= body.size().y;
+        column.galley(Pos2::new(left, y), body, tip_ink);
+        y -= head.size().y + 4.0 * k;
+        column.galley(Pos2::new(left, y), head, label_ink);
+        y -= 16.0 * k;
+    }
     if !stage.is_empty() {
         let muted = p.muted.gamma_multiply(a);
         let galley = column.layout_no_wrap(stage.to_owned(), egui::FontId::proportional(13.0 * k), muted);
@@ -465,6 +479,7 @@ pub fn show(
     let painter = ctx.layer_painter(egui::LayerId::new(egui::Order::Middle, egui::Id::unique("loading_splash")));
     let t = ctx.input(|i| i.time) as f32;
     let detail = stage_line(info.stage, info.region, info.terrain, info.objects, info.textures);
+    let tip = super::motd_tips::current(info.elapsed);
     let corner = banner(
         &ctx,
         &painter,
@@ -474,6 +489,7 @@ pub fn show(
         block_i18n::tr!("common-loading-world"),
         info.region,
         &detail,
+        tip.as_ref(),
         Some(info.fraction),
         place,
         t,
@@ -531,7 +547,8 @@ pub fn teleport_overlay(
     if !backdrop.is_some_and(|b| b.paint(&painter, p, rect, a)) {
         super::block_bg::paint(&painter, p, rect, t, a);
     }
-    banner(ctx, &painter, p, rect, logo, title, dest, detail, fraction, place, t, a);
+    // Teleport keeps the tip quiet so the destination stays the focus.
+    banner(ctx, &painter, p, rect, logo, title, dest, detail, "", fraction, place, t, a);
     ctx.request_repaint();
 }
 

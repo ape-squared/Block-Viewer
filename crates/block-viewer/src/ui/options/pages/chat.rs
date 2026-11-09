@@ -87,21 +87,23 @@ pub fn page(cx: &mut Cx, tab: usize) {
                     tr!("ui-options-autohide-chat-bar-hint"),
                     &field!(autohide_chat_bar),
                 );
+                // RadarReportChatRangeEnter / Leave (also in People › Near you › Radar).
+                cx.toggle(
+                    tr!("ui-options-radar-chat-enter"),
+                    tr!("ui-options-radar-chat-enter-hint"),
+                    &field!(radar.chat_enter),
+                );
+                cx.toggle(
+                    tr!("ui-options-radar-chat-leave"),
+                    tr!("ui-options-radar-chat-leave-hint"),
+                    &field!(radar.chat_leave),
+                );
                 cx.slider(
                     tr!("ui-options-chat-bubble-duration"),
                     tr!("ui-options-0-no-chat-bubbles-above-the-chat-bar"),
                     &field!(chat_toast_seconds),
                     0.0..=60.0,
                     " s",
-                );
-                // ConsoleMaxLines (panel_preferences_chat.xml): count the
-                // wrapped text rows, as LLConsole::draw does.
-                cx.slider(
-                    tr!("ui-options-chat-console-max-lines"),
-                    tr!("ui-options-chat-console-max-lines-hint"),
-                    &field!(chat_console_max_lines),
-                    0..=50,
-                    "",
                 );
                 // the Legacy Viewer's Chat › Visuals (UseChatBubbles and what
                 // depends on it; ChatBubbleOpacity is in its Colors), #673
@@ -154,26 +156,17 @@ pub fn page(cx: &mut Cx, tab: usize) {
                     tr!("ui-options-send-typing-hint"),
                     &field!(send_typing_state),
                 );
-                // whose direct payment opens a closed conversation on its
-                // card (#1198), one choice per direction (#2638); the Legacy
-                // Viewer never opens one (Never in both)
-                use crate::world::payments::Opens;
-                let opens = [
-                    (Opens::Never, tr!("ui-options-payment-opens-never")),
-                    (Opens::Friends, tr!("ui-options-payment-opens-friends")),
-                    (Opens::Anyone, tr!("ui-options-payment-opens-anyone")),
-                ];
-                cx.combo(
+                // a direct payment's card in the payer's conversation (#1198)
+                cx.toggle(
                     tr!("ui-options-payment-opens-conversation"),
                     tr!("ui-options-payment-opens-conversation-hint"),
-                    &field!(payment_received_opens),
-                    &opens,
+                    &field!(payment_opens_conversation),
                 );
-                cx.combo(
+                // and our own payment's card in the payee's conversation
+                cx.toggle(
                     tr!("ui-options-payment-sent-opens-conversation"),
                     tr!("ui-options-payment-sent-opens-conversation-hint"),
-                    &field!(payment_sent_opens),
-                    &opens,
+                    &field!(payment_sent_opens_conversation),
                 );
                 // the tab of a conversation with news flashes
                 // (FSFloaterIMContainer::startFlashingTab), in violet and softly
@@ -868,6 +861,12 @@ fn history(cx: &mut Cx) {
             tr!("ui-options-chat-logs-show"),
             tr!("ui-options-chat-logs-show-help"),
             &field!(log_show_history),
+        );
+        // Legacy Viewer › Chat (FSAnnounceIncomingIM)
+        cx.toggle(
+            tr!("ui-options-announce-incoming-im"),
+            tr!("ui-options-announce-incoming-im-help"),
+            &field!(announce_incoming_im),
         );
         // Legacy Viewer › Chat (FSRestoreOpenIMs)
         cx.toggle(tr!("ui-options-reopen-ims"), tr!("ui-options-reopen-ims-help"), &field!(reopen_ims));

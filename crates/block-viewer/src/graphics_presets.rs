@@ -29,13 +29,8 @@
 //! What a level does not touch: the texture memory (sized from the video
 //! memory), the frame rate limits and vertical sync (comfort, not quality),
 //! occlusion culling (only a gain), the environment and the image tuning
-//! (exposure, tone mapping), the limits of the worn surface and of the
-//! complexity rule, which are choices about other people, and the Glow
-//! switch: RenderGlow is in none of the Legacy Viewer's lists, so its
-//! quality slider never turns it back on (#2388). A saved profile
-//! (`saved.rs`) does restore the Glow it was saved with, as the Legacy
-//! Viewer's graphics presets do (RenderGlow is in
-//! app_settings/graphic_preset_controls.xml).
+//! (exposure, tone mapping), and the limits of the worn surface and of the
+//! complexity rule, which are choices about other people.
 
 use crate::settings::{MAX_TEXTURE_RESOLUTION, Settings};
 
@@ -81,11 +76,11 @@ impl Preset {
             // 256 particles, textures at 512 px at most, no shadows, SSAO,
             // water or probe reflections,
             // no anti-aliasing, anisotropy or sharpening, no HDR and Emissive
-            // (RenderDisableVintageMode 0)
+            // (RenderDisableVintageMode 0); glow off as well (a full-screen
+            // pass the oldest cards feel)
             Preset::Potato => Values {
                 draw_distance: 64.0,
                 lod_factor: 1.5,
-                tree_lod_factor: 0.0,
                 max_avatars: 3,
                 max_complexity: 35_000,
                 max_particles: 256,
@@ -103,8 +98,7 @@ impl Preset {
                 antialiasing: 0,
                 anisotropy: 1,
                 sharpen: 0.0,
-                // never written by a level (`apply`): the default
-                glow: true,
+                glow: false,
                 avatar_physics_detail: 0.0,
                 hdr_emissive: false,
                 max_texture_resolution: 512,
@@ -115,7 +109,6 @@ impl Preset {
             Preset::Low => Values {
                 draw_distance: 96.0,
                 lod_factor: 2.0,
-                tree_lod_factor: 0.5,
                 max_avatars: 5,
                 max_complexity: 100_000,
                 max_particles: 2048,
@@ -129,7 +122,7 @@ impl Preset {
                 mirrors: 0,
                 ssr: false,
                 reflection_probes: 0,
-                probe_count: 32,
+                probe_count: 16,
                 antialiasing: 0,
                 anisotropy: 1,
                 sharpen: 0.0,
@@ -145,7 +138,6 @@ impl Preset {
             Preset::Medium => Values {
                 draw_distance: 128.0,
                 lod_factor: 2.0,
-                tree_lod_factor: 0.5,
                 max_avatars: 7,
                 max_complexity: 200_000,
                 max_particles: 4096,
@@ -159,7 +151,7 @@ impl Preset {
                 mirrors: 0,
                 ssr: false,
                 reflection_probes: 1,
-                probe_count: 64,
+                probe_count: 32,
                 antialiasing: 1,
                 anisotropy: 8,
                 sharpen: 0.0,
@@ -177,7 +169,6 @@ impl Preset {
             Preset::High => Values {
                 draw_distance: 128.0,
                 lod_factor: 2.0,
-                tree_lod_factor: 0.5,
                 max_avatars: 11,
                 max_complexity: 300_000,
                 max_particles: 4096,
@@ -191,7 +182,7 @@ impl Preset {
                 mirrors: 0,
                 ssr: false,
                 reflection_probes: 2,
-                probe_count: 128,
+                probe_count: 32,
                 antialiasing: 6,
                 anisotropy: 8,
                 sharpen: 0.4,
@@ -215,7 +206,6 @@ impl Preset {
             Preset::Deluxe => Values {
                 draw_distance: 192.0,
                 lod_factor: 3.0,
-                tree_lod_factor: 1.0,
                 max_avatars: 16,
                 max_complexity: 350_000,
                 max_particles: 8192,
@@ -229,7 +219,7 @@ impl Preset {
                 mirrors: 1,
                 ssr: false,
                 reflection_probes: 3,
-                probe_count: 256,
+                probe_count: 64,
                 antialiasing: 6,
                 anisotropy: 16,
                 sharpen: 0.4,
@@ -244,20 +234,25 @@ impl Preset {
 
     /// The level of a new profile, from the graphics card, like Firestorm's
     /// first launch (LLFeatureManager::loadGPUClass then
-    /// applyRecommendedSettings): Medium on an integrated GPU or a dedicated
-    /// one under 2 GB of video memory (the threshold applyBaseMasks tests
-    /// for its VRAMLT2GB mask, a list Firestorm's table leaves empty today:
-    /// lowering the level there is Aurora's own rule), High otherwise; one
-    /// level lower with less than 8 GB of system memory, as Firestorm does on
-    /// Windows.
+    /// applyRecommendedSettings). Block lowers further than the Legacy
+    /// Viewer's Medium default for weak GPUs: Intel integrated (Iris Xe and
+    /// kin, PCI vendor `0x8086`) and under 1 GB of video memory start on
+    /// Potato; other integrated GPUs and dedicated cards under 2 GB start on
+    /// Low; everything else starts on High. One level lower with less than
+    /// 8 GB of system memory, as Firestorm does on Windows.
     /// Firestorm ranks the card by a memory-bandwidth benchmark; Aurora asks
-    /// wgpu for the kind of adapter and its memory instead. An unknown size
-    /// counts as enough.
-    pub fn for_machine(integrated: bool, vram_mb: Option<u64>, system_mb: Option<u64>) -> Preset {
+    /// wgpu for the kind of adapter, its vendor and its memory instead. An
+    /// unknown size counts as enough.
+    pub fn for_machine(integrated: bool, vram_mb: Option<u64>, system_mb: Option<u64>, vendor_id: u32) -> Preset {
         const SMALL_VRAM_MB: u64 = 2048;
+        const TINY_VRAM_MB: u64 = 1024;
+        const INTEL: u32 = 0x8086;
         const MIN_SYSTEM_MB: u64 = 8 * 1024;
-        let level = if integrated || vram_mb.is_some_and(|v| v < SMALL_VRAM_MB) {
-            Preset::Medium
+        let intel_igpu = integrated && vendor_id == INTEL;
+        let level = if intel_igpu || vram_mb.is_some_and(|v| v < TINY_VRAM_MB) {
+            Preset::Potato
+        } else if integrated || vram_mb.is_some_and(|v| v < SMALL_VRAM_MB) {
+            Preset::Low
         } else {
             Preset::High
         };
@@ -278,14 +273,9 @@ impl Preset {
     }
 
     /// Writes the level's settings (the shadow switch follows its quality,
-    /// like the slider of the page). The Glow switch stays the user's
-    /// (module comment).
+    /// like the slider of the page).
     pub fn apply(self, s: &mut Settings) {
-        Values {
-            glow: s.glow,
-            ..self.values()
-        }
-        .write(s);
+        self.values().write(s);
         s.graphics_saved_active = None;
     }
 
@@ -303,8 +293,6 @@ pub(crate) fn deluxe_v20() -> Values {
     Values {
         draw_distance: 256.0,
         gtao_quality: 2,
-        // (files of then hold no tree detail: 0.5, upgrade_tree_detail)
-        tree_lod_factor: 0.5,
         effects: Effects {
             contact_shadows: true,
             ..Effects::OFF
@@ -439,7 +427,6 @@ pub(crate) fn upgrade_physics_detail(s: &mut Settings) {
             avatar_physics_detail: level.avatar_physics_detail,
             hdr_emissive: level.hdr_emissive,
             max_texture_resolution: level.max_texture_resolution,
-            tree_lod_factor: level.tree_lod_factor,
             ..Values::read(s)
         };
         if current.as_shown() == level.as_shown() {
@@ -460,7 +447,6 @@ pub(crate) fn upgrade_hdr_emissive(s: &mut Settings) {
         let current = Values {
             hdr_emissive: level.hdr_emissive,
             max_texture_resolution: level.max_texture_resolution,
-            tree_lod_factor: level.tree_lod_factor,
             ..Values::read(s)
         };
         if current.as_shown() == level.as_shown() {
@@ -479,29 +465,10 @@ pub(crate) fn upgrade_max_texture_resolution(s: &mut Settings) {
         let level = preset.values();
         let current = Values {
             max_texture_resolution: level.max_texture_resolution,
-            tree_lod_factor: level.tree_lod_factor,
             ..Values::read(s)
         };
         if current.as_shown() == level.as_shown() {
             s.max_texture_resolution = level.max_texture_resolution;
-            return;
-        }
-    }
-}
-
-/// Settings files written before the levels set the trees' detail (version
-/// 34), all at 0.5: a profile exactly on Potato or Deluxe apart from it
-/// takes the level's (0 and 1, the Legacy Viewer's Low and Ultra); any
-/// other keeps 0.5.
-pub(crate) fn upgrade_tree_detail(s: &mut Settings) {
-    for preset in [Preset::Potato, Preset::Deluxe] {
-        let level = preset.values();
-        let current = Values {
-            tree_lod_factor: level.tree_lod_factor,
-            ..Values::read(s)
-        };
-        if current.as_shown() == level.as_shown() {
-            s.tree_lod_factor = level.tree_lod_factor;
             return;
         }
     }
@@ -547,10 +514,6 @@ impl Effects {
 pub struct Values {
     pub draw_distance: f32,
     pub lod_factor: f32,
-    /// RenderTreeLODFactor: 0 in Potato, 1 in Deluxe, 0.5 between (a backup
-    /// or a saved preset written before it holds none: 0.5, the default).
-    #[serde(default = "tree_lod_factor")]
-    pub tree_lod_factor: f32,
     pub max_avatars: u32,
     pub max_complexity: u32,
     pub max_particles: u32,
@@ -570,9 +533,6 @@ pub struct Values {
     pub antialiasing: u8,
     pub anisotropy: u16,
     pub sharpen: f32,
-    /// RenderGlow. Kept by a saved profile and the safe graphics backup; a
-    /// level neither writes it nor compares it (`Preset::apply`,
-    /// `as_shown`), and the photo boost leaves it as it is.
     pub glow: bool,
     /// RenderAvatarPhysicsLODFactor: 0 in Low, 0.75 in LowMid, 1 above.
     pub avatar_physics_detail: f32,
@@ -592,10 +552,6 @@ fn default_projector_shadow_limit() -> u8 {
     2
 }
 
-fn tree_lod_factor() -> f32 {
-    0.5
-}
-
 fn hdr_on() -> bool {
     true
 }
@@ -613,8 +569,6 @@ impl Values {
     /// and GTAO's quality only under GTAO (the page greys them out); the
     /// same for the effects: the contact shadows only with the shadows, the
     /// indirect light only with GTAO, a strength only while its effect is on.
-    /// The Glow switch never counts: no level sets it, so turning it off
-    /// keeps the level lit instead of "Custom".
     fn as_shown(self) -> Values {
         use crate::scene::complexity::slider;
         let round = |v: f32, step: f32| (v / step).round() * step;
@@ -639,7 +593,6 @@ impl Values {
         Values {
             draw_distance: round(self.draw_distance, 1.0),
             lod_factor: round(self.lod_factor, 0.125),
-            tree_lod_factor: round(self.tree_lod_factor, 0.125),
             max_complexity: slider::to_limit(slider::from_limit(self.max_complexity)),
             sharpen: round(self.sharpen, 0.05),
             avatar_physics_detail: round(self.avatar_physics_detail, 0.05),
@@ -650,7 +603,6 @@ impl Values {
             },
             ao_method,
             gtao_quality: if ao_method == 1 { self.gtao_quality } else { 2 },
-            glow: true,
             effects,
             ..self
         }
@@ -660,7 +612,6 @@ impl Values {
         Values {
             draw_distance: s.draw_distance,
             lod_factor: s.lod_factor,
-            tree_lod_factor: s.tree_lod_factor,
             max_avatars: s.max_avatars,
             max_complexity: s.max_complexity,
             max_particles: s.max_particles,
@@ -695,7 +646,6 @@ impl Values {
     pub(crate) fn write(self, s: &mut Settings) {
         s.draw_distance = self.draw_distance;
         s.lod_factor = self.lod_factor;
-        s.tree_lod_factor = self.tree_lod_factor;
         s.max_avatars = self.max_avatars;
         s.max_complexity = self.max_complexity;
         s.max_particles = self.max_particles;
@@ -806,29 +756,6 @@ mod tests {
             assert_eq!(s.exposure, 1.7);
             assert_eq!(s.max_attachment_area, 123.0);
         }
-    }
-
-    /// RenderGlow is in none of the Legacy Viewer's featuretable.txt lists
-    /// (#2388).
-    #[test]
-    fn levels_keep_the_glow_switch_of_the_user() {
-        for glow in [false, true] {
-            let mut s = Settings {
-                glow,
-                ..Settings::default()
-            };
-            for preset in Preset::ALL {
-                preset.apply(&mut s);
-                assert_eq!(s.glow, glow, "{preset:?}");
-                // the level stays lit, not "Custom"
-                assert_eq!(Preset::matching(&s), Some(preset), "{preset:?}");
-            }
-        }
-        // switched by hand on a level: still that level
-        let mut s = Settings::default();
-        Preset::High.apply(&mut s);
-        s.glow = !s.glow;
-        assert_eq!(Preset::matching(&s), Some(Preset::High));
     }
 
     #[test]
@@ -978,14 +905,14 @@ mod tests {
     fn values_stay_inside_what_the_page_offers() {
         for preset in Preset::ALL {
             let v = preset.values();
-            assert!((32.0..=512.0).contains(&v.draw_distance));
+            assert!((32.0..=1024.0).contains(&v.draw_distance));
             assert!((0.5..=4.0).contains(&v.lod_factor));
             assert!((1..=100).contains(&v.max_avatars));
             assert!(v.max_particles <= 8192);
             assert!(v.shadow_quality <= 4 && v.ssao <= 2 && v.reflection_probes <= 3);
             assert!(v.ao_method <= 1 && v.gtao_quality <= 3);
             assert!(v.water_reflections <= 4 && v.mirrors <= 4);
-            assert!((8..=256).contains(&v.probe_count) && v.probe_count % 8 == 0);
+            assert!((8..=64).contains(&v.probe_count) && v.probe_count % 8 == 0);
             assert!(v.antialiasing <= 6);
             assert!([1, 2, 4, 8, 16].contains(&v.anisotropy));
             assert!(crate::settings::MAX_TEXTURE_RESOLUTIONS.contains(&v.max_texture_resolution));
@@ -996,18 +923,24 @@ mod tests {
     #[test]
     fn a_new_profile_takes_its_level_from_the_graphics_card() {
         const GB: u64 = 1024;
+        const INTEL: u32 = 0x8086;
+        const NVIDIA: u32 = 0x10de;
         // a dedicated card with enough of everything
-        assert_eq!(Preset::for_machine(false, Some(24 * GB), Some(32 * GB)), Preset::High);
-        assert_eq!(Preset::for_machine(false, Some(2 * GB), Some(16 * GB)), Preset::High);
-        // integrated, or a small dedicated card
-        assert_eq!(Preset::for_machine(true, Some(4 * GB), Some(16 * GB)), Preset::Medium);
-        assert_eq!(Preset::for_machine(false, Some(1536), Some(16 * GB)), Preset::Medium);
+        assert_eq!(Preset::for_machine(false, Some(24 * GB), Some(32 * GB), NVIDIA), Preset::High);
+        assert_eq!(Preset::for_machine(false, Some(2 * GB), Some(16 * GB), NVIDIA), Preset::High);
+        // Intel Iris / UHD: Potato even with shared memory reported high
+        assert_eq!(Preset::for_machine(true, Some(4 * GB), Some(16 * GB), INTEL), Preset::Potato);
+        // other integrated, or a small dedicated card
+        assert_eq!(Preset::for_machine(true, Some(4 * GB), Some(16 * GB), NVIDIA), Preset::Low);
+        assert_eq!(Preset::for_machine(false, Some(1536), Some(16 * GB), NVIDIA), Preset::Low);
+        assert_eq!(Preset::for_machine(false, Some(512), Some(16 * GB), NVIDIA), Preset::Potato);
         // less than 8 GB of system memory: one level lower
-        assert_eq!(Preset::for_machine(false, Some(8 * GB), Some(7900)), Preset::Medium);
-        assert_eq!(Preset::for_machine(true, None, Some(4 * GB)), Preset::Low);
+        assert_eq!(Preset::for_machine(false, Some(8 * GB), Some(7900), NVIDIA), Preset::Medium);
+        assert_eq!(Preset::for_machine(true, None, Some(4 * GB), NVIDIA), Preset::Potato);
         // what could not be read does not lower the level
-        assert_eq!(Preset::for_machine(false, None, None), Preset::High);
-        assert_eq!(Preset::for_machine(true, None, None), Preset::Medium);
+        assert_eq!(Preset::for_machine(false, None, None, NVIDIA), Preset::High);
+        assert_eq!(Preset::for_machine(true, None, None, NVIDIA), Preset::Low);
+        assert_eq!(Preset::for_machine(true, None, None, INTEL), Preset::Potato);
     }
 
     #[test]

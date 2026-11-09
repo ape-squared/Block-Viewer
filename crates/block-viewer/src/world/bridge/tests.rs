@@ -1,4 +1,5 @@
 use super::*;
+const OLD_SUBFOLDER: &str = OLD_SUBFOLDERS[1];
 use std::sync::Arc;
 
 struct Simulator {

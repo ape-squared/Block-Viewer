@@ -520,6 +520,7 @@ impl App {
             Destination::Email => self.photo_postcard((w, h), rgba, cutout),
             // (the inventory: above; the profile takes the uploaded item)
             Destination::Inventory | Destination::Profile => {}
+            Destination::Web => self.photo_web((w, h), rgba),
         }
         self.snapshots.reel.held = before;
     }

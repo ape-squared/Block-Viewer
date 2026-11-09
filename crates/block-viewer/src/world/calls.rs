@@ -1303,7 +1303,7 @@ mod tests {
 
     #[test]
     fn voice_volumes_are_kept_per_account_file() {
-        let dir = std::env::temp_dir().join(format!("aurora-volumes-{}", Uuid::new_v4()));
+        let dir = std::env::temp_dir().join(format!("block-volumes-{}", Uuid::new_v4()));
         let path = dir.join(VOLUMES_FILE);
         let (a, b) = (Uuid::from_u128(2), Uuid::from_u128(3));
         let mut calls = Calls::default();

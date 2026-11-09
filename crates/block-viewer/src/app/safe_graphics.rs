@@ -140,7 +140,7 @@ mod tests {
         let mut settings = crate::settings::Settings::default();
         Preset::Deluxe.apply(&mut settings);
         let before = Values::read(&settings);
-        let dir = std::env::temp_dir().join(format!("aurora-safe-graphics-{}", uuid::Uuid::new_v4()));
+        let dir = std::env::temp_dir().join(format!("block-safe-graphics-{}", uuid::Uuid::new_v4()));
         std::fs::create_dir(&dir).unwrap();
         let path = dir.join(FILE);
         std::fs::write(&path, serde_json::to_vec(&before).unwrap()).unwrap();

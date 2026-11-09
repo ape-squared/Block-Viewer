@@ -789,10 +789,7 @@ fn center_card(
             cards::card(ui, p, icons, world, env.images, wanted_images, n, false, true)
         }
     });
-    // a new version of Aurora: the aurora's edge, read or not
-    if matches!(n.data, Data::Update { .. }) {
-        block::paint_edge(ui, p, inner.response.rect);
-    } else if !read {
+    if !read {
         let r = inner.response.rect;
         ui.painter().rect_filled(
             Rect::from_min_max(r.left_top(), egui::pos2(r.left() + 2.0, r.bottom())),
@@ -1035,7 +1032,6 @@ fn hhmm(secs: u64) -> String {
     super::chat::hhmm(at(secs))
 }
 
-pub mod block;
 pub mod presence;
 
 #[cfg(test)]

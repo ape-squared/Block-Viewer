@@ -221,11 +221,11 @@ fn recovery_ease_uses_descent_speed_and_has_a_finite_grounded_fallback() {
 }
 
 #[test]
-fn aurora_owns_legs_even_without_support_or_during_movement_exclusions() {
+fn block_owns_legs_even_without_support_or_during_movement_exclusions() {
     let f = Fixture::new();
     for id in [State::Standing.motion(), State::StandingUp.motion()] {
         let mut controller = f.controller(&[(id, stand())]);
-        controller.aurora_feet = true;
+        controller.block_feet = true;
         assert!(controller.ground.is_none());
         f.render(&mut controller, 0.2, &no_support);
         assert!(controller.motions[0].recovery.is_none(), "replaced recovery still ran");
@@ -339,16 +339,16 @@ fn toggles_interpolate_independent_corrections_and_allow_immediate_reversal() {
 }
 
 #[test]
-fn native_to_aurora_and_back_never_feed_one_solver_into_the_other() {
+fn native_to_block_and_back_never_feed_one_solver_into_the_other() {
     let f = Fixture::new();
     let mut controller = f.controller(&[(State::Standing.motion(), stand())]);
     let native = f.render(&mut controller, 0.1, &support);
-    controller.aurora_feet = true;
+    controller.block_feet = true;
     controller.ground = Some(f.frame);
     let mut output = vec![Mat4::IDENTITY.to_cols_array_2d(); f.rig.len()];
     let mut previous = native;
     for (step, aurora) in [(0, true), (30, true), (31, false), (61, false)] {
-        controller.aurora_feet = aurora;
+        controller.block_feet = aurora;
         controller.evaluate_with_support(
             &f.rig,
             f.at + Duration::from_millis(200 + step * 20),

@@ -34,7 +34,7 @@ fn row_management_preserves_the_open_project_and_uses_the_named_project_data() {
         assert_eq!(editor.project_document().encode().unwrap(), working);
         assert_eq!(load(&root, moto.project.as_ref().unwrap().id).unwrap(), stored);
     }
-    let destination = root.join("export.aurora-ik.json");
+    let destination = root.join("export.block-ik.json");
     for id in [glasses_id, moto.project.as_ref().unwrap().id] {
         let source = document(&root, editor.project_document(), id).unwrap();
         let expected = source.encode().unwrap();

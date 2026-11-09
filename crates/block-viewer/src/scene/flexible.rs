@@ -140,7 +140,9 @@ impl Scene {
             let Some(o) = world.objects.get(idx).filter(|o| o.is_flexible()) else {
                 continue;
             };
-            let p = o.extra.flexible.unwrap_or(crate::build::edits::FLEX_DEFAULT);
+            let Some(p) = o.extra.flexible else {
+                continue;
+            };
             let Some((pos, rot, _)) = self.xf_cache.get(idx).or_else(|| Self::object_transform(world, idx, now, 0)) else {
                 continue;
             };
@@ -162,7 +164,7 @@ impl Scene {
         let updates = frame_par::filter_map_mut(&mut states, FLEXIBLE_GRAIN, |(idx, state)| {
             let idx = *idx;
             let o = world.objects.get(idx)?;
-            let p = o.extra.flexible.unwrap_or(crate::build::edits::FLEX_DEFAULT);
+            let p = o.extra.flexible?;
             let g = self.gpu.get(idx)?;
             let key = g.geom.filter(|k| matches!(k, GeomKey::Flexible { .. }))?;
             let Some(GeomState::Ready(_)) = self.geoms.get(&key).map(|e| &e.state) else {
@@ -198,11 +200,10 @@ impl Scene {
                     return None;
                 }
             }
-            let path = state.sim.render_path(pos, rot);
             let mesh = block_prim::volume::generate_flexible_volume(
                 &o.volume,
                 block_prim::volume::DETAIL_SCALES[g.lod as usize % 4],
-                &path,
+                &state.sim.render_path(pos, rot),
                 scale,
             );
             // Only selected flexies need silhouette topology. Build it

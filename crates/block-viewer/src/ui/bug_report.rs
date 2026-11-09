@@ -86,6 +86,11 @@ impl BugReportUi {
                 Ok("details") => {
                     self.tab = 2;
                     self.report.include_excerpt = true;
+                    for field in &mut self.report.fields {
+                        if field.heading == "Location" {
+                            field.included = false;
+                        }
+                    }
                 }
                 Ok(mode @ ("image" | "image-ui" | "refresh")) => {
                     self.tab = 1;

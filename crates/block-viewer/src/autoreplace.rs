@@ -112,7 +112,7 @@ fn user_file() -> PathBuf {
 /// Reads the user's lists on a thread (LLAutoReplace::loadFromSettings);
 /// without a file, the bundled ones stay.
 pub fn load() {
-    let spawned = std::thread::Builder::new().name("aurora-autoreplace".into()).spawn(|| {
+    let spawned = std::thread::Builder::new().name("block-autoreplace".into()).spawn(|| {
         let path = user_file();
         match std::fs::read(&path) {
             Ok(bytes) => match parse_lists(&bytes) {
@@ -137,7 +137,7 @@ pub fn lists() -> Arc<Vec<List>> {
 pub fn set_lists(lists: Vec<List>) {
     let xml = lists_to_xml(&lists);
     *LISTS.write() = shared(lists);
-    let spawned = std::thread::Builder::new().name("aurora-autoreplace-save".into()).spawn(move || {
+    let spawned = std::thread::Builder::new().name("block-autoreplace-save".into()).spawn(move || {
         let path = user_file();
         if let Some(dir) = path.parent() {
             let _ = std::fs::create_dir_all(dir);

@@ -237,7 +237,7 @@ fn title_with(title: Option<&str>, profile_dir: &str, version: &str) -> String {
 }
 
 /// Label of a cargo profile from its target directory (`dev` builds into
-/// `debug`; `debugging` is aurora-tools' debug viewer).
+/// `debug`; `debugging` is block-tools' debug viewer).
 pub fn profile_label(dir: &str) -> Option<&'static str> {
     match dir {
         "release" => Some("Release"),

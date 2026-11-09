@@ -116,18 +116,18 @@ fn row_desc(r: RowId) -> &'static str {
 /// The groups of threads that work for a part.
 fn row_threads(r: RowId) -> &'static [&'static str] {
     match r {
-        RowId::Render => &["block-render", "block-render-finish", "aurora-worker"],
-        RowId::Textures => &["aurora-jobs", "aurora-pages", "aurora-texcache", "block-net"],
-        RowId::Meshes => &["aurora-jobs", "block-net"],
-        RowId::Avatars => &["main", "aurora-worker"],
-        RowId::Scene => &["main", "aurora-worker", "aurora-trash"],
+        RowId::Render => &["block-render", "block-render-finish", "block-worker"],
+        RowId::Textures => &["block-jobs", "block-pages", "block-texcache", "block-net"],
+        RowId::Meshes => &["block-jobs", "block-net"],
+        RowId::Avatars => &["main", "block-worker"],
+        RowId::Scene => &["main", "block-worker", "block-trash"],
         RowId::World => &["block-net", "main"],
-        RowId::Interface => &["main", "block-render", "aurora-monitor"],
+        RowId::Interface => &["main", "block-render", "block-monitor"],
         RowId::Media => &["SLPlugin"],
         RowId::Audio => &["block-audio-out", "block-audio-stream"],
         RowId::Voice => &["block-voice", "block-voice-rt", "block-audio-in"],
-        RowId::Services => &["aurora-inventory-cache", "aurora-chatlog", "aurora-notification-history"],
-        RowId::CacheUpkeep => &["aurora-cache"],
+        RowId::Services => &["block-inventory-cache", "block-chatlog", "block-notification-history"],
+        RowId::CacheUpkeep => &["block-cache"],
         _ => &["main", "unnamed"],
     }
 }
@@ -285,7 +285,7 @@ pub(super) fn show(ui: &mut egui::Ui, p: &Palette, m: &mut Monitor, s: &Snapshot
         .collect();
 
     let titles: Vec<&str> = Column::ALL.iter().map(|c| column_title(*c, m.per_core)).collect();
-    let mut cols = vec![Col::new(tr!("monitor-col-subsystem"), 0.0, false).total("Aurora".into())];
+    let mut cols = vec![Col::new(tr!("monitor-col-subsystem"), 0.0, false).total("Block".into())];
     for (c, title) in Column::ALL.iter().zip(&titles) {
         let total = s.attribution.total(*c).map_or("–".into(), |v| format(*c, scale(*c, v)));
         cols.push(Col::new(title, 96.0, true).sort(m.sort == *c).total(total));

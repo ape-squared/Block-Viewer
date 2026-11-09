@@ -11,7 +11,7 @@ fn fixture() -> (World, SoundManager, Uuid, Uuid, Listener) {
     world.objects.get_mut(idx).unwrap().position = Vec3::new(124.0, 132.0, 30.0);
     world.parcel = Some(crate::demo::parcel_visibility::parcel_at(132.0, 132.0));
     let asset = Uuid::from_u128(1222);
-    let mut sounds = SoundManager::new(std::env::temp_dir().join("aurora-parcel-sound-tests"));
+    let mut sounds = SoundManager::new(std::env::temp_dir().join("block-parcel-sound-tests"));
     sounds.insert(asset, SoundClip::from_pcm(&[0.0; 48_000], 1, 48_000));
     let listener = Listener {
         pos: Vec3::new(124.0, 131.0, 30.0),

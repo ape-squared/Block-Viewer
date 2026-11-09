@@ -6,9 +6,7 @@ use std::path::{Path, PathBuf};
 
 pub mod area_search;
 pub mod backup;
-pub mod draw_stepping;
 mod hover_height;
-pub mod registry;
 mod saver;
 pub mod stream_list;
 
@@ -244,15 +242,17 @@ pub enum PlateClick {
     Profile,
     InstantMessage,
     OfferTeleport,
+    RequestTeleport,
     Menu,
 }
 
 impl PlateClick {
-    pub const ALL: [PlateClick; 5] = [
+    pub const ALL: [PlateClick; 6] = [
         PlateClick::Nothing,
         PlateClick::Profile,
         PlateClick::InstantMessage,
         PlateClick::OfferTeleport,
+        PlateClick::RequestTeleport,
         PlateClick::Menu,
     ];
 }
@@ -427,11 +427,12 @@ pub struct Settings {
     /// Stable releases only, or also the betas built every night
     /// (Preferences › Language and updates).
     pub update_channel: block_updater::feed::Channel,
-    /// How often a running viewer looks for a new version again, after the
-    /// check at launch (Preferences › Language and updates); a new one shows
-    /// a notice. Aurora only: the Legacy Viewer checks at launch.
-    pub update_check_interval: crate::updater::Interval,
     pub ignored_update: String,
+    /// Keep the display awake (voice / AFK chat). Windows SetThreadExecutionState.
+    pub prevent_display_sleep: bool,
+    /// Optional forced window size in logical pixels (0 = off). Dev / recording.
+    pub force_window_width: u32,
+    pub force_window_height: u32,
     pub area_search: area_search::AreaSearch,
     pub crash_reports: CrashReports,
     /// Firestorm Language: default follows the OS.
@@ -454,11 +455,6 @@ pub struct Settings {
     /// Debug overlays (not saved).
     #[serde(skip)]
     pub debug: DebugView,
-    /// DebugSettingsHideDefault: the Debug Settings window lists the changed
-    /// settings only.
-    pub debug_settings_changed_only: bool,
-    /// The "ignore" of the DebugSettingsWarning notification.
-    pub debug_settings_warning_ignored: bool,
     /// The Dev Toolbox's arrangement (Customize); None: the default one.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub dev_toolbox: Option<crate::dev_toolbox::tools::Layout>,
@@ -520,13 +516,6 @@ pub struct Settings {
     pub script_editor: crate::ui::scripts::settings::ScriptSettings,
     pub username: String,
     pub remember_username: bool,
-    /// The saved account of the last login, as (login URI, lowercase user
-    /// name): the login screen selects it first (UserLoginInfo, written by
-    /// FSPanelLogin::onClickConnect and selected by
-    /// FSPanelLogin::addUsersToCombo, indra/newview/fspanellogin.cpp).
-    /// Browsing the cards changes `username`, never this; it is not saved
-    /// when the user name is not remembered.
-    pub last_login: Option<(String, String)>,
     /// Remember the password (its login hash, in the system credential
     /// store; Firestorm "Remember password"). Off by default.
     pub remember_password: bool,
@@ -537,16 +526,6 @@ pub struct Settings {
     pub start_location: String,
     pub start_region: String,
     pub draw_distance: f32,
-    /// FSRenderFarClipStepping: after the login and a teleport to another
-    /// region, the draw distance starts at 32 m and doubles every
-    /// `draw_distance_stepping_interval` seconds (settings/draw_stepping.rs;
-    /// off).
-    pub draw_distance_stepping: bool,
-    /// FSRenderFarClipSteppingInterval: 20 s, 5 to 30 (Debug Settings only).
-    pub draw_distance_stepping_interval: u32,
-    /// The steps under way; the file keeps the user's draw distance.
-    #[serde(skip)]
-    pub draw_stepping: Option<draw_stepping::Stepping>,
     /// The GPU to draw with (Preferences › Graphics; #894): empty for the
     /// automatic choice (discrete first), or the adapter's name; read at
     /// startup (`block_render::adapter_choice`), `AURORA_GPU` overrides it.
@@ -596,11 +575,6 @@ pub struct Settings {
     /// the new default.
     pub occlusion_culling: bool,
     pub lod_factor: f32,
-    /// RenderTreeLODFactor: the detail of Linden trees at a distance; 0 draws
-    /// no tree nor grass (scene/tree_detail.rs). Preferences › Graphics
-    /// "Trees", 0 to 1 (the Legacy slider starts at 0.125); the levels set
-    /// 0 (Potato), 0.5 or 1 (Deluxe), as its featuretable.
-    pub tree_lod_factor: f32,
     /// Texture memory sized from the detected video memory (else `texture_budget_mb`).
     pub texture_budget_auto: bool,
     pub texture_budget_mb: u32,
@@ -609,7 +583,8 @@ pub struct Settings {
     /// 2048 by default): `TextureStreamer::max_resolution`.
     pub max_texture_resolution: u32,
     pub ui_scale: f32,
-    /// Firestorm UsePieMenu. Keep Aurora's existing list menu by default.
+    /// Legacy UsePieMenu. New installs default on (`Settings::default`); an
+    /// older settings file without the field stays on the list menu.
     pub use_pie_menu: bool,
     /// Independent arrangements for land, objects, avatars, attachments and HUDs.
     pub world_context_menus: crate::ui::context::Preferences,
@@ -689,20 +664,14 @@ pub struct Settings {
     /// The money tracker records the payments even while it is closed
     /// (FSAlwaysTrackPayments, off by default).
     pub always_track_payments: bool,
-    /// Preferences › Chat › Conversations: whose direct payment to us opens
-    /// their conversation on its card (#1198, #2638); otherwise it shows
-    /// there only when it is open. Friends by default.
-    pub payment_received_opens: crate::world::payments::Opens,
-    /// The former switch, read once: on was a friend's payment received.
-    #[serde(rename = "payment_opens_conversation", skip_serializing)]
-    pub(crate) former_payment_opens_conversation: Option<bool>,
-    /// Preferences › Chat › Conversations: whose conversation our own direct
-    /// payment opens on its card (#1198, #2638); otherwise it shows there
-    /// only when it is open. Never by default.
-    pub payment_sent_opens: crate::world::payments::Opens,
-    /// The former switch, read once: on was any resident we paid.
-    #[serde(rename = "payment_sent_opens_conversation", skip_serializing)]
-    pub(crate) former_payment_sent_opens_conversation: Option<bool>,
+    /// Preferences › Chat › Conversations: a friend's direct payment opens
+    /// their conversation on its card (#1198); a payment from anyone else
+    /// shows there only when it is open. On by default.
+    pub payment_opens_conversation: bool,
+    /// Preferences › Chat › Conversations: our own direct payment to a
+    /// resident opens their conversation on its card (#1198); otherwise it
+    /// shows there only when it is open. Off by default.
+    pub payment_sent_opens_conversation: bool,
     /// Mini-map and world map options (Firestorm MiniMap* / Map* settings).
     pub maps: MapSettings,
     /// "Search": last tab, rating boxes and land limits.
@@ -847,6 +816,12 @@ pub struct Settings {
     /// yet, opens it with "Incoming message from <name>"
     /// (FSAnnounceIncomingIM, off).
     pub announce_incoming_im: bool,
+    /// Graphics level this machine was offered once, until the notice is dismissed.
+    #[serde(default)]
+    pub graphics_machine_tip: Option<u8>,
+    /// The friends notice has been dismissed.
+    #[serde(default)]
+    pub friend_kit_seen: bool,
     /// "(<unread>) " before the window title while IMs, group chats or
     /// conferences wait unread (FSShowMessageCountInWindowTitle, off).
     pub unread_ims_in_window_title: bool,
@@ -870,8 +845,6 @@ pub struct Settings {
     /// The same notifications while the window is in front (FSGrowlWhenActive, off).
     pub system_notifications_when_active: bool,
     pub chat_toast_seconds: f32,
-    /// Wrapped text rows above the chat bar (ConsoleMaxLines, 40; 0 hides them).
-    pub chat_console_max_lines: u32,
     /// Toast when a friend comes online or goes offline (ChatOnlineNotification, on).
     pub toast_friends_online: bool,
     /// The same notices as a line of nearby chat (OnlineOfflinetoNearbyChat;
@@ -1142,9 +1115,6 @@ pub struct Settings {
     /// presets) or the viewfinder (`camera::presets`); kept apart from
     /// `camera`, which "Reset" sets back.
     pub camera_shots: Vec<crate::camera::CameraShot>,
-    /// The user's own Rear, Front, Side and Shoulder views (`camera::SavedViews`,
-    /// issue #2755), kept by "Reset" like `camera_shots`.
-    pub camera_views: crate::camera::SavedViews,
     /// The lines of the Conversations window (`ui/chat/bubbles.rs` or the
     /// legacy lines).
     pub chat_style: ChatStyle,
@@ -1177,8 +1147,16 @@ pub struct Settings {
     pub classic_region_estate: bool,
     /// The inventory as the Legacy Viewer's single tree with its tabs and
     /// footer instead of Aurora's window that widens from a compact tree to
-    /// an explorer (`ui/inventory/aurora`).
+    /// an explorer (`ui/inventory/aurora`). On by default for Block (Legacy
+    /// muscle memory).
     pub classic_inventory: bool,
+    /// Remember the active group per region and restore it on arrival
+    /// (feedback: auto-swap group title by region).
+    #[serde(default)]
+    pub auto_group_by_region: bool,
+    /// Lowercased region name → group UUID last activated there.
+    #[serde(default, skip_serializing_if = "std::collections::HashMap::is_empty")]
+    pub region_groups: std::collections::HashMap<String, uuid::Uuid>,
     /// "Places" as the Legacy Viewer's three tabs (`ui/places.rs`) instead
     /// of Aurora's list and preview (`ui/places/aurora.rs`).
     pub classic_places: bool,
@@ -1204,10 +1182,6 @@ pub struct Settings {
     /// Legacy Viewer's `FSDisableTurningAroundWhenWalkingBackwards`, off by
     /// default.
     pub walk_backwards_without_turning: bool,
-    /// FSAvatarTurnSpeed: how much faster avatars turn while walking or
-    /// standing, 0 (the default lag) to 100 % (world/body.rs; Debug Settings
-    /// only).
-    pub avatar_turn_speed: f32,
     /// Hold Up to start flying (agent_jump, indra/newview/llviewerinput.cpp).
     /// Aurora splits AutomaticFly into independent takeoff/landing choices;
     /// both default to on.
@@ -1230,25 +1204,9 @@ pub struct Settings {
     /// A left click on an object whose click action is Sit does not sit
     /// (FSBlockClickSit, off); the menu's Sit still does.
     pub block_click_sit: bool,
-    /// RenderVolumeSAProtection: prims and sculpts with a very large surface
-    /// stop being drawn past a total each frame (scene/surface_area.rs; off).
-    pub large_surface_protection: bool,
-    /// RenderVolumeSAThreshold (75) and RenderSculptSAThreshold (150): the
-    /// area at unit scale from which a prim or a sculpt counts (Debug
-    /// Settings only, as in the Legacy Viewer).
-    pub large_surface_prim_threshold: f32,
-    pub large_surface_sculpt_threshold: f32,
-    /// RenderVolumeSAFrameMax (5000): the total drawn each frame.
-    pub large_surface_frame_max: f32,
-    /// FSRevokePerms: revoke the permissions of an object we do not own
-    /// when we sit on it (1), stand up from it (2), both (3) or never (0,
-    /// the default) (app/revoke_on_sit.rs; Debug Settings only).
-    pub revoke_permissions: u8,
     /// What a double click on the ground does (Preferences › Controls, the
-    /// wolf menu › Me): nothing by default, as in the Legacy Viewer.
+    /// wolf menu › Me): nothing by default, as in Firestorm.
     pub double_click: crate::autopilot::DoubleClick,
-    /// Allow the configured double-click action on scripted objects, except Sit (Legacy Viewer default: on).
-    pub double_click_scripted: bool,
     pub follow: crate::autopilot::FollowSettings,
     /// Look-at: what we send of where we look, the crosshairs of where the
     /// avatars look, how our head follows the cursor (Preferences ›
@@ -1283,14 +1241,12 @@ pub struct Settings {
     /// World resolution as a percentage of the window; HUDs and UI stay native.
     pub render_scale_percent: u32,
     /// Geometric specular anti-aliasing (common.wgsl `specular_aa_roughness`):
-    /// highlights widened where the shading normal turns faster than a
-    /// pixel, so they stop shimmering as the camera moves. An Aurora
-    /// improvement, on by default.
+    /// jewellery / metal shimmer calmed when the camera moves. On by default.
     pub specular_aa: bool,
-    /// Medal / sheer attachment depth sorting (RiggedBlendDepth::Layers):
+    /// Medal / sheer attachment depth sorting (`RiggedBlendDepth::Layers`):
     /// keeps chest medals and sheer mesh layers from clipping through the
     /// body. On by default; off uses Legacy write-depth. Overridden by
-    /// AURORA_RIGGED_BLEND when that variable is set.
+    /// `AURORA_RIGGED_BLEND` when that variable is set.
     pub medal_clip_layers: bool,
     /// The sky ambient keeps its colour at full strength (x 0.7), as the
     /// first PBR release lit it (tag Second_Life_Release#843866d-DRTVWR-559),
@@ -1327,18 +1283,12 @@ pub struct Settings {
     /// again, before Windows resets the card (app/busy_pause.rs). On by
     /// default; not in the Legacy Viewer.
     pub background_gpu_pause: bool,
-    /// After a GPU device loss (a driver reset of the card, often caused
-    /// by another program), a new window and device instead of closing
-    /// (app/gpu_recovery.rs). On by default; the Legacy Viewer closes.
-    pub gpu_recovery: bool,
     /// Maximum live particles (0 = particles off).
     pub max_particles: u32,
-    /// RenderAttachedParticles: the particles of what avatars wear (on;
-    /// Preferences › Graphics, as the Legacy Viewer's).
-    pub attached_particles: bool,
-    /// RenderTrackerBeacon: the beacon and marker of a place or a friend
-    /// tracked from the map (on; Debug Settings only, as there).
-    pub tracker_beacon: bool,
+    /// Animated selection halo / particle pulse around the edit selection
+    /// (off by default; outline still draws).
+    #[serde(default)]
+    pub selection_particles: bool,
     /// Avatars drawn (the nearest ones).
     pub max_avatars: u32,
     /// Ambient occlusion: 0 off, 1 low, 2 high (the levels of the Legacy
@@ -1364,12 +1314,8 @@ pub struct Settings {
     /// Reflection probes (RenderReflectionProbeLevel): 0 none (sky only),
     /// 1 manual, 2 manual + terrain, 3 full scene.
     pub reflection_probes: u8,
-    /// Reflection probe cube slots (RenderReflectionProbeCount; 8..=256).
+    /// Reflection probe cube slots (RenderReflectionProbeCount; 8..=64).
     pub probe_count: u32,
-    /// How far automatic reflection probes are placed around the camera
-    /// (m, 32..=512), within the draw distance. The Legacy Viewer has no
-    /// such limit (the draw distance); 512 keeps its reach.
-    pub probe_range: f32,
     /// RenderAvatarMaxComplexity: avatars above it show as grey silhouettes
     /// (0 = no limit; Firestorm's Ultra preset is 350 000).
     pub max_complexity: u32,
@@ -1454,6 +1400,9 @@ pub struct Settings {
     pub audio: AudioSettings,
     /// Parcel media and media on a prim.
     pub media: crate::media::MediaSettings,
+    /// Lovense Connect / Remote local bridge (Preferences › Fun).
+    #[serde(default)]
+    pub lovense: crate::lovense::Settings,
     /// Name tag, minimap and chat colors (Firestorm color preferences).
     pub colors: ColorSettings,
     /// Rebindable keyboard / mouse controls.
@@ -1531,7 +1480,7 @@ pub(crate) fn max_texture_resolution_choice(v: u32) -> u32 {
         .unwrap_or(MAX_TEXTURE_RESOLUTIONS[0])
 }
 
-const SETTINGS_VERSION: u32 = 34;
+const SETTINGS_VERSION: u32 = 33;
 
 /// `settings.json` from a newer build: the document, what this build loaded
 /// from it, and the top-level keys to leave as they were unless changed here
@@ -1764,6 +1713,8 @@ pub struct AudioSettings {
     pub reject_group_calls: bool,
     pub reject_adhoc_calls: bool,
     pub reject_p2p_calls: bool,
+    /// Vivox voice morph / font id (empty = no morph). Legacy Voice Morphing menu.
+    pub voice_morph: String,
 }
 
 impl Default for AudioSettings {
@@ -1809,6 +1760,7 @@ impl Default for AudioSettings {
             reject_group_calls: false,
             reject_adhoc_calls: false,
             reject_p2p_calls: false,
+            voice_morph: String::new(),
         }
     }
 }
@@ -1838,7 +1790,9 @@ impl Default for Settings {
     fn default() -> Self {
         Settings {
             update_mode: crate::updater::Mode::Ask,
-            update_check_interval: crate::updater::Interval::default(),
+            prevent_display_sleep: true,
+            force_window_width: 0,
+            force_window_height: 0,
             update_channel: block_updater::feed::Channel::Stable,
             ignored_update: String::new(),
             area_search: Default::default(),
@@ -1878,19 +1832,13 @@ impl Default for Settings {
             script_editor: Default::default(),
             username: String::new(),
             remember_username: true,
-            last_login: None,
             remember_password: false,
-            debug_settings_changed_only: false,
-            debug_settings_warning_ignored: false,
             grid: GridChoice::SecondLife,
             custom_login_uri: "http://127.0.0.1:9000/".into(),
             grids: Vec::new(),
             start_location: "last".into(),
             start_region: String::new(),
             draw_distance: 96.0,
-            draw_distance_stepping: false,
-            draw_distance_stepping_interval: 20,
-            draw_stepping: None,
             gpu_adapter: String::new(),
             gpu_driver_dismissed: String::new(),
             allow_overlays: false,
@@ -1911,7 +1859,6 @@ impl Default for Settings {
             bloom_strength: BLOOM_STRENGTH,
             occlusion_culling: true,
             lod_factor: 2.0,
-            tree_lod_factor: 0.5,
             texture_budget_auto: true,
             texture_budget_mb: 1536,
             max_texture_resolution: MAX_TEXTURE_RESOLUTION,
@@ -1954,10 +1901,8 @@ impl Default for Settings {
             confirm_payments: true,
             payment_confirm_threshold: 200,
             always_track_payments: false,
-            payment_received_opens: crate::world::payments::Opens::Friends,
-            former_payment_opens_conversation: None,
-            payment_sent_opens: crate::world::payments::Opens::Never,
-            former_payment_sent_opens_conversation: None,
+            payment_opens_conversation: true,
+            payment_sent_opens_conversation: false,
             maps: MapSettings::default(),
             search: Default::default(),
             show_people: true,
@@ -2015,6 +1960,8 @@ impl Default for Settings {
             flash_conversations_button: true,
             flash_conversations_nearby: true,
             announce_incoming_im: false,
+            graphics_machine_tip: None,
+            friend_kit_seen: false,
             unread_ims_in_window_title: false,
             chat_thumbnails: ChatThumbnails::ChatBar,
             chat_thumbnails_flash: true,
@@ -2024,7 +1971,6 @@ impl Default for Settings {
             system_notifications: false,
             system_notifications_when_active: false,
             chat_toast_seconds: 20.0,
-            chat_console_max_lines: 40,
             toast_friends_online: true,
             friends_online_in_chat: false,
             presence_position: PresencePosition::TopRight,
@@ -2115,7 +2061,6 @@ impl Default for Settings {
             interface_colors: Default::default(),
             classic_controls: false,
             camera_shots: Vec::new(),
-            camera_views: Default::default(),
             plates_friends_only_full: false,
             plates_friend_tint: true,
             plates_hover_expand: true,
@@ -2134,7 +2079,9 @@ impl Default for Settings {
             classic_about_land: false,
             classic_search: false,
             classic_region_estate: false,
-            classic_inventory: false,
+            classic_inventory: true,
+            auto_group_by_region: true,
+            region_groups: Default::default(),
             classic_places: false,
             places_sort: PlacesSort::Visit,
             invert_mouse: false,
@@ -2143,7 +2090,6 @@ impl Default for Settings {
             arrow_keys_always_move: false,
             letter_keys_move: true,
             walk_backwards_without_turning: false,
-            avatar_turn_speed: 0.0,
             automatic_fly: true,
             automatic_land: true,
             fly_after_teleport: false,
@@ -2151,13 +2097,7 @@ impl Default for Settings {
             quickjump: false,
             fly_override_warned: false,
             block_click_sit: false,
-            large_surface_protection: false,
-            large_surface_prim_threshold: 75.0,
-            large_surface_sculpt_threshold: 150.0,
-            large_surface_frame_max: 5000.0,
-            revoke_permissions: 0,
             double_click: crate::autopilot::DoubleClick::Nothing,
-            double_click_scripted: true,
             follow: Default::default(),
             lookat: Default::default(),
             former_look_at: None,
@@ -2183,10 +2123,8 @@ impl Default for Settings {
             background_fps_cap: true,
             background_fps_limit: 15,
             background_gpu_pause: true,
-            gpu_recovery: true,
             max_particles: 4096,
-            attached_particles: true,
-            tracker_beacon: true,
+            selection_particles: false,
             max_avatars: 16,
             ssao: 1,
             ao_method: 0,
@@ -2196,8 +2134,7 @@ impl Default for Settings {
             screen_indirect_intensity: SCREEN_INDIRECT_INTENSITY,
             water_reflections: 1,
             reflection_probes: 3,
-            probe_count: 256,
-            probe_range: 512.0,
+            probe_count: 32,
             max_complexity: 350_000,
             max_attachment_area: 1000.0,
             loading_avatars: 0,
@@ -2218,7 +2155,9 @@ impl Default for Settings {
             mirrors: 1,
             ssr: false,
             anisotropy: 8,
-            cache_size_mb: 20480,
+            // 8 GB is enough for a busy session; 20 GB made cold start scan
+            // the disk for minutes on HDDs and still left “loading” feeling.
+            cache_size_mb: 8192,
             cache_location: String::new(),
             chat_log_location: String::new(),
             bandwidth_kbps: block_net::throttle::DEFAULT_KBPS as u32,
@@ -2231,6 +2170,7 @@ impl Default for Settings {
             legacy_toolbars: Default::default(),
             audio: AudioSettings::default(),
             media: Default::default(),
+            lovense: Default::default(),
             colors: ColorSettings::default(),
             keybinds: Default::default(),
             legacy_hud_drag_key: None,
@@ -2279,11 +2219,7 @@ fn allow_overlays_in(file: Option<&[u8]>) -> bool {
 }
 
 fn for_mode(dir: PathBuf) -> PathBuf {
-    if std::env::var_os("AURORA_DEMO").is_some() {
-        dir.join("demo")
-    } else {
-        dir
-    }
+    if crate::block_env::demo_mode() { dir.join("demo") } else { dir }
 }
 
 /// Unit tests never read or write the user's folders: theirs are in the
@@ -2311,7 +2247,7 @@ pub fn config_dir() -> PathBuf {
 
 /// The settings folder before the demo's subfolder.
 pub(crate) fn default_config_root() -> PathBuf {
-    directories::ProjectDirs::from("com", "ape-squared", "BlockViewer")
+    directories::ProjectDirs::from("org", "Aurora", "AuroraViewer")
         .map(|d| d.config_dir().to_path_buf())
         .unwrap_or_else(|| PathBuf::from("."))
 }
@@ -2555,17 +2491,6 @@ impl Settings {
         if std::mem::take(&mut self.former_hide_own_group_title) {
             self.group_titles = crate::world::names::GroupTitles::AllExceptMine;
         }
-        // the payments' two switches became a choice each (#2638), with
-        // what they did: friends' payments received, and ours to anyone
-        {
-            use crate::world::payments::Opens;
-            if let Some(on) = self.former_payment_opens_conversation.take() {
-                self.payment_received_opens = if on { Opens::Friends } else { Opens::Never };
-            }
-            if let Some(on) = self.former_payment_sent_opens_conversation.take() {
-                self.payment_sent_opens = if on { Opens::Anyone } else { Opens::Never };
-            }
-        }
         // the shutter's switch of the interface sounds became the photos'
         // own ("Quiet snapshots"): a shutter turned off there stays off
         if self.audio.ui.play.remove("Snapshot") == Some(false) {
@@ -2619,7 +2544,6 @@ impl Settings {
         self.ground_feet_max_avatars = self.ground_feet_max_avatars.min(MAX_GROUND_FEET_AVATARS);
         self.camera = std::mem::take(&mut self.camera).sanitized();
         crate::camera::presets::sanitize(&mut self.camera_shots);
-        self.camera_views.sanitize();
         if self.settings_version < 5 {
             // new defaults: no vsync, no frame cap (the old "0 = screen rate,
             // 1 = unlimited" setting becomes a switch + value)
@@ -2632,11 +2556,10 @@ impl Settings {
         self.fps_limit = self.fps_limit.clamp(10, 500);
         self.background_fps_limit = self.background_fps_limit.clamp(1, 120);
         if self.settings_version < 6 {
-            // new defaults: texture memory from the detected VRAM, 20 GB disk cache
+            // new defaults: texture memory from the detected VRAM
             self.texture_budget_auto = true;
-            if self.cache_size_mb == 4096 {
-                self.cache_size_mb = 20480;
-            }
+            // older installs kept 4 GB; do not inflate them to 20 GB (that
+            // made DiskCache::trim walk multi‑GB trees for minutes at start)
         }
         if self.settings_version < 7 {
             // new default: parcel music waits for the radio toggle (Firestorm)
@@ -2792,12 +2715,6 @@ impl Settings {
             camera.disable_constraints = false;
             camera.ignore_sim_constraints = false;
         }
-        if self.settings_version < 34 {
-            // the levels now set the trees' detail: a profile still exactly
-            // on Potato or Deluxe takes theirs (0 and 1, the Legacy Viewer's
-            // Low and Ultra), any other keeps 0.5
-            crate::graphics_presets::upgrade_tree_detail(&mut self);
-        }
         if !self.audio.mic_gain.is_finite() {
             self.audio.mic_gain = 1.0;
         }
@@ -2846,8 +2763,8 @@ impl Settings {
         if !self.chat_island_width.is_finite() || self.chat_island_width < 0.0 {
             self.chat_island_width = 0.0;
         }
-        self.draw_distance = self.draw_distance.clamp(32.0, 512.0);
-        self.draw_distance_stepping_interval = self.draw_distance_stepping_interval.clamp(5, 30);
+        // Feedback: draw distance past 512 m (skyboxes, distant avatars).
+        self.draw_distance = self.draw_distance.clamp(32.0, 1024.0);
         self.chat_commands.sanitize();
         if let Some(toolbar) = &mut self.toolbar {
             toolbar.sanitize();
@@ -2874,35 +2791,6 @@ impl Settings {
             BLOOM_STRENGTH
         };
         self.lod_factor = self.lod_factor.clamp(0.5, 4.0);
-        let area = |v: f32, default: f32| if v.is_finite() { v.clamp(0.0, 1.0e6) } else { default };
-        self.large_surface_prim_threshold = area(self.large_surface_prim_threshold, 75.0);
-        self.large_surface_sculpt_threshold = area(self.large_surface_sculpt_threshold, 150.0);
-        self.large_surface_frame_max = area(self.large_surface_frame_max, 5000.0);
-        self.revoke_permissions = self.revoke_permissions.min(3);
-        self.avatar_turn_speed = if self.avatar_turn_speed.is_finite() {
-            self.avatar_turn_speed.clamp(0.0, 100.0)
-        } else {
-            0.0
-        };
-        // the ranges of the Legacy Viewer's Build preferences
-        let b = &mut self.build;
-        b.new_prim_transparency = if b.new_prim_transparency.is_finite() {
-            b.new_prim_transparency.clamp(0.0, 100.0)
-        } else {
-            0.0
-        };
-        b.new_prim_glow = if b.new_prim_glow.is_finite() {
-            b.new_prim_glow.clamp(0.0, 1.0)
-        } else {
-            0.0
-        };
-        b.new_prim_shiny = b.new_prim_shiny.min(3);
-        // unclamped in the Legacy Viewer, whose Phototools go to 8
-        self.tree_lod_factor = if self.tree_lod_factor.is_finite() {
-            self.tree_lod_factor.clamp(0.0, 8.0)
-        } else {
-            0.5
-        };
         self.ui_scale = self.ui_scale.clamp(0.75, 2.0);
         self.mouse_sensitivity = self.mouse_sensitivity.clamp(0.1, 5.0);
         self.texture_budget_mb = self.texture_budget_mb.clamp(256, 32768);
@@ -2926,12 +2814,7 @@ impl Settings {
         self.fsr_sharpness = self.fsr_sharpness.min(100);
         self.render_scale_percent = self.render_scale_percent.clamp(50, 100);
         self.reflection_probes = self.reflection_probes.min(3);
-        self.probe_count = self.probe_count.clamp(8, 256);
-        self.probe_range = if self.probe_range.is_finite() {
-            self.probe_range.clamp(32.0, 512.0)
-        } else {
-            512.0
-        };
+        self.probe_count = self.probe_count.clamp(8, 64);
         self.tonemapper = self.tonemapper.min(1);
         self.tonemap_mix = if self.tonemap_mix.is_finite() {
             self.tonemap_mix.clamp(0.0, 1.0)
@@ -2939,7 +2822,6 @@ impl Settings {
             TONEMAP_MIX
         };
         self.chat_toast_seconds = self.chat_toast_seconds.clamp(0.0, 60.0);
-        self.chat_console_max_lines = self.chat_console_max_lines.min(50);
         self.chat_bubble_opacity = if self.chat_bubble_opacity.is_finite() {
             self.chat_bubble_opacity.clamp(0.0, 1.0)
         } else {
@@ -2981,7 +2863,6 @@ impl Settings {
         *self = Settings {
             username: old.username,
             remember_username: old.remember_username,
-            last_login: old.last_login,
             grid: old.grid,
             custom_login_uri: old.custom_login_uri,
             grids: old.grids,
@@ -3038,13 +2919,8 @@ impl Settings {
             held.sync(&copy);
             held.restore(&mut copy);
         }
-        // the draw distance being stepped: the user's
-        if let Some(steps) = copy.draw_stepping.take() {
-            copy.draw_distance = steps.user;
-        }
         if !copy.remember_username {
             copy.username.clear();
-            copy.last_login = None;
         }
         copy
     }
@@ -3082,12 +2958,6 @@ impl Settings {
         }
     }
 
-    /// The account the login fields name, as `login_accounts::Account::key`
-    /// writes it: (login URI, lowercase user name).
-    pub fn login_key(&self) -> (String, String) {
-        (self.login_uri(), self.username.trim().to_lowercase())
-    }
-
     /// Texture memory budget (MB): the manual value, or in automatic mode a
     /// share of the detected video memory (as Firestorm's unlimited VRAM
     /// mode: leave room for render targets, geometry and other programs).
@@ -3111,16 +2981,6 @@ impl Settings {
             2 => (2048, 96.0),
             3 => (2048, 192.0),
             _ => (4096, 256.0),
-        }
-    }
-
-    /// The large surface protection the scene applies.
-    pub fn surface_protection(&self) -> crate::scene::surface_area::Protection {
-        crate::scene::surface_area::Protection {
-            on: self.large_surface_protection,
-            volume_threshold: self.large_surface_prim_threshold,
-            sculpt_threshold: self.large_surface_sculpt_threshold,
-            frame_max: self.large_surface_frame_max,
         }
     }
 
@@ -3170,7 +3030,7 @@ impl Settings {
             specular_aa: self.specular_aa,
             water_reflection_scale: Self::reflection_scale(self.water_reflections),
             mirror_scale: Self::reflection_scale(self.mirrors),
-            probe_slots: self.probe_count.clamp(8, 256),
+            probe_slots: self.probe_count.clamp(8, 64),
             ssr: self.ssr,
             anisotropy: self.anisotropy,
             occlusion: self.occlusion_culling,
@@ -3332,23 +3192,6 @@ impl WaterEffectsSettings {
 #[cfg(test)]
 mod tests {
     #[test]
-    fn console_max_lines_defaults_persist_and_sanitize() {
-        let old: super::Settings = serde_json::from_str("{}").expect("old synthetic settings");
-        assert_eq!(old.chat_console_max_lines, 40);
-        for (saved, expected) in [(0, 0), (3, 3), (50, 50), (u32::MAX, 50)] {
-            let settings = super::Settings {
-                chat_console_max_lines: saved,
-                ..Default::default()
-            }
-            .sanitized();
-            assert_eq!(settings.chat_console_max_lines, expected);
-            let json = serde_json::to_string(&settings).expect("synthetic settings JSON");
-            let loaded: super::Settings = serde_json::from_str(&json).expect("saved synthetic settings");
-            assert_eq!(loaded.chat_console_max_lines, expected);
-        }
-    }
-
-    #[test]
     fn automatic_texture_budget_uses_shared_heap_only_for_integrated_gpus() {
         use super::auto_texture_budget;
         assert_eq!(auto_texture_budget(Some(512), Some(7800), true), 3900);
@@ -3357,27 +3200,6 @@ mod tests {
         // When the system heap cannot be identified, the existing safe
         // integrated default remains in force.
         assert_eq!(auto_texture_budget(Some(512), None, true), 2048);
-    }
-
-    #[test]
-    fn the_last_login_survives_a_restart_only_with_the_user_name() {
-        use super::Settings;
-        let old: Settings = serde_json::from_str("{}").expect("older preferences");
-        assert_eq!(old.last_login, None);
-        for remember in [true, false] {
-            let settings = Settings {
-                username: "synthetic-browsed".into(),
-                remember_username: remember,
-                last_login: Some(("synthetic-grid".into(), "synthetic-last".into())),
-                ..Settings::default()
-            };
-            let bytes = serde_json::to_vec(&settings.to_saved()).expect("save preferences");
-            let restored: Settings = serde_json::from_slice(&bytes).expect("restart");
-            assert_eq!(
-                restored.last_login,
-                remember.then(|| ("synthetic-grid".to_owned(), "synthetic-last".to_owned()))
-            );
-        }
     }
 
     #[test]
@@ -3564,37 +3386,6 @@ mod tests {
     }
 
     #[test]
-    fn the_former_payment_switches_keep_what_they_did() {
-        use crate::world::payments::Opens;
-
-        let fresh: super::Settings = serde_json::from_str("{}").expect("fresh settings");
-        let fresh = fresh.sanitized();
-        assert_eq!(
-            (fresh.payment_received_opens, fresh.payment_sent_opens),
-            (Opens::Friends, Opens::Never)
-        );
-        for (received, sent) in [(false, false), (true, false), (false, true), (true, true)] {
-            let old: super::Settings = serde_json::from_value(serde_json::json!({
-                "payment_opens_conversation": received,
-                "payment_sent_opens_conversation": sent,
-            }))
-            .expect("former payment switches");
-            let migrated = old.sanitized();
-            let expected = (
-                if received { Opens::Friends } else { Opens::Never },
-                if sent { Opens::Anyone } else { Opens::Never },
-            );
-            assert_eq!((migrated.payment_received_opens, migrated.payment_sent_opens), expected);
-            let saved = serde_json::to_value(&migrated).expect("save payment choices");
-            assert!(saved.get("payment_opens_conversation").is_none(), "only the choices are saved");
-            assert!(saved.get("payment_sent_opens_conversation").is_none(), "only the choices are saved");
-            let reloaded: super::Settings = serde_json::from_value(saved).expect("reload payment choices");
-            let reloaded = reloaded.sanitized();
-            assert_eq!((reloaded.payment_received_opens, reloaded.payment_sent_opens), expected);
-        }
-    }
-
-    #[test]
     fn the_former_show_time_switch_goes_to_both_and_is_not_saved_again() {
         let fresh: super::Settings = serde_json::from_str("{}").expect("fresh settings");
         let fresh = fresh.sanitized();
@@ -3619,18 +3410,6 @@ mod tests {
         .expect("separate switches");
         let apart = apart.sanitized();
         assert_eq!((apart.chat_timestamps_nearby, apart.chat_timestamps_im), (false, true));
-    }
-
-    #[test]
-    fn scripted_object_double_click_defaults_on_and_round_trips() {
-        let missing: Settings = serde_json::from_str("{}").expect("old settings without preference");
-        assert!(missing.double_click_scripted);
-
-        let mut changed = missing;
-        changed.double_click_scripted = false;
-        let saved = serde_json::to_value(&changed).expect("save preference");
-        let loaded: Settings = serde_json::from_value(saved).expect("reload preference");
-        assert!(!loaded.double_click_scripted);
     }
 
     #[test]
@@ -4122,7 +3901,9 @@ mod tests {
     }
 
     #[test]
-    fn context_menu_style_defaults_to_list_and_survives_reload() {
+    fn context_menu_style_defaults_to_pie_and_survives_reload() {
+        assert!(Settings::default().use_pie_menu);
+        // Missing key in an older file: bool's serde default keeps the list menu.
         let old: Settings = serde_json::from_str("{}").expect("synthetic old settings");
         assert!(!old.use_pie_menu);
         for use_pie_menu in [false, true] {
@@ -4407,7 +4188,7 @@ mod tests {
     /// Aurora's workspace once; Firestorm's lines, a choice, stay; from now
     /// on the bubbles chosen again are kept.
     #[test]
-    fn saved_bubbles_move_to_the_aurora_workspace_once() {
+    fn saved_bubbles_move_to_the_block_workspace_once() {
         assert_eq!(Settings::default().chat_style, ChatStyle::Aurora);
         for (before, after) in [(ChatStyle::Bubbles, ChatStyle::Aurora), (ChatStyle::Legacy, ChatStyle::Legacy)] {
             let old = Settings {

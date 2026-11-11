@@ -1660,7 +1660,7 @@ pub fn show(
                     } else {
                         ("list-filled", block_i18n::tr!("ui-appearance-outfit-layout-list"))
                     };
-                    if icon_button(ui, p, icon, &tip).clicked() {
+                    if icon_button(ui, p, icon, tip).clicked() {
                         st.outfit_as_list = !st.outfit_as_list;
                     }
                 }

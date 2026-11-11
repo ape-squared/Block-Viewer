@@ -267,6 +267,7 @@ fn action_key(action: &CtxAction) -> String {
         CtxAction::ResetMeshLod(..) => "ResetMeshLod",
         CtxAction::ShowAvatarTextures(..) => "ShowAvatarTextures",
         CtxAction::TakeOffClothing(..) => "TakeOffClothing",
+        CtxAction::TakeOffAllClothing => "TakeOffAllClothing",
         CtxAction::DetachAt(..) => "DetachAt",
         CtxAction::DetachAll => "DetachAll",
         CtxAction::ResetHudScale(..) => "ResetHudScale",

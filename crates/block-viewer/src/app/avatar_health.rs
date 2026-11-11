@@ -69,7 +69,15 @@ impl App {
     /// Viewer never enters customise mode for it. With the customise
     /// animation turned off (an Aurora choice), our avatar keeps its pose.
     pub(super) fn update_avatar_health(&mut self) {
-        let editing = (self.shape_ui.open || self.wearable_ui.open) && !self.world.agent_id.is_nil() && self.settings.customize_animation;
+        // Build-tool edits of a worn object only pause its skeleton. They
+        // must not play ANIM_AGENT_CUSTOMIZE; that pose is the shape and
+        // wearable editors (changeCameraToCustomizeAvatar).
+        let editing = appearance_customize_active(
+            self.shape_ui.open,
+            self.wearable_ui.open,
+            self.settings.customize_animation,
+            !self.world.agent_id.is_nil(),
+        );
         if editing && !self.avatar_health.customizing {
             // changeCameraToCustomizeAvatar: "force stand up" first
             // (LLAgent::standUp, AGENT_CONTROL_STAND_UP)
@@ -158,6 +166,12 @@ impl App {
     }
 }
 
+/// Shape and clothing editors only. A build selection on an attachment
+/// does not count, even when the customise animation preference is on.
+pub(crate) fn appearance_customize_active(shape_open: bool, wearable_open: bool, enabled: bool, agent_ready: bool) -> bool {
+    agent_ready && enabled && (shape_open || wearable_open)
+}
+
 /// What entering or leaving appearance editing asks for: the customise
 /// animation started, or stopped and followed by its "done" animation
 /// (LLAgent::endAnimationUpdateUI).
@@ -236,6 +250,15 @@ mod tests {
             vec![(ANIM_CUSTOMIZE, false), (ANIM_CUSTOMIZE_DONE, true)]
         );
         assert!(!customizing);
+    }
+
+    #[test]
+    fn build_editing_an_attachment_does_not_play_the_customise_animation() {
+        assert!(!appearance_customize_active(false, false, true, true));
+        assert!(appearance_customize_active(true, false, true, true));
+        assert!(appearance_customize_active(false, true, true, true));
+        assert!(!appearance_customize_active(true, true, false, true));
+        assert!(!appearance_customize_active(true, false, true, false));
     }
 
     #[test]

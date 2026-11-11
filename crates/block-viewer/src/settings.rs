@@ -683,6 +683,10 @@ pub struct Settings {
     pub show_appearance: bool,
     /// Crop outfit gallery previews to fill their frames (off: fit the whole image).
     pub appearance_fill_previews: bool,
+    /// Hanger icons on outfit list headers and gallery placeholders.
+    pub appearance_outfit_icons: bool,
+    /// My Outfits as a plain list, without gallery hanger tiles.
+    pub appearance_outfit_as_list: bool,
     pub show_ao: bool,
     /// Loading / teleport screens show the last view, blurred.
     pub loading_backdrop: bool,
@@ -1910,6 +1914,8 @@ impl Default for Settings {
             show_inventory: false,
             show_appearance: false,
             appearance_fill_previews: false,
+            appearance_outfit_icons: true,
+            appearance_outfit_as_list: false,
             show_ao: false,
             ao: Default::default(),
             bridge: Default::default(),

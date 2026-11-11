@@ -6,10 +6,12 @@
 //! selection is dropped — the avatar wearing it pauses its animations, and an
 //! animated object pauses its own skeleton (an animated attachment pauses
 //! both). The pause is local: nothing is sent, other viewers see the avatar
-//! move as before. In synchronized mode, releasing the frozen pose catches up
-//! to the receipt clock; Legacy suspends playback. HUD attachments do not pause anything
+//! move as before. In synchronized mode, releasing the frozen pose eases back
+//! toward the receipt clock over [`UNPAUSE_BLEND`] instead of snapping;
+//! Legacy suspends playback. HUD attachments do not pause anything
 //! (LLSelectMgr::getSelectTypeForObject gives them SELECT_TYPE_HUD).
 use std::collections::HashSet;
+use std::time::Duration;
 
 use block_prim::extra::EXTENDED_MESH_ANIMATED;
 use uuid::Uuid;
@@ -17,6 +19,11 @@ use uuid::Uuid;
 use super::{SelectType, select_type};
 use crate::world::World;
 use crate::world::objects::ObjKey;
+
+/// How long a synchronized skeleton eases from the frozen edit pose back
+/// toward the receipt clock. A hard catch-up snaps clothing and attachment
+/// edits (`scene::anim::Controller::set_paused_blended`).
+pub const UNPAUSE_BLEND: Duration = Duration::from_millis(280);
 
 /// Skeleton owners (avatars, animated object roots) to pause for `selection`.
 pub fn paused_skeletons(world: &World, selection: &[ObjKey]) -> HashSet<Uuid> {

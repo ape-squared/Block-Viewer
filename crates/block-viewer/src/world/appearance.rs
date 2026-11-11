@@ -1166,6 +1166,37 @@ pub fn sync_plan(inv: &Inventory, agent: Uuid, worn: &HashSet<Uuid>) -> CofSync 
     sync_plan_keeping(inv, agent, worn, Uuid::nil())
 }
 
+/// Attachments a COF write removed must still produce DetachAttachmentIntoInv
+/// when the following sync dropped them. Existing detach batches grow; a
+/// missing one is inserted before any rez or bake request.
+pub fn ensure_planned_detaches(commands: &mut Vec<NetCommand>, leaving: &[Uuid]) {
+    if leaving.is_empty() {
+        return;
+    }
+    let mut covered = HashSet::new();
+    for command in commands.iter() {
+        if let NetCommand::DetachAttachments(items) = command {
+            covered.extend(items.iter().copied());
+        }
+    }
+    let missing: Vec<Uuid> = leaving.iter().copied().filter(|id| !id.is_nil() && covered.insert(*id)).collect();
+    if missing.is_empty() {
+        return;
+    }
+    if let Some(NetCommand::DetachAttachments(items)) = commands
+        .iter_mut()
+        .find(|command| matches!(command, NetCommand::DetachAttachments(_)))
+    {
+        items.extend(missing);
+        return;
+    }
+    let at = commands
+        .iter()
+        .position(|command| matches!(command, NetCommand::RezAttachments(_) | NetCommand::RequestServerAppearance { .. }))
+        .unwrap_or(commands.len());
+    commands.insert(at, NetCommand::DetachAttachments(missing));
+}
+
 /// `sync_plan` that never takes `keep` off, linked or not: the Aurora bridge,
 /// which the Legacy Viewer puts back into every replaced outfit (FSLSLBridge
 /// in LLAppearanceMgr::updateCOF, llappearancemgr.cpp). It stays in `worn`,
@@ -2948,6 +2979,22 @@ mod tests {
             ids.iter().copied().collect::<HashSet<_>>()
         );
         assert!(ids.iter().all(|id| inv.items.contains_key(id)), "originals remain in inventory");
+    }
+
+    #[test]
+    fn a_planned_detach_is_sent_when_the_sync_omitted_it() {
+        let id = Uuid::from_u128(717);
+        let mut commands = vec![NetCommand::RequestServerAppearance { cof_version: 3 }];
+        ensure_planned_detaches(&mut commands, &[id]);
+        assert!(matches!(&commands[0], NetCommand::DetachAttachments(items) if items == &vec![id]));
+        ensure_planned_detaches(&mut commands, &[id]);
+        assert_eq!(commands.len(), 2, "an item already detached is not repeated");
+        let mut present = vec![NetCommand::DetachAttachments(vec![id])];
+        ensure_planned_detaches(&mut present, &[id, Uuid::from_u128(718)]);
+        let NetCommand::DetachAttachments(items) = &present[0] else {
+            panic!("detach batch");
+        };
+        assert_eq!(items, &vec![id, Uuid::from_u128(718)]);
     }
 
     #[test]

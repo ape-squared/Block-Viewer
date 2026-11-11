@@ -431,16 +431,43 @@ impl App {
                     .collect();
                 self.apply_appearance_action(crate::world::appearance::Action::RemoveItems(items));
             }
-            CtxAction::DetachAt(_) | CtxAction::DetachAll => {
-                let point = if let CtxAction::DetachAt(point) = act { Some(point) } else { None };
-                let items = self
-                    .world
-                    .worn_attachment_points()
+            CtxAction::TakeOffAllClothing => {
+                let items = crate::world::appearance::worn_clothing(&self.world.inventory)
                     .into_iter()
-                    .filter(|(id, p)| point.is_none_or(|point| point == *p) && self.world.rlva_can_remove(*id, Uuid::nil()))
+                    .filter(|(id, _)| self.world.rlva_can_remove(*id, Uuid::nil()))
                     .map(|(id, _)| id)
                     .collect();
                 self.apply_appearance_action(crate::world::appearance::Action::RemoveItems(items));
+            }
+            CtxAction::DetachAt(_) | CtxAction::DetachAll => {
+                let point = if let CtxAction::DetachAt(point) = act { Some(point) } else { None };
+                // Temporary attachments have no COF link. Detach All / Detach
+                // at point must ObjectDetach them, or they stay until relog.
+                let temporary: Vec<_> = self
+                    .world
+                    .temp_attachments()
+                    .into_iter()
+                    .filter(|t| point.is_none_or(|point| point == t.point) && self.world.rlva_can_remove(t.id, Uuid::nil()))
+                    .map(|t| t.id)
+                    .collect();
+                let temporary_ids: std::collections::HashSet<_> = temporary.iter().copied().collect();
+                for id in &temporary {
+                    if let Some(command) = self.world.attachment_detach_command(*id) {
+                        self.send(command);
+                    }
+                }
+                let items: Vec<_> = self
+                    .world
+                    .worn_attachment_points()
+                    .into_iter()
+                    .filter(|(id, p)| {
+                        point.is_none_or(|point| point == *p) && !temporary_ids.contains(id) && self.world.rlva_can_remove(*id, Uuid::nil())
+                    })
+                    .map(|(id, _)| id)
+                    .collect();
+                if !items.is_empty() {
+                    self.apply_appearance_action(crate::world::appearance::Action::RemoveItems(items));
+                }
             }
             CtxAction::CustomizeMenu(menu) => {
                 self.context_menu = Some(*menu.clone());

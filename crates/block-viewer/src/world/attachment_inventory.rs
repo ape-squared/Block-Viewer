@@ -47,7 +47,7 @@ impl World {
     /// LLSelectMgr::sendDetach (indra/newview/llselectmgr.cpp): an object
     /// actually worn by us can be detached by its simulator-local root even
     /// when its inventory record or the rest of the outfit cannot be fetched.
-    fn attachment_detach_command(&self, item: Uuid) -> Option<NetCommand> {
+    pub(crate) fn attachment_detach_command(&self, item: Uuid) -> Option<NetCommand> {
         let item = super::inventory::actions::original(&self.inventory, item)
             .or_else(|| {
                 self.inventory

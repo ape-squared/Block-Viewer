@@ -27,6 +27,9 @@ pub struct AppearanceUi {
     pub(crate) json: json::State,
     pub tab: usize,
     pub fill_previews: bool,
+    pub show_outfit_icons: bool,
+    /// My Outfits as a plain list, without the gallery's hanger tiles.
+    pub outfit_as_list: bool,
     pub editing: bool,
     edit_tab: usize,
     search: String,
@@ -63,11 +66,16 @@ pub struct AppearanceUi {
     reverse_sort: bool,
     pub pending: Option<(Uuid, bool)>,
     pub pending_actor: Uuid,
+    /// The next outfit action held until the current COF write finishes.
+    pub queued: Option<(crate::world::appearance::Action, uuid::Uuid)>,
     pub saved_new: bool,
     pub attachments: Vec<block_net::AttachRequest>,
     /// Only objects already worn when this COF write began may be detached
     /// by its readback; later arrivals still need registration.
     pub worn_before: HashSet<Uuid>,
+    /// Attachment items this COF write is removing. The ack must still send
+    /// DetachAttachments / ObjectDetach if the sync no longer sees them.
+    pub pending_detach: Vec<Uuid>,
     pub favorite_pending: HashSet<Uuid>,
     profile_item: Option<Uuid>,
     pub message: String,
@@ -724,7 +732,7 @@ fn gallery_heading(
         |id| crate::world::outfit_folders::path(inv, id),
     );
     let open = group.map(|id| st.group_open(id));
-    let response = folders::header(ui, p, &title, count, open, 0);
+    let response = folders::header(ui, p, &title, count, open, 0, st.show_outfit_icons);
     ui.add_space(4.0);
     match group {
         Some(id) => {
@@ -834,7 +842,9 @@ fn gallery(
                         if let Some(t) = images.get(&image) {
                             let (image_rect, uv) = preview_rects(rect.shrink(3.0), t.size_vec2(), st.fill_previews);
                             ui.painter().image(t.id(), image_rect, uv, widgets::PICTURE_TINT);
-                        } else if let Some(t) = icons::global("hanger-2-filled") {
+                        } else if st.show_outfit_icons
+                            && let Some(t) = icons::global("hanger-2-filled")
+                        {
                             ui.painter().image(
                                 t.id(),
                                 egui::Rect::from_center_size(rect.center(), Vec2::splat(width * 0.55)),
@@ -965,7 +975,7 @@ fn list_group(ui: &mut egui::Ui, p: &Palette, world: &World, st: &mut Appearance
     let Some(f) = world.inventory.folders.get(&entry.id) else {
         return;
     };
-    let response = folders::header(ui, p, &f.info.name, entry.outfits, Some(st.group_open(entry.id)), entry.depth);
+    let response = folders::header(ui, p, &f.info.name, entry.outfits, Some(st.group_open(entry.id)), entry.depth, true);
     row_gap(ui);
     if response.clicked() && st.search.trim().is_empty() {
         st.toggle_group(entry.id);
@@ -1591,6 +1601,8 @@ pub fn show(
                     ui.label(
                         RichText::new(if st.pending.is_some() {
                             block_i18n::tr!("ui-appearance-updating-outfit")
+                        } else if st.queued.is_some() {
+                            block_i18n::tr!("ui-appearance-waiting-outfit")
                         } else if dirty {
                             block_i18n::tr!("ui-appearance-unsaved-changes")
                         } else {
@@ -1634,13 +1646,24 @@ pub fn show(
         ui.add_space(8.0);
         if !st.editing {
             ui.horizontal(|ui| {
-                let width = (ui.available_width() - 28.0 - ui.spacing().item_spacing.x).max(100.0);
+                let buttons = if st.tab == 0 { 2.0 } else { 1.0 };
+                let width = (ui.available_width() - buttons * (28.0 + ui.spacing().item_spacing.x)).max(100.0);
                 ui.add_sized(
                     Vec2::new(width, 28.0),
                     egui::TextEdit::singleline(&mut st.search)
                         .hint_text(block_i18n::tr!("ui-appearance-filter-outfits"))
                         .align(egui::Align2::LEFT_CENTER),
                 );
+                if st.tab == 0 {
+                    let (icon, tip) = if st.outfit_as_list {
+                        ("layout-grid-filled", block_i18n::tr!("ui-appearance-outfit-layout-grid"))
+                    } else {
+                        ("list-filled", block_i18n::tr!("ui-appearance-outfit-layout-list"))
+                    };
+                    if icon_button(ui, p, icon, &tip).clicked() {
+                        st.outfit_as_list = !st.outfit_as_list;
+                    }
+                }
                 icon_menu(
                     ui,
                     p,
@@ -1657,6 +1680,35 @@ pub fn show(
                         }
                     },
                 );
+                if st.tab == 2 {
+                    let removable_clothing = model::worn_clothing(inv)
+                        .into_iter()
+                        .any(|(id, _)| world.rlva_wear_locks().can_remove(id));
+                    let removable_attachments = world
+                        .worn_attachment_points()
+                        .into_iter()
+                        .any(|(id, _)| world.rlva_can_remove(id, Uuid::nil()));
+                    icon_menu(ui, p, "settings-filled", block_i18n::tr!("ui-appearance-outfit-options"), |ui| {
+                        if menu::item_if(
+                            ui,
+                            p,
+                            "circle-x-filled",
+                            block_i18n::tr!("ui-context-detach-all"),
+                            removable_attachments,
+                        ) {
+                            super::context::request(ui.ctx(), super::context::CtxAction::DetachAll);
+                        }
+                        if menu::item_if(
+                            ui,
+                            p,
+                            "shirt-filled",
+                            block_i18n::tr!("ui-context-take-off-all-clothing"),
+                            removable_clothing,
+                        ) {
+                            super::context::request(ui.ctx(), super::context::CtxAction::TakeOffAllClothing);
+                        }
+                    });
+                }
             });
             let worn = block_i18n::tr!("ui-appearance-worn-38-attachments", count = format!("{}", count));
             widgets::tabs(
@@ -1712,8 +1764,10 @@ pub fn show(
                                 worn_list(ui, p, world, st, &mut actions, true);
                             } else {
                                 match st.tab {
-                                    0 => gallery(ui, p, world, st, &entries, &outfits, base, &mut actions, images, list_width),
-                                    1 => outfit_list(ui, p, world, st, &entries, &outfits, base, &mut actions),
+                                    0 if !st.outfit_as_list => {
+                                        gallery(ui, p, world, st, &entries, &outfits, base, &mut actions, images, list_width)
+                                    }
+                                    0 | 1 => outfit_list(ui, p, world, st, &entries, &outfits, base, &mut actions),
                                     _ => {
                                         ui.label(RichText::new(block_i18n::tr!("ui-appearance-items-to-wear")).color(p.muted));
                                         worn_list(ui, p, world, st, &mut actions, false);
@@ -1799,10 +1853,26 @@ pub fn show(
                     menu::toggle(
                         ui,
                         p,
-                        "photo-filled",
-                        block_i18n::tr!("ui-appearance-fill-previews"),
-                        &mut st.fill_previews,
+                        "list-filled",
+                        block_i18n::tr!("ui-appearance-outfit-layout-list"),
+                        &mut st.outfit_as_list,
                     );
+                    if !st.outfit_as_list {
+                        menu::toggle(
+                            ui,
+                            p,
+                            "photo-filled",
+                            block_i18n::tr!("ui-appearance-fill-previews"),
+                            &mut st.fill_previews,
+                        );
+                        menu::toggle(
+                            ui,
+                            p,
+                            "hanger-2-filled",
+                            block_i18n::tr!("ui-appearance-outfit-icons"),
+                            &mut st.show_outfit_icons,
+                        );
+                    }
                     menu::separator(ui, p);
                 }
                 if !st.editing && st.tab < 2 {
@@ -2104,6 +2174,7 @@ mod tests {
         use crate::settings::Settings;
         let old: Settings = serde_json::from_str("{}").expect("old settings");
         assert!(!old.appearance_fill_previews);
+        assert!(!old.appearance_outfit_as_list);
         for fill in [true, false] {
             let settings = Settings {
                 appearance_fill_previews: fill,

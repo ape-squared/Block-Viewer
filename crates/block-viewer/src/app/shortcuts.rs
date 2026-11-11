@@ -79,9 +79,10 @@ impl App {
     }
 
     /// Build › Focus on Selection / Zoom to Selection: only with something
-    /// selected in the build tools, not a HUD (SomethingSelectedNoHUD).
+    /// selected, not a HUD (SomethingSelectedNoHUD). Selection may exist from
+    /// a right-click before the build floater is open (Legacy Shift+H).
     pub(super) fn look_at_selection(&mut self, zoom: bool) {
-        if !self.build.open || self.build.hud_selected(&self.world) {
+        if self.build.selection.is_empty() || self.build.hud_selected(&self.world) {
             return;
         }
         let now = Instant::now();
@@ -104,6 +105,12 @@ impl App {
             &mut self.world.agent,
             &self.settings.camera,
         );
+        // TrackFocusObject: keep framing the selection as it moves.
+        self.settings.camera.track_focus_object = true;
+        if object.is_some() {
+            self.object_view = true;
+            self.panels.camera_controls = true;
+        }
     }
 }
 

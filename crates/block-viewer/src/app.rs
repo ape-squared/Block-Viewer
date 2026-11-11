@@ -1063,6 +1063,8 @@ pub struct App {
     demo_script_experiences: std::collections::HashMap<block_net::scripts::ScriptTarget, uuid::Uuid>,
     inventory_images: inventory_thumbnail::ImageJobs,
     appearance_ui: ui::appearance::AppearanceUi,
+    /// Items a COF detach is waiting on; ObjectDetach is retried if they stay worn.
+    detach_fallback: std::collections::HashMap<uuid::Uuid, Instant>,
     shape_ui: crate::shape_editor::State,
     shape_camera: Option<Camera>,
     physics_ui: crate::physics_editor::State,
@@ -1875,6 +1877,7 @@ impl App {
             demo_script_experiences: Default::default(),
             inventory_images: Default::default(),
             appearance_ui: Default::default(),
+            detach_fallback: Default::default(),
             shape_ui: Default::default(),
             shape_camera: None,
             physics_ui: Default::default(),
@@ -3552,22 +3555,53 @@ impl App {
                             self.appearance_ui.open(1, false);
                             self.appearance_ui.saved_new = false;
                         }
+                        let leaving = std::mem::take(&mut self.appearance_ui.pending_detach);
                         if sync {
-                            let crate::world::appearance::CofSync { commands, unknown } = crate::world::appearance::sync_with_attachments(
-                                &self.world.inventory,
-                                self.world.agent_id,
-                                &self.world.outfit_attachment_items(),
-                                &self.appearance_ui.worn_before,
-                                self.bridge_runtime.item(),
-                                std::mem::take(&mut self.appearance_ui.attachments),
-                            );
+                            let crate::world::appearance::CofSync { mut commands, unknown } =
+                                crate::world::appearance::sync_with_attachments(
+                                    &self.world.inventory,
+                                    self.world.agent_id,
+                                    &self.world.outfit_attachment_items(),
+                                    &self.appearance_ui.worn_before,
+                                    self.bridge_runtime.item(),
+                                    std::mem::take(&mut self.appearance_ui.attachments),
+                                );
+                            // The worn list follows the COF as soon as this
+                            // reply is applied. The matching UDP detach has
+                            // to leave too, including ObjectDetach when the
+                            // prim is still on the avatar.
+                            crate::world::appearance::ensure_planned_detaches(&mut commands, &leaving);
+                            for id in &leaving {
+                                if let Some(command) = self.world.attachment_detach_command(*id) {
+                                    let duplicate = commands.iter().any(|existing| match (existing, &command) {
+                                        (
+                                            NetCommand::DetachObject { handle, local_id },
+                                            NetCommand::DetachObject {
+                                                handle: other_handle,
+                                                local_id: other_local,
+                                            },
+                                        ) => handle == other_handle && local_id == other_local,
+                                        _ => false,
+                                    });
+                                    if !duplicate {
+                                        commands.push(command);
+                                    }
+                                }
+                            }
                             for cmd in commands {
+                                if let NetCommand::DetachAttachments(items) = &cmd {
+                                    self.note_detach_fallback(items, Instant::now());
+                                }
                                 self.send_from(cmd, actor);
                             }
                             self.world.outfit.wear_when_known(unknown, self.world.agent_id, Instant::now());
                         }
+                        if let Some((action, queued_actor)) = self.appearance_ui.queued.take() {
+                            self.apply_appearance_action_from(action, queued_actor);
+                        }
                     }
                     Err(reason) => {
+                        self.appearance_ui.pending_detach.clear();
                         self.appearance_ui.attachments.clear();
                         self.inventory_ui.message.clone_from(&reason);
                         self.appearance_ui.message = reason;
@@ -9096,6 +9130,7 @@ impl App {
             // outfit restore at login (queues the COF fetch below)
             let second_life = !matches!(self.settings.grid, crate::settings::GridChoice::Custom);
             self.world.update_outfit(second_life, Instant::now());
+            self.tick_detach_fallback(now);
             let allow_links = self.world.outfit.is_done() && self.appearance_ui.pending.is_none() && self.inventory_ui.pending.is_none();
             for command in self.world.update_attachment_inventory(Instant::now(), allow_links) {
                 if let NetCommand::EditInventory { request, .. } = &command {
@@ -9750,7 +9785,9 @@ impl App {
                     _ => {}
                 }
             }
-            // what carries an edited attachment stands still (pauseAssociatedAvatars)
+            // what carries an edited attachment stands still (pauseAssociatedAvatars).
+            // Local only: standing up here jumped a seated or posed avatar.
+            // ANIM_AGENT_CUSTOMIZE stays with the shape and wearable editors.
             self.scene.paused_skeletons = crate::build::anim_pause::paused_skeletons(&self.world, &self.build.selection);
             if self.world.teleporting {
                 self.ik_editor.stop_editing();
@@ -16752,6 +16789,8 @@ impl App {
                 let complexity = self.scene.avatar_complexity.get(&self.world.agent_id).copied().unwrap_or_default();
                 let mut open = self.panels.appearance;
                 self.appearance_ui.fill_previews = self.settings.appearance_fill_previews;
+                self.appearance_ui.show_outfit_icons = self.settings.appearance_outfit_icons;
+                self.appearance_ui.outfit_as_list = self.settings.appearance_outfit_as_list;
                 for action in ui::appearance::show(
                     &ctx,
                     &p,
@@ -16768,6 +16807,14 @@ impl App {
                 }
                 if self.settings.appearance_fill_previews != self.appearance_ui.fill_previews {
                     self.settings.appearance_fill_previews = self.appearance_ui.fill_previews;
+                    self.settings.save();
+                }
+                if self.settings.appearance_outfit_icons != self.appearance_ui.show_outfit_icons {
+                    self.settings.appearance_outfit_icons = self.appearance_ui.show_outfit_icons;
+                    self.settings.save();
+                }
+                if self.settings.appearance_outfit_as_list != self.appearance_ui.outfit_as_list {
+                    self.settings.appearance_outfit_as_list = self.appearance_ui.outfit_as_list;
                     self.settings.save();
                 }
                 self.panels.appearance = open;

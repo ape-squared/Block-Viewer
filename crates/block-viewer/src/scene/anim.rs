@@ -460,6 +460,13 @@ impl Motion {
     }
 }
 
+/// Frozen joint rotations shown while a synchronized edit eases back.
+struct ResumeBlend {
+    started: Instant,
+    duration: Duration,
+    rot: Vec<Quat>,
+}
+
 /// Motions and held pose of one avatar (or animesh).
 #[derive(Default)]
 pub struct Controller {
@@ -478,6 +485,10 @@ pub struct Controller {
     ground_origin: Option<Vec3>,
     /// Opt-in receipt clock; the default keeps Legacy Viewer activation / pauses.
     synchronized: bool,
+    /// Blend length remembered while an attachment edit holds this skeleton.
+    unpause_blend: Duration,
+    /// Displayed pose easing from the frozen edit back to the live clock.
+    resume_blend: Option<ResumeBlend>,
     /// Newest first (mActiveMotions, push_front).
     motions: Vec<Motion>,
     /// Signals already activated, including completed non-looping motions.
@@ -846,11 +857,23 @@ impl Controller {
     /// like LLMotionController::pauseAllMotions.
     /// An import preview drives its own clock and is never paused.
     pub fn set_paused(&mut self, paused: bool, now: Instant) {
+        self.set_paused_blended(paused, now, Duration::ZERO);
+    }
+
+    /// `blend` is kept while `paused` stays true. On release, a synchronized
+    /// skeleton eases the displayed pose across that span instead of snapping
+    /// to the receipt clock (attachment edits, `anim_pause::UNPAUSE_BLEND`).
+    pub fn set_paused_blended(&mut self, paused: bool, now: Instant, blend: Duration) {
         let paused = paused && self.preview_start.is_none();
         match (self.paused_at, paused) {
-            (None, true) => self.paused_at = Some(now),
+            (None, true) => {
+                self.paused_at = Some(now);
+                self.unpause_blend = blend;
+                self.resume_blend = None;
+            }
             (Some(at), false) => {
                 self.paused_at = None;
+                let soften = std::mem::take(&mut self.unpause_blend);
                 let duration = now.saturating_duration_since(at);
                 if !self.synchronized {
                     for m in &mut self.motions {
@@ -858,9 +881,16 @@ impl Controller {
                         m.continuous_activation += duration;
                         m.stop = m.stop.map(|stop| stop + duration);
                     }
+                } else if !soften.is_zero() && !self.rot.is_empty() {
+                    self.resume_blend = Some(ResumeBlend {
+                        started: now,
+                        duration: soften,
+                        rot: self.rot.clone(),
+                    });
                 }
                 self.resume_procedural(duration);
             }
+            (Some(_), true) if !blend.is_zero() => self.unpause_blend = blend,
             _ => {}
         }
     }
@@ -1597,6 +1627,28 @@ impl Controller {
         let (rotations, positions) = edited.as_ref().map_or((rotations, local_pos.as_slice()), |p| {
             (p.rotations.as_slice(), p.positions.as_slice())
         });
+        // Copy first: `rotations` may borrow `self`, and the blend owns its keys.
+        let live = rotations.to_vec();
+        let mut finished = false;
+        let display = if let Some(blend) = &self.resume_blend {
+            let span = blend.duration.as_secs_f32().max(1.0e-3);
+            let t = cubic_step(now.saturating_duration_since(blend.started).as_secs_f32() / span);
+            if t >= 1.0 || blend.rot.len() != live.len() {
+                finished = true;
+                live
+            } else {
+                live.iter()
+                    .zip(blend.rot.iter())
+                    .map(|(live, held)| nlerp(t, *held, *live))
+                    .collect()
+            }
+        } else {
+            live
+        };
+        if finished {
+            self.resume_blend = None;
+        }
+        let rotations = display.as_slice();
         let world = self.poser.as_ref().map_or_else(
             || rig.world_with(rotations, pelvis, positions, scale),
             |(pose, model)| pose.matrices(rig, *model),
@@ -2129,6 +2181,46 @@ mod tests {
                 "enabling during an edit rejoins on release"
             );
         }
+    }
+
+    #[test]
+    fn synchronized_attachment_unpause_eases_out_of_the_held_pose() {
+        let rig = rig();
+        let anim = swing(&rig);
+        let t0 = Instant::now();
+        let at = |s| t0 + Duration::from_secs_f64(s);
+        let playing = [signal(Uuid::from_u128(82), 1, t0)];
+        let elbow = rig.names["mElbowLeft"];
+        let mut out = vec![Mat4::IDENTITY.to_cols_array_2d(); PALETTE_JOINTS];
+        let mut sample = |c: &mut Controller, now| {
+            c.sync(&playing, now, |_| Some(anim.clone()));
+            c.evaluate(&rig, now, None, &mut out);
+            Mat4::from_cols_array_2d(&out[elbow]).to_scale_rotation_translation().1
+        };
+        let mut held = Controller {
+            synchronized: true,
+            ..Default::default()
+        };
+        let mut live = Controller {
+            synchronized: true,
+            ..Default::default()
+        };
+        held.set_paused_blended(true, at(0.25), Duration::from_millis(400));
+        let frozen = sample(&mut held, at(1.0));
+        let caught = sample(&mut live, at(1.0));
+        assert!(
+            frozen.angle_between(caught) > 0.2,
+            "the paused pose and the receipt clock must differ"
+        );
+        held.set_paused_blended(false, at(1.0), Duration::ZERO);
+        let eased = sample(&mut held, at(1.0));
+        assert!(
+            eased.angle_between(frozen) < eased.angle_between(caught),
+            "the first frame stays nearer the held pose"
+        );
+        let done = sample(&mut held, at(1.5));
+        let later = sample(&mut live, at(1.5));
+        assert!(done.angle_between(later) < 1e-3, "the blend reaches the receipt clock");
     }
 
     #[test]

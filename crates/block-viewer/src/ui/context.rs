@@ -276,6 +276,7 @@ pub enum CtxAction {
     ResetMeshLod(Uuid),
     ShowAvatarTextures(Uuid),
     TakeOffClothing(u8),
+    TakeOffAllClothing,
     DetachAt(u8),
     DetachAll,
     ResetHudScale(ObjKey),

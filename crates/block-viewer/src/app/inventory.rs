@@ -891,6 +891,8 @@ impl App {
             return;
         }
         if self.appearance_ui.pending.is_some() {
+            self.appearance_ui.queued = Some((action, actor));
+            self.appearance_ui.message = block_i18n::tr!("ui-appearance-waiting-outfit").into();
             return;
         }
         if let crate::world::appearance::Action::Category(id, update) = action {
@@ -935,7 +937,11 @@ impl App {
                 let leaving: Vec<_> = before.difference(&after).filter(|id| worn.contains(id)).copied().collect();
                 if !leaving.is_empty() {
                     self.world.outfit.on_detach_requested(&leaving);
+                    self.note_detach_fallback(&leaving, Instant::now());
                 }
+                // Remember the removal until the COF ack, so a sync that no
+                // longer sees the object still sends DetachAttachments.
+                self.appearance_ui.pending_detach = leaving;
                 let request = uuid::Uuid::new_v4();
                 self.appearance_ui.pending = Some((request, sync));
                 self.appearance_ui.pending_actor = actor;
@@ -950,6 +956,7 @@ impl App {
                 if !self.world.rlva_allows_command(&command, actor) {
                     self.appearance_ui.pending = None;
                     self.appearance_ui.attachments.clear();
+                    self.appearance_ui.pending_detach.clear();
                 } else if let NetCommand::UpdateOutfit { change, .. } = &mut command {
                     crate::world::appearance::defer_attachment_links(
                         &self.world.inventory,
@@ -981,6 +988,39 @@ impl App {
 
     /// Ctrl+C, Ctrl+X or Ctrl+V of Appearance, on the inventory's clipboard:
     /// a paste goes through the inventory's paste, outfit rules included.
+    pub(super) fn note_detach_fallback(&mut self, items: &[Uuid], now: Instant) {
+        for id in items {
+            self.detach_fallback.entry(*id).or_insert(now);
+        }
+    }
+
+    /// ObjectDetach fallback when DetachAttachments does not kill the object.
+    pub(super) fn tick_detach_fallback(&mut self, now: Instant) {
+        const TIMEOUT: std::time::Duration = std::time::Duration::from_millis(2500);
+        let worn = self.world.outfit_attachment_items();
+        // outfit_attachment_items leaves out temps and missing records. A
+        // prim that is still on the avatar must stay eligible for ObjectDetach.
+        let still_worn: std::collections::HashSet<Uuid> = self
+            .world
+            .worn_attachment_points()
+            .into_keys()
+            .chain(self.world.temp_attachments().into_iter().map(|t| t.id))
+            .collect();
+        self.detach_fallback.retain(|id, _| worn.contains(id) || still_worn.contains(id));
+        let retry: Vec<_> = self
+            .detach_fallback
+            .iter()
+            .filter(|(id, at)| (worn.contains(id) || still_worn.contains(id)) && now.saturating_duration_since(**at) >= TIMEOUT)
+            .map(|(id, _)| *id)
+            .collect();
+        for id in retry {
+            if let Some(command) = self.world.attachment_detach_command(id) {
+                self.send(command);
+                self.detach_fallback.insert(id, now);
+            }
+        }
+    }
+
     pub(super) fn appearance_clipboard(&mut self, ctx: &egui::Context, request: ui::appearance::ClipboardRequest) {
         let facts = ui::inventory::Facts::from_world(&self.world, self.appearance_ui.pending.is_some());
         self.inventory_ui.message.clear();

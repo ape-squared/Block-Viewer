@@ -5281,10 +5281,13 @@ impl Scene {
             motions.set_synchronized(self.synchronize_animations);
             // The static layer freezes the displayed pose, while normal motion
             // clocks keep running so Stop restores the current animation phase.
-            motions.set_paused(
-                self.pause_all_skeletons || self.paused_skeletons.contains(&owner) || (owner == world.agent_id && self.ik_edit.active),
-                now,
-            );
+            let attachment_edit = self.paused_skeletons.contains(&owner);
+            let paused = self.pause_all_skeletons || attachment_edit || (owner == world.agent_id && self.ik_edit.active);
+            if attachment_edit {
+                motions.set_paused_blended(true, now, crate::build::anim_pause::UNPAUSE_BLEND);
+            } else {
+                motions.set_paused(paused, now);
+            }
             motions.ik.edit = if owner == world.agent_id {
                 self.ik_edit.clone()
             } else {

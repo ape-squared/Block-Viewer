@@ -989,6 +989,12 @@ fn take_off_submenu(ui: &mut Builder, f: &Facts) {
                 }
             },
         );
+        ui.item_if(
+            "shirt-filled",
+            block_i18n::tr!("ui-context-take-off-all-clothing"),
+            !f.removable_clothing.is_empty(),
+            CtxAction::TakeOffAllClothing,
+        );
         for (hud, icon, label) in [
             (true, "device-desktop-filled", block_i18n::tr!("scene-menu-huds")),
             (false, "paperclip", block_i18n::tr!("common-detach")),

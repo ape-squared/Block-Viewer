@@ -6,11 +6,47 @@ use super::App;
 use crate::theme::Palette;
 use crate::ui::controls::{ControlAction, FreeView, View};
 use block_net::{NetCommand, control};
+use glam::Vec3;
+use std::time::Instant;
 
 impl App {
-    pub(crate) fn object_view_sync(&mut self) {}
+    /// Object view: keep tracking whatever was focused (click or selection).
+    /// Do not overwrite a world click with the build selection every frame —
+    /// that stole focus from trackpad-style clicks when nothing was selected,
+    /// and fought the click when something else was.
+    pub(crate) fn object_view_sync(&mut self) {
+        if !self.object_view {
+            return;
+        }
+        // Object view always means "follow the focused object".
+        self.settings.camera.track_focus_object = true;
+        // Already locked on an object: leave the click / prior attach alone.
+        if self.camera.focus_object_id().is_some() {
+            return;
+        }
+        self.object_view_attach_selection();
+    }
 
-    pub(crate) fn object_view_attach_selection(&mut self) {}
+    pub(crate) fn object_view_attach_selection(&mut self) {
+        let Some(idx) = self.build.sel_prims(&self.world).first().copied() else {
+            return;
+        };
+        let Some(object) = crate::camera::pick_focus_object(&self.world, idx, Instant::now()) else {
+            return;
+        };
+        if self.camera.focus_object_id() == Some(object.0) {
+            return;
+        }
+        let point = object.1.position;
+        let dir = (point - self.camera.position).normalize_or(Vec3::X);
+        self.camera.alt_focus(
+            point,
+            Some(object),
+            (self.camera.position, dir),
+            &mut self.world.agent,
+            &self.settings.camera,
+        );
+    }
 
     pub(super) fn controls_window(&mut self, ctx: &egui::Context, p: &Palette) {
         self.joystick_status(ctx, p);

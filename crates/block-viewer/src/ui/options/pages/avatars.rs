@@ -325,6 +325,11 @@ pub fn page(cx: &mut Cx, tab: usize) {
                     tr!("ui-options-customize-animation-hint"),
                     &field!(customize_animation),
                 );
+                cx.toggle(
+                    tr!("ui-appearance-outfit-icons"),
+                    tr!("ui-appearance-outfit-icons-hint"),
+                    &field!(appearance_outfit_icons),
+                );
             });
         }
     }

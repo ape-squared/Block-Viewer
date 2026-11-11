@@ -330,6 +330,11 @@ pub fn page(cx: &mut Cx, tab: usize) {
                     tr!("ui-appearance-outfit-icons-hint"),
                     &field!(appearance_outfit_icons),
                 );
+                cx.toggle(
+                    tr!("ui-options-avatar-health-detach-all"),
+                    tr!("ui-options-avatar-health-detach-all-hint"),
+                    &field!(avatar_health_detach_all),
+                );
             });
         }
     }

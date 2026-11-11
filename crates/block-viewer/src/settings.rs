@@ -687,6 +687,9 @@ pub struct Settings {
     pub appearance_outfit_icons: bool,
     /// My Outfits as a plain list, without gallery hanger tiles.
     pub appearance_outfit_as_list: bool,
+    /// Me › Avatar health › Detach all / Take off all clothing. Off by
+    /// default so bulk remove stays opt-in (Avatar Health only).
+    pub avatar_health_detach_all: bool,
     pub show_ao: bool,
     /// Loading / teleport screens show the last view, blurred.
     pub loading_backdrop: bool,
@@ -1916,6 +1919,7 @@ impl Default for Settings {
             appearance_fill_previews: false,
             appearance_outfit_icons: true,
             appearance_outfit_as_list: false,
+            avatar_health_detach_all: false,
             show_ao: false,
             ao: Default::default(),
             bridge: Default::default(),

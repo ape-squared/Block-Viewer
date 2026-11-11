@@ -14080,12 +14080,28 @@ impl App {
                 .map(|b| b.label())
                 .unwrap_or_default()
         };
+        let can_detach_all = self
+            .world
+            .worn_attachment_points()
+            .into_iter()
+            .any(|(id, _)| self.world.rlva_can_remove(id, uuid::Uuid::nil()))
+            || self
+                .world
+                .temp_attachments()
+                .into_iter()
+                .any(|t| self.world.rlva_can_remove(t.id, uuid::Uuid::nil()));
+        let can_take_off_all_clothing = crate::world::appearance::worn_clothing(&self.world.inventory)
+            .into_iter()
+            .any(|(id, _)| self.world.rlva_can_remove(id, uuid::Uuid::nil()));
         ui::bars::HealthMenu {
             me: self.world.agent_id,
             stop_keys: keys(Action::StopAnimations),
             rebake_keys: keys(Action::Rebake),
             refresh_keys: keys(Action::RefreshAttachments),
             resync_keys: keys(Action::ResyncAnimations),
+            show_detach_all: self.settings.avatar_health_detach_all,
+            can_detach_all,
+            can_take_off_all_clothing,
         }
     }
 

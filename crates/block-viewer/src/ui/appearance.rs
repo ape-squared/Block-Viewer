@@ -1680,35 +1680,6 @@ pub fn show(
                         }
                     },
                 );
-                if st.tab == 2 {
-                    let removable_clothing = model::worn_clothing(inv)
-                        .into_iter()
-                        .any(|(id, _)| world.rlva_wear_locks().can_remove(id));
-                    let removable_attachments = world
-                        .worn_attachment_points()
-                        .into_iter()
-                        .any(|(id, _)| world.rlva_can_remove(id, Uuid::nil()));
-                    icon_menu(ui, p, "settings-filled", block_i18n::tr!("ui-appearance-outfit-options"), |ui| {
-                        if menu::item_if(
-                            ui,
-                            p,
-                            "circle-x-filled",
-                            block_i18n::tr!("ui-context-detach-all"),
-                            removable_attachments,
-                        ) {
-                            super::context::request(ui.ctx(), super::context::CtxAction::DetachAll);
-                        }
-                        if menu::item_if(
-                            ui,
-                            p,
-                            "shirt-filled",
-                            block_i18n::tr!("ui-context-take-off-all-clothing"),
-                            removable_clothing,
-                        ) {
-                            super::context::request(ui.ctx(), super::context::CtxAction::TakeOffAllClothing);
-                        }
-                    });
-                }
             });
             let worn = block_i18n::tr!("ui-appearance-worn-38-attachments", count = format!("{}", count));
             widgets::tabs(

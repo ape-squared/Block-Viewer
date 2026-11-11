@@ -357,6 +357,10 @@ pub struct HealthMenu {
     pub rebake_keys: String,
     pub refresh_keys: String,
     pub resync_keys: String,
+    /// Preferences › Avatar › show Detach all in this menu.
+    pub show_detach_all: bool,
+    pub can_detach_all: bool,
+    pub can_take_off_all_clothing: bool,
 }
 
 /// The navigation bar's star (LLLocationInputCtrl's add landmark button).
@@ -1359,6 +1363,23 @@ fn health_menu(ui: &mut egui::Ui, p: &Palette, h: &HealthMenu) {
             &h.refresh_keys,
         ) {
             request(ui.ctx(), CtxAction::RefreshAttachments);
+        }
+        // Opt-in bulk remove (Preferences › Avatar). Kept out of Take Off /
+        // Worn so a single detach cannot be mistaken for Detach all.
+        if h.show_detach_all {
+            menu::separator(ui, p);
+            if menu::item_if(ui, p, "circle-x-filled", block_i18n::tr!("ui-context-detach-all"), h.can_detach_all) {
+                request(ui.ctx(), CtxAction::DetachAll);
+            }
+            if menu::item_if(
+                ui,
+                p,
+                "shirt-filled",
+                block_i18n::tr!("ui-context-take-off-all-clothing"),
+                h.can_take_off_all_clothing,
+            ) {
+                request(ui.ctx(), CtxAction::TakeOffAllClothing);
+            }
         }
     });
 }

@@ -989,12 +989,6 @@ fn take_off_submenu(ui: &mut Builder, f: &Facts) {
                 }
             },
         );
-        ui.item_if(
-            "shirt-filled",
-            block_i18n::tr!("ui-context-take-off-all-clothing"),
-            !f.removable_clothing.is_empty(),
-            CtxAction::TakeOffAllClothing,
-        );
         for (hud, icon, label) in [
             (true, "device-desktop-filled", block_i18n::tr!("scene-menu-huds")),
             (false, "paperclip", block_i18n::tr!("common-detach")),
@@ -1011,12 +1005,8 @@ fn take_off_submenu(ui: &mut Builder, f: &Facts) {
                 }
             });
         }
-        ui.item_if(
-            "circle-x-filled",
-            block_i18n::tr!("ui-context-detach-all"),
-            !f.removable_points.is_empty(),
-            CtxAction::DetachAll,
-        );
+        // Detach all / Take off all clothing live under Me › Avatar health
+        // when Preferences › Avatar › avatar_health_detach_all is on.
     });
 }
 

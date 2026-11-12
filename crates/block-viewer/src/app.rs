@@ -10148,6 +10148,7 @@ impl App {
             );
             self.scene.update_portal_clipping(&mut gfx.renderer, &self.world);
             self.scene.medal_clip_layers = self.settings.medal_clip_layers;
+            self.scene.jewelry_shimmer = self.settings.jewelry_shimmer;
             self.scene.build_lists(&mut gfx.renderer, &cull, self.settings.shadows);
             let preview = if (self.focused || self.demo && self.capture.is_some())
                 && !covered
@@ -17844,6 +17845,22 @@ impl App {
                         let facts = ui::loading::PlaceFacts::gather(&mut self.world, &mut self.map_tiles, &name, point, arrived);
                         ui::loading::BannerText { name, stage, facts }
                     });
+                    let tip = ui::motd_tips::current(o.start.elapsed().as_secs_f32());
+                    let motd = if self.world.motd.trim().is_empty() {
+                        self.login_info
+                            .news
+                            .first()
+                            .map(|n| {
+                                if n.summary.is_empty() {
+                                    n.title.clone()
+                                } else {
+                                    format!("{}\n{}", n.title, n.summary)
+                                }
+                            })
+                            .unwrap_or_default()
+                    } else {
+                        self.world.motd.clone()
+                    };
                     ui::loading::teleport_overlay(
                         &ctx,
                         &p,
@@ -17855,6 +17872,8 @@ impl App {
                         Some(o.shown),
                         alpha,
                         &text.facts.place(),
+                        tip.as_ref(),
+                        &motd,
                     );
                     if o.end.is_some() {
                         o.leaving = Some(text);

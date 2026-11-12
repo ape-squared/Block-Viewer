@@ -997,6 +997,8 @@ pub struct Scene {
     pub live_decor: live_decor::LiveDecor,
     /// Medal / sheer attachment depth: Layers when true (see blend_order).
     pub medal_clip_layers: bool,
+    /// Legacy specular / jewellery environment boost (Preferences › Graphics).
+    pub jewelry_shimmer: f32,
     pub build_hologram: build_hologram::BuildHologram,
     pub physics_shapes: physics_shapes::PhysicsShapes,
     pub stats: SceneStats,
@@ -1571,6 +1573,7 @@ impl Scene {
             creation_preview: creation_preview::CreationPreview::default(),
             live_decor: live_decor::LiveDecor::default(),
             medal_clip_layers: true,
+            jewelry_shimmer: 1.35,
             build_hologram: build_hologram::BuildHologram::default(),
             physics_shapes: physics_shapes::PhysicsShapes::default(),
             stats: SceneStats::default(),
@@ -3897,15 +3900,17 @@ impl Scene {
                     // and environment are ignored: the face's shininess (none / low /
                     // medium / high) stands for all three (LLVolumeGeometryManager)
                     let lin = |c: f32| c.clamp(0.0, 1.0).powf(2.2);
+                    let shimmer = self.jewelry_shimmer.clamp(0.0, 2.0);
                     let (spec_rgb, gloss, env) = if lm.specular_map.is_nil() {
                         let s = [0.0, 0.25, 0.5, 0.75][tf.shiny() as usize & 3];
-                        ([s; 3], s, s)
+                        let sparkle = (s * shimmer).min(1.0);
+                        ([sparkle; 3], sparkle, sparkle)
                     } else {
                         let c = lm.specular_color;
                         (
                             [c[0] as f32 / 255.0, c[1] as f32 / 255.0, c[2] as f32 / 255.0],
                             lm.specular_exp as f32 / 255.0,
-                            lm.env_intensity as f32 / 255.0,
+                            (lm.env_intensity as f32 / 255.0 * shimmer).min(1.0),
                         )
                     };
                     rec.legacy = [lm.normal_rot, lm.specular_rot, gloss, env];
@@ -4106,7 +4111,18 @@ impl Scene {
                             .materials
                             .peek(&mid)
                             .map_or(meshes::MaterialStatus::Pending, meshes::MaterialStatus::Loaded);
-                        let mut m = meshes::render_material(&status, ov);
+                        // Mask needs override BOM UUIDs even while the PBR
+                        // asset is Pending (`render_material` blanks those).
+                        let mut m = match &status {
+                            meshes::MaterialStatus::Pending => {
+                                let mut blank = block_assets::PbrMaterial::default();
+                                if let Some(ov) = ov {
+                                    blank.apply_override(ov);
+                                }
+                                blank
+                            }
+                            _ => meshes::render_material(&status, ov),
+                        };
                         if let Some(appearance) = o.local_appearance(fi) {
                             appearance.apply_pbr(&mut m);
                         }

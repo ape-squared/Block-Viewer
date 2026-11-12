@@ -513,25 +513,19 @@ fn glass_card<R>(
         // inside the border of the frame
         let rect = outer.shrink(1.0);
         let strength = if accent { 1.0 } else { 0.6 } + hover * 0.45;
-        let lights = vec![
-            super::block_bg::radial_glow_shape(
-                outer.left_top() + Vec2::new(outer.width() * 0.18, outer.height() * 0.12),
-                outer.width() * 0.95,
-                p.violet,
-                0.24 * strength,
-            ),
-            super::block_bg::radial_glow_shape(
-                outer.right_bottom() - Vec2::new(outer.width() * 0.12, outer.height() * 0.14),
-                outer.width() * 0.8,
-                p.teal,
-                0.13 * strength,
-            ),
-        ];
+        // Lime only. A teal second light read as the old aurora wash.
+        let lights = vec![super::block_bg::radial_glow_shape(
+            outer.left_top() + Vec2::new(outer.width() * 0.12, outer.height() * 0.2),
+            outer.width() * 0.7,
+            p.violet,
+            0.18 * strength,
+        )];
         behind.0.set(behind.1, egui::Shape::Vec(lights.clone()));
         let mut shapes = super::block_bg::frosted_pane(p, ctx.content_rect(), ctx.input(|i| i.time) as f32, rect, lights);
         let top = |height: f32| egui::Rect::from_min_size(rect.min, Vec2::new(rect.width(), height));
         if accent {
-            shapes.push(strip(top(2.0), &[(0.0, p.violet), (1.0, p.teal)]));
+            let bar = egui::Rect::from_min_size(rect.min, Vec2::new(4.0, rect.height()));
+            shapes.push(egui::Shape::rect_filled(bar, 0.0, p.violet));
         } else {
             let lit = p.ink.gamma_multiply(0.30);
             shapes.push(strip(
@@ -715,8 +709,14 @@ pub fn show(
         (top + height - lowest).min(top - BAR_GAP).max(0.0)
     });
     ctx.data_mut(|d| d.insert_temp(logo_drawn, drawn));
+    // Right slab: the form sits in the right third, destinations stay beside it.
+    let form_anchor = if wide {
+        (egui::Align2::RIGHT_CENTER, Vec2::new(-48.0, CENTER_OFFSET - lift))
+    } else {
+        (egui::Align2::CENTER_CENTER, Vec2::new(0.0, CENTER_OFFSET - lift))
+    };
     egui::Area::new(area)
-        .anchor(egui::Align2::CENTER_CENTER, Vec2::new(0.0, CENTER_OFFSET - lift))
+        .anchor(form_anchor.0, form_anchor.1)
         .show(&ctx, |ui| {
             ui.set_width(card_w);
             ui.vertical_centered(|ui| {
@@ -727,9 +727,31 @@ pub fn show(
                     super::block_bg::radial_glow(&painter, r.center(), 150.0, p.violet, 0.42);
                 }
                 ui.add_space(2.0);
-                ui.label(RichText::new("Block Viewer").size(34.0).strong().color(p.ink));
-                ui.label(RichText::new(client_tagline()).size(13.0).color(p.violet_pale));
-                ui.add_space(18.0);
+                ui.horizontal(|ui| {
+                    ui.spacing_mut().item_spacing.x = 10.0;
+                    ui.label(RichText::new("BLOCK").size(36.0).strong().color(p.ink));
+                    Frame::new()
+                        .fill(p.violet)
+                        .inner_margin(Margin::symmetric(8, 3))
+                        .corner_radius(3.0)
+                        .show(ui, |ui| {
+                            ui.label(RichText::new("VIEWER").size(11.0).strong().color(p.on_accent));
+                        });
+                });
+                ui.add_space(6.0);
+                ui.label(
+                    RichText::new(block_i18n::tr!("ui-login-sign-in-to-second-life"))
+                        .size(12.0)
+                        .color(p.violet),
+                );
+                ui.label(
+                    RichText::new(block_i18n::tr!("ui-login-welcome-back"))
+                        .size(28.0)
+                        .strong()
+                        .color(p.ink),
+                );
+                ui.label(RichText::new(client_tagline()).size(13.0).color(p.muted));
+                ui.add_space(14.0);
             });
             login_card = card(ui, p, 24, true, |ui| {
                 ui.set_width(card_w - 48.0);
@@ -889,7 +911,7 @@ pub fn show(
                     } else {
                         p.violet
                     };
-                    ui.painter().rect_filled(r, ui.visuals().widgets.inactive.corner_radius, fill);
+                    ui.painter().rect_filled(r, 0.0, fill);
                     let txt_col = if can { p.on_accent } else { p.on_accent.gamma_multiply(0.5) };
                     let galley = ui.painter().layout_no_wrap(
                         block_i18n::tr!("ui-login-log-in").to_owned(),
@@ -987,8 +1009,33 @@ pub fn show(
             .rect;
         });
 
-    // ---- version + destinations (right)
+    // What's new (left) + destinations (also left under Claude mockup).
     if wide {
+        egui::Area::new(egui::Id::unique("login_whats_new"))
+            .fixed_pos(egui::pos2(screen.left() + 32.0, (login_card.bottom() - 210.0).max(screen.top() + 48.0)))
+            .show(&ctx, |ui| {
+                ui.set_width(360.0);
+                card(ui, p, 14, false, |ui| {
+                    ui.label(
+                        RichText::new(format!(
+                            "{} · {}",
+                            block_i18n::tr!("ui-login-whats-new").to_uppercase(),
+                            block_version::version()
+                        ))
+                        .size(12.0)
+                        .strong()
+                        .color(p.violet),
+                    );
+                    ui.add_space(8.0);
+                    for n in info.news.iter().take(3) {
+                        ui.label(RichText::new(format!("· {}", n.title)).size(12.5).color(p.ink));
+                        if !n.summary.is_empty() {
+                            ui.label(RichText::new(&n.summary).size(11.5).color(p.muted));
+                        }
+                        ui.add_space(4.0);
+                    }
+                });
+            });
         let favorites = login_favorites_for(settings);
         if chrome::sidebar(
             &ctx,

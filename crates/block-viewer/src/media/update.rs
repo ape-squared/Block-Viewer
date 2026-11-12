@@ -254,13 +254,16 @@ impl MediaManager {
                             d.version
                         );
                         e.fetched_version = Some(d.version);
+                        e.fetch_failed = false;
                         e.data = Some(d);
                     }
                 }
                 Err(err) => {
                     log::info!("media: ObjectMedia for {} failed: {err}", got.object);
-                    // stop asking until the version changes
+                    // Remember failure so a click can retry; do not keep
+                    // hammering the cap until the user asks again.
                     e.fetched_version = Some(e.fetched_version.unwrap_or(0));
+                    e.fetch_failed = true;
                 }
             }
         }

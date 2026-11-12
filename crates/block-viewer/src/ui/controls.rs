@@ -11,7 +11,7 @@
 //! (Aurora's own: Firestorm has no keyboard free camera, `camera/free.rs`).
 
 use super::widgets::{self, Floater, keycap};
-use crate::camera::{CameraPreset, CameraShot, free};
+use crate::camera::{CameraPreset, CameraShot, DEFAULT_FOV, FOV_RANGE, free};
 use crate::keybinds::{Action, Binding, KeyBindings};
 use crate::theme::Palette;
 use egui::{FontId, Pos2, Rect, Sense, Vec2};
@@ -97,6 +97,8 @@ pub struct View<'a> {
     pub zoom: f32,
     /// Camera roll in radians.
     pub roll: f32,
+    /// Vertical FOV in radians (Preferences › Camera / this window).
+    pub fov: f32,
     pub preset: CameraPreset,
     pub shots: &'a [CameraShot],
     pub flying: bool,
@@ -117,6 +119,8 @@ pub struct FreeView {
     /// Metres a second.
     pub speed: f32,
     pub no_collisions: bool,
+    /// Vertical field of view in radians (same as Preferences › Camera).
+    pub fov: f32,
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -124,6 +128,8 @@ pub enum ControlAction {
     /// The free camera's speed, metres a second.
     FreeSpeed(f32),
     FreeCollisions(bool),
+    /// Vertical FOV while the free camera (or Controls › Camera) is open.
+    Fov(f32),
     /// "Back": the camera returns to the avatar.
     FreeExit,
     Preset(CameraPreset),
@@ -273,6 +279,7 @@ impl ControlsUi {
     fn camera_tab(&mut self, ui: &mut egui::Ui, p: &Palette, view: &View, out: &mut Output) {
         sticks(ui, p, view, out, INNER);
         roll_controls(ui, p, view, out);
+        fov_row(ui, p, view.fov, out);
         // the four views of Preferences › Camera, in one click
         ui.horizontal(|ui| {
             ui.spacing_mut().item_spacing.x = ROW_GAP;
@@ -718,6 +725,7 @@ fn free_tab(ui: &mut egui::Ui, p: &Palette, view: &View, free: FreeView, out: &m
     ui.spacing_mut().item_spacing.y = FREE_GAP;
     free_sticks(ui, p, view, out, INNER, true);
     speed_row(ui, p, free, out);
+    fov_row(ui, p, free.fov, out);
     collisions_row(ui, p, free, out);
     // the keys, as the keyboard drives the free camera
     let key = |a: Action| pad_binding(view.keys, a).map(KeyPart::Key);
@@ -862,6 +870,42 @@ fn free_sticks(ui: &mut egui::Ui, p: &Palette, view: &View, out: &mut Output, wi
         );
     }
     ui.allocate_rect(block, Sense::hover());
+}
+
+/// Field of view while Controls › Camera / free camera is open (degrees).
+fn fov_row(ui: &mut egui::Ui, p: &Palette, fov: f32, out: &mut Output) {
+    let label = field_label(ui, p, block_i18n::tr!("controls-fov"));
+    let font = ui.style().drag_value_text_style.resolve(ui.style());
+    let widest = [175.0_f32, 9.5]
+        .map(|v| ui.painter().layout_no_wrap(format!("{v:.0}°"), font.clone(), p.ink).size())
+        .into_iter()
+        .fold(Vec2::ZERO, Vec2::max);
+    let value = Vec2::new((widest.x + 2.0 * VALUE_PAD.x).max(VALUE_MIN_W), widest.y + 2.0 * VALUE_PAD.y);
+    let value_w = value.x;
+    let (rect, _) = ui.allocate_exact_size(Vec2::new(ui.available_width(), value.y), Sense::hover());
+    let at = FieldRow::new(rect, label.size().x, value_w);
+    let label_at = crate::ui::widgets::row_text_origin(ui.painter(), &label, at.label.left(), at.label.center().y);
+    ui.painter().galley(label_at, label, p.ink);
+    let mut deg = fov.to_degrees();
+    let range = FOV_RANGE.start().to_degrees()..=FOV_RANGE.end().to_degrees();
+    let mut child = ui.new_child(egui::UiBuilder::new().max_rect(rect));
+    child.spacing_mut().slider_width = at.slider.width();
+    child.spacing_mut().interact_size = value;
+    child.spacing_mut().button_padding = VALUE_PAD;
+    let slider = child.put(at.slider, egui::Slider::new(&mut deg, range.clone()).show_value(false));
+    let value = child.put(
+        at.value,
+        egui::DragValue::new(&mut deg)
+            .range(range)
+            .speed(0.5)
+            .suffix("°")
+            .fixed_decimals(0),
+    );
+    if slider.changed() || value.changed() {
+        out.actions.push(ControlAction::Fov(deg.to_radians()));
+    } else if value.secondary_clicked() {
+        out.actions.push(ControlAction::Fov(DEFAULT_FOV));
+    }
 }
 
 /// The free camera's speed: its name, a slider and the value typed or shown.
@@ -1510,6 +1554,7 @@ mod tests {
         let view = View {
             zoom: 0.5,
             roll: 0.0,
+            fov: DEFAULT_FOV,
             preset: CameraPreset::Rear,
             shots: &[],
             flying: false,
@@ -1596,6 +1641,7 @@ mod tests {
             let view = View {
                 zoom: 0.5,
                 roll: 0.3,
+                fov: DEFAULT_FOV,
                 preset: CameraPreset::Rear,
                 shots: &[],
                 flying: false,
@@ -1815,6 +1861,7 @@ mod tests {
             let view = View {
                 zoom: 0.5,
                 roll: 0.0,
+                fov: DEFAULT_FOV,
                 preset: CameraPreset::Rear,
                 shots: &shots,
                 flying: false,

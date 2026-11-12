@@ -21,7 +21,8 @@ pub fn sidebar(
     start_slurl: &mut Option<crate::slurl::Location>,
     favorites: &[crate::login_favorites::Entry],
 ) -> bool {
-    let left = ctx.content_rect().right() - 32.0 - width;
+    // Destinations sit on the left; the login slab owns the right third.
+    let left = ctx.content_rect().left() + 32.0;
     egui::Area::new(Id::unique("login_destinations"))
         .fixed_pos(egui::pos2(left, card.top()))
         .show(ctx, |ui| {
@@ -71,20 +72,19 @@ pub fn footer(ctx: &Context, p: &Palette, icons: &Icons, info: &LoginInfo, sideb
             }
         });
     }
+    // Claude mockup footer: version + GitHub first, community links secondary.
     egui::Area::new(Id::unique("login_links"))
         .anchor(egui::Align2::LEFT_BOTTOM, Vec2::new(25.0, -20.0))
         .show(ctx, |ui| {
-            ui.label(
-                RichText::new(block_i18n::tr!("ui-login-join-the-community"))
-                    .size(11.5)
-                    .color(p.muted),
-            );
-            ui.add_space(4.0);
             ui.horizontal(|ui| {
-                ui.spacing_mut().item_spacing.x = 6.0;
-                super::link_button(ui, p, "brand-discord-filled", "Discord", crate::links::DISCORD);
+                ui.spacing_mut().item_spacing.x = 10.0;
+                ui.label(
+                    RichText::new(format!("BLOCK VIEWER {}", block_version::version()))
+                        .size(11.5)
+                        .color(p.muted),
+                );
                 super::link_button(ui, p, "brand-github-filled", "GitHub", crate::links::GITHUB);
-                super::link_button(ui, p, "world-filled", block_i18n::tr!("ui-login-website"), crate::links::WEBSITE);
+                super::link_button(ui, p, "brand-discord-filled", "Discord", crate::links::DISCORD);
                 let bug = widgets::action_button(
                     ui,
                     p,
@@ -112,6 +112,12 @@ pub fn footer(ctx: &Context, p: &Palette, icons: &Icons, info: &LoginInfo, sideb
                     form.show_info = true;
                 }
             });
+            ui.add_space(4.0);
+            ui.label(
+                RichText::new(block_i18n::tr!("ui-login-independent-disclaimer"))
+                    .size(10.5)
+                    .color(p.muted_dim),
+            );
         });
     if screen.width() < 1100.0 {
         egui::Area::new(Id::unique("login_footer_version"))

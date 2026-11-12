@@ -55,6 +55,7 @@ impl App {
         let view = View {
             zoom: self.camera.zoom_fraction(),
             roll: self.camera.roll,
+            fov: self.settings.camera.fov,
             preset: self.settings.camera.preset,
             shots: &self.settings.camera_shots,
             flying: self.world.agent.flying,
@@ -66,6 +67,7 @@ impl App {
             free: self.camera.free().map(|_| FreeView {
                 speed: flight.speed,
                 no_collisions: flight.no_collisions,
+                fov: self.settings.camera.fov,
             }),
         };
         let out = self.controls_ui.show(
@@ -113,6 +115,10 @@ impl App {
         match action {
             ControlAction::FreeSpeed(speed) => self.snapshots.ui.free.speed = speed,
             ControlAction::FreeCollisions(on) => self.snapshots.ui.free.no_collisions = on,
+            ControlAction::Fov(fov) => {
+                self.settings.camera.fov = fov.clamp(*crate::camera::FOV_RANGE.start(), *crate::camera::FOV_RANGE.end());
+                self.settings.save();
+            }
             ControlAction::FreeExit => {
                 self.snapshots.ui.free.on = false;
                 self.photo_free_camera();

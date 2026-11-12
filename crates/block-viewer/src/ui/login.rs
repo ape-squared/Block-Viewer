@@ -1118,36 +1118,8 @@ pub fn show(
         .rect;
     });
 
-    // What's new (left) + destinations (also left under Claude mockup).
+    // Wide: Aurora right column (What's New + Destinations). Narrow: update check only.
     if wide {
-        egui::Area::new(egui::Id::unique("login_whats_new"))
-            .fixed_pos(egui::pos2(
-                screen.left() + 32.0,
-                (login_card.bottom() - 210.0).max(screen.top() + 48.0),
-            ))
-            .show(&ctx, |ui| {
-                ui.set_width(360.0);
-                card(ui, p, 14, false, |ui| {
-                    ui.label(
-                        RichText::new(format!(
-                            "{} · {}",
-                            block_i18n::tr!("ui-login-whats-new").to_uppercase(),
-                            block_version::version()
-                        ))
-                        .size(12.0)
-                        .strong()
-                        .color(p.violet),
-                    );
-                    ui.add_space(8.0);
-                    for n in info.news.iter().take(3) {
-                        ui.label(RichText::new(format!("· {}", n.title)).size(12.5).color(p.ink));
-                        if !n.summary.is_empty() {
-                            ui.label(RichText::new(&n.summary).size(11.5).color(p.muted));
-                        }
-                        ui.add_space(4.0);
-                    }
-                });
-            });
         let favorites = login_favorites_for(settings);
         if chrome::sidebar(
             &ctx,

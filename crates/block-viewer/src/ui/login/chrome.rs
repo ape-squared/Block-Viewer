@@ -21,24 +21,23 @@ pub fn sidebar(
     start_slurl: &mut Option<crate::slurl::Location>,
     favorites: &[crate::login_favorites::Entry],
 ) -> bool {
-    // Left gutter only (Layout reserves the same width). What's New on top,
-    // Destinations below — both clipped to the column so they never cover
-    // the centred account cards.
-    let left = ctx.content_rect().left() + 32.0;
+    // Aurora right column: What's New above Destinations (Layout keeps the
+    // centred account strip clear of this gutter).
+    let column_x = ctx.content_rect().right() - 32.0 - width;
     let mut check_updates = false;
     let room = (lowest - card.top()).max(160.0);
     let news_h = (room * 0.42).clamp(120.0, 200.0);
     let gap = 12.0;
     let dest_h = (room - news_h - gap).max(120.0);
     egui::Area::new(Id::unique("login_whats_new"))
-        .fixed_pos(egui::pos2(left, card.top()))
+        .fixed_pos(egui::pos2(column_x, card.top()))
         .show(ctx, |ui| {
             ui.set_width(width);
             ui.set_max_width(width);
             check_updates = super::whats_new_panel(ui, p, icons, info, news_h);
         });
     egui::Area::new(Id::unique("login_destinations"))
-        .fixed_pos(egui::pos2(left, card.top() + news_h + gap))
+        .fixed_pos(egui::pos2(column_x, card.top() + news_h + gap))
         .show(ctx, |ui| {
             ui.set_width(width);
             ui.set_max_width(width);

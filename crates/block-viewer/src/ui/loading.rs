@@ -1031,7 +1031,7 @@ mod tests {
                 ..Default::default()
             },
             |ui| {
-                teleport_overlay(
+                let _ = teleport_overlay(
                     ui.ctx(),
                     &p,
                     None,
@@ -1046,7 +1046,7 @@ mod tests {
                     (1, 1),
                     "From the team: Block news.",
                     None,
-                )
+                );
             },
         );
         output.textures_delta.clear();

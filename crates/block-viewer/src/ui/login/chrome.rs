@@ -21,18 +21,27 @@ pub fn sidebar(
     start_slurl: &mut Option<crate::slurl::Location>,
     favorites: &[crate::login_favorites::Entry],
 ) -> bool {
-    // Claude mockup: What's New owns the left column; destinations stay below.
+    // Left gutter only (Layout reserves the same width). What's New on top,
+    // Destinations below — both clipped to the column so they never cover
+    // the centred account cards.
     let left = ctx.content_rect().left() + 32.0;
     let mut check_updates = false;
+    let room = (lowest - card.top()).max(160.0);
+    let news_h = (room * 0.42).clamp(120.0, 200.0);
+    let gap = 12.0;
+    let dest_h = (room - news_h - gap).max(120.0);
     egui::Area::new(Id::unique("login_whats_new"))
         .fixed_pos(egui::pos2(left, card.top()))
         .show(ctx, |ui| {
             ui.set_width(width);
-            let room = (lowest - card.top()).max(160.0);
-            let news_h = (room * 0.55).clamp(140.0, 260.0);
+            ui.set_max_width(width);
             check_updates = super::whats_new_panel(ui, p, icons, info, news_h);
-            ui.add_space(12.0);
-            let dest_h = (lowest - ui.next_widget_position().y).max(100.0);
+        });
+    egui::Area::new(Id::unique("login_destinations"))
+        .fixed_pos(egui::pos2(left, card.top() + news_h + gap))
+        .show(ctx, |ui| {
+            ui.set_width(width);
+            ui.set_max_width(width);
             super::destinations::panel(ui, p, icons, start_location, start_slurl, favorites, dest_h, &mut || {});
         });
     check_updates

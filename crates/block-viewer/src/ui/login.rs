@@ -609,7 +609,7 @@ fn whats_new_panel(ui: &mut egui::Ui, p: &Palette, icons: &Icons, info: &LoginIn
     let current = block_version::version();
     card(ui, p, 16, false, |ui| {
         ui.set_width(ui.available_width());
-        ui.set_min_height(height - 32.0);
+        ui.set_height((height - 32.0).max(80.0));
         ui.horizontal(|ui| {
             ui.label(
                 RichText::new(block_i18n::tr!("ui-login-whats-new", version = current.to_string()))

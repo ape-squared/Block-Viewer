@@ -95,7 +95,15 @@ mod tests {
                 assert!(layout.per_page <= 3);
                 assert_eq!(layout.peek > 0.0, layout.paginated);
                 if let Some(width) = layout.sidebar {
-                    assert!(size.0 / 2.0 + row / 2.0 + 24.0 <= size.0 - 32.0 - width + 0.1);
+                    let content_left = size.0 / 2.0 - layout.main_width / 2.0;
+                    let content_right = content_left + layout.main_width;
+                    let gutter_right = 32.0 + width;
+                    assert!(
+                        content_left + 0.1 >= gutter_right + 24.0,
+                        "{size:?}: content overlaps left sidebar ({content_left} < {})",
+                        gutter_right + 24.0
+                    );
+                    assert!(content_right + 24.0 <= size.0 - 32.0 - width + 0.1);
                 }
             }
         }

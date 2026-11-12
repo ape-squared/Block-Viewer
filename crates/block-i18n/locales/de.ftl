@@ -12909,7 +12909,7 @@ appearance-editor-camera = Camera
 
 app-gpu-recovered = The graphics card's driver was reset (an image took too long to draw, its video memory was full, or another program took the card). Block Viewer reopened its window on the card again: you stayed logged in, and the world reloads in a moment.
 
-app-gpu-recovered-safe = The graphics card's driver was reset again within a few minutes. Block Viewer reopened its window with the safe graphics (the Potato level) so that it does not happen again: you stayed logged in. Your graphics settings are kept: the login screen offers them back.
+app-gpu-recovered-safe = The graphics card's driver was reset again within a few minutes. Block Viewer reopened its window with a lighter safe graphics level so that it does not happen again: you stayed logged in. Your graphics settings are kept: the login screen offers them back.
 
 app-gpu-recovered-title = The graphics card was reset
 

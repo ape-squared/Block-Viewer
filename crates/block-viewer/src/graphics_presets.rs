@@ -243,15 +243,29 @@ impl Preset {
     /// Firestorm ranks the card by a memory-bandwidth benchmark; Aurora asks
     /// wgpu for the kind of adapter, its vendor and its memory instead. An
     /// unknown size counts as enough.
+    ///
+    /// Discrete NVIDIA / AMD (Shadow PC, desktop RTX, …) never start on
+    /// Potato from a tiny VRAM reading alone: cloud / DXGI often under-reports
+    /// device-local memory on those cards. That size is ignored then, same as
+    /// an unknown size.
     pub fn for_machine(integrated: bool, vram_mb: Option<u64>, system_mb: Option<u64>, vendor_id: u32) -> Preset {
         const SMALL_VRAM_MB: u64 = 2048;
         const TINY_VRAM_MB: u64 = 1024;
         const INTEL: u32 = 0x8086;
+        const NVIDIA: u32 = 0x10de;
+        const AMD: u32 = 0x1002;
         const MIN_SYSTEM_MB: u64 = 8 * 1024;
         let intel_igpu = integrated && vendor_id == INTEL;
-        let level = if intel_igpu || vram_mb.is_some_and(|v| v < TINY_VRAM_MB) {
+        let discrete_nv_amd = !integrated && (vendor_id == NVIDIA || vendor_id == AMD);
+        // Cloud / DXGI sometimes reports a tiny dedicated heap on a discrete
+        // NV/AMD card (Shadow PC, …): treat that as unknown, not Potato.
+        let vram = match (discrete_nv_amd, vram_mb) {
+            (true, Some(v)) if v < TINY_VRAM_MB => None,
+            (_, v) => v,
+        };
+        let level = if intel_igpu || vram.is_some_and(|v| v < TINY_VRAM_MB) {
             Preset::Potato
-        } else if integrated || vram_mb.is_some_and(|v| v < SMALL_VRAM_MB) {
+        } else if integrated || vram.is_some_and(|v| v < SMALL_VRAM_MB) {
             Preset::Low
         } else {
             Preset::High
@@ -260,6 +274,19 @@ impl Preset {
             level.lower()
         } else {
             level
+        }
+    }
+
+    /// Level used after the GPU stopped answering (login safe card, or a
+    /// second recovery). Potato stays for Intel iGPU / truly tiny cards;
+    /// discrete NVIDIA / AMD step down to Medium instead of Potato so an
+    /// RTX on Shadow PC is not locked into the weakest preset.
+    pub fn safe_for_machine(integrated: bool, vram_mb: Option<u64>, vendor_id: u32) -> Preset {
+        match Self::for_machine(integrated, vram_mb, None, vendor_id) {
+            Preset::Deluxe | Preset::High => Preset::Medium,
+            Preset::Medium => Preset::Low,
+            Preset::Low => Preset::Low,
+            Preset::Potato => Preset::Potato,
         }
     }
 
@@ -933,7 +960,11 @@ mod tests {
         // other integrated, or a small dedicated card
         assert_eq!(Preset::for_machine(true, Some(4 * GB), Some(16 * GB), NVIDIA), Preset::Low);
         assert_eq!(Preset::for_machine(false, Some(1536), Some(16 * GB), NVIDIA), Preset::Low);
-        assert_eq!(Preset::for_machine(false, Some(512), Some(16 * GB), NVIDIA), Preset::Potato);
+        // Discrete NVIDIA with a nonsense tiny heap (Shadow / DXGI): High, not Potato
+        assert_eq!(Preset::for_machine(false, Some(512), Some(16 * GB), NVIDIA), Preset::High);
+        assert_eq!(Preset::for_machine(false, Some(512), Some(16 * GB), 0x1002), Preset::High);
+        // Truly tiny non-NV/AMD discrete still Potato
+        assert_eq!(Preset::for_machine(false, Some(512), Some(16 * GB), 0x1414), Preset::Potato);
         // less than 8 GB of system memory: one level lower
         assert_eq!(Preset::for_machine(false, Some(8 * GB), Some(7900), NVIDIA), Preset::Medium);
         assert_eq!(Preset::for_machine(true, None, Some(4 * GB), NVIDIA), Preset::Potato);
@@ -941,6 +972,9 @@ mod tests {
         assert_eq!(Preset::for_machine(false, None, None, NVIDIA), Preset::High);
         assert_eq!(Preset::for_machine(true, None, None, NVIDIA), Preset::Low);
         assert_eq!(Preset::for_machine(true, None, None, INTEL), Preset::Potato);
+        // Safe level after a GPU fault: Medium on discrete RTX, Potato on Iris
+        assert_eq!(Preset::safe_for_machine(false, Some(12 * GB), NVIDIA), Preset::Medium);
+        assert_eq!(Preset::safe_for_machine(true, Some(4 * GB), INTEL), Preset::Potato);
     }
 
     #[test]

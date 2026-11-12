@@ -758,8 +758,9 @@ impl super::Scene {
         self.hover.needs_drawn
     }
 
-    /// The HUD object the hover cursor is over, including invisible Mask/Blend
-    /// buttons, which comes before any object of the world.
+    /// The HUD object the hover cursor is over, which comes before any object
+    /// of the world. Invisible buttons count; a plain alpha-zero media panel
+    /// lets the object behind it take the hover.
     pub fn hover_hud(&mut self, world: &crate::world::World, cursor: (f32, f32)) -> Option<usize> {
         if !profile_enabled() {
             return self.hud_pick(world, cursor, false).map(|(idx, _, _)| idx);

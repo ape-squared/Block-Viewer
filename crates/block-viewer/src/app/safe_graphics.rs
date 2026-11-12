@@ -128,6 +128,42 @@ impl App {
         self.settings.save();
         self.snapshots.settings_changed = true;
     }
+
+    /// A profile still on Potato after the update, on a discrete NVIDIA or
+    /// AMD card: offer the settings kept aside, or step up to the level the
+    /// machine would start on. Intel integrated and a Potato chosen later
+    /// stay. The flag is one-shot (`settings` version 34).
+    pub(super) fn rescue_stuck_potato(&mut self, integrated: bool, vram_mb: Option<u64>, vendor_id: u32) {
+        if !std::mem::take(&mut self.settings.graphics_potato_rescue) {
+            return;
+        }
+        const NVIDIA: u32 = 0x10de;
+        const AMD: u32 = 0x1002;
+        let discrete = !integrated && (vendor_id == NVIDIA || vendor_id == AMD);
+        let still_potato = Preset::matching(&self.settings) == Some(Preset::Potato);
+        if !(discrete && still_potato) {
+            self.settings.save();
+            return;
+        }
+        if backup_path().exists() {
+            if self.login_form.safe_graphics.is_none() {
+                self.login_form.safe_graphics = Some(SafeGraphics::Active);
+            }
+            log::info!("graphics still on Potato on a discrete NVIDIA/AMD card; restore offered from {FILE}");
+            self.settings.save();
+            return;
+        }
+        let level = Preset::for_machine(integrated, vram_mb, None, vendor_id);
+        if level == Preset::Potato {
+            self.settings.save();
+            return;
+        }
+        level.apply(&mut self.settings);
+        self.settings.graphics_machine_tip = None;
+        log::info!("graphics lifted from Potato to {level:?} on a discrete NVIDIA/AMD card");
+        self.settings.save();
+        self.snapshots.settings_changed = true;
+    }
 }
 
 #[cfg(test)]

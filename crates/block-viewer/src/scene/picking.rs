@@ -111,6 +111,21 @@ pub(super) fn worn_unrigged_mesh(o: &Object, g: &super::ObjGpu) -> bool {
     !g.rigged && !g.is_avatar && g.owner_avatar.is_some() && o.visual_volume().is_mesh()
 }
 
+/// An invisible HUD face takes a left click, like the Legacy Viewer's
+/// transparent pick, unless it is a plain media panel. A media face still
+/// takes the click when the prim has a special cursor (sit, buy, …) or a
+/// touch script.
+fn hud_invisible_takes_click(o: &Object, face: usize) -> bool {
+    let media = o.te.as_ref().is_some_and(|te| te.face(face).has_media());
+    if !media {
+        return true;
+    }
+    let action = o.click_action;
+    let special = action != crate::interaction::code::NONE && action != crate::interaction::code::DISABLED;
+    let touch = o.update_flags & crate::ui::context::flags::HANDLE_TOUCH != 0;
+    special || touch
+}
+
 pub fn ray_box(origin: Vec3, dir: Vec3, min: Vec3, max: Vec3) -> Option<f32> {
     let mut near = 0.0f32;
     let mut far = f32::INFINITY;
@@ -949,16 +964,24 @@ impl Scene {
                     // every alpha mode, including Mask cutouts. Hover follows
                     // the same target; quick movement keeps texture holes.
                     // Right-click selection already includes hidden surfaces.
-                    if g.hud && mode == FacePick::Surface {
-                        return Some(hit);
-                    }
                     let draw = geom
                         .faces
                         .get(hit.face)
                         .and_then(Option::as_ref)
                         .and_then(|a| g.faces.iter().find(|f| f.cmd.first_index == a.index_offset))?;
+                    // LLToolPie::handleMouseDown presses with a transparent
+                    // pick: an invisible HUD button takes the press. A plain
+                    // hidden media panel lets the button behind it through,
+                    // unless that prim shows a special cursor (#3394).
+                    if g.hud && mode == FacePick::Surface {
+                        let hidden = draw.pass == Pass::Hidden || draw.te_alpha < 0.004;
+                        if !hidden || hud_invisible_takes_click(o, hit.face) {
+                            return Some(hit);
+                        }
+                        return None;
+                    }
                     if g.hud && (draw.pass == Pass::Hidden || draw.te_alpha < 0.004) {
-                        return (mode == FacePick::Surface).then_some(hit);
+                        return None;
                     }
                     let ignore_alpha = draw.pbr_alpha == Some(0)
                         || matches!(

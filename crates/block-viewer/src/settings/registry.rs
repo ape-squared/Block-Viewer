@@ -31,6 +31,7 @@ const HIDDEN: &[&str] = &[
     "chat_log_location",
     "window_fullscreen",
     "new_profile",
+    "graphics_potato_rescue",
 ];
 
 /// A vector shown as one row has at most this many numbers (LLQuaternion,

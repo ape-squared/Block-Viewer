@@ -826,6 +826,11 @@ pub struct Settings {
     /// Graphics level this machine was offered once, until the notice is dismissed.
     #[serde(default)]
     pub graphics_machine_tip: Option<u8>,
+    /// One-shot: this file was on Potato when it moved to settings version 34.
+    /// Cleared once the GPU is known (`app/safe_graphics.rs`). A discrete
+    /// NVIDIA/AMD card then gets its settings back, or the machine level.
+    #[serde(default, skip_serializing_if = "skip_false")]
+    pub graphics_potato_rescue: bool,
     /// The friends notice has been dismissed.
     #[serde(default)]
     pub friend_kit_seen: bool,
@@ -1487,7 +1492,7 @@ pub(crate) fn max_texture_resolution_choice(v: u32) -> u32 {
         .unwrap_or(MAX_TEXTURE_RESOLUTIONS[0])
 }
 
-const SETTINGS_VERSION: u32 = 33;
+const SETTINGS_VERSION: u32 = 34;
 
 /// `settings.json` from a newer build: the document, what this build loaded
 /// from it, and the top-level keys to leave as they were unless changed here
@@ -1971,6 +1976,7 @@ impl Default for Settings {
             flash_conversations_nearby: true,
             announce_incoming_im: false,
             graphics_machine_tip: None,
+            graphics_potato_rescue: false,
             friend_kit_seen: false,
             unread_ims_in_window_title: false,
             chat_thumbnails: ChatThumbnails::ChatBar,
@@ -2228,6 +2234,17 @@ fn allow_overlays_in(file: Option<&[u8]>) -> bool {
         .unwrap_or(false)
 }
 
+/// `language` of a settings file's bytes; "default" for anything else.
+fn language_in(file: Option<&[u8]>) -> String {
+    file.and_then(|bytes| serde_json::from_slice::<serde_json::Value>(bytes).ok())
+        .and_then(|value| value.get("language").and_then(serde_json::Value::as_str).map(str::to_owned))
+        .unwrap_or_else(|| "default".into())
+}
+
+fn skip_false(v: &bool) -> bool {
+    !*v
+}
+
 fn for_mode(dir: PathBuf) -> PathBuf {
     if crate::block_env::demo_mode() { dir.join("demo") } else { dir }
 }
@@ -2382,6 +2399,13 @@ impl Settings {
     /// when the file or the field is missing or unreadable.
     pub fn allow_overlays_at_start() -> bool {
         allow_overlays_in(std::fs::read(Self::path()).ok().as_deref())
+    }
+
+    /// The saved language, read the same way for the startup splash
+    /// (`splash/`), which loads nothing else; "default" (the system's) when
+    /// the file or the field is missing.
+    pub fn language_at_start() -> String {
+        language_in(std::fs::read(Self::path()).ok().as_deref())
     }
 
     /// One text field of the settings file as saved, read alone (no repair
@@ -2724,6 +2748,13 @@ impl Settings {
             self.camera_limits_restored = camera.disable_constraints || camera.ignore_sim_constraints;
             camera.disable_constraints = false;
             camera.ignore_sim_constraints = false;
+        }
+        if self.settings_version < 34 {
+            // Older builds could leave a discrete NVIDIA/AMD card on Potato
+            // (a tiny VRAM reading, or a safe level that was Potato). Flag
+            // it once so startup can offer the saved settings back or step
+            // up to the machine level. A Potato chosen after this stays.
+            self.graphics_potato_rescue = crate::graphics_presets::Preset::matching(&self) == Some(crate::graphics_presets::Preset::Potato);
         }
         if !self.audio.mic_gain.is_finite() {
             self.audio.mic_gain = 1.0;
@@ -3351,6 +3382,21 @@ mod tests {
         })
         .expect("settings json");
         assert!(super::allow_overlays_in(Some(&saved)));
+    }
+
+    /// The splash's early read of the language agrees with the settings.
+    #[test]
+    fn the_splash_reads_the_saved_language() {
+        assert_eq!(super::language_in(Some(br#"{"draw_distance":96,"language":"fr"}"#)), "fr");
+        for file in [Some(&br#"{"language":7}"#[..]), Some(b"not json"), None] {
+            assert_eq!(super::language_in(file), "default", "{file:?}");
+        }
+        let saved = serde_json::to_vec(&super::Settings {
+            language: "ja".into(),
+            ..Default::default()
+        })
+        .expect("settings json");
+        assert_eq!(super::language_in(Some(&saved)), "ja");
     }
 
     /// UTC, a clock time of the first version (#453), and an unknown name

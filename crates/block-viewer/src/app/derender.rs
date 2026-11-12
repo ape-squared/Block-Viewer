@@ -12,8 +12,38 @@ use uuid::Uuid;
 impl App {
     /// derenderObject on the menu's object (its linkset or the worn
     /// object, from its root) or LLAvatarActions::derender on an avatar,
-    /// in view or only in a list.
+    /// in view or only in a list. With "Edit linked parts", only the
+    /// selected prims go: an individual selection has no root node, so
+    /// derenderObject is handed each prim.
     pub(super) fn derender(&mut self, id: Uuid, permanent: bool) {
+        let part = {
+            let w = &self.world;
+            w.objects.index_of_uuid(&id).is_some_and(|idx| {
+                self.build.selection_linked && w.objects.get(idx).is_some_and(|o| !o.is_avatar() && self.build.is_selected(&o.key))
+            })
+        };
+        if part {
+            let ids: Vec<Uuid> = self
+                .build
+                .selection
+                .iter()
+                .filter_map(|k| self.world.objects.index_of(k))
+                .filter_map(|i| self.world.objects.get(i))
+                .filter(|o| !o.is_avatar())
+                .map(|o| o.full_id)
+                .collect();
+            for id in ids {
+                if self.world.objects.index_of_uuid(&id).is_none() {
+                    continue;
+                }
+                self.derender_one(id, permanent, true);
+            }
+            return;
+        }
+        self.derender_one(id, permanent, false);
+    }
+
+    fn derender_one(&mut self, id: Uuid, permanent: bool, part: bool) {
         let w = &self.world;
         if id == w.agent_id || id.is_nil() {
             return;
@@ -32,7 +62,7 @@ impl App {
             };
             (id, entry)
         } else {
-            let Some(root) = idx.map(|i| context_menu::linkset_root(w, i)) else {
+            let Some(root) = idx.map(|i| if part { i } else { context_menu::linkset_root(w, i) }) else {
                 return;
             };
             let Some(o) = w.objects.get(root) else {

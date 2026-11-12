@@ -1,4 +1,4 @@
-﻿language-name = 🇫🇷 Français
+language-name = 🇫🇷 Français
 joystick-title = Joystick et souris 3D
 joystick-enabled = Activer le joystick
 joystick-enable-hint = Déplacez l’avatar ou la caméra libre avec un joystick, une manette ou une SpaceMouse.

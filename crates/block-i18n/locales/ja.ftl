@@ -1,4 +1,4 @@
-﻿language-name = 🇯🇵 日本語
+language-name = 🇯🇵 日本語
 joystick-title = ジョイスティックと３Ｄマウス
 joystick-enabled = ジョイスティック入力を有効にする
 joystick-enable-hint = ジョイスティック、ゲームパッド、またはSpaceMouseでアバターや飛行カメラを操作します。

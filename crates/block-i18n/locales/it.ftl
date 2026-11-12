@@ -1,4 +1,4 @@
-﻿language-name = 🇮🇹 Italiano
+language-name = 🇮🇹 Italiano
 joystick-title = Joystick e mouse 3D
 joystick-enabled = Abilitare ingresso joystick
 joystick-enable-hint = Spostare l'avatar o il flycam con un joystick, gamepad o SpaceMouse.

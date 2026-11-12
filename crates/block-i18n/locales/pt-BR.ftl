@@ -1,4 +1,4 @@
-﻿language-name = 🇧🇷 Português (Brasil)
+language-name = 🇧🇷 Português (Brasil)
 joystick-title = Joystick e rato 3D
 joystick-enabled = Activar a entrada do joystick
 joystick-enable-hint = Mova o avatar ou a câmera com um joystick, gamepad ou SpaceMouse.

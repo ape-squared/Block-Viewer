@@ -1,4 +1,4 @@
-﻿language-name = 🇪🇸 Español
+language-name = 🇪🇸 Español
 joystick-title = Joystick y ratón 3D
 joystick-enabled = Activar la entrada de joystick
 joystick-enable-hint = Mueva el avatar o el flycam con un joystick, gamepad o SpaceMouse.

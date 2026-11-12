@@ -605,7 +605,12 @@ fn teleport_chrome(
     if let Some(l) = logo {
         let size = 28.0 * k;
         let r = Rect::from_min_size(Pos2::new(brand_x, screen.top() + margin - size * 0.35), Vec2::splat(size));
-        painter.image(l.id(), r, Rect::from_min_max(Pos2::ZERO, Pos2::new(1.0, 1.0)), super::widgets::PICTURE_TINT.gamma_multiply(a));
+        painter.image(
+            l.id(),
+            r,
+            Rect::from_min_max(Pos2::ZERO, Pos2::new(1.0, 1.0)),
+            super::widgets::PICTURE_TINT.gamma_multiply(a),
+        );
         brand_x = r.right() + 10.0 * k;
     }
     brand_mark(painter, p, Pos2::new(brand_x, screen.top() + margin), k, a);
@@ -661,7 +666,13 @@ fn teleport_chrome(
     } else {
         title
     };
-    painter.text(Pos2::new(left, y), egui::Align2::LEFT_TOP, eyebrow.to_uppercase(), egui::FontId::proportional(12.0 * k), accent);
+    painter.text(
+        Pos2::new(left, y),
+        egui::Align2::LEFT_TOP,
+        eyebrow.to_uppercase(),
+        egui::FontId::proportional(12.0 * k),
+        accent,
+    );
     y += 28.0 * k;
     let name = if dest.is_empty() { "…" } else { dest };
     let room = (col_right - left).max(120.0);
@@ -687,7 +698,16 @@ fn teleport_chrome(
     }
     if !place.maturity.is_empty() {
         if let Some((letter, bg, fg)) = super::widgets::maturity_style(p, place.maturity) {
-            x += chip(painter, p, Pos2::new(x, y), k, Lead::Letter(letter, bg, fg), place.maturity, a, radius) + 8.0 * k;
+            x += chip(
+                painter,
+                p,
+                Pos2::new(x, y),
+                k,
+                Lead::Letter(letter, bg, fg),
+                place.maturity,
+                a,
+                radius,
+            ) + 8.0 * k;
         }
     }
     if let Some(count) = place.residents {
@@ -732,7 +752,13 @@ fn teleport_chrome(
     }
     y += seg_h + 36.0 * k;
     if !detail.is_empty() {
-        painter.text(Pos2::new(left, y), egui::Align2::LEFT_TOP, detail, egui::FontId::proportional(13.0 * k), muted);
+        painter.text(
+            Pos2::new(left, y),
+            egui::Align2::LEFT_TOP,
+            detail,
+            egui::FontId::proportional(13.0 * k),
+            muted,
+        );
     }
 
     // Footer
@@ -743,7 +769,13 @@ fn teleport_chrome(
         egui::Stroke::new(1.0, p.muted_dim.gamma_multiply(0.4 * a)),
     );
     let ver = format!("BLOCK VIEWER {} · VULKAN", block_version::version());
-    painter.text(Pos2::new(left, foot_y), egui::Align2::LEFT_BOTTOM, ver, egui::FontId::proportional(11.0 * k), muted);
+    painter.text(
+        Pos2::new(left, foot_y),
+        egui::Align2::LEFT_BOTTOM,
+        ver,
+        egui::FontId::proportional(11.0 * k),
+        muted,
+    );
     painter.text(
         Pos2::new(screen.right() - margin, foot_y),
         egui::Align2::RIGHT_BOTTOM,
@@ -754,17 +786,7 @@ fn teleport_chrome(
 }
 
 #[allow(clippy::too_many_arguments)]
-fn info_card(
-    painter: &egui::Painter,
-    p: &Palette,
-    rect: Rect,
-    icon: &str,
-    heading: &str,
-    body: &str,
-    footer: &str,
-    alpha: f32,
-    k: f32,
-) {
+fn info_card(painter: &egui::Painter, p: &Palette, rect: Rect, icon: &str, heading: &str, body: &str, footer: &str, alpha: f32, k: f32) {
     let a = alpha.clamp(0.0, 1.0);
     panel_card(painter, p, rect, a);
     let pad = 16.0 * k;
@@ -774,12 +796,7 @@ fn info_card(
     let mut y = rect.top() + pad;
     let icon_r = Rect::from_min_size(Pos2::new(rect.left() + pad, y), Vec2::splat(16.0 * k));
     if let Some(texture) = super::icons::global(icon) {
-        painter.image(
-            texture.id(),
-            icon_r,
-            Rect::from_min_max(Pos2::ZERO, Pos2::new(1.0, 1.0)),
-            accent,
-        );
+        painter.image(texture.id(), icon_r, Rect::from_min_max(Pos2::ZERO, Pos2::new(1.0, 1.0)), accent);
     }
     painter.text(
         Pos2::new(icon_r.right() + 8.0 * k, icon_r.center().y),

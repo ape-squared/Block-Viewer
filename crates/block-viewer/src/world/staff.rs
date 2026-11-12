@@ -43,11 +43,7 @@ pub enum Mark {
 
 /// Whether `id` is a known Block team agent key.
 pub fn is_staff(id: &Uuid) -> bool {
-    !id.is_nil()
-        && (TEAM_IDS.contains(id)
-            || is_manager(id)
-            || is_tester(id)
-            || crate::demo::staff::is_staff(id))
+    !id.is_nil() && (TEAM_IDS.contains(id) || is_manager(id) || is_tester(id) || crate::demo::staff::is_staff(id))
 }
 
 /// Whether `id` is a known Block manager agent key.

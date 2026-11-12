@@ -188,9 +188,7 @@ pub fn is_block_viewer(world: &super::World, id: &Uuid, legacy: &str, advertise_
         return advertise_self;
     }
     if staff::is_block_team(world, id)
-        || staff::mark_named(id, legacy).is_some_and(|m| {
-            matches!(m, staff::Mark::Block | staff::Mark::Manager | staff::Mark::Tester)
-        })
+        || staff::mark_named(id, legacy).is_some_and(|m| matches!(m, staff::Mark::Block | staff::Mark::Manager | staff::Mark::Tester))
     {
         return true;
     }

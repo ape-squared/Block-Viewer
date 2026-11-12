@@ -895,11 +895,7 @@ fn fov_row(ui: &mut egui::Ui, p: &Palette, fov: f32, out: &mut Output) {
     let slider = child.put(at.slider, egui::Slider::new(&mut deg, range.clone()).show_value(false));
     let value = child.put(
         at.value,
-        egui::DragValue::new(&mut deg)
-            .range(range)
-            .speed(0.5)
-            .suffix("°")
-            .fixed_decimals(0),
+        egui::DragValue::new(&mut deg).range(range).speed(0.5).suffix("°").fixed_decimals(0),
     );
     if slider.changed() || value.changed() {
         out.actions.push(ControlAction::Fov(deg.to_radians()));

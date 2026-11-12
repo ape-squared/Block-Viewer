@@ -11490,6 +11490,7 @@ impl App {
             // it until its client area already contains a rendered image;
             // shown once, with the focus (window_show.rs)
             crate::window_show::show(&gfx.window, gfx.maximize_on_show);
+            crate::splash::shown();
             log::info!("startup window shown after the first presented frame");
             // a recovery's old window goes once its successor is on screen;
             // hidden first, as a render thread left behind in the driver
@@ -18050,6 +18051,7 @@ impl ApplicationHandler for App {
             Ok(w) => w,
             Err(e) => {
                 log::error!("cannot create window: {e}");
+                crate::splash::close();
                 graphics_start::report(&e.to_string(), capture);
                 event_loop.exit();
                 return;
@@ -18069,6 +18071,7 @@ impl ApplicationHandler for App {
                     block_i18n::tr!("app-block-viewer-unable-to-initialize-vulkan", e = format!("{}", e))
                 };
                 eprintln!("{message}");
+                crate::splash::close();
                 // unlike a missing card this is a crash, and a report is the
                 // only way to hear of it (#1892)
                 if matches!(e, block_render::RenderError::DeviceLost) {
@@ -18120,6 +18123,7 @@ impl ApplicationHandler for App {
         self.note_gpus(&renderer);
         self.login_form.driver_notice = self.driver_notice(&renderer.info);
         self.safe_graphics_at_start();
+        self.rescue_stuck_potato(renderer.info.integrated, renderer.info.vram_mb, renderer.info.vendor_id);
         self.photo_quality_at_start();
         // version 33 of the settings turned the camera's limits back on:
         // said once on the login screen (`AURORA_DEMO_CAMERA_LIMITS=1` shows

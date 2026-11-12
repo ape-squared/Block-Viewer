@@ -48,6 +48,11 @@
 //! its colour, into a copy of the scene depth (`Layers`): a mesh drawn after
 //! another and behind it is hidden by any of its texels, as in the Legacy
 //! Viewer, while one object's soft edges still hide none of its own strands.
+//!
+//! One departure from the Legacy Viewer's order: the details of the face
+//! (eyelashes, brows: `face_detail`) come first in their skeleton, writing
+//! their depth only where nearly opaque (`quiet_runs`), so that a mesh hair
+//! worn before them no longer hides them where the two meet (#2121).
 
 use std::cmp::Ordering;
 
@@ -69,10 +74,32 @@ pub struct RigOrder {
     pub root: u32,
     /// Its own local id: the prims of a linkset in that order.
     pub local: u32,
+    /// Its mesh moves with the face only (`face_detail`): eyelashes,
+    /// brows. Drawn before the other rigged meshes of its skeleton, writing
+    /// no depth for them (`quiet_runs`), see `draw_cmp`.
+    pub face_detail: bool,
+}
+
+/// Whether a rigged mesh, by the joints that move its vertices (those of a
+/// nonzero weight), is a detail of the face: eyelashes, brows. Every joint
+/// is the head's or one of the face's (`mHead`, `mSkull`, `mEye…`,
+/// `mFace…`), and at least one is of the face or the eyes: a mesh on the
+/// head alone (a short hair, a hat) is not one, nor is anything that also
+/// follows the neck (a mesh head) or a hair bone (a long hair).
+pub fn face_detail<'a>(joints: impl IntoIterator<Item = &'a str>) -> bool {
+    let mut face = false;
+    for name in joints {
+        let of_face = name.starts_with("mFace") || name.starts_with("mEye");
+        if !(of_face || name == "mHead" || name == "mSkull") {
+            return false;
+        }
+        face |= of_face;
+    }
+    face
 }
 
 impl RigOrder {
-    pub fn of(world: &World, idx: usize, skeleton: usize) -> Self {
+    pub fn of(world: &World, idx: usize, skeleton: usize, face_detail: bool) -> Self {
         let objects = &world.objects;
         let mut root = idx;
         for _ in 0..64 {
@@ -93,16 +120,25 @@ impl RigOrder {
             point,
             root: root_id,
             local: objects.get(idx).map_or(0, |o| o.key.local_id),
+            face_detail,
         }
     }
 
-    /// Drawing order of two rigged meshes of one skeleton: the last
-    /// attachment point first, on one point the last attached first, the
-    /// prims of a linkset in turn.
+    /// Drawing order of two rigged meshes of one skeleton: the details of
+    /// the face first, then the last attachment point first, on one point
+    /// the last attached first, the prims of a linkset in turn.
+    ///
+    /// The details of the face first is a deliberate difference from the
+    /// Legacy Viewer (attachment order, then depth from 1/255): blended
+    /// eyelashes worn after a mesh hair were drawn after it and behind its
+    /// strands, and every strand from 1/255 hid them (#2121). Drawn first
+    /// and writing their depth for the hair only where nearly opaque
+    /// (`quiet_runs`), the hair blends over them as over the skin.
     fn draw_cmp(&self, other: &RigOrder) -> Ordering {
         other
-            .point
-            .cmp(&self.point)
+            .face_detail
+            .cmp(&self.face_detail)
+            .then(other.point.cmp(&self.point))
             .then(other.root.cmp(&self.root))
             .then(self.local.cmp(&other.local))
     }
@@ -311,6 +347,20 @@ pub fn rig_objects(entries: &[BlendEntry], n: usize, out: &mut Vec<u32>) {
 /// object's fringes write their depth after all of its colour, so that they
 /// hide the objects drawn after them, whatever their point, as the Legacy
 /// Viewer's 1/255 (#1300), but none of its own strands (#935).
+/// `RiggedBlendDepth::Layers`: of the runs `runs` (`each_object`) of the
+/// sorted entries, the ends of those of a detail of the face
+/// (`RigOrder::face_detail`), drawn then writing their depth on the copy
+/// only where nearly opaque, before their colour
+/// (`DrawLists::blend_depth_quiet`).
+pub fn quiet_runs(entries: &[BlendEntry], runs: &[u32], out: &mut Vec<u32>) {
+    out.clear();
+    out.extend(runs.iter().copied().filter(|&end| {
+        end.checked_sub(1)
+            .and_then(|i| entries.get(i as usize))
+            .is_some_and(|e| e.rig.is_some_and(|r| r.face_detail))
+    }));
+}
+
 pub fn each_object(entries: &[BlendEntry], n: usize, out: &mut Vec<u32>) {
     out.clear();
     let entries = &entries[..n.min(entries.len())];
@@ -372,9 +422,19 @@ mod tests {
                 point,
                 root,
                 local,
+                face_detail: false,
             }),
             ..entry(object, distance, true)
         }
+    }
+
+    /// `worn`, a detail of the face (eyelashes, brows).
+    fn worn_face(object: u32, distance: f32, skeleton: u32, point: u8, root: u32, local: u32) -> BlendEntry {
+        let mut e = worn(object, distance, skeleton, point, root, local);
+        if let Some(r) = &mut e.rig {
+            r.face_detail = true;
+        }
+        e
     }
 
     /// A face of `object`, its record given by the allocator in any order.
@@ -631,5 +691,44 @@ mod tests {
         assert_eq!(water_sides(10.0, 2.0, h), (false, true), "below: before the water only");
         assert_eq!(water_sides(20.5, 2.0, h), (true, true), "crossing: both, clipped");
         assert_eq!(water_sides(10.0, 2.0, None), (true, false), "camera under water: as before");
+    }
+
+    /// #2121: eyelashes and brows, weighted to the face's joints only, are
+    /// drawn before the other rigged meshes of their avatar whatever their
+    /// point and attachment order; the others keep the Legacy Viewer's
+    /// order, and another avatar's meshes stay apart.
+    #[test]
+    fn face_details_come_first_in_their_skeleton() {
+        const CHEST: u8 = 1;
+        const SKULL: u8 = 2;
+        const NOSE: u8 = 17;
+        let mut e = [
+            worn(10, 3.0, 7, SKULL, 500, 500),      // hair, attached last
+            worn_face(11, 3.0, 7, SKULL, 400, 400), // lashes, attached before it
+            worn(12, 3.0, 7, NOSE, 300, 300),       // a nose ring, a later point
+            worn_face(13, 3.0, 7, CHEST, 450, 450), // brows on an odd point
+            worn(14, 3.0, 7, CHEST, 200, 200),      // a body add-on
+            worn(20, 6.0, 9, SKULL, 100, 100),      // the farther avatar's hair
+            worn_face(21, 6.0, 9, SKULL, 50, 50),   // and its lashes
+        ];
+        let n = sort(&mut e, true);
+        assert_eq!(n, 7);
+        assert_eq!(records(&e), [21, 20, 11, 13, 12, 10, 14]);
+        let mut runs = Vec::new();
+        each_object(&e, n, &mut runs);
+        let mut quiet = Vec::new();
+        quiet_runs(&e, &runs, &mut quiet);
+        assert_eq!(quiet, [1, 3, 4]);
+    }
+
+    #[test]
+    fn face_detail_takes_meshes_moved_by_the_face_alone() {
+        assert!(face_detail(["mHead", "mFaceEyeLidUpperLeft", "mFaceEyeLidUpperRight"]));
+        assert!(face_detail(["mFaceEyebrowInnerLeft"]));
+        assert!(face_detail(["mEyeLeft", "mSkull"]));
+        assert!(!face_detail(["mHead"]), "a short hair or a hat");
+        assert!(!face_detail(["mHead", "mNeck", "mFaceJaw"]), "a mesh head");
+        assert!(!face_detail(["mHead", "mHairBack", "mFaceForeheadCenter"]), "a hair");
+        assert!(!face_detail(std::iter::empty()));
     }
 }

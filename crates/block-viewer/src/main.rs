@@ -94,6 +94,7 @@ mod slurl;
 mod slurl_handoff;
 mod snapshot;
 mod spelling;
+mod splash;
 mod stream_title;
 mod sys_probe;
 mod system_info;
@@ -138,7 +139,16 @@ fn main() -> anyhow::Result<()> {
     let vulkan_layers_off = unsafe { block_render::vulkan_layers::disable(allow_overlays) };
     // SAFETY: as above, no other thread yet.
     let dozen_off = unsafe { block_render::vulkan_drivers::disable() };
-    if block_updater::install::run_helper()? {
+    // the switch to a new version shows the startup splash's window
+    // throughout (splash/), handed to the new viewer's own splash
+    let mut update_window = splash::UpdateWindow::default();
+    if block_updater::install::run_helper(&mut |version, stage| update_window.stage(version, stage))? {
+        return Ok(());
+    }
+    drop(update_window);
+    // a window and nothing else: before the checks of an isolated update
+    // test, as the update helper runs it from outside the test installation
+    if splash::helper()? {
         return Ok(());
     }
     cli::get();
@@ -166,9 +176,12 @@ fn main() -> anyhow::Result<()> {
     {
         return Ok(());
     }
+    // on screen at once, while the renderer prepares (splash/)
+    splash::start();
     block_i18n::select("default", cli::get().language.as_deref());
     crash::start();
     logging::init();
+    splash::settings();
     // The loader scans the layer manifests (and may call their pre-instance
     // hooks): on a thread of its own, like the crash report's list of layers
     // (crash/mod.rs), so the window never waits for this log line

@@ -119,17 +119,27 @@ pub fn content(
             };
             let mfa = if form.show_mfa {
                 ui.add_space(8.0);
-                super::caption(ui, p, block_i18n::tr!("ui-login-authentication-code-2fa"));
-                let response = field(
-                    ui,
-                    p,
-                    icons,
-                    "account_mfa",
-                    "shield-lock-filled",
-                    "000000",
-                    &mut form.mfa_token,
-                    None,
+                ui.label(
+                    RichText::new(block_i18n::tr!("ui-login-two-step-sign-in"))
+                        .size(12.0)
+                        .color(p.violet),
                 );
+                ui.label(
+                    RichText::new(block_i18n::tr!("ui-login-enter-your-code"))
+                        .size(20.0)
+                        .strong()
+                        .color(p.ink),
+                );
+                ui.label(
+                    RichText::new(block_i18n::tr!(
+                        "ui-login-mfa-open-authenticator",
+                        account = settings.username.to_string()
+                    ))
+                    .size(12.0)
+                    .color(p.muted),
+                );
+                ui.add_space(6.0);
+                let response = super::mfa_digit_boxes(ui, p, &mut form.mfa_token);
                 widgets::checkbox(ui, p, &mut form.remember_mfa, block_i18n::tr!("login-accounts-remember-mfa"));
                 ui.label(RichText::new(block_i18n::tr!("login-accounts-mfa-once")).size(11.0).color(p.muted));
                 Some(response)
@@ -197,8 +207,10 @@ pub fn content(
     // after a region restart cut the session: "Reconnect"
     let label = if form.reconnect && !new_account {
         block_i18n::tr!("ui-login-reconnect")
+    } else if form.show_mfa {
+        block_i18n::tr!("ui-login-verify-and-sign-in")
     } else {
-        block_i18n::tr!("ui-login-log-in")
+        block_i18n::tr!("ui-login-sign-in")
     };
     let pressed = widgets::action_button_if(
         ui,

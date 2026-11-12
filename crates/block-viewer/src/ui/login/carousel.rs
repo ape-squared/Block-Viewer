@@ -222,11 +222,33 @@ pub fn show(
                                     .fit_to_exact_size(Vec2::splat((if screen.height() < 800.0 { 32.0 } else { 64.0 }) * layout.scale)),
                             );
                         }
-                        ui.label(RichText::new("Block Viewer").size(28.0 * layout.text_scale).strong().color(p.ink));
+                        ui.horizontal(|ui| {
+                            ui.spacing_mut().item_spacing.x = 10.0;
+                            ui.label(RichText::new("BLOCK").size(32.0 * layout.text_scale).strong().color(p.ink));
+                            egui::Frame::new()
+                                .fill(p.violet)
+                                .inner_margin(egui::Margin::symmetric(8, 3))
+                                .corner_radius(3.0)
+                                .show(ui, |ui| {
+                                    ui.label(RichText::new("VIEWER").size(11.0 * layout.text_scale).strong().color(p.on_accent));
+                                });
+                        });
+                        ui.add_space(4.0);
+                        ui.label(
+                            RichText::new(block_i18n::tr!("ui-login-sign-in-to-second-life"))
+                                .size(12.0 * layout.text_scale)
+                                .color(p.violet),
+                        );
+                        ui.label(
+                            RichText::new(block_i18n::tr!("ui-login-welcome-back"))
+                                .size(24.0 * layout.text_scale)
+                                .strong()
+                                .color(p.ink),
+                        );
                         ui.label(
                             RichText::new(crate::ui::login::client_tagline())
                                 .size(13.0 * layout.text_scale)
-                                .color(p.violet_pale),
+                                .color(p.muted),
                         );
                         ui.add_space(8.0);
                         if first_account {

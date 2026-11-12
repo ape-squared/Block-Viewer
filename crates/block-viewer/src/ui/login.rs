@@ -9,7 +9,7 @@ use super::news::{LoginInfo, VersionState};
 use super::widgets::{self, ActionKind};
 use crate::settings::{GridChoice, Settings};
 use crate::theme::Palette;
-use egui::{Color32, Frame, Margin, RichText, Sense, Stroke, TextEdit, Vec2};
+use egui::{Color32, Frame, Margin, Pos2, Rect, RichText, Sense, Stroke, TextEdit, Vec2};
 mod camera_limits_notice;
 mod carousel;
 mod chrome;
@@ -268,6 +268,65 @@ fn field(
 fn caption(ui: &mut egui::Ui, p: &Palette, text: &str) {
     ui.label(RichText::new(text).size(11.5).color(p.muted));
     ui.add_space(-2.0);
+}
+
+/// Six digit boxes for MFA (Claude two-step mockup). Digits only, auto-advance.
+pub(crate) fn mfa_digit_boxes(ui: &mut egui::Ui, p: &Palette, token: &mut String) -> egui::Response {
+    token.retain(|c| c.is_ascii_digit());
+    if token.len() > 6 {
+        token.truncate(6);
+    }
+    let id = egui::Id::unique("mfa_digits");
+    let mut typed = token.clone();
+    let box_size = Vec2::splat(44.0);
+    let resp = ui
+        .horizontal(|ui| {
+            ui.spacing_mut().item_spacing.x = 8.0;
+            let focused = ui.memory(|m| m.has_focus(id));
+            // Hidden capture field sits over the row so paste and typing work.
+            let capture = ui.allocate_ui_with_layout(
+                Vec2::new(6.0 * box_size.x + 5.0 * 8.0, box_size.y),
+                egui::Layout::left_to_right(egui::Align::Center),
+                |ui| {
+                    let r = ui.available_rect_before_wrap();
+                    let edit = TextEdit::singleline(&mut typed)
+                        .id(id)
+                        .frame(Frame::NONE)
+                        .char_limit(6)
+                        .font(egui::FontId::proportional(1.0))
+                        .text_color(Color32::TRANSPARENT)
+                        .desired_width(r.width());
+                    let resp = ui.add_sized(r.size(), edit);
+                    for i in 0..6 {
+                        let cell = Rect::from_min_size(Pos2::new(r.left() + i as f32 * (box_size.x + 8.0), r.top()), box_size);
+                        let active = focused && typed.len() == i;
+                        let stroke = if active {
+                            Stroke::new(1.5, p.violet)
+                        } else {
+                            Stroke::new(1.0, p.muted_dim.gamma_multiply(0.7))
+                        };
+                        ui.painter().rect(cell, 4.0, p.field, stroke, egui::StrokeKind::Inside);
+                        if let Some(ch) = typed.chars().nth(i) {
+                            ui.painter().text(
+                                cell.center(),
+                                egui::Align2::CENTER_CENTER,
+                                ch.to_string(),
+                                egui::FontId::proportional(20.0),
+                                p.ink,
+                            );
+                        }
+                    }
+                    resp
+                },
+            );
+            capture.inner
+        })
+        .inner;
+    *token = typed.chars().filter(|c| c.is_ascii_digit()).take(6).collect();
+    if !resp.has_focus() && token.len() < 6 {
+        // keep focus ready when MFA shows
+    }
+    resp
 }
 
 /// The favourites of one account's start menu and the one chosen (its
@@ -541,19 +600,63 @@ fn glass_card<R>(
 }
 
 fn version_panel(ui: &mut egui::Ui, p: &Palette, icons: &Icons, info: &LoginInfo) -> bool {
+    whats_new_panel(ui, p, icons, info, 220.0)
+}
+
+/// Claude "WHAT'S NEW · version" card: release bullets + update actions.
+fn whats_new_panel(ui: &mut egui::Ui, p: &Palette, icons: &Icons, info: &LoginInfo, height: f32) -> bool {
     let mut check_updates = false;
+    let current = block_version::version();
     card(ui, p, 16, false, |ui| {
         ui.set_width(ui.available_width());
-        widgets::section_header(ui, p, "tag-filled", block_i18n::tr!("ui-login-version"));
-        let current = block_version::version();
+        ui.set_min_height(height - 32.0);
         ui.horizontal(|ui| {
-            ui.label(RichText::new(block_i18n::tr!("ui-login-installed")).size(12.5).color(p.muted));
+            ui.label(
+                RichText::new(block_i18n::tr!("ui-login-whats-new", version = current.to_string()))
+                    .size(12.0)
+                    .strong()
+                    .color(p.violet),
+            );
             ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
-                // a beta's long number elides beside a longer translated label
-                ui.add(egui::Label::new(RichText::new(format!("v{current}")).size(13.0).strong().color(p.ink)).truncate());
+                if let VersionState::Available { url, .. } = &info.version
+                    && !url.is_empty()
+                    && ui
+                        .add(
+                            egui::Label::new(RichText::new(block_i18n::tr!("ui-login-release-notes")).size(11.5).color(p.muted))
+                                .sense(Sense::click()),
+                        )
+                        .on_hover_cursor(egui::CursorIcon::PointingHand)
+                        .clicked()
+                {
+                    ui.ctx().open_url(egui::OpenUrl::new_tab(url));
+                }
             });
         });
-        ui.add_space(2.0);
+        ui.add_space(8.0);
+        if info.news.is_empty() {
+            for line in [
+                block_i18n::tr!("ui-login-whats-new-1"),
+                block_i18n::tr!("ui-login-whats-new-2"),
+                block_i18n::tr!("ui-login-whats-new-3"),
+            ] {
+                ui.horizontal(|ui| {
+                    ui.label(RichText::new("·").size(14.0).color(p.violet));
+                    ui.add(egui::Label::new(RichText::new(line).size(13.0).color(p.ink)).wrap());
+                });
+                ui.add_space(4.0);
+            }
+        } else {
+            let rest = (height - 72.0).max(80.0);
+            egui::ScrollArea::vertical().max_height(rest).show(ui, |ui| {
+                for n in info.news.iter().take(5) {
+                    ui.horizontal(|ui| {
+                        ui.label(RichText::new("·").size(14.0).color(p.violet));
+                        ui.add(egui::Label::new(RichText::new(&n.title).size(13.0).color(p.ink)).wrap());
+                    });
+                    ui.add_space(4.0);
+                }
+            });
+        }
         let (icon, text, col) = match &info.version {
             VersionState::UpToDate => ("circle-check-filled", block_i18n::tr!("ui-login-up-to-date").to_owned(), p.success),
             VersionState::Available { version, .. } => (
@@ -569,26 +672,24 @@ fn version_panel(ui: &mut egui::Ui, p: &Palette, icons: &Icons, info: &LoginInfo
                 p.muted,
             ),
         };
+        ui.add_space(6.0);
         ui.horizontal(|ui| {
-            ui.label(RichText::new(block_i18n::tr!("ui-login-latest")).size(12.5).color(p.muted));
-            ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
-                ui.label(RichText::new(text).size(12.5).color(col));
-                let (r, _) = ui.allocate_exact_size(Vec2::splat(14.0), Sense::hover());
-                img(ui, icons, icon, r, col);
-            });
+            let (r, _) = ui.allocate_exact_size(Vec2::splat(14.0), Sense::hover());
+            img(ui, icons, icon, r, col);
+            ui.label(RichText::new(text).size(12.0).color(col));
         });
         if info.can_check_updates {
-            ui.add_space(8.0);
+            ui.add_space(6.0);
             check_updates =
-                super::widgets::flat_button_sized(ui, p, block_i18n::tr!("update-check"), Vec2::new(ui.available_width(), 30.0))
+                super::widgets::flat_button_sized(ui, p, block_i18n::tr!("update-check"), Vec2::new(ui.available_width(), 28.0))
                     .on_hover_text(block_i18n::tr!("update-check-hint"))
                     .clicked();
         }
         if let VersionState::Available { url, .. } = &info.version
             && !url.is_empty()
         {
-            ui.add_space(8.0);
-            let size = Vec2::new(ui.available_width(), 30.0);
+            ui.add_space(6.0);
+            let size = Vec2::new(ui.available_width(), 28.0);
             let label = block_i18n::tr!("ui-login-download-update");
             if widgets::action_button(ui, p, "download-filled", label, ActionKind::Primary, size).clicked() {
                 ui.ctx().open_url(egui::OpenUrl::new_tab(url));
@@ -788,22 +889,28 @@ pub fn show(
                 );
                 let mut mfa = None;
                 if form.show_mfa {
-                    ui.add_space(4.0);
+                    ui.add_space(8.0);
                     ui.label(
-                        RichText::new(block_i18n::tr!("ui-login-authentication-code-2fa"))
-                            .size(11.5)
-                            .color(p.amber),
+                        RichText::new(block_i18n::tr!("ui-login-two-step-sign-in"))
+                            .size(12.0)
+                            .color(p.violet),
                     );
-                    mfa = Some(field(
-                        ui,
-                        p,
-                        icons,
-                        "login_mfa",
-                        "shield-lock-filled",
-                        "000000",
-                        &mut form.mfa_token,
-                        None,
-                    ));
+                    ui.label(
+                        RichText::new(block_i18n::tr!("ui-login-enter-your-code"))
+                            .size(22.0)
+                            .strong()
+                            .color(p.ink),
+                    );
+                    ui.label(
+                        RichText::new(block_i18n::tr!(
+                            "ui-login-mfa-open-authenticator",
+                            account = settings.username.to_string()
+                        ))
+                        .size(12.5)
+                        .color(p.muted),
+                    );
+                    ui.add_space(6.0);
+                    mfa = Some(mfa_digit_boxes(ui, p, &mut form.mfa_token));
                     widgets::checkbox(ui, p, &mut form.remember_mfa, block_i18n::tr!("login-accounts-remember-mfa"));
                 }
 
@@ -912,7 +1019,11 @@ pub fn show(
                 ui.painter().rect_filled(r, 0.0, fill);
                 let txt_col = if can { p.on_accent } else { p.on_accent.gamma_multiply(0.5) };
                 let galley = ui.painter().layout_no_wrap(
-                    block_i18n::tr!("ui-login-log-in").to_owned(),
+                    if form.show_mfa {
+                        block_i18n::tr!("ui-login-verify-and-sign-in").to_owned()
+                    } else {
+                        block_i18n::tr!("ui-login-sign-in").to_owned()
+                    },
                     egui::FontId::proportional(15.0),
                     txt_col,
                 );

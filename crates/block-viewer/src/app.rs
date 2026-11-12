@@ -247,6 +247,8 @@ struct TpOverlay {
     leaving: Option<ui::loading::BannerText>,
     /// When the region may show and how the bar finishes.
     mode: teleport_screen::Mode,
+    /// Teleport failed: Claude fail layout stays until the user picks an action.
+    failed: Option<String>,
 }
 
 impl TpOverlay {
@@ -264,6 +266,7 @@ impl TpOverlay {
             } else {
                 teleport_screen::Mode::for_next_teleport()
             },
+            failed: None,
         }
     }
 }
@@ -10402,7 +10405,13 @@ impl App {
             && let Some(o) = self.tp_overlay.as_mut()
         {
             if self.world.tp_failed {
-                o.end.get_or_insert(Instant::now());
+                if o.failed.is_none() {
+                    o.failed = Some(if self.world.tp_fail_reason.is_empty() {
+                        block_i18n::tr!("world-mod-destination-unavailable").into()
+                    } else {
+                        self.world.tp_fail_reason.clone()
+                    });
+                }
             } else {
                 o.arrived.get_or_insert(Instant::now());
             }
@@ -17845,7 +17854,7 @@ impl App {
                         let facts = ui::loading::PlaceFacts::gather(&mut self.world, &mut self.map_tiles, &name, point, arrived);
                         ui::loading::BannerText { name, stage, facts }
                     });
-                    let tip = ui::motd_tips::current(o.start.elapsed().as_secs_f32());
+                    let (tip, tip_n, tip_total) = ui::motd_tips::current_indexed(o.start.elapsed().as_secs_f32());
                     let motd = if self.world.motd.trim().is_empty() {
                         self.login_info
                             .news
@@ -17861,7 +17870,8 @@ impl App {
                     } else {
                         self.world.motd.clone()
                     };
-                    ui::loading::teleport_overlay(
+                    let fail = o.failed.clone();
+                    let fail_action = ui::loading::teleport_overlay(
                         &ctx,
                         &p,
                         self.logo.as_ref(),
@@ -17873,10 +17883,50 @@ impl App {
                         alpha,
                         &text.facts.place(),
                         tip.as_ref(),
+                        (tip_n, tip_total),
                         &motd,
+                        fail.as_deref(),
                     );
-                    if o.end.is_some() {
-                        o.leaving = Some(text);
+                    match fail_action {
+                        ui::loading::TeleportFailAction::None => {
+                            if self.tp_overlay.as_ref().is_some_and(|o| o.end.is_some())
+                                && let Some(o) = self.tp_overlay.as_mut()
+                            {
+                                o.leaving = Some(text);
+                            }
+                        }
+                        ui::loading::TeleportFailAction::Dismiss => {
+                            self.world.tp_show_progress = false;
+                            self.world.tp_failed = false;
+                            self.tp_overlay = None;
+                        }
+                        ui::loading::TeleportFailAction::Retry => {
+                            let dest = text.name.clone();
+                            self.world.tp_show_progress = false;
+                            self.world.tp_failed = false;
+                            self.tp_overlay = None;
+                            if !dest.is_empty() {
+                                let command = NetCommand::TeleportToRegion {
+                                    request: uuid::Uuid::new_v4(),
+                                    name: dest.clone(),
+                                    position: glam::Vec3::new(128.0, 128.0, 0.0),
+                                    look_at: glam::Vec3::Y,
+                                };
+                                self.request_user_teleport(command, dest, true);
+                            }
+                        }
+                        ui::loading::TeleportFailAction::Home => {
+                            self.world.tp_show_progress = false;
+                            self.world.tp_failed = false;
+                            self.tp_overlay = None;
+                            self.request_user_teleport(NetCommand::TeleportHome, block_i18n::tr!("common-home").into(), false);
+                        }
+                        ui::loading::TeleportFailAction::Map => {
+                            self.world.tp_show_progress = false;
+                            self.world.tp_failed = false;
+                            self.tp_overlay = None;
+                            self.panels.world_map = true;
+                        }
                     }
                 }
             }

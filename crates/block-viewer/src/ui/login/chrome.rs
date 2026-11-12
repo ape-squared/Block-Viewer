@@ -21,23 +21,21 @@ pub fn sidebar(
     start_slurl: &mut Option<crate::slurl::Location>,
     favorites: &[crate::login_favorites::Entry],
 ) -> bool {
-    // Destinations sit on the left; the login slab owns the right third.
+    // Claude mockup: What's New owns the left column; destinations stay below.
     let left = ctx.content_rect().left() + 32.0;
-    egui::Area::new(Id::unique("login_destinations"))
+    let mut check_updates = false;
+    egui::Area::new(Id::unique("login_whats_new"))
         .fixed_pos(egui::pos2(left, card.top()))
         .show(ctx, |ui| {
             ui.set_width(width);
-            let height = card.height().min(lowest - card.top()).max(120.0);
-            super::destinations::panel(ui, p, icons, start_location, start_slurl, favorites, height, &mut || {});
+            let room = (lowest - card.top()).max(160.0);
+            let news_h = (room * 0.55).clamp(140.0, 260.0);
+            check_updates = super::whats_new_panel(ui, p, icons, info, news_h);
+            ui.add_space(12.0);
+            let dest_h = (lowest - ui.next_widget_position().y).max(100.0);
+            super::destinations::panel(ui, p, icons, start_location, start_slurl, favorites, dest_h, &mut || {});
         });
-    egui::Area::new(Id::unique("login_version"))
-        .pivot(egui::Align2::LEFT_BOTTOM)
-        .fixed_pos(egui::pos2(left, card.top() - 14.0))
-        .show(ctx, |ui| {
-            ui.set_width(width);
-            super::version_panel(ui, p, icons, info)
-        })
-        .inner
+    check_updates
 }
 
 fn version(ui: &mut egui::Ui, p: &Palette) {

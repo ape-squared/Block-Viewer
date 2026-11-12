@@ -2754,8 +2754,7 @@ impl Settings {
             // (a tiny VRAM reading, or a safe level that was Potato). Flag
             // it once so startup can offer the saved settings back or step
             // up to the machine level. A Potato chosen after this stays.
-            self.graphics_potato_rescue =
-                crate::graphics_presets::Preset::matching(&self) == Some(crate::graphics_presets::Preset::Potato);
+            self.graphics_potato_rescue = crate::graphics_presets::Preset::matching(&self) == Some(crate::graphics_presets::Preset::Potato);
         }
         if !self.audio.mic_gain.is_finite() {
             self.audio.mic_gain = 1.0;

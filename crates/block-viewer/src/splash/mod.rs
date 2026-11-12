@@ -170,9 +170,7 @@ pub fn start() {
     if !wanted_here() {
         return;
     }
-    let spawned = std::thread::Builder::new()
-        .name("block-splash".into())
-        .spawn(move || feed(started));
+    let spawned = std::thread::Builder::new().name("block-splash".into()).spawn(move || feed(started));
     if let Err(e) = spawned {
         eprintln!("startup splash: no thread ({e})");
     }

@@ -19,8 +19,7 @@ impl App {
         let part = {
             let w = &self.world;
             w.objects.index_of_uuid(&id).is_some_and(|idx| {
-                self.build.selection_linked
-                    && w.objects.get(idx).is_some_and(|o| !o.is_avatar() && self.build.is_selected(&o.key))
+                self.build.selection_linked && w.objects.get(idx).is_some_and(|o| !o.is_avatar() && self.build.is_selected(&o.key))
             })
         };
         if part {

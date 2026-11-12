@@ -405,14 +405,7 @@ pub fn apply(install: &Path, work: &Path, launch: impl FnOnce() -> Result<()>) -
 }
 
 /// `handed` runs once the new viewer's splash shows, or its first frame.
-fn await_frame(
-    child: &mut Child,
-    work: &Path,
-    token: &str,
-    version: &str,
-    timeout: Duration,
-    handed: &mut dyn FnMut(),
-) -> Result<bool> {
+fn await_frame(child: &mut Child, work: &Path, token: &str, version: &str, timeout: Duration, handed: &mut dyn FnMut()) -> Result<bool> {
     let start = Instant::now();
     let expected = format!("{token}\n{version}");
     let mut splash = false;

@@ -3632,7 +3632,11 @@ impl Scene {
                 _ => None,
             };
             let face_detail = skin.is_some_and(|skin| {
-                blend_order::face_detail(geom.joint_bounds.iter().filter_map(|b| skin.joint_names.get(b.joint as usize).map(String::as_str)))
+                blend_order::face_detail(
+                    geom.joint_bounds
+                        .iter()
+                        .filter_map(|b| skin.joint_names.get(b.joint as usize).map(String::as_str)),
+                )
             });
             blend_order::RigOrder::of(world, idx, skeleton, face_detail)
         });

@@ -1253,8 +1253,12 @@ pub struct Settings {
     /// World resolution as a percentage of the window; HUDs and UI stay native.
     pub render_scale_percent: u32,
     /// Geometric specular anti-aliasing (common.wgsl `specular_aa_roughness`):
-    /// jewellery / metal shimmer calmed when the camera moves. On by default.
+    /// jewellery / metal shimmer calmed when the camera moves. Off by default
+    /// so metals read closer to Black Dragon; turn on to calm sparkle.
     pub specular_aa: bool,
+    /// Extra environment intensity on legacy specular metals / jewellery
+    /// (1 = authored maps, up to 2 = Black Dragon–like sparkle). Default 1.35.
+    pub jewelry_shimmer: f32,
     /// Medal / sheer attachment depth sorting (`RiggedBlendDepth::Layers`):
     /// keeps chest medals and sheer mesh layers from clipping through the
     /// body. On by default; off uses Legacy write-depth. Overridden by
@@ -2126,7 +2130,8 @@ impl Default for Settings {
             fsr_quality: 1,
             fsr_sharpness: 80,
             render_scale_percent: 100,
-            specular_aa: true,
+            specular_aa: false,
+            jewelry_shimmer: 1.35,
             medal_clip_layers: true,
             colored_sky_ambient: false,
             tonemapper: 1,
@@ -2853,6 +2858,10 @@ impl Settings {
         self.antialiasing = self.antialiasing.min(7);
         self.fsr_quality = self.fsr_quality.min(4);
         self.fsr_sharpness = self.fsr_sharpness.min(100);
+        if !self.jewelry_shimmer.is_finite() {
+            self.jewelry_shimmer = 1.35;
+        }
+        self.jewelry_shimmer = self.jewelry_shimmer.clamp(0.0, 2.0);
         self.render_scale_percent = self.render_scale_percent.clamp(50, 100);
         self.reflection_probes = self.reflection_probes.min(3);
         self.probe_count = self.probe_count.clamp(8, 64);

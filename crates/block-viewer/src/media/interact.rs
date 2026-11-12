@@ -91,9 +91,9 @@ impl MediaManager {
         Some(block_prim::volume::num_faces(&volume).max(1))
     }
 
-    /// The nearest media face along a ray (objects with media data only),
-    /// unless something drawn is in front (`depth_t`: distance of the
-    /// picked depth).
+    /// The nearest media face along a ray. Prefer ObjectMedia face lists;
+    /// fall back to texture-entry media flags so a TV can still be clicked
+    /// while ObjectMedia is in flight or after a failed fetch.
     pub fn hit_test(&mut self, world: &World, scene: &Scene, origin: Vec3, dir: Vec3, depth_t: Option<f32>, hud: bool) -> Option<MediaHit> {
         let now = Instant::now();
         let candidates: Vec<(Uuid, usize, Vec<bool>)> = self
@@ -107,12 +107,16 @@ impl MediaManager {
                     .is_some_and(|g| g.owner_avatar == world.objects.index_of_uuid(&world.agent_id))
             })
             .filter_map(|(id, om)| {
-                let d = om.data.as_ref()?;
-                Some((
-                    *id,
-                    om.idx,
-                    d.faces.iter().map(|f| f.as_ref().is_some_and(|e| !e.url().is_empty())).collect(),
-                ))
+                if let Some(d) = om.data.as_ref() {
+                    return Some((
+                        *id,
+                        om.idx,
+                        d.faces.iter().map(|f| f.as_ref().is_some_and(|e| !e.url().is_empty())).collect(),
+                    ));
+                }
+                let te = world.objects.get(om.idx)?.te.as_ref()?;
+                let flags: Vec<bool> = te.faces.iter().map(|f| f.media_flags & 1 != 0).collect();
+                flags.iter().any(|&m| m).then_some((*id, om.idx, flags))
             })
             .collect();
         let mut best: Option<MediaHit> = None;
@@ -222,6 +226,22 @@ impl MediaManager {
             self.unfocus();
             self.focus = Some(hit.key);
             self.last_surface = position;
+            // ObjectMedia still loading or last GET failed: ask again and
+            // keep the click (so TVs work once media is on, even mid-fetch).
+            if self.find(&hit.key).is_none() {
+                if let MediaKey::Prim { object, .. } = hit.key
+                    && let Some(e) = self.objects.get_mut(&object)
+                {
+                    e.fetch_failed = false;
+                    e.fetched_version = None;
+                    if let Some(o) = world.objects.get(e.idx)
+                        && let Some(cap) = world.regions.get(&o.key.region).and_then(|r| r.caps.get("ObjectMedia"))
+                    {
+                        self.client.request(object, cap);
+                    }
+                }
+                return true;
+            }
             let Some(m) = self.find_mut(&hit.key) else {
                 return false;
             };

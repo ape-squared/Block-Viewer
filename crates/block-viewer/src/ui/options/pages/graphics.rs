@@ -814,6 +814,13 @@ fn image(cx: &mut Cx) {
             tr!("ui-options-specular-aa-help"),
             &field!(specular_aa),
         );
+        cx.slider(
+            tr!("ui-options-jewelry-shimmer"),
+            tr!("ui-options-jewelry-shimmer-help"),
+            &field!(jewelry_shimmer),
+            0.0..=2.0,
+            "×",
+        );
         cx.toggle(
             tr!("ui-options-medal-clip"),
             tr!("ui-options-medal-clip-help"),

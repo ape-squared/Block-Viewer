@@ -398,6 +398,8 @@ struct ObjMedia {
     idx: usize,
     fetched_version: Option<u32>,
     data: Option<ObjectMediaData>,
+    /// Last ObjectMedia GET failed: allow a user click to ask again.
+    fetch_failed: bool,
     hud: bool,
     on_other_avatar: bool,
     /// Worn by us (an attachment or a HUD), its avatar already known: false

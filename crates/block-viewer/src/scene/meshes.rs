@@ -1009,6 +1009,9 @@ impl MaterialStatus {
 pub fn render_material(status: &MaterialStatus, ov: Option<&PbrOverride>) -> PbrMaterial {
     let mut m = match status {
         MaterialStatus::Loaded(base) => (**base).clone(),
+        // Pending stays blank for drawing (no flash of override textures
+        // before the asset lands). `bom_mask` still reads overrides while
+        // Pending so system body layers stay hidden under BOM mesh.
         MaterialStatus::Pending => return PbrMaterial::default(),
         MaterialStatus::Missing => PbrMaterial::default(),
     };

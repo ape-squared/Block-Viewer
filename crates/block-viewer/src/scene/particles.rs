@@ -77,8 +77,8 @@ fn wind_at(world: &World, position: Vec3) -> Vec3 {
         .map_or(Vec3::ZERO, |region| region.wind.velocity(position, region.heightmap.size_x as f32))
 }
 
-/// Loading cloud: Firestorm's app_settings/cloud.xml motion, in Aurora's
-/// colors (violet to turquoise), on the default soft particle.
+/// Loading cloud: Firestorm's app_settings/cloud.xml motion, Block-branded
+/// (dark ink → signal lime #D4FF3F), on the default soft particle.
 fn cloud_data(avatar: Uuid) -> ps::PartSysData {
     let mut d = ps::PartSysData {
         pattern: ps::LL_PART_SRC_PATTERN_ANGLE_CONE,
@@ -94,8 +94,9 @@ fn cloud_data(avatar: Uuid) -> ps::PartSysData {
         ..Default::default()
     };
     d.part.max_age = 4.0;
-    d.part.start_color = [0.545, 0.361, 0.965, 0.1];
-    d.part.end_color = [0.369, 0.918, 0.831, 0.9];
+    // Soft charcoal → signal lime (theme::Palette violet / #D4FF3F).
+    d.part.start_color = [0.08, 0.09, 0.10, 0.12];
+    d.part.end_color = [0.831, 1.0, 0.247, 0.92];
     d.part.start_scale = glam::Vec2::splat(0.8);
     d.part.end_scale = glam::Vec2::splat(0.02);
     d.part.flags = ps::LL_PART_EMISSIVE_MASK | ps::LL_PART_INTERP_COLOR_MASK | ps::LL_PART_INTERP_SCALE_MASK | ps::LL_PART_TARGET_POS_MASK;

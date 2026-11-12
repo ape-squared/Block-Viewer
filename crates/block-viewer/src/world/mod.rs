@@ -462,6 +462,8 @@ pub struct World {
     pub tp_progress: f32,
     pub tp_status: String,
     pub tp_failed: bool,
+    /// Last teleport failure reason (Claude fail screen / notices).
+    pub tp_fail_reason: String,
     /// Outfit restore at login (Current Outfit folder).
     pub outfit: outfit::OutfitRestore,
     /// Objects already reported by a diagnostic (logged once).
@@ -813,6 +815,7 @@ impl World {
             tp_progress: 0.0,
             tp_status: String::new(),
             tp_failed: false,
+            tp_fail_reason: String::new(),
             outfit: Default::default(),
             diag_reported: HashSet::new(),
             events_this_frame: 0,
@@ -1177,6 +1180,7 @@ impl World {
         self.arrival_wait_since = None;
         self.tp_show_progress = show_progress;
         self.tp_failed = false;
+        self.tp_fail_reason.clear();
         self.tp_progress = 0.05;
         self.tp_status = block_i18n::tr!("world-mod-requesting-teleport").into();
         if show_progress {
@@ -3161,6 +3165,7 @@ impl World {
                 self.tp_history.failed();
                 self.teleporting = false;
                 self.tp_failed = true;
+                self.tp_fail_reason = reason.to_string();
                 self.system_notice(
                     block_i18n::tr!("world-mod-teleport-failed", reason = reason.to_string()),
                     crate::world::notice_topics::Topic::Teleport,

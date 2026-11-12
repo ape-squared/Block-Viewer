@@ -1733,7 +1733,7 @@ app-gpu-stall =
     Keep waiting? Yes keeps waiting; No closes Block Viewer (you are logged out properly).
 app-gpu-recovered-title = The graphics card was reset
 app-gpu-recovered = The graphics card's driver was reset (an image took too long to draw, its video memory was full, or another program took the card). Block Viewer reopened its window on the card again: you stayed logged in, and the world reloads in a moment.
-app-gpu-recovered-safe = The graphics card's driver was reset again within a few minutes. Block Viewer reopened its window with the safe graphics (the Potato level) so that it does not happen again: you stayed logged in. Your graphics settings are kept: the login screen offers them back.
+app-gpu-recovered-safe = The graphics card's driver was reset again within a few minutes. Block Viewer reopened its window with a lighter safe graphics level so that it does not happen again: you stayed logged in. Your graphics settings are kept: the login screen offers them back.
 app-gpu-lost-title = Block Viewer: the graphics card was lost
 app-gpu-lost =
     The graphics card stopped working for Block: its driver was reset (it took too long to draw an image, or its video memory was full), or the card was removed or taken by another program. Nothing can be drawn any more: Block closes when you press OK (you are logged out properly).
@@ -6212,11 +6212,11 @@ login-driver-old-why = Old drivers are the most common cause of crashes and brok
 login-driver-download = Get the { $vendor } driver
 login-driver-dismiss = Ignore for this driver
 login-safe-graphics-offer-title = The graphics card stopped answering last time
-login-safe-graphics-offer = Start with the safe graphics (the Potato level): a lighter load for the graphics card. Your current settings are kept aside, and this card will offer them back.
+login-safe-graphics-offer = Start with a lighter safe graphics level for the graphics card. Your current settings are kept aside, and this card will offer them back.
 login-safe-graphics-use = Use the safe graphics
 login-safe-graphics-keep = Keep my settings
 login-safe-graphics-active-title = Safe graphics are on
-login-safe-graphics-active = Block runs on the Potato level since the graphics card stopped answering. Once the cause is fixed (driver updated, overlays off), put your own settings back.
+login-safe-graphics-active = Block runs on a lighter safe graphics level since the graphics card stopped answering. Once the cause is fixed (driver updated, overlays off), put your own settings back.
 login-safe-graphics-restore = Restore my graphics
 login-safe-graphics-stay = Keep the safe graphics
 login-photo-quality-off-title = Photo quality turned off

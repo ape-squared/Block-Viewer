@@ -1,14 +1,15 @@
 //! The safe graphics after the graphics card stopped answering. When the
 //! last session ended with the GPU in trouble (stalled, lost, or the window
 //! frozen: `crash::take_gpu_trouble`), the login screen offers to start
-//! with the Potato level. Nothing changes without the user's click: the
-//! settings it replaces are kept aside (`graphics-before-safe.json`, the
-//! level's values only) and the same card then offers them back. The
-//! Legacy Viewer's equivalent is its safe start (`--safe`:
-//! `LLFeatureManager::setSafe`, the "safe" feature mask applied in
-//! indra/newview/llfeaturemanager.cpp, and the DisplaySetToSafe notice of
-//! llstartup.cpp); it is only chosen by hand, never offered after a
-//! stall, and leaves no way back but setting each option again.
+//! with a lighter safe level (Medium on discrete RTX / AMD, Potato on Intel
+//! iGPU). Nothing changes without the user's click: the settings it replaces
+//! are kept aside (`graphics-before-safe.json`, the level's values only) and
+//! the same card then offers them back. The Legacy Viewer's equivalent is
+//! its safe start (`--safe`: `LLFeatureManager::setSafe`, the "safe" feature
+//! mask applied in indra/newview/llfeaturemanager.cpp, and the
+//! DisplaySetToSafe notice of llstartup.cpp); it is only chosen by hand,
+//! never offered after a stall, and leaves no way back but setting each
+//! option again.
 
 use super::*;
 use crate::graphics_presets::{Preset, Values};
@@ -59,15 +60,23 @@ impl App {
         self.login_form.safe_graphics = at_start(trouble, backup_path().exists(), demo.as_deref());
     }
 
-    /// A second GPU loss within a few minutes (gpu_recovery.rs): the Potato
-    /// level, the settings before kept aside as the login card's choice does,
-    /// so it offers them back. Settings already kept aside stay as they are
-    /// (the first ones are the user's).
+    /// Safe level for this session's GPU (login card / recovery). Falls back
+    /// to Potato only when the card looks weak (Intel iGPU / tiny heap).
+    fn safe_graphics_level(&self) -> Preset {
+        let (dedicated_mb, _, integrated) = self.options_ui.vram;
+        Preset::safe_for_machine(integrated, dedicated_mb, self.options_ui.gpu_vendor_id)
+    }
+
+    /// A second GPU loss within a few minutes (gpu_recovery.rs): the safe
+    /// level for this card, the settings before kept aside as the login
+    /// card's choice does, so it offers them back. Settings already kept
+    /// aside stay as they are (the first ones are the user's).
     pub(super) fn safe_graphics_after_losses(&mut self) {
-        if backup_path().exists() || Preset::matching(&self.settings) == Some(Preset::Potato) {
-            Preset::Potato.apply(&mut self.settings);
+        let level = self.safe_graphics_level();
+        if backup_path().exists() || Preset::matching(&self.settings) == Some(level) {
+            level.apply(&mut self.settings);
             self.settings.save();
-            log::info!("safe graphics on after GPU losses (settings kept aside already)");
+            log::info!("safe graphics on after GPU losses ({level:?}; settings kept aside already)");
             return;
         }
         self.safe_graphics_choice(Choice::Use);
@@ -83,8 +92,9 @@ impl App {
                     .and_then(|b| std::fs::write(&path, b))
                 {
                     Ok(()) => {
-                        Preset::Potato.apply(&mut self.settings);
-                        log::info!("safe graphics on: Potato level, the settings before kept in {FILE}");
+                        let level = self.safe_graphics_level();
+                        level.apply(&mut self.settings);
+                        log::info!("safe graphics on: {level:?}, the settings before kept in {FILE}");
                         self.login_form.safe_graphics = Some(SafeGraphics::Active);
                     }
                     Err(e) => {

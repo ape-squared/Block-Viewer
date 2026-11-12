@@ -1736,7 +1736,7 @@ app-gpu-stall =
     Continuer d'attendre ? Oui continue d'attendre ; Non ferme Block Viewer (vous êtes déconnecté proprement).
 app-gpu-recovered-title = La carte graphique a été réinitialisée
 app-gpu-recovered = Le pilote de la carte graphique a été réinitialisé (une image trop longue à dessiner, sa mémoire vidéo pleine, ou la carte prise par un autre programme). Block Viewer a rouvert sa fenêtre sur la carte : vous êtes resté connecté, et le monde se recharge dans un instant.
-app-gpu-recovered-safe = Le pilote de la carte graphique a de nouveau été réinitialisé en quelques minutes. Block Viewer a rouvert sa fenêtre avec les graphismes de secours (le niveau Potato) pour que cela ne se reproduise pas : vous êtes resté connecté. Vos réglages graphiques sont gardés : l'écran de connexion vous les propose à nouveau.
+app-gpu-recovered-safe = Le pilote de la carte graphique a de nouveau été réinitialisé en quelques minutes. Block Viewer a rouvert sa fenêtre avec un niveau graphique de secours plus léger pour que cela ne se reproduise pas : vous êtes resté connecté. Vos réglages graphiques sont gardés : l'écran de connexion vous les propose à nouveau.
 app-gpu-lost-title = Block Viewer : la carte graphique a été perdue
 app-gpu-lost =
     La carte graphique a cessé de fonctionner pour Block : son pilote a été réinitialisé (une image trop longue à dessiner, ou sa mémoire vidéo pleine), ou la carte a été retirée ou prise par un autre programme. Plus rien ne peut être affiché : Block se ferme quand vous appuyez sur OK (vous êtes déconnecté proprement).
@@ -6217,11 +6217,11 @@ login-driver-old-why = Les vieux pilotes sont la première cause de plantages et
 login-driver-download = Télécharger le pilote { $vendor }
 login-driver-dismiss = Ignorer pour ce pilote
 login-safe-graphics-offer-title = La carte graphique a cessé de répondre la dernière fois
-login-safe-graphics-offer = Démarrer avec les graphismes de secours (le niveau Patate) : une charge plus légère pour la carte graphique. Vos réglages actuels sont mis de côté, et cette carte vous proposera de les remettre.
+login-safe-graphics-offer = Démarrer avec un niveau graphique de secours plus léger pour la carte graphique. Vos réglages actuels sont mis de côté, et cette carte vous proposera de les remettre.
 login-safe-graphics-use = Utiliser les graphismes de secours
 login-safe-graphics-keep = Garder mes réglages
 login-safe-graphics-active-title = Graphismes de secours activés
-login-safe-graphics-active = Block tourne au niveau Patate depuis que la carte graphique a cessé de répondre. Une fois la cause corrigée (pilote à jour, overlays coupés), remettez vos propres réglages.
+login-safe-graphics-active = Block tourne à un niveau graphique de secours plus léger depuis que la carte graphique a cessé de répondre. Une fois la cause corrigée (pilote à jour, overlays coupés), remettez vos propres réglages.
 login-safe-graphics-restore = Remettre mes graphismes
 login-safe-graphics-stay = Garder les graphismes de secours
 login-photo-quality-off-title = Qualité photo coupée

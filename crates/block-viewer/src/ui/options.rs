@@ -411,6 +411,8 @@ pub struct OptionsUi {
     pub cache_clearing: bool,
     /// Detected dedicated/shared heaps (MB) and integrated GPU; set by the app.
     pub vram: (Option<u64>, Option<u64>, bool),
+    /// PCI vendor of the GPU in use (for safe-graphics level); set with `vram`.
+    pub gpu_vendor_id: u32,
     /// The GPUs that can draw the viewer, the one in use, and why the
     /// dedicated one may not be drawing; set by the app as soon as the
     /// renderer is created, so the login screen has them too (#894). The

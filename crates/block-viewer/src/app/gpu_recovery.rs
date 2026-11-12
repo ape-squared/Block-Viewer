@@ -74,6 +74,7 @@ impl App {
     /// it too (#894: only "Automatic" was offered before login).
     pub(super) fn note_gpus(&mut self, renderer: &Renderer) {
         self.options_ui.vram = (renderer.info.dedicated_mb, renderer.info.shared_mb, renderer.info.integrated);
+        self.options_ui.gpu_vendor_id = renderer.info.vendor_id;
         self.options_ui.gpus = renderer.info.adapters.clone();
         self.options_ui.gpu_in_use = renderer.info.name.clone();
         self.options_ui.gpu_notice = renderer.info.notice;

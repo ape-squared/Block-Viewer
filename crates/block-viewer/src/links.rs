@@ -14,7 +14,7 @@ pub const FEATURE_REQUEST: &str = "https://github.com/ape-squared/Block-Viewer/i
 pub const WIKI: &str = "https://github.com/ape-squared/Block-Viewer/wiki";
 
 /// Community Discord invite.
-pub const DISCORD: &str = "https://discord.gg/s96h8KwES7";
+pub const DISCORD: &str = "https://discord.gg/GrvBu5V985";
 /// Project website (GitHub Pages).
 pub const WEBSITE: &str = "https://blockviewer.org/";
 /// The privacy policy on the website (Preferences › Privacy › Your data).

@@ -162,7 +162,7 @@ fn progress_fill(r: Rect, fraction: Option<f32>, t: f32) -> Rect {
 /// travels along it and a bright core at its head.
 fn progress_light(painter: &egui::Painter, p: &Palette, fill: Rect, k: f32, t: f32, alpha: f32) {
     let a = alpha.clamp(0.0, 1.0);
-    gradient_rect(painter, fill, p.violet.gamma_multiply(0.75 * a), p.violet.gamma_multiply(a), true);
+    gradient_rect(painter, fill, p.violet.gamma_multiply(a), p.teal.gamma_multiply(a), true);
 
     // aurora curtain: a strip of quads above the line, opaque-ish at its
     // foot and transparent at its waving top
@@ -204,7 +204,7 @@ fn progress_light(painter: &egui::Painter, p: &Palette, fill: Rect, k: f32, t: f
     // head: a soft halo breathing around a bright core
     let head = Pos2::new(fill.right(), fill.center().y);
     let breathe = 0.8 + 0.2 * (t * 3.1).sin();
-    super::block_bg::radial_glow(painter, head, 30.0 * k, p.violet, 0.5 * breathe * a);
+    super::block_bg::radial_glow(painter, head, 30.0 * k, p.teal, 0.5 * breathe * a);
     super::block_bg::radial_glow(painter, head, 9.0 * k, p.ink, 0.95 * a);
 }
 
@@ -512,21 +512,8 @@ pub fn show(
     cancel
 }
 
-/// What the Claude teleport-fail screen asked for.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
-pub enum TeleportFailAction {
-    #[default]
-    None,
-    Dismiss,
-    Retry,
-    Home,
-    Map,
-}
-
 /// Teleport screen over the world (and the end of the loading screen fading
-/// out): Claude Block mockup — destination + segmented progress left, tip and
-/// MOTD cards right, GitHub in the footer. When `fail_reason` is set, the fail
-/// layout with Try again / Go home / Open map is shown instead.
+/// out): the same banner.
 #[allow(clippy::too_many_arguments)]
 pub fn teleport_overlay(
     ctx: &egui::Context,
@@ -539,11 +526,7 @@ pub fn teleport_overlay(
     fraction: Option<f32>,
     alpha: f32,
     place: &Place,
-    tip: &str,
-    tip_index: (usize, usize),
-    motd: &str,
-    fail_reason: Option<&str>,
-) -> TeleportFailAction {
+) {
     let a = alpha.clamp(0.0, 1.0);
     let rect = ctx.content_rect();
     let t = ctx.input(|i| i.time) as f32;
@@ -554,452 +537,19 @@ pub fn teleport_overlay(
         .fade_in(false)
         .interactable(a > 0.5)
         .show(ctx, |ui| {
+            // swallow clicks while it covers the screen
             ui.allocate_exact_size(rect.size(), egui::Sense::click_and_drag());
         });
+    // Painted on the layer of the area, not through its `Ui`: egui hides a
+    // new area for its first frame (sizing pass), and the world showed for
+    // that frame between the loading screen and its fade out.
     let painter = ctx.layer_painter(layer).with_clip_rect(rect);
     if !backdrop.is_some_and(|b| b.paint(&painter, p, rect, a)) {
         super::block_bg::paint(&painter, p, rect, t, a);
     }
-    let action = if let Some(reason) = fail_reason {
-        teleport_fail_chrome(ctx, &painter, p, rect, logo, dest, reason, a)
-    } else {
-        teleport_chrome(
-            ctx, &painter, p, rect, logo, title, dest, detail, fraction, place, tip, tip_index, motd, t, a,
-        );
-        TeleportFailAction::None
-    };
+    // Teleport keeps the tip quiet so the destination stays the focus.
+    banner(ctx, &painter, p, rect, logo, title, dest, detail, "", fraction, place, t, a);
     ctx.request_repaint();
-    action
-}
-
-/// Brand mark: BLOCK + lime VIEWER pill (login / teleport mockups).
-fn brand_mark(painter: &egui::Painter, p: &Palette, at: Pos2, k: f32, alpha: f32) {
-    let a = alpha.clamp(0.0, 1.0);
-    let ink = p.ink.gamma_multiply(a);
-    let word = painter.layout_no_wrap("BLOCK".into(), egui::FontId::proportional(18.0 * k), ink);
-    painter.galley(at, word.clone(), ink);
-    let pill = Rect::from_min_size(
-        Pos2::new(at.x + word.size().x + 8.0 * k, at.y + 2.0 * k),
-        Vec2::new(58.0 * k, word.size().y - 2.0 * k),
-    );
-    painter.rect_filled(pill, 3.0, p.violet.gamma_multiply(a));
-    let tag = painter.layout_no_wrap("VIEWER".into(), egui::FontId::proportional(10.0 * k), p.on_accent.gamma_multiply(a));
-    super::widgets::paint_ink_centered(painter, tag, pill.center(), p.on_accent.gamma_multiply(a));
-}
-
-fn panel_card(painter: &egui::Painter, p: &Palette, rect: Rect, alpha: f32) {
-    let fill = Color32::from_rgba_unmultiplied(p.panel.r(), p.panel.g(), p.panel.b(), 200).gamma_multiply(alpha);
-    painter.rect_filled(rect, 4.0, fill);
-    painter.rect_stroke(
-        rect,
-        4.0,
-        egui::Stroke::new(1.0, p.muted_dim.gamma_multiply(0.55 * alpha)),
-        egui::StrokeKind::Inside,
-    );
-}
-
-fn paint_brand_header(painter: &egui::Painter, p: &Palette, screen: Rect, logo: Option<&egui::TextureHandle>, k: f32, a: f32) {
-    let margin = 40.0 * k;
-    let muted = p.muted.gamma_multiply(a);
-    let mut brand_x = screen.left() + margin;
-    if let Some(l) = logo {
-        let size = 28.0 * k;
-        let r = Rect::from_min_size(Pos2::new(brand_x, screen.top() + margin - size * 0.35), Vec2::splat(size));
-        painter.image(
-            l.id(),
-            r,
-            Rect::from_min_max(Pos2::ZERO, Pos2::new(1.0, 1.0)),
-            super::widgets::PICTURE_TINT.gamma_multiply(a),
-        );
-        brand_x = r.right() + 10.0 * k;
-    }
-    brand_mark(painter, p, Pos2::new(brand_x, screen.top() + margin), k, a);
-    painter.text(
-        Pos2::new(screen.right() - margin, screen.top() + margin + 8.0 * k),
-        egui::Align2::RIGHT_TOP,
-        block_i18n::tr!("loading-press-esc-to-cancel"),
-        egui::FontId::proportional(11.5 * k),
-        muted,
-    );
-}
-
-fn paint_teleport_footer(painter: &egui::Painter, p: &Palette, screen: Rect, k: f32, a: f32) {
-    let margin = 40.0 * k;
-    let muted = p.muted.gamma_multiply(a);
-    let accent = p.violet.gamma_multiply(a);
-    let foot_y = screen.bottom() - margin * 0.7;
-    painter.hline(
-        screen.left() + margin..=screen.right() - margin,
-        foot_y - 18.0 * k,
-        egui::Stroke::new(1.0, p.muted_dim.gamma_multiply(0.4 * a)),
-    );
-    let ver = format!("BLOCK VIEWER {} · VULKAN", block_version::version());
-    painter.text(
-        Pos2::new(screen.left() + margin, foot_y),
-        egui::Align2::LEFT_BOTTOM,
-        ver,
-        egui::FontId::proportional(11.0 * k),
-        muted,
-    );
-    painter.text(
-        Pos2::new(screen.right() - margin, foot_y),
-        egui::Align2::RIGHT_BOTTOM,
-        crate::links::GITHUB.trim_start_matches("https://"),
-        egui::FontId::proportional(11.0 * k),
-        accent,
-    );
-}
-
-/// Split a tip into a short title and body (Claude tip card).
-fn tip_title_body(tip: &str) -> (String, String) {
-    let tip = tip.trim();
-    if tip.is_empty() {
-        return (String::new(), String::new());
-    }
-    if let Some((head, tail)) = tip.split_once(" — ") {
-        return (head.trim().to_owned(), tail.trim().to_owned());
-    }
-    if let Some((head, tail)) = tip.split_once(". ") {
-        let title = format!("{}.", head.trim());
-        if title.chars().count() <= 48 && !tail.trim().is_empty() {
-            return (title, tail.trim().to_owned());
-        }
-    }
-    (tip.to_owned(), String::new())
-}
-
-#[allow(clippy::too_many_arguments)]
-fn teleport_chrome(
-    ctx: &egui::Context,
-    painter: &egui::Painter,
-    p: &Palette,
-    screen: Rect,
-    logo: Option<&egui::TextureHandle>,
-    title: &str,
-    dest: &str,
-    detail: &str,
-    fraction: Option<f32>,
-    place: &Place,
-    tip: &str,
-    tip_index: (usize, usize),
-    motd: &str,
-    t: f32,
-    alpha: f32,
-) {
-    let a = alpha.clamp(0.0, 1.0);
-    let k = (screen.height() / 900.0).clamp(0.75, 1.35);
-    let margin = 40.0 * k;
-    let ink = p.ink.gamma_multiply(a);
-    let muted = p.muted.gamma_multiply(a);
-    let accent = p.violet.gamma_multiply(a);
-    paint_brand_header(painter, p, screen, logo, k, a);
-
-    // Right info cards
-    let card_w = (340.0 * k).min(screen.width() * 0.34).max(240.0);
-    let card_x = screen.right() - margin - card_w;
-    let tip_h = 168.0 * k;
-    let motd_h = 168.0 * k;
-    let tip_rect = Rect::from_min_size(Pos2::new(card_x, screen.top() + margin + 56.0 * k), Vec2::new(card_w, tip_h));
-    let motd_rect = Rect::from_min_size(Pos2::new(card_x, tip_rect.bottom() + 14.0 * k), Vec2::new(card_w, motd_h));
-    let (tip_title, tip_body) = tip_title_body(tip);
-    let tip_footer = if tip_index.0 > 0 && tip_index.1 > 0 {
-        block_i18n::tr!("loading-tip-of", n = tip_index.0, total = tip_index.1)
-    } else {
-        block_i18n::tr!("loading-tip-footer").to_owned()
-    };
-    info_card(
-        painter,
-        p,
-        tip_rect,
-        "bulb",
-        block_i18n::tr!("loading-tip-label"),
-        &tip_title,
-        &tip_body,
-        &tip_footer,
-        a,
-        k,
-    );
-    let (motd_title, motd_body) = if motd.trim().is_empty() {
-        (
-            block_i18n::tr!("loading-motd-fallback-title").to_owned(),
-            block_i18n::tr!("loading-motd-fallback").to_owned(),
-        )
-    } else if let Some((head, tail)) = motd.split_once('\n') {
-        (head.trim().to_owned(), tail.trim().to_owned())
-    } else {
-        tip_title_body(motd)
-    };
-    info_card(
-        painter,
-        p,
-        motd_rect,
-        "message-filled",
-        block_i18n::tr!("loading-from-the-team"),
-        &motd_title,
-        &motd_body,
-        block_i18n::tr!("loading-motd-footer"),
-        a,
-        k,
-    );
-
-    // Left destination column
-    let left = screen.left() + margin;
-    let col_right = card_x - 36.0 * k;
-    let mut y = screen.top() + margin + 88.0 * k;
-    let eyebrow = if title.is_empty() {
-        block_i18n::tr!("common-teleport-2")
-    } else {
-        title
-    };
-    painter.text(
-        Pos2::new(left, y),
-        egui::Align2::LEFT_TOP,
-        eyebrow.to_uppercase(),
-        egui::FontId::proportional(12.0 * k),
-        accent,
-    );
-    y += 28.0 * k;
-    let name = if dest.is_empty() { "…" } else { dest };
-    let room = (col_right - left).max(120.0);
-    let mut size = 44.0 * k;
-    let mut galley = painter.layout_no_wrap(name.to_owned(), egui::FontId::proportional(size), ink);
-    if galley.size().x > room {
-        size = (size * room / galley.size().x).max(22.0 * k);
-        galley = painter.layout_no_wrap(name.to_owned(), egui::FontId::proportional(size), ink);
-    }
-    painter.galley(Pos2::new(left, y), galley.clone(), ink);
-    y += galley.size().y + 14.0 * k;
-
-    // Fact chips
-    let radius = ctx.global_style().visuals.window_corner_radius;
-    let mut x = left;
-    if !place.position.is_empty() {
-        let label = if place.maturity.is_empty() {
-            format!("{name} · {}", place.position)
-        } else {
-            place.position.to_owned()
-        };
-        x += chip(painter, p, Pos2::new(x, y), k, Lead::Icon("map-pin-filled"), &label, a, radius) + 8.0 * k;
-    }
-    if !place.maturity.is_empty()
-        && let Some((letter, bg, fg)) = super::widgets::maturity_style(p, place.maturity)
-    {
-        x += chip(
-            painter,
-            p,
-            Pos2::new(x, y),
-            k,
-            Lead::Letter(letter, bg, fg),
-            place.maturity,
-            a,
-            radius,
-        ) + 8.0 * k;
-    }
-    if let Some(count) = place.residents {
-        let _ = chip(
-            painter,
-            p,
-            Pos2::new(x, y),
-            k,
-            Lead::Icon("users"),
-            &block_i18n::tr!("loading-residents", count = count),
-            a,
-            radius,
-        );
-    }
-    y += 40.0 * k;
-
-    // Segmented progress (4 steps)
-    let steps = [
-        block_i18n::tr!("loading-step-requesting"),
-        block_i18n::tr!("loading-step-leaving"),
-        block_i18n::tr!("loading-step-arriving"),
-        block_i18n::tr!("loading-step-rezzing"),
-    ];
-    let gap = 8.0 * k;
-    let seg_w = ((col_right - left) - gap * 3.0) / 4.0;
-    let seg_h = 10.0 * k;
-    let done = match fraction {
-        Some(f) => ((f.clamp(0.0, 1.0) * steps.len() as f32).ceil() as usize).min(steps.len()),
-        None => ((t * 0.55).fract() * steps.len() as f32) as usize,
-    };
-    for (i, label) in steps.iter().enumerate() {
-        let r = Rect::from_min_size(Pos2::new(left + i as f32 * (seg_w + gap), y), Vec2::new(seg_w, seg_h));
-        let on = i < done;
-        painter.rect_filled(r, 4.0, if on { accent } else { p.muted_dim.gamma_multiply(0.45 * a) });
-        painter.text(
-            Pos2::new(r.left(), r.bottom() + 8.0 * k),
-            egui::Align2::LEFT_TOP,
-            label.to_uppercase(),
-            egui::FontId::proportional(10.0 * k),
-            if on { ink } else { muted },
-        );
-    }
-    y += seg_h + 28.0 * k;
-    if !detail.is_empty() {
-        painter.text(
-            Pos2::new(left, y),
-            egui::Align2::LEFT_TOP,
-            detail,
-            egui::FontId::proportional(13.0 * k),
-            muted,
-        );
-    }
-
-    paint_teleport_footer(painter, p, screen, k, a);
-}
-
-#[allow(clippy::too_many_arguments)]
-fn teleport_fail_chrome(
-    ctx: &egui::Context,
-    painter: &egui::Painter,
-    p: &Palette,
-    screen: Rect,
-    logo: Option<&egui::TextureHandle>,
-    dest: &str,
-    reason: &str,
-    alpha: f32,
-) -> TeleportFailAction {
-    let a = alpha.clamp(0.0, 1.0);
-    let k = (screen.height() / 900.0).clamp(0.75, 1.35);
-    let margin = 40.0 * k;
-    let ink = p.ink.gamma_multiply(a);
-    let muted = p.muted.gamma_multiply(a);
-    let danger = p.danger.gamma_multiply(a);
-    paint_brand_header(painter, p, screen, logo, k, a);
-
-    let left = screen.left() + margin;
-    let mut y = screen.top() + margin + 100.0 * k;
-    let warn = Rect::from_min_size(Pos2::new(left, y), Vec2::splat(28.0 * k));
-    if let Some(texture) = super::icons::global("alert-triangle") {
-        painter.image(texture.id(), warn, Rect::from_min_max(Pos2::ZERO, Pos2::new(1.0, 1.0)), danger);
-    }
-    y += 40.0 * k;
-    painter.text(
-        Pos2::new(left, y),
-        egui::Align2::LEFT_TOP,
-        block_i18n::tr!("loading-teleport-didnt-finish").to_uppercase(),
-        egui::FontId::proportional(12.0 * k),
-        danger,
-    );
-    y += 26.0 * k;
-    let name = if dest.is_empty() { "…" } else { dest };
-    let headline = block_i18n::tr!("loading-teleport-full-headline", dest = name.to_string());
-    let room = (screen.width() * 0.62).max(280.0);
-    let head = painter.layout(headline, egui::FontId::proportional(36.0 * k), ink, room);
-    painter.galley(Pos2::new(left, y), head.clone(), ink);
-    y += head.size().y + 14.0 * k;
-    let body = block_i18n::tr!("loading-teleport-full-body").to_owned();
-    let body = painter.layout(body, egui::FontId::proportional(14.0 * k), muted, room);
-    painter.galley(Pos2::new(left, y), body.clone(), muted);
-    y += body.size().y + 28.0 * k;
-
-    let mut action = TeleportFailAction::None;
-    egui::Area::new(egui::Id::unique("teleport_fail_actions"))
-        .fixed_pos(Pos2::new(left, y))
-        .order(egui::Order::Foreground)
-        .show(ctx, |ui| {
-            ui.horizontal(|ui| {
-                ui.spacing_mut().item_spacing.x = 12.0 * k;
-                let primary = super::widgets::action_button(
-                    ui,
-                    p,
-                    "refresh",
-                    block_i18n::tr!("loading-teleport-try-again"),
-                    super::widgets::ActionKind::Primary,
-                    Vec2::new(0.0, 36.0 * k),
-                );
-                let home = super::widgets::action_button(
-                    ui,
-                    p,
-                    "home",
-                    block_i18n::tr!("loading-teleport-go-home"),
-                    super::widgets::ActionKind::Flat,
-                    Vec2::new(0.0, 36.0 * k),
-                );
-                let map = super::widgets::action_button(
-                    ui,
-                    p,
-                    "map-pin-filled",
-                    block_i18n::tr!("loading-teleport-open-map"),
-                    super::widgets::ActionKind::Flat,
-                    Vec2::new(0.0, 36.0 * k),
-                );
-                if primary.clicked() {
-                    action = TeleportFailAction::Retry;
-                } else if home.clicked() {
-                    action = TeleportFailAction::Home;
-                } else if map.clicked() {
-                    action = TeleportFailAction::Map;
-                }
-            });
-        });
-    y += 56.0 * k;
-    let server = block_i18n::tr!("loading-teleport-server-message", reason = reason.to_string());
-    painter.text(
-        Pos2::new(left, y),
-        egui::Align2::LEFT_TOP,
-        server,
-        egui::FontId::proportional(11.5 * k),
-        muted,
-    );
-    // Esc dismisses the fail screen.
-    if ctx.input(|i| i.key_pressed(egui::Key::Escape)) {
-        action = TeleportFailAction::Dismiss;
-    }
-    paint_teleport_footer(painter, p, screen, k, a);
-    action
-}
-
-#[allow(clippy::too_many_arguments)]
-fn info_card(
-    painter: &egui::Painter,
-    p: &Palette,
-    rect: Rect,
-    icon: &str,
-    heading: &str,
-    title: &str,
-    body: &str,
-    footer: &str,
-    alpha: f32,
-    k: f32,
-) {
-    let a = alpha.clamp(0.0, 1.0);
-    panel_card(painter, p, rect, a);
-    let pad = 16.0 * k;
-    let accent = p.violet.gamma_multiply(a);
-    let ink = p.ink.gamma_multiply(a);
-    let muted = p.muted.gamma_multiply(a);
-    let mut y = rect.top() + pad;
-    let icon_r = Rect::from_min_size(Pos2::new(rect.left() + pad, y), Vec2::splat(16.0 * k));
-    if let Some(texture) = super::icons::global(icon) {
-        painter.image(texture.id(), icon_r, Rect::from_min_max(Pos2::ZERO, Pos2::new(1.0, 1.0)), accent);
-    }
-    painter.text(
-        Pos2::new(icon_r.right() + 8.0 * k, icon_r.center().y),
-        egui::Align2::LEFT_CENTER,
-        heading.to_uppercase(),
-        egui::FontId::proportional(11.0 * k),
-        accent,
-    );
-    y += 28.0 * k;
-    let room = rect.width() - 2.0 * pad;
-    if !title.is_empty() {
-        let title = painter.layout(title.to_owned(), egui::FontId::proportional(16.0 * k), ink, room);
-        painter.galley(Pos2::new(rect.left() + pad, y), title.clone(), ink);
-        y += title.size().y + 6.0 * k;
-    }
-    if !body.is_empty() {
-        let body = painter.layout(body.to_owned(), egui::FontId::proportional(13.0 * k), muted, room);
-        painter.galley(Pos2::new(rect.left() + pad, y), body, muted);
-    }
-    painter.text(
-        Pos2::new(rect.left() + pad, rect.bottom() - pad),
-        egui::Align2::LEFT_BOTTOM,
-        footer,
-        egui::FontId::proportional(11.0 * k),
-        muted,
-    );
 }
 
 #[cfg(test)]
@@ -1031,7 +581,7 @@ mod tests {
                 ..Default::default()
             },
             |ui| {
-                let _ = teleport_overlay(
+                teleport_overlay(
                     ui.ctx(),
                     &p,
                     None,
@@ -1042,11 +592,7 @@ mod tests {
                     Some(1.0),
                     1.0,
                     &Place::default(),
-                    "A tip about destinations.",
-                    (1, 1),
-                    "From the team: Block news.",
-                    None,
-                );
+                )
             },
         );
         output.textures_delta.clear();

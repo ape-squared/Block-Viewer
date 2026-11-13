@@ -21,29 +21,22 @@ pub fn sidebar(
     start_slurl: &mut Option<crate::slurl::Location>,
     favorites: &[crate::login_favorites::Entry],
 ) -> bool {
-    // Aurora right column: What's New above Destinations (Layout keeps the
-    // centred account strip clear of this gutter).
-    let column_x = ctx.content_rect().right() - 32.0 - width;
-    let mut check_updates = false;
-    let room = (lowest - card.top()).max(160.0);
-    let news_h = (room * 0.42).clamp(120.0, 200.0);
-    let gap = 12.0;
-    let dest_h = (room - news_h - gap).max(120.0);
-    egui::Area::new(Id::unique("login_whats_new"))
-        .fixed_pos(egui::pos2(column_x, card.top()))
-        .show(ctx, |ui| {
-            ui.set_width(width);
-            ui.set_max_width(width);
-            check_updates = super::whats_new_panel(ui, p, icons, info, news_h);
-        });
+    let left = ctx.content_rect().right() - 32.0 - width;
     egui::Area::new(Id::unique("login_destinations"))
-        .fixed_pos(egui::pos2(column_x, card.top() + news_h + gap))
+        .fixed_pos(egui::pos2(left, card.top()))
         .show(ctx, |ui| {
             ui.set_width(width);
-            ui.set_max_width(width);
-            super::destinations::panel(ui, p, icons, start_location, start_slurl, favorites, dest_h, &mut || {});
+            let height = card.height().min(lowest - card.top()).max(120.0);
+            super::destinations::panel(ui, p, icons, start_location, start_slurl, favorites, height, &mut || {});
         });
-    check_updates
+    egui::Area::new(Id::unique("login_version"))
+        .pivot(egui::Align2::LEFT_BOTTOM)
+        .fixed_pos(egui::pos2(left, card.top() - 14.0))
+        .show(ctx, |ui| {
+            ui.set_width(width);
+            super::version_panel(ui, p, icons, info)
+        })
+        .inner
 }
 
 fn version(ui: &mut egui::Ui, p: &Palette) {
@@ -78,19 +71,20 @@ pub fn footer(ctx: &Context, p: &Palette, icons: &Icons, info: &LoginInfo, sideb
             }
         });
     }
-    // Claude mockup footer: version + GitHub first, community links secondary.
     egui::Area::new(Id::unique("login_links"))
         .anchor(egui::Align2::LEFT_BOTTOM, Vec2::new(25.0, -20.0))
         .show(ctx, |ui| {
+            ui.label(
+                RichText::new(block_i18n::tr!("ui-login-join-the-community"))
+                    .size(11.5)
+                    .color(p.muted),
+            );
+            ui.add_space(4.0);
             ui.horizontal(|ui| {
-                ui.spacing_mut().item_spacing.x = 10.0;
-                ui.label(
-                    RichText::new(format!("BLOCK VIEWER {}", block_version::version()))
-                        .size(11.5)
-                        .color(p.muted),
-                );
-                super::link_button(ui, p, "brand-github-filled", "GitHub", crate::links::GITHUB);
+                ui.spacing_mut().item_spacing.x = 6.0;
                 super::link_button(ui, p, "brand-discord-filled", "Discord", crate::links::DISCORD);
+                super::link_button(ui, p, "brand-github-filled", "GitHub", crate::links::GITHUB);
+                super::link_button(ui, p, "world-filled", block_i18n::tr!("ui-login-website"), crate::links::WEBSITE);
                 let bug = widgets::action_button(
                     ui,
                     p,
@@ -118,12 +112,6 @@ pub fn footer(ctx: &Context, p: &Palette, icons: &Icons, info: &LoginInfo, sideb
                     form.show_info = true;
                 }
             });
-            ui.add_space(4.0);
-            ui.label(
-                RichText::new(block_i18n::tr!("ui-login-independent-disclaimer"))
-                    .size(10.5)
-                    .color(p.muted_dim),
-            );
         });
     if screen.width() < 1100.0 {
         egui::Area::new(Id::unique("login_footer_version"))

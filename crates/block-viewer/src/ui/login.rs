@@ -9,7 +9,7 @@ use super::news::{LoginInfo, VersionState};
 use super::widgets::{self, ActionKind};
 use crate::settings::{GridChoice, Settings};
 use crate::theme::Palette;
-use egui::{Color32, Frame, Margin, Pos2, Rect, RichText, Sense, Stroke, TextEdit, Vec2};
+use egui::{Color32, Frame, Margin, RichText, Sense, Stroke, TextEdit, Vec2};
 mod camera_limits_notice;
 mod carousel;
 mod chrome;
@@ -270,65 +270,6 @@ fn caption(ui: &mut egui::Ui, p: &Palette, text: &str) {
     ui.add_space(-2.0);
 }
 
-/// Six digit boxes for MFA (Claude two-step mockup). Digits only, auto-advance.
-pub(crate) fn mfa_digit_boxes(ui: &mut egui::Ui, p: &Palette, token: &mut String) -> egui::Response {
-    token.retain(|c| c.is_ascii_digit());
-    if token.len() > 6 {
-        token.truncate(6);
-    }
-    let id = egui::Id::unique("mfa_digits");
-    let mut typed = token.clone();
-    let box_size = Vec2::splat(44.0);
-    let resp = ui
-        .horizontal(|ui| {
-            ui.spacing_mut().item_spacing.x = 8.0;
-            let focused = ui.memory(|m| m.has_focus(id));
-            // Hidden capture field sits over the row so paste and typing work.
-            let capture = ui.allocate_ui_with_layout(
-                Vec2::new(6.0 * box_size.x + 5.0 * 8.0, box_size.y),
-                egui::Layout::left_to_right(egui::Align::Center),
-                |ui| {
-                    let r = ui.available_rect_before_wrap();
-                    let edit = TextEdit::singleline(&mut typed)
-                        .id(id)
-                        .frame(Frame::NONE)
-                        .char_limit(6)
-                        .font(egui::FontId::proportional(1.0))
-                        .text_color(Color32::TRANSPARENT)
-                        .desired_width(r.width());
-                    let resp = ui.add_sized(r.size(), edit);
-                    for i in 0..6 {
-                        let cell = Rect::from_min_size(Pos2::new(r.left() + i as f32 * (box_size.x + 8.0), r.top()), box_size);
-                        let active = focused && typed.len() == i;
-                        let stroke = if active {
-                            Stroke::new(1.5, p.violet)
-                        } else {
-                            Stroke::new(1.0, p.muted_dim.gamma_multiply(0.7))
-                        };
-                        ui.painter().rect(cell, 4.0, p.field, stroke, egui::StrokeKind::Inside);
-                        if let Some(ch) = typed.chars().nth(i) {
-                            ui.painter().text(
-                                cell.center(),
-                                egui::Align2::CENTER_CENTER,
-                                ch.to_string(),
-                                egui::FontId::proportional(20.0),
-                                p.ink,
-                            );
-                        }
-                    }
-                    resp
-                },
-            );
-            capture.inner
-        })
-        .inner;
-    *token = typed.chars().filter(|c| c.is_ascii_digit()).take(6).collect();
-    if !resp.has_focus() && token.len() < 6 {
-        // keep focus ready when MFA shows
-    }
-    resp
-}
-
 /// The favourites of one account's start menu and the one chosen (its
 /// item), as FSPanelLogin::addFavoritesToStartLocation adds them after
 /// Last, Home and the typed region.
@@ -572,19 +513,25 @@ fn glass_card<R>(
         // inside the border of the frame
         let rect = outer.shrink(1.0);
         let strength = if accent { 1.0 } else { 0.6 } + hover * 0.45;
-        // Lime only. A teal second light read as the old aurora wash.
-        let lights = vec![super::block_bg::radial_glow_shape(
-            outer.left_top() + Vec2::new(outer.width() * 0.12, outer.height() * 0.2),
-            outer.width() * 0.7,
-            p.violet,
-            0.18 * strength,
-        )];
+        let lights = vec![
+            super::block_bg::radial_glow_shape(
+                outer.left_top() + Vec2::new(outer.width() * 0.18, outer.height() * 0.12),
+                outer.width() * 0.95,
+                p.violet,
+                0.24 * strength,
+            ),
+            super::block_bg::radial_glow_shape(
+                outer.right_bottom() - Vec2::new(outer.width() * 0.12, outer.height() * 0.14),
+                outer.width() * 0.8,
+                p.teal,
+                0.13 * strength,
+            ),
+        ];
         behind.0.set(behind.1, egui::Shape::Vec(lights.clone()));
         let mut shapes = super::block_bg::frosted_pane(p, ctx.content_rect(), ctx.input(|i| i.time) as f32, rect, lights);
         let top = |height: f32| egui::Rect::from_min_size(rect.min, Vec2::new(rect.width(), height));
         if accent {
-            let bar = egui::Rect::from_min_size(rect.min, Vec2::new(4.0, rect.height()));
-            shapes.push(egui::Shape::rect_filled(bar, 0.0, p.violet));
+            shapes.push(strip(top(2.0), &[(0.0, p.violet), (1.0, p.teal)]));
         } else {
             let lit = p.ink.gamma_multiply(0.30);
             shapes.push(strip(
@@ -600,63 +547,19 @@ fn glass_card<R>(
 }
 
 fn version_panel(ui: &mut egui::Ui, p: &Palette, icons: &Icons, info: &LoginInfo) -> bool {
-    whats_new_panel(ui, p, icons, info, 220.0)
-}
-
-/// Claude "WHAT'S NEW · version" card: release bullets + update actions.
-fn whats_new_panel(ui: &mut egui::Ui, p: &Palette, icons: &Icons, info: &LoginInfo, height: f32) -> bool {
     let mut check_updates = false;
-    let current = block_version::version();
     card(ui, p, 16, false, |ui| {
         ui.set_width(ui.available_width());
-        ui.set_height((height - 32.0).max(80.0));
+        widgets::section_header(ui, p, "tag-filled", block_i18n::tr!("ui-login-version"));
+        let current = block_version::version();
         ui.horizontal(|ui| {
-            ui.label(
-                RichText::new(block_i18n::tr!("ui-login-whats-new", version = current.to_string()))
-                    .size(12.0)
-                    .strong()
-                    .color(p.violet),
-            );
+            ui.label(RichText::new(block_i18n::tr!("ui-login-installed")).size(12.5).color(p.muted));
             ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
-                if let VersionState::Available { url, .. } = &info.version
-                    && !url.is_empty()
-                    && ui
-                        .add(
-                            egui::Label::new(RichText::new(block_i18n::tr!("ui-login-release-notes")).size(11.5).color(p.muted))
-                                .sense(Sense::click()),
-                        )
-                        .on_hover_cursor(egui::CursorIcon::PointingHand)
-                        .clicked()
-                {
-                    ui.ctx().open_url(egui::OpenUrl::new_tab(url));
-                }
+                // a beta's long number elides beside a longer translated label
+                ui.add(egui::Label::new(RichText::new(format!("v{current}")).size(13.0).strong().color(p.ink)).truncate());
             });
         });
-        ui.add_space(8.0);
-        if info.news.is_empty() {
-            for line in [
-                block_i18n::tr!("ui-login-whats-new-1"),
-                block_i18n::tr!("ui-login-whats-new-2"),
-                block_i18n::tr!("ui-login-whats-new-3"),
-            ] {
-                ui.horizontal(|ui| {
-                    ui.label(RichText::new("·").size(14.0).color(p.violet));
-                    ui.add(egui::Label::new(RichText::new(line).size(13.0).color(p.ink)).wrap());
-                });
-                ui.add_space(4.0);
-            }
-        } else {
-            let rest = (height - 72.0).max(80.0);
-            egui::ScrollArea::vertical().max_height(rest).show(ui, |ui| {
-                for n in info.news.iter().take(5) {
-                    ui.horizontal(|ui| {
-                        ui.label(RichText::new("·").size(14.0).color(p.violet));
-                        ui.add(egui::Label::new(RichText::new(&n.title).size(13.0).color(p.ink)).wrap());
-                    });
-                    ui.add_space(4.0);
-                }
-            });
-        }
+        ui.add_space(2.0);
         let (icon, text, col) = match &info.version {
             VersionState::UpToDate => ("circle-check-filled", block_i18n::tr!("ui-login-up-to-date").to_owned(), p.success),
             VersionState::Available { version, .. } => (
@@ -672,24 +575,26 @@ fn whats_new_panel(ui: &mut egui::Ui, p: &Palette, icons: &Icons, info: &LoginIn
                 p.muted,
             ),
         };
-        ui.add_space(6.0);
         ui.horizontal(|ui| {
-            let (r, _) = ui.allocate_exact_size(Vec2::splat(14.0), Sense::hover());
-            img(ui, icons, icon, r, col);
-            ui.label(RichText::new(text).size(12.0).color(col));
+            ui.label(RichText::new(block_i18n::tr!("ui-login-latest")).size(12.5).color(p.muted));
+            ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+                ui.label(RichText::new(text).size(12.5).color(col));
+                let (r, _) = ui.allocate_exact_size(Vec2::splat(14.0), Sense::hover());
+                img(ui, icons, icon, r, col);
+            });
         });
         if info.can_check_updates {
-            ui.add_space(6.0);
+            ui.add_space(8.0);
             check_updates =
-                super::widgets::flat_button_sized(ui, p, block_i18n::tr!("update-check"), Vec2::new(ui.available_width(), 28.0))
+                super::widgets::flat_button_sized(ui, p, block_i18n::tr!("update-check"), Vec2::new(ui.available_width(), 30.0))
                     .on_hover_text(block_i18n::tr!("update-check-hint"))
                     .clicked();
         }
         if let VersionState::Available { url, .. } = &info.version
             && !url.is_empty()
         {
-            ui.add_space(6.0);
-            let size = Vec2::new(ui.available_width(), 28.0);
+            ui.add_space(8.0);
+            let size = Vec2::new(ui.available_width(), 30.0);
             let label = block_i18n::tr!("ui-login-download-update");
             if widgets::action_button(ui, p, "download-filled", label, ActionKind::Primary, size).clicked() {
                 ui.ctx().open_url(egui::OpenUrl::new_tab(url));
@@ -810,315 +715,279 @@ pub fn show(
         (top + height - lowest).min(top - BAR_GAP).max(0.0)
     });
     ctx.data_mut(|d| d.insert_temp(logo_drawn, drawn));
-    // Right slab: the form sits in the right third, destinations stay beside it.
-    let form_anchor = if wide {
-        (egui::Align2::RIGHT_CENTER, Vec2::new(-48.0, CENTER_OFFSET - lift))
-    } else {
-        (egui::Align2::CENTER_CENTER, Vec2::new(0.0, CENTER_OFFSET - lift))
-    };
-    egui::Area::new(area).anchor(form_anchor.0, form_anchor.1).show(&ctx, |ui| {
-        ui.set_width(card_w);
-        ui.vertical_centered(|ui| {
-            if let Some(l) = logo {
-                let r = ui.add(egui::Image::new(l).fit_to_exact_size(Vec2::splat(logo_size))).rect;
-                // soft light behind the logo (additive)
-                let painter = ctx.layer_painter(egui::LayerId::new(egui::Order::Background, egui::Id::unique("halo")));
-                super::block_bg::radial_glow(&painter, r.center(), 150.0, p.violet, 0.42);
-            }
-            ui.add_space(2.0);
-            ui.horizontal(|ui| {
-                ui.spacing_mut().item_spacing.x = 10.0;
-                ui.label(RichText::new("BLOCK").size(36.0).strong().color(p.ink));
-                Frame::new()
-                    .fill(p.violet)
-                    .inner_margin(Margin::symmetric(8, 3))
-                    .corner_radius(3.0)
-                    .show(ui, |ui| {
-                        ui.label(RichText::new("VIEWER").size(11.0).strong().color(p.on_accent));
-                    });
-            });
-            ui.add_space(6.0);
-            ui.label(
-                RichText::new(block_i18n::tr!("ui-login-sign-in-to-second-life"))
-                    .size(12.0)
-                    .color(p.violet),
-            );
-            ui.label(
-                RichText::new(block_i18n::tr!("ui-login-welcome-back"))
-                    .size(28.0)
-                    .strong()
-                    .color(p.ink),
-            );
-            ui.label(RichText::new(client_tagline()).size(13.0).color(p.muted));
-            ui.add_space(14.0);
-        });
-        login_card = card(ui, p, 24, true, |ui| {
-            ui.set_width(card_w - 48.0);
-            ui.spacing_mut().item_spacing.y = 6.0;
-            let enabled = !form.busy && !super::grids::is_open(&ctx);
-            ui.add_enabled_ui(enabled, |ui| {
-                ui.label(RichText::new(block_i18n::tr!("ui-login-login")).size(18.0).strong().color(p.ink));
-                ui.add_space(6.0);
-                caption(ui, p, block_i18n::tr!("common-username"));
-                let user = field(
-                    ui,
-                    p,
-                    icons,
-                    "login_user",
-                    "user-filled",
-                    block_i18n::tr!("extra-first-last-or-username"),
-                    &mut settings.username,
-                    None,
-                );
-                ui.add_space(4.0);
-                caption(ui, p, block_i18n::tr!("ui-login-password"));
-                // LLPanelLogin::setFields (indra/newview/llpanellogin.cpp,
-                // originally LGPL 2.1): show 16 masked filler characters.
-                // Keep the marker out of the input so login still uses the
-                // saved hash, and typing replaces it without editing filler.
-                let hint = if form.stored.is_some() { REMEMBERED_PASSWORD_MASK } else { "" };
-                let pass = field(
-                    ui,
-                    p,
-                    icons,
-                    "login_pass",
-                    "lock-filled",
-                    hint,
-                    &mut form.password,
-                    Some(&mut form.show_password),
-                );
-                let mut mfa = None;
-                if form.show_mfa {
-                    ui.add_space(8.0);
-                    ui.label(
-                        RichText::new(block_i18n::tr!("ui-login-two-step-sign-in"))
-                            .size(12.0)
-                            .color(p.violet),
-                    );
-                    ui.label(
-                        RichText::new(block_i18n::tr!("ui-login-enter-your-code"))
-                            .size(22.0)
-                            .strong()
-                            .color(p.ink),
-                    );
-                    ui.label(
-                        RichText::new(block_i18n::tr!(
-                            "ui-login-mfa-open-authenticator",
-                            account = settings.username.to_string()
-                        ))
-                        .size(12.5)
-                        .color(p.muted),
-                    );
-                    ui.add_space(6.0);
-                    mfa = Some(mfa_digit_boxes(ui, p, &mut form.mfa_token));
-                    widgets::checkbox(ui, p, &mut form.remember_mfa, block_i18n::tr!("login-accounts-remember-mfa"));
-                }
-
-                ui.add_space(6.0);
-                // grid and start location side by side
-                ui.columns(2, |cols| {
-                    caption(&mut cols[0], p, block_i18n::tr!("ui-login-grid"));
-                    let mut uri = settings.login_uri();
-                    super::grids::selector(&mut cols[0], &settings.grids, &mut uri);
-                    settings.grid = crate::login_accounts::grid(&uri);
-                    if settings.grid == GridChoice::Custom && !uri.is_empty() {
-                        settings.custom_login_uri = uri;
-                    }
-                    caption(&mut cols[1], p, block_i18n::tr!("ui-login-start"));
-                    let width = cols[1].available_width();
-                    let key = crate::login_favorites::key(&settings.login_uri(), &settings.username);
-                    let mut favorites = StartFavorites::of(&form.favorites, &form.start_favorite, &key);
-                    demo_open_start_menu(&cols[1], "start", &favorites);
-                    start_menu(
-                        &mut cols[1],
-                        egui::ComboBox::from_id_salt("start").width(width),
-                        &mut settings.start_location,
-                        &mut form.start_slurl,
-                        &mut favorites,
-                    );
-                    favorites.keep(&mut form.start_favorite, key);
-                });
-                let key = crate::login_favorites::key(&settings.login_uri(), &settings.username);
-                let favorite_chosen = StartFavorites::of(&form.favorites, &form.start_favorite, &key).chosen().is_some();
-                if settings.grid == GridChoice::Custom {
-                    field(
-                        ui,
-                        p,
-                        icons,
-                        "login_grid",
-                        "world-filled",
-                        "http://grille.exemple:8002/",
-                        &mut settings.custom_login_uri,
-                        None,
-                    );
-                }
-                if settings.start_location == "region" && form.start_slurl.is_none() && !favorite_chosen {
-                    let before = settings.start_region.clone();
-                    field(
-                        ui,
-                        p,
-                        icons,
-                        "login_region",
-                        "map-pin-filled",
-                        block_i18n::tr!("ui-login-region-name"),
-                        &mut settings.start_region,
-                        None,
-                    );
-                    // Legacy-like: paste a secondlife:// / maps.secondlife.com link into Region.
-                    if settings.start_region != before
-                        && let Some(loc) = crate::slurl::parse(settings.start_region.trim())
-                    {
-                        settings.start_region = loc.region.clone();
-                        form.start_slurl = Some(loc);
-                    }
+    egui::Area::new(area)
+        .anchor(egui::Align2::CENTER_CENTER, Vec2::new(0.0, CENTER_OFFSET - lift))
+        .show(&ctx, |ui| {
+            ui.set_width(card_w);
+            ui.vertical_centered(|ui| {
+                if let Some(l) = logo {
+                    let r = ui.add(egui::Image::new(l).fit_to_exact_size(Vec2::splat(logo_size))).rect;
+                    // soft light behind the logo (additive)
+                    let painter = ctx.layer_painter(egui::LayerId::new(egui::Order::Background, egui::Id::unique("halo")));
+                    super::block_bg::radial_glow(&painter, r.center(), 150.0, p.violet, 0.42);
                 }
                 ui.add_space(2.0);
-                ui.horizontal(|ui| {
-                    super::widgets::switch(ui, p, &mut settings.remember_username);
-                    ui.label(RichText::new(block_i18n::tr!("ui-login-remember-me")).size(12.5).color(p.muted));
+                ui.label(RichText::new("Block Viewer").size(34.0).strong().color(p.ink));
+                ui.label(RichText::new(client_tagline()).size(13.0).color(p.violet_pale));
+                ui.add_space(18.0);
+            });
+            login_card = card(ui, p, 24, true, |ui| {
+                ui.set_width(card_w - 48.0);
+                ui.spacing_mut().item_spacing.y = 6.0;
+                let enabled = !form.busy && !super::grids::is_open(&ctx);
+                ui.add_enabled_ui(enabled, |ui| {
+                    ui.label(RichText::new(block_i18n::tr!("ui-login-login")).size(18.0).strong().color(p.ink));
+                    ui.add_space(6.0);
+                    caption(ui, p, block_i18n::tr!("common-username"));
+                    let user = field(
+                        ui,
+                        p,
+                        icons,
+                        "login_user",
+                        "user-filled",
+                        block_i18n::tr!("extra-first-last-or-username"),
+                        &mut settings.username,
+                        None,
+                    );
+                    ui.add_space(4.0);
+                    caption(ui, p, block_i18n::tr!("ui-login-password"));
+                    // LLPanelLogin::setFields (indra/newview/llpanellogin.cpp,
+                    // originally LGPL 2.1): show 16 masked filler characters.
+                    // Keep the marker out of the input so login still uses the
+                    // saved hash, and typing replaces it without editing filler.
+                    let hint = if form.stored.is_some() { REMEMBERED_PASSWORD_MASK } else { "" };
+                    let pass = field(
+                        ui,
+                        p,
+                        icons,
+                        "login_pass",
+                        "lock-filled",
+                        hint,
+                        &mut form.password,
+                        Some(&mut form.show_password),
+                    );
+                    let mut mfa = None;
+                    if form.show_mfa {
+                        ui.add_space(4.0);
+                        ui.label(
+                            RichText::new(block_i18n::tr!("ui-login-authentication-code-2fa"))
+                                .size(11.5)
+                                .color(p.amber),
+                        );
+                        mfa = Some(field(
+                            ui,
+                            p,
+                            icons,
+                            "login_mfa",
+                            "shield-lock-filled",
+                            "000000",
+                            &mut form.mfa_token,
+                            None,
+                        ));
+                        widgets::checkbox(ui, p, &mut form.remember_mfa, block_i18n::tr!("login-accounts-remember-mfa"));
+                    }
+
+                    ui.add_space(6.0);
+                    // grid and start location side by side
+                    ui.columns(2, |cols| {
+                        caption(&mut cols[0], p, block_i18n::tr!("ui-login-grid"));
+                        let mut uri = settings.login_uri();
+                        super::grids::selector(&mut cols[0], &settings.grids, &mut uri);
+                        settings.grid = crate::login_accounts::grid(&uri);
+                        if settings.grid == GridChoice::Custom && !uri.is_empty() {
+                            settings.custom_login_uri = uri;
+                        }
+                        caption(&mut cols[1], p, block_i18n::tr!("ui-login-start"));
+                        let width = cols[1].available_width();
+                        let key = crate::login_favorites::key(&settings.login_uri(), &settings.username);
+                        let mut favorites = StartFavorites::of(&form.favorites, &form.start_favorite, &key);
+                        demo_open_start_menu(&cols[1], "start", &favorites);
+                        start_menu(
+                            &mut cols[1],
+                            egui::ComboBox::from_id_salt("start").width(width),
+                            &mut settings.start_location,
+                            &mut form.start_slurl,
+                            &mut favorites,
+                        );
+                        favorites.keep(&mut form.start_favorite, key);
+                    });
+                    let key = crate::login_favorites::key(&settings.login_uri(), &settings.username);
+                    let favorite_chosen = StartFavorites::of(&form.favorites, &form.start_favorite, &key).chosen().is_some();
+                    if settings.grid == GridChoice::Custom {
+                        field(
+                            ui,
+                            p,
+                            icons,
+                            "login_grid",
+                            "world-filled",
+                            "http://grille.exemple:8002/",
+                            &mut settings.custom_login_uri,
+                            None,
+                        );
+                    }
+                    if settings.start_location == "region" && form.start_slurl.is_none() && !favorite_chosen {
+                        let before = settings.start_region.clone();
+                        field(
+                            ui,
+                            p,
+                            icons,
+                            "login_region",
+                            "map-pin-filled",
+                            block_i18n::tr!("ui-login-region-name"),
+                            &mut settings.start_region,
+                            None,
+                        );
+                        // Legacy-like: paste a secondlife:// / maps.secondlife.com link into Region.
+                        if settings.start_region != before
+                            && let Some(loc) = crate::slurl::parse(settings.start_region.trim())
+                        {
+                            settings.start_region = loc.region.clone();
+                            form.start_slurl = Some(loc);
+                        }
+                    }
+                    ui.add_space(2.0);
+                    ui.horizontal(|ui| {
+                        super::widgets::switch(ui, p, &mut settings.remember_username);
+                        ui.label(RichText::new(block_i18n::tr!("ui-login-remember-me")).size(12.5).color(p.muted));
+                    });
+                    ui.horizontal(|ui| {
+                        super::widgets::switch(ui, p, &mut settings.remember_password);
+                        ui.label(
+                            RichText::new(block_i18n::tr!("ui-login-remember-password"))
+                                .size(12.5)
+                                .color(p.muted),
+                        )
+                        .on_hover_text(block_i18n::tr!("ui-login-stored-in-windows-credential-manager-as-the-hash-sent"));
+                    });
+                    ui.add_space(10.0);
+                    let mfa_ready = !form.show_mfa || form.mfa_token.chars().any(|c| !c.is_whitespace());
+                    let can = form.block_reason.is_none()
+                        && !settings.username.trim().is_empty()
+                        && (!form.password.is_empty() || form.stored.is_some())
+                        && mfa_ready;
+                    let (r, resp) = ui.allocate_exact_size(
+                        Vec2::new(ui.available_width(), 38.0),
+                        if can { Sense::click() } else { Sense::hover() },
+                    );
+                    // Requested UX: focus the first missing field, or Connect
+                    // when credentials are ready. Firestorm giveFocus otherwise
+                    // returns to the user-name field when both are present.
+                    if !form.focused && enabled {
+                        form.focused = true;
+                        match mfa.as_ref() {
+                            Some(m) if !mfa_ready => m.request_focus(),
+                            _ if settings.username.trim().is_empty() => user.request_focus(),
+                            _ if can => resp.request_focus(),
+                            _ => pass.request_focus(),
+                        }
+                    }
+                    let hot = can && resp.hovered();
+                    let fill = if !can {
+                        p.violet.gamma_multiply(0.35)
+                    } else if hot {
+                        p.violet_light
+                    } else {
+                        p.violet
+                    };
+                    ui.painter().rect_filled(r, ui.visuals().widgets.inactive.corner_radius, fill);
+                    let txt_col = if can { p.on_accent } else { p.on_accent.gamma_multiply(0.5) };
+                    let galley = ui.painter().layout_no_wrap(
+                        block_i18n::tr!("ui-login-log-in").to_owned(),
+                        egui::FontId::proportional(15.0),
+                        txt_col,
+                    );
+                    let total = galley.size().x + 26.0;
+                    let x0 = r.center().x - total * 0.5;
+                    img(
+                        ui,
+                        icons,
+                        if form.block_reason.is_some() { "lock-filled" } else { "login-2" },
+                        egui::Rect::from_center_size(egui::pos2(x0 + 9.0, r.center().y), Vec2::splat(18.0)),
+                        txt_col,
+                    );
+                    super::widgets::paint_ink_centered(
+                        ui.painter(),
+                        galley,
+                        egui::pos2(x0 + 26.0 + (total - 26.0) * 0.5, r.center().y),
+                        txt_col,
+                    );
+                    if hot {
+                        ui.ctx().set_cursor_icon(egui::CursorIcon::PointingHand);
+                    }
+                    // Enter from the MFA field must submit too (classic path
+                    // only watched username / password / the button).
+                    let mfa_enter = mfa.as_ref().is_some_and(|r| r.has_focus() || r.lost_focus());
+                    let enter = (user.lost_focus() || pass.lost_focus() || mfa_enter || resp.has_focus())
+                        && ui.input(|i| i.key_pressed(egui::Key::Enter));
+                    if (resp.clicked() || enter) && can && enabled {
+                        action = LoginAction::Login;
+                    }
                 });
-                ui.horizontal(|ui| {
-                    super::widgets::switch(ui, p, &mut settings.remember_password);
-                    ui.label(
-                        RichText::new(block_i18n::tr!("ui-login-remember-password"))
-                            .size(12.5)
-                            .color(p.muted),
-                    )
-                    .on_hover_text(block_i18n::tr!("ui-login-stored-in-windows-credential-manager-as-the-hash-sent"));
-                });
-                ui.add_space(10.0);
-                let mfa_ready = !form.show_mfa || form.mfa_token.chars().any(|c| !c.is_whitespace());
-                let can = form.block_reason.is_none()
-                    && !settings.username.trim().is_empty()
-                    && (!form.password.is_empty() || form.stored.is_some())
-                    && mfa_ready;
-                let (r, resp) = ui.allocate_exact_size(
-                    Vec2::new(ui.available_width(), 38.0),
-                    if can { Sense::click() } else { Sense::hover() },
-                );
-                // Requested UX: focus the first missing field, or Connect
-                // when credentials are ready. Firestorm giveFocus otherwise
-                // returns to the user-name field when both are present.
-                if !form.focused && enabled {
-                    form.focused = true;
-                    match mfa.as_ref() {
-                        Some(m) if !mfa_ready => m.request_focus(),
-                        _ if settings.username.trim().is_empty() => user.request_focus(),
-                        _ if can => resp.request_focus(),
-                        _ => pass.request_focus(),
+                if let Some(reason) = form.block_reason {
+                    ui.add_space(8.0);
+                    ui.label(RichText::new(reason).size(12.0).color(p.amber));
+                }
+                if let Some(msg) = form.tos_message.clone() {
+                    ui.add_space(8.0);
+                    widgets::divider(ui, p);
+                    ui.label(RichText::new(block_i18n::tr!("ui-login-terms-of-service")).strong().color(p.amber));
+                    egui::ScrollArea::vertical().max_height(120.0).show(ui, |ui| {
+                        ui.label(RichText::new(&msg).size(12.0).color(p.muted));
+                    });
+                    if let Some(url) = terms_url(&msg, &settings.login_uri()) {
+                        terms_link(ui, p, &url);
+                    }
+                    if ui
+                        .add_enabled(
+                            form.block_reason.is_none() && !form.busy,
+                            egui::Button::new(block_i18n::tr!("ui-login-i-accept-the-terms-and-want-to-log-in")),
+                        )
+                        .clicked()
+                    {
+                        form.agree_tos = true;
+                        form.tos_message = None;
+                        action = LoginAction::Login;
                     }
                 }
-                let hot = can && resp.hovered();
-                let fill = if !can {
-                    p.violet.gamma_multiply(0.35)
-                } else if hot {
-                    p.violet_light
-                } else {
-                    p.violet
-                };
-                ui.painter().rect_filled(r, 0.0, fill);
-                let txt_col = if can { p.on_accent } else { p.on_accent.gamma_multiply(0.5) };
-                let galley = ui.painter().layout_no_wrap(
-                    if form.show_mfa {
-                        block_i18n::tr!("ui-login-verify-and-sign-in").to_owned()
-                    } else {
-                        block_i18n::tr!("ui-login-sign-in").to_owned()
-                    },
-                    egui::FontId::proportional(15.0),
-                    txt_col,
-                );
-                let total = galley.size().x + 26.0;
-                let x0 = r.center().x - total * 0.5;
-                img(
-                    ui,
-                    icons,
-                    if form.block_reason.is_some() { "lock-filled" } else { "login-2" },
-                    egui::Rect::from_center_size(egui::pos2(x0 + 9.0, r.center().y), Vec2::splat(18.0)),
-                    txt_col,
-                );
-                super::widgets::paint_ink_centered(
-                    ui.painter(),
-                    galley,
-                    egui::pos2(x0 + 26.0 + (total - 26.0) * 0.5, r.center().y),
-                    txt_col,
-                );
-                if hot {
-                    ui.ctx().set_cursor_icon(egui::CursorIcon::PointingHand);
+                // a step of its own, as the Legacy Viewer's message_critical
+                // floater: reading it acknowledges this message only
+                if let Some(msg) = form.critical_message.clone() {
+                    ui.add_space(8.0);
+                    widgets::divider(ui, p);
+                    ui.label(RichText::new(block_i18n::tr!("ui-login-critical-message")).strong().color(p.amber));
+                    egui::ScrollArea::vertical()
+                        .id_salt("critical_message")
+                        .max_height(120.0)
+                        .show(ui, |ui| {
+                            ui.label(RichText::new(msg).size(12.0).color(p.muted));
+                        });
+                    if ui
+                        .add_enabled(
+                            form.block_reason.is_none() && !form.busy,
+                            egui::Button::new(block_i18n::tr!("ui-login-critical-message-read")),
+                        )
+                        .clicked()
+                    {
+                        form.read_critical = true;
+                        form.critical_message = None;
+                        action = LoginAction::Login;
+                    }
                 }
-                // Enter from the MFA field must submit too (classic path
-                // only watched username / password / the button).
-                let mfa_enter = mfa.as_ref().is_some_and(|r| r.has_focus() || r.lost_focus());
-                let enter = (user.lost_focus() || pass.lost_focus() || mfa_enter || resp.has_focus())
-                    && ui.input(|i| i.key_pressed(egui::Key::Enter));
-                if (resp.clicked() || enter) && can && enabled {
-                    action = LoginAction::Login;
+                if let Some((msg, frac)) = progress {
+                    ui.add_space(10.0);
+                    widgets::progress(ui, p, "login_progress", frac, ui.available_width(), "", None);
+                    ui.label(RichText::new(msg).size(12.0).color(p.violet_pale));
                 }
-            });
-            if let Some(reason) = form.block_reason {
-                ui.add_space(8.0);
-                ui.label(RichText::new(reason).size(12.0).color(p.amber));
-            }
-            if let Some(msg) = form.tos_message.clone() {
-                ui.add_space(8.0);
-                widgets::divider(ui, p);
-                ui.label(RichText::new(block_i18n::tr!("ui-login-terms-of-service")).strong().color(p.amber));
-                egui::ScrollArea::vertical().max_height(120.0).show(ui, |ui| {
-                    ui.label(RichText::new(&msg).size(12.0).color(p.muted));
-                });
-                if let Some(url) = terms_url(&msg, &settings.login_uri()) {
-                    terms_link(ui, p, &url);
+                if let Some(err) = &form.error {
+                    ui.add_space(8.0);
+                    ui.label(RichText::new(err).size(12.5).color(p.danger));
                 }
-                if ui
-                    .add_enabled(
-                        form.block_reason.is_none() && !form.busy,
-                        egui::Button::new(block_i18n::tr!("ui-login-i-accept-the-terms-and-want-to-log-in")),
-                    )
-                    .clicked()
-                {
-                    form.agree_tos = true;
-                    form.tos_message = None;
-                    action = LoginAction::Login;
-                }
-            }
-            // a step of its own, as the Legacy Viewer's message_critical
-            // floater: reading it acknowledges this message only
-            if let Some(msg) = form.critical_message.clone() {
-                ui.add_space(8.0);
-                widgets::divider(ui, p);
-                ui.label(RichText::new(block_i18n::tr!("ui-login-critical-message")).strong().color(p.amber));
-                egui::ScrollArea::vertical()
-                    .id_salt("critical_message")
-                    .max_height(120.0)
-                    .show(ui, |ui| {
-                        ui.label(RichText::new(msg).size(12.0).color(p.muted));
-                    });
-                if ui
-                    .add_enabled(
-                        form.block_reason.is_none() && !form.busy,
-                        egui::Button::new(block_i18n::tr!("ui-login-critical-message-read")),
-                    )
-                    .clicked()
-                {
-                    form.read_critical = true;
-                    form.critical_message = None;
-                    action = LoginAction::Login;
-                }
-            }
-            if let Some((msg, frac)) = progress {
-                ui.add_space(10.0);
-                widgets::progress(ui, p, "login_progress", frac, ui.available_width(), "", None);
-                ui.label(RichText::new(msg).size(12.0).color(p.violet_pale));
-            }
-            if let Some(err) = &form.error {
-                ui.add_space(8.0);
-                ui.label(RichText::new(err).size(12.5).color(p.danger));
-            }
-        })
-        .response
-        .rect;
-    });
+            })
+            .response
+            .rect;
+        });
 
-    // Wide: Aurora right column (What's New + Destinations). Narrow: update check only.
+    // ---- version + destinations (right)
     if wide {
         let favorites = login_favorites_for(settings);
         if chrome::sidebar(

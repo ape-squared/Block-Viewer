@@ -111,15 +111,22 @@ impl Scene {
 
     /// LLWorld::resolveStepHeightGlobal: terrain and the simulator's shared
     /// foot plane only. No object candidates, triangle traces, or shoe probes.
+    /// Support more than a metre below the ankle is ignored: without that
+    /// window, mesh platforms above missing/stale contact planes bent the
+    /// legs toward distant terrain and looked like a slight crouch or bob.
     pub(super) fn legacy_ground_surface(&self, world: &World, frame: Frame, point: Vec3) -> Option<Surface> {
-        let terrain = world.ground_height(point).filter(|z| z.is_finite()).map(|z| Surface {
-            position: point.with_z(z),
-            normal: terrain_normal(world, point),
-        });
+        const REACH: f32 = 1.0;
+        let terrain = world
+            .ground_height(point)
+            .filter(|z| z.is_finite() && (point.z - z).abs() <= REACH)
+            .map(|z| Surface {
+                position: point.with_z(z),
+                normal: terrain_normal(world, point),
+            });
         let contact = frame.contact.and_then(|plane| {
             let z = (plane.w - plane.x * point.x - plane.y * point.y - 0.05) / plane.z;
             z.is_finite().then_some(Surface {
-                position: point.with_z(z.clamp(point.z - 1.0, point.z + 1.0)),
+                position: point.with_z(z.clamp(point.z - REACH, point.z + REACH)),
                 normal: plane.truncate().normalize_or(Vec3::Z),
             })
         });
@@ -222,6 +229,14 @@ mod tests {
             (native.position.z - 50.85).abs() < 0.001,
             "native support must ignore exact object geometry"
         );
+        // Elevated ankles must not stretch toward distant terrain when the
+        // simulator contact plane is missing (mesh platforms / stale planes).
+        frame.contact = None;
+        assert!(
+            scene.legacy_ground_surface(&world, frame, ankle).is_none(),
+            "distant terrain must not crouch an elevated ankle"
+        );
+        frame.contact = Some(Vec4::new(0.0, 0.0, 1.0, 50.9));
         assert!(
             (support.position.z - 50.5).abs() < 0.001,
             "exact step overrides one higher contact plane"

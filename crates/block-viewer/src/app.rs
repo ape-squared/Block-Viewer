@@ -4756,7 +4756,7 @@ impl App {
             return;
         }
         let (x, y) = self.cursor_pos;
-        if let Some((idx, point, hud_ray)) = self.scene.hud_pick(&self.world, (x, y), false)
+        if let Some((idx, point, hud_ray)) = self.scene.hud_click_pick(&self.world, (x, y))
             && !(self.alt && self.world.hud_move_locked(idx))
         {
             self.media.build_mode = self.build.open;
@@ -4768,10 +4768,16 @@ impl App {
                     command: false,
                 };
                 let distance = (point - hud_ray.0).dot(hud_ray.1);
-                if self
-                    .media
-                    .on_click(&self.world, &self.scene, hud_ray, Some(distance), &self.settings.media, mods, true)
-                {
+                if self.media.on_click(
+                    &self.world,
+                    &self.scene,
+                    hud_ray,
+                    Some(distance),
+                    &self.settings.media,
+                    mods,
+                    true,
+                    Some(idx),
+                ) {
                     return;
                 }
                 if let Some(target) = crate::interaction::target(&self.world, idx, &self.interactions.props) {
@@ -4852,7 +4858,7 @@ impl App {
                 };
                 if self
                     .media
-                    .on_click(&self.world, &self.scene, ray, depth_t, &self.settings.media, mods, false)
+                    .on_click(&self.world, &self.scene, ray, depth_t, &self.settings.media, mods, false, None)
                 {
                     return;
                 }
@@ -7783,6 +7789,11 @@ impl App {
             // Page Down / C: crouch on the ground (crouch-walk while moving), descend in flight
             i.down = k(Action::Down);
         }
+        // Build / edit tools own letter keys (C is crouch): don't crouch the
+        // avatar while the user is editing objects or worn attachments.
+        if self.build.open {
+            i.down = false;
+        }
         // the Controls window's buttons, held like their keys
         let held = |a: Action| self.controls_held.contains(&a);
         i.forward |= held(Action::Forward);
@@ -7797,16 +7808,18 @@ impl App {
         i.strafe_left |= held(Action::StrafeLeft);
         i.strafe_right |= held(Action::StrafeRight);
         i.up |= held(Action::Up);
-        i.down |= held(Action::Down);
+        if !self.build.open {
+            i.down |= held(Action::Down);
+        }
         let joystick_up = self.camera.free().is_none()
             && self.settings.joystick.avatar_enabled
             && (self.joystick.motion.axes[2] > 0.0 || self.joystick.motion.jump || self.joystick.motion.rise);
         i.down = self.crouch_toggle.apply(
-            self.settings.crouch_toggle,
+            self.settings.crouch_toggle && !self.build.open,
             self.world.agent.flying,
             self.world.agent.is_sitting(),
             i.down,
-            i.up || joystick_up,
+            i.up || joystick_up || self.build.open,
         );
         self.joystick_avatar(&mut i);
         if self.camera.free().is_some() {
@@ -10079,7 +10092,7 @@ impl App {
                     let depth = point.map(|p| (p - ray.0).dot(ray.1));
                     let (ray, depth, hud) = self
                         .scene
-                        .hud_pick(&self.world, self.cursor_pos, false)
+                        .hud_click_pick(&self.world, self.cursor_pos)
                         .map_or((ray, depth, false), |(_, p, r)| (r, Some((p - r.0).dot(r.1)), true));
                     if let Some(c) = self.media.on_hover(&self.world, &self.scene, ray, depth, mods, hud) {
                         self.media_cursor = Some(match c.as_str() {
@@ -21148,7 +21161,7 @@ impl ApplicationHandler for App {
                     Some(ray) => {
                         let (ray, depth, hud) = self
                             .scene
-                            .hud_pick(&self.world, self.cursor_pos, false)
+                            .hud_click_pick(&self.world, self.cursor_pos)
                             .map_or((ray, None, false), |(_, p, r)| (r, Some((p - r.0).dot(r.1)), true));
                         self.media.on_scroll(&self.world, &self.scene, ray, depth, steps, mods, hud)
                     }

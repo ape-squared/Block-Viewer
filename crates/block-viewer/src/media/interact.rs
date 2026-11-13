@@ -94,12 +94,21 @@ impl MediaManager {
     /// The nearest media face along a ray. Prefer ObjectMedia face lists;
     /// fall back to texture-entry media flags so a TV can still be clicked
     /// while ObjectMedia is in flight or after a failed fetch.
-    pub fn hit_test(&mut self, world: &World, scene: &Scene, origin: Vec3, dir: Vec3, depth_t: Option<f32>, hud: bool) -> Option<MediaHit> {
+    pub fn hit_test(
+        &mut self,
+        world: &World,
+        scene: &Scene,
+        origin: Vec3,
+        dir: Vec3,
+        depth_t: Option<f32>,
+        hud: bool,
+        picked: Option<usize>,
+    ) -> Option<MediaHit> {
         let now = Instant::now();
         let candidates: Vec<(Uuid, usize, Vec<bool>)> = self
             .objects
             .iter()
-            .filter(|(_, om)| om.hud == hud)
+            .filter(|(_, om)| om.hud == hud && picked.is_none_or(|p| p == om.idx))
             .filter(|(_, om)| {
                 !hud || scene
                     .gpu
@@ -134,9 +143,15 @@ impl MediaManager {
             let Some(faces) = self.cpu_faces(world, scene, idx) else {
                 continue;
             };
+            // LLVOVolume::lineSegmentIntersect: a face at alpha 0 is not
+            // picked unless its own prim shows the special cursor, so a
+            // hidden media panel in front of a HUD button lets the button
+            // take the click (#2967 / #3394).
+            let special_cursor = crate::interaction::special_hover_cursor(o);
+            let shown = |fi: usize| special_cursor || self.build_mode || o.te.as_ref().is_none_or(|te| te.face(fi).color[3] > 0.0);
             let tris = faces.iter().enumerate().filter_map(|(fi, f)| {
                 let f = f.as_ref()?;
-                with_media.get(fi).copied().unwrap_or(false).then_some(FaceTris {
+                (with_media.get(fi).copied().unwrap_or(false) && shown(fi)).then_some(FaceTris {
                     face: fi,
                     positions: &f.positions,
                     uvs: &f.uvs,
@@ -209,11 +224,12 @@ impl MediaManager {
         settings: &MediaSettings,
         mods: Modifiers,
         hud: bool,
+        picked: Option<usize>,
     ) -> bool {
         if !settings.enabled || !settings.prim_media {
             return false;
         }
-        let Some(hit) = self.hit_test(world, scene, ray.0, ray.1, depth_t, hud) else {
+        let Some(hit) = self.hit_test(world, scene, ray.0, ray.1, depth_t, hud, picked) else {
             self.unfocus();
             return false;
         };
@@ -304,7 +320,9 @@ impl MediaManager {
         hud: bool,
     ) -> Option<String> {
         let focus = self.focus?;
-        let hit = self.hit_test(world, scene, ray.0, ray.1, depth_t, hud).filter(|h| h.key == focus)?;
+        let hit = self
+            .hit_test(world, scene, ray.0, ray.1, depth_t, hud, None)
+            .filter(|h| h.key == focus)?;
         let position = Some(ray.0 + ray.1 * hit.t);
         if !self.may_touch(world, &focus, position) {
             self.unfocus();
@@ -335,7 +353,10 @@ impl MediaManager {
         let Some(focus) = self.focus else {
             return false;
         };
-        let Some(hit) = self.hit_test(world, scene, ray.0, ray.1, depth_t, hud).filter(|h| h.key == focus) else {
+        let Some(hit) = self
+            .hit_test(world, scene, ray.0, ray.1, depth_t, hud, None)
+            .filter(|h| h.key == focus)
+        else {
             return false;
         };
         let position = Some(ray.0 + ray.1 * hit.t);
@@ -449,9 +470,9 @@ mod tests {
                 })]),
             ),
         );
-        assert!(media.hit_test(&world, &scene, Vec3::ZERO, Vec3::X, None, false).is_none());
+        assert!(media.hit_test(&world, &scene, Vec3::ZERO, Vec3::X, None, false, None).is_none());
         world.objects.get_mut(idx).unwrap().rotation = glam::Quat::from_rotation_z(std::f32::consts::PI);
-        assert!(media.hit_test(&world, &scene, Vec3::ZERO, Vec3::X, None, false).is_some());
+        assert!(media.hit_test(&world, &scene, Vec3::ZERO, Vec3::X, None, false, None).is_some());
         world.objects.get_mut(idx).unwrap().rotation = glam::Quat::IDENTITY;
         let material = Uuid::from_u128(8896);
         world.objects.get_mut(idx).unwrap().extra.render_materials = vec![(0, material)];
@@ -462,6 +483,6 @@ mod tests {
                 ..Default::default()
             },
         );
-        assert!(media.hit_test(&world, &scene, Vec3::ZERO, Vec3::X, None, false).is_some());
+        assert!(media.hit_test(&world, &scene, Vec3::ZERO, Vec3::X, None, false, None).is_some());
     }
 }

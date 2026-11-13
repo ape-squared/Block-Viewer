@@ -537,6 +537,31 @@ p { margin: 0 0 1rem; color: var(--muted); }
 .reveal.is-in.steps li::before { transform: scaleX(1); }
 .step-n { font: 500 0.78rem var(--mono); color: var(--signal); display: block; margin-bottom: 0.65rem; }
 
+.community-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: clamp(1.5rem, 4vw, 2.75rem);
+  align-items: start;
+}
+.community-copy .section-head {
+  margin-bottom: 1.35rem;
+}
+.discord-widget {
+  justify-self: end;
+  width: min(100%, 350px);
+}
+.discord-widget .eyebrow {
+  margin-bottom: 0.75rem;
+}
+.discord-widget iframe {
+  display: block;
+  width: 100%;
+  max-width: 350px;
+  height: 500px;
+  border: 1px solid var(--line);
+  background: var(--surface);
+}
+
 .support-links {
   list-style: none;
   margin: 0;
@@ -737,9 +762,13 @@ p { margin: 0 0 1rem; color: var(--muted); }
   .capability-grid,
   .strip-row,
   .support-links,
+  .community-layout,
   .split,
   .docs-with-side {
     grid-template-columns: 1fr;
+  }
+  .discord-widget {
+    justify-self: start;
   }
   .nav-cta { display: none; }
   .nav-toggle { display: block; }

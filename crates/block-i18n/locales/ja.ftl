@@ -929,7 +929,7 @@ notecard-markdown-demo =
 
     > 埋め込まれたアイテムはノートカードの一部のままです。
 
-    { "[" }Blockビューア](https://ape-squared.github.io/Block-Viewer/)
+    { "[" }Blockビューア](https://blockviewer.org/)
 
     ```text
     プレーンなコードブロック
@@ -6149,7 +6149,7 @@ ui-options-crash-github-hint = クラッシュレポート用にこのコンピ�
 ui-options-crash-github-forget = 忘れる
 ui-options-your-data = あなたのデータ
 ui-options-privacy-policy = プライバシーポリシー
-ui-options-privacy-policy-hint = Blockビューアが何を誰に送信し、このコンピュータに何を保存するか（ape-squared.github.io/Block-Viewer）。
+ui-options-privacy-policy-hint = Blockビューアが何を誰に送信し、このコンピュータに何を保存するか（blockviewer.org）。
 ui-options-privacy-policy-open = 読む
 ui-options-bars = バー
 ui-options-at-startup = 起動時

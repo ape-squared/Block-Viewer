@@ -105,19 +105,32 @@ def chrome(title: str, active: str, body: str, *, hub: bool = False) -> str:
     foundation = f"{root}/foundation/"
     privacy = f"{root}/privacy/"
     canonical = (
-        "https://ape-squared.github.io/Block-Viewer/docs/"
+        "https://blockviewer.org/docs/"
         if hub
-        else f"https://ape-squared.github.io/Block-Viewer/docs/{active}/"
+        else f"https://blockviewer.org/docs/{active}/"
     )
+    desc = f"{title} — Block Viewer documentation."
+    og_image = "https://blockviewer.org/assets/shots/landscape-05.webp"
     return f"""<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{html.escape(title)} — Block Viewer</title>
-  <meta name="description" content="{html.escape(title)} — Block Viewer documentation.">
+  <meta name="description" content="{html.escape(desc)}">
+  <meta name="robots" content="index, follow">
   <link rel="canonical" href="{canonical}">
   <link rel="icon" href="{mark}" type="image/svg+xml">
+  <meta property="og:type" content="article">
+  <meta property="og:site_name" content="Block Viewer">
+  <meta property="og:url" content="{canonical}">
+  <meta property="og:title" content="{html.escape(title)} — Block Viewer">
+  <meta property="og:description" content="{html.escape(desc)}">
+  <meta property="og:image" content="{og_image}">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="{html.escape(title)} — Block Viewer">
+  <meta name="twitter:description" content="{html.escape(desc)}">
+  <meta name="twitter:image" content="{og_image}">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">

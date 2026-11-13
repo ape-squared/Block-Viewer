@@ -10,7 +10,7 @@ A Windows Second Life® client with a Vulkan renderer. Source and releases are p
 
 | | |
 |---|---|
-| **Site** | https://ape-squared.github.io/Block-Viewer/ |
+| **Site** | https://blockviewer.org/ |
 | **Releases** | https://github.com/ape-squared/Block-Viewer/releases |
 | **Feedback** | https://feedback.ape-squared.github.io/Block |
 | **Discord** | Release notes land in `#viewer-releases` |
@@ -78,34 +78,34 @@ Dev helpers: `block-tools.cmd` (Block Tools). Old `aurora-tools.cmd` still launc
 
 ## Guides
 
-Readable on the site: [Docs](https://ape-squared.github.io/Block-Viewer/docs/).
+Readable on the site: [Docs](https://blockviewer.org/docs/).
 Markdown sources stay in `docs/` (and refresh the site + wiki on push).
 
 **Testers**
 
-- [Reporting bugs](https://ape-squared.github.io/Block-Viewer/docs/reporting-bugs/)
-- [Installing on Linux](https://ape-squared.github.io/Block-Viewer/docs/linux/)
-- [Experimental VR](https://ape-squared.github.io/Block-Viewer/docs/vr/)
-- [Experimental Windows VR](https://ape-squared.github.io/Block-Viewer/docs/windows-vr/)
-- [Installing on macOS](https://ape-squared.github.io/Block-Viewer/docs/macos/)
-- [Updates](https://ape-squared.github.io/Block-Viewer/docs/updates/)
-- [Asset imports](https://ape-squared.github.io/Block-Viewer/docs/imports/)
-- [LiveMesh](https://ape-squared.github.io/Block-Viewer/docs/livemesh/)
-- [Motorcycle hand contacts](https://ape-squared.github.io/Block-Viewer/docs/hand-contacts/)
-- [IK Edit and bone contacts](https://ape-squared.github.io/Block-Viewer/docs/ik-edit/)
-- [Create native animations](https://ape-squared.github.io/Block-Viewer/docs/animation-creation/)
-- [Local photo poser](https://ape-squared.github.io/Block-Viewer/docs/poser/)
-- [Dev Toolbox](https://ape-squared.github.io/Block-Viewer/docs/dev-toolbox/)
+- [Reporting bugs](https://blockviewer.org/docs/reporting-bugs/)
+- [Installing on Linux](https://blockviewer.org/docs/linux/)
+- [Experimental VR](https://blockviewer.org/docs/vr/)
+- [Experimental Windows VR](https://blockviewer.org/docs/windows-vr/)
+- [Installing on macOS](https://blockviewer.org/docs/macos/)
+- [Updates](https://blockviewer.org/docs/updates/)
+- [Asset imports](https://blockviewer.org/docs/imports/)
+- [LiveMesh](https://blockviewer.org/docs/livemesh/)
+- [Motorcycle hand contacts](https://blockviewer.org/docs/hand-contacts/)
+- [IK Edit and bone contacts](https://blockviewer.org/docs/ik-edit/)
+- [Create native animations](https://blockviewer.org/docs/animation-creation/)
+- [Local photo poser](https://blockviewer.org/docs/poser/)
+- [Dev Toolbox](https://blockviewer.org/docs/dev-toolbox/)
 
 **Contributing**
 
-- [Translating the viewer](https://ape-squared.github.io/Block-Viewer/docs/translating/)
-- [Branding and interface](https://ape-squared.github.io/Block-Viewer/docs/branding/)
+- [Translating the viewer](https://blockviewer.org/docs/translating/)
+- [Branding and interface](https://blockviewer.org/docs/branding/)
 
 **Technical**
 
-- [RLVa implementation status](https://ape-squared.github.io/Block-Viewer/docs/rlva/)
-- [Licences and notices](https://ape-squared.github.io/Block-Viewer/docs/licences/)
+- [RLVa implementation status](https://blockviewer.org/docs/rlva/)
+- [Licences and notices](https://blockviewer.org/docs/licences/)
 
 ---
 

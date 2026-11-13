@@ -16,9 +16,9 @@ pub const WIKI: &str = "https://github.com/ape-squared/Block-Viewer/wiki";
 /// Community Discord invite.
 pub const DISCORD: &str = "https://discord.gg/s96h8KwES7";
 /// Project website (GitHub Pages).
-pub const WEBSITE: &str = "https://ape-squared.github.io/Block-Viewer/";
+pub const WEBSITE: &str = "https://blockviewer.org/";
 /// The privacy policy on the website (Preferences › Privacy › Your data).
-pub const PRIVACY_POLICY: &str = "https://ape-squared.github.io/Block-Viewer/privacy/";
+pub const PRIVACY_POLICY: &str = "https://blockviewer.org/privacy/";
 /// News feed: this folder of `main`, hand-edited Markdown files, one
 /// `<language>.md` per UI language (`news/` at the repository root).
 pub const NEWS_FEED: &str = "https://raw.githubusercontent.com/ape-squared/Block-Viewer/main/news/";

@@ -21,7 +21,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="../site.css?v=16">
+  <link rel="stylesheet" href="../site.css?v=17">
 </head>
 <body>
   <a class="skip" href="#main">Skip to content</a>
@@ -79,42 +79,45 @@
       </li>
     </ul>
 
-    <form class="tester-form hub-issue-form reveal" id="issue-form" novalidate>
-      <div class="hub-kind" role="group" aria-label="Issue type">
-        <label><input type="radio" name="kind" value="bug" checked> Bug</label>
-        <label><input type="radio" name="kind" value="feature"> Feature</label>
-      </div>
-      <label class="tester-label" for="issue-title">Title</label>
-      <input id="issue-title" class="tester-input" type="text" maxlength="120" required placeholder="Short summary">
-      <label class="tester-label" for="issue-body">Details</label>
-      <textarea id="issue-body" class="tester-input tester-textarea" rows="3" required placeholder="Steps / expected vs actual, or the problem and proposal…"></textarea>
-      <label class="tester-label" for="issue-env" id="issue-env-label">Version, OS, GPU</label>
-      <input id="issue-env" class="tester-input" type="text" maxlength="160" placeholder="0.2.21, Windows 11, RTX 4070">
-      <div class="tester-row" style="margin-top:0.85rem">
-        <button class="btn btn-primary" type="submit">Continue on GitHub</button>
-      </div>
-      <p class="tester-hint">Opens a draft issue — nothing posts until you submit on GitHub. Viewer only, not <a href="https://ape-squared.github.io/Block-GPPI/">Block-GPPI</a>.</p>
-    </form>
+    <div class="tester-forms reveal">
+      <form class="tester-form hub-issue-form" id="issue-form" novalidate>
+        <div class="hub-kind" role="group" aria-label="Issue type">
+          <label><input type="radio" name="kind" value="bug" checked> Bug</label>
+          <label><input type="radio" name="kind" value="feature"> Feature</label>
+        </div>
+        <label class="tester-label" for="issue-title">Title</label>
+        <input id="issue-title" class="tester-input" type="text" maxlength="120" required placeholder="Short summary">
+        <label class="tester-label" for="issue-body">Details</label>
+        <textarea id="issue-body" class="tester-input tester-textarea" rows="3" required placeholder="Steps / expected vs actual, or the problem and proposal…"></textarea>
+        <label class="tester-label" for="issue-env" id="issue-env-label">Version, OS, GPU</label>
+        <input id="issue-env" class="tester-input" type="text" maxlength="160" placeholder="0.2.21, Windows 11, RTX 4070">
+        <div class="tester-row" style="margin-top:0.85rem">
+          <button class="btn btn-primary" type="submit">Continue on GitHub</button>
+        </div>
+        <p class="tester-hint">Draft only — submit on GitHub. Not <a href="https://ape-squared.github.io/Block-GPPI/">Block-GPPI</a>.</p>
+      </form>
 
-    <form class="tester-form reveal" id="tester-form" novalidate>
-      <label class="tester-label" for="username">Block Tester nameplate</label>
-      <div class="tester-row">
-        <input
-          id="username"
-          name="username"
-          class="tester-input"
-          type="text"
-          autocomplete="username"
-          maxlength="64"
-          required
-          placeholder="Second Life username"
-          spellcheck="false"
-        >
-        <button class="btn btn-primary" type="submit" id="tester-submit">Submit</button>
-      </div>
-      <p class="tester-hint"><code>jr.alpha</code> or <code>Jr Alpha</code> — restart the viewer after you’re added.</p>
-      <p class="tester-status" id="tester-status" role="status" aria-live="polite"></p>
-    </form>
+      <form class="tester-form tester-nameplate-form" id="tester-form" novalidate>
+        <label class="tester-label" for="username">Block Tester nameplate</label>
+        <p class="tester-hint tester-hint-top">Second Life username for the roster mark.</p>
+        <div class="tester-row tester-row-stack">
+          <input
+            id="username"
+            name="username"
+            class="tester-input"
+            type="text"
+            autocomplete="username"
+            maxlength="64"
+            required
+            placeholder="jr.alpha"
+            spellcheck="false"
+          >
+          <button class="btn btn-primary" type="submit" id="tester-submit">Submit</button>
+        </div>
+        <p class="tester-hint"><code>Jr Alpha</code> works too — restart the viewer after you’re added.</p>
+        <p class="tester-status" id="tester-status" role="status" aria-live="polite"></p>
+      </form>
+    </div>
   </main>
 
   <footer class="footer">

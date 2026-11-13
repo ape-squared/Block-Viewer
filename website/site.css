@@ -39,6 +39,18 @@ body {
     radial-gradient(ellipse 50% 40% at 8% 40%, rgba(91, 227, 232, 0.035), transparent 50%),
     linear-gradient(180deg, #0b0c0e 0%, var(--bg) 40%, #050607 100%);
 }
+.atmosphere::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  opacity: 0.045;
+  background-image:
+    linear-gradient(rgba(236, 238, 240, 0.55) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(236, 238, 240, 0.55) 1px, transparent 1px);
+  background-size: 72px 72px;
+  mask-image: radial-gradient(ellipse 70% 55% at 50% 20%, black, transparent 75%);
+  animation: grid-drift 28s linear infinite;
+}
 
 /* Home hero paints its own plane; hide the global wash behind it */
 body:has(.hero-viewer) .atmosphere {
@@ -161,8 +173,23 @@ p { margin: 0 0 1rem; color: var(--muted); }
 }
 .btn:hover { text-decoration: none; transform: translateY(-1px); }
 .btn:active { transform: translateY(0); }
-.btn-primary { background: var(--signal); color: var(--signal-ink); }
+.btn-primary {
+  position: relative;
+  overflow: hidden;
+  background: var(--signal);
+  color: var(--signal-ink);
+}
+.btn-primary::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(115deg, transparent 30%, rgba(255, 255, 255, 0.35) 48%, transparent 62%);
+  transform: translateX(-120%);
+  transition: transform 0.55s var(--ease);
+  pointer-events: none;
+}
 .btn-primary:hover { background: #e2ff6a; }
+.btn-primary:hover::after { transform: translateX(120%); }
 .btn-ghost { border-color: var(--line); color: var(--ink); background: transparent; }
 .btn-ghost:hover { border-color: var(--muted); }
 .btn-dark { background: var(--signal-ink); color: var(--signal); }
@@ -297,6 +324,11 @@ p { margin: 0 0 1rem; color: var(--muted); }
 .capability-grid li {
   padding: 1.15rem 0;
   border-top: 1px solid var(--line);
+  transition: border-color 0.35s var(--ease), padding-left 0.35s var(--ease);
+}
+.capability-grid li:hover {
+  border-top-color: color-mix(in srgb, var(--signal) 55%, var(--line));
+  padding-left: 0.35rem;
 }
 .capability-grid h3 {
   margin: 0 0 0.35rem;
@@ -346,6 +378,12 @@ p { margin: 0 0 1rem; color: var(--muted); }
   height: 100%;
   object-fit: cover;
   object-position: center 45%;
+  transform: scale(1.06);
+  transition: transform 1.2s var(--ease);
+}
+.world-band.is-in .world-band-shot,
+.world-band:hover .world-band-shot {
+  transform: scale(1.01);
 }
 .world-band-scrim {
   position: absolute;
@@ -504,22 +542,23 @@ p { margin: 0 0 1rem; color: var(--muted); }
   margin: 0;
   padding: 0;
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(auto-fit, minmax(10.5rem, 1fr));
   gap: 0.65rem;
 }
 .support-links a {
   display: flex;
   flex-direction: column;
   gap: 0.25rem;
-  padding: 1rem 0 0;
+  padding: 1rem 0.15rem 0.35rem;
   border-top: 1px solid var(--line);
   text-decoration: none;
   color: var(--ink);
-  transition: border-color 0.25s var(--ease);
+  transition: border-color 0.25s var(--ease), transform 0.3s var(--ease), background 0.3s var(--ease);
 }
 .support-links a:hover {
   text-decoration: none;
   border-top-color: var(--signal);
+  transform: translateY(-2px);
 }
 .support-links strong {
   font: 700 1rem var(--display);
@@ -651,6 +690,30 @@ p { margin: 0 0 1rem; color: var(--muted); }
 @keyframes hero-ken {
   from { transform: scale(1.08); }
   to { transform: scale(1.04); }
+}
+@keyframes grid-drift {
+  from { background-position: 0 0, 0 0; }
+  to { background-position: 72px 36px, 36px 72px; }
+}
+@keyframes signal-pulse {
+  0%, 100% { opacity: 0.35; }
+  50% { opacity: 0.85; }
+}
+
+.cta-inner::after {
+  content: "";
+  position: absolute;
+  left: 1.25rem;
+  bottom: 1.1rem;
+  width: 2.5rem;
+  height: 2px;
+  background: var(--signal-ink);
+  opacity: 0.35;
+  animation: signal-pulse 2.8s var(--ease) infinite;
+}
+
+.page-shell {
+  animation: hero-mark 0.7s var(--ease) both;
 }
 
 @media (max-width: 960px) {
@@ -969,15 +1032,90 @@ a.doc-link span {
 .docs-hub .doc-grid { margin-bottom: 0.5rem; }
 .docs-hub .doc-grid li { list-style: none; }
 
+/* —— Tester signup —— */
+.tester-form {
+  max-width: 36rem;
+  margin-top: 0.5rem;
+  padding: 1.35rem 1.35rem 1.5rem;
+  border: 1px solid var(--line);
+  background:
+    linear-gradient(160deg, rgba(212, 255, 63, 0.05), transparent 42%),
+    var(--surface);
+  position: relative;
+  overflow: hidden;
+}
+.tester-form::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: var(--signal);
+  opacity: 0.85;
+}
+.tester-label {
+  display: block;
+  font: 500 0.78rem var(--mono);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--signal);
+  margin-bottom: 0.65rem;
+}
+.tester-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: stretch;
+}
+.tester-input {
+  flex: 1 1 14rem;
+  min-width: 0;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  color: var(--ink);
+  font: 500 1.05rem var(--mono);
+  padding: 0.85rem 1rem;
+  border-radius: 0;
+}
+.tester-input:focus {
+  outline: 2px solid var(--signal);
+  outline-offset: 2px;
+  border-color: var(--signal);
+}
+.tester-input::placeholder { color: var(--muted); opacity: 0.7; }
+.tester-hint {
+  margin: 0.85rem 0 0;
+  color: var(--muted);
+  font-size: 0.92rem;
+  line-height: 1.45;
+}
+.tester-hint code {
+  font-family: var(--mono);
+  font-size: 0.85em;
+  color: var(--data);
+}
+.tester-status {
+  margin: 1rem 0 0;
+  min-height: 1.4em;
+  font-weight: 500;
+}
+.tester-status[data-kind="ok"] { color: var(--signal); }
+.tester-status[data-kind="err"] { color: #ff7a7a; }
+.tester-status[data-kind="pending"] { color: var(--data); }
+
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
-  .reveal, .brand-line, .hero-viewer .hero-title, .hero-viewer .lede, .hero-actions, .hero-media-shot {
+  .reveal, .brand-line, .hero-viewer .hero-title, .hero-viewer .lede, .hero-actions, .hero-media-shot,
+  .atmosphere::after, .cta-inner::after, .page-shell {
     animation: none !important;
     transition: none !important;
     opacity: 1 !important;
     transform: none !important;
   }
-  .btn:hover, .feature-grid article:hover, .roadmap article:hover, .doc-link:hover {
+  .btn:hover, .feature-grid article:hover, .roadmap article:hover, .doc-link:hover,
+  .support-links a:hover, .capability-grid li:hover, .world-band-shot {
     transform: none;
   }
+  .btn-primary::after { display: none; }
 }

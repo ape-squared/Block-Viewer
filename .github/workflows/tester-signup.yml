@@ -1,0 +1,138 @@
+name: Tester signup
+
+# Adds a Second Life username to peers/block-staff.json + block-peers.json
+# and commits to main. Triggers:
+#   - website / Cloudflare Worker: repository_dispatch type tester-signup
+#   - Actions UI / Discord: workflow_dispatch
+#   - one-click GitHub confirm: issue body contains <!-- block-tester-signup v1 -->
+
+on:
+  repository_dispatch:
+    types: [tester-signup]
+  workflow_dispatch:
+    inputs:
+      username:
+        description: Second Life username
+        required: true
+        type: string
+  issues:
+    types: [opened]
+
+permissions:
+  contents: write
+  issues: write
+  pull-requests: write
+
+concurrency:
+  group: tester-signup
+  cancel-in-progress: false
+
+jobs:
+  add:
+    runs-on: ubuntu-latest
+    if: >
+      github.event_name == 'repository_dispatch' ||
+      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'issues' && contains(github.event.issue.body, '<!-- block-tester-signup v1 -->'))
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - name: Resolve username
+        id: who
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          DISPATCH_USER: ${{ github.event.client_payload.username }}
+          INPUT_USER: ${{ inputs.username }}
+          ISSUE_BODY: ${{ github.event.issue.body }}
+          ISSUE_TITLE: ${{ github.event.issue.title }}
+        run: |
+          set -euo pipefail
+          user=""
+          case "$EVENT_NAME" in
+            repository_dispatch) user="${DISPATCH_USER:-}" ;;
+            workflow_dispatch) user="${INPUT_USER:-}" ;;
+            issues)
+              # Prefer a dedicated line: Username: foo
+              user="$(printf '%s\n' "$ISSUE_BODY" | sed -n 's/^[[:space:]]*[Uu]sername:[[:space:]]*//p' | head -1)"
+              if [ -z "$user" ]; then
+                # GitHub issue forms render as ### Second Life username then the value
+                user="$(printf '%s\n' "$ISSUE_BODY" | awk '/Second Life username/{getline; while($0 ~ /^[[:space:]]*$/) getline; print; exit}')"
+              fi
+              if [ -z "$user" ]; then
+                user="$(printf '%s\n' "$ISSUE_TITLE" | sed -n 's/^[Tt]ester signup:[[:space:]]*//p' | head -1)"
+              fi
+              ;;
+          esac
+          user="$(printf '%s' "$user" | tr -d '\r' | xargs)"
+          if [ -z "$user" ]; then
+            echo "No username in event" >&2
+            exit 1
+          fi
+          echo "username=$user" >> "$GITHUB_OUTPUT"
+          echo "Submitting: $user"
+
+      - name: Add to roster
+        id: add
+        run: |
+          set -euo pipefail
+          set +e
+          out="$(python3 scripts/add-tester.py "${{ steps.who.outputs.username }}" 2>&1)"
+          code=$?
+          set -e
+          echo "$out"
+          {
+            echo "message<<EOF"
+            echo "$out"
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
+          case "$code" in
+            0) echo "already=false" >> "$GITHUB_OUTPUT" ;;
+            2) echo "already=true" >> "$GITHUB_OUTPUT" ;;
+            *) exit "$code" ;;
+          esac
+
+      - name: Commit roster
+        if: steps.add.outputs.already != 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add peers/block-staff.json peers/block-peers.json
+          if git diff --cached --quiet; then
+            echo "Nothing to commit"
+            exit 0
+          fi
+          name="${{ steps.who.outputs.username }}"
+          git commit -m "Add ${name} to Block Tester roster."
+          # Prefer direct main; fall back to a short-lived PR if protected.
+          if git push origin HEAD:main; then
+            echo "Pushed to main"
+          else
+            branch="tester/${name//[^A-Za-z0-9._-]/-}-signup"
+            git push -u origin "HEAD:refs/heads/$branch"
+            gh pr create --base main --head "$branch" \
+              --title "Add ${name} to Block Tester roster." \
+              --body "Automated tester signup from the website / dispatch."
+            gh pr merge --squash --auto || gh pr merge --squash --admin || true
+          fi
+
+      - name: Close signup issue
+        if: github.event_name == 'issues'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ISSUE: ${{ github.event.issue.number }}
+          MSG: ${{ steps.add.outputs.message }}
+          ALREADY: ${{ steps.add.outputs.already }}
+        run: |
+          set -euo pipefail
+          if [ "$ALREADY" = "true" ]; then
+            body="Already on the Block Tester nameplate roster. (${MSG})"
+          else
+            body="You're on the Block Tester nameplate roster. Restart Block Viewer (or wait for the next launch) to pick up the mark. (${MSG})"
+          fi
+          gh issue comment "$ISSUE" --body "$body"
+          gh issue close "$ISSUE" --reason completed

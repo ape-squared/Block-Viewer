@@ -1,0 +1,21 @@
+name: Tester signup
+description: Get the Block Tester nameplate mark
+title: "Tester signup: "
+labels: ["nameplate"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Submit your Second Life username. A bot adds you to `peers/block-staff.json` automatically.
+        Prefer the [website form](https://ape-squared.github.io/Block-Viewer/testers/) when it is online.
+  - type: input
+    id: username
+    attributes:
+      label: Second Life username
+      description: Modern or legacy form (jr.alpha, Jr Alpha, jr.alpha.resident).
+      placeholder: jr.alpha
+    validations:
+      required: true
+  - type: markdown
+    attributes:
+      value: "<!-- block-tester-signup v1 -->"

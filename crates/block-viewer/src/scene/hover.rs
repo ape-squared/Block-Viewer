@@ -759,14 +759,15 @@ impl super::Scene {
     }
 
     /// The HUD object the hover cursor is over, which comes before any object
-    /// of the world. Invisible buttons count; a plain alpha-zero media panel
-    /// lets the object behind it take the hover.
+    /// of the world: the target a press would take (`hud_click_pick`), so the
+    /// hover cursor and the click never disagree. Invisible buttons count; a
+    /// plain alpha-zero media panel lets the object behind it take the hover.
     pub fn hover_hud(&mut self, world: &crate::world::World, cursor: (f32, f32)) -> Option<usize> {
         if !profile_enabled() {
-            return self.hud_pick(world, cursor, false).map(|(idx, _, _)| idx);
+            return self.hud_click_pick(world, cursor).map(|(idx, _, _)| idx);
         }
         let started = Instant::now();
-        let picked = self.hud_pick(world, cursor, false).map(|(idx, _, _)| idx);
+        let picked = self.hud_click_pick(world, cursor).map(|(idx, _, _)| idx);
         let now = Instant::now();
         self.roll_hover_stats(now, true);
         self.hover.stats.hud_picks += 1;

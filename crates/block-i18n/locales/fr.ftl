@@ -935,7 +935,7 @@ notecard-markdown-demo =
 
     > Les pièces jointes font toujours partie de la note.
 
-    { "[" }Block Viewer](https://ape-squared.github.io/Block-Viewer/)
+    { "[" }Block Viewer](https://blockviewer.org/)
 
     ```text
     Un bloc de code brut
@@ -6161,7 +6161,7 @@ ui-options-crash-github-hint = Oublie l’autorisation GitHub conservée sur cet
 ui-options-crash-github-forget = Oublier
 ui-options-your-data = Vos données
 ui-options-privacy-policy = Politique de confidentialité
-ui-options-privacy-policy-hint = Ce qu’Block Viewer envoie, à qui, et ce qu’il garde sur cet ordinateur, sur ape-squared.github.io/Block-Viewer.
+ui-options-privacy-policy-hint = Ce qu’Block Viewer envoie, à qui, et ce qu’il garde sur cet ordinateur, sur blockviewer.org.
 ui-options-privacy-policy-open = Lire
 ui-options-bars = Barres
 ui-options-at-startup = À l’ouverture

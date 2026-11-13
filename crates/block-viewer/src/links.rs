@@ -28,6 +28,10 @@ pub const MOTD_TIPS: &str = "https://raw.githubusercontent.com/ape-squared/Block
 /// Agent UUIDs / usernames known to run Block Viewer (`peers/block-peers.json`).
 /// Nameplates show a Block badge for matches (plus the local advertise flag).
 pub const BLOCK_PEERS: &str = "https://raw.githubusercontent.com/ape-squared/Block-Viewer/main/peers/block-peers.json";
+/// Staff / manager / tester nameplate roster (`peers/block-staff.json`).
+/// Edited on GitHub (or by a Discord bot committing there) so marks refresh
+/// without rebuilding the viewer.
+pub const BLOCK_STAFF: &str = "https://raw.githubusercontent.com/ape-squared/Block-Viewer/main/peers/block-staff.json";
 /// Files of the source repository as GitHub serves them unrendered; a branch
 /// name and a path follow.
 pub const RAW_FILES: &str = "https://raw.githubusercontent.com/ape-squared/Block-Viewer/";

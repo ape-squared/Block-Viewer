@@ -13,6 +13,7 @@ pub mod calling_cards;
 mod arrival_wait;
 pub mod beacons;
 pub mod block_peers;
+pub mod block_staff;
 pub mod bridge;
 pub mod calls;
 pub mod chat_log;

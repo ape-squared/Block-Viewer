@@ -1,9 +1,12 @@
 //! Block team marks on name plates (`ui/nameplate`), lists, chat and
 //! profiles (`ui/staff.rs`). Matching is local to the viewer — nothing is
-//! sent to the grid. Linden Lab employees keep the star mark via the
-//! "Linden" last name rule.
+//! sent to the grid. Hardcoded seeds below are always on; extra names / IDs
+//! come from `peers/block-staff.json` (fetched at runtime — see
+//! `block_staff`) so GitHub or a Discord bot can grant marks without a
+//! rebuild. Linden Lab employees keep the star mark via the "Linden" last
+//! name rule.
 
-use super::World;
+use super::{World, block_staff};
 use std::sync::atomic::{AtomicBool, Ordering};
 use uuid::Uuid;
 
@@ -43,17 +46,22 @@ pub enum Mark {
 
 /// Whether `id` is a known Block team agent key.
 pub fn is_staff(id: &Uuid) -> bool {
-    !id.is_nil() && (TEAM_IDS.contains(id) || is_manager(id) || is_tester(id) || crate::demo::staff::is_staff(id))
+    !id.is_nil()
+        && (TEAM_IDS.contains(id)
+            || is_manager(id)
+            || is_tester(id)
+            || block_staff::listed(block_staff::Role::Staff, Some(id), "")
+            || crate::demo::staff::is_staff(id))
 }
 
 /// Whether `id` is a known Block manager agent key.
 pub fn is_manager(id: &Uuid) -> bool {
-    !id.is_nil() && MANAGER_IDS.contains(id)
+    !id.is_nil() && (MANAGER_IDS.contains(id) || block_staff::listed(block_staff::Role::Manager, Some(id), ""))
 }
 
 /// Whether `id` is a known Block tester agent key.
 pub fn is_tester(id: &Uuid) -> bool {
-    !id.is_nil() && TESTER_IDS.contains(id)
+    !id.is_nil() && (TESTER_IDS.contains(id) || block_staff::listed(block_staff::Role::Tester, Some(id), ""))
 }
 
 /// Normalize an SL username / legacy name for team checks:
@@ -75,25 +83,25 @@ const DEV_USERNAMES: &[&str] = &["heard"];
 /// Block managers recognised by username.
 const MANAGER_USERNAMES: &[&str] = &["fr3sh3r"];
 
-/// Block testers recognised by username.
-const TESTER_USERNAMES: &[&str] = &["r1sk1kutta"];
+/// Block testers recognised by username (seed; also in `peers/block-staff.json`).
+const TESTER_USERNAMES: &[&str] = &["r1sk1kutta", "jr.alpha"];
 
 /// Whether `raw` is a known Block developer username.
 pub fn is_block_dev_name(raw: &str) -> bool {
     let n = normalize_username(raw);
-    DEV_USERNAMES.iter().any(|d| n == *d)
+    DEV_USERNAMES.iter().any(|d| n == *d) || block_staff::listed(block_staff::Role::Staff, None, &n)
 }
 
 /// Whether `raw` is a known Block manager username.
 pub fn is_block_manager_name(raw: &str) -> bool {
     let n = normalize_username(raw);
-    MANAGER_USERNAMES.iter().any(|d| n == *d)
+    MANAGER_USERNAMES.iter().any(|d| n == *d) || block_staff::listed(block_staff::Role::Manager, None, &n)
 }
 
 /// Whether `raw` is a known Block tester username.
 pub fn is_block_tester_name(raw: &str) -> bool {
     let n = normalize_username(raw);
-    TESTER_USERNAMES.iter().any(|d| n == *d)
+    TESTER_USERNAMES.iter().any(|d| n == *d) || block_staff::listed(block_staff::Role::Tester, None, &n)
 }
 
 /// Whether this avatar is Block team (by UUID and/or username).
@@ -190,6 +198,15 @@ mod tests {
             assert_eq!(mark_named(&Uuid::from_u128(3), name), Some(Mark::Tester));
         }
         assert!(!is_block_tester_name("r1sk1kuttaX"));
+    }
+
+    #[test]
+    fn jr_alpha_is_block_tester() {
+        for name in ["jr.alpha", "Jr.Alpha", "jr.alpha.resident", "Jr Alpha", "JR.ALPHA"] {
+            assert!(is_block_tester_name(name), "{name}");
+            assert_eq!(mark_named(&Uuid::from_u128(4), name), Some(Mark::Tester));
+        }
+        assert!(!is_block_tester_name("jr.alphax"));
     }
 
     #[test]

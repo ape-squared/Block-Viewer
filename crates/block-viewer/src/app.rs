@@ -13837,7 +13837,10 @@ impl App {
                 self.profile_ui
                     .toggle_picks(&self.egui_ctx, &mut self.world, self.settings.classic_profiles);
             }
-            BarAction::ToggleChatBar => self.chat_ui.toggle_bar(),
+            BarAction::ToggleChatBar => {
+                self.chat_ui.toggle_bar();
+                self.settings.show_chat_bar = !self.chat_ui.bar_hidden;
+            }
             BarAction::ToggleFriendsOnly => {
                 let on = !self.world.friends_only();
                 self.world.set_friends_only(on);
@@ -14952,6 +14955,7 @@ impl App {
             second_life,
         });
         self.options_ui.login_favorites = self.login_favorites.key().map(|key| self.login_form.favorites.shown(key));
+        self.options_ui.friends_only = (!self.world.agent_id.is_nil()).then_some(self.world.friends_only());
         self.options_ui.friends_only_keep = (!self.world.agent_id.is_nil()).then_some(self.world.friends_only.keep_after_teleport);
         let time_of_day = self.settings.time_of_day;
         if self.options_ui.anti_spam_version != self.world.anti_spam.version {
@@ -14985,9 +14989,17 @@ impl App {
         self.options_ui.joystick = self.joystick.snapshot.clone();
         self.options_ui.flycam_active = self.joystick.active;
         let before_camera = self.settings.camera.clone();
+        let before_nearby = self.settings.nearby_chat_window;
+        let before_chat_bar = self.settings.show_chat_bar;
         let mut res = ui::options::show(ctx, p, &self.skin.icons, &mut self.settings, &mut self.options_ui, &mut open);
         self.sync_appearance_camera();
         self.world.rlva.preserve_camera_settings(&mut self.settings.camera, &before_camera);
+        if self.settings.nearby_chat_window != before_nearby {
+            self.chat_ui.apply_nearby_window(self.settings.nearby_chat_window);
+        }
+        if self.settings.show_chat_bar != before_chat_bar {
+            self.chat_ui.bar_hidden = !self.settings.show_chat_bar;
+        }
         if res.toggle_flycam {
             self.toggle_joystick_flycam();
         }
@@ -15048,6 +15060,10 @@ impl App {
             if shown {
                 self.keep_login_favorites(true);
             }
+        }
+        // the same switch as BarAction::ToggleFriendsOnly
+        if let Some(on) = res.friends_only {
+            self.world.set_friends_only(on);
         }
         if let Some(keep) = res.friends_only_keep {
             self.world.friends_only.keep_after_teleport = keep;

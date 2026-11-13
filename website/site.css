@@ -629,7 +629,80 @@ p { margin: 0 0 1rem; color: var(--muted); }
 }
 .tag-now { border-color: color-mix(in srgb, var(--signal) 45%, var(--line)); color: var(--signal); }
 .tag-dev { border-color: color-mix(in srgb, var(--data) 55%, var(--line)); color: var(--data); }
+.tag-done { border-color: color-mix(in srgb, var(--ink) 28%, var(--line)); color: var(--muted); }
 .footnote { font-size: 0.86rem; color: var(--muted); margin: 0; }
+
+.page-roadmap .page-hero {
+  max-width: 40rem;
+  margin-bottom: 2rem;
+}
+.page-roadmap .page-hero h1 {
+  font-size: clamp(2rem, 4.2vw, 3rem);
+}
+.road-map {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  max-width: 44rem;
+  border-left: 1px solid var(--line);
+}
+.road-band {
+  position: relative;
+  padding: 0 0 2rem 1.35rem;
+}
+.road-band::before {
+  content: "";
+  position: absolute;
+  left: -4px;
+  top: 0.35rem;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--line);
+  box-shadow: 0 0 0 3px var(--bg);
+}
+.road-band[data-phase="now"]::before { background: var(--signal); }
+.road-band[data-phase="next"]::before { background: var(--data); }
+.road-band[data-phase="shipped"]::before { background: var(--muted); }
+.road-band:last-child { padding-bottom: 0; }
+.road-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.65rem 0.85rem;
+  margin-bottom: 0.85rem;
+}
+.road-meta h2 {
+  margin: 0;
+  font-size: clamp(1.2rem, 2.2vw, 1.45rem);
+}
+.road-items {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+.road-items li {
+  margin: 0;
+}
+.road-items strong {
+  display: block;
+  font: 700 1rem var(--display);
+  color: var(--ink);
+  margin-bottom: 0.2rem;
+  letter-spacing: -0.01em;
+}
+.road-items span {
+  display: block;
+  color: var(--muted);
+  font-size: 0.95rem;
+  line-height: 1.45;
+}
 
 .cta { padding-top: 1rem; padding-bottom: 4rem; }
 .cta-inner {

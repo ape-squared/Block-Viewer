@@ -103,6 +103,8 @@ def chrome(title: str, active: str, body: str, *, hub: bool = False) -> str:
     download = f"{root}/download/"
     docs = f"{root}/docs/" if not hub else "./"
     foundation = f"{root}/foundation/"
+    roadmap = f"{root}/roadmap/"
+    testers = f"{root}/testers/"
     privacy = f"{root}/privacy/"
     canonical = (
         "https://blockviewer.org/docs/"
@@ -152,6 +154,8 @@ def chrome(title: str, active: str, body: str, *, hub: bool = False) -> str:
       <a href="{download}">Download</a>
       <a href="{home}#features">Features</a>
       <a class="is-active" href="{docs}">Docs</a>
+      <a href="{roadmap}">Roadmap</a>
+      <a href="{testers}">Testers</a>
       <a href="{foundation}">Foundation</a>
     </nav>
     <a class="btn btn-primary nav-cta" href="{download}">Download</a>
@@ -165,6 +169,8 @@ def chrome(title: str, active: str, body: str, *, hub: bool = False) -> str:
       <nav class="footer-links" aria-label="Footer">
         <a href="{download}">Download</a>
         <a href="{docs}">Docs</a>
+        <a href="{roadmap}">Roadmap</a>
+        <a href="{testers}">Testers</a>
         <a href="{foundation}">Foundation</a>
         <a href="{privacy}">Privacy</a>
         <a href="https://github.com/ape-squared/Block-Viewer">GitHub</a>

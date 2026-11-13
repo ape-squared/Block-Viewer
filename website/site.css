@@ -1133,6 +1133,25 @@ a.doc-link span {
 .tester-status[data-kind="err"] { color: #ff7a7a; }
 .tester-status[data-kind="pending"] { color: var(--data); }
 
+.tester-channels {
+  margin-top: 0.25rem;
+}
+.hub-issue-form .tester-label {
+  margin-top: 1rem;
+}
+.hub-issue-form .tester-label:first-child {
+  margin-top: 0;
+}
+.tester-textarea {
+  width: 100%;
+  resize: vertical;
+  min-height: 7.5rem;
+  line-height: 1.45;
+  font-family: "IBM Plex Sans", system-ui, sans-serif;
+  font-size: 1rem;
+  font-weight: 400;
+}
+
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
   .reveal, .brand-line, .hero-viewer .hero-title, .hero-viewer .lede, .hero-actions, .hero-media-shot,

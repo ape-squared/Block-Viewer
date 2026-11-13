@@ -3,14 +3,25 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Tester signup — Block Viewer</title>
-  <meta name="description" content="Submit your Second Life username for the Block Tester nameplate.">
+  <title>Testers — Block Viewer</title>
+  <meta name="description" content="Block Viewer tester hub: report bugs and features on GitHub, share feedback, join Discord, and claim the Block Tester nameplate.">
+  <meta name="robots" content="index, follow">
   <link rel="canonical" href="https://blockviewer.org/testers/">
   <link rel="icon" href="../assets/mark.svg" type="image/svg+xml">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Block Viewer">
+  <meta property="og:url" content="https://blockviewer.org/testers/">
+  <meta property="og:title" content="Testers — Block Viewer">
+  <meta property="og:description" content="Report bugs and features on GitHub, share feedback, join Discord, and claim the Block Tester nameplate.">
+  <meta property="og:image" content="https://blockviewer.org/assets/shots/landscape-05.webp">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Testers — Block Viewer">
+  <meta name="twitter:description" content="Report bugs and features on GitHub, share feedback, join Discord, and claim the Block Tester nameplate.">
+  <meta name="twitter:image" content="https://blockviewer.org/assets/shots/landscape-05.webp">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="../site.css?v=14">
+  <link rel="stylesheet" href="../site.css?v=15">
 </head>
 <body>
   <a class="skip" href="#main">Skip to content</a>
@@ -33,33 +44,165 @@
     </nav>
     <a class="btn btn-primary nav-cta" href="../download/">Download</a>
   </header>
-  <main id="main" class="section page-shell">
-    <div class="section-head reveal">
-      <p class="eyebrow">nameplates</p>
-      <h1>Tester signup</h1>
-      <p>Submit your Second Life username. We add it to the Block Tester roster so your nameplate mark shows up without waiting for a hand-edited PR.</p>
-    </div>
 
-    <form class="tester-form reveal" id="tester-form" novalidate>
-      <label class="tester-label" for="username">Second Life username</label>
-      <div class="tester-row">
-        <input
-          id="username"
-          name="username"
-          class="tester-input"
-          type="text"
-          autocomplete="username"
-          maxlength="64"
-          required
-          placeholder="jr.alpha"
-          spellcheck="false"
-        >
-        <button class="btn btn-primary" type="submit" id="tester-submit">Submit</button>
+  <main id="main" class="section page-shell">
+    <header class="page-hero reveal">
+      <p class="eyebrow">Early access</p>
+      <h1>Testers hub</h1>
+      <p class="lede">
+        Block Viewer is early 0.x — friends and testers catch the sharp edges.
+        Use this page to file GitHub issues, leave feedback, join Discord, and claim the Block Tester nameplate.
+      </p>
+      <div class="hero-actions" style="margin-top:1.25rem">
+        <a class="btn btn-primary" href="#report">Report a bug</a>
+        <a class="btn btn-ghost" href="#feature">Request a feature</a>
       </div>
-      <p class="tester-hint">Modern or legacy form is fine (<code>jr.alpha</code>, <code>Jr Alpha</code>, <code>jr.alpha.resident</code>). Restart the viewer after you’re added.</p>
-      <p class="tester-status" id="tester-status" role="status" aria-live="polite"></p>
-    </form>
+    </header>
+
+    <section class="reveal" aria-labelledby="channels-heading">
+      <div class="section-head">
+        <p class="eyebrow">Channels</p>
+        <h2 id="channels-heading">Where to send what.</h2>
+        <p>Bugs and features land as public GitHub issues so we can track, label, and ship fixes. Discord is for chat; the feedback board is for lighter ideas.</p>
+      </div>
+      <ul class="support-links tester-channels">
+        <li>
+          <a href="https://github.com/ape-squared/Block-Viewer/issues/new?template=bug_report.yml">
+            <strong>Bug on GitHub</strong>
+            <span>Opens the bug report form — needs a free GitHub account</span>
+          </a>
+        </li>
+        <li>
+          <a href="https://github.com/ape-squared/Block-Viewer/issues/new?template=feature_request.yml">
+            <strong>Feature on GitHub</strong>
+            <span>Opens the feature request form for enhancements</span>
+          </a>
+        </li>
+        <li>
+          <a href="https://feedback.ape-squared.github.io/Block">
+            <strong>Feedback board</strong>
+            <span>Browse and vote on bugs and ideas without filing an issue</span>
+          </a>
+        </li>
+        <li>
+          <a href="https://discord.gg/s96h8KwES7">
+            <strong>Discord</strong>
+            <span>Releases, chat, and early-access notes — not a substitute for bug reports</span>
+          </a>
+        </li>
+        <li>
+          <a href="../docs/reporting-bugs/">
+            <strong>Reporting guide</strong>
+            <span>Crash reports, traces, and what to include</span>
+          </a>
+        </li>
+        <li>
+          <a href="https://github.com/ape-squared/Block-Viewer/issues">
+            <strong>Open issues</strong>
+            <span>Check duplicates before you file</span>
+          </a>
+        </li>
+      </ul>
+    </section>
+
+    <section class="reveal" aria-labelledby="howto-heading" style="margin-top:2.75rem">
+      <div class="section-head">
+        <p class="eyebrow">Reporting bugs</p>
+        <h2 id="howto-heading">A useful report is reproducible.</h2>
+      </div>
+      <ul class="capability-grid">
+        <li>
+          <h3>1. Search first</h3>
+          <p>Skim <a href="https://github.com/ape-squared/Block-Viewer/issues">open issues</a> and the <a href="https://feedback.ape-squared.github.io/Block">feedback board</a> so we do not get the same crash three times.</p>
+        </li>
+        <li>
+          <h3>2. Say what you did</h3>
+          <p>Steps, expected vs actual, viewer version, OS, and GPU. One clear path beats a vague “it broke.”</p>
+        </li>
+        <li>
+          <h3>3. Attach evidence</h3>
+          <p>Dev Toolbox copy tools, crash “Copy trace,” or a short log snippet. Prefer that over dumping entire log files.</p>
+        </li>
+        <li>
+          <h3>4. File on GitHub</h3>
+          <p>Use the bug form below or in the viewer Help / “Report a bug.” That creates a tracked issue on <a href="https://github.com/ape-squared/Block-Viewer">ape-squared/Block-Viewer</a>.</p>
+        </li>
+      </ul>
+      <p class="tester-hint" style="margin-top:1.25rem;max-width:40rem">
+        Crashes can also publish from the crash window after you connect GitHub in-app — see
+        <a href="../docs/reporting-bugs/">Reporting bugs</a>.
+        This hub is for Block Viewer only, not <a href="https://ape-squared.github.io/Block-GPPI/">Block-GPPI</a>.
+      </p>
+    </section>
+
+    <section id="report" class="reveal" aria-labelledby="bug-form-heading" style="margin-top:2.75rem">
+      <div class="section-head">
+        <p class="eyebrow">GitHub issue</p>
+        <h2 id="bug-form-heading">Draft a bug report</h2>
+        <p>Write it here, then continue on GitHub. You will sign in (or create a free account) and submit — the issue is created in the Block Viewer repo with the <code>bug</code> label.</p>
+      </div>
+      <form class="tester-form hub-issue-form" id="bug-form" novalidate>
+        <label class="tester-label" for="bug-title">Title</label>
+        <input id="bug-title" class="tester-input" type="text" maxlength="120" required placeholder="e.g. Chat bar stays hidden after teleport">
+        <label class="tester-label" for="bug-steps">What happened</label>
+        <textarea id="bug-steps" class="tester-input tester-textarea" rows="5" required placeholder="Steps to reproduce, expected vs actual…"></textarea>
+        <label class="tester-label" for="bug-env">Viewer version, OS, GPU</label>
+        <input id="bug-env" class="tester-input" type="text" maxlength="160" required placeholder="Block Viewer 0.2.21, Windows 11, RTX 4070">
+        <div class="tester-row" style="margin-top:1rem">
+          <button class="btn btn-primary" type="submit">Continue on GitHub</button>
+          <a class="btn btn-ghost" href="https://github.com/ape-squared/Block-Viewer/issues/new?template=bug_report.yml">Use full bug form</a>
+        </div>
+        <p class="tester-hint">Opens a new issue draft in your browser. Nothing is posted until you click Submit issue on GitHub.</p>
+      </form>
+    </section>
+
+    <section id="feature" class="reveal" aria-labelledby="feature-form-heading" style="margin-top:2.75rem">
+      <div class="section-head">
+        <p class="eyebrow">GitHub issue</p>
+        <h2 id="feature-form-heading">Draft a feature request</h2>
+        <p>Describe the problem and what you want instead. Continues on GitHub with the <code>enhancement</code> label.</p>
+      </div>
+      <form class="tester-form hub-issue-form" id="feature-form" novalidate>
+        <label class="tester-label" for="feature-title">Title</label>
+        <input id="feature-title" class="tester-input" type="text" maxlength="120" required placeholder="e.g. Remember friends-only after region restart">
+        <label class="tester-label" for="feature-body">Problem and proposal</label>
+        <textarea id="feature-body" class="tester-input tester-textarea" rows="5" required placeholder="What is hard today, and what should Block Viewer do?"></textarea>
+        <div class="tester-row" style="margin-top:1rem">
+          <button class="btn btn-primary" type="submit">Continue on GitHub</button>
+          <a class="btn btn-ghost" href="https://github.com/ape-squared/Block-Viewer/issues/new?template=feature_request.yml">Use full feature form</a>
+        </div>
+        <p class="tester-hint">Same flow as bugs: draft here, submit on GitHub so it is tracked with everything else.</p>
+      </form>
+    </section>
+
+    <section id="nameplate" class="reveal" aria-labelledby="nameplate-heading" style="margin-top:2.75rem">
+      <div class="section-head">
+        <p class="eyebrow">Nameplates</p>
+        <h2 id="nameplate-heading">Block Tester mark</h2>
+        <p>Submit your Second Life username. We add it to the roster so your nameplate mark shows without a hand-edited PR.</p>
+      </div>
+      <form class="tester-form" id="tester-form" novalidate>
+        <label class="tester-label" for="username">Second Life username</label>
+        <div class="tester-row">
+          <input
+            id="username"
+            name="username"
+            class="tester-input"
+            type="text"
+            autocomplete="username"
+            maxlength="64"
+            required
+            placeholder="jr.alpha"
+            spellcheck="false"
+          >
+          <button class="btn btn-primary" type="submit" id="tester-submit">Submit</button>
+        </div>
+        <p class="tester-hint">Modern or legacy form is fine (<code>jr.alpha</code>, <code>Jr Alpha</code>, <code>jr.alpha.resident</code>). Restart the viewer after you’re added.</p>
+        <p class="tester-status" id="tester-status" role="status" aria-live="polite"></p>
+      </form>
+    </section>
   </main>
+
   <footer class="footer">
     <div class="footer-row">
       <a class="brand" href="../"><img src="../assets/mark.svg" width="22" height="22" alt=""><span>BLOCK VIEWER</span></a>
@@ -77,6 +220,56 @@
   <script src="../app.js?v=11" defer></script>
   <script>
     (() => {
+      const ISSUES = "https://github.com/ape-squared/Block-Viewer/issues/new";
+
+      function openIssue({ title, body, labels }) {
+        const url = new URL(ISSUES);
+        url.searchParams.set("title", title);
+        url.searchParams.set("body", body);
+        if (labels) url.searchParams.set("labels", labels);
+        window.location.href = url.toString();
+      }
+
+      document.getElementById("bug-form").addEventListener("submit", (e) => {
+        e.preventDefault();
+        const title = document.getElementById("bug-title").value.trim();
+        const steps = document.getElementById("bug-steps").value.trim();
+        const env = document.getElementById("bug-env").value.trim();
+        if (!title || !steps || !env) return;
+        const body = [
+          "<!-- drafted from https://blockviewer.org/testers/ -->",
+          "",
+          "### Steps / what happened",
+          steps,
+          "",
+          "### Viewer version, OS, GPU",
+          env,
+          "",
+          "### Notes",
+          "- Filed from the Block Viewer testers hub",
+          "- This is about Block Viewer (the client), not Block-GPPI",
+        ].join("\n");
+        openIssue({ title, body, labels: "bug" });
+      });
+
+      document.getElementById("feature-form").addEventListener("submit", (e) => {
+        e.preventDefault();
+        const title = document.getElementById("feature-title").value.trim();
+        const idea = document.getElementById("feature-body").value.trim();
+        if (!title || !idea) return;
+        const body = [
+          "<!-- drafted from https://blockviewer.org/testers/ -->",
+          "",
+          "### Problem and proposal",
+          idea,
+          "",
+          "### Notes",
+          "- Filed from the Block Viewer testers hub",
+          "- This is about Block Viewer (the client), not Block-GPPI",
+        ].join("\n");
+        openIssue({ title, body, labels: "enhancement" });
+      });
+
       const WORKER = "https://block-tester-signup.khaliqcreates.workers.dev";
       const form = document.getElementById("tester-form");
       const input = document.getElementById("username");
@@ -99,7 +292,7 @@
           "",
           "Submitted from the Block Viewer tester signup page.",
         ].join("\n");
-        const url = new URL("https://github.com/ape-squared/Block-Viewer/issues/new");
+        const url = new URL(ISSUES);
         url.searchParams.set("title", title);
         url.searchParams.set("body", body);
         return url.toString();

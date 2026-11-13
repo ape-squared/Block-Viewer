@@ -96,7 +96,7 @@ def rewrite_md_links(source: str, text: str) -> str:
 def chrome(title: str, active: str, body: str, *, hub: bool = False) -> str:
     # Hub lives at website/docs/; guides live one folder deeper.
     root = ".." if hub else "../.."
-    css = f"{root}/site.css?v=13"
+    css = f"{root}/site.css?v=14"
     js = f"{root}/app.js?v=11"
     mark = f"{root}/assets/mark.svg"
     home = f"{root}/"

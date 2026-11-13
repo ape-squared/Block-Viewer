@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Testers — Block Viewer</title>
-  <meta name="description" content="Block Viewer tester hub: report bugs and features on GitHub, join Discord, and claim the Block Tester nameplate.">
+  <meta name="description" content="Join Block Viewer testers on Discord, file bugs and features on GitHub, and claim the Block Tester nameplate.">
   <meta name="robots" content="index, follow">
   <link rel="canonical" href="https://blockviewer.org/testers/">
   <link rel="icon" href="../assets/mark.svg" type="image/svg+xml">
@@ -12,16 +12,16 @@
   <meta property="og:site_name" content="Block Viewer">
   <meta property="og:url" content="https://blockviewer.org/testers/">
   <meta property="og:title" content="Testers — Block Viewer">
-  <meta property="og:description" content="Report bugs and features on GitHub, join Discord, and claim the Block Tester nameplate.">
+  <meta property="og:description" content="Join Discord, file bugs and features on GitHub, and claim the Block Tester nameplate.">
   <meta property="og:image" content="https://blockviewer.org/assets/shots/landscape-05.webp">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="Testers — Block Viewer">
-  <meta name="twitter:description" content="Report bugs and features on GitHub, join Discord, and claim the Block Tester nameplate.">
+  <meta name="twitter:description" content="Join Discord, file bugs and features on GitHub, and claim the Block Tester nameplate.">
   <meta name="twitter:image" content="https://blockviewer.org/assets/shots/landscape-05.webp">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="../site.css?v=17">
+  <link rel="stylesheet" href="../site.css?v=18">
 </head>
 <body>
   <a class="skip" href="#main">Skip to content</a>
@@ -48,59 +48,60 @@
   <main id="main" class="section page-shell page-testers">
     <header class="page-hero reveal">
       <p class="eyebrow">Early access</p>
-      <h1>Testers</h1>
-      <p class="lede">File bugs and features on GitHub, chat on Discord, or claim the nameplate mark. Search <a href="https://github.com/ape-squared/Block-Viewer/issues">open issues</a> first — see the <a href="../docs/reporting-bugs/">reporting guide</a> for crashes.</p>
+      <h1>Help shape Block Viewer</h1>
+      <p class="lede">
+        Early 0.x builds need sharp eyes. Join Discord for releases and chat,
+        file tracked issues on GitHub when something breaks, and claim the tester nameplate if you want the mark.
+      </p>
+      <div class="tester-cta">
+        <a class="btn btn-primary" href="https://discord.gg/GrvBu5V985">Join Discord</a>
+        <a class="btn btn-ghost" href="#report">Report a bug</a>
+      </div>
+      <p class="tester-quiet">
+        Prefer the full forms?
+        <a href="https://github.com/ape-squared/Block-Viewer/issues/new?template=bug_report.yml">Bug</a>
+        ·
+        <a href="https://github.com/ape-squared/Block-Viewer/issues/new?template=feature_request.yml">Feature</a>
+        ·
+        <a href="https://github.com/ape-squared/Block-Viewer/issues">Open issues</a>
+        ·
+        <a href="../docs/reporting-bugs/">Crash guide</a>
+      </p>
     </header>
 
-    <ul class="support-links tester-channels reveal">
-      <li>
-        <a href="https://github.com/ape-squared/Block-Viewer/issues/new?template=bug_report.yml">
-          <strong>Bug</strong>
-          <span>GitHub issue form</span>
-        </a>
-      </li>
-      <li>
-        <a href="https://github.com/ape-squared/Block-Viewer/issues/new?template=feature_request.yml">
-          <strong>Feature</strong>
-          <span>GitHub issue form</span>
-        </a>
-      </li>
-      <li>
-        <a href="https://discord.gg/s96h8KwES7">
-          <strong>Discord</strong>
-          <span>Chat &amp; releases</span>
-        </a>
-      </li>
-      <li>
-        <a href="../docs/reporting-bugs/">
-          <strong>Guide</strong>
-          <span>Crash &amp; bug reports</span>
-        </a>
-      </li>
-    </ul>
-
-    <div class="tester-forms reveal">
+    <section id="report" class="tester-panel reveal" aria-labelledby="report-heading">
+      <div class="tester-panel-head">
+        <p class="eyebrow">GitHub</p>
+        <h2 id="report-heading">File an issue</h2>
+        <p>Draft here, then finish on GitHub. Nothing is posted until you submit there. Search open issues first so we do not get the same crash twice.</p>
+      </div>
       <form class="tester-form hub-issue-form" id="issue-form" novalidate>
         <div class="hub-kind" role="group" aria-label="Issue type">
-          <label><input type="radio" name="kind" value="bug" checked> Bug</label>
-          <label><input type="radio" name="kind" value="feature"> Feature</label>
+          <label class="hub-chip"><input type="radio" name="kind" value="bug" checked> Bug</label>
+          <label class="hub-chip"><input type="radio" name="kind" value="feature"> Feature</label>
         </div>
         <label class="tester-label" for="issue-title">Title</label>
         <input id="issue-title" class="tester-input" type="text" maxlength="120" required placeholder="Short summary">
         <label class="tester-label" for="issue-body">Details</label>
-        <textarea id="issue-body" class="tester-input tester-textarea" rows="3" required placeholder="Steps / expected vs actual, or the problem and proposal…"></textarea>
+        <textarea id="issue-body" class="tester-input tester-textarea" rows="4" required placeholder="For bugs: steps, expected vs actual. For features: the problem and what you want instead."></textarea>
         <label class="tester-label" for="issue-env" id="issue-env-label">Version, OS, GPU</label>
         <input id="issue-env" class="tester-input" type="text" maxlength="160" placeholder="0.2.21, Windows 11, RTX 4070">
-        <div class="tester-row" style="margin-top:0.85rem">
+        <div class="tester-row" style="margin-top:1rem">
           <button class="btn btn-primary" type="submit">Continue on GitHub</button>
         </div>
-        <p class="tester-hint">Draft only — submit on GitHub. Not <a href="https://ape-squared.github.io/Block-GPPI/">Block-GPPI</a>.</p>
+        <p class="tester-hint">Creates a draft issue with the right label. Block Viewer only — not <a href="https://ape-squared.github.io/Block-GPPI/">Block-GPPI</a>.</p>
       </form>
+    </section>
 
-      <form class="tester-form tester-nameplate-form" id="tester-form" novalidate>
-        <label class="tester-label" for="username">Block Tester nameplate</label>
-        <p class="tester-hint tester-hint-top">Second Life username for the roster mark.</p>
-        <div class="tester-row tester-row-stack">
+    <section id="nameplate" class="tester-nameplate reveal" aria-labelledby="nameplate-heading">
+      <div class="tester-nameplate-copy">
+        <p class="eyebrow">Nameplate</p>
+        <h2 id="nameplate-heading">Block Tester mark</h2>
+        <p>Add your Second Life username to the roster. Restart the viewer after you’re on it.</p>
+      </div>
+      <form class="tester-nameplate-form" id="tester-form" novalidate>
+        <label class="sr-only" for="username">Second Life username</label>
+        <div class="tester-row">
           <input
             id="username"
             name="username"
@@ -112,12 +113,12 @@
             placeholder="jr.alpha"
             spellcheck="false"
           >
-          <button class="btn btn-primary" type="submit" id="tester-submit">Submit</button>
+          <button class="btn btn-primary" type="submit" id="tester-submit">Add me</button>
         </div>
-        <p class="tester-hint"><code>Jr Alpha</code> works too — restart the viewer after you’re added.</p>
+        <p class="tester-hint"><code>Jr Alpha</code> or <code>jr.alpha.resident</code> also work.</p>
         <p class="tester-status" id="tester-status" role="status" aria-live="polite"></p>
       </form>
-    </div>
+    </section>
   </main>
 
   <footer class="footer">

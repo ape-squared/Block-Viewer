@@ -187,10 +187,8 @@ pub fn show(
     let arrow_top = (portrait_height + place_height + 190.0 * layout.text_scale) / 2.0 - 19.0;
     wheel(&ctx, settings, form, &layout);
     current_key = (settings.login_uri(), settings.username.trim().to_lowercase());
-    // Centre the account strip; Layout::main_width clears the right sidebar.
-    let content_x = screen.center().x - layout.main_width / 2.0;
     egui::Area::new(Id::unique("accounts_content"))
-        .fixed_pos(egui::pos2(content_x, top))
+        .fixed_pos(egui::pos2(screen.center().x - layout.main_width / 2.0, top))
         .show(&ctx, |ui| {
             // a scroll bar, when the content is taller than the room, takes
             // a strip right of the main width: the cards stay centred on
@@ -219,33 +217,11 @@ pub fn show(
                                     .fit_to_exact_size(Vec2::splat((if screen.height() < 800.0 { 32.0 } else { 64.0 }) * layout.scale)),
                             );
                         }
-                        ui.horizontal(|ui| {
-                            ui.spacing_mut().item_spacing.x = 10.0;
-                            ui.label(RichText::new("BLOCK").size(32.0 * layout.text_scale).strong().color(p.ink));
-                            egui::Frame::new()
-                                .fill(p.violet)
-                                .inner_margin(egui::Margin::symmetric(8, 3))
-                                .corner_radius(3.0)
-                                .show(ui, |ui| {
-                                    ui.label(RichText::new("VIEWER").size(11.0 * layout.text_scale).strong().color(p.on_accent));
-                                });
-                        });
-                        ui.add_space(4.0);
-                        ui.label(
-                            RichText::new(block_i18n::tr!("ui-login-sign-in-to-second-life"))
-                                .size(12.0 * layout.text_scale)
-                                .color(p.violet),
-                        );
-                        ui.label(
-                            RichText::new(block_i18n::tr!("ui-login-welcome-back"))
-                                .size(24.0 * layout.text_scale)
-                                .strong()
-                                .color(p.ink),
-                        );
+                        ui.label(RichText::new("Block Viewer").size(28.0 * layout.text_scale).strong().color(p.ink));
                         ui.label(
                             RichText::new(crate::ui::login::client_tagline())
                                 .size(13.0 * layout.text_scale)
-                                .color(p.muted),
+                                .color(p.violet_pale),
                         );
                         ui.add_space(8.0);
                         if first_account {
@@ -437,41 +413,16 @@ pub fn show(
                                                     ui.spacing_mut().interact_size.y *= layout.text_scale;
                                                     let (portrait_rect, portrait_response) =
                                                         ui.allocate_exact_size(Vec2::new(inner_width, portrait_height), Sense::click());
-                                                    let accent = if index.is_multiple_of(2) { p.violet } else { p.teal };
-                                                    let mut mesh = egui::Mesh::default();
-                                                    for (at, color) in [
-                                                        (portrait_rect.left_top(), accent.gamma_multiply(0.40 + hover * 0.14)),
-                                                        (portrait_rect.right_top(), p.indigo.gamma_multiply(0.50)),
-                                                        (portrait_rect.right_bottom(), p.panel),
-                                                        (portrait_rect.left_bottom(), p.panel),
-                                                    ] {
-                                                        mesh.colored_vertex(at, color);
-                                                    }
-                                                    mesh.add_triangle(0, 1, 2);
-                                                    mesh.add_triangle(0, 2, 3);
-                                                    ui.painter().add(egui::Shape::mesh(mesh));
-                                                    if let Some(texture) = account.agent.and_then(|agent| form.portraits.get(&agent)) {
-                                                        let size = texture.size_vec2();
-                                                        let fitted =
-                                                            size * (portrait_rect.width() / size.x).min(portrait_rect.height() / size.y);
-                                                        ui.painter().image(
-                                                            texture.id(),
-                                                            Rect::from_center_size(portrait_rect.center(), fitted),
-                                                            Rect::from_min_max(egui::Pos2::ZERO, egui::pos2(1.0, 1.0)),
-                                                            widgets::PICTURE_TINT,
-                                                        );
-                                                    } else {
-                                                        img(
-                                                            ui,
-                                                            icons,
-                                                            "user-filled",
-                                                            Rect::from_center_size(
-                                                                portrait_rect.center(),
-                                                                Vec2::splat(portrait_height * 0.8),
-                                                            ),
-                                                            p.violet_pale.gamma_multiply(0.75),
-                                                        );
-                                                    }
+                                                    let side = portrait_height.min(inner_width) * 0.92;
+                                                    let disc = Rect::from_center_size(portrait_rect.center(), Vec2::splat(side));
+                                                    widgets::avatar_disc(
+                                                        ui,
+                                                        p,
+                                                        disc,
+                                                        account.agent.and_then(|agent| form.portraits.get(&agent)),
+                                                        &account.username,
+                                                        false,
+                                                    );
                                                     ui.add_space(8.0);
                                                     ui.add(widgets::elided_label(
                                                         ui,

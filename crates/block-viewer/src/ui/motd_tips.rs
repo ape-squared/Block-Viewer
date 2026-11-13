@@ -177,19 +177,14 @@ pub fn ensure_fresh() {
 
 /// Tip for this frame of the loading screen (rotates slowly).
 pub fn current(elapsed: f32) -> Arc<str> {
-    current_indexed(elapsed).0
-}
-
-/// Tip text plus 1-based index and total count (Claude teleport cards).
-pub fn current_indexed(elapsed: f32) -> (Arc<str>, usize, usize) {
     ensure_fresh();
     let tips = store().lock().map(|g| g.tips.clone()).unwrap_or_else(|_| builtin());
     if tips.is_empty() {
-        return (Arc::from(""), 0, 0);
+        return Arc::from("");
     }
     // ~8 s per tip so the eye can read it
     let i = ((elapsed / 8.0).floor() as usize) % tips.len();
-    (Arc::from(tips[i].as_str()), i + 1, tips.len())
+    Arc::from(tips[i].as_str())
 }
 
 #[cfg(test)]

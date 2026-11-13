@@ -185,7 +185,7 @@ fn show_impl(ctx: &Context, p: &Palette, icons: &Icons, settings: &mut Settings,
                                     ui.horizontal_top(|ui| {
                                         widgets::glyph(ui, "grip-vertical", p.muted, 20.0);
                                         let (rect, _) = ui.allocate_exact_size(Vec2::splat(64.0), Sense::hover());
-                                        widgets::avatar_picture(
+                                        widgets::avatar_disc(
                                             ui,
                                             p,
                                             rect,

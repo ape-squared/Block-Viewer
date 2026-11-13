@@ -42,6 +42,18 @@ pub enum NearbyChatWindow {
     Hidden,
 }
 
+impl NearbyChatWindow {
+    pub const ALL: [Self; 3] = [Self::Docked, Self::Detached, Self::Hidden];
+
+    pub fn label(self) -> &'static str {
+        match self {
+            Self::Docked => block_i18n::tr!("ui-options-nearby-chat-docked"),
+            Self::Detached => block_i18n::tr!("ui-options-nearby-chat-detached"),
+            Self::Hidden => block_i18n::tr!("ui-options-nearby-chat-hidden"),
+        }
+    }
+}
+
 /// Where the thumbnails of the open conversations stand (Preferences ›
 /// Chat, `ui/chat/thumbnails.rs`): the Legacy Viewer's IM chiclets, shown
 /// unless `FSDisableIMChiclets`. Beside the chat bar by default (the human's
@@ -609,6 +621,10 @@ pub struct Settings {
     pub show_minimap: bool,
     /// Nearby-chat docking and visibility; geometry stays in ui_layout.ron.
     pub nearby_chat_window: NearbyChatWindow,
+    /// The nearby chat bar on the chat island (Preferences › Chat; the Legacy
+    /// Viewer's MainChatbarVisible, persisted here). Off hides it until the
+    /// toolbar Chat bar command or this switch shows it again.
+    pub show_chat_bar: bool,
     /// LLFloaterCamera / LLFloaterMove save_visibility (their floater XML).
     pub show_camera_controls: bool,
     pub show_movement_controls: bool,
@@ -1896,6 +1912,7 @@ impl Default for Settings {
             show_chat: true,
             show_minimap: true,
             nearby_chat_window: NearbyChatWindow::Docked,
+            show_chat_bar: true,
             show_camera_controls: false,
             show_movement_controls: false,
             standalone_place_details: false,

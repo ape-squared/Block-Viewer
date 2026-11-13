@@ -81,11 +81,28 @@ pub fn page(cx: &mut Cx, tab: usize) {
                     tr!("ui-options-mention-autocomplete-hint"),
                     &field!(chat_mention_autocomplete),
                 );
+                // MainChatbarVisible (persisted): the chat island's bar
+                cx.toggle(
+                    tr!("ui-options-show-chat-bar"),
+                    tr!("ui-options-show-chat-bar-hint"),
+                    &field!(show_chat_bar),
+                );
                 // AutohideChatBar (Chat › Typing), off (#1009)
                 cx.toggle(
                     tr!("ui-options-autohide-chat-bar"),
                     tr!("ui-options-autohide-chat-bar-hint"),
                     &field!(autohide_chat_bar),
+                );
+                // Docked | Detached | Hidden (layout; nearby chat button)
+                let nearby: Vec<(crate::settings::NearbyChatWindow, &str)> = crate::settings::NearbyChatWindow::ALL
+                    .iter()
+                    .map(|s| (*s, s.label()))
+                    .collect();
+                cx.combo(
+                    tr!("ui-options-nearby-chat-window"),
+                    tr!("ui-options-nearby-chat-window-hint"),
+                    &field!(nearby_chat_window),
+                    &nearby,
                 );
                 // RadarReportChatRangeEnter / Leave (also in People › Near you › Radar).
                 cx.toggle(

@@ -296,11 +296,18 @@ impl ChatUi {
     pub fn from_settings(settings: &crate::settings::Settings) -> Self {
         let mut st = Self::default();
         st.popped.restore_nearby(settings.nearby_chat_window);
+        st.bar_hidden = !settings.show_chat_bar;
         st
     }
 
     pub fn remember_layout(&self, settings: &mut crate::settings::Settings) {
         settings.nearby_chat_window = self.popped.nearby_state();
+        settings.show_chat_bar = !self.bar_hidden;
+    }
+
+    /// Preferences › Chat nearby window: Docked / Detached / Hidden.
+    pub fn apply_nearby_window(&mut self, state: crate::settings::NearbyChatWindow) {
+        self.popped.restore_nearby(state);
     }
 
     /// `start_gesture` and FSNearbyChat::showDefaultChatBar

@@ -113,14 +113,17 @@ impl Popped {
 
     pub(super) fn restore_nearby(&mut self, state: crate::settings::NearbyChatWindow) {
         use crate::settings::NearbyChatWindow;
-        if state != NearbyChatWindow::Docked {
-            self.pop_out(None, false, false, false);
-            if let Some(w) = self.windows.last_mut() {
-                // Raising expands a minimized floater: restoring is not a
-                // request to open it. Keep the saved minimized state too.
-                w.raise = false;
-                w.hidden = state == NearbyChatWindow::Hidden;
-            }
+        if state == NearbyChatWindow::Docked {
+            // Preferences can switch Detached/Hidden back to Conversations.
+            self.remove(None);
+            return;
+        }
+        self.pop_out(None, false, false, false);
+        if let Some(w) = self.windows.iter_mut().find(|w| w.conversation.is_none()) {
+            // Raising expands a minimized floater: restoring is not a
+            // request to open it. Keep the saved minimized state too.
+            w.raise = false;
+            w.hidden = state == NearbyChatWindow::Hidden;
         }
     }
 
@@ -499,36 +502,43 @@ mod tests {
         use crate::settings::{NearbyChatWindow, Settings};
         let old: Settings = serde_json::from_str("{}").unwrap();
         assert_eq!(old.nearby_chat_window, NearbyChatWindow::Docked);
+        assert!(old.show_chat_bar);
         assert!(!old.show_camera_controls && !old.show_movement_controls);
         for state in [NearbyChatWindow::Docked, NearbyChatWindow::Detached, NearbyChatWindow::Hidden] {
             for camera in [false, true] {
                 for movement in [false, true] {
-                    let mut settings = Settings {
-                        nearby_chat_window: state,
-                        show_camera_controls: camera,
-                        show_movement_controls: movement,
-                        ..Settings::default()
-                    };
-                    let mut st = ChatUi::from_settings(&settings);
-                    // Private conversation state is deliberately not a layout.
-                    st.popped.pop_out(id(77), false, false, true);
-                    st.input = "private unsent draft".into();
-                    st.remember_layout(&mut settings);
-                    let saved = serde_json::to_string(&settings).unwrap();
-                    let loaded: Settings = serde_json::from_str(&saved).unwrap();
-                    let restored = ChatUi::from_settings(&loaded);
-                    assert_eq!(restored.popped.nearby_state(), state);
-                    assert!(!restored.popped.contains(id(77)));
-                    assert!(restored.input.is_empty());
-                    assert!(!restored.focus_request && !restored.conv_focus_request);
-                    if let Some(w) = restored.popped.windows.first() {
-                        assert_eq!(w.floater, "conversation:nearby");
-                        assert!(!w.raise && !w.view.conv_focus_request);
-                        assert_eq!(w.hidden, state == NearbyChatWindow::Hidden);
+                    for show_bar in [true, false] {
+                        let mut settings = Settings {
+                            nearby_chat_window: state,
+                            show_chat_bar: show_bar,
+                            show_camera_controls: camera,
+                            show_movement_controls: movement,
+                            ..Settings::default()
+                        };
+                        let mut st = ChatUi::from_settings(&settings);
+                        assert_eq!(st.bar_hidden, !show_bar);
+                        // Private conversation state is deliberately not a layout.
+                        st.popped.pop_out(id(77), false, false, true);
+                        st.input = "private unsent draft".into();
+                        st.remember_layout(&mut settings);
+                        let saved = serde_json::to_string(&settings).unwrap();
+                        let loaded: Settings = serde_json::from_str(&saved).unwrap();
+                        let restored = ChatUi::from_settings(&loaded);
+                        assert_eq!(restored.popped.nearby_state(), state);
+                        assert_eq!(restored.bar_hidden, !show_bar);
+                        assert_eq!(loaded.show_chat_bar, show_bar);
+                        assert!(!restored.popped.contains(id(77)));
+                        assert!(restored.input.is_empty());
+                        assert!(!restored.focus_request && !restored.conv_focus_request);
+                        if let Some(w) = restored.popped.windows.first() {
+                            assert_eq!(w.floater, "conversation:nearby");
+                            assert!(!w.raise && !w.view.conv_focus_request);
+                            assert_eq!(w.hidden, state == NearbyChatWindow::Hidden);
+                        }
+                        let panels = crate::ui::Panels::from_settings(&loaded);
+                        assert_eq!(panels.camera_controls, camera);
+                        assert_eq!(panels.movement_controls, movement);
                     }
-                    let panels = crate::ui::Panels::from_settings(&loaded);
-                    assert_eq!(panels.camera_controls, camera);
-                    assert_eq!(panels.movement_controls, movement);
                 }
             }
         }

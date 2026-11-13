@@ -157,7 +157,7 @@ pub fn ensure_fresh() {
         .ok();
 }
 
-fn role_set<'a>(roster: &'a Roster, role: Role) -> &'a RoleSet {
+fn role_set(roster: &Roster, role: Role) -> &RoleSet {
     match role {
         Role::Staff => &roster.staff,
         Role::Manager => &roster.managers,
@@ -172,10 +172,11 @@ pub fn listed(role: Role, id: Option<&Uuid>, legacy: &str) -> bool {
         return false;
     };
     let set = role_set(&guard, role);
-    if let Some(id) = id {
-        if !id.is_nil() && set.ids.contains(id) {
-            return true;
-        }
+    if let Some(id) = id
+        && !id.is_nil()
+        && set.ids.contains(id)
+    {
+        return true;
     }
     let n = staff::normalize_username(legacy);
     !n.is_empty() && set.names.contains(&n)

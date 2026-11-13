@@ -1,0 +1,13 @@
+name = "block-tester-signup"
+main = "worker.js"
+compatibility_date = "2026-11-13"
+workers_dev = true
+
+# Set with: wrangler secret put GITHUB_TOKEN
+# Fine-grained PAT — Contents: Read and write on ape-squared/Block-Viewer.
+
+[observability]
+enabled = true
+
+[observability.traces]
+enabled = true

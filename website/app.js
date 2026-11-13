@@ -54,6 +54,29 @@
     window.addEventListener("scroll", onScroll, { passive: true });
   }
 
+  // Soft in-view scale for the world band photo
+  document.querySelectorAll(".world-band").forEach((band) => {
+    if (reduce) {
+      band.classList.add("is-in");
+      return;
+    }
+    if (!("IntersectionObserver" in window)) {
+      band.classList.add("is-in");
+      return;
+    }
+    const io = new IntersectionObserver(
+      (entries) => {
+        for (const e of entries) {
+          if (!e.isIntersecting) continue;
+          e.target.classList.add("is-in");
+          io.unobserve(e.target);
+        }
+      },
+      { threshold: 0.2 }
+    );
+    io.observe(band);
+  });
+
   const toggle = document.querySelector("[data-nav-toggle]");
   if (toggle && nav) {
     toggle.addEventListener("click", () => {

@@ -1133,19 +1133,55 @@ a.doc-link span {
 .tester-status[data-kind="err"] { color: #ff7a7a; }
 .tester-status[data-kind="pending"] { color: var(--data); }
 
+.page-testers.page-shell {
+  padding-top: 1.25rem;
+  padding-bottom: 2.5rem;
+}
+.page-testers .page-hero {
+  margin-bottom: 1.25rem;
+  padding-bottom: 1rem;
+}
+.page-testers .page-hero h1 {
+  font-size: clamp(1.75rem, 3vw, 2.25rem);
+}
+.page-testers .page-hero .lede {
+  margin-top: 0.55rem;
+  font-size: 1rem;
+}
+.page-testers .tester-form {
+  margin-top: 1.15rem;
+  padding: 1.1rem 1.15rem 1.2rem;
+}
 .tester-channels {
-  margin-top: 0.25rem;
+  margin-top: 0;
+}
+.hub-kind {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.85rem 1.25rem;
+  margin-bottom: 0.35rem;
+  font: 500 0.92rem "IBM Plex Sans", system-ui, sans-serif;
+}
+.hub-kind label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  cursor: pointer;
+  color: var(--ink);
+}
+.hub-kind input {
+  accent-color: var(--signal);
 }
 .hub-issue-form .tester-label {
-  margin-top: 1rem;
+  margin-top: 0.85rem;
 }
-.hub-issue-form .tester-label:first-child {
-  margin-top: 0;
+.hub-issue-form .tester-label:first-of-type {
+  margin-top: 0.35rem;
 }
 .tester-textarea {
   width: 100%;
   resize: vertical;
-  min-height: 7.5rem;
+  min-height: 5rem;
   line-height: 1.45;
   font-family: "IBM Plex Sans", system-ui, sans-serif;
   font-size: 1rem;

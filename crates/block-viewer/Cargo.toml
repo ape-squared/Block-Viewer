@@ -151,7 +151,7 @@ objc2-core-foundation = { version = "0.3.2", default-features = false, features 
 [target.'cfg(target_os = "linux")'.dependencies]
 # The freedesktop notification service (system_notify.rs), over the session
 # bus; already in the tree through keyring's Secret Service store
-zbus = "5.19.0"
+zbus = "6.2.1"
 # The keyboard layout (keybinds/layout/linux.rs): the XKB keymap of the
 # Wayland compositor or the X server. All three already in the tree through
 # winit, with its features (MIT, MIT / Apache-2.0, MIT)

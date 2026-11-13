@@ -1284,16 +1284,32 @@ impl Scene {
     }
 
     pub fn touch_surface(&self, world: &World, idx: usize, ray: (Vec3, Vec3)) -> Option<TouchSurface> {
-        self.touch_surface_mode(world, idx, ray, FacePick::Surface)
+        // HUD faces take the Surface early-return path when include_hidden is
+        // off (same triangles as a press); forcing include_hidden skipped it.
+        let hud = self.gpu.get(idx).is_some_and(|g| g.hud);
+        self.touch_surface_mode(world, idx, ray, FacePick::Surface, !hud)
     }
 
     pub fn left_touch_surface(&self, world: &World, idx: usize, ray: (Vec3, Vec3)) -> Option<TouchSurface> {
-        self.touch_surface_mode(world, idx, ray, FacePick::Left)
+        // LeLutka Axis and other face HUDs drag on invisible buttons: the hold
+        // must use the same HudClick policy as the press (#3394), not world Left
+        // (which skips the HUD early-return when include_hidden is forced on).
+        if self.gpu.get(idx).is_some_and(|g| g.hud) {
+            return self.touch_surface_mode(world, idx, ray, FacePick::HudClick, false);
+        }
+        self.touch_surface_mode(world, idx, ray, FacePick::Left, true)
     }
 
-    fn touch_surface_mode(&self, world: &World, idx: usize, ray: (Vec3, Vec3), mode: FacePick) -> Option<TouchSurface> {
+    fn touch_surface_mode(
+        &self,
+        world: &World,
+        idx: usize,
+        ray: (Vec3, Vec3),
+        mode: FacePick,
+        include_hidden: bool,
+    ) -> Option<TouchSurface> {
         let o = world.objects.get(idx)?;
-        let hit = self.face_hit_mode(world, idx, ray, Instant::now(), true, mode)?;
+        let hit = self.face_hit_mode(world, idx, ray, Instant::now(), include_hidden, mode)?;
         let tf = o.te.as_ref().map(|t| *t.face(hit.face)).unwrap_or_default();
         let uv = pick::te_transform(hit.uv, [tf.scale_s, tf.scale_t], [tf.offset_s, tf.offset_t], tf.rotation);
         let mut position = ray.0 + ray.1 * hit.t;
@@ -2178,6 +2194,12 @@ pub(crate) mod tests {
         (world, scene, front, back)
     }
 
+    /// Tests outside `scene` that set HUD / list state by hand (media HUD
+    /// press), matching Aurora's `index_test_objects`.
+    pub(crate) fn index_test_objects(scene: &mut Scene) {
+        scene.index_objects();
+    }
+
     pub(crate) fn scene_with_two_objects() -> (World, Scene, usize, usize) {
         let lib = Arc::new(AvatarLibrary::load());
         let mut world = World::new(lib.clone());
@@ -2652,6 +2674,104 @@ pub(crate) mod tests {
         assert_eq!(scene.hud_pick(&world, cursor, true).unwrap().0, back);
         world.objects.get_mut(front).unwrap().render.blinn_phong_preview = false;
         assert_eq!(scene.hud_pick(&world, cursor, true).unwrap().0, front);
+    }
+
+    /// Hover and press share one target. An invisible button takes both, even
+    /// when only its root has the touch script, as LLToolPie::handleMouseDown's
+    /// transparent pick does (a face HUD's close and minimise buttons). A plain
+    /// media panel at exactly alpha 0 lets the object behind it take both, a
+    /// face at 1/255 keeps both, and a transparent media prim with a special
+    /// hover cursor (LLViewerObject::specialHoverCursor) stays the target.
+    #[test]
+    fn hud_hover_and_press_share_the_transparent_panel_policy() {
+        let (mut world, mut scene, front, back) = scene_with_two_objects();
+        let own = world.objects.index_of_uuid(&world.agent_id).unwrap();
+        let parent = world.objects.get(own).unwrap().key.local_id;
+        for (idx, x) in [(front, 3.0), (back, 7.0)] {
+            let o = world.objects.get_mut(idx).unwrap();
+            o.parent_id = parent;
+            o.state = 31u8.rotate_left(4);
+            o.position = Vec3::new(x, 0.0, 0.0);
+            o.click_action = crate::interaction::code::NONE;
+            o.update_flags = 0;
+            let g = &mut scene.gpu[idx];
+            g.hud = true;
+            g.owner_avatar = Some(own);
+            g.center = o.position;
+            g.radius = 1.0;
+        }
+        scene.index_objects();
+        scene.build_huds(&world, [1280, 720], true);
+        let cursor = (640.0, 360.0);
+        let set_alpha = |world: &mut World, scene: &mut Scene, alpha: f32| {
+            Arc::make_mut(world.objects.get_mut(front).unwrap().te.as_mut().unwrap()).faces[0].color[3] = alpha;
+            let draw = &mut scene.gpu[front].faces[0];
+            draw.te_alpha = alpha;
+            draw.pass = if alpha < 0.004 { Pass::Hidden } else { Pass::Blend };
+        };
+        let set_media = |world: &mut World, on: bool| {
+            let face = &mut Arc::make_mut(world.objects.get_mut(front).unwrap().te.as_mut().unwrap()).faces[0];
+            face.media_flags = if on { face.media_flags | 1 } else { face.media_flags & !1 };
+        };
+        let targets = |world: &World, scene: &mut Scene| {
+            let press = scene.hud_click_pick(world, cursor).map(|(idx, _, _)| idx);
+            let hover = scene.hover_hud(world, cursor);
+            assert_eq!(hover, press, "hover and press disagree");
+            press
+        };
+
+        // An invisible button with no script of its own (the touch script
+        // is in the root) takes the press over the panel behind it.
+        set_alpha(&mut world, &mut scene, 0.0);
+        assert_eq!(targets(&world, &mut scene), Some(front), "invisible button");
+        world.objects.get_mut(back).unwrap().update_flags = crate::ui::context::flags::HANDLE_TOUCH;
+        assert_eq!(targets(&world, &mut scene), Some(front), "invisible button over a scripted panel");
+        world.objects.get_mut(back).unwrap().update_flags = 0;
+
+        set_media(&mut world, true);
+        assert_eq!(targets(&world, &mut scene), Some(back), "plain alpha-zero media panel");
+        // Beacon and poser checks still see the panel itself.
+        assert_eq!(scene.hud_pick(&world, cursor, false).unwrap().0, front);
+
+        // A scripted button behind the invisible media panel takes hover and press.
+        world.objects.get_mut(back).unwrap().update_flags = crate::ui::context::flags::HANDLE_TOUCH;
+        assert_eq!(targets(&world, &mut scene), Some(back), "scripted button behind");
+        world.objects.get_mut(back).unwrap().update_flags = 0;
+
+        // 1/255 is a valid nonzero alpha: the face stays the target.
+        set_alpha(&mut world, &mut scene, 1.0 / 255.0);
+        assert_eq!(targets(&world, &mut scene), Some(front), "alpha 1/255");
+
+        // Special hover cursors keep a transparent front media face.
+        set_alpha(&mut world, &mut scene, 0.0);
+        for (click_action, flags) in [
+            (crate::interaction::code::SIT, 0),
+            (crate::interaction::code::NONE, crate::ui::context::flags::HANDLE_TOUCH),
+            (crate::interaction::code::NONE, 1), // FLAGS_USE_PHYSICS
+        ] {
+            let o = world.objects.get_mut(front).unwrap();
+            o.click_action = click_action;
+            o.update_flags = flags;
+            assert_eq!(targets(&world, &mut scene), Some(front), "special cursor {click_action}/{flags:#x}");
+        }
+
+        // A face-HUD linkset: touch script only on the root, invisible child
+        // button still takes press, hover, and hold UV (#3394 / LeLutka Axis).
+        let root_local = world.objects.get(back).unwrap().key.local_id;
+        world.objects.get_mut(front).unwrap().parent_id = root_local;
+        world.objects.get_mut(front).unwrap().click_action = crate::interaction::code::NONE;
+        world.objects.get_mut(front).unwrap().update_flags = 0;
+        world.objects.get_mut(back).unwrap().parent_id = parent;
+        world.objects.get_mut(back).unwrap().update_flags = crate::ui::context::flags::HANDLE_TOUCH;
+        set_media(&mut world, false);
+        set_alpha(&mut world, &mut scene, 0.0);
+        assert_eq!(targets(&world, &mut scene), Some(front), "linkset invisible child");
+        let (_, _, ray) = scene.hud_click_pick(&world, cursor).unwrap();
+        let touch = scene.left_touch_surface(&world, front, ray).expect("hold UV on invisible child");
+        assert_eq!(touch.face, 0);
+        let target = crate::interaction::target(&world, front, &std::collections::HashMap::new()).expect("root touch");
+        assert_eq!(target.action, crate::interaction::Action::Touch);
+        assert_eq!(target.key, world.objects.get(front).unwrap().key);
     }
 
     #[test]

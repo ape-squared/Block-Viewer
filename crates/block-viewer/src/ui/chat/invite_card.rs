@@ -41,21 +41,32 @@ struct Texts {
 fn texts(env: &LineEnv, line: &ChatLine, v: &Invite) -> Texts {
     let name = env.world.person_name(&v.from).unwrap_or_else(|| line.from.clone());
     match &v.kind {
-        InviteKind::Offer { place, .. } => Texts {
-            title: block_i18n::tr!("world-mod-offers-you-a-teleport", from = name),
-            place: place.as_ref().and_then(|p| Some(crate::slurl::make(p.region.as_deref()?, p.pos))),
-            message: without_own_place(&v.message, place.as_ref()).to_owned(),
-            question: rating_note(v.rating),
-            buttons: (
-                if matches!(v.rating, Rating::Exceeded(_)) {
-                    block_i18n::tr!("ui-chat-invite-change-and-continue")
+        InviteKind::Offer { place, .. } => {
+            let showloc = env.world.rlva.has("showloc");
+            Texts {
+                title: block_i18n::tr!("world-mod-offers-you-a-teleport", from = name),
+                place: if showloc {
+                    None
                 } else {
-                    block_i18n::tr!("common-teleport-3")
-                }
-                .into(),
-                block_i18n::tr!("ui-notifications-decline").into(),
-            ),
-        },
+                    place.as_ref().and_then(|p| Some(crate::slurl::make(p.region.as_deref()?, p.pos)))
+                },
+                message: if showloc {
+                    block_i18n::tr!("rlva-hidden-generic").into()
+                } else {
+                    without_own_place(&v.message, place.as_ref()).to_owned()
+                },
+                question: rating_note(v.rating),
+                buttons: (
+                    if matches!(v.rating, Rating::Exceeded(_)) {
+                        block_i18n::tr!("ui-chat-invite-change-and-continue")
+                    } else {
+                        block_i18n::tr!("common-teleport-3")
+                    }
+                    .into(),
+                    block_i18n::tr!("ui-notifications-decline").into(),
+                ),
+            }
+        }
         InviteKind::Request => Texts {
             title: block_i18n::tr!("world-teleport-invites-requests-a-teleport", from = name),
             place: None,

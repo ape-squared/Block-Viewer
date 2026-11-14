@@ -111,6 +111,13 @@ impl Pending {
 
 impl App {
     pub(in crate::app) fn queue_landmark_portal(&mut self, item: uuid::Uuid, point: Vec3, shift: bool) {
+        if !self.world.rlva_can_teleport_landmark() {
+            self.world.system_notice(
+                block_i18n::tr!("rlva-blocked"),
+                crate::world::notice_topics::Topic::Items,
+            );
+            return;
+        }
         let Some(cargo) = cargo(&self.world.inventory, item).filter(|item| !item.asset_id.is_nil()) else {
             self.portal_drop_notice("portal-landmark-unavailable");
             return;

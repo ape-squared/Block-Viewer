@@ -269,7 +269,10 @@ impl World {
                 (flags & control::STAND_UP == 0 || !blocked("unsit"))
                     && (flags & control::SIT_ON_GROUND == 0 || (!blocked("sit") && !(self.agent.is_sitting() && blocked("unsit"))))
             }
-            NetCommand::SetAlwaysRun(true) => !blocked("alwaysrun"),
+            // Permanent Always Run (Ctrl+R) is refused in `App::set_always_run`.
+            // Double-tap temporary run also uses SetAlwaysRun on the wire and
+            // must keep working under `@alwaysrun=n` (Legacy / Firestorm).
+            NetCommand::SetAlwaysRun(_) => true,
             NetCommand::BuyObject { .. } => !blocked("buy"),
             NetCommand::PayObject { .. } => !blocked("buy"),
             NetCommand::PayResident { .. } => !blocked("pay"),

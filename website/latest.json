@@ -1,5 +1,6 @@
 {
-  "version": "0.2.2",
-  "tag": "v0.2.2",
-  "asset": "Block-Viewer-v0.2.2-windows-x64.zip"
+  "version": "0.2.21",
+  "tag": "v0.2.21",
+  "asset": "Block-Viewer-v0.2.21-windows-x64.zip",
+  "mac_asset": "Block-Viewer-v0.2.21-macos-arm64.dmg"
 }

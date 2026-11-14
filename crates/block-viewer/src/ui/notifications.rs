@@ -122,6 +122,10 @@ pub fn bell(ui: &mut egui::Ui, p: &Palette, icons: &Icons, unread: usize, open: 
             );
         }
         if unread > 0 {
+            let painter = ui.ctx().layer_painter(ui.layer_id());
+            let dot_at = rect.right_top() + Vec2::new(-1.0, 2.0);
+            painter.circle_filled(dot_at, 5.75, p.bar);
+            painter.circle_filled(dot_at, 4.5, if dnd { p.muted } else { p.danger });
             super::bars::islands::count(ui, p, rect, unread, 1.0, dnd);
         }
         return resp.on_hover_text(tip);
@@ -148,9 +152,18 @@ pub fn bell(ui: &mut egui::Ui, p: &Palette, icons: &Icons, unread: usize, open: 
             .image(t.id(), r, egui::Rect::from_min_max(egui::pos2(0.0, 0.0), egui::pos2(1.0, 1.0)), col);
     }
     if unread > 0 {
-        // the interface's one counter, 3 px past the button's right edge
-        let anchor = rect.right_top() + Vec2::new(3.0, 0.0);
-        super::widgets::unread_count(ui.painter(), p, anchor, unread, super::widgets::CountSize::Bar);
+        let painter = ui.ctx().layer_painter(ui.layer_id());
+        let dot_at = rect.right_top() + Vec2::new(-1.0, 2.0);
+        painter.circle_filled(dot_at, 5.75, p.bar);
+        painter.circle_filled(dot_at, 4.5, if dnd { p.muted } else { p.danger });
+        // Numeric count beside the dot; paint above the bar clip.
+        let anchor = rect.right_top() + Vec2::new(6.0, 0.0);
+        super::widgets::UnreadCount::new(unread, super::widgets::CountSize::Bar).paint(
+            &painter,
+            p,
+            anchor,
+            egui::Align2::LEFT_TOP,
+        );
     }
     resp.on_hover_text(tip)
 }

@@ -110,13 +110,13 @@ pub(super) fn row(
 ) {
     let organizing = tool.ui.layout.organizing;
     let height = if item.navigation() {
-        34.0
+        40.0
     } else if matches!(item, Item::Manipulators | Item::Actions) {
-        28.0
+        34.0
     } else if item == Item::Snap && !organizing && s.snap_mode() == crate::build::SnapMode::Objects {
         SNAP_ROWS_HEIGHT
     } else {
-        24.0
+        28.0
     };
     let rect = ui
         .allocate_exact_size(Vec2::new(ui.available_width(), height), egui::Sense::hover())
@@ -467,7 +467,7 @@ pub(super) fn settings(ctx: &egui::Context, p: &Palette, tool: &mut BuildTool, w
         if right { anchor.right() + 8.0 } else { anchor.left() - width - 8.0 }.clamp(work.left(), (work.right() - width).max(work.left()));
     let bottom = anchor.bottom().min(work.bottom());
     let area = egui::Area::new(egui::Id::unique("construction-settings"))
-        .order(egui::Order::Middle)
+        .order(egui::Order::Foreground)
         .pivot(egui::Align2::LEFT_BOTTOM)
         .fixed_pos(egui::pos2(x, bottom))
         .movable(false);

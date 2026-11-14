@@ -16195,7 +16195,9 @@ impl App {
                         let picture = ui::crosshair::picture(&ctx, crosshair);
                         ui::crosshair::draw(&painter, c, crosshair, picture.as_ref());
                     }
-                    if self.settings.camera.show_mouselook_instructions {
+                    // Pref off, or Hide Interface (clean recording): no on-screen
+                    // "Press Esc" chrome.
+                    if self.settings.camera.show_mouselook_instructions && !self.interface.hidden {
                         // LLViewerWindow::drawMouselookInstructions: the way
                         // out, half transparent above the bottom bar (the
                         // hidden cursor cannot reach its button)

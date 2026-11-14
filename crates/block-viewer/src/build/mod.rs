@@ -663,7 +663,7 @@ impl Default for BuildSettings {
             limit_drag_distance: true,
             max_drag_distance: MAX_DRAG_DISTANCE,
             gizmo_scale: 1.0,
-            tool_button_scale: 1.0,
+            tool_button_scale: 1.25,
         }
     }
 }

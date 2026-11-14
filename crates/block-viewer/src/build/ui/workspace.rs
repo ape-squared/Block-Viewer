@@ -2,8 +2,8 @@
 use super::INSPECTOR_ID;
 use crate::ui::widgets;
 use egui::{Vec2, vec2};
-pub(super) const DEFAULT_SIZE: Vec2 = vec2(350.0, 820.0);
-pub(super) const MIN_SIZE: Vec2 = vec2(344.0, 420.0);
+pub(super) const DEFAULT_SIZE: Vec2 = vec2(380.0, 840.0);
+pub(super) const MIN_SIZE: Vec2 = vec2(360.0, 440.0);
 
 /// A reproducible initial size for captures; production uses the floater's
 /// ordinary saved geometry; the style override is limited to this demo run.

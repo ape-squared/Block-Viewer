@@ -668,8 +668,9 @@ fn ownership_permissions(
     let everyone = perm_state(&refs, |x| x.everyone_mask);
     let next = perm_state(&refs, |x| x.next_owner_mask);
     label(ui, p, block_i18n::tr!("build-ui-general-anyone"));
-    ui.horizontal(|ui| {
-        ui.add_space(12.0);
+    ui.horizontal_wrapped(|ui| {
+        ui.spacing_mut().item_spacing = egui::vec2(14.0, 6.0);
+        ui.add_space(8.0);
         let (v, t) = bit(everyone, perm::MOVE);
         if let Some(n) = check(
             ui,
@@ -695,9 +696,11 @@ fn ownership_permissions(
             }
         }
     });
+    ui.add_space(4.0);
     label(ui, p, block_i18n::tr!("build-ui-general-next-owner"));
-    ui.horizontal(|ui| {
-        ui.add_space(12.0);
+    ui.horizontal_wrapped(|ui| {
+        ui.spacing_mut().item_spacing = egui::vec2(14.0, 6.0);
+        ui.add_space(8.0);
         let next_ok = can_sell && owner.0 & perm::TRANSFER != 0;
         let (v, t) = bit(next, perm::MODIFY);
         if let Some(n) = check(ui, p, v, t, block_i18n::tr!("common-edit"), next_ok && base.0 & perm::MODIFY != 0) {

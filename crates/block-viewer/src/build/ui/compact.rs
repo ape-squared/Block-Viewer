@@ -123,11 +123,11 @@ fn band<R>(ui: &mut egui::Ui, fill: egui::Color32, x: i8, y: i8, body: impl FnOn
 
 pub fn icon_button(ui: &mut egui::Ui, p: &Palette, name: &str, title: &str, enabled: bool) -> egui::Response {
     ui.add_enabled_ui(enabled, |ui| {
-        let (rect, response) = ui.allocate_exact_size(Vec2::new(22.0, 24.0), egui::Sense::click());
+        let (rect, response) = ui.allocate_exact_size(Vec2::new(28.0, 28.0), egui::Sense::click());
         if response.hovered() && enabled {
             ui.painter().rect_filled(rect, ui.visuals().window_corner_radius, p.raised);
         }
-        let glyph_rect = egui::Rect::from_center_size(rect.center(), Vec2::splat(14.0));
+        let glyph_rect = egui::Rect::from_center_size(rect.center(), Vec2::splat(16.0));
         #[cfg(test)]
         ui.ctx()
             .data_mut(|d| d.insert_temp(egui::Id::unique(("compact_icon_glyph", name)), glyph_rect));
@@ -221,8 +221,8 @@ pub(super) fn manipulation(ui: &mut egui::Ui, p: &Palette, tool: &mut BuildTool,
         ui.horizontal(|ui| {
             ui.spacing_mut().item_spacing.x = 4.0;
             let scale = s.tool_button_scale();
-            let height = (26.0 * scale).round().clamp(20.0, 52.0);
-            let icon_size = (17.0 * scale).round().clamp(14.0, 28.0);
+            let height = (32.0 * scale).round().clamp(28.0, 56.0);
+            let icon_size = (18.0 * scale).round().clamp(16.0, 28.0);
             for (mode, icon, title) in [
                 (EditMode::Move, "arrows-move", block_i18n::tr!("build-compact-move")),
                 (EditMode::Rotate, "rotate-clockwise", block_i18n::tr!("build-compact-rotate")),
@@ -233,7 +233,7 @@ pub(super) fn manipulation(ui: &mut egui::Ui, p: &Palette, tool: &mut BuildTool,
                     block_i18n::tr!("build-compact-align"),
                 ),
             ] {
-                let width = ((ui.max_rect().width() - 12.0) / 4.0).max(24.0 * scale);
+                let width = ((ui.max_rect().width() - 12.0) / 4.0).max(32.0 * scale);
                 let (rect, response) = ui.allocate_exact_size(Vec2::new(width, height), egui::Sense::click());
                 let active = tool.effective_mode(mods) == mode;
                 ui.painter().rect_filled(
@@ -264,7 +264,7 @@ pub(super) fn manipulation(ui: &mut egui::Ui, p: &Palette, tool: &mut BuildTool,
 }
 
 pub(super) fn rail_button(ui: &mut egui::Ui, p: &Palette, icon: &str, title: &str, active: bool, height: f32) -> bool {
-    let (rect, response) = ui.allocate_exact_size(Vec2::new(34.0, height), egui::Sense::click());
+    let (rect, response) = ui.allocate_exact_size(Vec2::new(40.0, height), egui::Sense::click());
     if active || response.hovered() {
         ui.painter().rect_filled(
             rect,
@@ -277,7 +277,7 @@ pub(super) fn rail_button(ui: &mut egui::Ui, p: &Palette, icon: &str, title: &st
     }
     glyph(
         ui,
-        egui::Rect::from_center_size(rect.center(), Vec2::splat(18.0)),
+        egui::Rect::from_center_size(rect.center(), Vec2::splat(20.0)),
         icon,
         if active { p.violet_light } else { p.muted },
     );
@@ -297,7 +297,7 @@ fn grid_mode_button(ui: &mut egui::Ui, p: &Palette, tool: &mut BuildTool, world:
     } else {
         crate::ui::widgets::ActionKind::Flat
     };
-    let response = crate::ui::widgets::action_button(ui, p, "", "", kind, Vec2::new(26.0, 26.0));
+    let response = crate::ui::widgets::action_button(ui, p, "", "", kind, Vec2::new(32.0, 32.0));
     #[cfg(test)]
     ui.ctx()
         .data_mut(|d| d.insert_temp(egui::Id::unique(("build_grid_mode", mode)), response.rect));
@@ -367,10 +367,10 @@ pub(super) fn footer(ui: &mut egui::Ui, p: &Palette, tool: &mut BuildTool, world
 }
 
 fn navigation_height(s: &BuildSettings) -> f32 {
-    // Each navigation row is 34 points with 3 points of spacing, inside a
+    // Each navigation row is 40 points with 4 points of spacing, inside a
     // five-point band. Hidden icons release their space immediately.
     let count = s.layout.in_panel(crate::build::layout::Panel::Navigation).len();
-    (count as f32 * 37.0 - 3.0).max(0.0) + 10.0
+    (count as f32 * 44.0 - 4.0).max(0.0) + 10.0
 }
 
 fn shared_heights(tool: &BuildTool, s: &BuildSettings) -> (f32, f32) {
@@ -384,14 +384,14 @@ fn shared_heights(tool: &BuildTool, s: &BuildSettings) -> (f32, f32) {
         .iter()
         .map(|item| {
             if matches!(item, Item::Manipulators | Item::Actions) {
-                31.0
+                38.0
             } else {
-                27.0
+                32.0
             }
         })
         .sum::<f32>()
         + 12.0;
-    (footer.max(42.0), if s.transform_expanded { 190.0 } else { 34.0 })
+    (footer.max(48.0), if s.transform_expanded { 210.0 } else { 40.0 })
 }
 
 pub(super) fn minimum_size(tool: &BuildTool, s: &BuildSettings) -> Vec2 {
@@ -418,13 +418,14 @@ fn pane(ui: &mut egui::Ui, rect: egui::Rect, salt: &str) -> egui::Ui {
 fn transform(ui: &mut egui::Ui, p: &Palette, tool: &mut BuildTool, world: &mut World, s: &mut BuildSettings, mods: Mods) {
     if !s.transform_expanded {
         ui.horizontal(|ui| {
+            ui.spacing_mut().item_spacing.x = 6.0;
             if icon_button(ui, p, "caret-right-filled", block_i18n::tr!("build-layout-transform"), true).clicked() {
                 s.transform_expanded = true;
             }
-            let width = (ui.available_width() - 116.0).max(1.0);
+            let width = (ui.available_width() - 140.0).max(1.0);
             if ui
                 .add_sized(
-                    [width, 26.0],
+                    [width, 28.0],
                     egui::Label::new(
                         RichText::new(block_i18n::tr!("build-layout-transform"))
                             .size(common::BODY)
@@ -445,10 +446,13 @@ fn transform(ui: &mut egui::Ui, p: &Palette, tool: &mut BuildTool, world: &mut W
         return;
     }
     let rect = ui.available_rect_before_wrap();
-    let split = rect.right() - 34.0;
+    // Dedicated reference column so World/Local/Reference + settings no longer
+    // sit on top of the Position/Size/Rotation fields.
+    let strip_w = 40.0;
+    let split = rect.right() - strip_w;
     let mut values = pane(
         ui,
-        egui::Rect::from_min_max(rect.min, egui::pos2(split - 5.0, rect.bottom())),
+        egui::Rect::from_min_max(rect.min, egui::pos2(split - 8.0, rect.bottom())),
         "shared-values",
     );
     egui::ScrollArea::vertical()
@@ -463,14 +467,17 @@ fn transform(ui: &mut egui::Ui, p: &Palette, tool: &mut BuildTool, world: &mut W
         egui::Rect::from_min_max(egui::pos2(split, rect.top()), rect.max),
         "reference-strip",
     );
-    for mode in 0..3 {
-        grid_mode_button(&mut strip, p, tool, world, s, mode);
-    }
-    strip.add_space((rect.height() - 5.0 * 29.0).max(0.0));
-    layout::gear(&mut strip, p, tool);
-    if icon_button(&mut strip, p, "caret-down-filled", block_i18n::tr!("build-layout-transform"), true).clicked() {
-        s.transform_expanded = false;
-    }
+    band(&mut strip, p.bar.gamma_multiply(0.82), 4, 4, |ui| {
+        ui.spacing_mut().item_spacing.y = 6.0;
+        for mode in 0..3 {
+            grid_mode_button(ui, p, tool, world, s, mode);
+        }
+        ui.add_space((rect.height() - 5.0 * 40.0).max(0.0));
+        layout::gear(ui, p, tool);
+        if icon_button(ui, p, "caret-down-filled", block_i18n::tr!("build-layout-transform"), true).clicked() {
+            s.transform_expanded = false;
+        }
+    });
 }
 
 pub fn body(ui: &mut egui::Ui, p: &Palette, tool: &mut BuildTool, world: &mut World, s: &mut BuildSettings, mods: Mods, env: &mut Env) {
@@ -491,20 +498,21 @@ pub fn body(ui: &mut egui::Ui, p: &Palette, tool: &mut BuildTool, world: &mut Wo
     let footer_height = desired_footer * ratio;
     let values_height = desired_values * ratio;
     let primary_bottom = rect.bottom() - footer_height - values_height;
+    let rail_w = 52.0;
     let mut rail = pane(
         ui,
-        egui::Rect::from_min_max(rect.min, egui::pos2(rect.left() + 44.0, primary_bottom)),
+        egui::Rect::from_min_max(rect.min, egui::pos2(rect.left() + rail_w, primary_bottom)),
         "construction-rail",
     );
     #[cfg(test)]
     ui.ctx()
         .data_mut(|d| d.insert_temp(egui::Id::unique("build_navigation_viewport"), rail.clip_rect()));
-    band(&mut rail, p.bar.gamma_multiply(0.82), 5, 5, |ui| {
+    band(&mut rail, p.bar.gamma_multiply(0.82), 6, 6, |ui| {
         layout::panel(ui, p, tool, world, s, mods, Panel::Navigation);
     });
     let mut main = pane(
         ui,
-        egui::Rect::from_min_max(egui::pos2(rect.left() + 44.0, rect.top()), egui::pos2(rect.right(), primary_bottom)),
+        egui::Rect::from_min_max(egui::pos2(rect.left() + rail_w, rect.top()), egui::pos2(rect.right(), primary_bottom)),
         "construction-primary",
     );
     band(&mut main, egui::Color32::TRANSPARENT, 10, 8, |ui| {

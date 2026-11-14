@@ -130,6 +130,7 @@ const BEFORE: &[&str] = &[
     "favorites_access",
     "show_net_stats",
     "show_balance",
+    "streamer_mode",
     "standalone_place_details",
     "loading_backdrop",
     "reduce_motion",

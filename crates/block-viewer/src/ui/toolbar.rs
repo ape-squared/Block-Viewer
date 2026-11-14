@@ -277,6 +277,8 @@ pub struct ToolbarUi {
     pub shown: Shown,
     /// "Show Friends Only" is on (FSRenderFriendsOnly).
     pub friends_only_active: bool,
+    /// Streamer mode is on (Preferences › Layout › Streamer mode).
+    pub streamer_mode_active: bool,
     pub movelock_status: String,
     /// The violet of the Grid status button's flash (0: none), given by
     /// the app on a new entry of the grid's status feed.

@@ -159,6 +159,7 @@ fn status(classic: bool) -> StatusInfo<'static> {
         double_click: Default::default(),
         quickjump: false,
         friends_only: false,
+        streamer_mode: false,
         fly_override: false,
         quiet_snapshots: false,
         marketplace: false,

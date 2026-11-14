@@ -70,7 +70,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="site.css?v=14">
+  <link rel="stylesheet" href="site.css?v=15">
 </head>
 <body class="page-home">
   <a class="skip" href="#top">Skip to content</a>
@@ -93,7 +93,7 @@
       <a href="testers/">Testers</a>
       <a href="foundation/">Foundation</a>
     </nav>
-    <a class="btn btn-primary nav-cta" href="download/">Download</a>
+    <a class="btn btn-primary nav-cta" data-latest-download href="download/" download>Download</a>
   </header>
 
   <main id="top">
@@ -118,8 +118,8 @@
           Open source under GPLv3 — early 0.x for friends and testers.
         </p>
         <div class="hero-actions">
-          <a class="btn btn-primary btn-download" data-latest-download href="download/">
-            <span class="btn-main">Download for Windows</span>
+          <a class="btn btn-primary btn-download" data-latest-download href="download/" download>
+            <span class="btn-main">Download</span>
             <span class="btn-sub" data-latest-version>latest release</span>
           </a>
           <a class="btn btn-ghost" href="#features">What’s inside</a>
@@ -206,8 +206,8 @@
           </dl>
         </div>
         <div class="download-action">
-          <a class="btn btn-primary btn-download btn-download-lg" data-latest-download href="https://github.com/ape-squared/Block-Viewer/releases/latest">
-            <span class="btn-main">Windows x64</span>
+          <a class="btn btn-primary btn-download btn-download-lg" data-latest-download href="download/" download>
+            <span class="btn-main">Download</span>
             <span class="btn-sub" data-latest-version>latest release</span>
           </a>
           <p class="download-links">
@@ -294,10 +294,10 @@
     <section class="cta reveal">
       <div class="cta-inner">
         <h2>Be first to open a block.</h2>
-        <p>Download the Windows build. Sister injector lives at <a href="https://ape-squared.github.io/Block-GPPI/">Block-GPPI</a> — different product, different download.</p>
+        <p>Download the latest build. Sister injector lives at <a href="https://ape-squared.github.io/Block-GPPI/">Block-GPPI</a> — different product, different download.</p>
         <div class="cta-actions">
-          <a class="btn btn-dark" href="download/">Download</a>
-          <a class="btn btn-dark-ghost" href="https://github.com/ape-squared/Block-Viewer">GitHub</a>
+          <a class="btn btn-dark" data-latest-download href="download/" download>Download</a>
+          <a class="btn btn-dark-ghost" href="download/">Install notes</a>
         </div>
       </div>
     </section>
@@ -319,6 +319,6 @@
     <p class="legal">Independent open-source project. Not affiliated with Linden Lab.</p>
   </footer>
 
-  <script src="app.js?v=11" defer></script>
+  <script src="app.js?v=12" defer></script>
 </body>
 </html>

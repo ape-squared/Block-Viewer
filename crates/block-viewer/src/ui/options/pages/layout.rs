@@ -9,6 +9,11 @@ pub fn page(cx: &mut Cx, tab: usize) {
     match tab {
         0 => {
             cx.group(tr!("ui-options-bars"), |cx| {
+                cx.toggle(
+                    tr!("ui-options-streamer-mode"),
+                    tr!("ui-options-streamer-mode-help"),
+                    &field!(streamer_mode),
+                );
                 cx.toggle(tr!("bug-toolbar"), tr!("bug-toolbar-help"), &field!(show_bug_report));
                 // the place island of the Aurora bars (also in its right-click menu)
                 cx.toggle(

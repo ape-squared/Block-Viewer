@@ -189,6 +189,8 @@ pub enum BarAction {
     HideInterface,
     /// Immersive mode (#859): the interface hidden but the chat.
     ToggleImmersive,
+    /// Streamer / creator capture mode (immersive + fullscreen chrome).
+    ToggleStreamerMode,
     /// The HUDs shown or hidden in immersive mode (#1190).
     ImmersiveHuds(bool),
     /// World › World tooltips: the three checks, as they are now.
@@ -263,6 +265,8 @@ pub struct StatusInfo<'a> {
     pub quickjump: bool,
     /// Show Friends Only is on (World › Show Friends only).
     pub friends_only: bool,
+    /// Streamer mode is on (Me › Streamer mode / Preferences › Layout).
+    pub streamer_mode: bool,
     /// The fly override is on (Me › Fly override).
     pub fly_override: bool,
     /// Photos are taken without the shutter sound nor the snapshot
@@ -826,6 +830,9 @@ fn main_menus(ui: &mut egui::Ui, p: &Palette, panels: &mut Panels, st: &StatusIn
         }
         if immersive_item(ui, p) {
             *action = BarAction::ToggleImmersive;
+        }
+        if menu::check(ui, p, "broadcast", block_i18n::tr!("ui-bars-streamer-mode"), st.streamer_mode, true) {
+            *action = BarAction::ToggleStreamerMode;
         }
         menu::separator(ui, p);
         if menu::item(ui, p, "logout", block_i18n::tr!("ui-bars-log-out")) {
@@ -2212,6 +2219,7 @@ pub fn run_command(ctx: &egui::Context, cmd: &str, panels: &mut Panels) -> BarAc
         "resync_animations" => return BarAction::ResyncAnimations,
         "vr_view" => return BarAction::ToggleVr,
         "immersive" => return BarAction::ToggleImmersive,
+        "streamer_mode" => return BarAction::ToggleStreamerMode,
         _ => {}
     }
     BarAction::None
@@ -2963,6 +2971,8 @@ pub(crate) fn toolbar_row(
             toolbar.chat_bar_active
         } else if b.command == "RFO" {
             toolbar.friends_only_active
+        } else if b.command == "streamer_mode" {
+            toolbar.streamer_mode_active
         } else if b.command == "vr_view" {
             ui.ctx()
                 .data(|data| data.get_temp::<bool>(egui::Id::unique("vr-active")))

@@ -160,15 +160,10 @@
         el.setAttribute("data-platform", platform);
         const main = el.querySelector(".btn-main");
         if (main && !el.hasAttribute("data-keep-label")) {
-          main.textContent =
-            platform === "mac" ? "Download for macOS" : "Download for Windows";
-        }
-        const sub = el.querySelector(".btn-sub:not([data-latest-version])");
-        if (sub && !el.hasAttribute("data-keep-label")) {
-          sub.textContent = platform === "mac" ? "Apple silicon DMG · " + tag : "portable zip · " + tag;
+          main.textContent = "Download";
         }
         if (!el.classList.contains("btn-download") && !el.querySelector(".btn-main")) {
-          el.textContent = "Download " + asset.name;
+          el.textContent = "Download";
         }
       });
     };

@@ -1,6 +1,6 @@
 # Dev Toolbox
 
-The Dev Toolbox gathers the viewer's debug tools in one window: wolf menu ›
+The Dev Toolbox gathers the viewer's debug tools in one window: Block menu ›
 Advanced › Dev Toolbox, or **Ctrl+Alt+D** (Preferences › Shortcuts). It
 replaces the former Preferences › Debug page.
 

@@ -313,16 +313,23 @@ pub fn bell(
         .map(|t| ((now - t) / BUMP) as f32)
         .filter(|t| *t < 1.0)
         .map_or(1.0, |t| 1.0 + 0.45 * (t * std::f32::consts::PI).sin());
-    if unread > 0 && island {
-        super::bars::islands::count(ui, p, rect, unread, s, dnd);
-    } else if unread > 0 {
-        // the interface's one counter, pinned by its top right corner: the
-        // bounce grows inside the bar
-        let anchor = rect.right_top() + Vec2::new(3.0, -1.0);
-        super::widgets::UnreadCount::new(unread, super::widgets::CountSize::Bar)
-            .scale(s)
-            .paused(dnd)
-            .paint(ui.painter(), p, anchor, egui::Align2::RIGHT_TOP);
+    if unread > 0 {
+        // Paint above the bar clip so the unread marker is never cropped.
+        let painter = ui.ctx().layer_painter(ui.layer_id());
+        let dot_at = rect.right_top() + Vec2::new(-1.0, 2.0);
+        let radius = 4.5 * s;
+        painter.circle_filled(dot_at, radius + 1.25, p.bar);
+        painter.circle_filled(dot_at, radius, if dnd { p.muted } else { p.danger });
+        if island {
+            super::bars::islands::count(ui, p, rect, unread, s, dnd);
+        } else {
+            // Numeric count beside the dot when there is room on classic bars.
+            let anchor = rect.right_top() + Vec2::new(6.0, -1.0);
+            super::widgets::UnreadCount::new(unread, super::widgets::CountSize::Bar)
+                .scale(s)
+                .paused(dnd)
+                .paint(&painter, p, anchor, egui::Align2::LEFT_TOP);
+        }
     }
     let tip = if dnd {
         block_i18n::tr!("ui-notifications-bell-paused").to_owned()

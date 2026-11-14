@@ -125,6 +125,7 @@ pub struct CameraSettings {
     /// context menu in mouselook (otherwise the right button only zooms).
     pub mouselook_alt_right_menu: bool,
     /// FSShowMouselookInstructions: "Press Esc to return to world view".
+    /// Off (or Hide Interface) for clean recordings with nothing on screen.
     pub show_mouselook_instructions: bool,
     /// FSShowInterfaceInMouselook (FIRE-8868, off): the bars stay in
     /// mouselook; otherwise they go (LLAgent::changeCameraToMouselook) and

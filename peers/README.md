@@ -24,7 +24,7 @@ Edit them on GitHub — **no viewer rebuild** for new peers or nameplates.
 
 ## Updating without a rebuild
 
-1. **Website:** testers submit on [Tester signup](https://ape-squared.github.io/Block-Viewer/testers/) — a Cloudflare Worker commits `block-staff.json` + `block-peers.json` on `main` (or a GitHub issue with `<!-- block-tester-signup v1 -->` is closed by `.github/workflows/tester-signup.yml`).
+1. **Website:** testers submit on [Tester signup](https://blockviewer.org/testers/) — a Cloudflare Worker commits `block-staff.json` + `block-peers.json` on `main` (or a GitHub issue with `<!-- block-tester-signup v1 -->` is closed by `.github/workflows/tester-signup.yml`).
 2. **GitHub:** edit the file on `main` (or open a PR). Live clients pick it up on next launch (or next process start).
 3. **Discord bot / Actions:** `repository_dispatch` type `tester-signup` with `{ "username": "…" }`, or `workflow_dispatch` on **Tester signup**. Same schema — the viewer only reads the raw JSON URL.
 

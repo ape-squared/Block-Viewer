@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Roadmap — Block Viewer</title>
+  <meta name="description" content="Block Viewer product roadmap: what we are polishing now, what comes next, and what is further out in early 0.x.">
+  <meta name="robots" content="index, follow">
+  <link rel="canonical" href="https://blockviewer.org/roadmap/">
+  <link rel="icon" href="../assets/mark.svg" type="image/svg+xml">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Block Viewer">
+  <meta property="og:url" content="https://blockviewer.org/roadmap/">
+  <meta property="og:title" content="Roadmap — Block Viewer">
+  <meta property="og:description" content="What Block Viewer is polishing now, next, and later in early 0.x.">
+  <meta property="og:image" content="https://blockviewer.org/assets/shots/landscape-05.webp">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Roadmap — Block Viewer">
+  <meta name="twitter:description" content="What Block Viewer is polishing now, next, and later in early 0.x.">
+  <meta name="twitter:image" content="https://blockviewer.org/assets/shots/landscape-05.webp">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../site.css?v=20">
+</head>
+<body>
+  <a class="skip" href="#main">Skip to content</a>
+  <div class="atmosphere" aria-hidden="true"></div>
+  <header class="nav" data-nav>
+    <a class="brand" href="../" aria-label="Block Viewer home">
+      <img src="../assets/mark.svg" width="28" height="28" alt="">
+      <span>BLOCK</span>
+    </a>
+    <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="site-nav" data-nav-toggle>
+      <span class="nav-toggle-bar"></span>
+      <span class="sr-only">Menu</span>
+    </button>
+    <nav id="site-nav" class="nav-links" aria-label="Primary">
+      <a href="../download/">Download</a>
+      <a href="../#features">Features</a>
+      <a href="../docs/">Docs</a>
+      <a href="../faq/">FAQ</a>
+      <a class="is-active" href="./">Roadmap</a>
+      <a href="../testers/">Testers</a>
+      <a href="../foundation/">Foundation</a>
+    </nav>
+    <a class="btn btn-primary nav-cta" data-latest-download href="../download/" download>Download</a>
+  </header>
+
+  <main id="main" class="section page-shell page-roadmap">
+    <header class="page-hero reveal">
+      <p class="eyebrow">Direction · 0.x</p>
+      <h1>Roadmap</h1>
+      <p class="lede">
+        A living sketch of where Block Viewer is headed — not dates, not a contract.
+        Tester reports and GitHub issues move things up or aside. Ship when it is useful.
+      </p>
+      <p class="tester-quiet">
+        <a href="https://discord.gg/GrvBu5V985">Discord</a>
+        ·
+        <a href="../testers/">Testers hub</a>
+        ·
+        <a href="https://github.com/ape-squared/Block-Viewer/issues">GitHub issues</a>
+      </p>
+    </header>
+
+    <aside class="road-note reveal" aria-label="Third-party viewer disclaimer">
+      <p class="eyebrow">Third-party viewer</p>
+      <p>
+        Block Viewer is an independent Third Party Viewer (TPV). We are
+        <strong>contemplating</strong> whether to pursue Linden Lab’s TPV
+        verification — nothing here claims we are verified today.
+      </p>
+      <p>
+        Caution around unknown viewers is reasonable. We do not pressure or
+        guilt anyone into switching. Use Block only if you choose to; the
+        official viewer and other TPVs remain valid options.
+      </p>
+    </aside>
+
+    <ol class="road-map reveal">
+      <li class="road-band" data-phase="now">
+        <div class="road-meta">
+          <span class="tag tag-now">now</span>
+          <h2>Polish &amp; reliability</h2>
+        </div>
+        <ul class="road-items">
+          <li>
+            <strong>Bug pressure from the grid</strong>
+            <span>Triage crashes, HUD clicks, friends-only, chat visibility, and whatever testers hit next.</span>
+          </li>
+          <li>
+            <strong>Release cadence</strong>
+            <span>Keep Windows and macOS GitHub Releases moving with SemVer tags when something useful lands.</span>
+          </li>
+          <li>
+            <strong>Tester loop</strong>
+            <span>Discord, the testers hub, and in-viewer report paths so feedback becomes tracked issues.</span>
+          </li>
+        </ul>
+      </li>
+
+      <li class="road-band" data-phase="next">
+        <div class="road-meta">
+          <span class="tag tag-dev">next</span>
+          <h2>Platform &amp; creator flow</h2>
+        </div>
+        <ul class="road-items">
+          <li>
+            <strong>macOS &amp; Linux maturity</strong>
+            <span>Mac builds already ship; keep hardening. Linux stays docs-first until packaging is honest.</span>
+          </li>
+          <li>
+            <strong>Imports &amp; LiveMesh</strong>
+            <span>Smoother asset import and live mesh workflows for people building looks and props.</span>
+          </li>
+          <li>
+            <strong>RLVa coverage</strong>
+            <span>Grow protocol support where testers need it, without pretending full parity overnight.</span>
+          </li>
+        </ul>
+      </li>
+
+      <li class="road-band" data-phase="later">
+        <div class="road-meta">
+          <span class="tag">later</span>
+          <h2>Deeper passes</h2>
+        </div>
+        <ul class="road-items">
+          <li>
+            <strong>Performance &amp; memory</strong>
+            <span>Avatar load, texture budgets, and long-session comfort on real hardware.</span>
+          </li>
+          <li>
+            <strong>Environment &amp; media</strong>
+            <span>Richer sky/water/media tools when the core loop is boringly solid.</span>
+          </li>
+          <li>
+            <strong>Whatever the grid demands</strong>
+            <span>This list bends toward Discord and GitHub — features earn their place.</span>
+          </li>
+        </ul>
+      </li>
+
+      <li class="road-band" data-phase="shipped">
+        <div class="road-meta">
+          <span class="tag tag-done">shipped</span>
+          <h2>Already in 0.x</h2>
+        </div>
+        <ul class="road-items">
+          <li>
+            <strong>Vulkan world view</strong>
+            <span>Login, destinations, MFA, nearby chat / IM / groups / voice.</span>
+          </li>
+          <li>
+            <strong>Inventory &amp; appearance</strong>
+            <span>Outfits, AO, People / radar, environment tools, auto-update from Releases.</span>
+          </li>
+          <li>
+            <strong>Recent polish</strong>
+            <span>Friends-only Controls, chat bar / nearby visibility, HUD click fixes, Mac releases, testers hub + site.</span>
+          </li>
+        </ul>
+      </li>
+    </ol>
+
+    <p class="footnote reveal" style="margin-top:2rem;max-width:36rem">
+      Built on the open-source <a href="../foundation/">Aurora Viewer lineage</a>.
+      Want something on this list moved up? File it from the <a href="../testers/">testers hub</a>.
+    </p>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-row">
+      <a class="brand" href="../"><img src="../assets/mark.svg" width="22" height="22" alt=""><span>BLOCK VIEWER</span></a>
+      <nav class="footer-links" aria-label="Footer">
+        <a href="../download/">Download</a>
+        <a href="../docs/">Docs</a>
+        <a href="../faq/">FAQ</a>
+        <a href="./">Roadmap</a>
+        <a href="../testers/">Testers</a>
+        <a href="../foundation/">Foundation</a>
+        <a href="../privacy/">Privacy</a>
+        <a href="https://github.com/ape-squared/Block-Viewer">GitHub</a>
+      </nav>
+    </div>
+    <p class="legal">Independent open-source project. Not affiliated with Linden Lab.</p>
+  </footer>
+  <script src="../app.js?v=13" defer></script>
+</body>
+</html>

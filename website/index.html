@@ -4,16 +4,73 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Block Viewer — build your look, block by block</title>
-  <meta name="description" content="Block Viewer is an open-source Second Life client for Windows. Vulkan renderer, GPLv3. Download the portable zip and log in.">
-  <link rel="canonical" href="https://ape-squared.github.io/Block-Viewer/">
+  <meta name="description" content="Block Viewer is an open-source Second Life client for Windows and macOS. Vulkan renderer, GPLv3. Download the portable build and log in.">
+  <meta name="robots" content="index, follow, max-image-preview:large">
+  <meta name="theme-color" content="#0b0f0a">
+  <meta name="author" content="Block Viewer">
+  <link rel="canonical" href="https://blockviewer.org/">
+  <link rel="alternate" hreflang="en" href="https://blockviewer.org/">
   <link rel="icon" href="assets/mark.svg" type="image/svg+xml">
-  <meta property="og:title" content="Block Viewer">
-  <meta property="og:description" content="Open-source Second Life client for Windows — Vulkan, GPLv3.">
-  <meta property="og:image" content="https://ape-squared.github.io/Block-Viewer/assets/mark.svg">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Block Viewer">
+  <meta property="og:locale" content="en_US">
+  <meta property="og:url" content="https://blockviewer.org/">
+  <meta property="og:title" content="Block Viewer — build your look, block by block">
+  <meta property="og:description" content="Open-source Second Life client — Vulkan renderer, GPLv3. Download for Windows and macOS.">
+  <meta property="og:image" content="https://blockviewer.org/assets/shots/landscape-05.webp">
+  <meta property="og:image:alt" content="Block Viewer looking out over a Second Life landscape">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Block Viewer — build your look, block by block">
+  <meta name="twitter:description" content="Open-source Second Life client — Vulkan renderer, GPLv3. Download for Windows and macOS.">
+  <meta name="twitter:image" content="https://blockviewer.org/assets/shots/landscape-05.webp">
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "WebSite",
+        "@id": "https://blockviewer.org/#website",
+        "url": "https://blockviewer.org/",
+        "name": "Block Viewer",
+        "description": "Open-source Second Life client with a Vulkan renderer.",
+        "publisher": { "@id": "https://blockviewer.org/#org" }
+      },
+      {
+        "@type": "Organization",
+        "@id": "https://blockviewer.org/#org",
+        "name": "Block Viewer",
+        "url": "https://blockviewer.org/",
+        "logo": "https://blockviewer.org/assets/mark.svg",
+        "sameAs": [
+          "https://github.com/ape-squared/Block-Viewer",
+          "https://discord.gg/GrvBu5V985"
+        ]
+      },
+      {
+        "@type": "SoftwareApplication",
+        "@id": "https://blockviewer.org/#app",
+        "name": "Block Viewer",
+        "applicationCategory": "GameApplication",
+        "operatingSystem": "Windows, macOS",
+        "url": "https://blockviewer.org/",
+        "downloadUrl": "https://blockviewer.org/download/",
+        "image": "https://blockviewer.org/assets/shots/landscape-05.webp",
+        "description": "Open-source Second Life client with a Vulkan renderer. Early 0.x for friends and testers.",
+        "license": "https://www.gnu.org/licenses/gpl-3.0.html",
+        "offers": {
+          "@type": "Offer",
+          "price": "0",
+          "priceCurrency": "USD"
+        },
+        "publisher": { "@id": "https://blockviewer.org/#org" }
+      }
+    ]
+  }
+  </script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="site.css?v=14">
+  <link rel="stylesheet" href="site.css?v=20">
 </head>
 <body class="page-home">
   <a class="skip" href="#top">Skip to content</a>
@@ -32,10 +89,12 @@
       <a href="download/">Download</a>
       <a href="#features">Features</a>
       <a href="docs/">Docs</a>
+      <a href="faq/">FAQ</a>
+      <a href="roadmap/">Roadmap</a>
       <a href="testers/">Testers</a>
       <a href="foundation/">Foundation</a>
     </nav>
-    <a class="btn btn-primary nav-cta" href="download/">Download</a>
+    <a class="btn btn-primary nav-cta" data-latest-download href="download/" download>Download</a>
   </header>
 
   <main id="top">
@@ -60,8 +119,8 @@
           Open source under GPLv3 — early 0.x for friends and testers.
         </p>
         <div class="hero-actions">
-          <a class="btn btn-primary btn-download" data-latest-download href="download/">
-            <span class="btn-main">Download for Windows</span>
+          <a class="btn btn-primary btn-download" data-latest-download href="download/" download>
+            <span class="btn-main">Download</span>
             <span class="btn-sub" data-latest-version>latest release</span>
           </a>
           <a class="btn btn-ghost" href="#features">What’s inside</a>
@@ -148,8 +207,8 @@
           </dl>
         </div>
         <div class="download-action">
-          <a class="btn btn-primary btn-download btn-download-lg" data-latest-download href="https://github.com/ape-squared/Block-Viewer/releases/latest">
-            <span class="btn-main">Windows x64</span>
+          <a class="btn btn-primary btn-download btn-download-lg" data-latest-download href="download/" download>
+            <span class="btn-main">Download</span>
             <span class="btn-sub" data-latest-version>latest release</span>
           </a>
           <p class="download-links">
@@ -193,13 +252,13 @@
           <div class="section-head">
             <p class="eyebrow">Community</p>
             <h2>Discord is opening.</h2>
-            <p>We’re easing the server open for testers and friends. Jump in for releases, chat, and early access notes — bugs and ideas still go to the feedback board.</p>
+            <p>We’re easing the server open for testers and friends. Jump in for releases, chat, and early access notes — bugs and features go through the testers hub and GitHub.</p>
           </div>
           <ul class="support-links">
-            <li><a href="https://feedback.ape-squared.github.io/Block"><strong>Feedback</strong><span>Report bugs and ideas</span></a></li>
             <li><a href="https://github.com/ape-squared/Block-Viewer/releases"><strong>Releases</strong><span>Zips and changelogs</span></a></li>
             <li><a href="docs/"><strong>Docs</strong><span>Guides for testers</span></a></li>
-            <li><a href="testers/"><strong>Testers</strong><span>Get the nameplate mark</span></a></li>
+            <li><a href="roadmap/"><strong>Roadmap</strong><span>Now, next, and later</span></a></li>
+            <li><a href="testers/"><strong>Testers</strong><span>Bugs, Discord, nameplate</span></a></li>
             <li><a href="privacy/"><strong>Privacy</strong><span>What stays on your PC</span></a></li>
           </ul>
         </div>
@@ -236,10 +295,10 @@
     <section class="cta reveal">
       <div class="cta-inner">
         <h2>Be first to open a block.</h2>
-        <p>Download the Windows build. Sister injector lives at <a href="https://ape-squared.github.io/Block-GPPI/">Block-GPPI</a> — different product, different download.</p>
+        <p>Download the latest build. Sister injector lives at <a href="https://ape-squared.github.io/Block-GPPI/">Block-GPPI</a> — different product, different download.</p>
         <div class="cta-actions">
-          <a class="btn btn-dark" href="download/">Download</a>
-          <a class="btn btn-dark-ghost" href="https://github.com/ape-squared/Block-Viewer">GitHub</a>
+          <a class="btn btn-dark" data-latest-download href="download/" download>Download</a>
+          <a class="btn btn-dark-ghost" href="download/">Install notes</a>
         </div>
       </div>
     </section>
@@ -251,24 +310,17 @@
       <nav class="footer-links" aria-label="Footer">
         <a href="download/">Download</a>
         <a href="docs/">Docs</a>
+        <a href="faq/">FAQ</a>
+        <a href="roadmap/">Roadmap</a>
         <a href="testers/">Testers</a>
         <a href="foundation/">Foundation</a>
         <a href="privacy/">Privacy</a>
         <a href="https://github.com/ape-squared/Block-Viewer">GitHub</a>
-        <a href="https://github.com/ape-squared/Block-Viewer/blob/main/LICENSE">Licence</a>
       </nav>
     </div>
-    <p class="legal">
-      Block Viewer is an independent project by ape-squared.
-      Not affiliated with Linden Lab or Second Life®.
-      Not an official Aurora Viewer product.
-      Second Life is a trademark of Linden Research, Inc.
-      Sister site: <a href="https://ape-squared.github.io/Block-GPPI/">Block (GPPI)</a>.
-      Landscape backgrounds from Wikimedia Commons (CC0) —
-      see <a href="assets/shots/CREDITS.txt">image credits</a>.
-    </p>
+    <p class="legal">Independent open-source project. Not affiliated with Linden Lab.</p>
   </footer>
 
-  <script src="app.js?v=11" defer></script>
+  <script src="app.js?v=13" defer></script>
 </body>
 </html>

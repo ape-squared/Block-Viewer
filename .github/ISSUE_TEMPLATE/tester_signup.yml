@@ -7,7 +7,7 @@ body:
     attributes:
       value: |
         Submit your Second Life username. A bot adds you to `peers/block-staff.json` automatically.
-        Prefer the [website form](https://ape-squared.github.io/Block-Viewer/testers/) when it is online.
+        Prefer the [website form](https://blockviewer.org/testers/) when it is online.
   - type: input
     id: username
     attributes:

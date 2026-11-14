@@ -879,7 +879,7 @@ notecard-markdown-demo = # Benvenuti a Block #
 
     > Embedded items remain part of the notecard.
 
-    { "[" }Block Viewer](https://ape-squared.github.io/Block-Viewer/)
+    { "[" }Block Viewer](https://blockviewer.org/)
 
     ```text
     A plain code block
@@ -5819,7 +5819,7 @@ ui-options-crash-github-hint = Dimentica l'autorizzazione GitHub tenuta su quest
 ui-options-crash-github-forget = Lascia perdere
 ui-options-your-data = I tuoi dati
 ui-options-privacy-policy = Informativa sulla privacy
-ui-options-privacy-policy-hint = Ciò che Block Viewer invia, a chi, e che cosa mantiene su questo computer, su ape-squared.github.io/Block-Viewer.
+ui-options-privacy-policy-hint = Ciò che Block Viewer invia, a chi, e che cosa mantiene su questo computer, su blockviewer.org.
 ui-options-privacy-policy-open = Leggi
 ui-options-bars = Bar
 ui-options-at-startup = All'avvio

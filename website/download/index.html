@@ -4,13 +4,24 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Download — Block Viewer</title>
-  <meta name="description" content="Download Block Viewer for Windows. Portable zip from GitHub Releases — Vulkan client for Second Life.">
-  <link rel="canonical" href="https://ape-squared.github.io/Block-Viewer/download/">
+  <meta name="description" content="Download Block Viewer for Windows and macOS. Portable builds from GitHub Releases — Vulkan client for Second Life.">
+  <meta name="robots" content="index, follow">
+  <link rel="canonical" href="https://blockviewer.org/download/">
   <link rel="icon" href="../assets/mark.svg" type="image/svg+xml">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Block Viewer">
+  <meta property="og:url" content="https://blockviewer.org/download/">
+  <meta property="og:title" content="Download — Block Viewer">
+  <meta property="og:description" content="Download Block Viewer for Windows and macOS. Portable builds from GitHub Releases.">
+  <meta property="og:image" content="https://blockviewer.org/assets/shots/landscape-05.webp">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Download — Block Viewer">
+  <meta name="twitter:description" content="Download Block Viewer for Windows and macOS. Portable builds from GitHub Releases.">
+  <meta name="twitter:image" content="https://blockviewer.org/assets/shots/landscape-05.webp">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="../site.css?v=14">
+  <link rel="stylesheet" href="../site.css?v=20">
 </head>
 <body>
   <a class="skip" href="#main">Skip to content</a>
@@ -29,32 +40,40 @@
       <a class="is-active" href="../download/">Download</a>
       <a href="../#features">Features</a>
       <a href="../docs/">Docs</a>
+      <a href="../faq/">FAQ</a>
+      <a href="../roadmap/">Roadmap</a>
       <a href="../testers/">Testers</a>
       <a href="../foundation/">Foundation</a>
     </nav>
-    <a class="btn btn-primary nav-cta" href="../download/">Download</a>
+    <a class="btn btn-primary nav-cta" data-latest-download href="../download/" download>Download</a>
   </header>
 
   <main id="main" class="section page-shell">
     <header class="page-hero reveal">
-      <p class="eyebrow">Windows · portable zip</p>
+      <p class="eyebrow">Windows · macOS</p>
       <h1>Download Block Viewer</h1>
       <p class="lede">
-        Unpack the zip anywhere. Run the viewer. Needs a Vulkan-capable GPU.
-        Updates can come from GitHub Releases when enabled in Preferences.
+        One click downloads the latest build — no GitHub account needed.
+        Unpack, run, and log in. Needs a Vulkan-capable GPU.
       </p>
     </header>
 
     <div class="dl-platform reveal">
       <p class="version-chip"><span data-latest-version>loading…</span></p>
-      <a class="btn btn-primary btn-download btn-download-lg" data-latest-download href="https://github.com/ape-squared/Block-Viewer/releases/latest">
-        <span class="btn-main">Download for Windows x64</span>
-        <span class="btn-sub">portable zip · no installer</span>
-      </a>
+      <div class="dl-actions">
+        <a class="btn btn-primary btn-download btn-download-lg" data-latest-download="windows" href="https://github.com/ape-squared/Block-Viewer/releases/latest" download>
+          <span class="btn-main">Download</span>
+          <span class="btn-sub">Windows · zip</span>
+        </a>
+        <a class="btn btn-ghost btn-download btn-download-lg" data-latest-download="mac" href="https://github.com/ape-squared/Block-Viewer/releases/latest" download>
+          <span class="btn-main">Download</span>
+          <span class="btn-sub">macOS · DMG</span>
+        </a>
+      </div>
       <p class="footnote">
-        Or browse
-        <a href="https://github.com/ape-squared/Block-Viewer/releases">all GitHub Releases</a>.
-        Linux and macOS packages are not shipping yet.
+        Prefer browsing builds?
+        <a href="https://github.com/ape-squared/Block-Viewer/releases">All GitHub Releases</a>.
+        Linux is docs-first for now.
       </p>
     </div>
 
@@ -63,7 +82,7 @@
       <p>What you need before you unpack the zip.</p>
     </div>
     <dl class="req-list reveal" style="max-width:36rem;margin-bottom:2.5rem">
-      <div><dt>OS</dt><dd>Windows 10 or 11, 64-bit</dd></div>
+      <div><dt>OS</dt><dd>Windows 10/11 x64, or macOS Apple silicon</dd></div>
       <div><dt>GPU</dt><dd>Vulkan-capable graphics (recent NVIDIA / AMD / Intel)</dd></div>
       <div><dt>Disk</dt><dd>Room for the zip plus cache under LocalAppData</dd></div>
       <div><dt>Account</dt><dd>A Second Life account (or another grid you configure)</dd></div>
@@ -114,15 +133,17 @@
       <nav class="footer-links" aria-label="Footer">
         <a href="../download/">Download</a>
         <a href="../docs/">Docs</a>
+        <a href="../faq/">FAQ</a>
+        <a href="../roadmap/">Roadmap</a>
         <a href="../testers/">Testers</a>
         <a href="../foundation/">Foundation</a>
         <a href="../privacy/">Privacy</a>
         <a href="https://github.com/ape-squared/Block-Viewer">GitHub</a>
       </nav>
     </div>
-    <p class="legal">Independent project by ape-squared. Not affiliated with Linden Lab. Second Life® is a trademark of Linden Research, Inc.</p>
+    <p class="legal">Independent open-source project. Not affiliated with Linden Lab. Second Life® is a trademark of Linden Research, Inc.</p>
   </footer>
 
-  <script src="../app.js?v=11" defer></script>
+  <script src="../app.js?v=13" defer></script>
 </body>
 </html>

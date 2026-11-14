@@ -314,22 +314,14 @@ pub fn bell(
         .filter(|t| *t < 1.0)
         .map_or(1.0, |t| 1.0 + 0.45 * (t * std::f32::consts::PI).sin());
     if unread > 0 {
-        // Paint above the bar clip so the unread marker is never cropped.
-        let painter = ui.ctx().layer_painter(ui.layer_id());
-        let dot_at = rect.right_top() + Vec2::new(-1.0, 2.0);
-        let radius = 4.5 * s;
-        painter.circle_filled(dot_at, radius + 1.25, p.bar);
-        painter.circle_filled(dot_at, radius, if dnd { p.muted } else { p.danger });
-        if island {
-            super::bars::islands::count(ui, p, rect, unread, s, dnd);
-        } else {
-            // Numeric count beside the dot when there is room on classic bars.
-            let anchor = rect.right_top() + Vec2::new(6.0, -1.0);
-            super::widgets::UnreadCount::new(unread, super::widgets::CountSize::Bar)
-                .scale(s)
-                .paused(dnd)
-                .paint(&painter, p, anchor, egui::Align2::LEFT_TOP);
-        }
+        // Inset red dot only — a count pill outside the slot covered the next
+        // bar button. Count stays in the tooltip.
+        let radius = (4.0 * s).clamp(3.5, 5.5);
+        let inset = radius + 1.0;
+        let dot_at = egui::pos2(rect.right() - inset, rect.top() + inset);
+        ui.painter().circle_filled(dot_at, radius + 1.15, p.bar);
+        ui.painter()
+            .circle_filled(dot_at, radius, if dnd { p.muted } else { p.danger });
     }
     let tip = if dnd {
         block_i18n::tr!("ui-notifications-bell-paused").to_owned()

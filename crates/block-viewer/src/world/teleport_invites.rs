@@ -42,6 +42,35 @@ impl Place {
     }
 }
 
+/// Notification / card body for a teleport offer. Destination stays on the
+/// invite for acceptance; under `@showloc` the destination text is hidden.
+pub fn offer_notification_body(showloc: bool, place: Option<&Place>, message: &str, rating: Rating) -> String {
+    let mut body = if showloc {
+        block_i18n::tr!("rlva-hidden-generic").into()
+    } else {
+        let mut body = place
+            .and_then(Place::label)
+            .map(|label| block_i18n::tr!("world-teleport-invites-place", place = label).to_string())
+            .unwrap_or_default();
+        if !message.is_empty() {
+            body = if body.is_empty() {
+                message.to_owned()
+            } else {
+                format!("{body}\n{message}")
+            };
+        }
+        body
+    };
+    if let Some(note) = rating_note(rating) {
+        body = if body.is_empty() {
+            note.into()
+        } else {
+            format!("{body}\n\n{note}")
+        };
+    }
+    body
+}
+
 #[derive(Debug, Clone, PartialEq)]
 pub enum InviteKind {
     /// Teleport to the sender: the lure to accept (a god's when `godlike`).
@@ -446,15 +475,31 @@ impl World {
                 continue;
             };
             place.region = Some(region);
-            let label = place.label().unwrap_or_default();
-            let mut body = block_i18n::tr!("world-teleport-invites-place", place = label).to_string();
-            if !v.message.is_empty() {
-                body = format!("{body}\n{}", v.message);
+        }
+        // Keep routing data on the invite; presentation follows @showloc so
+        // destination names never leak after the restriction flips.
+        let showloc = self.rlva.has("showloc");
+        let updates: Vec<(u64, String)> = self
+            .teleport_invites
+            .list
+            .iter()
+            .filter_map(|v| {
+                let InviteKind::Offer { place: Some(place), .. } = &v.kind else {
+                    return None;
+                };
+                if place.region.is_none() {
+                    return None;
+                }
+                Some((
+                    v.notification,
+                    offer_notification_body(showloc, Some(place), &v.message, v.rating),
+                ))
+            })
+            .collect();
+        for (notification, body) in updates {
+            if notification == 0 {
+                continue;
             }
-            if let Some(note) = rating_note(v.rating) {
-                body = format!("{body}\n\n{note}");
-            }
-            let notification = v.notification;
             if let Some(n) = self.notifications.list.iter_mut().find(|n| n.id == notification) {
                 n.body = body;
             }

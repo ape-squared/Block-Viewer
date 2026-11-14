@@ -122,11 +122,13 @@ pub fn bell(ui: &mut egui::Ui, p: &Palette, icons: &Icons, unread: usize, open: 
             );
         }
         if unread > 0 {
-            let painter = ui.ctx().layer_painter(ui.layer_id());
-            let dot_at = rect.right_top() + Vec2::new(-1.0, 2.0);
-            painter.circle_filled(dot_at, 5.75, p.bar);
-            painter.circle_filled(dot_at, 4.5, if dnd { p.muted } else { p.danger });
-            super::bars::islands::count(ui, p, rect, unread, 1.0, dnd);
+            // Inset red dot only — count pills outside the slot covered neighbors.
+            let radius = 4.0;
+            let inset = radius + 1.0;
+            let dot_at = egui::pos2(rect.right() - inset, rect.top() + inset);
+            ui.painter().circle_filled(dot_at, radius + 1.15, p.bar);
+            ui.painter()
+                .circle_filled(dot_at, radius, if dnd { p.muted } else { p.danger });
         }
         return resp.on_hover_text(tip);
     }
@@ -152,18 +154,12 @@ pub fn bell(ui: &mut egui::Ui, p: &Palette, icons: &Icons, unread: usize, open: 
             .image(t.id(), r, egui::Rect::from_min_max(egui::pos2(0.0, 0.0), egui::pos2(1.0, 1.0)), col);
     }
     if unread > 0 {
-        let painter = ui.ctx().layer_painter(ui.layer_id());
-        let dot_at = rect.right_top() + Vec2::new(-1.0, 2.0);
-        painter.circle_filled(dot_at, 5.75, p.bar);
-        painter.circle_filled(dot_at, 4.5, if dnd { p.muted } else { p.danger });
-        // Numeric count beside the dot; paint above the bar clip.
-        let anchor = rect.right_top() + Vec2::new(6.0, 0.0);
-        super::widgets::UnreadCount::new(unread, super::widgets::CountSize::Bar).paint(
-            &painter,
-            p,
-            anchor,
-            egui::Align2::LEFT_TOP,
-        );
+        let radius = 3.75;
+        let inset = radius + 0.75;
+        let dot_at = egui::pos2(rect.right() - inset, rect.top() + inset);
+        ui.painter().circle_filled(dot_at, radius + 1.0, p.bar);
+        ui.painter()
+            .circle_filled(dot_at, radius, if dnd { p.muted } else { p.danger });
     }
     resp.on_hover_text(tip)
 }

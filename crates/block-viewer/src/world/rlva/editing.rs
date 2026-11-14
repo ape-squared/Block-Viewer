@@ -50,10 +50,15 @@ impl World {
             | BuildCmd::MoveTaskInventory { handle, local_id, .. }
             | BuildCmd::UpdateTaskInventory { handle, local_id, .. }
             | BuildCmd::RezScript { handle, local_id, .. } => local(*handle, *local_id),
+            BuildCmd::DeRez { handle, local_ids, .. } => {
+                // Delete / return / take / take-copy of the seat would stand
+                // the avatar up and bypass `@unsit=n`.
+                !self.rlva_blocks_seat_derez(*handle, local_ids)
+                    && local_ids.iter().all(|id| local(*handle, *id))
+            }
             BuildCmd::Select { handle, local_ids }
             | BuildCmd::Link { handle, local_ids }
             | BuildCmd::Delink { handle, local_ids }
-            | BuildCmd::DeRez { handle, local_ids, .. }
             | BuildCmd::SetShape { handle, local_ids, .. }
             | BuildCmd::SetMaterial { handle, local_ids, .. }
             | BuildCmd::SetPermissions { handle, local_ids, .. }
@@ -107,5 +112,27 @@ impl World {
                     .and_then(|o| o.attachment_item_id())
                     .is_none_or(|item| self.rlva_can_remove(item, uuid::Uuid::nil()))
             })
+    }
+
+    /// True when DeRez of these prims would stand us up while `@unsit=n`.
+    fn rlva_blocks_seat_derez(&self, handle: RegionHandle, local_ids: &[u32]) -> bool {
+        if !self.rlva.enabled() || !self.agent.is_sitting() || !self.rlva.has("unsit") {
+            return false;
+        }
+        let Some(seat) = crate::world::hand_ik::own_seat(self) else {
+            return false;
+        };
+        if seat.region != handle {
+            return false;
+        }
+        local_ids.iter().any(|&local_id| {
+            self.objects
+                .index_of(&ObjKey { region: handle, local_id })
+                .and_then(|i| self.objects.get(i))
+                .is_some_and(|object| {
+                    object.full_id == seat.root
+                        || crate::world::hand_ik::target_index(self, seat, object.full_id).is_some()
+                })
+        })
     }
 }

@@ -1,12 +1,26 @@
 # Notices — Block Viewer
 
+Copyright © 2026 the Aurora Viewer contributors (the authors in the project's
+Git history).
+
+Copyright © 2026 the Block Viewer contributors (the authors of Block-specific
+work in this repository's Git history).
+
 Block Viewer is free software: you can redistribute it and/or modify it under
 the terms of the **GNU General Public License, version 3 or (at your option) any
 later version** (see [LICENSE](LICENSE) and [LICENSE.md](LICENSE.md)).
 
-Block Viewer is a hobby fork built on the open-source Block Viewer codebase.
-It is not an official Aurora release, is not affiliated with the Block Viewer
-project, and is not positioned as a competitor to it.
+Portions of this codebase are derived from the open-source **Aurora Viewer**
+project. Block Viewer is maintained as its **own product** — with its own
+development direction, modifications, branding, and roadmap — not as Aurora
+Viewer under another name. It is not an official Aurora release, is not
+affiliated with the Aurora Viewer project, and is not positioned as a
+competitor to it.
+
+Block Viewer is developed by **many contributors** (maintainers, testers, and
+engineers in this repository’s history). Aurora Viewer likewise has many
+contributors. Both are credited here and in Git history where the licence
+requires it; neither side’s name or marks belong to the other.
 
 Block Viewer is not provided, endorsed or supported by Linden Research, Inc.
 ("Linden Lab") or The Phoenix Firestorm Project, Inc. Second Life® is a
@@ -61,7 +75,7 @@ GPL-3.0-or-later as described above.
 | MIT KEMAR HRTF measurements, diffuse-field equalized set — Copyright 1994 MIT Media Laboratory, by Bill Gardner and Keith Martin (https://sound.media.mit.edu/resources/KEMAR.html: "provided free with no restrictions on use, provided the authors are cited"); turned into minimum-phase filters by `scripts/generate-hrtf.py` (built into the executable; origin, citation and changes in [README.md](assets/hrtf/README.md)) | `assets/hrtf/kemar.bin` | Free use with credit to the authors (their terms, quoted in the README) |
 | HYG star database v4.4 — David Nash (astronexus, https://codeberg.org/astronexus/hyg); the stars of magnitude 6.5 and brighter, rounded to fixed point by `scripts/generate-star-catalog.py` (built into the executable; origin and changes in [README.md](assets/stars/README.md)) | `assets/stars/stars.bin` | CC BY-SA 4.0 ([LICENSE-HYG.md](assets/stars/LICENSE-HYG.md)); the derived table is shared under the same licence |
 | Block mark / app icon | `assets/branding/` | Block brand assets (see sibling Block injector repo) |
-| Upstream viewer codebase | whole tree | Derived from [Block Viewer](https://github.com/Aurora-Viewer/Aurora-Viewer) (GPL-3.0-or-later); product branding here is independent |
+| Upstream viewer codebase | whole tree | Derived from [Aurora Viewer](https://github.com/Aurora-Viewer/Aurora-Viewer) (GPL-3.0-or-later); product branding here is independent |
 | Photo filters of the Second Life viewer `indra/newview/app_settings/filters` (the 30 XML files unchanged, from the Legacy Viewer's sources at commit `8ffe7065`), made by Linden Lab | `crates/block-render/src/looks/legacy/` (built into the executable) | Originally LGPL 2.1, distributed here under GPL-3.0-or-later as described above |
 | LSL keyword names, signatures and help from Firestorm `indra/newview/app_settings/keywords_lsl_default.xml` | `crates/block-viewer/assets/lsl/keywords.json`, `reference.json` | Originally LGPL 2.1, distributed here under GPL-3.0-or-later as described above |
 | Windlight presets of Firestorm `indra/newview/app_settings/windlight` (`days`, `skies`, `water`; XML files unchanged, commit `c33bfee2`), made by Linden Lab and by Second Life residents for the Phoenix / Firestorm viewers (their names and tags are in the preset names); the files carry no notice of their own and are distributed in the Firestorm sources under its LGPL 2.1 (`LICENSE`, `doc/LICENSE-source.txt`) | `crates/block-viewer/assets/windlight/windlight.zip` (built into the executable) | Originally LGPL 2.1, distributed here under GPL-3.0-or-later as described above |

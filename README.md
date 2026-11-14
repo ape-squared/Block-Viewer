@@ -23,11 +23,12 @@ Block Viewer is a **hobby fork** for friends and engineers who like open source.
 
 ### Built on Aurora Viewer
 
-This codebase starts from the open-source **[Aurora Viewer](https://github.com/Aurora-Viewer/Aurora-Viewer)** project (engine, protocol work, GPL lineage). We are grateful for that work.
+Portions of this codebase are derived from the open-source **[Aurora Viewer](https://github.com/Aurora-Viewer/Aurora-Viewer)** project (engine, protocol work, GPL lineage). We are grateful for that work and keep the required upstream notices.
 
-- Block is a **separate product and brand** — skins, packaging, and direction of our own.
-- It is **not** an official Aurora release and is **not** affiliated with the Block Viewer team.
-- We keep source and releases public because that is how GPL and good open-source practice work, and because Aurora’s openness is what made a fork like this possible.
+- Block is a **separate product and brand** — skins, packaging, modifications, and direction of our own — **not** Aurora Viewer renamed.
+- It is **not** an official Aurora release and is **not** affiliated with the Aurora Viewer team.
+- Block is built by **many contributors** (maintainers, testers, and engineers in this repository’s history), just as Aurora’s lineage reflects many Aurora contributors. See [NOTICE.md](NOTICE.md).
+- We keep source and releases public because that is how GPL and good open-source practice work, and because Aurora’s openness is what made this possible.
 
 Licence text and third-party credits: [LICENSE.md](LICENSE.md), [LICENSE](LICENSE), [NOTICE.md](NOTICE.md).
 

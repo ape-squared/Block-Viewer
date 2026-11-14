@@ -3,15 +3,17 @@
 Block Viewer is free software under the **GNU General Public License, version 3
 or (at your option) any later version**. The full text is in [LICENSE](LICENSE).
 
-## Upstream — Block Viewer
+## Upstream — Aurora Viewer
 
-Block Viewer is a **hobby fork** built on the open-source **Block Viewer**
-codebase (engine, protocol, and GPL lineage). We publish source and releases
-because that is what the licence asks for and because Aurora’s openness made
-this possible.
+Portions of Block Viewer are derived from the open-source **Aurora Viewer**
+codebase (engine, protocol, and GPL lineage). We keep that upstream attribution
+because the licence asks for it and because Aurora’s openness made this work
+possible.
 
-This project is **not** an official Aurora release, is **not** affiliated with
-the Block Viewer team, and is **not** meant as a commercial competitor. It is
-something friends and engineers tinker with together.
+Block Viewer is **not** an official Aurora release, is **not** affiliated with
+the Aurora Viewer team, and is **not** Aurora Viewer under another name. It is
+maintained as its own product — with its own development, modifications,
+branding, and roadmap — by **multiple Block Viewer contributors** (see the
+copyright lines in [NOTICE.md](NOTICE.md) and this repository’s Git history).
 
 Further third-party notices: [NOTICE.md](NOTICE.md).

@@ -1,0 +1,649 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>FAQ — Block Viewer</title>
+  <meta name="description" content="Block Viewer FAQ: safety, Third Party Viewer status, privacy, downloads, accounts, open source, and common critiques — answered plainly.">
+  <meta name="robots" content="index, follow">
+  <link rel="canonical" href="https://blockviewer.org/faq/">
+  <link rel="icon" href="../assets/mark.svg" type="image/svg+xml">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Block Viewer">
+  <meta property="og:url" content="https://blockviewer.org/faq/">
+  <meta property="og:title" content="FAQ — Block Viewer">
+  <meta property="og:description" content="Safety, TPV status, privacy, downloads, and common critiques — answered plainly.">
+  <meta property="og:image" content="https://blockviewer.org/assets/shots/landscape-05.webp">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="FAQ — Block Viewer">
+  <meta name="twitter:description" content="Safety, TPV status, privacy, downloads, and common critiques — answered plainly.">
+  <meta name="twitter:image" content="https://blockviewer.org/assets/shots/landscape-05.webp">
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      {
+        "@type": "Question",
+        "name": "Is Block Viewer safe to install?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Block Viewer is open-source GPLv3 software built in public on GitHub. Official Windows and macOS builds are published only from GitHub Releases for the ape-squared/Block-Viewer repository. We do not ship malware, adware, or credential stealers by design. Any third-party viewer still requires your judgment: download only from blockviewer.org or that Releases page, keep MFA on your Second Life account, and stay on the official viewer if you are not comfortable with TPVs."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Is Block Viewer an official Linden Lab viewer or TPV-verified?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "No. Block Viewer is an independent Third Party Viewer. It is not affiliated with Linden Lab or Second Life. We are contemplating whether to pursue Linden Lab’s TPV verification; we do not claim to be verified today."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Does Block Viewer steal passwords or Linden dollars?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "No. Login credentials go to the grid login URI you choose (typically Second Life), not to a Block-operated proxy. Saved passwords and MFA secrets use the operating system credential store. We do not operate a project telemetry server that harvests passwords or payment data."
+        }
+      }
+    ]
+  }
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../site.css?v=20">
+</head>
+<body>
+  <a class="skip" href="#main">Skip to content</a>
+  <div class="atmosphere" aria-hidden="true"></div>
+
+  <header class="nav" data-nav>
+    <a class="brand" href="../" aria-label="Block Viewer home">
+      <img src="../assets/mark.svg" width="28" height="28" alt="">
+      <span>BLOCK</span>
+    </a>
+    <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="site-nav" data-nav-toggle>
+      <span class="nav-toggle-bar"></span>
+      <span class="sr-only">Menu</span>
+    </button>
+    <nav id="site-nav" class="nav-links" aria-label="Primary">
+      <a href="../download/">Download</a>
+      <a href="../#features">Features</a>
+      <a href="../docs/">Docs</a>
+      <a class="is-active" href="./">FAQ</a>
+      <a href="../roadmap/">Roadmap</a>
+      <a href="../testers/">Testers</a>
+      <a href="../foundation/">Foundation</a>
+    </nav>
+    <a class="btn btn-primary nav-cta" data-latest-download href="../download/" download>Download</a>
+  </header>
+
+  <main id="main" class="section page-shell page-faq">
+    <header class="page-hero reveal">
+      <p class="eyebrow">Plain answers</p>
+      <h1>FAQ</h1>
+      <p class="lede">
+        Safety, Third Party Viewer status, privacy, downloads, accounts, and the critiques people actually raise.
+        If something here is wrong or outdated, open an issue — we would rather correct it than paper over it.
+      </p>
+      <p class="tester-quiet">
+        <a href="#trust">Trust &amp; safety</a>
+        ·
+        <a href="#tpv">TPV &amp; Linden Lab</a>
+        ·
+        <a href="#privacy">Privacy</a>
+        ·
+        <a href="#downloads">Downloads</a>
+        ·
+        <a href="#product">What Block is</a>
+        ·
+        <a href="#expect">Expectations</a>
+        ·
+        <a href="#tech">Technical</a>
+        ·
+        <a href="#critiques">Critiques</a>
+      </p>
+    </header>
+
+    <aside class="road-note reveal" aria-label="Short version">
+      <p class="eyebrow">Short version</p>
+      <p>
+        Block Viewer is an <strong>independent, open-source</strong> Second Life client (GPLv3),
+        built in public on GitHub, with Windows and macOS builds from
+        <a href="https://github.com/ape-squared/Block-Viewer/releases">GitHub Releases</a>.
+        It is <strong>not</strong> Linden Lab, <strong>not</strong> TPV-verified today, and
+        <strong>not</strong> something you must use. Caution is reasonable; so is reading the source.
+      </p>
+    </aside>
+
+    <section id="trust" class="faq-section reveal">
+      <h2>Trust &amp; safety</h2>
+      <div class="faq-list">
+        <details class="faq-item" open>
+          <summary>Is Block Viewer safe to install?</summary>
+          <div class="faq-a">
+            <p>
+              “Safe” is a judgment call we will not make for you. What we can state factually:
+            </p>
+            <ul>
+              <li>Source is public under <strong>GPLv3</strong> in <a href="https://github.com/ape-squared/Block-Viewer">ape-squared/Block-Viewer</a>.</li>
+              <li>Release zips and DMGs are produced by the project’s GitHub Actions Release workflow and attached to tagged releases — not emailed binaries, not random Discord DMs.</li>
+              <li>We do not ship adware, crypto miners, or credential-stealing “extras” in those builds by design.</li>
+              <li>Like any viewer, it is a full network client with login capability. Treat it with the same seriousness you would any TPV.</li>
+            </ul>
+            <p>
+              Practical hygiene: download only from <a href="https://blockviewer.org/download/">blockviewer.org/download</a>
+              or the official Releases page; enable Second Life MFA; do not paste passwords into “support” chats;
+              keep using the official viewer if you are not comfortable with third-party clients.
+            </p>
+          </div>
+        </details>
+        <details class="faq-item">
+          <summary>Does Block Viewer steal passwords, inventory, or Linden dollars?</summary>
+          <div class="faq-a">
+            <p>
+              <strong>No.</strong> Login credentials and session traffic go to the <em>grid login URI and regions you choose</em>
+              (normally Linden Lab’s Second Life infrastructure). We do not operate a Block-owned login proxy that
+              sits in the middle to harvest passwords.
+            </p>
+            <p>
+              Remembered passwords and MFA secrets are stored via the <strong>operating system credential store</strong>
+              (Windows Credential Manager / macOS Keychain), not uploaded to a Block cloud account.
+              Inventory and L$ live on the grid; the viewer does not “hold” them for us.
+            </p>
+            <p>
+              Anyone claiming we need your password to “verify,” “whitelist,” or “unlock” something is lying — ignore them.
+            </p>
+          </div>
+        </details>
+        <details class="faq-item">
+          <summary>How do I know the download is really from this project?</summary>
+          <div class="faq-a">
+            <p>
+              Prefer links that end on GitHub Releases for <code>ape-squared/Block-Viewer</code>, or the Download buttons on
+              <a href="https://blockviewer.org/">blockviewer.org</a>, which resolve to those same release assets.
+            </p>
+            <ul>
+              <li>Asset names look like <code>Block-Viewer-v…-windows-x64.zip</code> or <code>…-macos-arm64.dmg</code>.</li>
+              <li>Check the release tag (for example <code>v0.2.21</code>) matches what the site shows.</li>
+              <li>Do not trust re-uploaded zips on Drive, MediaFire, random mirrors, or “fixed” copies from strangers.</li>
+            </ul>
+            <p>
+              Release assets may include <code>.sha256</code> sidecars when published — compare hashes if you want extra confidence.
+            </p>
+          </div>
+        </details>
+        <details class="faq-item">
+          <summary>Windows SmartScreen / Defender / “unknown publisher” — is that malware?</summary>
+          <div class="faq-a">
+            <p>
+              Usually <strong>no</strong> — it means the binary is relatively new or not widely reputation-scored yet,
+              and/or not Authenticode-signed with a long-lived certificate reputation. Open-source TPVs hit this often.
+            </p>
+            <p>
+              SmartScreen is a reputation system, not a proof of malice. Still: only proceed if you obtained the file
+              from our Releases page. If Defender quarantines a file, submit it as a false positive if you verified the source,
+              or stay on the official viewer. We will not tell you to disable antivirus entirely.
+            </p>
+          </div>
+        </details>
+        <details class="faq-item">
+          <summary>macOS Gatekeeper says the app can’t be opened — is that normal?</summary>
+          <div class="faq-a">
+            <p>
+              Common for apps distributed outside the Mac App Store. See the
+              <a href="../docs/macos/">macOS install guide</a> for the current Gatekeeper / right-click Open flow.
+              Again: only do that for a DMG you got from our Releases, not a random attachment.
+            </p>
+          </div>
+        </details>
+        <details class="faq-item">
+          <summary>Can I audit the code myself?</summary>
+          <div class="faq-a">
+            <p>
+              Yes. Clone the repository, read the networking and login paths, and build from source if you prefer not
+              to trust our CI artifacts. Licence and third-party notices are summarized in
+              <a href="../docs/licences/">Licences and notices</a>.
+              You do not need our permission to review GPLv3 source.
+            </p>
+          </div>
+        </details>
+        <details class="faq-item">
+          <summary>Do you have remote access to my PC?</summary>
+          <div class="faq-a">
+            <p>
+              <strong>No.</strong> There is no Block remote-desktop backdoor. The viewer talks to the grids and services
+              you configure (login, regions, optional update checks against GitHub, media plugins as documented).
+              We cannot “reach into” your machine after you install the zip.
+            </p>
+          </div>
+        </details>
+      </div>
+    </section>
+
+    <section id="tpv" class="faq-section reveal">
+      <h2>Third Party Viewer &amp; Linden Lab</h2>
+      <div class="faq-list">
+        <details class="faq-item">
+          <summary>Is Block Viewer official Second Life software?</summary>
+          <div class="faq-a">
+            <p>
+              <strong>No.</strong> Not affiliated with Linden Lab or Second Life. Second Life® is a trademark of Linden Research, Inc.
+              Use of the trademark here is descriptive only.
+            </p>
+          </div>
+        </details>
+        <details class="faq-item">
+          <summary>Are you TPV-verified?</summary>
+          <div class="faq-a">
+            <p>
+              <strong>Not today.</strong> Block Viewer is an independent Third Party Viewer. We are
+              <strong>contemplating</strong> whether to pursue Linden Lab’s TPV verification process.
+              Nothing on this site claims we are verified. See also the note on the
+              <a href="../roadmap/">roadmap</a>.
+            </p>
+          </div>
+        </details>
+        <details class="faq-item">
+          <summary>Will using Block get my account banned?</summary>
+          <div class="faq-a">
+            <p>
+              We are not Linden Lab and cannot promise enforcement outcomes. Historically, many residents use TPVs
+              within Linden’s published Third Party Viewer policy when those viewers behave as clients — not as
+              cheat tools that break the grid’s rules.
+            </p>
+            <p>
+              What raises risk in <em>any</em> viewer: bots/automation that violate ToS, copybotting, harassment,
+              payment fraud, or modified clients that attack the service. Block is meant as a client to experience
+              the grid — not a weapon against it. If you need a Linden-backed guarantee, use the official viewer.
+            </p>
+          </div>
+        </details>
+        <details class="faq-item">
+          <summary>Do you encourage everyone to switch?</summary>
+          <div class="faq-a">
+            <p>
+              <strong>No.</strong> Caution around unknown viewers is reasonable. We do not pressure, guilt, or
+              FOMO people into switching. The official viewer and other TPVs remain valid choices.
+              Use Block only if you choose to.
+            </p>
+          </div>
+        </details>
+        <details class="faq-item">
+          <summary>Can I use Block on other grids (OpenSim, etc.)?</summary>
+          <div class="faq-a">
+            <p>
+              The codebase inherits multi-grid login patterns from its open-source lineage. Support quality varies by
+              grid. Second Life is the primary test target for early 0.x. If something breaks on another grid,
+              report it with the grid name and login URI — do not assume parity.
+            </p>
+          </div>
+        </details>
+      </div>
+    </section>
+
+    <section id="privacy" class="faq-section reveal">
+      <h2>Privacy &amp; data</h2>
+      <div class="faq-list">
+        <details class="faq-item">
+          <summary>What data does Block Viewer collect?</summary>
+          <div class="faq-a">
+            <p>
+              Block Viewer has <strong>no project telemetry server of its own</strong>.
+              Grid traffic (login, presence, chat, inventory, voice as applicable) goes to the Second Life or other
+              grid you select — under <em>their</em> policies, not ours.
+            </p>
+            <p>
+              Full write-up: <a href="../privacy/">Privacy</a>.
+            </p>
+          </div>
+        </details>
+        <details class="faq-item">
+          <summary>Where is my data stored on disk?</summary>
+          <div class="faq-a">
+            <p>
+              On Windows, settings, cache, and related files live under paths like
+              <code>%LOCALAPPDATA%\ape-squared\BlockViewer\</code> and
+              <code>%APPDATA%\ape-squared\BlockViewer\</code>
+              (folder names reflect the publisher id used for LocalAppData — not a claim about branding on the site).
+              Passwords/MFA use the OS credential store. Chat logs only if you enable them.
+            </p>
+          </div>
+        </details>
+        <details class="faq-item">
+          <summary>Do updates phone home?</summary>
+          <div class="faq-a">
+            <p>
+              When “check for updates” is enabled, the viewer asks <strong>GitHub</strong> for releases of this
+              repository and may download a package you accept. Details:
+              <a href="../docs/updates/">Updates</a>. You can leave updates off and download manually from Releases.
+            </p>
+          </div>
+        </details>
+        <details class="faq-item">
+          <summary>Do crash reports send my chat or password?</summary>
+          <div class="faq-a">
+            <p>
+              Bug reporting is designed so you control what gets published. Do not paste passwords into issue text.
+              See <a href="../docs/reporting-bugs/">Reporting bugs</a> for how GitHub issue drafts and credentials work.
+              Prefer scrubbing location/chat before you share logs.
+            </p>
+          </div>
+        </details>
+        <details class="faq-item">
+          <summary>Is Discord required?</summary>
+          <div class="faq-a">
+            <p>
+              No. Discord is optional community space
+              (<a href="https://discord.gg/GrvBu5V985">discord.gg/GrvBu5V985</a>).
+              Bugs and features can go through <a href="../testers/">Testers</a> / GitHub issues without Discord.
+            </p>
+          </div>
+        </details>
+      </div>
+    </section>
+
+    <section id="downloads" class="faq-section reveal">
+      <h2>Downloads &amp; installs</h2>
+      <div class="faq-list">
+        <details class="faq-item">
+          <summary>Where do I download?</summary>
+          <div class="faq-a">
+            <p>
+              <a href="../download/">Download page</a> — one click for the latest Windows zip or macOS DMG —
+              or browse <a href="https://github.com/ape-squared/Block-Viewer/releases">all releases</a>.
+              No GitHub account is required to download release assets.
+            </p>
+          </div>
+        </details>
+        <details class="faq-item">
+          <summary>Is there an installer?</summary>
+          <div class="faq-a">
+            <p>
+              Windows builds are <strong>portable zips</strong>: unpack and run. Optional uninstall helpers may ship
+              in the package. macOS ships as a DMG. See the download page for current notes.
+            </p>
+          </div>
+        </details>
+        <details class="faq-item">
+          <summary>What are the system requirements?</summary>
+          <div class="faq-a">
+            <p>
+              A <strong>Vulkan-capable GPU</strong> and current drivers matter more than a marketing checklist.
+              Windows 10/11 x64 and macOS Apple silicon are the shipping desktop targets in early 0.x.
+              Potato-mode and fault paths exist, but “any GPU from 2009” is not a promise.
+            </p>
+          </div>
+        </details>
+        <details class="faq-item">
+          <summary>Linux?</summary>
+          <div class="faq-a">
+            <p>
+              Docs-first for now — see <a href="../docs/linux/">Installing on Linux</a>. Packaged Linux releases
+              are not the headline path until packaging is honest. Source builds may work for contributors.
+            </p>
+          </div>
+        </details>
+        <details class="faq-item">
+          <summary>I clicked Download and a zip started — is that phishing?</summary>
+          <div class="faq-a">
+            <p>
+              The site’s Download buttons are wired to the latest GitHub Release asset on purpose, so people who
+              do not want to navigate GitHub still get the real build. Confirm the browser’s download URL hosts on
+              <code>github.com</code> for this repository’s releases if you want to double-check.
+            </p>
+          </div>
+        </details>
+      </div>
+    </section>
+
+    <section id="product" class="faq-section reveal">
+      <h2>What Block Viewer is (and isn’t)</h2>
+      <div class="faq-list">
+        <details class="faq-item">
+          <summary>What is Block Viewer?</summary>
+          <div class="faq-a">
+            <p>
+              An open-source Second Life client with a Vulkan world view, aimed at friends and testers in early 0.x.
+              Login, inventory, appearance, chat, and related viewer work ship in tagged Releases.
+            </p>
+          </div>
+        </details>
+        <details class="faq-item">
+          <summary>Is this just Aurora Viewer renamed?</summary>
+          <div class="faq-a">
+            <p>
+              <strong>No.</strong> Block stands on the open-source
+              <a href="https://github.com/Aurora-Viewer/Aurora-Viewer">Aurora Viewer</a> codebase and keeps that
+              GPL lineage, then builds a <em>different</em> product direction, branding, and tooling.
+              It is not an official Aurora release. Details: <a href="../foundation/">Foundation</a>.
+            </p>
+          </div>
+        </details>
+        <details class="faq-item">
+          <summary>Is Block Viewer the same as Block-GPPI?</summary>
+          <div class="faq-a">
+            <p>
+              <strong>No.</strong> <a href="https://ape-squared.github.io/Block-GPPI/">Block-GPPI</a> is a separate
+              post-processing injector for other viewers. Different repo, different download, different issues.
+              Do not install GPPI when you meant the viewer (or vice versa).
+            </p>
+          </div>
+        </details>
+        <details class="faq-item">
+          <summary>Is it free? What’s the business model?</summary>
+          <div class="faq-a">
+            <p>
+              The viewer is free and open source (GPLv3). There is no paid “premium client” unlock gate on the
+              download. If that changes, it will be stated clearly — not sneaked into a random zip.
+            </p>
+          </div>
+        </details>
+        <details class="faq-item">
+          <summary>Who maintains it?</summary>
+          <div class="faq-a">
+            <p>
+              The project publishes from the public GitHub repository and Discord community linked on this site.
+              Contributors and testers are credited through normal GitHub history and tester programs — not through
+              a corporate SL corp that pretends to be Linden Lab.
+            </p>
+          </div>
+        </details>
+      </div>
+    </section>
+
+    <section id="expect" class="faq-section reveal">
+      <h2>Expectations (early 0.x)</h2>
+      <div class="faq-list">
+        <details class="faq-item">
+          <summary>Is it ready for everyone?</summary>
+          <div class="faq-a">
+            <p>
+              Early <strong>0.x</strong> means sharp edges. Friends and testers are the intended audience.
+              Crashes, missing polish, and “works on my machine” bugs happen. If you need maximum stability for
+              work or events, keep a known-good viewer installed in parallel.
+            </p>
+          </div>
+        </details>
+        <details class="faq-item">
+          <summary>Will you match Firestorm / official feature-for-feature?</summary>
+          <div class="faq-a">
+            <p>
+              Not as a promise. Feature work follows tester need and the
+              <a href="../roadmap/">roadmap</a>, not a parity spreadsheet. Some RLVa, import, VR, and creator tools
+              exist with documented limits — read the matching <a href="../docs/">docs</a> before assuming coverage.
+            </p>
+          </div>
+        </details>
+        <details class="faq-item">
+          <summary>Something broke after an update — what now?</summary>
+          <div class="faq-a">
+            <p>
+              Grab the previous release zip from GitHub Releases, file a bug from the
+              <a href="../testers/">testers hub</a> or Discord, and include version tags. Auto-update can be turned
+              off while you bisect.
+            </p>
+          </div>
+        </details>
+        <details class="faq-item">
+          <summary>Do you guarantee uptime or support SLAs?</summary>
+          <div class="faq-a">
+            <p>
+              No. This is an independent open-source project, not a hosted SaaS with an SLA.
+              Best-effort community support via Discord and GitHub.
+            </p>
+          </div>
+        </details>
+      </div>
+    </section>
+
+    <section id="tech" class="faq-section reveal">
+      <h2>Technical</h2>
+      <div class="faq-list">
+        <details class="faq-item">
+          <summary>Why Vulkan?</summary>
+          <div class="faq-a">
+            <p>
+              The world view is built on a modern Vulkan rendering path inherited and extended from the Aurora
+              lineage. That is a technical choice for the engine — not a claim that every GPU configuration is
+              equally happy. Update drivers if you hit device-lost / potato fallbacks.
+            </p>
+          </div>
+        </details>
+        <details class="faq-item">
+          <summary>Does Block include copybot / ripper tools?</summary>
+          <div class="faq-a">
+            <p>
+              Block Viewer is not marketed as a theft toolkit. Respect content creators’ permissions and Linden’s
+              rules. If you are looking for a pirate client, look elsewhere — and expect no help from us.
+            </p>
+          </div>
+        </details>
+        <details class="faq-item">
+          <summary>Can I run multiple viewers?</summary>
+          <div class="faq-a">
+            <p>
+              Yes. Keep the official viewer or another TPV installed. Portable zips make side-by-side installs easy.
+              Watch for cache/settings confusion if you point multiple clients at overlapping data folders.
+            </p>
+          </div>
+        </details>
+        <details class="faq-item">
+          <summary>Where do I report security issues?</summary>
+          <div class="faq-a">
+            <p>
+              Prefer a private channel to maintainers (GitHub Security Advisories on the repository if enabled,
+              or a direct maintainer contact) for exploitable vulnerabilities — not a public issue with a full PoC
+              that harms residents. Non-security bugs go through the normal
+              <a href="../docs/reporting-bugs/">bug reporting</a> path.
+            </p>
+          </div>
+        </details>
+      </div>
+    </section>
+
+    <section id="critiques" class="faq-section reveal">
+      <h2>Critiques &amp; pushback</h2>
+      <div class="faq-list">
+        <details class="faq-item">
+          <summary>“Nobody should use a non-verified TPV.”</summary>
+          <div class="faq-a">
+            <p>
+              That is a coherent personal policy. We agree verification matters and we have not claimed it.
+              Residents who only use Linden’s viewer or verified TPVs are making a valid risk choice.
+              This FAQ exists so people who <em>are</em> evaluating Block can do it with facts, not vibes.
+            </p>
+          </div>
+        </details>
+        <details class="faq-item">
+          <summary>“It’s early / buggy / not Firestorm.”</summary>
+          <div class="faq-a">
+            <p>
+              Fair. 0.x is explicit. We ship SemVer tags when something useful lands; we do not pretend decade-old
+              TPV polish appears overnight. Compare releases, read the roadmap, and leave if it is not ready for you.
+            </p>
+          </div>
+        </details>
+        <details class="faq-item">
+          <summary>“Open source doesn’t mean safe.”</summary>
+          <div class="faq-a">
+            <p>
+              Correct. Open source means <em>inspectable</em>, not magically trustworthy. It lowers the cost of
+              review and removes “trust this closed blob.” You still choose whether to run the binary.
+            </p>
+          </div>
+        </details>
+        <details class="faq-item">
+          <summary>“You’re harvesting fame / splitting the community.”</summary>
+          <div class="faq-a">
+            <p>
+              Block is a hobby-scale open-source client with a small tester circle. We are not asking anyone to
+              abandon other viewers. Diversity of clients has existed in Second Life for years; another GPL client
+              is not an attack on the community.
+            </p>
+          </div>
+        </details>
+        <details class="faq-item">
+          <summary>“The site / branding looks unofficial.”</summary>
+          <div class="faq-a">
+            <p>
+              It is unofficial — that is accurate labeling. We strip claims that would confuse Block with Linden Lab
+              or with Aurora-as-upstream-product. If something still reads as misleading, file it; we fix copy.
+            </p>
+          </div>
+        </details>
+        <details class="faq-item">
+          <summary>“Why should I trust random people on the internet?”</summary>
+          <div class="faq-a">
+            <p>
+              You shouldn’t — by default. Trust the combination of public source, reproducible CI releases,
+              narrow download origins, MFA on your account, and your own threat model. If that bar is not met for
+              you, do not install Block. We would rather you stay safe on the official viewer than install under pressure.
+            </p>
+          </div>
+        </details>
+        <details class="faq-item">
+          <summary>Something isn’t covered here</summary>
+          <div class="faq-a">
+            <p>
+              Ask in <a href="https://discord.gg/GrvBu5V985">Discord</a>,
+              open a GitHub issue, or use the <a href="../testers/">testers hub</a>.
+              Good faith critique is welcome; social-engineering requests for passwords are not.
+            </p>
+          </div>
+        </details>
+      </div>
+    </section>
+
+    <p class="footnote reveal" style="margin-top:2rem;max-width:40rem">
+      Related:
+      <a href="../privacy/">Privacy</a> ·
+      <a href="../foundation/">Foundation</a> ·
+      <a href="../roadmap/">Roadmap</a> ·
+      <a href="../docs/licences/">Licences</a> ·
+      <a href="../download/">Download</a>
+    </p>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-row">
+      <a class="brand" href="../"><img src="../assets/mark.svg" width="22" height="22" alt=""><span>BLOCK VIEWER</span></a>
+      <nav class="footer-links" aria-label="Footer">
+        <a href="../download/">Download</a>
+        <a href="../docs/">Docs</a>
+        <a href="../faq/">FAQ</a>
+        <a href="./">FAQ</a>
+        <a href="../roadmap/">Roadmap</a>
+        <a href="../testers/">Testers</a>
+        <a href="../foundation/">Foundation</a>
+        <a href="../privacy/">Privacy</a>
+        <a href="https://github.com/ape-squared/Block-Viewer">GitHub</a>
+      </nav>
+    </div>
+    <p class="legal">Independent open-source project. Not affiliated with Linden Lab.</p>
+  </footer>
+  <script src="../app.js?v=13" defer></script>
+</body>
+</html>

@@ -117,6 +117,38 @@ impl Default for AutoResponse {
     }
 }
 
+impl AutoResponse {
+    /// Drop Aurora product naming from saved auto-reply copy. Aurora belongs
+    /// in licensing only; viewer-facing defaults and migrated settings say
+    /// Block Viewer.
+    pub fn strip_aurora_branding(&mut self) {
+        for text in [
+            &mut self.dnd_text,
+            &mut self.autorespond_text,
+            &mut self.nonfriends_text,
+            &mut self.away_text,
+            &mut self.muted_text,
+            &mut self.reject_teleports_text,
+            &mut self.reject_friendship_text,
+        ] {
+            *text = strip_aurora_product_name(text);
+        }
+    }
+}
+
+/// Rewrite Aurora product names left in saved auto-reply strings.
+fn strip_aurora_product_name(s: &str) -> String {
+    let mut out = s.replace("Aurora Viewer", "Block Viewer");
+    out = out.replace("Aurora-Viewer", "Block Viewer");
+    // Locale variants that named the client without the word "Viewer".
+    out = out.replace("client Aurora", "client Block Viewer");
+    out = out.replace("cliente Aurora", "cliente Block Viewer");
+    out = out.replace("Client Aurora", "Client Block Viewer");
+    out = out.replace("du client Aurora", "du client Block Viewer");
+    out = out.replace("des Clients Aurora", "des Clients Block Viewer");
+    out
+}
+
 /// "Invisible": no friend sees us online. The right lives on the server,
 /// one friend at a time (GrantUserRights); unlike Firestorm, which gives it
 /// back to every friend, the friends who had it are remembered, so that
@@ -710,5 +742,28 @@ mod tests {
         assert_eq!(s.response_for(true), Some(s.cfg.away_text.as_str()));
         s.dnd = true;
         assert_eq!(s.response_for(true), Some(s.cfg.dnd_text.as_str()));
+    }
+
+    #[test]
+    fn auto_reply_defaults_and_saved_aurora_names_become_block_viewer() {
+        let defaults = AutoResponse::default();
+        for text in [
+            &defaults.autorespond_text,
+            &defaults.nonfriends_text,
+            &defaults.reject_teleports_text,
+            &defaults.reject_friendship_text,
+        ] {
+            assert!(text.contains("Block Viewer"), "{text}");
+            assert!(!text.contains("Aurora"), "{text}");
+        }
+        let mut saved = AutoResponse::default();
+        saved.autorespond_text =
+            "The resident you messaged has enabled Aurora Viewer's auto-response mode.".into();
+        saved.reject_friendship_text = "client Aurora friendship reject".into();
+        saved.strip_aurora_branding();
+        assert!(saved.autorespond_text.contains("Block Viewer"));
+        assert!(!saved.autorespond_text.contains("Aurora"));
+        assert!(saved.reject_friendship_text.contains("Block Viewer"));
+        assert!(!saved.reject_friendship_text.contains("Aurora"));
     }
 }

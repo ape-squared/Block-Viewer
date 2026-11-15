@@ -124,11 +124,10 @@ fn row(ui: &mut egui::Ui, c: &mut Ctx, data: &super::RadarData, st: &mut PeopleU
         crate::world::staff::mark(world, &id),
     );
     let action = rows::select(ui, &resp, &mut st.sel, &mut st.anchor, order, id);
-    if action.sheet {
-        super::nearby::open_sheet(st, id);
-    }
     if action.activate {
         c.actions.push(PeopleAction::OpenIm(id));
+    } else if action.sheet {
+        super::nearby::open_sheet(st, id);
     }
     rows::person_menu(&resp, p, world, &st.sel, id);
     let detail = (cut && resp.hover_pos().is_some_and(|at| at.x <= end.names_right)).then_some(name);

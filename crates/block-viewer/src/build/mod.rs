@@ -625,7 +625,7 @@ impl Default for BuildSettings {
             place_rotate: false,
             place_side: place::Side::Bottom,
             place_offset: 0.0,
-            move_hologram: MoveHologram::Off,
+            move_hologram: MoveHologram::Moving,
             live_decor: true,
             rotation_step: 1.0,
             edit_linked: false,

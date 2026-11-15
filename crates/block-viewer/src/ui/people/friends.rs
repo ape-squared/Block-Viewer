@@ -438,16 +438,19 @@ fn row(ui: &mut egui::Ui, c: &mut Ctx, data: &super::RadarData, st: &mut PeopleU
     } else {
         rows::select(ui, &resp, &mut st.sel, &mut st.anchor, order, f.id)
     };
-    let click_sheet =
-        c.contact_sheet_on_click && !clicked_right && resp.clicked() && ui.input(|i| !i.modifiers.command && !i.modifiers.shift);
-    if action.sheet || click_sheet {
-        super::nearby::open_sheet(st, f.id);
-        if c.embedded_contacts {
-            st.sheet_grow = false;
-        }
-    }
+    // Legacy: double-click a name opens their IM inbox. Prefer that over the
+    // contact sheet (which a single click / hold still opens).
     if action.activate {
         c.actions.push(super::PeopleAction::OpenIm(f.id));
+    } else {
+        let click_sheet =
+            c.contact_sheet_on_click && !clicked_right && resp.clicked() && ui.input(|i| !i.modifiers.command && !i.modifiers.shift);
+        if action.sheet || click_sheet {
+            super::nearby::open_sheet(st, f.id);
+            if c.embedded_contacts {
+                st.sheet_grow = false;
+            }
+        }
     }
     rows::person_menu(&resp, p, c.world, &st.sel, f.id);
     let on_names = resp.hover_pos().is_some_and(|at| at.x >= left && at.x <= end.names_right);

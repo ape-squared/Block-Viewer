@@ -399,17 +399,16 @@ fn list_part(
                 };
                 ui.set_opacity(opacity);
                 let action = super::rows::select(ui, &resp, &mut st.radar_selected, &mut st.radar_anchor, &order, row.id);
-                if action.sheet {
-                    open_sheet(st, row.id);
-                }
                 // double click: the camera goes to the avatar and follows it, when it is
-                // drawn (LLAvatarActions::zoomIn, FSPanelRadar)
+                // drawn (LLAvatarActions::zoomIn, FSPanelRadar). Prefer that over the sheet.
                 if action.activate {
                     if row.loaded {
                         context::request(ui.ctx(), CtxAction::ZoomAvatar(row.id));
                     } else {
                         actions.push(PeopleAction::TooFarToZoom);
                     }
+                } else if action.sheet {
+                    open_sheet(st, row.id);
                 }
                 // menu_fs_radar.xml, menu_fs_radar_multiselect.xml for several
                 let several = st.radar_selected.len() > 1 && st.radar_selected.contains(&row.id);

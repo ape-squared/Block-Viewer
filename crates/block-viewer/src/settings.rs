@@ -1517,7 +1517,7 @@ pub(crate) fn max_texture_resolution_choice(v: u32) -> u32 {
         .unwrap_or(MAX_TEXTURE_RESOLUTIONS[0])
 }
 
-const SETTINGS_VERSION: u32 = 34;
+const SETTINGS_VERSION: u32 = 35;
 
 /// `settings.json` from a newer build: the document, what this build loaded
 /// from it, and the top-level keys to leave as they were unless changed here
@@ -2541,7 +2541,7 @@ impl Settings {
             // No migration runs backwards: `sanitized` only migrates older
             // versions, and the newer number is written back.
             log::info!(
-                "settings.json comes from a newer Aurora (version {version}, this build {SETTINGS_VERSION}): \
+                "settings.json comes from a newer Block Viewer (version {version}, this build {SETTINGS_VERSION}): \
                  read without migration, its unknown values kept on save"
             );
             let mut kept: Vec<String> = read.dropped.iter().map(|p| crate::tolerant::top_key(p).to_owned()).collect();
@@ -2834,6 +2834,17 @@ impl Settings {
             // up to the machine level. A Potato chosen after this stays.
             self.graphics_potato_rescue = crate::graphics_presets::Preset::matching(&self) == Some(crate::graphics_presets::Preset::Potato);
         }
+        if self.settings_version < 35 {
+            // Landscaping / build precision: Moving hologram was Off in every
+            // earlier file; turn it on once so Place / Move show where the
+            // selection goes (LiveDecor-style). Users who want Off can clear it.
+            if self.build.move_hologram == crate::build::MoveHologram::Off {
+                self.build.move_hologram = crate::build::MoveHologram::Moving;
+            }
+        }
+        // Aurora product naming must not appear in auto-reply defaults the
+        // viewer sends; rewrite any string saved from an Aurora install.
+        self.autoresponse.strip_aurora_branding();
         if !self.audio.mic_gain.is_finite() {
             self.audio.mic_gain = 1.0;
         }
@@ -4431,6 +4442,22 @@ mod tests {
         let now = old.sanitized();
         assert!(now.show_contacts_tab);
         assert_eq!(now.font, "Inter");
+        assert_eq!(now.settings_version, SETTINGS_VERSION);
+    }
+
+    #[test]
+    fn version_35_enables_move_hologram_and_strips_aurora_auto_replies() {
+        assert_eq!(Settings::default().build.move_hologram, crate::build::MoveHologram::Moving);
+        let mut old = Settings {
+            settings_version: 34,
+            ..Settings::default()
+        };
+        old.build.move_hologram = crate::build::MoveHologram::Off;
+        old.autoresponse.autorespond_text = "Aurora Viewer auto-response".into();
+        let now = old.sanitized();
+        assert_eq!(now.build.move_hologram, crate::build::MoveHologram::Moving);
+        assert!(now.autoresponse.autorespond_text.contains("Block Viewer"));
+        assert!(!now.autoresponse.autorespond_text.contains("Aurora"));
         assert_eq!(now.settings_version, SETTINGS_VERSION);
     }
 

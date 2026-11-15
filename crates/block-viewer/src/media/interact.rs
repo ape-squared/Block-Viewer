@@ -242,8 +242,10 @@ impl MediaManager {
             self.unfocus();
             self.focus = Some(hit.key);
             self.last_surface = position;
-            // ObjectMedia still loading or last GET failed: ask again and
-            // keep the click (so TVs work once media is on, even mid-fetch).
+            // ObjectMedia still loading or last GET failed: ask again.
+            // World TVs keep the click so the page receives it once ready;
+            // HUD face HUDs (LeLutka Axis) must fall through to touch while
+            // ObjectMedia is still queued behind world screens (#2967 / #3394).
             if self.find(&hit.key).is_none() {
                 if let MediaKey::Prim { object, .. } = hit.key
                     && let Some(e) = self.objects.get_mut(&object)
@@ -251,6 +253,13 @@ impl MediaManager {
                     // Clear the paced "asked once per version" gate so a
                     // click can retry after the simulator stayed busy.
                     let update = e.fetched_version.is_some() || e.data.is_some();
+                    let priority = if hud {
+                        super::entry::HUD
+                    } else if e.on_own_avatar {
+                        super::entry::ATTACHMENT
+                    } else {
+                        super::entry::WORLD
+                    };
                     e.asked_version = None;
                     e.fetched_version = None;
                     if let Some(o) = world.objects.get(e.idx)
@@ -258,10 +267,10 @@ impl MediaManager {
                     {
                         let version = super::entry::media_version(&o.media_url).unwrap_or(0);
                         e.asked_version = Some(version);
-                        self.client.request(object, cap, update);
+                        self.client.request(object, cap, update, priority);
                     }
                 }
-                return true;
+                return !hud;
             }
             let Some(m) = self.find_mut(&hit.key) else {
                 return false;

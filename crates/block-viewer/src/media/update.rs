@@ -230,12 +230,22 @@ impl MediaManager {
             (Some(have), Some(v)) => v > have,
             (Some(_), None) => false,
         } && e.asked_version.is_none_or(|asked| version.unwrap_or(0) > asked);
+        let priority = if e.hud {
+            entry::HUD
+        } else if e.on_own_avatar {
+            entry::ATTACHMENT
+        } else {
+            entry::WORLD
+        };
+        if self.client.is_queued(&o.full_id) {
+            self.client.prioritize(&o.full_id, priority);
+        }
         if need
             && !self.client.is_queued(&o.full_id)
             && let Some(cap) = world.regions.get(&o.key.region).and_then(|r| r.caps.get("ObjectMedia"))
         {
             e.asked_version = Some(version.unwrap_or(0));
-            self.client.request(o.full_id, cap, e.fetched_version.is_some());
+            self.client.request(o.full_id, cap, e.fetched_version.is_some(), priority);
         }
     }
 

@@ -234,7 +234,18 @@ struct Pending {
     /// A refresh of data already received (the round-robin queue), rather
     /// than the first load of an object (the sorted queue).
     update: bool,
+    /// Queue rank: shown media, HUD, own attachment, then world (#2967).
+    priority: u8,
 }
+
+/// ObjectMedia request priority (higher first). HUD face HUDs such as
+/// LeLutka Axis must not wait behind a region's worth of world screens.
+pub const WORLD: u8 = 0;
+pub const ATTACHMENT: u8 = 1;
+pub const HUD: u8 = 2;
+/// Focused / on-screen media (reserved for a later shown-media bump).
+#[allow(dead_code)]
+pub const SHOWN: u8 = 3;
 
 /// Why a GET failed: `retry` when the simulator was busy (503, its answer
 /// to the rate limit) or the request never reached it.
@@ -295,7 +306,8 @@ impl MediaDataClient {
 
     /// Queue a GET for an object (no-op if already queued, retrying or in
     /// flight). `update`: the object's data was received before.
-    pub fn request(&mut self, object: Uuid, cap: &str, update: bool) {
+    /// `priority`: HUD / attachment / world rank (#2967).
+    pub fn request(&mut self, object: Uuid, cap: &str, update: bool, priority: u8) {
         if !self.queued.insert(object) {
             return;
         }
@@ -304,8 +316,18 @@ impl MediaDataClient {
             cap: cap.to_string(),
             attempts: 0,
             update,
+            priority,
         };
         self.enqueue(p);
+    }
+
+    /// Raise or lower a pending request's rank without re-queuing it.
+    pub fn prioritize(&mut self, object: &Uuid, priority: u8) {
+        for p in self.sorted.iter_mut().chain(self.round_robin.iter_mut()) {
+            if p.object == *object {
+                p.priority = priority;
+            }
+        }
     }
 
     fn enqueue(&mut self, p: Pending) {
@@ -392,25 +414,48 @@ impl MediaDataClient {
         };
         self.sorted.retain(&mut alive);
         self.round_robin.retain(&mut alive);
-        let use_sorted = if self.sorted_turn {
-            !self.sorted.is_empty()
-        } else {
-            self.round_robin.is_empty()
+        let best_sorted = self.sorted.iter().map(|p| p.priority).max();
+        let best_round = self.round_robin.iter().map(|p| p.priority).max();
+        // A HUD first-load outranks a world refresh even on the refresh turn.
+        let use_sorted = match (best_sorted, best_round) {
+            (None, None) => return None,
+            (Some(_), None) => true,
+            (None, Some(_)) => false,
+            (Some(s), Some(r)) if s > r => true,
+            (Some(s), Some(r)) if r > s => false,
+            (Some(_), Some(_)) => {
+                if self.sorted_turn {
+                    !self.sorted.is_empty()
+                } else {
+                    self.round_robin.is_empty()
+                }
+            }
         };
         let p = if use_sorted {
-            // LLObjectMediaDataClient::sortQueue: the highest interest first
+            // Highest priority first (HUD before world), then interest
+            // (pixels / nearness) as LLObjectMediaDataClient::sortQueue.
             let best = self
                 .sorted
                 .iter()
                 .enumerate()
                 .max_by(|(_, a), (_, b)| {
                     let (ia, ib) = (interest(&a.object).unwrap_or_default(), interest(&b.object).unwrap_or_default());
-                    ia.0.total_cmp(&ib.0).then(ib.1.total_cmp(&ia.1))
+                    a.priority
+                        .cmp(&b.priority)
+                        .then(ia.0.total_cmp(&ib.0))
+                        .then(ib.1.total_cmp(&ia.1))
                 })
                 .map(|(i, _)| i)?;
             self.sorted.swap_remove(best)
         } else {
-            self.round_robin.pop_front()?
+            // Prefer a high-priority refresh (HUD) over an older world one.
+            let best = self
+                .round_robin
+                .iter()
+                .enumerate()
+                .max_by_key(|(_, p)| p.priority)
+                .map(|(i, _)| i)?;
+            self.round_robin.remove(best)?
         };
         // the other queue's turn next (swapCurrentQueue)
         self.sorted_turn = !use_sorted;
@@ -539,7 +584,7 @@ mod tests {
     fn one_request_per_second_whatever_the_queue() {
         let mut c = MediaDataClient::default();
         for n in 1..=40 {
-            c.request(id(n), "cap", false);
+            c.request(id(n), "cap", false, WORLD);
         }
         let t0 = Instant::now();
         let any = |_: &Uuid| Some((0.0, 1.0));
@@ -557,10 +602,10 @@ mod tests {
     fn first_loads_go_by_interest_and_take_turns_with_refreshes() {
         let mut c = MediaDataClient::default();
         // far, near and on-screen first loads, then a refresh
-        c.request(id(1), "cap", false);
-        c.request(id(2), "cap", false);
-        c.request(id(3), "cap", false);
-        c.request(id(9), "cap", true);
+        c.request(id(1), "cap", false, WORLD);
+        c.request(id(2), "cap", false, WORLD);
+        c.request(id(3), "cap", false, WORLD);
+        c.request(id(9), "cap", true, WORLD);
         let interest = |o: &Uuid| {
             Some(match o.as_u128() {
                 1 => (0.0, 90.0),
@@ -578,9 +623,22 @@ mod tests {
     }
 
     #[test]
+    fn hud_first_load_outranks_a_world_refresh() {
+        let mut c = MediaDataClient::default();
+        c.request(id(1), "cap", true, WORLD);
+        c.request(id(2), "cap", false, HUD);
+        let now = Instant::now();
+        assert_eq!(
+            c.next(now, |_| Some((0.0, 1.0))).map(|p| p.object),
+            Some(id(2)),
+            "LeLutka-style HUD ObjectMedia must not wait behind world TVs"
+        );
+    }
+
+    #[test]
     fn busy_answers_are_retried_four_attempts_in_all() {
         let mut c = MediaDataClient::default();
-        c.request(id(1), "cap", false);
+        c.request(id(1), "cap", false, WORLD);
         let any = |_: &Uuid| Some((0.0, 1.0));
         let mut t = Instant::now();
         for attempt in 1..=MAX_ATTEMPTS {
@@ -603,7 +661,7 @@ mod tests {
     #[test]
     fn other_failures_are_not_retried() {
         let mut c = MediaDataClient::default();
-        c.request(id(1), "cap", false);
+        c.request(id(1), "cap", false, WORLD);
         let t = Instant::now();
         let p = c.next(t, |_| Some((0.0, 1.0))).expect("request sent");
         let refused = Err(GetError {
@@ -617,8 +675,8 @@ mod tests {
     #[test]
     fn requests_of_objects_gone_are_dropped() {
         let mut c = MediaDataClient::default();
-        c.request(id(1), "cap", false);
-        c.request(id(2), "cap", true);
+        c.request(id(1), "cap", false, WORLD);
+        c.request(id(2), "cap", true, WORLD);
         assert!(c.next(Instant::now(), |_| None).is_none());
         assert!(!c.is_queued(&id(1)) && !c.is_queued(&id(2)));
     }

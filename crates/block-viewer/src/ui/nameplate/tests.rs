@@ -116,7 +116,9 @@ fn frame(ctx: &egui::Context, plates: &mut Plates, tags: &[Tag<'_>], now: f64) -
         },
         |ui| {
             let painter = ui.ctx().layer_painter(egui::LayerId::background());
-            plates.paint(&painter, &p, &icons, tags, now, |id, rect, _| rects.push((id, rect)));
+            plates.paint(&painter, &p, &icons, tags, now, Default::default(), |id, rect, _| {
+                rects.push((id, rect))
+            });
         },
     );
     output.textures_delta.clear();
@@ -632,7 +634,15 @@ fn the_voice_light_grows_with_the_level_and_fades_with_the_gate() {
     let plain = p.ink.gamma_multiply(0.14);
     let full = Metrics::of(Level::Full, SCALE).height;
     let far = Metrics::of(Level::Far, SCALE).height;
-    let look = |level: f32, gate: f32, height: f32| paint::voice_light(&p, Halo { level, gate, heat: 0.0 }, plain, height);
+    let look = |level: f32, gate: f32, height: f32| {
+        paint::voice_light(
+            &p,
+            crate::settings::VoiceVisualizerStyle::Aurora,
+            Halo { level, gate, heat: 0.0 },
+            plain,
+            height,
+        )
+    };
     let (loud, whisper) = (look(1.0, 1.0, full), look(0.0, 1.0, full));
     let ((reach_loud, alpha_loud), (reach_whisper, alpha_whisper)) = (voice_extent(&loud), voice_extent(&whisper));
     assert!(reach_loud > reach_whisper && alpha_loud > alpha_whisper);
@@ -677,7 +687,9 @@ fn the_voice_level_rises_fast_falls_slowly_and_ends_dark() {
     let p = Theme::default().palette();
     let full = Metrics::of(Level::Full, SCALE).height;
     let alpha = |e: &VoiceEnvelope| {
-        let light = e.halo().map(|h| paint::voice_light(&p, h, p.ink, full));
+        let light = e.halo().map(|h| {
+            paint::voice_light(&p, crate::settings::VoiceVisualizerStyle::Aurora, h, p.ink, full)
+        });
         light.map_or(0, |v| voice_extent(&v).1) as f32 / 255.0
     };
     let mut previous = alpha(&e);
@@ -715,7 +727,11 @@ fn the_loud_ring_grows_with_the_voice_and_turns_red_only_when_overdriven() {
     let over = level_at_dbfs(SHOUT_DBFS);
     // from the speaking level to past the overdriven one, as the plates read it
     let raws: Vec<f32> = (0..=70).map(|i| block_voice::SPEAKING_AUDIO_LEVEL + i as f32 * 0.005).collect();
-    let rings: Vec<_> = raws.iter().map(|&r| paint::loud_ring(&p, voice_level(r), overdrive(r))).collect();
+    let style = crate::settings::VoiceVisualizerStyle::Aurora;
+    let rings: Vec<_> = raws
+        .iter()
+        .map(|&r| paint::loud_ring(&p, style, voice_level(r), overdrive(r)))
+        .collect();
     for (w, r) in rings.windows(2).zip(&raws[1..]) {
         let (a, b) = (w[0], w[1]);
         assert!(b.gap >= a.gap && b.width >= a.width, "{r}: {a:?} -> {b:?}");
@@ -726,7 +742,7 @@ fn the_loud_ring_grows_with_the_voice_and_turns_red_only_when_overdriven() {
         // the red never goes back as the voice rises
         assert!(overdrive(*r) >= overdrive(*r - 0.005), "{r}");
     }
-    let green = |level: f32| paint::loud_ring(&p, level, 0.0).color;
+    let green = |level: f32| paint::loud_ring(&p, style, level, 0.0).color;
     for (ring, &raw) in rings.iter().zip(&raws) {
         if raw <= over {
             assert_eq!(ring.color, green(voice_level(raw)), "green below the overdriven level: {raw}");
@@ -741,7 +757,7 @@ fn the_loud_ring_grows_with_the_voice_and_turns_red_only_when_overdriven() {
     assert!(overdrive(raws[66]) >= 1.0);
     assert_eq!(shout.color, p.danger);
     // halfway, the amber of the palette rather than a mix of green and red
-    assert_eq!(paint::loud_ring(&p, 1.0, 0.5).color, p.amber);
+    assert_eq!(paint::loud_ring(&p, style, 1.0, 0.5).color, p.amber);
     assert!(overdrive(over) == 0.0 && overdrive(over + 0.015) > 0.4 && overdrive(f32::NAN) == 0.0);
 }
 
@@ -928,7 +944,7 @@ fn a_plate_and_its_hit_rect_keep_the_world_anchor_through_pending_ui_zoom() {
                 };
                 let painter = crate::ui::hud::world_painter(ui.ctx());
                 let mut shown = false;
-                plates.paint(&painter, &p, &icons, &[current], 1.0, |_, rect, _| {
+                plates.paint(&painter, &p, &icons, &[current], 1.0, Default::default(), |_, rect, _| {
                     shown = true;
                     let anchor = rect.center_bottom() * ui.ctx().pixels_per_point();
                     // Only the plate's intentional whole-pixel alignment may

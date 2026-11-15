@@ -7,6 +7,7 @@ use super::block;
 use super::mark::Look;
 use super::mesh::{self, Border, Glow, Outline, Ring};
 use super::{Badge, Badges, Content, Halo, Layout, Level, Metrics, Picture, Presence, Role, SCALE, SubLine, Tag, TextSize};
+use crate::settings::VoiceVisualizerStyle;
 use crate::theme::Palette;
 use egui::epaint::TextShape;
 use egui::text::{LayoutJob, TextFormat, TextWrapping};
@@ -56,12 +57,24 @@ pub(super) struct Env<'a> {
     /// The friends' color of Preferences › Colors, when their plates take
     /// a tint of it (Preferences › Avatars, on by default).
     pub friend: Option<Color32>,
+    /// Preferences › Sound › Voice visualizer style.
+    pub voice_style: VoiceVisualizerStyle,
     /// Changes with the skin's colors: what was built with others is rebuilt.
     skin: u64,
 }
 
 impl<'a> Env<'a> {
     pub fn new(painter: &'a egui::Painter, p: &'a Palette, icons: &'a crate::ui::icons::Icons, now: f64) -> Self {
+        Self::with_voice(painter, p, icons, now, VoiceVisualizerStyle::default())
+    }
+
+    pub fn with_voice(
+        painter: &'a egui::Painter,
+        p: &'a Palette,
+        icons: &'a crate::ui::icons::Icons,
+        now: f64,
+        voice_style: VoiceVisualizerStyle,
+    ) -> Self {
         Env {
             painter,
             p,
@@ -71,6 +84,7 @@ impl<'a> Env<'a> {
             semibold: crate::ui::fonts::semibold(painter.ctx()),
             tint: p.navy.lerp_to_gamma(p.bar, 0.5),
             friend: None,
+            voice_style,
             skin: {
                 use std::hash::{Hash, Hasher};
                 let mut hasher = std::collections::hash_map::DefaultHasher::new();
@@ -78,6 +92,7 @@ impl<'a> Env<'a> {
                     p.navy, p.bar, p.ink, p.success, p.amber, p.danger, p.raised, p.field, p.violet, p.teal,
                 ]
                 .hash(&mut hasher);
+                (voice_style as u8).hash(&mut hasher);
                 hasher.finish()
             },
         }
@@ -434,13 +449,25 @@ fn background(env: &Env<'_>, rect: Rect, st: &State, alpha: f32, far: f32, c: &C
         let plain = key
             .border
             .unwrap_or_else(|| p.ink.gamma_multiply(lerp(BORDER, far) + HOVER_BORDER * key.hover));
-        let voice = key.halo.map(|halo| voice_light(p, halo, plain, key.size.y));
+        let voice = key.halo.map(|halo| voice_light(p, env.voice_style, halo, plain, key.size.y));
         let mut plate = Mesh::default();
         let at_origin = Rect::from_min_size(Pos2::ZERO, rect.size());
         let fill = key.tint.lerp_to_gamma(p.ink, HOVER_LIGHT * key.hover).gamma_multiply(opacity);
         let ppp = env.pixels_per_point;
         match voice {
-            Some(v) => mesh::plate(&mut plate, at_origin, ppp, fill, v.border, &[shadow, v.glow], &[v.ring]),
+            Some(v) => {
+                let lights = if v.glow.color.a() > 0 {
+                    [shadow, v.glow]
+                } else {
+                    [shadow, Glow {
+                        offset: Vec2::ZERO,
+                        blur: 0.0,
+                        spread: 0.0,
+                        color: Color32::TRANSPARENT,
+                    }]
+                };
+                mesh::plate(&mut plate, at_origin, ppp, fill, v.border, &lights, &[v.ring])
+            }
             // no outline for a silent participant (the human's choice)
             None => mesh::plate(&mut plate, at_origin, ppp, fill, Border::Inside(plain, 1.0), &[shadow], &[]),
         }
@@ -476,42 +503,68 @@ pub(super) struct LoudRing {
 }
 
 /// Everything grows with the level, so that a whisper, a voice and a shout
-/// look different at a glance: a whisper (just above the speaking level) is
-/// a faint hairline hugging the plate with almost no glow, a normal voice a
-/// ring a few points away over a soft glow, a shout a thick bright ring
-/// pushed out with a wide glow. The glow grows with the square of the level:
-/// it stays out of the way until the voice is loud. The color is the
-/// microphone badge's green, a little brighter as the voice rises, sliding
-/// to the danger red only past the overdriven level (`overdrive`), through
-/// the amber: halfway between the green and the red directly is a muddy
-/// olive.
-pub(super) fn loud_ring(p: &Palette, level: f32, heat: f32) -> LoudRing {
+/// look different at a glance. Aurora keeps the soft glow bloom; Block uses
+/// signal lime on a tight edge with no bloom; Legacy is a simple stroke.
+pub(super) fn loud_ring(p: &Palette, style: VoiceVisualizerStyle, level: f32, heat: f32) -> LoudRing {
     let (l, h) = (level.clamp(0.0, 1.0), heat.clamp(0.0, 1.0));
-    let green = p.success.lerp_to_gamma(p.ink, 0.3 * l);
-    let color = if h < 0.5 {
-        green.lerp_to_gamma(p.amber, 2.0 * h)
-    } else {
-        p.amber.lerp_to_gamma(p.danger, 2.0 * h - 1.0)
+    let color = match style {
+        VoiceVisualizerStyle::Block => {
+            let lime = p.violet.lerp_to_gamma(p.ink, 0.15 * l);
+            if h < 0.5 {
+                lime.lerp_to_gamma(p.amber, 2.0 * h)
+            } else {
+                p.amber.lerp_to_gamma(p.danger, 2.0 * h - 1.0)
+            }
+        }
+        VoiceVisualizerStyle::Aurora | VoiceVisualizerStyle::Legacy => {
+            let green = p.success.lerp_to_gamma(p.ink, 0.3 * l);
+            if h < 0.5 {
+                green.lerp_to_gamma(p.amber, 2.0 * h)
+            } else {
+                p.amber.lerp_to_gamma(p.danger, 2.0 * h - 1.0)
+            }
+        }
     };
-    LoudRing {
-        gap: 1.0 + 7.0 * l,
-        width: 0.9 + 2.7 * l,
-        alpha: 0.4 + 0.6 * l,
-        glow: 0.03 + 0.5 * l * l,
-        edge: 0.25 + 0.35 * l,
-        blur: 2.0 + 24.0 * l * l,
-        color,
+    match style {
+        VoiceVisualizerStyle::Block => LoudRing {
+            // Tight lime edge that brightens with level — no outer bloom.
+            gap: 0.4 + 1.2 * l,
+            width: 1.2 + 2.0 * l,
+            alpha: 0.55 + 0.45 * l,
+            glow: 0.0,
+            edge: 0.35 + 0.4 * l,
+            blur: 0.0,
+            color,
+        },
+        VoiceVisualizerStyle::Legacy => LoudRing {
+            gap: 0.5,
+            width: 1.5 + 1.5 * l,
+            alpha: 0.7 + 0.3 * l,
+            glow: 0.0,
+            edge: 0.2 + 0.3 * l,
+            blur: 0.0,
+            color,
+        },
+        VoiceVisualizerStyle::Aurora => LoudRing {
+            gap: 1.0 + 7.0 * l,
+            width: 0.9 + 2.7 * l,
+            alpha: 0.4 + 0.6 * l,
+            glow: 0.03 + 0.5 * l * l,
+            edge: 0.25 + 0.35 * l,
+            blur: 2.0 + 24.0 * l * l,
+            color,
+        },
     }
 }
 
 /// The voice's light on a plate `height` points high, whose border is
 /// `plain` when silent: the `loud_ring`, a little tighter around the
 /// smaller plates, closing in on the plate as the voice starts (the gate).
-pub(super) fn voice_light(p: &Palette, halo: Halo, plain: Color32, height: f32) -> VoiceLight {
+pub(super) fn voice_light(p: &Palette, style: VoiceVisualizerStyle, halo: Halo, plain: Color32, height: f32) -> VoiceLight {
     let g = halo.gate.clamp(0.0, 1.0);
     // mockup pixels to points
     let k = SCALE * (height / Metrics::of(Level::Full, SCALE).height).clamp(0.55, 1.0);
-    let r = loud_ring(p, halo.level, halo.heat);
+    let r = loud_ring(p, style, halo.level, halo.heat);
     let gap = r.gap + 4.0 * (1.0 - g);
     VoiceLight {
         glow: Glow {

@@ -248,12 +248,17 @@ impl MediaManager {
                 if let MediaKey::Prim { object, .. } = hit.key
                     && let Some(e) = self.objects.get_mut(&object)
                 {
-                    e.fetch_failed = false;
+                    // Clear the paced "asked once per version" gate so a
+                    // click can retry after the simulator stayed busy.
+                    let update = e.fetched_version.is_some() || e.data.is_some();
+                    e.asked_version = None;
                     e.fetched_version = None;
                     if let Some(o) = world.objects.get(e.idx)
                         && let Some(cap) = world.regions.get(&o.key.region).and_then(|r| r.caps.get("ObjectMedia"))
                     {
-                        self.client.request(object, cap);
+                        let version = super::entry::media_version(&o.media_url).unwrap_or(0);
+                        e.asked_version = Some(version);
+                        self.client.request(object, cap, update);
                     }
                 }
                 return true;

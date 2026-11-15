@@ -383,6 +383,10 @@ pub struct App {
     fullscreen_applied: bool,
     /// Streamer mode turned fullscreen on; turning streamer off restores windowed.
     streamer_forced_fullscreen: bool,
+    /// Streamer mode hid the chat bar; turning streamer off restores it.
+    streamer_forced_chat_hide: bool,
+    /// Streamer mode hid HUDs via show_huds; turning streamer off restores it.
+    streamer_forced_huds_off: bool,
     /// The window of a lost GPU device, kept on screen until the new one has
     /// presented its first image (gpu_recovery.rs).
     retired_window: Option<Arc<Window>>,
@@ -1456,6 +1460,8 @@ impl App {
             fullscreen_restore: None,
             fullscreen_applied: false,
             streamer_forced_fullscreen: false,
+            streamer_forced_chat_hide: false,
+            streamer_forced_huds_off: false,
             retired_window: None,
             gpu_losses: Default::default(),
             egui_ctx,
@@ -14051,7 +14057,8 @@ impl App {
         }
         if self.interface.immersive {
             self.interface.set_hidden(&self.egui_ctx, false);
-            if self.settings.streamer_mode {
+            // Leaving immersive ends Streamer mode when that mode was using it.
+            if self.settings.streamer_mode && self.settings.streamer.immersive {
                 self.apply_streamer_mode(false);
             }
         } else {
@@ -14062,12 +14069,11 @@ impl App {
         }
     }
 
-    /// Streamer / creator capture mode: immersive UI, fullscreen, and
-    /// suppress balance / hover tips / name tags / mouselook Esc chrome.
+    /// Streamer / creator capture mode: applies the chosen Streamer knobs.
     fn set_streamer_mode(&mut self, on: bool) {
         if self.settings.streamer_mode == on {
             if on {
-                self.ensure_streamer_immersive();
+                self.ensure_streamer_chrome();
             }
             return;
         }
@@ -14077,17 +14083,35 @@ impl App {
     fn apply_streamer_mode(&mut self, on: bool) {
         self.settings.streamer_mode = on;
         if on {
-            if !self.settings.window_fullscreen {
+            let s = self.settings.streamer.clone();
+            if s.fullscreen && !self.settings.window_fullscreen {
                 self.streamer_forced_fullscreen = true;
                 self.settings.window_fullscreen = true;
                 self.apply_fullscreen_setting();
             }
-            self.ensure_streamer_immersive();
+            if s.hide_chat_bar && !self.chat_ui.bar_hidden {
+                self.streamer_forced_chat_hide = true;
+                self.chat_ui.bar_hidden = true;
+            }
+            if s.hide_huds && self.settings.show_huds && !self.world.rlva_has_locked_hud() {
+                self.streamer_forced_huds_off = true;
+                self.settings.show_huds = false;
+                self.leave_huds();
+            }
+            self.ensure_streamer_chrome();
         } else {
             if self.streamer_forced_fullscreen {
                 self.streamer_forced_fullscreen = false;
                 self.settings.window_fullscreen = false;
                 self.apply_fullscreen_setting();
+            }
+            if self.streamer_forced_chat_hide {
+                self.streamer_forced_chat_hide = false;
+                self.chat_ui.bar_hidden = !self.settings.show_chat_bar;
+            }
+            if self.streamer_forced_huds_off {
+                self.streamer_forced_huds_off = false;
+                self.settings.show_huds = true;
             }
             if self.interface.immersive {
                 self.interface.set_hidden(&self.egui_ctx, false);
@@ -14096,14 +14120,43 @@ impl App {
         self.settings.save();
     }
 
-    fn ensure_streamer_immersive(&mut self) {
-        if self.camera.mouselook() || self.interface.immersive {
+    fn ensure_streamer_chrome(&mut self) {
+        if !self.settings.streamer_mode {
             return;
         }
-        if !self.settings.immersive_huds && !self.world.rlva_has_locked_hud() {
+        let hide_huds = self.settings.streamer.hide_huds;
+        let immersive = self.settings.streamer.immersive;
+        let immersive_huds = self.settings.immersive_huds;
+        if (hide_huds || (immersive && !immersive_huds)) && !self.world.rlva_has_locked_hud() {
             self.leave_huds();
         }
-        self.interface.set_immersive(&self.egui_ctx);
+        if immersive && !self.camera.mouselook() && !self.interface.immersive {
+            self.interface.set_immersive(&self.egui_ctx);
+        }
+    }
+
+    fn streamer_on(&self) -> bool {
+        self.settings.streamer_mode
+    }
+
+    fn streamer_hides_balance(&self) -> bool {
+        self.streamer_on() && self.settings.streamer.hide_balance
+    }
+
+    fn streamer_hides_hover_tips(&self) -> bool {
+        self.streamer_on() && self.settings.streamer.hide_hover_tips
+    }
+
+    fn streamer_hides_name_tags(&self) -> bool {
+        self.streamer_on() && self.settings.streamer.hide_name_tags
+    }
+
+    fn streamer_hides_mouselook_esc(&self) -> bool {
+        self.streamer_on() && self.settings.streamer.hide_mouselook_esc
+    }
+
+    fn streamer_suppresses_toasts(&self) -> bool {
+        self.streamer_on() && self.settings.streamer.suppress_toasts
     }
 
     /// World › Environment's shortcuts (`World.EnvSettings`), like its menu
@@ -15228,9 +15281,9 @@ impl App {
     fn draw_ui(&mut self, ui: &mut egui::Ui, projector: &ui::hud::Projector, renderer: &Renderer) -> UiActions {
         ui.ctx()
             .data_mut(|data| data.insert_temp(egui::Id::unique("vr-active"), renderer.vr_engaged()));
-        // Saved streamer mode: keep immersive chrome after a restart.
+        // Saved streamer mode: keep chosen chrome after a restart.
         if self.settings.streamer_mode && matches!(self.screen, Screen::World) {
-            self.ensure_streamer_immersive();
+            self.ensure_streamer_chrome();
         }
         // the toolbar's Sit / Stand button, greyed when RLVa would refuse it
         // (RlvActions::canStand / canGroundSit, the same check as the send)
@@ -15518,8 +15571,8 @@ impl App {
                         // Feedback: hiding the UI (Alt+Shift+U) also hides
                         // name and hover tags for recording.
                         !self.interface.hidden
-                            && (!self.interface.immersive
-                                || (self.settings.immersive_name_tags && !self.settings.streamer_mode)),
+                            && !self.streamer_hides_name_tags()
+                            && (!self.interface.immersive || self.settings.immersive_name_tags),
                         &self.settings,
                         &mut self.name_tag_visibility,
                         &voice_levels,
@@ -15637,7 +15690,8 @@ impl App {
                     } else {
                         self.settings.show_bug_report
                     },
-                    show_huds: self.settings.show_huds,
+                    show_huds: self.settings.show_huds
+                        && !(self.streamer_on() && self.settings.streamer.hide_huds),
                     hud_zoom: self.world.hud_zoom,
                     ban_lines: self.settings.maps.ban_lines,
                     world_overlays: self.settings.world_overlays,
@@ -15666,7 +15720,7 @@ impl App {
                         } else {
                             self.settings.show_balance
                         };
-                        base && !self.settings.streamer_mode
+                        base && !self.streamer_hides_balance()
                     },
                     streamer_mode: self.settings.streamer_mode,
                     voice: (self.voice.light, self.voice.status.clone()),
@@ -16269,7 +16323,7 @@ impl App {
                     // "Press Esc" chrome.
                     if self.settings.camera.show_mouselook_instructions
                         && !self.interface.hidden
-                        && !self.settings.streamer_mode
+                        && !self.streamer_hides_mouselook_esc()
                     {
                         // LLViewerWindow::drawMouselookInstructions: the way
                         // out, half transparent above the bottom bar (the
@@ -17152,8 +17206,8 @@ impl App {
                 // in do not disturb only the script menus come out, in both
                 // styles (#491)
                 let aurora = self.notifications_aurora();
-                let dnd = self.world.status.dnd;
-                let toasts_hidden = self.camera.mouselook() || self.photo_full_frame();
+                let dnd = self.world.status.dnd || self.streamer_suppresses_toasts();
+                let toasts_hidden = self.camera.mouselook() || self.photo_full_frame() || self.streamer_suppresses_toasts();
                 self.world.notifications.aurora = aurora;
                 // #465: a friendship offer in the middle of the screen, before
                 // the toasts it replaces (AURORA_DEMO_FRIEND_PROMPT: on for the run)

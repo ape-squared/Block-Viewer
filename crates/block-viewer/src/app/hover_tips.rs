@@ -30,9 +30,9 @@ pub(crate) struct HoverTipsState {
 
 impl App {
     /// The tips are on: the saved setting, or the demo's scenario.
-    /// Streamer mode keeps the world clear for capture.
+    /// Streamer mode can keep the world clear for capture.
     pub(super) fn hover_tips_on(&self) -> bool {
-        !self.settings.streamer_mode
+        !self.streamer_hides_hover_tips()
             && (self.settings.hover_tips.enabled || (self.demo && crate::demo::hover_tips::scenario().is_some()))
     }
 
@@ -46,7 +46,7 @@ impl App {
             .then(crate::demo::hover_tips::scenario)
             .flatten()
             .unwrap_or_else(|| (self.settings.hover_tips.clone(), self.settings.classic_hover_tips));
-        if self.settings.streamer_mode || !settings.enabled || !shown {
+        if self.streamer_hides_hover_tips() || !settings.enabled || !shown {
             self.hover_tips.timing.hide();
             self.hover_tips.rect = None;
             self.hover_tips.last = None;

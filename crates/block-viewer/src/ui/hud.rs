@@ -695,7 +695,7 @@ pub fn draw(
                 painter.add(mesh);
             }
             if let Some(id) = avatar.filter(|_| visualizer) {
-                voice_tags.paint(&painter, p, id, r, in_voice, now_s, fade);
+                voice_tags.paint(&painter, p, id, r, in_voice, now_s, fade, audio.voice_visualizer_style);
                 if audio.voice_visualizer_dot && in_voice.is_some() {
                     painter.circle_filled(Pos2::new(r.left() + 12.0, r.center().y), 3.0, p.success.gamma_multiply(fade));
                 }
@@ -731,7 +731,7 @@ pub fn draw(
         } else {
             plate_tags.iter().map(|t| (t.id, t.fade)).collect()
         };
-        plates.paint(&painter, p, icons, &plate_tags, now_s, |id, rect, at| {
+        plates.paint(&painter, p, icons, &plate_tags, now_s, audio.voice_visualizer_style, |id, rect, at| {
             // right after its plate, before the nearer ones
             if let Some(b) = plate_bubbles.get(&id) {
                 let top = Pos2::new(rect.center().x, rect.bottom() + super::chat_bubbles::GAP);

@@ -19,7 +19,7 @@
 //!   account's list does not allow before the resident answered.
 //!
 //! Plugins run out of process through `block-media` (SLPlugin + the
-//! CEF / LibVLC plugins of Aurora's pack, `pack.rs`, or of a folder chosen
+//! CEF / LibVLC plugins of Block's pack, `pack.rs`, or of a folder chosen
 //! in the preferences).
 //!
 //! Derived from indra/newview (llviewermedia.cpp, llviewerparcelmedia.cpp,
@@ -357,7 +357,7 @@ pub struct MediaSettings {
     /// MediaEnableFilter: media and music ask before a site not in the
     /// account's list (on by default, as there).
     pub filter: bool,
-    /// Aurora's own: media on our own worn items (attachments and HUDs),
+    /// Block's own: media on our own worn items (attachments and HUDs),
     /// whoever made them, loads without the filter's question; a site the
     /// list refuses stays refused. On by default: wearing a media earring
     /// or a HUD should not raise a question (the Legacy Viewer never
@@ -368,7 +368,7 @@ pub struct MediaSettings {
     pub filter_explained: bool,
     /// Folder with SLPlugin and llplugin\ (empty: automatic).
     pub plugin_dir: String,
-    /// Aurora's own: the answer to the download of the media plugins pack
+    /// Block's own: the answer to the download of the media plugins pack
     /// (`pack.rs`); asked once, the first time it is needed.
     pub pack_consent: pack::Consent,
 }
@@ -397,9 +397,11 @@ impl Default for MediaSettings {
 struct ObjMedia {
     idx: usize,
     fetched_version: Option<u32>,
+    /// Object media version of the last GET asked (0 without one): asked
+    /// once per version, like LLVOVolume::processUpdateMessage asks once per
+    /// media change, so a failed GET is not asked again until the next one.
+    asked_version: Option<u32>,
     data: Option<ObjectMediaData>,
-    /// Last ObjectMedia GET failed: allow a user click to ask again.
-    fetch_failed: bool,
     hud: bool,
     on_other_avatar: bool,
     /// Worn by us (an attachment or a HUD), its avatar already known: false
@@ -668,7 +670,7 @@ impl MediaManager {
     }
 
     /// SLPlugin / llplugin (searched once per configured folder and per state
-    /// of Aurora's pack).
+    /// of Block's pack).
     pub fn plugins(&mut self, settings: &MediaSettings) -> Option<&PluginPaths> {
         if self.paths_for.as_deref() != Some(settings.plugin_dir.as_str()) {
             let dir = settings.plugin_dir.trim();
@@ -676,13 +678,13 @@ impl MediaManager {
             self.paths_for = Some(settings.plugin_dir.clone());
             match &self.paths {
                 Some(p) => log::info!("media: plugins in {} (launcher {})", p.plugin_dir.display(), p.launcher.display()),
-                None => log::warn!("media: no media plugins yet: web and video media wait for Aurora's pack"),
+                None => log::warn!("media: no media plugins yet: web and video media wait for Block's pack"),
             }
         }
         self.paths.as_ref()
     }
 
-    /// Where Aurora's media plugins pack is installed (`None` until it is).
+    /// Where Block's media plugins pack is installed (`None` until it is).
     /// Media that were waiting for plugins start at the next update.
     pub fn set_pack_dir(&mut self, dir: Option<&std::path::Path>) {
         if self.pack_dir.as_deref() != dir {

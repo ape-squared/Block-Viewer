@@ -920,9 +920,10 @@ impl Plates {
         icons: &super::icons::Icons,
         tags: &[Tag<'_>],
         now: f64,
+        voice_style: crate::settings::VoiceVisualizerStyle,
         mut placed: impl FnMut(Uuid, Rect, glam::Vec3),
     ) {
-        let mut env = paint::Env::new(painter, p, icons, now);
+        let mut env = paint::Env::with_voice(painter, p, icons, now, voice_style);
         env.friend = self.friend_tint.then(|| crate::ui::colors::c(crate::ui::colors::get().tag_friend));
         // nearest first (`tags` ends with them): the level of each plate,
         // the complete ones limited in number, and the blur for the first ones

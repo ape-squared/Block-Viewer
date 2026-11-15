@@ -1048,10 +1048,11 @@ pub struct Settings {
     /// FSShowCurrencyBalanceInStatusbar, on by default; #1340): hidden, it
     /// stays out of sight on a stream.
     pub show_balance: bool,
-    /// Streamer / creator capture mode: immersive chrome, fullscreen, and
-    /// hide balance, hover tips, name tags, and mouselook Esc instructions
-    /// without changing those prefs permanently.
+    /// Streamer / creator capture mode master switch. What it changes is
+    /// chosen in [`StreamerSettings`].
     pub streamer_mode: bool,
+    /// Which chrome Streamer mode turns on or suppresses.
+    pub streamer: StreamerSettings,
     /// People › Near you as Firestorm's radar table (`ui/people/radar.rs`)
     /// instead of the rows grouped by range and the sheet of
     /// `ui/people/nearby.rs`.
@@ -1676,6 +1677,9 @@ pub struct AudioSettings {
     pub voice_noise_suppression: u8,
     pub lip_sync: bool,
     pub voice_visualizer: bool,
+    /// How speaking shows on name tags (Block lime underline, Aurora glow
+    /// ring, or Legacy outline).
+    pub voice_visualizer_style: VoiceVisualizerStyle,
     pub voice_visualizer_self: bool,
     pub voice_visualizer_dot: bool,
     pub voice_visualizers_in_calls: bool,
@@ -1763,6 +1767,7 @@ impl Default for AudioSettings {
             voice_noise_suppression: 4,
             lip_sync: true,
             voice_visualizer: true,
+            voice_visualizer_style: VoiceVisualizerStyle::default(),
             voice_visualizer_self: true,
             voice_visualizer_dot: true,
             voice_visualizers_in_calls: true,
@@ -1807,6 +1812,51 @@ pub enum VoiceEar {
     #[default]
     Camera,
     Avatar,
+}
+
+/// Speaking chrome on avatar name tags.
+#[derive(Debug, Clone, Copy, Default, Serialize, Deserialize, PartialEq, Eq)]
+pub enum VoiceVisualizerStyle {
+    /// Signal-lime underline / tight edge; no Aurora glow bloom.
+    #[default]
+    Block,
+    /// Soft green→amber→red glow ring (Aurora look).
+    Aurora,
+    /// Simple outline around the plate (Legacy-style stroke).
+    Legacy,
+}
+
+/// What Streamer mode applies while the master switch is on. Defaults are a
+/// clean capture layout; each knob can be turned off.
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[serde(default)]
+pub struct StreamerSettings {
+    pub immersive: bool,
+    pub fullscreen: bool,
+    pub hide_balance: bool,
+    pub hide_hover_tips: bool,
+    pub hide_name_tags: bool,
+    pub hide_mouselook_esc: bool,
+    pub hide_huds: bool,
+    pub hide_chat_bar: bool,
+    /// Hold notification toasts (like Do Not Disturb for capture).
+    pub suppress_toasts: bool,
+}
+
+impl Default for StreamerSettings {
+    fn default() -> Self {
+        Self {
+            immersive: true,
+            fullscreen: true,
+            hide_balance: true,
+            hide_hover_tips: true,
+            hide_name_tags: true,
+            hide_mouselook_esc: true,
+            hide_huds: false,
+            hide_chat_bar: false,
+            suppress_toasts: false,
+        }
+    }
 }
 
 impl AudioSettings {
@@ -2073,6 +2123,7 @@ impl Default for Settings {
             show_net_stats: false,
             show_balance: true,
             streamer_mode: false,
+            streamer: StreamerSettings::default(),
             classic_people: false,
             classic_restart_alert: false,
             classic_chat_lines: false,

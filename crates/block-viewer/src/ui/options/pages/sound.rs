@@ -508,6 +508,17 @@ fn voice(cx: &mut Cx) {
     });
     cx.group(tr!("voice-indicators"), |cx| {
         cx.toggle(tr!("voice-show-visualizers"), "", &field!(audio.voice_visualizer));
+        use crate::settings::VoiceVisualizerStyle;
+        cx.choice(
+            tr!("voice-visualizer-style"),
+            tr!("voice-visualizer-style-help"),
+            &field!(audio.voice_visualizer_style),
+            &[
+                (VoiceVisualizerStyle::Block, tr!("voice-visualizer-style-block"), true),
+                (VoiceVisualizerStyle::Aurora, tr!("voice-visualizer-style-aurora"), true),
+                (VoiceVisualizerStyle::Legacy, tr!("voice-visualizer-style-legacy"), true),
+            ],
+        );
         cx.toggle(tr!("voice-show-self"), "", &field!(audio.voice_visualizer_self));
         cx.toggle(tr!("voice-show-dot"), "", &field!(audio.voice_visualizer_dot));
         cx.toggle(tr!("voice-show-in-calls"), "", &field!(audio.voice_visualizers_in_calls));

@@ -14,6 +14,54 @@ pub fn page(cx: &mut Cx, tab: usize) {
                     tr!("ui-options-streamer-mode-help"),
                     &field!(streamer_mode),
                 );
+                let streamer_off = !cx.s.streamer_mode;
+                cx.subs(streamer_off, |cx| {
+                    cx.toggle(
+                        tr!("ui-options-streamer-immersive"),
+                        tr!("ui-options-streamer-immersive-help"),
+                        &field!(streamer.immersive),
+                    );
+                    cx.toggle(
+                        tr!("ui-options-streamer-fullscreen"),
+                        tr!("ui-options-streamer-fullscreen-help"),
+                        &field!(streamer.fullscreen),
+                    );
+                    cx.toggle(
+                        tr!("ui-options-streamer-hide-balance"),
+                        tr!("ui-options-streamer-hide-balance-help"),
+                        &field!(streamer.hide_balance),
+                    );
+                    cx.toggle(
+                        tr!("ui-options-streamer-hide-hover-tips"),
+                        tr!("ui-options-streamer-hide-hover-tips-help"),
+                        &field!(streamer.hide_hover_tips),
+                    );
+                    cx.toggle(
+                        tr!("ui-options-streamer-hide-name-tags"),
+                        tr!("ui-options-streamer-hide-name-tags-help"),
+                        &field!(streamer.hide_name_tags),
+                    );
+                    cx.toggle(
+                        tr!("ui-options-streamer-hide-mouselook-esc"),
+                        tr!("ui-options-streamer-hide-mouselook-esc-help"),
+                        &field!(streamer.hide_mouselook_esc),
+                    );
+                    cx.toggle(
+                        tr!("ui-options-streamer-hide-huds"),
+                        tr!("ui-options-streamer-hide-huds-help"),
+                        &field!(streamer.hide_huds),
+                    );
+                    cx.toggle(
+                        tr!("ui-options-streamer-hide-chat-bar"),
+                        tr!("ui-options-streamer-hide-chat-bar-help"),
+                        &field!(streamer.hide_chat_bar),
+                    );
+                    cx.toggle(
+                        tr!("ui-options-streamer-suppress-toasts"),
+                        tr!("ui-options-streamer-suppress-toasts-help"),
+                        &field!(streamer.suppress_toasts),
+                    );
+                });
                 cx.toggle(tr!("bug-toolbar"), tr!("bug-toolbar-help"), &field!(show_bug_report));
                 // the place island of the Aurora bars (also in its right-click menu)
                 cx.toggle(

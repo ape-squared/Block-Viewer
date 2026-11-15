@@ -107,21 +107,33 @@ impl VoiceTags {
             let volume = ((e.level - LEVEL_MIN) / (LEVEL_MAX - LEVEL_MIN)).clamp(0.0, 1.0);
             // Keep speech readable at a distance and against bright scene backgrounds.
             let opacity = e.opacity * fade.sqrt();
-            let (width, rounding) = match style {
-                VoiceVisualizerStyle::Block => (2.0 + volume * 1.25, 4.0),
-                VoiceVisualizerStyle::Aurora => (3.0 + volume * 1.5, 3.0),
-                VoiceVisualizerStyle::Legacy => (2.5 + volume, 2.0),
-            };
             let color = level_color(p, style, e.level).gamma_multiply(opacity);
-            if style != VoiceVisualizerStyle::Block {
-                painter.rect_stroke(
-                    rect,
-                    rounding,
-                    Stroke::new(width + 2.0, p.bar.gamma_multiply(opacity)),
-                    StrokeKind::Outside,
-                );
+            match style {
+                // Under-tag lime meter — not a full outline (distinct from Aurora).
+                VoiceVisualizerStyle::Block => {
+                    let height = 2.0 + 2.5 * volume;
+                    let width = rect.width() * (0.18 + 0.72 * volume);
+                    let bar = Rect::from_center_size(
+                        egui::pos2(rect.center().x, rect.bottom() + 3.0 + height * 0.5),
+                        egui::vec2(width, height),
+                    );
+                    painter.rect_filled(bar, height * 0.45, color);
+                }
+                VoiceVisualizerStyle::Aurora => {
+                    let width = 3.0 + volume * 1.5;
+                    painter.rect_stroke(
+                        rect,
+                        3.0,
+                        Stroke::new(width + 2.0, p.bar.gamma_multiply(opacity)),
+                        StrokeKind::Outside,
+                    );
+                    painter.rect_stroke(rect, 3.0, Stroke::new(width, color), StrokeKind::Outside);
+                }
+                VoiceVisualizerStyle::Legacy => {
+                    let width = 2.5 + volume;
+                    painter.rect_stroke(rect, 2.0, Stroke::new(width, color), StrokeKind::Outside);
+                }
             }
-            painter.rect_stroke(rect, rounding, Stroke::new(width, color), StrokeKind::Outside);
         }
     }
 

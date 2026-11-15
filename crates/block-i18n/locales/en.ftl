@@ -1140,7 +1140,7 @@ ui-options-streamer-suppress-toasts-help = Hold toast pop-ups (like Do Not Distu
 ui-bars-streamer-mode = Streamer mode
 toolbar-command-streamer-mode = Streamer mode
 voice-visualizer-style = Voice visualizer style
-voice-visualizer-style-help = How speaking shows on name tags. Block is a tight signal-lime edge without the Aurora glow bloom.
+voice-visualizer-style-help = How speaking shows on name tags. Block is a short signal-lime meter under the plate (no ring, no glow). Aurora is the soft glow ring. Legacy is a simple outline.
 voice-visualizer-style-block = Block
 voice-visualizer-style-aurora = Aurora
 voice-visualizer-style-legacy = Legacy
@@ -3910,7 +3910,7 @@ ui-land-environment-the-estate-manager-does-not-allow-parcel-environment-changes
 common-the-link-is-broken = The link is broken.
 link-trust-the-link-leads-to-an-ip-address-instead-of = The link leads to an IP address instead of a site name.
 link-trust-the-link-leads-to-this-computer-or-local-network = The link leads to this computer or to your local network, not to a site on the internet.
-ui-options-the-violet-wolf-howls-under-the-northern-lights = The violet wolf howls under the northern lights.
+ui-options-the-violet-wolf-howls-under-the-northern-lights = Block stays sharp on every screen.
 world-inventory-preview-the-material-is-unreadable = The material is unreadable.
 ui-contacts-your-chosen-name-for-this-person = Your chosen name for this person.
 link-trust-the-name-starts-like-a-trusted-site-but-leads = The name starts like a trusted site, but leads to a different site.

@@ -8,7 +8,7 @@ publish.workspace = true
 description = "Audio output engine for Block Viewer: volume-channel mixer, parcel music streaming, PCM sinks."
 
 [dependencies]
-sonora = "0.2.0"
+sonora = "0.3.0"
 block-version = { version = "0.1.0", path = "../block-version" }
 # realtime: the device callbacks run in the multimedia scheduler's "Audio"
 # task (MMCSS) on Windows, and at realtime priority on the ALSA host on Linux,

@@ -8,7 +8,14 @@ pub mod animesh;
 pub mod animesh_report;
 mod auto_hover;
 pub mod avatar;
+pub mod avatar_snow;
 pub mod banlines;
+mod rain_ground;
+pub mod rain_sound;
+mod shelter_hold;
+pub mod snow_detail;
+pub mod snow_trail;
+pub mod thunder;
 pub mod blend_order;
 mod blender_live;
 pub mod body_physics;
@@ -434,6 +441,8 @@ pub struct ObjGpu {
     /// Avatar wearing this object (attachments), for the avatar limit.
     pub owner_avatar: Option<usize>,
     pub first_person_hidden: bool,
+    /// Out of the rain shelter map: physical, moving, or moved recently.
+    pub physical: bool,
     /// Reflection probe flagged as a mirror (box); listed in
     /// `Scene::mirror_objects`.
     pub mirror: bool,
@@ -995,6 +1004,14 @@ pub struct Scene {
     pub lists: DrawLists,
     pub creation_preview: creation_preview::CreationPreview,
     pub live_decor: live_decor::LiveDecor,
+    /// Weather: lying snow detail texture.
+    pub snow_detail: snow_detail::SnowDetail,
+    /// Weather: snow gathered on nearby avatars.
+    pub avatar_snow: avatar_snow::AvatarSnow,
+    /// Weather: footprints in lying snow.
+    pub snow_trails: snow_trail::SnowTrails,
+    /// Weather: wet-ground / rain shelter cache.
+    rain_ground: rain_ground::RainGroundCache,
     /// Medal / sheer attachment depth: Layers when true (see blend_order).
     pub medal_clip_layers: bool,
     /// Legacy specular / jewellery environment boost (Preferences › Graphics).
@@ -1572,6 +1589,10 @@ impl Scene {
             lists: DrawLists::default(),
             creation_preview: creation_preview::CreationPreview::default(),
             live_decor: live_decor::LiveDecor::default(),
+            snow_detail: Default::default(),
+            avatar_snow: Default::default(),
+            snow_trails: Default::default(),
+            rain_ground: Default::default(),
             medal_clip_layers: true,
             jewelry_shimmer: 1.35,
             build_hologram: build_hologram::BuildHologram::default(),
@@ -6162,6 +6183,7 @@ mod tests {
                 let attachment = ObjGpu {
                     owner_avatar: Some(own),
                     first_person_hidden: hidden,
+                    physical: false,
                     rigged: true,
                     ..Default::default()
                 };
@@ -6186,6 +6208,7 @@ mod tests {
                     hud: true,
                     owner_avatar: Some(own),
                     first_person_hidden: hidden,
+                    physical: false,
                     ..Default::default()
                 };
                 assert!(scene.first_person_object_visible(idx, &hud));

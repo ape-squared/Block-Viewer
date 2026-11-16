@@ -273,6 +273,20 @@ impl SoundClip {
         SoundClip { samples }
     }
 
+    /// Same sound starting `fraction` (0..1) through the loop — rain/thunder
+    /// layers use offset copies so overlapping voices do not phase-lock.
+    pub fn rotated(&self, fraction: f32) -> SoundClip {
+        let frames = self.samples.len() / 2;
+        if frames == 0 {
+            return self.clone();
+        }
+        let offset = ((fraction.rem_euclid(1.0) * frames as f32) as usize).min(frames - 1) * 2;
+        let mut out = Vec::with_capacity(self.samples.len());
+        out.extend_from_slice(&self.samples[offset..]);
+        out.extend_from_slice(&self.samples[..offset]);
+        SoundClip { samples: out.into() }
+    }
+
     /// Length of the clip.
     pub fn duration(&self) -> std::time::Duration {
         std::time::Duration::from_secs_f64(self.samples.len() as f64 / 2.0 / f64::from(ENGINE_SAMPLE_RATE))

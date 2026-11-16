@@ -7,6 +7,17 @@ use glam::Vec2;
 
 pub const MAX_WATER_EVENTS: usize = 256;
 pub const WATER_GROUND_SIZE: u32 = 64;
+
+/// Terrain height grid around the camera for puddles in dips.
+#[derive(Debug, Clone, Default)]
+pub struct RainGround {
+    pub origin: [f32; 2],
+    pub extent: f32,
+    pub heights: std::sync::Arc<[f32]>,
+}
+
+pub const RAIN_GROUND_SIZE: u32 = 128;
+
 const MAX_WATER_IMPULSES: usize = 192;
 // Three connected quads per sheet instance; ordinary droplets use the first
 // quad and collapse the others. Counts remain within the shared particle cap.

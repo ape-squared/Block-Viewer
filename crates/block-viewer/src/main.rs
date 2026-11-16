@@ -86,6 +86,7 @@ mod physics_editor;
 mod raw_mouse;
 mod report_abuse;
 mod scene;
+mod weather;
 mod screen_rate;
 mod settings;
 mod shape_editor;

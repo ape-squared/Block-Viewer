@@ -5597,7 +5597,8 @@ impl App {
         self.scene.update_sound_occlusion(&self.world, engine, listener.pos, occlusion, now);
         // the reverb of the surroundings (Aurora's own)
         let reverb = crate::scene::sound_reverb::forced().unwrap_or(self.settings.audio.sound_reverb);
-        self.scene.update_sound_reverb(&self.world, engine, listener.pos, reverb, now);
+        let raining = self.settings.weather.rain() > 0.0;
+        self.scene.update_sound_reverb(&self.world, engine, listener.pos, reverb, raining, now);
     }
 
     /// StreamTitleDisplay::checkMetadata (streamtitledisplay.cpp): the title
@@ -10724,6 +10725,11 @@ impl App {
             },
             // the photo's isolation, "show only" on an empty background
             cutout: self.world.photo_isolation.empty_background(),
+            rain: 0.0,
+            snow_prints: None,
+            snow_prints_gen: 0,
+            snow_fallen: 0.0,
+            rain_look: Default::default(),
             look: None,
         };
         // a photo's look, or the live view's in the photo mode

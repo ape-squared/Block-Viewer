@@ -2,10 +2,10 @@ name: Release
 
 # A version tag (SemVer: v0.2.0, v0.2.1…) pushed by a human builds the
 # viewer and publishes the release with notes: the Windows zip (the one the
-# updater installs), its crash symbols, and the macOS DMG. Linux still
-# dry-runs on packaging PRs only. Use workflow_dispatch with an existing
-# tag and only=macos to attach a Mac build to a release that already has
-# Windows. Nightly may call this workflow with a beta tag.
+# updater installs), its crash symbols, the Linux x64 archive, and the
+# macOS DMG. Use workflow_dispatch with an existing tag and only=macos /
+# only=linux / only=windows to attach one platform to a release that already
+# has the others. Nightly may call this workflow with a beta tag.
 # The Nightly workflow calls it with the beta tag it has just pushed (a tag
 # pushed with the workflow token starts no workflow by itself); a tag with
 # a pre-release part is published as a GitHub pre-release.
@@ -19,11 +19,12 @@ on:
         required: true
         type: string
       only:
-        description: Build only this platform (empty = Windows + macOS)
+        description: Build only this platform (empty = Windows + Linux + macOS)
         required: false
         type: choice
         options:
           - ''
+          - linux
           - macos
           - windows
         default: ''
@@ -54,7 +55,7 @@ permissions:
 
 jobs:
   windows:
-    if: ${{ !(github.event_name == 'workflow_dispatch' && inputs.only == 'macos') }}
+    if: ${{ !(github.event_name == 'workflow_dispatch' && (inputs.only == 'macos' || inputs.only == 'linux')) }}
     runs-on: windows-latest
     env:
       TAG: ${{ inputs.tag || github.event_name == 'push' && github.ref_name || 'dry-run' }}
@@ -221,9 +222,15 @@ jobs:
               (a for a in assets if a.get("name", "").endswith("-macos-arm64.dmg")),
               None,
           )
+          linux = next(
+              (a for a in assets if a.get("name", "").endswith("-linux-x64.tar.gz")),
+              None,
+          )
           fields = []
           if windows and windows.get("browser_download_url"):
               fields.append({"name": "Windows", "value": f"[Download zip]({windows['browser_download_url']})", "inline": True})
+          if linux and linux.get("browser_download_url"):
+              fields.append({"name": "Linux", "value": f"[Download tar.gz]({linux['browser_download_url']})", "inline": True})
           if macos and macos.get("browser_download_url"):
               fields.append({"name": "macOS", "value": f"[Download DMG]({macos['browser_download_url']})", "inline": True})
           fields.append({"name": "Tag", "value": f"[`{tag}`]({url})" if tag and url else (tag or "—"), "inline": True})
@@ -261,11 +268,16 @@ jobs:
               print(f"Discord {resp.status}")
           PY
 
-  # Linux is not published yet (Windows-first). Dry-run only on PRs that
-  # touch packaging / this workflow. Ubuntu 24.04: glibc 2.39.
+  # Linux x64 archive (Ubuntu 24.04: glibc 2.39). Tag / dispatch / nightly
+  # publish; PRs that touch packaging dry-run an artifact only.
   linux:
     needs: windows
-    if: ${{ github.event_name == 'pull_request' }}
+    if: |
+      always() &&
+      (needs.windows.result == 'success' || needs.windows.result == 'skipped') &&
+      !(github.event_name == 'workflow_dispatch' && (inputs.only == 'windows' || inputs.only == 'macos')) &&
+      (github.event_name == 'pull_request' || github.event_name == 'push' ||
+       github.event_name == 'workflow_call' || github.event_name == 'workflow_dispatch')
     runs-on: ubuntu-24.04
     env:
       TAG: ${{ inputs.tag || github.event_name == 'push' && github.ref_name || 'dry-run' }}
@@ -309,11 +321,10 @@ jobs:
           "$hash  $dir.tar.gz" | Set-Content -LiteralPath "$dir.tar.gz.sha256" -Encoding utf8NoBOM
           "ARCHIVE=$dir.tar.gz" >> $env:GITHUB_ENV
       - name: Publish
-        # Kept off public releases (Windows-first); dry-run PRs never hit this.
-        if: false
+        if: env.TAG != 'dry-run' && github.event_name != 'pull_request'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: gh release upload "$TAG" "$ARCHIVE" "$ARCHIVE.sha256"
+        run: gh release upload "$TAG" "$ARCHIVE" "$ARCHIVE.sha256" --clobber
       - name: Dry-run archive
         if: github.event_name == 'pull_request'
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
@@ -331,7 +342,7 @@ jobs:
     if: |
       always() &&
       (needs.windows.result == 'success' || needs.windows.result == 'skipped') &&
-      !(github.event_name == 'workflow_dispatch' && inputs.only == 'windows') &&
+      !(github.event_name == 'workflow_dispatch' && (inputs.only == 'windows' || inputs.only == 'linux')) &&
       (github.event_name == 'pull_request' || github.event_name == 'push' ||
        github.event_name == 'workflow_call' || github.event_name == 'workflow_dispatch')
     runs-on: macos-15

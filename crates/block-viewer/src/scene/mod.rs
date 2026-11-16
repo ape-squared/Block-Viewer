@@ -1044,7 +1044,7 @@ pub struct Scene {
     /// How muffled each world sound is behind walls (sound_occlusion.rs).
     sound_occlusion: sound_occlusion::SoundOcclusion,
     /// The reverb of the surroundings (sound_reverb.rs).
-    sound_reverb: sound_reverb::SoundReverb,
+    pub sound_reverb: sound_reverb::SoundReverb,
     /// Environment settings assets (the EEP default day).
     pub settings: settings::SettingsStreamer,
     /// Landmark asset fetches done, for `World::landmarks` (the app passes

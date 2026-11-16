@@ -687,6 +687,39 @@ pub struct App {
     /// Last tracker beacon sound (FIRE-16969).
     beacon_sound_at: Option<Instant>,
     wind_sound: crate::scene::wind_sound::WindSound,
+    /// The rain's sound (scene/rain_sound.rs).
+    rain_sound: crate::scene::rain_sound::RainSound,
+    rain_sound_dt: Instant,
+    /// When it last rained or snowed (the ground stays wet for a while).
+    rain_last: Option<Instant>,
+    /// The weather settings as last saved (saved again when changed).
+    weather_saved: crate::weather::WeatherSettings,
+    /// The weather's wind, in gusts.
+    weather_wind: crate::weather::Wind,
+    /// The weather in effect this frame: the settings, or what the region's
+    /// environment sets over them when regions may (`update_weather_now`).
+    weather_now: crate::weather::WeatherSettings,
+    /// Who sets `weather_now`. The environment window has no weather-source
+    /// control, so this stays on the app for thunder's shared seed.
+    weather_source: crate::weather::WeatherSource,
+    /// The region weather read from the environment in effect, keyed by its
+    /// day cycle (held, compared by identity: a pointer alone could come
+    /// back as another region's day), sky track, length and offset (parsed
+    /// again only when one changes).
+    #[allow(clippy::type_complexity)]
+    region_weather: Option<(Arc<block_llsd::Llsd>, usize, f64, f64, Option<crate::weather::region::RegionDay>)>,
+    /// How deep a region's snow lies so far (its history played again), and
+    /// when that was worked out (again every ten seconds).
+    snow_lying: (f32, Option<Instant>),
+    /// The weather's thunder and lightning.
+    thunder: crate::scene::thunder::Thunder,
+    /// BLOCK_THUNDER_AT's strike is done.
+    thunder_demo_done: bool,
+    /// One frame of `RainLook::clean` after a teleport or a main-region
+    /// change, so the last region's wet ground does not carry over (#3664).
+    weather_clean: bool,
+    /// The main region the weather was last kept for.
+    weather_region: Option<block_net::RegionHandle>,
     /// Movement keys held since, and the server position then (stuck agent).
     stuck_watch: Option<(Instant, Vec3)>,
     stuck_logged: Option<Instant>,
@@ -1629,6 +1662,19 @@ impl App {
             script_dialogs_were: 0,
             beacon_sound_at: None,
             wind_sound: Default::default(),
+            rain_sound: Default::default(),
+            rain_sound_dt: Instant::now(),
+            rain_last: None,
+            weather_saved: Default::default(),
+            weather_wind: Default::default(),
+            weather_now: Default::default(),
+            weather_source: Default::default(),
+            region_weather: None,
+            snow_lying: (0.0, None),
+            thunder: Default::default(),
+            thunder_demo_done: false,
+            weather_clean: false,
+            weather_region: None,
             stuck_watch: None,
             stuck_logged: None,
             attachments_logged: 0,
@@ -5597,8 +5643,20 @@ impl App {
         self.scene.update_sound_occlusion(&self.world, engine, listener.pos, occlusion, now);
         // the reverb of the surroundings (Aurora's own)
         let reverb = crate::scene::sound_reverb::forced().unwrap_or(self.settings.audio.sound_reverb);
-        let raining = self.settings.weather.rain() > 0.0;
-        self.scene.update_sound_reverb(&self.world, engine, listener.pos, reverb, raining, now);
+        let raining = self.weather_now.rain() > 0.0;
+        self.scene
+            .update_sound_reverb(&self.world, engine, listener.pos, reverb, raining, now);
+        // the rain's sound, leaning toward the open sky
+        let demo_silent = self.demo && std::env::var_os("AURORA_DEMO_SOUND").is_none();
+        let input = crate::scene::rain_sound::RainSoundInput {
+            rain: self.weather_now.rain(),
+            sky: self.scene.sound_reverb.sky,
+            forward: (self.camera.target - self.camera.position).normalize_or(Vec3::X),
+            underwater: (self.world.main_water_height() - self.camera.position.z).max(0.0),
+            audible: matches!(self.screen, Screen::World) && !demo_silent,
+        };
+        self.rain_sound.update(engine, &input, self.rain_sound_dt.elapsed().as_secs_f32());
+        self.rain_sound_dt = Instant::now();
     }
 
     /// StreamTitleDisplay::checkMetadata (streamtitledisplay.cpp): the title
@@ -5631,23 +5689,236 @@ impl App {
         }
     }
 
+    /// The ground stays wet while it falls and for 25 minutes after.
+    fn rain_surfaces_on(&self) -> bool {
+        self.rain_last.is_some_and(|t| t.elapsed() < Duration::from_secs(1500))
+    }
+
+    /// A teleport or a new main region: drop the last region's weather
+    /// memory. `weather_clean` makes the next frame's `RainLook::clean`
+    /// wipe the renderer's wet ground and lying snow (#3664).
+    fn reset_region_weather(&mut self) {
+        self.region_weather = None;
+        self.rain_last = None;
+        self.scene.snow_trails.clear();
+        self.scene.avatar_snow = Default::default();
+        self.weather_clean = true;
+    }
+
+    /// The main region changed (a teleport's arrival, or a border crossing).
+    fn note_main_region_weather(&mut self) {
+        let now = self.world.main_region;
+        if self.weather_region == now {
+            return;
+        }
+        let previous = self.weather_region;
+        self.weather_region = now;
+        if previous.is_some() {
+            self.reset_region_weather();
+        }
+    }
+
+    /// The seed of the region's thunder while the region sets the weather
+    /// (its day's weather seed for this region): None for my own weather
+    /// or a region that sets none, whose strikes are this viewer's own.
+    fn region_thunder_seed(&self) -> Option<u64> {
+        if self.weather_source != crate::weather::WeatherSource::Region {
+            return None;
+        }
+        let Some((.., Some(day))) = &self.region_weather else {
+            return None;
+        };
+        let region = self
+            .world
+            .main()
+            .and_then(|r| r.info.as_ref())
+            .map_or(uuid::Uuid::nil(), |i| i.region_id);
+        // apart from the rain's draws from the same seed
+        Some(crate::weather::region::mix(day.schedule.seed_for(region) ^ 0x0074_6875_6E64_6572))
+    }
+
+    /// Weather: thunder and lightning in heavy rain (the flash is lit in
+    /// the frame, `thunder_light`).
+    fn update_thunder(&mut self) {
+        let demo_silent = self.demo && std::env::var_os("AURORA_DEMO_SOUND").is_none();
+        let input = crate::scene::thunder::ThunderInput {
+            enabled: self.weather_now.thunder,
+            rain: self.weather_now.rain(),
+            frequency: self.weather_now.thunder_frequency,
+            // the region's storm, the same strikes for everyone there
+            shared: self.region_thunder_seed().map(|seed| {
+                let secs = std::time::SystemTime::now()
+                    .duration_since(std::time::UNIX_EPOCH)
+                    .map_or(0.0, |d| d.as_secs_f64());
+                (seed, secs)
+            }),
+            forward: (self.camera.target - self.camera.position).normalize_or(Vec3::X),
+            sky: self.scene.sound_reverb.sky,
+            underwater: self.camera.position.z < self.world.main_water_height(),
+            audible: matches!(self.screen, Screen::World) && !demo_silent,
+        };
+        // BLOCK_THUNDER_AT=<s>: a strike a kilometre away that long after
+        // the start (demo captures of the flash)
+        static AT: std::sync::OnceLock<Option<(Instant, f32)>> = std::sync::OnceLock::new();
+        if let Some((start, s)) = *AT.get_or_init(|| {
+            std::env::var("BLOCK_THUNDER_AT")
+                .ok()
+                .and_then(|v| v.parse().ok())
+                .map(|s| (Instant::now(), s))
+        }) && start.elapsed().as_secs_f32() >= s
+            && !self.thunder_demo_done
+        {
+            self.thunder_demo_done = true;
+            self.thunder.strike(Instant::now(), Some(1000.0));
+        }
+        self.thunder.update(self.audio_engine.as_ref(), &input, Instant::now());
+    }
+
+    /// The lightning's light on the frame: a cold white along the sun's (or
+    /// the moon's) light and over the sky, strong at night, faint by day.
+    fn thunder_light(&self, fp: &mut FrameParams) {
+        // BLOCK_THUNDER_HOLD=<flash>: a flash held (demo captures)
+        static HOLD: std::sync::OnceLock<Option<f32>> = std::sync::OnceLock::new();
+        let hold = *HOLD.get_or_init(|| std::env::var("BLOCK_THUNDER_HOLD").ok().and_then(|v| v.parse().ok()));
+        let flash = hold.unwrap_or(self.thunder.flash);
+        if flash <= 0.001 {
+            return;
+        }
+        let lum = |c: Vec3| c.dot(Vec3::new(0.2126, 0.7152, 0.0722));
+        let t = ((lum(fp.sky_zenith) - 0.05) / 0.35).clamp(0.0, 1.0);
+        let dark = 1.0 - t * t * (3.0 - 2.0 * t);
+        let k = flash * (0.25 + 1.75 * dark);
+        let white = Vec3::new(0.8, 0.85, 1.0);
+        // the sky lit from where it struck (the sky shader's glow), the
+        // world around more evenly
+        let (toward, height) = self.thunder.flash_at;
+        fp.rain_look.lightning = [toward.x, toward.y, height, k];
+        fp.sun_color += white * k * 1.8;
+        fp.sky_zenith += white * k * 0.3;
+        fp.sky_horizon += white * k * 0.25;
+        fp.ground_color += white * k * 0.2;
+        fp.fog_color += white * k * 0.15;
+        // the world and the sky are lit from the environment's sky settings:
+        // the flash lights the scene all round (its ambient), the clouds
+        // from inside and the sky's haze at the horizon
+        fp.sky.ambient += white * k * 0.7;
+        fp.sky.cloud_color += white * k * 0.8;
+        fp.sky.blue_horizon += white * k * 0.12;
+    }
+
+    /// The weather in effect: the Weather settings, or, when regions may set
+    /// it ("Let regions set the weather") and the environment in effect (the
+    /// parcel's, else the region's) carries weather on the agent's sky
+    /// track, what its day gives now (weather/region.rs). The environment
+    /// editors have no weather preview, and a sky applied to myself is not
+    /// read apart from the shared day (`world.eep` has `day_settings`, not
+    /// `local_weather` or `day_names`).
+    fn update_weather_now(&mut self) {
+        use crate::weather::region::{RegionDay, SkyWeather};
+        use crate::weather::WeatherSource;
+        let own = &self.settings.weather;
+        let secs = std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .map_or(0.0, |d| d.as_secs_f64());
+        let region = self
+            .world
+            .main()
+            .and_then(|r| r.info.as_ref())
+            .map_or(uuid::Uuid::nil(), |i| i.region_id);
+        // the snow a day's weather has left so far, every ten seconds
+        let due = self.snow_lying.1.is_none_or(|t| t.elapsed() >= Duration::from_secs(10));
+        let mut now = None;
+        if own.region_weather
+            && self.in_world()
+            && let Ok((day, length, offset)) = self.world.eep.day_settings(true)
+        {
+            let altitudes = self.world.eep.altitudes();
+            // the agent's altitude, as LLEnvironment::calculateSkyTrackForAltitude
+            // takes it (not the camera's); 0-based
+            let z = self.world.agent.position.z;
+            let track = match altitudes.iter().position(|a| z <= *a) {
+                Some(0) => 0,
+                None => 3,
+                Some(i) => i.min(4) - 1,
+            };
+            let fresh = !matches!(&self.region_weather,
+                Some((d, t, l, o, _)) if Arc::ptr_eq(d, &day) && *t == track && *l == length && *o == offset);
+            if fresh {
+                // names the environment was applied with are not on the
+                // selector: a code in the day asset still counts
+                let read = RegionDay::read(&day, track, length, offset);
+                if read.is_some() {
+                    log::info!("region weather on sky track {}", track + 1);
+                }
+                self.region_weather = Some((day, track, length, offset, read));
+            }
+            if let Some((_, _, _, _, Some(day))) = &self.region_weather {
+                if due {
+                    self.snow_lying = (day.snow_lying(region, secs), Some(Instant::now()));
+                }
+                now = Some(day.apply(own, region, secs, false));
+            }
+        }
+        if now.is_none() {
+            // my own weather: what I have seen fall (the renderer's memory)
+            self.snow_lying = (0.0, None);
+        }
+        self.weather_source = if now.is_some() {
+            WeatherSource::Region
+        } else if own.region_weather && self.in_world() {
+            // the region decides, and where it sets none the sky is clear and
+            // calm, as its sky is its own: my settings apply only once I use
+            // my own. What lay melts as after any weather
+            now = Some(RegionDay::fixed(SkyWeather::CLEAR).apply(own, region, secs, false));
+            WeatherSource::RegionClear
+        } else {
+            WeatherSource::Mine
+        };
+        self.weather_now = now.unwrap_or_else(|| own.clone());
+    }
+
+    /// Where the footprints' map is centred: my avatar (zooming the camera
+    /// out keeps them), the camera when I have none.
+    fn trail_centre(&self) -> Vec3 {
+        if self.in_world() && self.world.agent.position.is_finite() && self.world.agent.position != Vec3::ZERO {
+            self.world.agent.position
+        } else {
+            self.camera.position
+        }
+    }
+
     /// audio_update_wind: the wind at our avatar, heard while flying above
-    /// the water.
+    /// the water, and the weather's wind outdoors.
     fn update_wind_sound(&mut self, dt: f32) {
         let agent = &self.world.agent;
-        let region_wind = self
+        let mut region_wind = self
             .world
             .main()
             .map_or(Vec3::ZERO, |r| r.wind.velocity(agent.position, r.heightmap.size_x as f32));
+        // the weather's wind: blowing the region's way, in gusts; heard
+        // outdoors (walking too, not only flying), faint under cover
+        let range = self.weather_now.wind_range();
+        let heading = self.weather_now.wind_heading();
+        self.weather_wind
+            .advance(Instant::now(), range, heading, region_wind.truncate());
+        let weather_wind = range.1 > 0.0;
+        if weather_wind {
+            let open = self.scene.sound_reverb.sky.map_or(1.0, |s| s.exposure.clamp(0.0, 1.0));
+            region_wind = self.weather_wind.now.extend(0.0) * (0.15 + 0.85 * open);
+        }
+        let agent = &self.world.agent;
         // demo runs stay silent unless AURORA_DEMO_SOUND or AURORA_DEMO_WIND
         let demo_silent = self.demo && std::env::var_os("AURORA_DEMO_SOUND").is_none() && crate::scene::wind_sound::demo_spec().is_none();
         let input = crate::scene::wind_sound::WindInput {
             region_wind,
-            velocity: agent.velocity,
+            // the rush of our own motion through the air is the flying
+            // sound's: on foot, the weather's wind is heard as it blows,
+            // not faster as we walk or run into it
+            velocity: if agent.flying { agent.velocity } else { Vec3::ZERO },
             rotation: agent.body_rotation(),
             audible: matches!(self.screen, Screen::World)
                 && !demo_silent
-                && agent.flying
+                && (agent.flying || weather_wind)
                 && !agent.seated
                 && agent.position.z >= self.world.main_water_height(),
         };
@@ -7439,6 +7710,7 @@ impl App {
         self.tp_dest = Some(dest);
         self.media.on_teleport();
         self.world.begin_teleport(show_progress);
+        self.reset_region_weather();
     }
 
     fn show_teleport_progress(&mut self) {
@@ -9357,8 +9629,11 @@ impl App {
         }
         self.update_native_movelock();
         self.update_movement();
+        self.note_main_region_weather();
+        self.update_weather_now();
         self.update_audio();
         self.update_wind_sound(dt);
+        self.update_thunder();
         let mut late_camera_frame = None;
         let mut late_controls = None;
         if self.in_world() {
@@ -9687,11 +9962,13 @@ impl App {
             )
         {
             gfx.renderer.apply_settings(self.settings.render_settings());
+            gfx.renderer.set_rain_surfaces(self.rain_surfaces_on());
         }
         if let Some(mode) = crate::demo::aa_switch::due(&mut self.aa_switch_demo, self.frame_count) {
             log::info!("demo: anti-aliasing {mode} at frame {}", self.frame_count);
             self.settings.antialiasing = mode;
             gfx.renderer.apply_settings(self.settings.render_settings());
+            gfx.renderer.set_rain_surfaces(self.rain_surfaces_on());
         }
         if !gfx.renderer.vr_engaged()
             && self.vr_start_in == 0
@@ -10574,6 +10851,14 @@ impl App {
             if self.settings.world_overlays.hide_particles {
                 self.scene.lists.particles.clear();
             }
+            // the lightning's bolts, in the sky (not hidden with the particles)
+            self.thunder.bolts(
+                Instant::now(),
+                self.camera.position,
+                self.world.main_water_height(),
+                self.settings.draw_distance,
+                &mut self.scene.lists.particles,
+            );
             t_part = Instant::now();
         }
         let (lights, spot_shadows) = if in_world {
@@ -10612,6 +10897,40 @@ impl App {
         } else {
             block_render::ProbeFrame::default()
         };
+        // the clean-up after a teleport or a region change: the footprints
+        // and the snow on avatars go now, the renderer's memory (snow
+        // lying, wet ground, puddles) with this frame
+        let weather_clean = std::mem::take(&mut self.weather_clean);
+        if weather_clean {
+            self.scene.snow_trails.clear();
+            self.scene.avatar_snow = Default::default();
+        }
+        // snow gathering on the avatars near the camera ("Snow on avatars";
+        // off, what lay on them goes at once)
+        if self.weather_now.snow_on_avatars {
+            let snow = if self.weather_now.snowing() { self.weather_now.fall() } else { 0.0 };
+            if snow > 0.0 || !self.scene.avatar_snow.is_clear() {
+                let rain = self.weather_now.rain();
+                let mut on_avatars = std::mem::take(&mut self.scene.avatar_snow);
+                on_avatars.update(&self.scene, &self.world, Instant::now(), snow, rain, self.camera.position);
+                self.scene.avatar_snow = on_avatars;
+            }
+        } else {
+            self.scene.avatar_snow = Default::default();
+        }
+        // feet set down in the lying snow this frame, kept with the region's
+        // other footprints; only while snow falls or lies
+        if self.weather_now.snow_footprints
+            && self.weather_now.snow_settles
+            && self.in_world()
+            && (self.weather_now.snowing() || gfx.renderer.snow_lying())
+        {
+            let reach = self.weather_now.snow_footprints_reach.clamp(32.0, 64.0) * 0.5 - 1.0;
+            let centre = self.trail_centre();
+            let snowing = if self.weather_now.snowing() { self.weather_now.fall() } else { 0.0 };
+            crate::scene::snow_trail::SnowTrails::press(&mut self.scene, &self.world, centre, reach, world_clock(), snowing);
+        }
+        let snow_detail = self.scene.snow_detail.slot(&mut gfx.renderer).unwrap_or(0);
         let mut fp = FrameParams {
             // (a window behind past the driver's budget, or on a card another
             // program keeps busy, pauses its 3D drawing: its 3D targets
@@ -10725,13 +11044,33 @@ impl App {
             },
             // the photo's isolation, "show only" on an empty background
             cutout: self.world.photo_isolation.empty_background(),
-            rain: 0.0,
-            snow_prints: None,
-            snow_prints_gen: 0,
-            snow_fallen: 0.0,
-            rain_look: Default::default(),
+            // rain or snow: the drops pass draws either
+            rain: self.weather_now.fall(),
+            snow_prints: Some(self.scene.snow_trails.prints.clone()),
+            snow_prints_gen: self.scene.snow_trails.generation,
+            snow_fallen: self.scene.snow_trails.fallen,
+            rain_look: block_render::RainLook {
+                snow_detail,
+                // BLOCK_SNOW_LYING=<0..1>: snow held at least that deep
+                // (demo captures of deep snow, which takes minutes to gather);
+                // else a region's snow so far. Neither with "Snow settles"
+                // off: the region's floor laid it again every frame
+                snow_lying: if self.weather_now.snow_settles {
+                    static LYING: std::sync::OnceLock<Option<f32>> = std::sync::OnceLock::new();
+                    LYING
+                        .get_or_init(|| std::env::var("BLOCK_SNOW_LYING").ok().and_then(|v| v.parse().ok()))
+                        .unwrap_or(self.snow_lying.0)
+                } else {
+                    0.0
+                },
+                trail_centre: self.trail_centre().truncate().to_array(),
+                clean: weather_clean,
+                ..self.weather_now.rain_look(&self.weather_wind)
+            },
             look: None,
         };
+        // the lightning, lighting the world
+        self.thunder_light(&mut fp);
         // a photo's look, or the live view's in the photo mode
         let focus = fp.dof.as_ref().map(|d| d.focus);
         self.snapshots.look_focus = focus;
@@ -11342,6 +11681,7 @@ impl App {
             crate::link_trust::configure(&self.settings.trusted_sites);
             crate::link_preview::configure_sites(&self.settings.link_previews.picture_sites, crate::demo::picture_sites());
             gfx.renderer.apply_settings(self.settings.render_settings());
+            gfx.renderer.set_rain_surfaces(self.rain_surfaces_on());
             self.panels.time_of_day = self.settings.time_of_day;
             self.egui_ctx.set_zoom_factor(ui_scale(&self.settings));
             self.net.send(NetCommand::SetDrawDistance(self.settings.draw_distance));
@@ -11503,11 +11843,24 @@ impl App {
         // capture is waited for, its pixels are read in the tail below.
         // (nothing of the scene while the 3D drawing is paused behind,
         // texture_budget::Background, busy_pause.rs)
+        // while it rains, and while the ground dries after (the renderer's
+        // wetness memory: about 25 minutes), the terrain heights and the
+        // G-buffer stay. Snow lies and melts for longer, about 15 minutes.
+        if self.weather_now.fall() > 0.0 {
+            self.rain_last = Some(Instant::now());
+        }
+        let raining = self.rain_surfaces_on();
+        self.scene.update_rain_ground(&self.world, fp.camera_pos, raining);
         let lists = if self.in_world() && !self.drawing_paused() {
             &self.scene.lists
         } else {
             &self.empty_lists
         };
+        // out of the world while quitting, rain would compile a pipeline set
+        // the closing renderer has to wait for
+        if self.quit_at.is_none() {
+            gfx.renderer.set_rain_surfaces(raining);
+        }
         let stats = if self.demo && gfx.renderer.capture_request && std::env::var_os("AURORA_DEMO_RENDER_TEXTURE").is_some() {
             gfx.renderer.render_world_texture_capture(fp, lists)
         } else {
@@ -17946,6 +18299,11 @@ impl App {
                     &mut lighting,
                 );
                 self.panels.environment = open;
+                // the weather saved once a slider is let go
+                if self.settings.weather != self.weather_saved && !ctx.input(|i| i.pointer.any_down()) {
+                    self.weather_saved = self.settings.weather.clone();
+                    self.settings.save();
+                }
                 // Quick preferences' environment block shares the window's
                 // lists and "Personal lighting"
                 let quick_actions = self.quick_prefs_window(&ctx, &p, &mut lighting);
@@ -18291,6 +18649,7 @@ impl ApplicationHandler for App {
             self.settings.save();
         }
         renderer.apply_settings(self.settings.render_settings());
+        renderer.set_rain_surfaces(self.rain_surfaces_on());
         self.note_gpus(&renderer);
         self.login_form.driver_notice = self.driver_notice(&renderer.info);
         self.safe_graphics_at_start();

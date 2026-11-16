@@ -33,7 +33,7 @@ use crate::ui_frame::EguiFrame;
 use crate::upload::FrameUploads;
 use crate::writes::TrackedSink;
 use bytemuck::{Pod, Zeroable};
-use glam::{Mat4, Vec3, Vec4};
+use glam::{Mat4, Vec2, Vec3, Vec4};
 use std::sync::Arc;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::time::{Duration, Instant};
@@ -152,6 +152,7 @@ struct FrameU {
     /// x: 1 when the shading takes the contact shadows (main view only).
     contact: [f32; 4],
     /// x: common.wgsl FEATURE_* bits, the same in every pass.
+    /// y: the rain's shelter map + 1 (0: none; the shelter map is not drawn yet).
     features: [u32; 4],
     /// The motion vectors' projections, without the TAA jitter (main view
     /// only): this frame's and the last frame's of a position relative to
@@ -159,6 +160,30 @@ struct FrameU {
     motion_vp: [[f32; 4]; 4],
     motion_prev_vp: [[f32; 4]; 4],
     motion_reproj: [[f32; 4]; 4],
+    /// Rain: x how hard it rains (0..1).
+    rain: [f32; 4],
+    /// Wetness memory: its corner (xy) and size (z, 0: none), w how hard it
+    /// rained while it was wetted.
+    rain_wet: [f32; 4],
+    /// The memory's last corner (xy), the time since its last update (z, s;
+    /// < 0: no history), w how soaked a place new to it is.
+    rain_wet_step: [f32; 4],
+    /// x puddles (0/1), y how far the wet ground is drawn (m), z quality, w snow.
+    rain_look: [f32; 4],
+    /// xy how far the wind has carried the drops (m), zw the wind now (m/s).
+    rain_wind: [f32; 4],
+    /// x how hard it snows, y how deep the snow lies on a new place, z flags, w detail slot.
+    snow_cover: [f32; 4],
+    /// Footprints' map: corner (xy), size (z, 0: none), w snow fallen so far.
+    snow_trail: [f32; 4],
+    /// xy the avatar the footprints and deep snow are centred on, zw deep snow's grid.
+    snow_trail_step: [f32; 4],
+    /// Feet set down this frame: x, y (m), heading (rad), half length (m).
+    snow_stamps: [[f32; 4]; crate::types::SNOW_STAMPS],
+    /// The lightning's glow: xy the way to it, z its height (sine), w how bright.
+    lightning: [f32; 4],
+    /// Northern lights (`RainLook::aurora`).
+    aurora: [f32; 4],
     /// The main view of a photo tile: its part of the photo
     /// ([`photo_part`]); zero otherwise. The screen-space reflections fade
     /// at the photo's edges, not the tile's.
@@ -166,6 +191,10 @@ struct FrameU {
     /// x: the material textures' mip bias (main view under FSR drawing the
     /// world smaller, [`crate::fsr::mip_bias`]); 0 in every other pass.
     tex_lod: [f32; 4],
+    /// The soles' heights of `snow_stamps` (m), four to a vec4.
+    snow_stamp_z: [[f32; 4]; crate::types::SNOW_STAMPS / 4],
+    /// x: how far the snow lying is drawn (m); yzw unused.
+    snow_far: [f32; 4],
 }
 
 /// Must match `ShadowParams` in object.wgsl.
@@ -929,6 +958,22 @@ struct Pipelines {
     particles: wgpu::RenderPipeline,
     water_particles: wgpu::RenderPipeline,
     water_particles_under: wgpu::RenderPipeline,
+    /// Rain streaks (`vs_rain` / `fs_rain`).
+    rain: wgpu::RenderPipeline,
+    /// Splashes, and flakes that land (`vs_rain_splash`).
+    rain_splash: wgpu::RenderPipeline,
+    /// Deep snow's surface (`vs_snow_mesh`): writes the depth.
+    snow_mesh: wgpu::RenderPipeline,
+    /// Distant rain (`fs_rain_far`).
+    rain_far: wgpu::RenderPipeline,
+    /// Wetness memory update (`fs_rain_wet_update`).
+    rain_wet_update: wgpu::RenderPipeline,
+    /// Snow footprints (`vs_snow_print` / `fs_snow_print`).
+    snow_trail_update: wgpu::RenderPipeline,
+    /// Wet ground and puddles (`fs_rain_wet`).
+    rain_wet: wgpu::RenderPipeline,
+    /// The same with the screen-space reflections' G-buffer (`fs_rain_wet_g`).
+    rain_wet_g: Option<wgpu::RenderPipeline>,
     glow: wgpu::RenderPipeline,
     /// `glow` clipped to the camera's side of the water (blended faces).
     glow_water: wgpu::RenderPipeline,
@@ -1619,6 +1664,8 @@ pub(crate) struct Backend {
     ssao: Ssao,
     gtao: crate::gtao::Gtao,
     water_effects: crate::water_effects::WaterGpu,
+    rain_wet: RainWet,
+    snow_trail: SnowTrail,
     /// The night sky's stars (stars.rs), made once.
     stars: wgpu::Buffer,
     contact: crate::contact_shadows::ContactShadows,
@@ -1899,6 +1946,31 @@ enum Vb {
     Mesh,
     Particle,
     Sprite,
+    /// Footprints, one an instance (`vs_snow_print`).
+    Print,
+}
+
+/// The most footprints kept (32 bytes each).
+const MAX_SNOW_PRINTS: usize = 16384;
+
+fn print_layout() -> wgpu::VertexBufferLayout<'static> {
+    const ATTRS: [wgpu::VertexAttribute; 2] = [
+        wgpu::VertexAttribute {
+            format: wgpu::VertexFormat::Float32x4,
+            offset: 0,
+            shader_location: 0,
+        },
+        wgpu::VertexAttribute {
+            format: wgpu::VertexFormat::Float32x4,
+            offset: 16,
+            shader_location: 1,
+        },
+    ];
+    wgpu::VertexBufferLayout {
+        array_stride: 32,
+        step_mode: wgpu::VertexStepMode::Instance,
+        attributes: &ATTRS,
+    }
 }
 
 fn sprite_layout() -> wgpu::VertexBufferLayout<'static> {
@@ -2065,6 +2137,7 @@ fn make_pipeline(device: &wgpu::Device, module: &wgpu::ShaderModule, layout: &wg
     let mesh_bufs = [Some(vertex_layout()), Some(skin_layout())];
     let part_bufs = [Some(particle_layout())];
     let sprite_bufs = [Some(sprite_layout())];
+    let print_bufs = [Some(print_layout())];
     let mut targets = Vec::new();
     if let Some(f) = d.format {
         targets.push(Some(wgpu::ColorTargetState {
@@ -2096,6 +2169,7 @@ fn make_pipeline(device: &wgpu::Device, module: &wgpu::ShaderModule, layout: &wg
                 Vb::Mesh => &mesh_bufs,
                 Vb::Particle => &part_bufs,
                 Vb::Sprite => &sprite_bufs,
+                Vb::Print => &print_bufs,
             },
         },
         primitive: wgpu::PrimitiveState {
@@ -2799,7 +2873,8 @@ impl Backend {
                 uniform_entry(0, wgpu::ShaderStages::VERTEX_FRAGMENT),
                 wgpu::BindGroupLayoutEntry {
                     binding: 1,
-                    visibility: wgpu::ShaderStages::FRAGMENT,
+                    // the vertex stage too: rain splashes read where they land
+                    visibility: wgpu::ShaderStages::VERTEX_FRAGMENT,
                     ty: wgpu::BindingType::Texture {
                         sample_type: wgpu::TextureSampleType::Depth,
                         view_dimension: wgpu::TextureViewDimension::D2,
@@ -2809,7 +2884,7 @@ impl Backend {
                 },
                 wgpu::BindGroupLayoutEntry {
                     binding: 2,
-                    visibility: wgpu::ShaderStages::FRAGMENT,
+                    visibility: wgpu::ShaderStages::VERTEX_FRAGMENT,
                     ty: wgpu::BindingType::Sampler(wgpu::SamplerBindingType::Comparison),
                     count: None,
                 },
@@ -2926,6 +3001,39 @@ impl Backend {
                         ty: wgpu::BufferBindingType::Storage { read_only: true },
                         has_dynamic_offset: false,
                         min_binding_size: None,
+                    },
+                    count: None,
+                },
+                // rain: the terrain's heights around the camera
+                wgpu::BindGroupLayoutEntry {
+                    binding: 26,
+                    visibility: wgpu::ShaderStages::VERTEX_FRAGMENT,
+                    ty: wgpu::BindingType::Texture {
+                        sample_type: wgpu::TextureSampleType::Float { filterable: false },
+                        view_dimension: wgpu::TextureViewDimension::D2,
+                        multisampled: false,
+                    },
+                    count: None,
+                },
+                // rain: the wetness memory
+                wgpu::BindGroupLayoutEntry {
+                    binding: 27,
+                    visibility: wgpu::ShaderStages::VERTEX_FRAGMENT,
+                    ty: wgpu::BindingType::Texture {
+                        sample_type: wgpu::TextureSampleType::Float { filterable: false },
+                        view_dimension: wgpu::TextureViewDimension::D2,
+                        multisampled: false,
+                    },
+                    count: None,
+                },
+                // snow footprints
+                wgpu::BindGroupLayoutEntry {
+                    binding: 28,
+                    visibility: wgpu::ShaderStages::VERTEX_FRAGMENT,
+                    ty: wgpu::BindingType::Texture {
+                        sample_type: wgpu::TextureSampleType::Float { filterable: true },
+                        view_dimension: wgpu::TextureViewDimension::D2,
+                        multisampled: false,
                     },
                     count: None,
                 },
@@ -3142,7 +3250,7 @@ impl Backend {
             &gbuf_layout,
             msaa_samples,
             format,
-            settings.ssr,
+            settings.gbuffer(),
         );
         let ssao = Self::make_ssao(&device);
         let gtao = crate::gtao::Gtao::new(&device);
@@ -3205,7 +3313,7 @@ impl Backend {
         let cull = GpuCull::new(&device);
         let motion_history = crate::motion_history::MotionHistory::new(&device);
         let motion_debug = crate::motion_debug::asked().then(|| crate::motion_debug::MotionDebug::new(&device, config.format));
-        let impostors = Impostors::new(&device, &frame_layout, &records_layout, &tex_layout, msaa_samples, settings.ssr);
+        let impostors = Impostors::new(&device, &frame_layout, &records_layout, &tex_layout, msaa_samples, settings.gbuffer());
         let particle_buffer = device.create_buffer(&wgpu::BufferDescriptor {
             label: Some("particles"),
             size: 4096 * std::mem::size_of::<ParticleInstance>() as u64,
@@ -3252,6 +3360,8 @@ impl Backend {
             ssao,
             gtao,
             water_effects,
+            rain_wet: RainWet::default(),
+            snow_trail: SnowTrail::default(),
             stars,
             contact,
             contact_now: false,
@@ -3689,6 +3799,110 @@ impl Backend {
             depth_write: false,
             depth_compare: wgpu::CompareFunction::Greater,
             ..base("submerged water particles", "vs_water_particle", "fs_water_particle_under")
+        });
+        let rain = pipe(PipeDesc {
+            vb: Vb::None,
+            cull: None,
+            blend: Some(suppress),
+            write_mask: wgpu::ColorWrites::ALL,
+            depth_write: false,
+            depth_compare: wgpu::CompareFunction::Greater,
+            constants: rain_constants(),
+            ..base("rain", "vs_rain", "fs_rain")
+        });
+        let rain_splash = pipe(PipeDesc {
+            vb: Vb::None,
+            cull: None,
+            blend: Some(suppress),
+            write_mask: wgpu::ColorWrites::ALL,
+            depth_write: false,
+            depth_compare: wgpu::CompareFunction::Greater,
+            ..base("rain splashes", "vs_rain_splash", "fs_rain_splash")
+        });
+        let snow_mesh = pipe(PipeDesc {
+            vb: Vb::None,
+            cull: None,
+            blend: Some(suppress),
+            write_mask: wgpu::ColorWrites::ALL,
+            depth_write: true,
+            depth_compare: wgpu::CompareFunction::Greater,
+            ..base("deep snow", "vs_snow_mesh", "fs_snow_mesh")
+        });
+        let rain_wet_update = pipe(PipeDesc {
+            vb: Vb::None,
+            cull: None,
+            blend: None,
+            write_mask: wgpu::ColorWrites::ALL,
+            depth_write: false,
+            depth_compare: wgpu::CompareFunction::Always,
+            samples: 1,
+            format: Some(wgpu::TextureFormat::Rgba32Float),
+            depth_format: None,
+            ..base("rain wetness", "vs_rain_wet", "fs_rain_wet_update")
+        });
+        // the footprints, each its quad, the deepest kept where they meet
+        let deepest = wgpu::BlendComponent {
+            src_factor: wgpu::BlendFactor::One,
+            dst_factor: wgpu::BlendFactor::One,
+            operation: wgpu::BlendOperation::Max,
+        };
+        let snow_trail_update = pipe(PipeDesc {
+            vb: Vb::Print,
+            cull: None,
+            blend: Some(wgpu::BlendState {
+                color: deepest,
+                alpha: deepest,
+            }),
+            write_mask: wgpu::ColorWrites::ALL,
+            depth_write: false,
+            depth_compare: wgpu::CompareFunction::Always,
+            samples: 1,
+            format: Some(wgpu::TextureFormat::R16Float),
+            depth_format: None,
+            ..base("snow footprints", "vs_snow_print", "fs_snow_print")
+        });
+        let rain_far = pipe(PipeDesc {
+            vb: Vb::None,
+            cull: None,
+            blend: Some(suppress),
+            write_mask: wgpu::ColorWrites::ALL,
+            depth_write: false,
+            depth_compare: wgpu::CompareFunction::Always,
+            ..base("distant rain", "vs_rain_wet", "fs_rain_far")
+        });
+        let rain_wet = pipe(PipeDesc {
+            vb: Vb::None,
+            cull: None,
+            blend: Some(suppress),
+            write_mask: wgpu::ColorWrites::ALL,
+            depth_write: false,
+            depth_compare: wgpu::CompareFunction::Always,
+            constants: rain_constants(),
+            ..base("rain wet ground", "vs_rain_wet", "fs_rain_wet")
+        });
+        // the same reading the screen-space reflections' G-buffer (group 3)
+        // and the bindless textures (group 2: the lying snow's detail)
+        let rain_wet_g = ssr.then(|| {
+            let pl = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
+                label: Some("rain wet ground (G-buffer)"),
+                bind_group_layouts: &[Some(frame_layout), None, Some(tex_layout), Some(gbuf_layout)],
+                immediate_size: 0,
+            });
+            make_pipeline(
+                device,
+                &module,
+                &pl,
+                PipeDesc {
+                    vb: Vb::None,
+                    cull: None,
+                    blend: Some(suppress),
+                    write_mask: wgpu::ColorWrites::ALL,
+                    depth_write: false,
+                    depth_compare: wgpu::CompareFunction::Always,
+                    constants: rain_constants(),
+                    ..base("rain wet ground (G-buffer)", "vs_rain_wet", "fs_rain_wet_g")
+                },
+            )
         });
         // LLDrawPoolGlow: glow faces again, adding texture alpha x glow to
         // the scene alpha only (depth tested, pulled toward the camera)
@@ -4186,6 +4400,14 @@ impl Backend {
             particles,
             water_particles,
             water_particles_under,
+            rain,
+            rain_splash,
+            snow_mesh,
+            rain_far,
+            rain_wet_update,
+            snow_trail_update,
+            rain_wet,
+            rain_wet_g,
             glow,
             glow_water,
             glow_max,
@@ -4347,7 +4569,7 @@ impl Backend {
         );
         let water_interface = make_view(device, "nearest water interface", w, h, DEPTH_FORMAT, 1, sampled).1;
         let water_mask = make_view(device, "water exclusion mask", w, h, wgpu::TextureFormat::R8Unorm, 1, sampled).1;
-        let (gbuf_msaa, gbuf) = if s.ssr {
+        let (gbuf_msaa, gbuf) = if s.gbuffer() {
             (
                 (samples > 1).then(|| make_view(device, "gbuffer msaa", w, h, GBUF_FORMAT, samples, att).1),
                 Some(make_view(device, "gbuffer", w, h, GBUF_FORMAT, 1, sampled).1),
@@ -4488,6 +4710,18 @@ impl Backend {
                     wgpu::BindGroupEntry {
                         binding: 24,
                         resource: stars.as_entire_binding(),
+                    },
+                    wgpu::BindGroupEntry {
+                        binding: 26,
+                        resource: wgpu::BindingResource::TextureView(&water_effects.rain_ground_view),
+                    },
+                    wgpu::BindGroupEntry {
+                        binding: 27,
+                        resource: wgpu::BindingResource::TextureView(&water_effects.rain_wet_view),
+                    },
+                    wgpu::BindGroupEntry {
+                        binding: 28,
+                        resource: wgpu::BindingResource::TextureView(&water_effects.snow_trail_view),
                     },
                     wgpu::BindGroupEntry {
                         binding: 0,
@@ -4983,18 +5217,19 @@ impl Backend {
             AntiAliasing::Msaa(n) => self.msaa_supported.iter().copied().filter(|&m| m <= n).max().unwrap_or(1),
             _ => 1,
         };
-        if (samples, s.ssr) == (self.msaa_samples, self.settings.ssr) {
+        if (samples, s.gbuffer()) == (self.msaa_samples, self.settings.gbuffer()) {
             // (a set still compiling for other samples is no longer wanted)
             self.pipeline_build = None;
             self.apply_settings_with(s, None);
             return;
         }
-        if self.pipeline_build.as_ref().is_none_or(|b| (b.samples, b.ssr) != (samples, s.ssr)) {
+        if self.pipeline_build.as_ref().is_none_or(|b| (b.samples, b.ssr) != (samples, s.gbuffer())) {
             log::info!(
-                "compiling the pipelines for {samples} sample(s), SSR {}",
-                if s.ssr { "on" } else { "off" }
+                "compiling the pipelines for {samples} sample(s), SSR {}, G-buffer {}",
+                if s.ssr { "on" } else { "off" },
+                if s.gbuffer() { "on" } else { "off" }
             );
-            self.pipeline_build = Some(self.start_pipeline_build(samples, s.ssr));
+            self.pipeline_build = Some(self.start_pipeline_build(samples, s.gbuffer()));
         }
         let Some(build) = &self.pipeline_build else {
             return;
@@ -5014,6 +5249,7 @@ impl Backend {
                 let now = RenderSettings {
                     aa: self.settings.aa,
                     ssr: self.settings.ssr,
+                    rain_surfaces: self.settings.rain_surfaces,
                     ..s
                 };
                 if now != self.settings {
@@ -5033,7 +5269,7 @@ impl Backend {
                     &self.gbuf_layout,
                     samples,
                     self.config.format,
-                    s.ssr,
+                    s.gbuffer(),
                 );
                 let impostors = Impostors::make_pipelines(
                     &self.device,
@@ -5042,7 +5278,7 @@ impl Backend {
                     &self.records_layout,
                     &self.tex_layout,
                     samples,
-                    s.ssr,
+                    s.gbuffer(),
                 );
                 self.apply_settings_with(s, Some((samples, scene, impostors)));
             }
@@ -5424,6 +5660,38 @@ impl Backend {
         let inv_view = view.inverse();
         let camera_pos = inv_view.transform_point3(Vec3::ZERO);
         let mut u = FrameU::zeroed();
+        let area = self.water_effects.rain_area;
+        u.rain = [f.rain.clamp(0.0, 1.0), area[0], area[1], area[2]];
+        u.rain_wet = self.rain_wet.uniform;
+        u.rain_wet_step = self.rain_wet.step;
+        u.snow_cover = self.rain_wet.snow_cover;
+        u.snow_cover[3] = f.rain_look.snow_detail as f32;
+        // + 8: "Snow settles" off, no lying snow drawn (env.wgsl `snow_hidden`)
+        if !f.rain_look.snow_settles {
+            u.snow_cover[2] += 8.0;
+        }
+        u.snow_trail = self.snow_trail.uniform;
+        // the avatar: deep snow's grid centred on it, not on the camera
+        let [reach, grid] = DeepSnowMesh::new(f.rain_look.quality, f.rain_look.deep_reach).uniform();
+        u.snow_trail_step = [f.rain_look.trail_centre[0], f.rain_look.trail_centre[1], reach, grid];
+        u.snow_stamps = f.rain_look.snow_stamps;
+        for (i, z) in f.rain_look.snow_stamp_z.iter().enumerate() {
+            u.snow_stamp_z[i / 4][i % 4] = *z;
+        }
+        u.lightning = f.rain_look.lightning;
+        u.aurora = f.rain_look.aurora;
+        u.snow_far = [f.rain_look.snow_distance, 0.0, 0.0, 0.0];
+        u.rain_look = [
+            f32::from(u8::from(f.rain_look.puddles)),
+            f.rain_look.distance,
+            f.rain_look.quality.min(2) as f32,
+            if f.rain_look.snow > 0.0 { f.rain_look.snow.clamp(0.5, 2.0) } else { 0.0 },
+        ];
+        u.rain_wind = [f.rain_look.drift[0], f.rain_look.drift[1], f.rain_look.wind[0], f.rain_look.wind[1]];
+        // Shelter map is not drawn yet: features.y stays 0, so rain is not
+        // held up by roofs. Aurora has no separate flag that keeps rain out
+        // of the bloom; streaks land in the HDR target with the other
+        // transparent passes.
         u.selection_color = f.selection_color;
         u.rez_gradient = f.rez_gradient;
         u.view_proj = vp.to_cols_array_2d();
@@ -5874,6 +6142,7 @@ impl Backend {
             self.apply_settings(settings);
         }
         stats.settings = Some(self.settings);
+        stats.snow_lying = self.rain_wet.snow > RAIN_WET_DRY;
         // the tiled photo is done: its context goes with the targets that
         // bind it
         if params.photo_context == crate::types::PhotoContext::None && self.gtao.drop_context() {
@@ -6132,6 +6401,7 @@ impl Backend {
         // nothing kept the matrices while nothing read the motion: the
         // first frame that reads it again starts the history again
         self.motion_cut |= self.motion_now && !self.motion_kept;
+        self.advance_weather(f, lists);
         let mut main = self.frame_uniforms(fu, fu.view, Some(fu.camera_pos), &cascades, &splits);
         main.cam_up[3] = camera_water_level;
         if f.photo_tile != Mat4::IDENTITY {
@@ -7897,6 +8167,76 @@ impl Backend {
                 .encode(&self.device, &mut encoder, color, depth, HDR_FORMAT, samples);
         }
         let water_particles = if f.cutout { 0 } else { self.water_effects.particles };
+        let rain_drops = if f.cutout { 0 } else { rain_drops(f.rain, f.rain_look.quality) };
+        // the wetness memory, from the last one, then copied where it is read
+        let rain_wet = !f.cutout && self.rain_wet.active();
+        if rain_wet {
+            {
+                let mut pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
+                    label: Some("rain wetness"),
+                    color_attachments: &[Some(wgpu::RenderPassColorAttachment {
+                        view: &self.water_effects.rain_wet_target_view,
+                        depth_slice: None,
+                        resolve_target: None,
+                        ops: wgpu::Operations {
+                            load: wgpu::LoadOp::Clear(wgpu::Color::TRANSPARENT),
+                            store: wgpu::StoreOp::Store,
+                        },
+                    })],
+                    depth_stencil_attachment: None,
+                    timestamp_writes: None,
+                    occlusion_query_set: None,
+                    multiview_mask: None,
+                });
+                bind_mesh(&mut pass, &self.groups.a);
+                pass.set_pipeline(&self.pipelines.rain_wet_update);
+                pass.draw(0..3, 0..1);
+            }
+            encoder.copy_texture_to_texture(
+                self.water_effects.rain_wet_target.as_image_copy(),
+                self.water_effects.rain_wet.as_image_copy(),
+                wgpu::Extent3d {
+                    width: self.water_effects.rain_wet_size,
+                    height: self.water_effects.rain_wet_size,
+                    depth_or_array_layers: 1,
+                },
+            );
+        }
+        if self.snow_trail.active() {
+            {
+                let mut pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
+                    label: Some("snow footprints"),
+                    color_attachments: &[Some(wgpu::RenderPassColorAttachment {
+                        view: &self.water_effects.snow_trail_target_view,
+                        depth_slice: None,
+                        resolve_target: None,
+                        ops: wgpu::Operations {
+                            load: wgpu::LoadOp::Clear(wgpu::Color::TRANSPARENT),
+                            store: wgpu::StoreOp::Store,
+                        },
+                    })],
+                    depth_stencil_attachment: None,
+                    timestamp_writes: None,
+                    occlusion_query_set: None,
+                    multiview_mask: None,
+                });
+                if let Some((buffer, _, n)) = self.snow_trail.prints.as_ref().filter(|p| p.2 > 0) {
+                    bind_mesh(&mut pass, &self.groups.a);
+                    pass.set_pipeline(&self.pipelines.snow_trail_update);
+                    pass.set_vertex_buffer(0, buffer.slice(..));
+                    pass.draw(0..6, 0..*n);
+                }
+            }
+            encoder.copy_texture_to_texture(
+                self.water_effects.snow_trail_target.as_image_copy(),
+                self.water_effects.snow_trail.as_image_copy(),
+                wgpu::Extent3d {
+                    width: crate::water_effects::SNOW_TRAIL_SIZE,
+                    height: crate::water_effects::SNOW_TRAIL_SIZE,
+                    depth_or_array_layers: 1,
+                },
+            );
+        }
         if water_particles > 0 && above_water_possible {
             let mut pass = begin_scene_b(&mut encoder, &self.targets, "submerged water particles", false, false);
             bind_mesh(&mut pass, &self.groups.a);
@@ -8090,6 +8430,18 @@ impl Backend {
                 pass.set_pipeline(&self.pipelines.water_particles);
                 pass.draw(0..crate::water_effects::WATER_PARTICLE_VERTICES, 0..water_particles);
             }
+            if rain_drops > 0 {
+                pass.set_pipeline(&self.pipelines.rain);
+                pass.draw(0..6, 0..rain_drops);
+                // splashes: 6 droplets of 6 vertices; up to 9,000 places
+                // (in snow: the flakes that land and melt)
+                pass.set_pipeline(&self.pipelines.rain_splash);
+                let places = if f.rain_look.snow > 0.0 { 1_200.0 } else { 9_000.0 };
+                pass.draw(0..36, 0..(f.rain.clamp(0.0, 1.0) * places * rain_share(f.rain_look.quality)) as u32);
+                // beyond the drops' box: the distant rain's layers
+                pass.set_pipeline(&self.pipelines.rain_far);
+                pass.draw(0..3, 0..1);
+            }
             // particles last: they rebind vertex buffer 0
             if n_particles > 0 {
                 pass.set_pipeline(&self.pipelines.particles);
@@ -8098,11 +8450,30 @@ impl Backend {
             }
         };
         {
+            let snow_on = f.rain_look.snow > 0.0 || self.rain_wet.snow > RAIN_WET_DRY;
+            if f.rain_look.deep_snow && snow_on && !f.cutout && self.rain_wet.active() {
+                let mesh = DeepSnowMesh::new(f.rain_look.quality, f.rain_look.deep_reach);
+                let mut pass = begin_scene_b(&mut encoder, &self.targets, "deep snow", false, true);
+                bind_mesh(&mut pass, &self.groups.a);
+                pass.set_pipeline(&self.pipelines.snow_mesh);
+                pass.draw(0..mesh.vertices(), 0..1);
+            }
             let mut pass = begin_scene_b(&mut encoder, &self.targets, "scene b", !split, false);
             bind_mesh(&mut pass, &self.groups.b);
-            if let (Some(ssr), Some(gbg)) = (&self.pipelines.ssr, &self.gbuf_group) {
+            if let (true, Some(ssr), Some(gbg)) = (self.settings.ssr, &self.pipelines.ssr, &self.gbuf_group) {
                 pass.set_pipeline(ssr);
                 pass.set_bind_group(3, gbg, &[]);
+                pass.draw(0..3, 0..1);
+            }
+            // wet ground and puddles, under the transparent things drawn after
+            if rain_wet {
+                match (&self.pipelines.rain_wet_g, &self.gbuf_group) {
+                    (Some(pipe), Some(gbg)) => {
+                        pass.set_pipeline(pipe);
+                        pass.set_bind_group(3, gbg, &[]);
+                    }
+                    _ => pass.set_pipeline(&self.pipelines.rain_wet),
+                }
                 pass.draw(0..3, 0..1);
             }
             pass_mark(&mut pass, MARK_SSR_END);
@@ -9125,11 +9496,327 @@ impl Backend {
         self.depth_pick
             .blocking(&self.device, &self.queue, &self.lost, &self.targets.depth_ss, px)
     }
+
+    /// Rain and snow for this frame: the wetness memory, the footprint map
+    /// and the terrain heights. `RainLook::clean` drops the wetness (a
+    /// region change or the Weather window); `fill` starts the open covered.
+    fn advance_weather(&mut self, f: &FrameParams, lists: &DrawLists) {
+        self.water_effects.upload_rain_ground(&self.queue, &lists.rain_ground);
+        // snow wets nothing (the ground dries as after rain), it lies
+        let (rain, snow) = if f.rain_look.snow > 0.0 { (0.0, f.rain) } else { (f.rain, 0.0) };
+        if f.rain_look.clean {
+            self.rain_wet = RainWet::default();
+        }
+        if f.rain_look.fill {
+            self.rain_wet = RainWet::default();
+            self.rain_wet.snow = 1.0;
+        }
+        let busy = rain > 0.0 || snow > 0.0 || f.rain_look.snow_lying > 0.0 || self.rain_wet.origin.is_some();
+        let wet_texels = (wet_extent_wanted(f.rain_look.memory_reach, busy) * RAIN_WET_TEXELS_PER_M) as u32;
+        if wet_texels != self.water_effects.rain_wet_size {
+            let made = crate::water_effects::wet_textures(&self.device, wet_texels);
+            log::info!(
+                "weather memory: {} m square ({wet_texels} texels a side)",
+                wet_texels as f32 / RAIN_WET_TEXELS_PER_M
+            );
+            self.water_effects.install_wet(made, wet_texels);
+            self.rebuild_bind_groups();
+            self.rain_wet.restart_texels();
+        }
+        let extent = self.water_effects.rain_wet_size as f32 / RAIN_WET_TEXELS_PER_M;
+        self.rain_wet.snow = self.rain_wet.snow.max(f.rain_look.snow_lying.clamp(0.0, 1.0));
+        self.rain_wet
+            .advance(rain, snow, f.camera_pos.truncate(), f.rain_look.ice, f.rain_look.deep_snow, extent);
+        let trail_on = f.rain_look.footprints && (snow > 0.0 || self.rain_wet.snow > RAIN_WET_DRY) && !f.cutout;
+        let trail_extent = f.rain_look.trail_extent.clamp(16.0, 128.0);
+        self.snow_trail
+            .advance(trail_on, snow, Vec2::from(f.rain_look.trail_centre), f.snow_fallen, trail_extent);
+        if let Some(prints) = f.snow_prints.as_ref().filter(|_| trail_on) {
+            let stale = self.snow_trail.prints.as_ref().is_none_or(|p| p.1 != f.snow_prints_gen);
+            if stale {
+                let n = prints.len().min(MAX_SNOW_PRINTS);
+                let buffer = match self.snow_trail.prints.take() {
+                    Some((b, _, _)) => b,
+                    None => self.device.create_buffer(&wgpu::BufferDescriptor {
+                        label: Some("snow footprints"),
+                        size: (MAX_SNOW_PRINTS * 32) as u64,
+                        usage: wgpu::BufferUsages::VERTEX | wgpu::BufferUsages::COPY_DST,
+                        mapped_at_creation: false,
+                    }),
+                };
+                if n > 0 {
+                    self.queue.write_buffer(&buffer, 0, bytemuck::cast_slice(&prints[prints.len() - n..]));
+                }
+                self.snow_trail.prints = Some((buffer, f.snow_prints_gen, n as u32));
+            }
+        }
+    }
+}
+
+/// The wetness memory's bookkeeping. The memory covers a square around the
+/// camera ([`wet_extent_for`]), its corner snapped to [`RAIN_WET_SNAP`] m.
+#[derive(Default)]
+struct RainWet {
+    origin: Option<Vec2>,
+    last: Option<Instant>,
+    level: f32,
+    soak: f32,
+    /// How deep the snow lies in the open (0..1).
+    snow: f32,
+    uniform: [f32; 4],
+    step: [f32; 4],
+    snow_cover: [f32; 4],
+}
+
+/// Deep snow's grid (env.wgsl `vs_snow_mesh`) at a weather quality and a reach (m at High).
+#[derive(Clone, Copy, Debug, PartialEq)]
+struct DeepSnowMesh {
+    cells: u32,
+    levels: u32,
+    reach: f32,
+}
+
+/// The finest square's side (m, env.wgsl `SNOW_MESH_FIRST`).
+const SNOW_MESH_FIRST: f32 = 5.12;
+/// Where deep snow has thinned to nothing toward its reach (env.wgsl `SNOW_MESH_EDGE_END`).
+const SNOW_MESH_EDGE_END: f32 = 0.98;
+
+impl DeepSnowMesh {
+    fn new(quality: u32, reach: f32) -> Self {
+        let (cells, share) = match quality {
+            0 => (64u32, 10.0 / 15.0),
+            1 => (96, 13.0 / 15.0),
+            _ => (128, 1.0),
+        };
+        let reach = reach.clamp(1.0, 60.0) * share;
+        let mut levels = 1u32;
+        loop {
+            let s = SNOW_MESH_FIRST / cells as f32 * (1u32 << (levels - 1)) as f32;
+            let half = cells as f32 * 0.5 * s;
+            if half - 2.0 * s >= reach * SNOW_MESH_EDGE_END || levels >= 8 {
+                return Self { cells, levels, reach };
+            }
+            levels += 1;
+        }
+    }
+
+    fn uniform(&self) -> [f32; 2] {
+        [self.reach, (self.cells * 16 + self.levels) as f32]
+    }
+
+    fn vertices(&self) -> u32 {
+        self.levels * self.cells * self.cells * 6
+    }
+}
+
+fn wet_extent_for(reach: f32) -> f32 {
+    [128.0, 256.0, 512.0]
+        .into_iter()
+        .find(|e| e * 0.5 - RAIN_WET_SNAP * 0.5 >= reach)
+        .unwrap_or(512.0)
+}
+
+fn wet_extent_wanted(reach: f32, busy: bool) -> f32 {
+    if busy { wet_extent_for(reach) } else { wet_extent_for(0.0) }
+}
+
+fn rain_wet_origin(at: Vec2, extent: f32) -> Vec2 {
+    (at / RAIN_WET_SNAP).round() * RAIN_WET_SNAP - Vec2::splat(extent * 0.5)
+}
+const RAIN_WET_TEXELS_PER_M: f32 = 4.0;
+const RAIN_WET_SNAP: f32 = 8.0;
+const RAIN_WET_DRY: f32 = 0.02;
+const RAIN_SOAK_SECS: f32 = 8.0;
+const RAIN_DRY_SECS: f32 = 120.0;
+const RAIN_FILL_SECS: f32 = 25.0;
+const RAIN_DRAIN_SECS: f32 = 150.0;
+const SNOW_FILL_SECS: f32 = 600.0;
+const SNOW_MELT_SECS: f32 = 900.0;
+const SNOW_RAIN_MELT_SECS: f32 = 120.0;
+
+/// Snow footprints: the trail map follows the camera, snapped so the update
+/// reads the last one at the same places.
+#[derive(Default)]
+struct SnowTrail {
+    origin: Option<Vec2>,
+    last: Option<Instant>,
+    uniform: [f32; 4],
+    step: [f32; 4],
+    /// The footprints' instances: the buffer, the generation it holds, how many.
+    prints: Option<(wgpu::Buffer, u64, u32)>,
+}
+
+impl SnowTrail {
+    fn advance(&mut self, on: bool, snowing: f32, at: Vec2, fallen: f32, extent: f32) {
+        if !on {
+            self.origin = None;
+            self.last = None;
+            return;
+        }
+        let now = Instant::now();
+        let mut dt = self.last.map_or(-1.0, |t| now.duration_since(t).as_secs_f32().min(1.0));
+        let snap = extent / crate::water_effects::SNOW_TRAIL_SIZE as f32 * 32.0;
+        let origin = ((at - Vec2::splat(extent * 0.5)) / snap).floor() * snap;
+        if self.uniform[2] != extent {
+            dt = -1.0;
+        }
+        let prev = self.origin.unwrap_or(origin);
+        self.uniform = [origin.x, origin.y, extent, fallen];
+        self.step = [prev.x, prev.y, dt, snowing];
+        self.origin = Some(origin);
+        self.last = Some(now);
+    }
+
+    fn active(&self) -> bool {
+        self.last.is_some()
+    }
+
+    /// Moves the covered square with a region-origin jump. Reached from
+    /// `Backend::shift_weather`, which nothing calls yet.
+    #[allow(dead_code)]
+    fn shift(&mut self, by: Vec2) {
+        if let Some(o) = &mut self.origin {
+            *o += by;
+        }
+    }
+}
+
+impl Backend {
+    /// A border crossing (`by` metres): the wetness memory and the footprints
+    /// stay on the ground they cover. Call this when the region origin jumps;
+    /// nothing in Block calls it yet.
+    #[allow(dead_code)]
+    pub(crate) fn shift_weather(&mut self, by: [f32; 2]) {
+        if by == [0.0; 2] {
+            return;
+        }
+        let by = Vec2::from(by);
+        self.rain_wet.shift(by);
+        self.snow_trail.shift(by);
+    }
+}
+
+impl RainWet {
+    fn active(&self) -> bool {
+        (self.soak > RAIN_WET_DRY || self.level > RAIN_WET_DRY || self.snow > RAIN_WET_DRY || self.step[2] < 0.0) && self.last.is_some()
+    }
+
+    /// Moves the covered square with a region-origin jump. Reached from
+    /// `Backend::shift_weather`, which nothing calls yet. The weather tests
+    /// call it directly.
+    #[allow(dead_code)]
+    fn shift(&mut self, by: Vec2) {
+        if let Some(o) = &mut self.origin {
+            *o += by;
+        }
+    }
+
+    fn restart_texels(&mut self) {
+        self.origin = None;
+    }
+
+    fn advance(&mut self, rain: f32, snow: f32, at: Vec2, ice: bool, deep: bool, extent: f32) {
+        let now = Instant::now();
+        let dt = self.last.map_or(0.0, |t| now.duration_since(t).as_secs_f32().min(1.0));
+        let rain = rain.clamp(0.0, 1.0);
+        let frozen = ice && rain <= 0.0 && (snow > 0.0 || self.snow > 0.05);
+        if frozen {
+        } else if rain > self.level {
+            self.level += (rain - self.level) * (1.0 - (-dt * (0.5 + rain) / RAIN_FILL_SECS).exp());
+        } else {
+            self.level += (rain - self.level) * (1.0 - (-dt / RAIN_DRAIN_SECS).exp());
+        }
+        if rain > 0.0 {
+            self.level = self.level.max(1e-3);
+            self.soak += (1.0 - self.soak) * (1.0 - (-dt * (0.5 + rain) / RAIN_SOAK_SECS).exp());
+            self.soak = self.soak.max(1e-3);
+        } else if !frozen {
+            self.soak *= (-dt / RAIN_DRY_SECS).exp();
+        }
+        let snow = snow.clamp(0.0, 1.0);
+        if snow > 0.0 {
+            self.snow += (1.0 - self.snow) * (1.0 - (-dt * snow / SNOW_FILL_SECS).exp());
+            self.snow = self.snow.max(1e-3);
+        } else {
+            let melt = if rain > 0.0 { SNOW_RAIN_MELT_SECS } else { SNOW_MELT_SECS };
+            self.snow *= (-dt / melt).exp();
+        }
+        let was = self.origin;
+        let active = rain > 0.0 || snow > 0.0 || self.soak > RAIN_WET_DRY || self.level > RAIN_WET_DRY || self.snow > RAIN_WET_DRY;
+        if !active {
+            *self = RainWet::default();
+            return;
+        }
+        let origin = rain_wet_origin(at, extent);
+        self.origin = Some(origin);
+        let fresh = was.is_none() || self.last.is_none();
+        let prev = was.unwrap_or(origin);
+        self.uniform = [origin.x, origin.y, extent, self.level];
+        self.step = [prev.x, prev.y, if fresh { -1.0 } else { dt }, self.soak];
+        let flags = if rain > 0.0 { 1.0 } else { 0.0 } + if ice { 2.0 } else { 0.0 } + if deep { 4.0 } else { 0.0 };
+        self.snow_cover = [snow, self.snow, flags, 0.0];
+        self.last = Some(now);
+    }
+}
+
+fn rain_drops(rain: f32, quality: u32) -> u32 {
+    (rain.clamp(0.0, 1.0) * 45_000.0 * rain_share(quality)) as u32
+}
+
+fn rain_share(quality: u32) -> f32 {
+    match quality {
+        0 => 0.45,
+        1 => 0.7,
+        _ => 1.0,
+    }
+}
+
+/// `BLOCK_RAIN_DEBUG=1` shows the wetness memory; `=snow` why the snow lies.
+fn rain_constants() -> &'static [(&'static str, f64)] {
+    static CONSTANTS: std::sync::OnceLock<[(&'static str, f64); 1]> = std::sync::OnceLock::new();
+    CONSTANTS.get_or_init(|| {
+        let debug = match std::env::var("BLOCK_RAIN_DEBUG").as_deref() {
+            Ok("1") => 1.0,
+            Ok("snow") => 2.0,
+            _ => 0.0,
+        };
+        [("rain_debug", debug)]
+    })
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn deep_snow_has_enough_levels_for_its_reach() {
+        let high = DeepSnowMesh::new(2, 15.0);
+        assert_eq!((high.cells, high.levels, high.reach), (128, 4, 15.0));
+        assert_eq!(high.vertices(), 128 * 128 * 4 * 6);
+        let far = DeepSnowMesh::new(2, 40.0);
+        assert_eq!((far.cells, far.levels), (128, 5));
+        assert_eq!(DeepSnowMesh::new(0, 15.0).reach, 10.0);
+        assert_eq!(DeepSnowMesh::new(1, 15.0).cells, 96);
+    }
+
+    #[test]
+    fn the_weather_memory_covers_what_is_drawn() {
+        assert_eq!(wet_extent_for(60.0), 128.0);
+        assert_eq!(wet_extent_for(61.0), 256.0);
+        assert_eq!(wet_extent_wanted(256.0, false), 128.0);
+        assert_eq!(wet_extent_wanted(256.0, true), 512.0);
+    }
+
+    #[test]
+    fn clean_drops_the_wetness_and_a_crossing_keeps_it() {
+        let mut wet = RainWet::default();
+        wet.advance(1.0, 0.0, Vec2::new(10.0, 20.0), false, false, 128.0);
+        assert!(wet.active());
+        wet.shift(Vec2::new(-256.0, 0.0));
+        assert!((wet.origin.unwrap().x - (rain_wet_origin(Vec2::new(10.0, 20.0), 128.0).x - 256.0)).abs() < 1e-3);
+        wet = RainWet::default();
+        assert!(!wet.active());
+    }
 
     /// The occlusion's table is read by index against the main view's
     /// arguments: a cut-out photo leaves the ground and the water out of both,

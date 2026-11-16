@@ -3169,6 +3169,7 @@ impl Settings {
             mirror_scale: Self::reflection_scale(self.mirrors),
             probe_slots: self.probe_count.clamp(8, 64),
             ssr: self.ssr,
+            rain_surfaces: false,
             anisotropy: self.anisotropy,
             occlusion: self.occlusion_culling,
         }

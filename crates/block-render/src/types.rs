@@ -250,6 +250,15 @@ pub const SKELETON_ANCHOR: u32 = 208;
 /// First matrix of the weights of a skeleton's live morphs, after its 48
 /// anchors: column `k` is `palettes[base + LIVE_MORPH_WEIGHTS + k / 16][k / 4 % 4][k % 4]`.
 pub const LIVE_MORPH_WEIGHTS: u32 = 256;
+/// The palette entry after a skeleton's live morph weights (four matrices)
+/// holding how much snow is on the avatar (Block Weather).
+pub const AVATAR_SNOW: u32 = 260;
+/// What the snow entry holds in its last element (w of its last column)
+/// when the viewer wrote it: anything else there (the identity a palette
+/// starts with, a joint's matrix, nothing written yet) is no snow.
+pub const AVATAR_SNOW_MARK: f32 = -2.0;
+/// Palette entries per skeleton (the viewer's `anim::PALETTE_JOINTS`).
+pub const PALETTE_STRIDE: u32 = 261;
 
 /// Per-face GPU record (must match `DrawRecord` in common.wgsl).
 #[repr(C)]
@@ -539,6 +548,8 @@ pub struct DrawLists {
     pub water_events: Vec<crate::WaterEvent>,
     pub water_contacts: Vec<crate::WaterEvent>,
     pub water_ground: crate::WaterGround,
+    /// Rain prototype: the terrain's heights around the camera.
+    pub rain_ground: crate::RainGround,
     /// Sorted back to front, the first `blend_depth` apart (below).
     pub blend: Vec<DrawCmd>,
     /// The blended faces under the water while the camera is above it, back
@@ -728,6 +739,7 @@ impl DrawLists {
         self.water_events.clone_from(&src.water_events);
         self.water_contacts.clone_from(&src.water_contacts);
         self.water_ground.clone_from(&src.water_ground);
+        self.rain_ground.clone_from(&src.rain_ground);
         self.glow.clone_from(&src.glow);
         self.glow_alpha.clone_from(&src.glow_alpha);
         self.debug_red.clone_from(&src.debug_red);
@@ -778,6 +790,7 @@ impl DrawLists {
         self.water_events.clear();
         self.water_contacts.clear();
         self.water_ground = Default::default();
+        self.rain_ground = Default::default();
         self.glow.clear();
         self.blend_glow.clear();
         self.blend_double_sided.clear();
@@ -844,6 +857,8 @@ pub mod particle_flags {
     pub const AXIS: u32 = 4;
     /// Velocity-oriented billboard: project its axis onto the viewing plane.
     pub const FOLLOW_VELOCITY: u32 = 8;
+    /// Thin lightning streak (thunder bolts).
+    pub const LINE: u32 = 16;
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -1065,6 +1080,10 @@ pub struct RenderSettings {
     pub mirror_scale: f32,
     /// Screen-space reflections on glossy surfaces.
     pub ssr: bool,
+    /// The G-buffer of the screen-space reflections is drawn while it rains,
+    /// even with them off, for the wet surfaces' smooth facings and materials
+    /// (the reflections themselves only with `ssr`).
+    pub rain_surfaces: bool,
     /// Anisotropic texture filtering (1 = off, 2, 4, 8, 16).
     pub anisotropy: u16,
     /// Reflection probe cube slots, the default probe included
@@ -1072,6 +1091,13 @@ pub struct RenderSettings {
     pub probe_slots: u32,
     /// GPU occlusion culling (UseOcclusion).
     pub occlusion: bool,
+}
+
+impl RenderSettings {
+    /// The frame draws the G-buffer (normal, roughness, metallic).
+    pub fn gbuffer(&self) -> bool {
+        self.ssr || self.rain_surfaces
+    }
 }
 
 impl Default for RenderSettings {
@@ -1096,6 +1122,7 @@ impl Default for RenderSettings {
             water_reflection_scale: 0.25,
             mirror_scale: 0.25,
             ssr: false,
+            rain_surfaces: false,
             anisotropy: 8,
             probe_slots: 32,
             occlusion: true,
@@ -1294,6 +1321,70 @@ pub enum PhotoContext {
     Use,
 }
 
+/// Rain / snow look the wet ground and flakes follow (Aurora Weather port).
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct RainLook {
+    pub puddles: bool,
+    pub distance: f32,
+    pub wind: [f32; 2],
+    pub drift: [f32; 2],
+    pub quality: u32,
+    pub snow: f32,
+    pub snow_detail: u32,
+    pub memory_reach: f32,
+    pub snow_distance: f32,
+    pub deep_reach: f32,
+    pub snow_lying: f32,
+    pub snow_settles: bool,
+    pub footprints: bool,
+    pub trail_extent: f32,
+    pub trail_centre: [f32; 2],
+    pub ice: bool,
+    pub deep_snow: bool,
+    pub lightning: [f32; 4],
+    /// Northern lights: brightness, bearing (rad), foot height, colour index.
+    pub aurora: [f32; 4],
+    pub snow_stamps: [[f32; 4]; SNOW_STAMPS],
+    pub snow_stamp_count: u32,
+    pub snow_stamp_z: [f32; SNOW_STAMPS],
+    pub clean: bool,
+    pub fill: bool,
+}
+
+/// The most feet set down in the snow in one frame.
+pub const SNOW_STAMPS: usize = 16;
+
+impl Default for RainLook {
+    fn default() -> Self {
+        Self {
+            puddles: true,
+            distance: 38.0,
+            wind: [0.0; 2],
+            drift: [0.0; 2],
+            quality: 2,
+            snow: 0.0,
+            snow_detail: 0,
+            memory_reach: 60.0,
+            snow_distance: 60.0,
+            deep_reach: 15.0,
+            snow_lying: 0.0,
+            snow_settles: true,
+            footprints: false,
+            trail_extent: 32.0,
+            trail_centre: [0.0; 2],
+            ice: false,
+            deep_snow: false,
+            lightning: [0.0; 4],
+            aurora: [0.0; 4],
+            snow_stamps: [[0.0; 4]; SNOW_STAMPS],
+            snow_stamp_count: 0,
+            snow_stamp_z: [0.0; SNOW_STAMPS],
+            clean: false,
+            fill: false,
+        }
+    }
+}
+
 /// Camera and environment for one frame.
 #[derive(Debug, Clone)]
 pub struct FrameParams {
@@ -1394,6 +1485,15 @@ pub struct FrameParams {
     /// what is drawn keeps its coverage, in the snapshot's alpha or over a
     /// checkerboard on the live view.
     pub cutout: bool,
+    /// How hard it rains/snows, 0 (none) to 1 (a downpour).
+    pub rain: f32,
+    /// Footprints kept in the region for lying snow.
+    pub snow_prints: Option<std::sync::Arc<Vec<[f32; 8]>>>,
+    pub snow_prints_gen: u64,
+    /// Seconds of snowfall accumulated (times intensity); prints fill in as it grows.
+    pub snow_fallen: f32,
+    /// Puddles, lying snow, wind slant, lightning, northern lights.
+    pub rain_look: RainLook,
     /// The photo's look (looks.rs), over the image once tone mapped; None:
     /// none, at no cost.
     pub look: Option<crate::looks::PhotoLook>,
@@ -1549,6 +1649,9 @@ pub struct RenderStats {
     /// the previous ones while the pipelines for new ones compile (#1746).
     /// None until the backend has answered a frame.
     pub settings: Option<RenderSettings>,
+    /// Snow lies on the ground (local or the region's), as the footprints'
+    /// map and the snow cover read it.
+    pub snow_lying: bool,
     pub draws: u32,
     pub shadow_draws: u32,
     pub shadow: ShadowStats,

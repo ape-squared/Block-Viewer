@@ -7,6 +7,57 @@ use glam::Vec2;
 
 pub const MAX_WATER_EVENTS: usize = 256;
 pub const WATER_GROUND_SIZE: u32 = 64;
+
+/// Terrain height grid around the camera for puddles in dips.
+#[derive(Debug, Clone, Default)]
+pub struct RainGround {
+    pub origin: [f32; 2],
+    pub extent: f32,
+    pub heights: std::sync::Arc<[f32]>,
+}
+
+pub const RAIN_GROUND_SIZE: u32 = 128;
+/// Cells a side of the wetness memory (`fs_rain_wet_update`).
+pub const RAIN_WET_SIZE: u32 = 512;
+
+/// The wetness memory's two textures (`wet_textures`): the one drawn each
+/// frame and its view, the copy the next frame and the wet ground read and
+/// its view.
+pub(crate) type WetTextures = (wgpu::Texture, wgpu::TextureView, wgpu::Texture, wgpu::TextureView);
+
+/// The wetness memory's two textures `size` texels a side.
+pub(crate) fn wet_textures(device: &wgpu::Device, size: u32) -> WetTextures {
+    let wet = |label, usage| {
+        device.create_texture(&wgpu::TextureDescriptor {
+            label: Some(label),
+            size: wgpu::Extent3d {
+                width: size,
+                height: size,
+                depth_or_array_layers: 1,
+            },
+            mip_level_count: 1,
+            sample_count: 1,
+            dimension: wgpu::TextureDimension::D2,
+            // x the height reached, y how wet, z how deep the snow lies
+            format: wgpu::TextureFormat::Rgba32Float,
+            usage,
+            view_formats: &[],
+        })
+    };
+    let target = wet(
+        "rain wetness (drawn)",
+        wgpu::TextureUsages::RENDER_ATTACHMENT | wgpu::TextureUsages::COPY_SRC,
+    );
+    let target_view = target.create_view(&Default::default());
+    let read = wet("rain wetness", wgpu::TextureUsages::TEXTURE_BINDING | wgpu::TextureUsages::COPY_DST);
+    let read_view = read.create_view(&Default::default());
+    (target, target_view, read, read_view)
+}
+/// Snow footprints: texels a side of the trail map (`fs_snow_print`)
+/// and the metres it covers around the camera (3 cm a texel).
+pub const SNOW_TRAIL_SIZE: u32 = 1024;
+pub const SNOW_TRAIL_EXTENT: f32 = 32.0;
+
 const MAX_WATER_IMPULSES: usize = 192;
 // Three connected quads per sheet instance; ordinary droplets use the first
 // quad and collapse the others. Counts remain within the shared particle cap.
@@ -226,6 +277,27 @@ pub(crate) struct WaterGpu {
     pub events: wgpu::Buffer,
     ground: wgpu::Texture,
     pub ground_view: wgpu::TextureView,
+    rain_ground: wgpu::Texture,
+    pub rain_ground_view: wgpu::TextureView,
+    rain_ground_snapshot: Option<std::sync::Arc<[f32]>>,
+    /// Where the uploaded rain ground is: origin x, y, extent (0: none).
+    pub rain_area: [f32; 3],
+    /// The wetness memory, drawn into `rain_wet_target` each frame and
+    /// copied into `rain_wet` (frame group binding 27), which the next
+    /// update and the wet ground read.
+    pub rain_wet_target: wgpu::Texture,
+    pub rain_wet_target_view: wgpu::TextureView,
+    pub rain_wet: wgpu::Texture,
+    pub rain_wet_view: wgpu::TextureView,
+    /// Its texels a side (`install_wet`): 4 a metre, over the renderer's
+    /// memory square.
+    pub rain_wet_size: u32,
+    /// Snow footprints: how deep the snow is pressed down (R), drawn into
+    /// `snow_trail_target` and copied into `snow_trail` (frame binding 28).
+    pub snow_trail_target: wgpu::Texture,
+    pub snow_trail_target_view: wgpu::TextureView,
+    pub snow_trail: wgpu::Texture,
+    pub snow_trail_view: wgpu::TextureView,
     ground_snapshot: Option<std::sync::Arc<[[f32; 2]]>>,
     group: wgpu::BindGroup,
     pipeline: wgpu::ComputePipeline,
@@ -239,6 +311,73 @@ pub(crate) struct WaterGpu {
 }
 
 impl WaterGpu {
+    /// The terrain heights around the camera, when they changed.
+    pub fn upload_rain_ground(&mut self, queue: &wgpu::Queue, ground: &RainGround) {
+        let n = (RAIN_GROUND_SIZE * RAIN_GROUND_SIZE) as usize;
+        if ground.heights.len() != n || ground.extent.is_nan() || ground.extent <= 0.0 {
+            self.rain_area = [0.0; 3];
+            return;
+        }
+        self.rain_area = [ground.origin[0], ground.origin[1], ground.extent];
+        if self
+            .rain_ground_snapshot
+            .as_ref()
+            .is_some_and(|old| std::sync::Arc::ptr_eq(old, &ground.heights))
+        {
+            return;
+        }
+        self.rain_ground_snapshot = Some(ground.heights.clone());
+        queue.write_texture(
+            wgpu::TexelCopyTextureInfo {
+                texture: &self.rain_ground,
+                mip_level: 0,
+                origin: wgpu::Origin3d::ZERO,
+                aspect: wgpu::TextureAspect::All,
+            },
+            bytemuck::cast_slice(ground.heights.as_ref()),
+            wgpu::TexelCopyBufferLayout {
+                offset: 0,
+                bytes_per_row: Some(RAIN_GROUND_SIZE * 4),
+                rows_per_image: None,
+            },
+            wgpu::Extent3d {
+                width: RAIN_GROUND_SIZE,
+                height: RAIN_GROUND_SIZE,
+                depth_or_array_layers: 1,
+            },
+        );
+    }
+
+    /// The wetness memory at `size` texels a side (`wet_textures`, made by
+    /// the renderer), its old one dropped (the renderer starts its texels
+    /// again and binds the new views).
+    pub(crate) fn install_wet(&mut self, made: WetTextures, size: u32) {
+        let (target, target_view, read, read_view) = made;
+        self.rain_wet_target = target;
+        self.rain_wet_target_view = target_view;
+        self.rain_wet = read;
+        self.rain_wet_view = read_view;
+        self.rain_wet_size = size;
+    }
+
+    /// Keep the rain and snow textures when the water simulation is rebuilt
+    /// at another size: that rebuild must not wipe the wetness memory.
+    fn preserve_weather_from(&mut self, old: &mut Self) {
+        std::mem::swap(&mut self.rain_ground, &mut old.rain_ground);
+        std::mem::swap(&mut self.rain_ground_view, &mut old.rain_ground_view);
+        std::mem::swap(&mut self.rain_ground_snapshot, &mut old.rain_ground_snapshot);
+        std::mem::swap(&mut self.rain_area, &mut old.rain_area);
+        std::mem::swap(&mut self.rain_wet_target, &mut old.rain_wet_target);
+        std::mem::swap(&mut self.rain_wet_target_view, &mut old.rain_wet_target_view);
+        std::mem::swap(&mut self.rain_wet, &mut old.rain_wet);
+        std::mem::swap(&mut self.rain_wet_view, &mut old.rain_wet_view);
+        std::mem::swap(&mut self.rain_wet_size, &mut old.rain_wet_size);
+        std::mem::swap(&mut self.snow_trail_target, &mut old.snow_trail_target);
+        std::mem::swap(&mut self.snow_trail_target_view, &mut old.snow_trail_target_view);
+        std::mem::swap(&mut self.snow_trail, &mut old.snow_trail);
+        std::mem::swap(&mut self.snow_trail_view, &mut old.snow_trail_view);
+    }
+
     pub fn new(device: &wgpu::Device, size: u32) -> Self {
         let textures = std::array::from_fn(|index| {
             device.create_texture(&wgpu::TextureDescriptor {
@@ -306,6 +445,45 @@ impl WaterGpu {
             cache: None,
         });
         let ground_view = ground.create_view(&Default::default());
+        let rain_ground = device.create_texture(&wgpu::TextureDescriptor {
+            label: Some("rain ground heights"),
+            size: wgpu::Extent3d {
+                width: RAIN_GROUND_SIZE,
+                height: RAIN_GROUND_SIZE,
+                depth_or_array_layers: 1,
+            },
+            mip_level_count: 1,
+            sample_count: 1,
+            dimension: wgpu::TextureDimension::D2,
+            format: wgpu::TextureFormat::R32Float,
+            usage: wgpu::TextureUsages::TEXTURE_BINDING | wgpu::TextureUsages::COPY_DST,
+            view_formats: &[],
+        });
+        let rain_ground_view = rain_ground.create_view(&Default::default());
+        let (rain_wet_target, rain_wet_target_view, rain_wet, rain_wet_view) = wet_textures(device, RAIN_WET_SIZE);
+        let trail = |label, usage| {
+            device.create_texture(&wgpu::TextureDescriptor {
+                label: Some(label),
+                size: wgpu::Extent3d {
+                    width: SNOW_TRAIL_SIZE,
+                    height: SNOW_TRAIL_SIZE,
+                    depth_or_array_layers: 1,
+                },
+                mip_level_count: 1,
+                sample_count: 1,
+                dimension: wgpu::TextureDimension::D2,
+                format: wgpu::TextureFormat::R16Float,
+                usage,
+                view_formats: &[],
+            })
+        };
+        let snow_trail_target = trail(
+            "snow footprints (drawn)",
+            wgpu::TextureUsages::RENDER_ATTACHMENT | wgpu::TextureUsages::COPY_SRC,
+        );
+        let snow_trail_target_view = snow_trail_target.create_view(&Default::default());
+        let snow_trail = trail("snow footprints", wgpu::TextureUsages::TEXTURE_BINDING | wgpu::TextureUsages::COPY_DST);
+        let snow_trail_view = snow_trail.create_view(&Default::default());
         let group = device.create_bind_group(&wgpu::BindGroupDescriptor {
             label: Some("water simulation"),
             layout: &pipeline.get_bind_group_layout(0),
@@ -415,6 +593,19 @@ impl WaterGpu {
             events,
             ground,
             ground_view,
+            rain_ground,
+            rain_ground_view,
+            rain_ground_snapshot: None,
+            rain_area: [0.0; 3],
+            rain_wet_target,
+            rain_wet_target_view,
+            rain_wet,
+            rain_wet_view,
+            rain_wet_size: RAIN_WET_SIZE,
+            snow_trail_target,
+            snow_trail_target_view,
+            snow_trail,
+            snow_trail_view,
             ground_snapshot: None,
             group,
             pipeline,
@@ -444,7 +635,9 @@ impl WaterGpu {
         let resolution = if valid_ground { settings.resolution() } else { 1 };
         let resized = self.size != resolution;
         if resized {
-            *self = Self::new(device, resolution);
+            let mut next = Self::new(device, resolution);
+            next.preserve_weather_from(self);
+            *self = next;
         }
         let origin = Vec2::from_array(ground.origin);
         let extent = ground.extent.max(1.0);

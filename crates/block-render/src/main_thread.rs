@@ -1099,6 +1099,17 @@ impl Renderer {
         self.settings = s;
     }
 
+    /// Keep the G-buffer while it rains (pipelines and targets follow with a
+    /// later frame, as with any setting).
+    pub fn set_rain_surfaces(&mut self, on: bool) {
+        self.settings.rain_surfaces = on;
+    }
+
+    /// Snow lay on the ground in the last frame the backend finished.
+    pub fn snow_lying(&self) -> bool {
+        self.last_stats.snow_lying
+    }
+
     pub fn set_vsync(&mut self, vsync: bool) {
         self.vsync = vsync;
     }

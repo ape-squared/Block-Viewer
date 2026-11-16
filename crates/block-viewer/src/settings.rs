@@ -1338,6 +1338,8 @@ pub struct Settings {
     pub gtao_quality: u8,
     /// Local visual water, independent of simulator physics.
     pub water_effects: WaterEffectsSettings,
+    /// Client-side weather (rain, snow, wind, thunder, northern lights).
+    pub weather: crate::weather::WeatherSettings,
     /// With GTAO: screen-space indirect light (a visibility bitmask and one
     /// bounce of light from the surfaces around). Aurora's own, off by
     /// default.
@@ -2224,6 +2226,7 @@ impl Default for Settings {
             ao_method: 0,
             gtao_quality: 2,
             water_effects: WaterEffectsSettings::default(),
+            weather: Default::default(),
             screen_indirect_light: false,
             screen_indirect_intensity: SCREEN_INDIRECT_INTENSITY,
             water_reflections: 1,
@@ -3166,6 +3169,7 @@ impl Settings {
             mirror_scale: Self::reflection_scale(self.mirrors),
             probe_slots: self.probe_count.clamp(8, 64),
             ssr: self.ssr,
+            rain_surfaces: false,
             anisotropy: self.anisotropy,
             occlusion: self.occlusion_culling,
         }

@@ -26,7 +26,7 @@ checksum = "4e883d1d28c5fd5568c79ed2d2bd48d9f2fd3945c8974ed0f53690ceddb051be"
 dependencies = [
  "enumn",
  "serde",
- "uuid 1.29.0",
+ "uuid 1.29.2",
 ]
 
 [[package]]
@@ -625,7 +625,7 @@ dependencies = [
  "cc",
  "crossbeam-channel",
  "flate2",
- "glam 0.34.2",
+ "glam 0.34.3",
  "image",
  "log",
  "meshopt",
@@ -636,7 +636,7 @@ dependencies = [
  "ring",
  "serde_json",
  "thiserror 2.0.21",
- "uuid 1.29.0",
+ "uuid 1.29.2",
  "vorbis_rs",
 ]
 
@@ -695,7 +695,7 @@ dependencies = [
  "base64 0.23.1",
  "chrono",
  "thiserror 2.0.21",
- "uuid 1.29.0",
+ "uuid 1.29.2",
 ]
 
 [[package]]
@@ -715,9 +715,9 @@ dependencies = [
 name = "block-msg"
 version = "0.1.0"
 dependencies = [
- "glam 0.34.2",
+ "glam 0.34.3",
  "thiserror 2.0.21",
- "uuid 1.29.0",
+ "uuid 1.29.2",
 ]
 
 [[package]]
@@ -733,7 +733,7 @@ dependencies = [
  "block-prim",
  "block-version",
  "crossbeam-channel",
- "glam 0.34.2",
+ "glam 0.34.3",
  "log",
  "md5",
  "parking_lot 0.13.0",
@@ -746,7 +746,7 @@ dependencies = [
  "socket2",
  "thiserror 2.0.21",
  "tokio",
- "uuid 1.29.0",
+ "uuid 1.29.2",
  "webpki-root-certs",
 ]
 
@@ -763,9 +763,9 @@ dependencies = [
 name = "block-prim"
 version = "0.1.0"
 dependencies = [
- "glam 0.34.2",
+ "glam 0.34.3",
  "thiserror 2.0.21",
- "uuid 1.29.0",
+ "uuid 1.29.2",
 ]
 
 [[package]]
@@ -779,7 +779,7 @@ dependencies = [
  "bytemuck",
  "egui",
  "egui-wgpu",
- "glam 0.34.2",
+ "glam 0.34.3",
  "intel_tex_2",
  "libc",
  "log",
@@ -791,7 +791,7 @@ dependencies = [
  "pollster 1.0.1",
  "rayon",
  "thiserror 2.0.21",
- "uuid 1.29.0",
+ "uuid 1.29.2",
  "wgpu",
  "windows-sys 0.61.2",
 ]
@@ -810,7 +810,7 @@ dependencies = [
  "serde_json",
  "sha2",
  "tokio",
- "uuid 1.29.0",
+ "uuid 1.29.2",
  "windows-sys 0.61.2",
  "zip",
 ]
@@ -857,7 +857,7 @@ dependencies = [
  "foldhash 0.2.0",
  "fontconfig-parser",
  "gilrs-core",
- "glam 0.34.2",
+ "glam 0.34.3",
  "hidapi",
  "iana-time-zone",
  "image",
@@ -892,7 +892,7 @@ dependencies = [
  "ttf-parser",
  "unicode-bidi",
  "unicode-bidi-mirroring",
- "uuid 1.29.0",
+ "uuid 1.29.2",
  "wayland-client",
  "webbrowser",
  "wgpu",
@@ -914,7 +914,7 @@ dependencies = [
  "block-audio",
  "block-llsd",
  "bytes",
- "glam 0.34.2",
+ "glam 0.34.3",
  "log",
  "opus-decoder",
  "parking_lot 0.13.0",
@@ -925,7 +925,7 @@ dependencies = [
  "serde_json",
  "thiserror 2.0.21",
  "tokio",
- "uuid 1.29.0",
+ "uuid 1.29.2",
  "webrtc",
 ]
 
@@ -1273,6 +1273,15 @@ name = "const-oid"
 version = "0.10.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a6ef517f0926dd24a1582492c791b6a4818a4d94e789a334894aa15b0d12f55c"
+
+[[package]]
+name = "constant_time_eq"
+version = "0.6.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9eb6feb175df65d0a3ccd3e73484e940d0ac664e8034f0519fd49a93db3071d9"
+dependencies = [
+ "rustversion",
+]
 
 [[package]]
 name = "core-foundation"
@@ -2096,9 +2105,9 @@ checksum = "af9673d8203fcb076b19dfd17e38b3d4ae9f44959416ea532ce72415a6020365"
 
 [[package]]
 name = "fancy-regex"
-version = "0.20.0"
+version = "0.20.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "20ed7f62ce0ae0da1a8b93c3c7104ab7e0760a74491e097c701fff966e945390"
+checksum = "0a2e16b9a584b602f1e0e5e22c30ca0906786088c27500653e432d086def8b53"
 dependencies = [
  "bit-set 0.8.0",
  "regex-automata",
@@ -2475,7 +2484,7 @@ dependencies = [
  "nix",
  "objc2-core-foundation",
  "objc2-io-kit",
- "uuid 1.29.0",
+ "uuid 1.29.2",
  "vec_map",
  "wasm-bindgen",
  "web-sys",
@@ -2505,9 +2514,9 @@ dependencies = [
 
 [[package]]
 name = "glam"
-version = "0.34.2"
+version = "0.34.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "54af5066834d6c2d404eb26ea036a15b15d9ff80db510b9a73ff95ab07f30831"
+checksum = "627003914c6057c9c8f0832ee4f870b5a4f599d0cfa83f4072675114860cd0ff"
 dependencies = [
  "bytemuck",
 ]
@@ -5110,7 +5119,7 @@ dependencies = [
  "rend",
  "rkyv_derive",
  "tinyvec",
- "uuid 1.29.0",
+ "uuid 1.29.2",
 ]
 
 [[package]]
@@ -5273,7 +5282,7 @@ dependencies = [
  "sansio",
  "serde",
  "url",
- "uuid 1.29.0",
+ "uuid 1.29.2",
 ]
 
 [[package]]
@@ -6939,9 +6948,9 @@ dependencies = [
 
 [[package]]
 name = "uuid"
-version = "1.29.0"
+version = "1.29.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4a0e2d11620c50695fe12bbbfde96b3477fe606e7284c22d505c12ce51214514"
+checksum = "bed99139f7dac9b5cfe5f17be4d66dc7079a34dee1d74bcc77217119240e267c"
 dependencies = [
  "getrandom 0.4.3",
  "js-sys",
@@ -7248,9 +7257,9 @@ dependencies = [
 
 [[package]]
 name = "webbrowser"
-version = "1.2.6"
+version = "1.2.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "fe8d20d0214027baf11b8b0cc307c1da7657d8f4db9aa956f7de27a6fb1acbd5"
+checksum = "73e91ccd4698f2647d6137e8eb17a3f1dcfd63810be9029fb2398f507279b95b"
 dependencies = [
  "jni",
  "log",
@@ -7264,9 +7273,9 @@ dependencies = [
 
 [[package]]
 name = "webpki-root-certs"
-version = "1.0.11"
+version = "1.0.12"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e49d0e65abc00c142e8f9428da991da9f1a250c39be97459901eb12b9b49f62a"
+checksum = "293198dcebfb821155b5092ab94b5a82ff180eddd7241df3bd6e66a4ffd1a585"
 dependencies = [
  "rustls-pki-types",
 ]
@@ -7988,7 +7997,7 @@ dependencies = [
  "serde_repr",
  "tracing",
  "uds_windows",
- "uuid 1.29.0",
+ "uuid 1.29.2",
  "windows-sys 0.61.2",
  "winnow",
  "zbus_macros",
@@ -8088,6 +8097,20 @@ name = "zeroize"
 version = "1.9.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e13084392c5e4bc371903e2935a5eaeed24905a7511356b883835e18a78f6879"
+dependencies = [
+ "zeroize_derive",
+]
+
+[[package]]
+name = "zeroize_derive"
+version = "1.5.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "3c50655cbb0fe3fc43170059e702f1ce5e19b84cec58dc87b037a09935c2f328"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn 2.0.119",
+]
 
 [[package]]
 name = "zerotrie"
@@ -8125,10 +8148,11 @@ dependencies = [
 
 [[package]]
 name = "zip"
-version = "9.4.1"
+version = "9.5.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "23f17fbc870bfac28c6228aed7d6e6df352e26bf7015c4313727e16a7a01ce5e"
+checksum = "e3476fd497ac8af5b1ec7b51acab7bef380f7e8dd8e0487595bafd839417a302"
 dependencies = [
+ "constant_time_eq",
  "crc32fast",
  "flate2",
  "getrandom 0.4.3",
@@ -8138,6 +8162,7 @@ dependencies = [
  "nix",
  "typed-path",
  "windows-sys 0.61.2",
+ "zeroize",
  "zopfli",
 ]
 

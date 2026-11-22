@@ -27,7 +27,7 @@ const VERSION: &str = "1.44";
 /// The controller's and query script's owner-say tags, never shown in chat.
 /// `<auroraPortal>` is a 1.42 query script's, kept hidden until it is
 /// replaced: portals are this viewer's own and no longer relayed.
-const PRIVATE_TAGS: [&str; 9] = [
+const PRIVATE_TAGS: [&str; 10] = [
     // The retired IK relay's tags: a bridge made before its removal runs it
     // until `RETIRED_IK_NAME` is deleted from the worn object.
     "<auroraBridgeIK>",
@@ -36,6 +36,7 @@ const PRIVATE_TAGS: [&str; 9] = [
     "<auroraBridgeQuery>",
     "<auroraPose>",
     "<auroraPortal>",
+    "<auroraBlock>",
     "<auroraMoveLock>",
     "<auroraBridgeError>",
     "<auroraBridgeStatus>",
@@ -1448,6 +1449,20 @@ impl Bridge {
                             consent.sync(world, now);
                             consent.receive(world, &chat.message, now);
                             world.poser_consent = consent;
+                        }
+                        if let Some(peer) = chat
+                            .message
+                            .strip_prefix("<auroraBlock>")
+                            .and_then(|s| s.strip_suffix("</auroraBlock>"))
+                            .and_then(|s| Uuid::parse_str(s.trim()).ok())
+                            .filter(|peer| !peer.is_nil() && *peer != world.agent_id)
+                            && world
+                                .objects
+                                .index_of_uuid(&self.object)
+                                .and_then(|i| world.objects.get(i))
+                                .is_some_and(|o| Some(o.key.region) == world.main_region)
+                        {
+                            crate::world::block_peers::note_live(peer, now);
                         }
                         if let Some(boot) = boot_status(&chat.message, self.folder)
                             && world

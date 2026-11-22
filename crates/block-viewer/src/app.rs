@@ -1249,6 +1249,8 @@ pub struct App {
     /// region, until that region lists our animations (`update_ao`).
     ao_held_changes: Vec<(uuid::Uuid, bool)>,
     ao_agent: uuid::Uuid,
+    /// Last time we asked the bridge to RegionSay a Block presence ping.
+    peer_announce_at: Option<Instant>,
     ao_missing: HashSet<uuid::Uuid>,
     ao_demo: Option<String>,
     ao_default_applied: bool,
@@ -2331,6 +2333,7 @@ impl App {
             ao_runtime: Default::default(),
             ao_held_changes: Vec::new(),
             ao_agent: uuid::Uuid::nil(),
+            peer_announce_at: None,
             ao_missing: Default::default(),
             ao_demo: std::env::var("AURORA_DEMO_AO").ok(),
             ao_default_applied: false,

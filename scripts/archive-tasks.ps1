@@ -92,7 +92,7 @@ if (Test-Path -LiteralPath $archivePath) {
     while ($header.Count -gt 0 -and $header[$header.Count - 1] -eq '') { $header.RemoveAt($header.Count - 1) }
 } else {
     $header.AddRange([string[]]@(
-        '# Aurora Viewer - archived tasks'
+        '# Block Viewer - archived tasks'
         ''
         'Finished tasks moved out of [TASKS.md](../TASKS.md) by'
         '`scripts/archive-tasks.ps1`, under the same headings, most recently archived'

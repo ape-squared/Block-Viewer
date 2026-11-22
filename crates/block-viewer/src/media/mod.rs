@@ -19,7 +19,7 @@
 //!   account's list does not allow before the resident answered.
 //!
 //! Plugins run out of process through `block-media` (SLPlugin + the
-//! CEF / LibVLC plugins of Block's pack, `pack.rs`, or of a folder chosen
+//! CEF / LibVLC plugins of Aurora's pack, `pack.rs`, or of a folder chosen
 //! in the preferences).
 //!
 //! Derived from indra/newview (llviewermedia.cpp, llviewerparcelmedia.cpp,
@@ -30,8 +30,10 @@
 pub mod cef_cache;
 pub mod entry;
 pub mod filter;
+pub mod first_click;
 mod interact;
 pub mod keys;
+pub mod nearby;
 pub mod openid;
 pub mod pack;
 pub mod pick;
@@ -46,7 +48,7 @@ use crate::world::World;
 use block_llsd::{Llsd, Map};
 use block_media::{BrowserSettings, MediaEvent, MediaPlugin, MediaStatus, Modifiers, MouseEvent, PluginPaths, Priority};
 use block_render::{MipLevel, Renderer};
-use entry::{MediaDataClient, MediaEntry, ObjectMediaData};
+use entry::{MINI_CONTROLS, MediaDataClient, MediaEntry, ObjectMediaData};
 use glam::{Mat4, Vec2, Vec3};
 use std::collections::HashMap;
 use std::time::{Duration, Instant};
@@ -159,6 +161,9 @@ pub struct MediaImpl {
     texture: MediaTexture,
     pub interest: f32,
     pub distance: f32,
+    /// Distance to the ear, camera or avatar (mProximityCamera,
+    /// MediaSoundsEarLocation): the volume's rolloff.
+    pub ear_distance: f32,
     pub priority: Priority,
     /// Own volume (media controls), 0..1.
     pub volume: f32,
@@ -183,6 +188,9 @@ pub struct MediaImpl {
     /// Prim media: perms_interact lets us navigate the face to another page
     /// (LLVOVolume::hasMediaPermission); otherwise the page bounces back.
     may_navigate: bool,
+    /// Prim media: perms_control shows the media chrome
+    /// (LLPanelPrimMediaControls); the Legacy Viewer hides it without this.
+    pub may_control: bool,
 }
 
 impl MediaImpl {
@@ -209,6 +217,7 @@ impl MediaImpl {
             },
             interest: 0.0,
             distance: 0.0,
+            ear_distance: 0.0,
             priority: Priority::Unloaded,
             volume: 1.0,
             muted: false,
@@ -226,6 +235,7 @@ impl MediaImpl {
             mouse_down: false,
             user_nav: false,
             may_navigate: true,
+            may_control: true,
         }
     }
 
@@ -350,14 +360,20 @@ pub struct MediaSettings {
     /// PermAllowScriptedMedia: let scripts start the parcel media.
     pub allow_scripted: bool,
     /// MediaFirstClickInteract: the first click already goes to the page
-    /// when the face allows it (first_click_interact).
+    /// when the face allows it (first_click_interact), for the kinds of
+    /// object of `first_click` (off: MEDIA_FIRST_CLICK_NONE).
     pub first_click_interact: bool,
+    pub first_click: first_click::FirstClick,
     /// MediaAutoPlayHuds: media on HUDs plays by itself.
     pub autoplay_huds: bool,
+    /// BrowserJavascriptEnabled: JavaScript in every built-in browser
+    /// (media, web browser, profiles, search), sent to each new page's
+    /// plugin as LLViewerMediaImpl::newSourceFromMediaType does.
+    pub javascript: bool,
     /// MediaEnableFilter: media and music ask before a site not in the
     /// account's list (on by default, as there).
     pub filter: bool,
-    /// Block's own: media on our own worn items (attachments and HUDs),
+    /// Aurora's own: media on our own worn items (attachments and HUDs),
     /// whoever made them, loads without the filter's question; a site the
     /// list refuses stays refused. On by default: wearing a media earring
     /// or a HUD should not raise a question (the Legacy Viewer never
@@ -368,7 +384,7 @@ pub struct MediaSettings {
     pub filter_explained: bool,
     /// Folder with SLPlugin and llplugin\ (empty: automatic).
     pub plugin_dir: String,
-    /// Block's own: the answer to the download of the media plugins pack
+    /// Aurora's own: the answer to the download of the media plugins pack
     /// (`pack.rs`); asked once, the first time it is needed.
     pub pack_consent: pack::Consent,
 }
@@ -382,7 +398,9 @@ impl Default for MediaSettings {
             max_instances: 8,
             allow_scripted: false,
             first_click_interact: true,
+            first_click: first_click::FirstClick::default(),
             autoplay_huds: true,
+            javascript: true,
             filter: true,
             filter_trust_own_worn: true,
             filter_explained: false,
@@ -401,6 +419,8 @@ struct ObjMedia {
     /// once per version, like LLVOVolume::processUpdateMessage asks once per
     /// media change, so a failed GET is not asked again until the next one.
     asked_version: Option<u32>,
+    /// A texture entry temporarily lost media flags while cached media remains.
+    flags_lost_since: Option<Instant>,
     data: Option<ObjectMediaData>,
     hud: bool,
     on_other_avatar: bool,
@@ -415,6 +435,9 @@ struct ObjMedia {
 pub struct MediaFrame<'a> {
     pub view: &'a CullView,
     pub camera: Vec3,
+    /// Where media are heard from: the camera or the avatar
+    /// (`scene::sounds::ear_position`).
+    pub ear: Vec3,
     pub settings: &'a MediaSettings,
     /// ParcelMediaAutoPlayEnable (and isAutoPlayable for prim media).
     pub autoplay: bool,
@@ -422,6 +445,8 @@ pub struct MediaFrame<'a> {
     pub channel_volume: f32,
     pub agent_speed: f32,
     pub window_focused: bool,
+    /// Gaming mode (app/gaming_mode.rs): no media draws.
+    pub gaming_mode: bool,
     pub net: Option<(&'a tokio::runtime::Handle, reqwest::Client)>,
     pub cache_dir: &'a std::path::Path,
     pub language: &'a str,
@@ -435,6 +460,8 @@ pub struct MediaManager {
     pack_dir: Option<std::path::PathBuf>,
     pub impls: Vec<MediaImpl>,
     objects: HashMap<Uuid, ObjMedia>,
+    /// Objects recently visible on screen, retained for their next request.
+    recently_shown: HashMap<Uuid, Instant>,
     client: MediaDataClient,
     last_create: Instant,
     pub focus: Option<MediaKey>,
@@ -468,6 +495,10 @@ pub struct MediaManager {
     nav_rx: crossbeam_channel::Receiver<(Uuid, u8, Result<(), String>)>,
     /// Messages for the chat / notifications (drained by the app).
     pub messages: Vec<String>,
+    /// `secondlife://` links clicked in a page shown on a prim or a HUD,
+    /// drained by the app (LLViewerMediaImpl::handleMediaEvent,
+    /// MEDIA_EVENT_CLICK_LINK_NOFOLLOW).
+    pub links: Vec<String>,
     /// Offline demo: autoplay regardless of the settings.
     force_autoplay: bool,
     /// Periodic state summary in the log.
@@ -491,6 +522,7 @@ impl Default for MediaManager {
             pack_dir: None,
             impls: Vec::new(),
             objects: HashMap::new(),
+            recently_shown: HashMap::new(),
             client: MediaDataClient::default(),
             last_create: Instant::now() - CREATE_DELAY,
             focus: None,
@@ -512,6 +544,7 @@ impl Default for MediaManager {
             nav_tx,
             nav_rx,
             messages: Vec::new(),
+            links: Vec::new(),
             force_autoplay: false,
             last_diag: Instant::now() - Duration::from_secs(15),
             pick_cache: HashMap::new(),
@@ -535,8 +568,8 @@ pub fn browser_cache(cache_dir: &std::path::Path) -> std::path::PathBuf {
 }
 
 /// Settings of our CEF browsers (newSourceFromMediaType): cache, log,
-/// language and the viewer's user agent.
-pub fn browser_settings(cache_dir: &std::path::Path, language: &str) -> BrowserSettings {
+/// language, the viewer's user agent, JavaScript and the web proxy.
+pub fn browser_settings(cache_dir: &std::path::Path, language: &str, media: &MediaSettings) -> BrowserSettings {
     BrowserSettings {
         // the system's own separator, as the plugin appends `cef_cache`
         // (LLPluginClassMedia::init gets getCacheDir + getDirDelimiter): a
@@ -547,9 +580,33 @@ pub fn browser_settings(cache_dir: &std::path::Path, language: &str) -> BrowserS
         language: language.to_string(),
         user_agent: user_agent(),
         cookies_enabled: true,
-        javascript_enabled: true,
+        javascript_enabled: media.javascript,
         zoom_factor: 1.0,
+        // the Legacy Viewer gives CEF its HTTP web proxy only
+        // (BrowserProxyEnabled); a SOCKS 5 proxy does not reach it
+        proxy: block_proxy::rule()
+            .browser
+            .as_ref()
+            .map(|endpoint| (endpoint.host().to_string(), endpoint.port())),
+        browser_refused: proxy_refusal(block_proxy::rule().browser_allowed()),
+        video_refused: proxy_refusal(block_proxy::rule().video_allowed()),
     }
+}
+
+/// Why a media plugin may not start behind the proxy. Stricter than the
+/// Legacy Viewer, whose browser (without its HTTP proxy) and video plugin
+/// connect directly and show the real address: off while a proxy is on,
+/// unless the user turns direct media on (Preferences › Network › Proxy), and
+/// always while the proxy settings cannot be used.
+fn proxy_refusal(allowed: bool) -> Option<String> {
+    use block_i18n::tr;
+    (!allowed).then(|| {
+        if block_proxy::rule().problem.is_some() {
+            tr!("media-off-proxy-invalid").to_string()
+        } else {
+            tr!("media-off-proxy").to_string()
+        }
+    })
 }
 
 /// The profiles of the earlier builds on Linux and macOS: their cache path
@@ -605,8 +662,14 @@ mod cache_tests {
 
     #[test]
     fn the_plugin_cache_lands_inside_cef() {
-        let dir = std::env::temp_dir().join("block-cef-path");
-        let s = browser_settings(&dir, "en");
+        let dir = std::env::temp_dir().join("aurora-cef-path");
+        let s = browser_settings(&dir, "en", &MediaSettings::default());
+        assert!(s.javascript_enabled, "BrowserJavascriptEnabled is on by default");
+        let off = MediaSettings {
+            javascript: false,
+            ..MediaSettings::default()
+        };
+        assert!(!browser_settings(&dir, "en", &off).javascript_enabled);
         // what MediaPluginCEF builds from it
         assert_eq!(Path::new(&format!("{}cef_cache", s.cache_path)), dir.join("cef").join("cef_cache"));
     }
@@ -614,7 +677,7 @@ mod cache_tests {
     #[cfg(unix)]
     #[test]
     fn the_misplaced_cache_is_removed_but_a_running_profile_stays() {
-        let root = std::env::temp_dir().join(format!("block-misplaced-cache-{}", std::process::id()));
+        let root = std::env::temp_dir().join(format!("aurora-misplaced-cache-{}", std::process::id()));
         let _ = std::fs::remove_dir_all(&root);
         let misplaced = root.join("cef\\cef_cache");
         // a plugin id far above any pid_max, and ours, which runs
@@ -670,7 +733,7 @@ impl MediaManager {
     }
 
     /// SLPlugin / llplugin (searched once per configured folder and per state
-    /// of Block's pack).
+    /// of Aurora's pack).
     pub fn plugins(&mut self, settings: &MediaSettings) -> Option<&PluginPaths> {
         if self.paths_for.as_deref() != Some(settings.plugin_dir.as_str()) {
             let dir = settings.plugin_dir.trim();
@@ -678,13 +741,13 @@ impl MediaManager {
             self.paths_for = Some(settings.plugin_dir.clone());
             match &self.paths {
                 Some(p) => log::info!("media: plugins in {} (launcher {})", p.plugin_dir.display(), p.launcher.display()),
-                None => log::warn!("media: no media plugins yet: web and video media wait for Block's pack"),
+                None => log::warn!("media: no media plugins yet: web and video media wait for Aurora's pack"),
             }
         }
         self.paths.as_ref()
     }
 
-    /// Where Block's media plugins pack is installed (`None` until it is).
+    /// Where Aurora's media plugins pack is installed (`None` until it is).
     /// Media that were waiting for plugins start at the next update.
     pub fn set_pack_dir(&mut self, dir: Option<&std::path::Path>) {
         if self.pack_dir.as_deref() != dir {
@@ -811,6 +874,11 @@ impl MediaManager {
 
     /// Offline demo: media on a face without the capability, autoplaying.
     pub fn demo_entry(&mut self, object: Uuid, face: u8, url: &str) {
+        self.demo_face(object, face, url, false);
+    }
+
+    /// `mini` is `PRIM_MEDIA_CONTROLS_MINI` (`AURORA_DEMO_MEDIA=mini`).
+    pub fn demo_face(&mut self, object: Uuid, face: u8, url: &str, mini: bool) {
         let entry = MediaEntry {
             current_url: url.to_string(),
             home_url: url.to_string(),
@@ -818,6 +886,7 @@ impl MediaManager {
             first_click_interact: true,
             width_pixels: 1024,
             height_pixels: 576,
+            controls: if mini { MINI_CONTROLS } else { 0 },
             ..Default::default()
         };
         let mut faces = vec![None; face as usize + 1];

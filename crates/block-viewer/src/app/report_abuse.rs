@@ -34,7 +34,7 @@ impl App {
         let location = crate::slurl::make(&region, position);
         self.report_abuse.begin(region, position, location);
         self.send(NetCommand::RequestAbuseCategories {
-            language: block_i18n::language().into(),
+            language: block_i18n::grid_language().into(),
         });
         match target {
             ReportTarget::Nothing => {}

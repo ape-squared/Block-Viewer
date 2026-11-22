@@ -626,7 +626,7 @@ impl Placement {
             .zip(pose.rotations)
             .map(|(&placed, &raw)| placed * raw.inverse())
             .collect();
-        log::trace!(target: "block_viewer::foot_placement", "terrain anchor={} body={:.5} reference={reference_floor:.5} contact={:?} targets={targets:?}",
+        log::trace!(target: "aurora_viewer::foot_placement", "terrain anchor={} body={:.5} reference={reference_floor:.5} contact={:?} targets={targets:?}",
             frame.standing_anchor, height.value, self.feet.each_ref().map(|foot| foot.contact));
         self.held = Some(result.clone());
         Some(result)
@@ -1797,7 +1797,7 @@ mod tests {
             // A newly evaluated paused controller uses its retained procedural
             // states, giving a deterministic additive body-noise substitute.
             let mut controller = Controller {
-                block_feet: enabled,
+                aurora_feet: enabled,
                 ground: enabled.then(|| f.frame(Vec3::Z * 0.2, 0.0)),
                 paused_at: Some(now),
                 held_procedural: vec![(torso, 2, 1.0, additive, true)],
@@ -1831,7 +1831,7 @@ mod tests {
             frame.standing_anchor = anchored;
             frame.velocity_z = -2.0;
             let mut controller = Controller {
-                block_feet: true,
+                aurora_feet: true,
                 ground: Some(frame),
                 ..Default::default()
             };
@@ -1861,7 +1861,7 @@ mod tests {
         let ankle = f.rig.names["mAnkleLeft"];
         let expected = f.rig.world_with(&f.rig.local_rot, Vec3::ZERO, &f.base.local_pos, &f.base.scale);
         let mut controller = Controller {
-            block_feet: true,
+            aurora_feet: true,
             ground: Some(f.frame(Vec3::Z * 0.2, 0.0)),
             paused_at: Some(now),
             ..Default::default()
@@ -1880,7 +1880,6 @@ mod tests {
 
         let target = expected[ankle].w_axis.truncate() + Vec3::new(0.06, 0.0, 0.1);
         controller.ik.edit.goals.push(Goal {
-            follow: None,
             weight: 1.0,
             bone: ankle,
             root: ankle,
@@ -1913,48 +1912,6 @@ mod tests {
     }
 
     #[test]
-    fn explicit_ik_contacts_override_grounding_and_release_back_to_it() {
-        use crate::scene::ik::{Goal, Mode};
-
-        let f = Fixture::new();
-        let now = Instant::now();
-        let ankle = f.rig.names["mAnkleLeft"];
-        let mut controller = Controller {
-            block_feet: true,
-            ground: Some(f.frame(Vec3::Z * 0.2, 0.0)),
-            ..Default::default()
-        };
-        let mut output = vec![Mat4::IDENTITY.to_cols_array_2d(); f.rig.len()];
-        controller.evaluate_on_ground(&f.rig, now, Some(&f.base), &mut output, flat);
-        let placed = Mat4::from_cols_array_2d(&output[ankle]);
-        let target = placed.w_axis.truncate() + Vec3::new(0.05, 0.0, 0.08);
-        let rotation = Quat::from_rotation_y(0.35);
-        controller.ik.targets.push(Goal {
-            follow: None,
-            weight: 1.0,
-            bone: ankle,
-            root: ankle,
-            position: target,
-            rotation: Some(rotation),
-            contact: Vec3::ZERO,
-            pole: None,
-            mode: Mode::Direct,
-        });
-        for step in 1..=8 {
-            controller.evaluate_on_ground(&f.rig, now + Duration::from_millis(step * 40), Some(&f.base), &mut output, flat);
-        }
-        let contact = Mat4::from_cols_array_2d(&output[ankle]);
-        assert!(contact.w_axis.truncate().distance(target) < 1e-5);
-        assert!(orientation(contact).dot(rotation).abs() > 0.99999);
-        controller.ik.targets.clear();
-        for step in 9..=16 {
-            controller.evaluate_on_ground(&f.rig, now + Duration::from_millis(step * 40), Some(&f.base), &mut output, flat);
-        }
-        assert!(Mat4::from_cols_array_2d(&output[ankle]).abs_diff_eq(placed, 1e-5));
-        assert!(controller.rot[ankle].abs_diff_eq(f.rig.local_rot[ankle], 1e-5));
-    }
-
-    #[test]
     fn grounding_rewrite_honours_protected_poses_and_airborne_states() {
         let f = Fixture::new();
         let now = Instant::now();
@@ -1971,7 +1928,7 @@ mod tests {
             };
             let mut controller = Controller {
                 control,
-                block_feet: true,
+                aurora_feet: true,
                 ground: Some(f.frame(Vec3::ZERO, 0.0)),
                 ..Default::default()
             };

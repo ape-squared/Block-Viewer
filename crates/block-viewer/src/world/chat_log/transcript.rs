@@ -89,7 +89,7 @@ impl Transcript {
         let progress = Arc::new(AtomicU32::new(0));
         let (p, shared) = (path.clone(), progress.clone());
         std::thread::Builder::new()
-            .name("block-transcript".into())
+            .name("aurora-transcript".into())
             .spawn(move || run(&p, rx, tx, &shared))
             .ok()?;
         Some(Transcript {
@@ -391,7 +391,7 @@ mod tests {
     }
 
     fn temp() -> Temp {
-        let dir = std::env::temp_dir().join(format!("block-transcript-{}", uuid::Uuid::new_v4()));
+        let dir = std::env::temp_dir().join(format!("aurora-transcript-{}", uuid::Uuid::new_v4()));
         std::fs::create_dir_all(&dir).unwrap();
         Temp(dir)
     }

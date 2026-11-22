@@ -14,7 +14,7 @@ use std::path::{Path, PathBuf};
 use std::sync::OnceLock;
 
 /// The viewer's folder inside the chosen one.
-pub const ROOT_NAME: &str = "BlockViewerCache";
+pub const ROOT_NAME: &str = "AuroraViewerCache";
 /// The cache used by the last run (in the settings folder).
 const MARKER: &str = "cache_location.txt";
 
@@ -55,7 +55,7 @@ pub fn init() {
         && is_ours(&last)
     {
         log::info!("cache folder changed: the previous cache is removed");
-        let _ = std::thread::Builder::new().name("block-cache-purge".into()).spawn(move || {
+        let _ = std::thread::Builder::new().name("aurora-cache-purge".into()).spawn(move || {
             if let Err(e) = std::fs::remove_dir_all(&last)
                 && e.kind() != std::io::ErrorKind::NotFound
             {

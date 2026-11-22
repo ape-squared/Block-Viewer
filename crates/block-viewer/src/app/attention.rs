@@ -167,14 +167,20 @@ impl App {
             return;
         }
         let world = &self.world;
-        let name = |id: &uuid::Uuid| world.social.avatar_names.complete(id);
+        let name = |id: &uuid::Uuid, _mention: bool| world.social.avatar_names.complete(id);
         // a label still waiting for its name keeps the address: the
         // notification is not drawn again once it comes (#947)
-        let app = |url: &str, link: &crate::slapp::AppLink| match crate::ui::chat::app_label(world, url, link) {
+        let app = |url: &str, link: &crate::slapp::AppLink| match crate::ui::chat::app_label(
+            world,
+            crate::world::names::NameScope::World,
+            url,
+            link,
+        ) {
             label if label == "…" => crate::slapp::unescape(url),
             label => label,
         };
-        let title = body_text(&crate::ui::chat::plain_text(&notice.title, name, app));
+        let anonym = |id: uuid::Uuid| world.rlva_anonym_label(id);
+        let title = body_text(&crate::ui::chat::plain_text(&notice.title, name, anonym, app));
         if title.is_empty() {
             return;
         }
@@ -182,7 +188,7 @@ impl App {
             log::info!("system notification dropped by the throttle");
             return;
         }
-        let body = body_text(&crate::ui::chat::plain_text(&notice.body, name, app));
+        let body = body_text(&crate::ui::chat::plain_text(&notice.body, name, anonym, app));
         log::info!("system notification shown ({})", kind_of(notice.open));
         let st = &mut self.attention;
         st.next_id += 1;
@@ -196,26 +202,6 @@ impl App {
             .show(crate::system_notify::Toast { id, title, body });
     }
 
-    /// Legacy FSAnnounceIncomingIM window title: show the sender until the
-    /// window is in front again, then restore the normal title.
-    fn sync_incoming_im_title(&mut self) {
-        let Some(g) = &self.gfx else {
-            return;
-        };
-        let in_front = window_in_front(&g.window);
-        if in_front {
-            if self.world.incoming_im_title.take().is_some() {
-                g.window.set_title(&crate::cli::window_title());
-            }
-            return;
-        }
-        if let Some(name) = self.world.incoming_im_title.as_ref() {
-            let base = crate::cli::window_title();
-            let notice = block_i18n::tr!("ui-im-announce-incoming", name = name.clone());
-            g.window.set_title(&format!("{base} — {notice}"));
-        }
-    }
-
     /// Between frames, the window at hand (the frame holds it): whether it
     /// is in front, the flash asked for, and the clicks on the notifications.
     pub(super) fn attention_window(&mut self) {
@@ -223,7 +209,6 @@ impl App {
             self.attention.behind = !window_in_front(&g.window);
         }
         self.unread_title();
-        self.sync_incoming_im_title();
         if std::mem::take(&mut self.attention.flash)
             && let Some(g) = &self.gfx
         {
@@ -260,8 +245,14 @@ impl App {
             .get_or_insert_with(|| (crate::cli::window_title(), crate::cli::window_title()));
         let mut want = titled(base, unread, on);
         // (the 3D paused behind on a busy card, busy_pause.rs)
-        if self.busy_pause.paused() {
+        if self.gaming_mode.on {
+            want = block_i18n::tr!("gaming-mode-window-title", title = want.as_str());
+        } else if self.busy_pause.paused() {
             want = block_i18n::tr!("busy-pause-window-title", title = want.as_str());
+        }
+        // (the render targets waiting for video memory)
+        if self.last_render.video_memory_full {
+            want = block_i18n::tr!("video-memory-full-window-title", title = want.as_str());
         }
         if *shown != want {
             g.window.set_title(&want);
@@ -294,11 +285,12 @@ impl App {
                         continue;
                     }
                     self.world.social.session_mut(session);
-                    self.world.social.focus_im = Some(session);
+                    self.world.focus_conversation(session, true);
                     crate::ui::notifications::open_conversations(&self.egui_ctx, &mut self.panels.chat);
                 }
                 Some(Open::NearbyChat) => {
                     self.world.social.focus_im = Some(uuid::Uuid::nil());
+                    self.world.social.focus_im_to_type = false;
                     crate::ui::notifications::open_conversations(&self.egui_ctx, &mut self.panels.chat);
                 }
                 Some(Open::Notifications) => self.notif_ui.open = true,

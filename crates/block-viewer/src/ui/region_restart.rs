@@ -167,7 +167,7 @@ pub fn listed<'a>(landmarks: &'a [Landmark], query: &str) -> Vec<&'a Landmark> {
         v.sort_by(|a, b| b.created.cmp(&a.created).then_with(|| a.name.cmp(&b.name)));
         v.truncate(3);
     } else {
-        v.sort_by_key(|l| (!l.name.to_lowercase().starts_with(&q), l.name.to_lowercase()));
+        v.sort_by_key(|l| (!l.name.to_lowercase().starts_with(&q), crate::natural_order::key(&l.name)));
         v.truncate(8);
     }
     v
@@ -733,15 +733,12 @@ fn landmark_menu(ui: &mut egui::Ui, p: &Palette, st: &mut RestartUi, v: &View<'_
                     Rect::from_center_size(r.center(), Vec2::splat(13.0)),
                     p.muted_dim,
                 );
-                ui.add(
-                    egui::TextEdit::singleline(&mut st.query)
-                        .frame(egui::Frame::NONE.inner_margin(crate::ui::widgets::field_text_margin(
-                            ui.ctx(),
-                            &egui::TextStyle::Body.resolve(ui.style()),
-                        )))
+                let margin = crate::ui::widgets::field_text_margin(ui.ctx(), &egui::TextStyle::Body.resolve(ui.style()));
+                crate::ui::widgets::search_text_edit_with_margin(ui, p, &mut st.query, margin, |edit| {
+                    edit.frame(egui::Frame::NONE)
                         .hint_text(block_i18n::tr!("region-restart-search"))
-                        .desired_width(f32::INFINITY),
-                );
+                        .desired_width(f32::INFINITY)
+                });
             });
         });
     ui.add_space(4.0);
@@ -938,7 +935,11 @@ pub fn bell_card(ui: &mut egui::Ui, p: &Palette, info: &BellInfo) -> Option<crat
                     ui.horizontal(|ui| {
                         ui.spacing_mut().item_spacing.x = 6.0;
                         let font = FontId::new(13.0, crate::ui::fonts::semibold(ui.ctx()));
-                        ui.label(egui::RichText::new(block_i18n::tr!("region-restart-title")).font(font).color(p.ink));
+                        ui.label(
+                            egui::RichText::new(block_i18n::tr!("region-restart-title"))
+                                .font(font)
+                                .color(p.ink),
+                        );
                         let (r, _) = ui.allocate_exact_size(Vec2::new(11.0, 16.0), Sense::hover());
                         paint_icon(
                             ui.painter(),
@@ -1046,9 +1047,12 @@ pub fn legacy_box(
             );
             ui.painter().galley(rect.min + Vec2::new(40.0, 5.0), g, black);
             // "Seconds until restart" and the count, centered in large type
-            for (i, line) in [block_i18n::tr!("region-restart-legacy-seconds").to_owned(), a.seconds().to_string()]
-                .into_iter()
-                .enumerate()
+            for (i, line) in [
+                block_i18n::tr!("region-restart-legacy-seconds").to_owned(),
+                a.seconds().to_string(),
+            ]
+            .into_iter()
+            .enumerate()
             {
                 let g = ui
                     .painter()
@@ -1063,15 +1067,16 @@ pub fn legacy_box(
                     .layout(egui::Layout::left_to_right(egui::Align::Center)),
             );
             child.spacing_mut().item_spacing.x = 1.0;
-            let selected = pick
-                .and_then(|id| landmarks.iter().find(|l| l.asset == id))
-                .map_or_else(|| block_i18n::tr!("region-restart-legacy-landmarks").to_owned(), |l| l.name.clone());
+            let selected = pick.and_then(|id| landmarks.iter().find(|l| l.asset == id)).map_or_else(
+                || block_i18n::tr!("region-restart-legacy-landmarks").to_owned(),
+                |l| l.name.clone(),
+            );
             egui::ComboBox::from_id_salt("region_restarting_landmarks")
                 .width(182.0)
                 .selected_text(selected)
                 .show_ui(&mut child, |ui| {
                     let mut sorted: Vec<&Landmark> = landmarks.iter().collect();
-                    sorted.sort_by_key(|l| l.name.to_lowercase());
+                    sorted.sort_by_key(|l| crate::natural_order::key(&l.name));
                     for l in sorted {
                         ui.selectable_value(pick, Some(l.asset), &l.name);
                     }

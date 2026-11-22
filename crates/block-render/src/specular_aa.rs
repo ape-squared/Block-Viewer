@@ -2,8 +2,8 @@
 //! `specular_aa_roughness`, `specular_aa_gloss`, `toksvig_variance`),
 //! mirrored here to test it: the shaders must keep these in step.
 
-const VARIANCE: f32 = 0.22;
-const THRESHOLD: f32 = 0.28;
+const VARIANCE: f32 = 0.15;
+const THRESHOLD: f32 = 0.2;
 const FLOOR: f32 = 0.001;
 const TOKSVIG_FROM: f32 = 0.985;
 
@@ -55,8 +55,8 @@ fn a_normal_turning_faster_than_a_pixel_widens_highlights_up_to_the_cap() {
     assert!(roughness(0.03, relief_afar) > roughness(0.03, small_object));
     // capped: never rougher than alpha² = threshold for a mirror
     assert!((roughness(0.03, 100.0) - THRESHOLD.sqrt().sqrt()).abs() < 1e-3);
-    // a rough surface hardly changes, even at the cap
-    assert!(roughness(0.9, relief_afar) - 0.9 < 0.1);
+    // a rough surface hardly changes, even at the cap (0.9 → 0.96)
+    assert!(roughness(0.9, relief_afar) - 0.9 < 0.07);
     // the same for a legacy glossiness: it can only go down
     assert!(gloss(1.0, relief_afar) < 0.5);
     assert!(gloss(0.3, small_object) <= 0.3 + 1e-4);

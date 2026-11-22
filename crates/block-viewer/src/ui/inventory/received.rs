@@ -298,7 +298,7 @@ mod tests {
         for (id, parent, name, kind) in [
             (1, 0, "Inventory", 8),
             (2, 1, "Inbox", 50),
-            (3, 1, "#Block", -1),
+            (3, 1, "#Aurora", -1),
             (4, 3, "Received items", -1),
             (5, 4, "Example Resident", -1),
             (6, 5, "Gift folder", -1),
@@ -407,7 +407,7 @@ mod tests {
 
     impl Files {
         fn new() -> Self {
-            Self(std::env::temp_dir().join(format!("block-received-read-{}", Uuid::new_v4())))
+            Self(std::env::temp_dir().join(format!("aurora-received-read-{}", Uuid::new_v4())))
         }
         fn path(&self, name: &str) -> PathBuf {
             self.0.join(name)

@@ -1,4 +1,4 @@
-# Sync an Aurora Viewer release tag into Block Viewer (rename aurora-* -> block-*).
+# Sync an Block Viewer release tag into Block Viewer (rename aurora-* -> block-*).
 # Usage: .\scripts\sync-aurora-tag.ps1 v0.9.12
 # Keeps Block branding paths from the current branch (see $KeepFromOurs).
 
@@ -22,7 +22,13 @@ New-Item -ItemType Directory -Path $Temp -Force | Out-Null
 
 try {
     Write-Host "Exporting $Tag ($sha) ..."
-    git archive $sha | tar -x -C $Temp
+    # PowerShell pipes are text and would corrupt `git archive | tar`.
+    $archive = Join-Path $env:TEMP "block-sync-$Tag-$(Get-Random).tar"
+    git archive --format=tar --output $archive $sha
+    if ($LASTEXITCODE -ne 0) { throw "git archive failed with exit $LASTEXITCODE" }
+    tar -xf $archive -C $Temp
+    if ($LASTEXITCODE -ne 0) { throw "tar extract failed with exit $LASTEXITCODE" }
+    Remove-Item -Force $archive -ErrorAction SilentlyContinue
 
     Write-Host "Renaming aurora -> block in tree ..."
     $crateMap = @{
@@ -49,11 +55,21 @@ try {
         $to = Join-Path $Temp "crates\$($pair.Value)"
         if (Test-Path $from) {
             if (Test-Path $to) { Remove-Item -Recurse -Force $to }
-            Rename-Item $from $to.Name
+            Rename-Item -LiteralPath $from -NewName $pair.Value
         }
     }
 
-  $replacements = @(
+    # Longer crate ids first. String.Replace is not word-bounded; these names are
+    # the package/crate identifiers missing from the original list (folder rename
+    # alone leaves Cargo.toml and `use` paths pointing at aurora-*).
+    $replacements = @(
+        @{ Pattern = 'aurora-editor-sync'; Replacement = 'block-editor-sync' },
+        @{ Pattern = 'aurora-build-gate'; Replacement = 'block-build-gate' },
+        @{ Pattern = 'aurora-assets'; Replacement = 'block-assets' },
+        @{ Pattern = 'aurora-proxy'; Replacement = 'block-proxy' },
+        @{ Pattern = 'aurora_editor_sync'; Replacement = 'block_editor_sync' },
+        @{ Pattern = 'aurora_build_gate'; Replacement = 'block_build_gate' },
+        @{ Pattern = 'aurora_proxy'; Replacement = 'block_proxy' },
         @{ Pattern = 'aurora-viewer'; Replacement = 'block-viewer' },
         @{ Pattern = 'aurora-render'; Replacement = 'block-render' },
         @{ Pattern = 'aurora-audio'; Replacement = 'block-audio' },
@@ -92,7 +108,9 @@ try {
         }
         if ($content -ne $orig) {
             if (-not $DryRun) {
-                [System.IO.File]::WriteAllText($_.FullName, $content)
+                # .NET Framework WriteAllText emits a UTF-8 BOM, which breaks Fluent.
+                $utf8 = New-Object System.Text.UTF8Encoding $false
+                [System.IO.File]::WriteAllText($_.FullName, $content, $utf8)
             }
         }
     }
@@ -112,30 +130,44 @@ try {
         'update-policy.json'
     )
 
-    $exclude = @('.git', 'target', '.scratch')
+    # /MIR drops paths the tag does not ship. A worktree .git is a file, so /XD
+    # does not protect it; /XF does. Block-only paths are checked out afterwards.
+    $excludeDirs = @('.git', 'target', '.scratch', 'node_modules')
+    $KeepTrees = @(
+        'website',
+        'workers',
+        'motd',
+        'peers',
+        'block-tools.cmd',
+        'docs/AURORA_SYNC_0.9.12.md',
+        'assets/branding/block'
+    )
     Write-Host "Copying into $Root ..."
     if ($DryRun) {
         Write-Host "(dry run: would copy $($Temp) -> $Root)"
         return
     }
 
-    robocopy $Temp $Root /MIR /XD $exclude /NFL /NDL /NJH /NJS /nc /ns /np | Out-Null
+    $scriptKeep = Join-Path $env:TEMP "sync-aurora-tag.ps1.keep"
+    Copy-Item -LiteralPath $PSCommandPath -Destination $scriptKeep -Force
+
+    robocopy $Temp $Root /MIR /XD $excludeDirs /XF .git /NFL /NDL /NJH /NJS /nc /ns /np | Out-Null
     if ($LASTEXITCODE -ge 8) { throw "robocopy failed with exit $LASTEXITCODE" }
+    if (-not (Test-Path -LiteralPath (Join-Path $Root '.git'))) { throw "sync removed .git" }
 
-    foreach ($rel in $KeepFromOurs) {
-        $src = git show "HEAD:$rel" 2>$null
-        if ($LASTEXITCODE -eq 0 -and $src) {
-            $dest = Join-Path $Root $rel
-            $dir = Split-Path $dest -Parent
-            if (-not (Test-Path $dir)) { New-Item -ItemType Directory -Path $dir -Force | Out-Null }
-            [System.IO.File]::WriteAllText($dest, $src)
-            Write-Host "Restored Block branding: $rel"
-        }
+    $restore = @($KeepFromOurs + $KeepTrees)
+    git checkout HEAD -- @restore
+    if ($LASTEXITCODE -ne 0) { throw "git checkout of Block branding failed" }
+    $logos = @(git ls-tree -r --name-only HEAD -- assets/branding | Where-Object { $_ -like 'assets/branding/block*' })
+    if ($logos.Count -gt 0) {
+        git checkout HEAD -- @logos
+        if ($LASTEXITCODE -ne 0) { throw "git checkout of Block logos failed" }
     }
+    Copy-Item -LiteralPath $scriptKeep -Destination (Join-Path $Root 'scripts\sync-aurora-tag.ps1') -Force
+    foreach ($rel in $restore) { Write-Host "Restored Block branding: $rel" }
 
-    # Block mark assets always win over renamed Aurora logos.
     if (Test-Path (Join-Path $Root 'assets/branding/block')) {
-        Write-Host "Block mark assets in assets/branding/block/ unchanged by sync."
+        Write-Host "Block mark assets in assets/branding/block/ restored from HEAD."
     }
 
     Write-Host "Done. Review diff, run scripts/check.ps1, then commit."

@@ -32,6 +32,7 @@ use crate::ui::place_details::Ctx;
 use crate::ui::texture_picker::TexturePicker;
 use crate::ui::widgets::{self, ActionKind, DialogButton, Floater};
 use crate::world::World;
+use crate::world::names::NameScope;
 use block_llsd::Llsd;
 use block_net::groups::{GroupInfo, name};
 use egui::{FontId, Pos2, Rect, Sense, Vec2};
@@ -342,7 +343,12 @@ impl GroupCreateUi {
                 floater.show(ctx, c.p, &mut open, |ui| self.classic(ui, c, &mut actions));
             } else {
                 let size = Vec2::new(820.0, 720.0);
-                let mut floater = Floater::new(WINDOW, block_i18n::tr!("ui-group-create-title"), screen.center() - size * 0.5, size);
+                let mut floater = Floater::new(
+                    WINDOW,
+                    block_i18n::tr!("ui-group-create-title"),
+                    screen.center() - size * 0.5,
+                    size,
+                );
                 floater.min_size = Vec2::new(560.0, 460.0);
                 floater.show(ctx, c.p, &mut open, |ui| self.aurora(ui, c, &mut actions));
             }
@@ -446,7 +452,7 @@ impl GroupCreateUi {
                 c.want_names.insert(me);
                 ui.label(small(block_i18n::tr!("ui-group-profile-founded-by").to_owned() + " "));
                 ui.label(
-                    egui::RichText::new(c.world.social.display_name_of(&me))
+                    egui::RichText::new(c.world.social.display_name_in(NameScope::Roster, &me))
                         .size(12.0)
                         .color(p.violet_light),
                 );
@@ -744,7 +750,8 @@ impl GroupCreateUi {
                     {
                         self.press(c.world, actions);
                     }
-                    if widgets::action_button(ui, p, "", block_i18n::tr!("common-cancel"), ActionKind::Flat, Vec2::new(0.0, 24.0)).clicked()
+                    if widgets::action_button(ui, p, "", block_i18n::tr!("common-cancel"), ActionKind::Flat, Vec2::new(0.0, 24.0))
+                        .clicked()
                     {
                         self.open = false;
                     }

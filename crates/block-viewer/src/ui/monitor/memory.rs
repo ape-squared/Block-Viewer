@@ -52,11 +52,11 @@ fn big_noted(ui: &mut egui::Ui, p: &Palette, value: &str, note: &str, note_color
 
 fn ram_card(ui: &mut egui::Ui, p: &Palette, s: &Snapshot) {
     draw::card(ui, p, |ui| {
-        draw::card_title(ui, p, tr!("monitor-tile-ram"), tr!("monitor-block-process"));
+        draw::card_title(ui, p, tr!("monitor-tile-ram"), tr!("monitor-aurora-process"));
         let ws = s.memory.map(|m| m.working_set as f64);
         big(ui, p, &ws.map_or("–".into(), fmt::bytes), tr!("monitor-working-set"));
         let colors = draw::part_colors(p);
-        let mut parts: Vec<(Color32, String, f64)> = vec![(colors[0], "Block".to_owned(), ws.unwrap_or(0.0))];
+        let mut parts: Vec<(Color32, String, f64)> = vec![(colors[0], "Aurora".to_owned(), ws.unwrap_or(0.0))];
         for (i, (proc_, usage)) in s.attribution.media.iter().enumerate() {
             parts.push((colors[1 + i % 5], format!("SLPlugin · {}", proc_.label), usage.or_zero(Column::Ram)));
         }

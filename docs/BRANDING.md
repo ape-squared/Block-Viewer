@@ -1,8 +1,8 @@
-# Block Viewer branding and interface
+# Aurora Viewer branding and interface
 
-Block Viewer’s interface is **clean, modular and slightly glassy**: deep
-surface neutrals, a signal-lime accent, readable text, crisp icons. Every
-screen must read as Block — not as another viewer’s purple gradient skin.
+The Aurora interface is **clean, modern and slightly glassy**: dark, calm
+surfaces, a single strong accent colour (violet), readable text, crisp and
+consistent icons. Every screen must look polished and finished.
 
 ## Palette
 
@@ -10,35 +10,38 @@ The colours come from `crates/block-viewer/src/theme.rs` (`Theme::default`).
 In the code, always use the resolved `Palette` (`p.violet`, `p.ink`…),
 **never a hard-coded colour**: a skin can change them, and so can the user,
 from Preferences › Appearance › Skin › Interface colours
-(`interface_colors.rs`): they pick the accent (`violet` role → signal), the
-windows' background (`panel`) and the text (`ink`), and the other accent,
-surface and text roles follow from those three. Field names like `violet` /
-`indigo` are historical role ids; hex values are Block brand tokens.
+(`interface_colors.rs`): they pick the accent (`violet`), the windows'
+background (`panel`) and the text (`ink`), and the other accent, surface
+and text roles follow from those three. So never pick a role for its
+violet: a teal or pink accent, or a light background, must still read.
+On a chosen background the states and `teal` move in lightness to read
+4.5:1, their hue kept; a configured chat colour goes through
+`ui::colors::text` for the same reason.
 
 ### Brand colours
 
-| Role id | Hex | Block token / use |
+| Name | Hex | Use |
 |---|---|---|
-| violet | `#D4FF3F` | **signal** — main accent: selection, active button, focus |
-| indigo | `#5BE3E8` | **data** — secondary accent, brand gradients |
-| teal | `#5BE3E8` | active / online, links in chat and profiles |
-| navy | `#0B0C0E` | **surface-0** — deep background (login, loading) |
-| violet_light | `#E2FF7A` | signal on dark (accent text, hover) |
-| violet_pale | `#F0FFB0` | soft signal details |
-| indigo_light | `#8EF0F4` | light data variant |
+| violet | `#8B5CF6` | main accent: selection, active button, focus, links |
+| indigo | `#4F46E5` | secondary accent, brand gradients (logo, login background) |
+| teal | `#5EEAD4` | small touch: "active / online" states, positive attention points; clickable links in texts (web, places, avatars, groups in the chat, the bubbles and the profiles) |
+| navy | `#070B1F` | deep background (login screen, auroras) |
+| violet_light | `#A78BFA` | violet on a dark background (accent text, hover) |
+| violet_pale | `#C4B5FD` | very light violet (discreet details) |
+| indigo_light | `#818CF8` | light variant of indigo |
 
 ### Interface neutrals
 
 | Name | Hex | Use |
 |---|---|---|
-| panel | `#1B1D21` | window background (opacity `panel_alpha` = 235) |
-| bar | `#131417` | top and bottom bars |
-| field | `#0B0C0E` | input fields, sunken areas |
-| raised | `#25282D` | buttons, hovered surfaces |
-| ink | `#ECEEF0` | main text |
-| muted | `#9AA0A8` | secondary text, labels |
-| muted_dim | `#6B717A` | tertiary text, disabled |
-| on_accent | `#0B0C0E` | text/icons on a signal face (lime needs dark ink) |
+| panel | `#252830` | window background (opacity `panel_alpha` = 230) |
+| bar | `#1B1E26` | top and bottom bars |
+| field | `#181B23` | input fields, sunken areas |
+| raised | `#363B47` | buttons, hovered surfaces |
+| ink | `#E8EDFB` | main text |
+| muted | `#9AA6C6` | secondary text, labels |
+| muted_dim | `#6F7BA0` | tertiary text, disabled |
+| on_accent | `#FFFFFF` | text and icons placed on a violet face: main button, active tool, tick of a checkbox, dot of a radio button, knob of a switch that is on |
 
 ### States
 
@@ -85,27 +88,27 @@ dragging a handle switch to `violet_light`, like any selection.
   windows. Menus, submenus, right-click menus and drop-down lists get this
   glass from a single place (`menu::glaze`, at the end of the frame, in the
   world): a new menu has nothing to do to get it.
-  Gradients are reserved for brand elements (login background, grid wash,
+  Gradients are reserved for brand elements (login background, auroras,
   fill of the progress bar).
-- **Preferences › Block.** The page of what Block does differently from
+- **Preferences › Aurora.** The page of what Aurora does differently from
   the Legacy Viewer carries the brand in two places only: its entry in the
-  category list (edge mark and name in the brand gradient, from `success`
+  category list (edge mark and name in the aurora gradient, from `success`
   through `teal`, `indigo_light` and `violet_light` to `rose`) and the head
-  of the page (signal/data wash over the `navy` sky, a hairline of the same
+  of the page (the aurora over the `navy` sky, a hairline of the same
   gradient along its bottom edge). The settings below keep the cards and
-  controls of the other pages; the choices between Block's look and
-  the Legacy Viewer's are a `widgets::segmented` track, Block's segment lit in the
+  controls of the other pages; the choices between Aurora's look and
+  the Legacy Viewer's are a `widgets::segmented` track, Aurora's segment lit in the
   accent and the Legacy Viewer's in `raised`. It is not a precedent for the other
   pages (human's choice, 2026-10-14).
 - **Login screen.** It is the viewer's showcase. The window blur only
   knows the 3D scene, which is absent here: each card (`login::card`)
   therefore redraws under its tint the sky it covers, out of focus
-  (`block_bg::frosted`: no stars, soft brand blooms, modular grid softened,
-  ridges feathered), with signal and data glows that spill around it. Its
-  top edge catches the light; the login card carries the hairline with the
-  brand gradient. The news sits next to the login card, on its row and at
-  its height (the list scrolls), the version above it. The bottom buttons
-  and the version number share the same line.
+  (`aurora_bg::frosted`: no stars, aurora rays melted together, ridges
+  softened), with two glows of the aurora (violet, turquoise) that spill
+  around it. Its top edge catches the light; the login card carries the
+  hairline with the brand gradient. The news sits next to the login card,
+  on its row and at its height (the list scrolls), the version above it.
+  The bottom buttons and the version number share the same line.
 - **Progress bars.** `widgets::progress`: a flat track (that of the
   sliders) filled with the brand gradient, which slides to its value
   instead of jumping; the percentage written below slides with it. The
@@ -294,17 +297,16 @@ Files in [`assets/branding/`](../assets/branding/):
 
 | File | Use |
 |---|---|
-| `block-logo.svg` / `.png` (720 px) | full logo in colour, transparent background: README, window icon, login and loading screens, About, system notifications (`LOGO_PNG` of `app.rs`), the Linux desktop icon (`block-viewer.svg` of the archive) |
-| `block-logo-white.svg` / `.png` (4096 px) | white silhouette: the Block menu button of the toolbars (tinted with the palette), monochrome uses on a dark background |
-| `block-logo-black.svg` / `.png` (4096 px) | black silhouette: monochrome uses on a light background |
-| `block-logo-purple.png` / `block-logo-teal.png` (4096 px) | silhouette in violet or in turquoise |
-| `block-logo-bg.png` (4096 px) | full logo on a navy background (the only file with an opaque background): square icons that need one (website's Apple touch icon) |
-| `block.icns` | Block app mark (`block/02-app-icon/`, 16 to 1024 px): icon of `Block Viewer.app` on macOS (`package-macos.ps1` builds it with `iconutil` when available) |
-| `block/02-app-icon/` | source PNGs and `block.ico` for the app icon (diagonal lime / charcoal mark) |
-| `block.ico` | same mark as a Windows icon (16 to 256 px): icon of `block-viewer.exe` (embedded by its `build.rs`), "Block Tools" and "Block PR" shortcuts; prefer `block/02-app-icon/block.ico` when regenerating |
+| `aurora-logo.svg` / `.png` (720 px) | full logo in colour, transparent background: README, window icon, login and loading screens, About, system notifications (`LOGO_PNG` of `app.rs`), the Linux desktop icon (`block-viewer.svg` of the archive) |
+| `aurora-logo-white.svg` / `.png` (4096 px) | white silhouette: the Aurora menu button of the toolbars (tinted with the palette), monochrome uses on a dark background |
+| `aurora-logo-black.svg` / `.png` (4096 px) | black silhouette: monochrome uses on a light background |
+| `aurora-logo-purple.png` / `aurora-logo-teal.png` (4096 px) | silhouette in violet or in turquoise |
+| `aurora-logo-bg.png` (4096 px) | full logo on a navy background (the only file with an opaque background): square icons that need one (website's Apple touch icon) |
+| `aurora.icns` | full logo on its navy background in Apple's rounded square (an 824 px body with 185 px corners on a 1024 px canvas, 16 to 1024 px, taken from `aurora-logo-bg.png`): icon of `Aurora Viewer.app` on macOS |
+| `aurora.ico` | full logo as a Windows icon (16 to 256 px, taken from `aurora-logo.png`): icon of `block-viewer.exe` (embedded by its `build.rs`), "Aurora Tools" and "Aurora PR" shortcuts |
 
 The logo is a howling wolf's head in profile, facing up and to the right,
-its mane made of streaming ribbons, in a circle. Its colours: violet `#8B5CF6`
+its mane made of aurora ribbons, in a circle. Its colours: violet `#8B5CF6`
 and indigo `#4F46E5` for the head, turquoise `#5EEAD4` and a deeper
 turquoise `#56CAA9` for the ribbons. Do not distort it, recolour it or add
 an effect to it; the one-colour versions above are the only recolourings.
@@ -355,6 +357,22 @@ well. The outline version is used in three cases:
   plural (`users`, `users-group`, `user-plus`), loudspeaker (`volume`), map
   (`map`), hands (`hand-grab`, `hand-stop`), sitting (`armchair`), walking /
   running (`walk`, `run`)…
+
+**One exception: the Luau mark.** SLua scripts show the mark of the
+Legacy Viewer's `Inv_Script_Luau` (a tilted square with a square notch),
+hand-drawn in the Tabler filled style as `luau.svg` (and `luau-link.svg` for
+shortcuts), because Tabler has none. It is tinted like the other script
+icons (`teal`): only the shape tells an SLua script from an LSL one. It is
+the one hand-drawn icon allowed next to Tabler (decision on PR #2802).
+
+**The controller pictograms are text, not icons.** Preferences › Controls ›
+Game Controls draws each controller input (face buttons, D-pad, sticks,
+shoulders, triggers) with its pictogram from PromptFont, the font the LL
+viewer 26.5's `SecondLife-game-control` is based on, before the input's
+name, as the LL viewer does. Tabler has no controller set. The font has an
+egui family of its own (`ui::fonts::game_control`), never a fallback of the
+text (its glyphs sit on real arrow codepoints), and it takes the text
+colour of the widget that shows it. Use it only for controller inputs.
 
 Do not force a filled icon that does not express the function. Two icons
 that go as a pair (link / unlink, plus / minus) stay in the same style.

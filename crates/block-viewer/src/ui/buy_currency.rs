@@ -359,7 +359,10 @@ impl BuyCurrencyUi {
                     ui.add_space(4.0);
                 }
                 Stage::Unavailable => {
-                    wrapped(ui, RichText::new(block_i18n::tr!("currency-unavailable-on-this-grid")).color(p.ink));
+                    wrapped(
+                        ui,
+                        RichText::new(block_i18n::tr!("currency-unavailable-on-this-grid")).color(p.ink),
+                    );
                     ui.add_space(10.0);
                     let size = Vec2::new((WIDTH - ui.spacing().item_spacing.x) / 2.0, BUTTON_HEIGHT);
                     ui.horizontal(|ui| {

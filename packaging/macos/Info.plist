@@ -16,7 +16,7 @@
 	<key>CFBundleIconFile</key>
 	<string>Block</string>
 	<key>CFBundleIdentifier</key>
-	<string>com.ape-squared.BlockViewer</string>
+	<string>org.blockviewer.BlockViewer</string>
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundlePackageType</key>

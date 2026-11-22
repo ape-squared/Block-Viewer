@@ -56,9 +56,92 @@
 
 use std::cmp::Ordering;
 
+use glam::{Mat3, Mat4, Vec3};
+
 use block_render::{DrawCmd, RiggedBlendDepth};
 
 use crate::world::World;
+
+/// Local face bounds, computed on the geometry worker alongside the pick copy.
+#[derive(Clone, Copy, Debug, Default)]
+pub struct FaceBounds {
+    pub center: Vec3,
+    pub half: Vec3,
+}
+
+impl FaceBounds {
+    pub fn of(positions: &[[f32; 3]]) -> Self {
+        let mut min = Vec3::splat(f32::INFINITY);
+        let mut max = Vec3::splat(f32::NEG_INFINITY);
+        for p in positions.iter().copied().map(Vec3::from_array).filter(|p| p.is_finite()) {
+            min = min.min(p);
+            max = max.max(p);
+        }
+        if min.is_finite() && max.is_finite() {
+            Self {
+                center: (min + max) * 0.5,
+                half: (max - min) * 0.5,
+            }
+        } else {
+            Self::default()
+        }
+    }
+}
+
+/// LLDrawable::updateDistance (indra/newview/lldrawable.cpp): projected face
+/// centre, biased toward the front of its world AABB by a quarter of its size.
+/// Factor the placement once per object; each face then needs two dot products.
+pub struct FaceDepth {
+    axis: Vec3,
+    front: Vec3,
+    offset: f32,
+}
+
+impl FaceDepth {
+    pub fn new(model: Mat4, eye: Vec3, forward: Vec3) -> Self {
+        let linear = Mat3::from_mat4(model);
+        let absolute = Mat3::from_cols(linear.x_axis.abs(), linear.y_axis.abs(), linear.z_axis.abs());
+        Self {
+            axis: linear.transpose() * forward,
+            front: absolute.transpose() * (forward * forward) * 0.5,
+            offset: (model.w_axis.truncate() - eye).dot(forward),
+        }
+    }
+
+    pub fn of(&self, bounds: FaceBounds) -> f32 {
+        self.offset + bounds.center.dot(self.axis) - bounds.half.dot(self.front)
+    }
+}
+
+/// The height a face spans in the world, `(centre, half extent)` of its
+/// world AABB along Z, from its local bounds and the placement written to the
+/// GPU. Factored once per object, like [`FaceDepth`].
+pub struct FaceHeight {
+    axis: Vec3,
+    spread: Vec3,
+    offset: f32,
+}
+
+impl FaceHeight {
+    pub fn new(model: Mat4) -> Self {
+        let axis = Vec3::new(model.x_axis.z, model.y_axis.z, model.z_axis.z);
+        Self {
+            axis,
+            spread: axis.abs(),
+            offset: model.w_axis.z,
+        }
+    }
+
+    pub fn of(&self, bounds: FaceBounds) -> (f32, f32) {
+        (self.offset + bounds.center.dot(self.axis), bounds.half.dot(self.spread))
+    }
+}
+
+/// Keep the previous object-centre ordering for a controlled A/B launch.
+pub fn face_sort_enabled() -> bool {
+    static ENABLED: std::sync::OnceLock<bool> = std::sync::OnceLock::new();
+    *ENABLED.get_or_init(|| std::env::var("AURORA_ALPHA_FACE_SORT").as_deref() != Ok("0"))
+}
 
 /// Where the blended faces of a rigged mesh come among those of its
 /// skeleton, as the Legacy Viewer draws them (see the module).
@@ -129,10 +212,14 @@ impl RigOrder {
     /// the last attached first, the prims of a linkset in turn.
     ///
     /// The details of the face first is a deliberate difference from the
-    /// Legacy Viewer (attachment order, then depth from 1/255): blended
-    /// eyelashes worn after a mesh hair were drawn after it and behind its
-    /// strands, and every strand from 1/255 hid them (#2121). Drawn first
-    /// and writing their depth for the hair only where nearly opaque
+    /// Legacy Viewer (attachment order, LLVOAvatar::idleUpdateMisc
+    /// `draw_order`, then LLDrawPoolAlpha::forwardRender(true) writing
+    /// depth): blended eyelashes worn after a mesh hair were drawn after it
+    /// and behind its strands, and every strand from 1/255 hid them, so
+    /// that they vanished wherever they met the hair, the skin showing
+    /// through its soft strands instead (#2121; with the lashes in Masking
+    /// they were drawn before it and looked right, but jagged). Drawn
+    /// first and writing their depth for the hair only where nearly opaque
     /// (`quiet_runs`), the hair blends over them as over the skin.
     fn draw_cmp(&self, other: &RigOrder) -> Ordering {
         other
@@ -157,8 +244,9 @@ fn rig_cmp(a: Option<RigOrder>, b: Option<RigOrder>) -> Ordering {
 /// One blended face of the frame.
 #[derive(Clone, Copy, Debug)]
 pub struct BlendEntry {
-    /// Distance from the eye to the centre of its object, or of its
-    /// skeleton for a rigged mesh (`rig`).
+    /// Nonrigged: projected face depth, with the Legacy bounds bias. Rigged:
+    /// distance to its skeleton, retaining attachment order. The comparison
+    /// switch keeps object-centre distances for all nonrigged entries.
     pub distance: f32,
     pub cmd: DrawCmd,
     /// The face has glow (drawn into the glow right after it).
@@ -167,8 +255,8 @@ pub struct BlendEntry {
     pub double_sided: bool,
     /// The face belongs to a rigged mesh.
     pub rigged: bool,
-    /// Its object (index in the scene's slab), whose faces share one
-    /// distance and are drawn in their own order.
+    /// Its object (index in the scene's slab), used to break equal-depth
+    /// ties and retain a rigged object's face order.
     pub object: u32,
     /// Its face (texture entry) in the object.
     pub face: u8,
@@ -176,7 +264,10 @@ pub struct BlendEntry {
     pub rig: Option<RigOrder>,
 }
 
-/// AURORA_RIGGED_BLEND: by default the rigged faces apart, object by object
+/// The order of the blended faces is the user's setting
+/// (`Settings::blend_order`, `set_user`): the exact one, or the sorted one
+/// (`Layers`). AURORA_RIGGED_BLEND, when set, names it instead: `layers`
+/// (or any other word), the rigged faces apart, object by object
 /// in their order what is at least half covered writing its depth as it is
 /// drawn, then the fainter texels, then their depth from 1/255, into a copy
 /// of the scene depth (`RiggedBlendDepth::Layers`, #1300); `split`, as
@@ -190,7 +281,7 @@ pub struct BlendEntry {
 /// `write`, from 1/255 into the scene depth as the Legacy Viewer (#499);
 /// `sorted`, sorted with the others and drawn without depth, as before
 /// #499; `alt`, `split` one second in three (`xmode=old` on the profile
-/// lines), the default the others.
+/// lines), `layers` the others.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Mode {
     Layers,
@@ -201,26 +292,70 @@ pub enum Mode {
     Write,
     Sorted,
     Alternate,
-}
-
-fn env_mode() -> Option<Mode> {
-    static MODE: std::sync::OnceLock<Option<Mode>> = std::sync::OnceLock::new();
-    *MODE.get_or_init(|| match std::env::var("AURORA_RIGGED_BLEND").as_deref().map(str::trim) {
-        Ok("split") => Some(Mode::Split),
-        Ok("runs") => Some(Mode::Runs),
-        Ok("copy") => Some(Mode::Copy),
-        Ok("depth05") => Some(Mode::Depth05),
-        Ok("write") => Some(Mode::Write),
-        Ok("sorted") => Some(Mode::Sorted),
-        Ok("alt") => Some(Mode::Alternate),
-        Ok("layers") | Ok("") => Some(Mode::Layers),
-        Err(_) => None,
-        Ok(_) => Some(Mode::Layers),
-    })
+    /// `exact`: every blended face, rigged or not, composed in the true
+    /// order of its fragments at each pixel (`RiggedBlendDepth::Exact`).
+    Exact,
+    /// `exact-alt`: `layers` one second in three, `exact` the others.
+    ExactAlternate,
 }
 
 pub fn mode() -> Mode {
-    env_mode().unwrap_or(Mode::Layers)
+    static MODE: std::sync::OnceLock<Mode> = std::sync::OnceLock::new();
+    *MODE.get_or_init(|| match std::env::var("AURORA_RIGGED_BLEND").as_deref().map(str::trim) {
+        Ok("exact") => Mode::Exact,
+        Ok("exact-alt") => Mode::ExactAlternate,
+        Ok("split") => Mode::Split,
+        Ok("runs") => Mode::Runs,
+        Ok("copy") => Mode::Copy,
+        Ok("depth05") => Mode::Depth05,
+        Ok("write") => Mode::Write,
+        Ok("sorted") => Mode::Sorted,
+        Ok("alt") => Mode::Alternate,
+        _ => Mode::Layers,
+    })
+}
+
+/// Whether AURORA_RIGGED_BLEND names an order: the user's setting then
+/// gives way to it.
+fn mode_named() -> bool {
+    static NAMED: std::sync::OnceLock<bool> = std::sync::OnceLock::new();
+    *NAMED.get_or_init(|| std::env::var("AURORA_RIGGED_BLEND").is_ok_and(|v| !v.trim().is_empty()))
+}
+
+/// The user's order of the blended faces (`Settings::blend_order`): 0
+/// sorted, 1 to 4 the exact order from its lightest precision to its finest,
+/// 5 the stochastic transparency (block-render oit_stochastic.rs), which
+/// draws the faces of the sorted order's lists.
+static USER: std::sync::atomic::AtomicU8 = std::sync::atomic::AtomicU8::new(0);
+
+/// Whether the renderer can draw the exact order now: not under MSAA, nor
+/// on a device without the depth test before the shader. The faces are then
+/// sorted, as the Standard choice of the setting.
+static EXACT_AVAILABLE: std::sync::atomic::AtomicBool = std::sync::atomic::AtomicBool::new(true);
+
+/// Every frame, before the lists are made: the user's setting and whether
+/// the exact order can be drawn.
+pub fn set_user(level: u8, exact_available: bool) {
+    USER.store(level, std::sync::atomic::Ordering::Relaxed);
+    EXACT_AVAILABLE.store(exact_available, std::sync::atomic::Ordering::Relaxed);
+}
+
+/// From which alpha the exact order composes a fragment in its exact place
+/// (`BlendPrecision`): the level of the user's setting, every layer from
+/// 3 % of alpha when the setting asks for the sorted order and
+/// AURORA_RIGGED_BLEND for the exact one.
+pub fn precision() -> block_render::BlendPrecision {
+    precision_at(USER.load(std::sync::atomic::Ordering::Relaxed))
+}
+
+/// The precision of a level of the user's setting.
+fn precision_at(level: u8) -> block_render::BlendPrecision {
+    match level {
+        1 => block_render::BlendPrecision::Fast,
+        2 => block_render::BlendPrecision::Balanced,
+        3 => block_render::BlendPrecision::High,
+        _ => block_render::BlendPrecision::Full,
+    }
 }
 
 /// With `alt`: the current second draws as `split`.
@@ -235,12 +370,25 @@ pub fn rigged_apart() -> bool {
     mode() != Mode::Sorted
 }
 
-/// How the rigged faces write their depth this frame. When `AURORA_RIGGED_BLEND`
-/// is unset, `medal_layers` chooses Layers (medal / sheer attachment depth)
-/// or Write (Legacy).
-pub fn depth_mode_prefer(medal_layers: bool) -> RiggedBlendDepth {
-    let mode = env_mode().unwrap_or(if medal_layers { Mode::Layers } else { Mode::Write });
-    depth_mode_in(mode, OLD_NOW.load(std::sync::atomic::Ordering::Relaxed))
+/// How the rigged faces write their depth this frame (see the module).
+pub fn depth_mode() -> RiggedBlendDepth {
+    use std::sync::atomic::Ordering::Relaxed;
+    let mode = chosen_mode(mode(), mode_named(), USER.load(Relaxed));
+    drawable(depth_mode_in(mode, OLD_NOW.load(Relaxed)), EXACT_AVAILABLE.load(Relaxed))
+}
+
+/// The order of this run: the one AURORA_RIGGED_BLEND names, else the exact
+/// order when the user's setting asks for it.
+fn chosen_mode(mode: Mode, named: bool, user: u8) -> Mode {
+    if !named && (1..=4).contains(&user) { Mode::Exact } else { mode }
+}
+
+/// The exact order where it cannot be drawn: the sorted one.
+fn drawable(depth: RiggedBlendDepth, exact_available: bool) -> RiggedBlendDepth {
+    match depth {
+        RiggedBlendDepth::Exact if !exact_available => RiggedBlendDepth::Layers,
+        depth => depth,
+    }
 }
 
 fn depth_mode_in(mode: Mode, old_now: bool) -> RiggedBlendDepth {
@@ -253,6 +401,8 @@ fn depth_mode_in(mode: Mode, old_now: bool) -> RiggedBlendDepth {
         Mode::Write | Mode::Sorted => RiggedBlendDepth::Write,
         Mode::Alternate if old_now => RiggedBlendDepth::Split,
         Mode::Alternate => RiggedBlendDepth::Layers,
+        Mode::ExactAlternate if old_now => RiggedBlendDepth::Layers,
+        Mode::Exact | Mode::ExactAlternate => RiggedBlendDepth::Exact,
     }
 }
 
@@ -260,7 +410,7 @@ fn depth_mode_in(mode: Mode, old_now: bool) -> RiggedBlendDepth {
 /// start, are drawn writing depth: the rigged faces, skeleton by skeleton
 /// back to front, each in its `RigOrder`, then the others back to front
 /// (all of them back to front, none apart, when `rigged_apart` is false).
-/// The faces of one object keep their own order, by face then first index;
+/// Rigged faces of one object keep their own order, by face then first index;
 /// objects at the same distance keep one order from frame to frame (by
 /// object): the lists are gathered in parallel, in no fixed order, and an
 /// unstable tie would flicker.
@@ -281,6 +431,17 @@ pub fn sort(entries: &mut [BlendEntry], rigged_apart: bool) -> usize {
     } else {
         0
     }
+}
+
+/// The entries `sort` put in order, `rigged` of them first, turned nearest
+/// first in each of the two groups, for `RiggedBlendDepth::Exact`: its
+/// result needs no order, but a fragment the nearer ones hide leaves as soon
+/// as it finds them filed (the cut, block-render blend_exact.rs), as an
+/// opaque face drawn after a nearer one leaves on the depth test.
+pub fn nearest_first(entries: &mut [BlendEntry], rigged: usize) {
+    let (first, others) = entries.split_at_mut(rigged.min(entries.len()));
+    first.reverse();
+    others.reverse();
 }
 
 /// The runs of the first `n` sorted entries worn on one attachment point
@@ -347,20 +508,6 @@ pub fn rig_objects(entries: &[BlendEntry], n: usize, out: &mut Vec<u32>) {
 /// object's fringes write their depth after all of its colour, so that they
 /// hide the objects drawn after them, whatever their point, as the Legacy
 /// Viewer's 1/255 (#1300), but none of its own strands (#935).
-/// `RiggedBlendDepth::Layers`: of the runs `runs` (`each_object`) of the
-/// sorted entries, the ends of those of a detail of the face
-/// (`RigOrder::face_detail`), drawn then writing their depth on the copy
-/// only where nearly opaque, before their colour
-/// (`DrawLists::blend_depth_quiet`).
-pub fn quiet_runs(entries: &[BlendEntry], runs: &[u32], out: &mut Vec<u32>) {
-    out.clear();
-    out.extend(runs.iter().copied().filter(|&end| {
-        end.checked_sub(1)
-            .and_then(|i| entries.get(i as usize))
-            .is_some_and(|e| e.rig.is_some_and(|r| r.face_detail))
-    }));
-}
-
 pub fn each_object(entries: &[BlendEntry], n: usize, out: &mut Vec<u32>) {
     out.clear();
     let entries = &entries[..n.min(entries.len())];
@@ -372,6 +519,26 @@ pub fn each_object(entries: &[BlendEntry], n: usize, out: &mut Vec<u32>) {
     if !entries.is_empty() {
         out.push(entries.len() as u32);
     }
+}
+
+/// `RiggedBlendDepth::Layers`: of the runs `runs` (`each_object`) of the
+/// sorted entries, the ends of those of a detail of the face
+/// (`RigOrder::face_detail`), drawn then writing their depth on the copy
+/// only where nearly opaque, before their colour
+/// (`DrawLists::blend_depth_quiet`). Drawn before the hair, an eyelash card
+/// would otherwise hide the strands behind it, from 1/255 its nearly empty
+/// part and from one half its dense lashes, blurred into a band by the
+/// mipmaps: holes and straight edges the shape of the card in the hair
+/// (#2121). A lash itself, nearly opaque, still hides a strand behind it,
+/// so that a lash tip in front of the hair stays crisp over it. The scene
+/// depth still takes them where half covered, for what comes after.
+pub fn quiet_runs(entries: &[BlendEntry], runs: &[u32], out: &mut Vec<u32>) {
+    out.clear();
+    out.extend(runs.iter().copied().filter(|&end| {
+        end.checked_sub(1)
+            .and_then(|i| entries.get(i as usize))
+            .is_some_and(|e| e.rig.is_some_and(|r| r.face_detail))
+    }));
 }
 
 /// Which side of the water a blended object is drawn on, by its bounding
@@ -390,9 +557,128 @@ pub fn water_sides(center_z: f32, radius: f32, plane: Option<f32>) -> (bool, boo
     }
 }
 
+/// Slack on a face's own height, for the rounding of its placement: a face
+/// within it of the plane is drawn on both sides, each clipped to its own.
+const FACE_HEIGHT_SLACK: f32 = 0.01;
+
+/// [`water_sides`] for one face: by the height the face itself spans
+/// (`(centre, half extent)`, [`FaceHeight`]) when its vertices are known,
+/// within what the object's sphere allows, and by the sphere alone otherwise
+/// (rigged meshes, avatars, a geometry without its vertices). An object's
+/// sphere reaches under the plane long before its faces do: a wide panel
+/// standing above the water was drawn a second time before it, every
+/// fragment clipped. The image is the same either way, each draw being
+/// clipped to its side of the plane.
+pub fn water_sides_of(center_z: f32, radius: f32, face: Option<(f32, f32)>, plane: Option<f32>) -> (bool, bool) {
+    let sphere = water_sides(center_z, radius, plane);
+    let Some((z, half)) = face.filter(|(z, half)| z.is_finite() && half.is_finite()) else {
+        return sphere;
+    };
+    let own = water_sides(z, half.max(0.0) + FACE_HEIGHT_SLACK, plane);
+    match (sphere.0 && own.0, sphere.1 && own.1) {
+        (false, false) => sphere,
+        sides => sides,
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn the_precision_of_the_exact_order_follows_the_level_of_the_setting() {
+        use block_render::BlendPrecision::{Balanced, Fast, Full, High};
+        assert_eq!([1, 2, 3, 4].map(precision_at), [Fast, Balanced, High, Full]);
+        assert_eq!(precision_at(0), Full);
+    }
+
+    /// The user's setting asks for the exact order unless the variable
+    /// names one; where the exact order cannot be drawn (MSAA, a device
+    /// without the early depth test), the default one.
+    #[test]
+    fn the_users_setting_gives_way_to_the_variable_and_to_what_can_be_drawn() {
+        assert_eq!(chosen_mode(Mode::Layers, false, 0), Mode::Layers);
+        assert_eq!(chosen_mode(Mode::Layers, false, 1), Mode::Exact);
+        assert_eq!(chosen_mode(Mode::Layers, false, 4), Mode::Exact);
+        // the stochastic transparency draws the lists of the sorted order
+        assert_eq!(chosen_mode(Mode::Layers, false, 5), Mode::Layers);
+        assert_eq!(chosen_mode(Mode::Layers, true, 4), Mode::Layers);
+        assert_eq!(chosen_mode(Mode::Split, true, 4), Mode::Split);
+        assert_eq!(chosen_mode(Mode::ExactAlternate, true, 0), Mode::ExactAlternate);
+        assert_eq!(drawable(RiggedBlendDepth::Exact, true), RiggedBlendDepth::Exact);
+        assert_eq!(drawable(RiggedBlendDepth::Exact, false), RiggedBlendDepth::Layers);
+        assert_eq!(drawable(RiggedBlendDepth::Split, false), RiggedBlendDepth::Split);
+    }
+
+    #[test]
+    fn nonrigged_faces_reverse_order_when_seen_from_the_other_side() {
+        let bounds: Vec<_> = [0.0, 0.3, 0.6]
+            .into_iter()
+            .map(|y| FaceBounds {
+                center: Vec3::new(0.0, y, 0.0),
+                half: Vec3::new(1.0, 0.0, 1.0),
+            })
+            .collect();
+        for (eye, forward, expected) in [
+            (Vec3::new(0.0, -3.0, 0.0), Vec3::Y, vec![2, 1, 0]),
+            (Vec3::new(0.0, 3.0, 0.0), Vec3::NEG_Y, vec![0, 1, 2]),
+        ] {
+            let depth = FaceDepth::new(Mat4::IDENTITY, eye, forward);
+            let mut entries: Vec<_> = bounds
+                .iter()
+                .enumerate()
+                .map(|(i, &b)| BlendEntry {
+                    distance: depth.of(b),
+                    object: 1,
+                    face: i as u8,
+                    ..entry(i as u32, 3.0, false)
+                })
+                .collect();
+            sort(&mut entries, true);
+            assert_eq!(records(&entries), expected);
+        }
+    }
+
+    #[test]
+    fn face_depth_matches_legacy_world_bounds_after_rotation_scale_and_anchor() {
+        let local = FaceBounds::of(&[[-0.3, -0.5, -1.0], [0.7, 0.2, 0.9]]);
+        let model = Mat4::from_rotation_z(0.7)
+            * Mat4::from_scale_rotation_translation(
+                Vec3::new(-2.0, 0.3, 1.5),
+                glam::Quat::from_rotation_x(0.4),
+                Vec3::new(4.0, -3.0, 2.0),
+            );
+        let eye = Vec3::new(1.0, -7.0, 5.0);
+        let forward = Vec3::new(0.3, 1.0, -0.2).normalize();
+        let mut min = Vec3::splat(f32::INFINITY);
+        let mut max = Vec3::splat(f32::NEG_INFINITY);
+        for x in [-1.0, 1.0] {
+            for y in [-1.0, 1.0] {
+                for z in [-1.0, 1.0] {
+                    let p = model.transform_point3(local.center + local.half * Vec3::new(x, y, z));
+                    min = min.min(p);
+                    max = max.max(p);
+                }
+            }
+        }
+        let legacy = ((min + max) * 0.5 - eye - (max - min) * 0.25 * forward).dot(forward);
+        assert!((FaceDepth::new(model, eye, forward).of(local) - legacy).abs() < 1e-5);
+    }
+
+    #[test]
+    fn alpha_sort_uses_view_depth_instead_of_radial_distance() {
+        let depth = FaceDepth::new(Mat4::IDENTITY, Vec3::ZERO, Vec3::Y);
+        let side = FaceBounds {
+            center: Vec3::new(10.0, 2.0, 0.0),
+            half: Vec3::ZERO,
+        };
+        let back = FaceBounds {
+            center: Vec3::new(0.0, 3.0, 0.0),
+            half: Vec3::ZERO,
+        };
+        assert!(side.center.length() > back.center.length());
+        assert!(depth.of(side) < depth.of(back));
+    }
 
     fn entry(record: u32, distance: f32, rigged: bool) -> BlendEntry {
         BlendEntry {
@@ -494,15 +780,11 @@ mod tests {
         assert_eq!(depth_mode_in(Mode::Sorted, false), RiggedBlendDepth::Write);
         assert_eq!(depth_mode_in(Mode::Alternate, false), RiggedBlendDepth::Layers);
         assert_eq!(depth_mode_in(Mode::Alternate, true), RiggedBlendDepth::Split);
-    }
-
-    #[test]
-    fn medal_clip_preference_picks_layers_or_write_without_env() {
-        // When AURORA_RIGGED_BLEND is unset in this process, prefer maps directly.
-        // With the variable set (CI / other tests), env wins — only assert the
-        // helper's mode mapping for the preference path.
-        assert_eq!(depth_mode_in(Mode::Layers, false), RiggedBlendDepth::Layers);
-        assert_eq!(depth_mode_in(Mode::Write, false), RiggedBlendDepth::Write);
+        assert_eq!(depth_mode_in(Mode::Exact, false), RiggedBlendDepth::Exact);
+        assert_eq!(depth_mode_in(Mode::Exact, true), RiggedBlendDepth::Exact);
+        // against the default, one second in three
+        assert_eq!(depth_mode_in(Mode::ExactAlternate, false), RiggedBlendDepth::Exact);
+        assert_eq!(depth_mode_in(Mode::ExactAlternate, true), RiggedBlendDepth::Layers);
     }
 
     #[test]
@@ -677,22 +959,6 @@ mod tests {
         assert!(runs.is_empty());
     }
 
-    #[test]
-    fn no_rigged_face_means_nothing_drawn_with_depth() {
-        let mut e = [entry(1, 2.0, false), entry(2, 4.0, false)];
-        assert_eq!(sort(&mut e, true), 0);
-        assert_eq!(records(&e), [2, 1]);
-    }
-
-    #[test]
-    fn water_sides_follow_the_legacy_pools() {
-        let h = Some(20.0);
-        assert_eq!(water_sides(30.0, 2.0, h), (true, false), "above: after the water only");
-        assert_eq!(water_sides(10.0, 2.0, h), (false, true), "below: before the water only");
-        assert_eq!(water_sides(20.5, 2.0, h), (true, true), "crossing: both, clipped");
-        assert_eq!(water_sides(10.0, 2.0, None), (true, false), "camera under water: as before");
-    }
-
     /// #2121: eyelashes and brows, weighted to the face's joints only, are
     /// drawn before the other rigged meshes of their avatar whatever their
     /// point and attachment order; the others keep the Legacy Viewer's
@@ -730,5 +996,76 @@ mod tests {
         assert!(!face_detail(["mHead", "mNeck", "mFaceJaw"]), "a mesh head");
         assert!(!face_detail(["mHead", "mHairBack", "mFaceForeheadCenter"]), "a hair");
         assert!(!face_detail(std::iter::empty()));
+    }
+
+    #[test]
+    fn no_rigged_face_means_nothing_drawn_with_depth() {
+        let mut e = [entry(1, 2.0, false), entry(2, 4.0, false)];
+        assert_eq!(sort(&mut e, true), 0);
+        assert_eq!(records(&e), [2, 1]);
+    }
+
+    #[test]
+    fn water_sides_follow_the_legacy_pools() {
+        let h = Some(20.0);
+        assert_eq!(water_sides(30.0, 2.0, h), (true, false), "above: after the water only");
+        assert_eq!(water_sides(10.0, 2.0, h), (false, true), "below: before the water only");
+        assert_eq!(water_sides(20.5, 2.0, h), (true, true), "crossing: both, clipped");
+        assert_eq!(water_sides(10.0, 2.0, None), (true, false), "camera under water: as before");
+    }
+
+    /// A face is sorted by its own height where it is known: an object whose
+    /// sphere dips under the water does not send its faces above it before
+    /// the water.
+    #[test]
+    fn a_face_above_the_water_is_not_drawn_before_it_for_its_objects_sphere() {
+        let h = Some(20.0);
+        // a wide panel standing on the shore: sphere of 15 m centred at 30 m
+        assert_eq!(water_sides(30.0, 15.0, h), (true, true), "by the sphere: both sides");
+        assert_eq!(
+            water_sides_of(30.0, 15.0, Some((30.0, 4.0)), h),
+            (true, false),
+            "by its height: after only"
+        );
+        assert_eq!(
+            water_sides_of(30.0, 15.0, Some((12.0, 2.0)), h),
+            (false, true),
+            "a face of it under the water"
+        );
+        assert_eq!(
+            water_sides_of(30.0, 15.0, Some((20.5, 2.0)), h),
+            (true, true),
+            "a face crossing the plane"
+        );
+        // within the rounding of the placement: both sides, clipped
+        assert_eq!(water_sides_of(30.0, 15.0, Some((22.005, 2.0)), h), (true, true));
+        assert_eq!(water_sides_of(30.0, 15.0, Some((22.02, 2.0)), h), (true, false));
+        // no vertices known, or a height that is not a number: the sphere
+        assert_eq!(water_sides_of(30.0, 15.0, None, h), (true, true));
+        assert_eq!(water_sides_of(30.0, 15.0, Some((f32::NAN, 1.0)), h), (true, true));
+        assert_eq!(water_sides_of(30.0, 15.0, Some((30.0, f32::INFINITY)), h), (true, true));
+        // a height that contradicts the sphere never drops the face
+        assert_eq!(water_sides_of(30.0, 2.0, Some((10.0, 1.0)), h), (true, false));
+        assert_eq!(
+            water_sides_of(30.0, 15.0, Some((30.0, 4.0)), None),
+            (true, false),
+            "camera under water"
+        );
+    }
+
+    #[test]
+    fn a_faces_height_follows_its_placement() {
+        let bounds = FaceBounds {
+            center: Vec3::new(1.0, 0.0, 0.5),
+            half: Vec3::new(2.0, 0.1, 0.25),
+        };
+        // upright: the local Z extent, scaled and raised
+        let upright = Mat4::from_scale_rotation_translation(Vec3::new(1.0, 1.0, 4.0), glam::Quat::IDENTITY, Vec3::new(0.0, 0.0, 30.0));
+        let (z, half) = FaceHeight::new(upright).of(bounds);
+        assert!((z - 32.0).abs() < 1e-4 && (half - 1.0).abs() < 1e-4, "{z} {half}");
+        // laid on its side: the local X extent becomes the height
+        let side = Mat4::from_rotation_translation(glam::Quat::from_rotation_y(-std::f32::consts::FRAC_PI_2), Vec3::new(0.0, 0.0, 30.0));
+        let (z, half) = FaceHeight::new(side).of(bounds);
+        assert!((z - 31.0).abs() < 1e-4 && (half - 2.0).abs() < 1e-3, "{z} {half}");
     }
 }

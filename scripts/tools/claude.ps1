@@ -1,5 +1,5 @@
 ﻿# Aurora Tools: Claude Code permissions for the agents' PR and issue workflow
-# (dot-sourced by block-tools.ps1).
+# (dot-sourced by aurora-tools.ps1).
 #
 # AGENTS.md has the agent post its review on its own PR, merge it with
 # merge-pr.ps1, read the open issues at the start of each session and answer

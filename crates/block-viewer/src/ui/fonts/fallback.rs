@@ -163,7 +163,7 @@ static FACES: OnceLock<Vec<SystemFace>> = OnceLock::new();
 pub fn start() {
     static STARTED: Once = Once::new();
     STARTED.call_once(|| {
-        let spawned = std::thread::Builder::new().name("block-fonts".into()).spawn(|| {
+        let spawned = std::thread::Builder::new().name("aurora-fonts".into()).spawn(|| {
             FACES.get_or_init(scan);
         });
         if let Err(e) = spawned {
@@ -441,7 +441,7 @@ mod tests {
 
     #[test]
     fn files_are_indexed_by_lowercase_name_first_directory_first() {
-        let root = std::env::temp_dir().join(format!("block-font-index-{}", std::process::id()));
+        let root = std::env::temp_dir().join(format!("aurora-font-index-{}", std::process::id()));
         let (a, b) = (root.join("a"), root.join("b").join("nested"));
         std::fs::create_dir_all(&a).expect("temp dir");
         std::fs::create_dir_all(&b).expect("temp dir");

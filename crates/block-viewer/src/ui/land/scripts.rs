@@ -124,7 +124,7 @@ fn head(ui: &mut egui::Ui, p: &Palette, cols: &[(Column, &str, f32, bool)], sort
             let sorted = sort.column == *column;
             let caret_w = if sorted { widgets::caret_room(9.0) } else { 0.0 };
             let color = if sorted { p.violet_light } else { p.muted_dim };
-            let mut job = super::block::semibold(ui, title, 11.0, color);
+            let mut job = super::aurora::semibold(ui, title, 11.0, color);
             job.wrap = egui::text::TextWrapping::truncate_at_width((w - 14.0 - caret_w).max(0.0));
             let g = ui.painter().layout_job(job);
             let x = if *right {
@@ -152,7 +152,7 @@ fn head(ui: &mut egui::Ui, p: &Palette, cols: &[(Column, &str, f32, bool)], sort
 fn search(ui: &mut egui::Ui, p: &Palette, table: &mut Table, hint: &str) {
     ui.add_space(5.0);
     ui.horizontal(|ui| {
-        widgets::search_box(ui, p, &mut table.filter, hint, ui.available_width());
+        widgets::clearable_search_box(ui, p, &mut table.filter, hint, ui.available_width());
     });
     table.prepare();
     ui.label(
@@ -313,7 +313,11 @@ fn parcel_tab(ui: &mut egui::Ui, p: &Palette, st: &mut ScriptsUi, v: &View, worl
     let list_h = (ui.available_height() - 40.0).max(0.0);
     let old_spacing = ui.spacing().item_spacing.y;
     ui.spacing_mut().item_spacing.y = 1.0;
-    egui::ScrollArea::vertical()
+    let selected_row = table
+        .visible
+        .iter()
+        .position(|index| st.selected.contains(&table.rows[*index].object.id));
+    widgets::search_scroll_to_row(ui, egui::ScrollArea::vertical(), selected_row, 24.0)
         .id_salt("land_scripts_parcel")
         .max_height(list_h)
         .min_scrolled_height(list_h)

@@ -24,7 +24,12 @@ pub(super) fn destination_row(
     if imports.window_choice() != Choice::Bulk {
         let before = (prefs.use_default_folders, prefs.batch_folder, prefs.include_source_folder);
         ui.add_enabled_ui(!busy, |ui| {
-            checkbox(ui, p, &mut prefs.use_default_folders, block_i18n::tr!("import-use-default-folders"));
+            checkbox(
+                ui,
+                p,
+                &mut prefs.use_default_folders,
+                block_i18n::tr!("import-use-default-folders"),
+            );
             ui.horizontal_wrapped(|ui| {
                 ui.label(block_i18n::tr!("import-destination"));
                 let mut folder = if prefs.use_default_folders {
@@ -54,7 +59,12 @@ pub(super) fn destination_row(
         .get_or_insert(if prefs.use_default_folders { Layout::Mirror } else { Layout::Flat });
     let mut selected_layout = *layout;
     ui.add_enabled_ui(!busy, |ui| {
-        checkbox(ui, p, &mut prefs.use_default_folders, block_i18n::tr!("import-use-default-folders"));
+        checkbox(
+            ui,
+            p,
+            &mut prefs.use_default_folders,
+            block_i18n::tr!("import-use-default-folders"),
+        );
         ui.add_enabled_ui(!prefs.use_default_folders, |ui| {
             ui.horizontal_wrapped(|ui| {
                 ui.label(block_i18n::tr!("import-destination"));
@@ -98,7 +108,6 @@ pub(super) fn show(ui: &mut egui::Ui, p: &Palette, imports: &mut Imports, world:
     let preview = folder_preview::build(ui.ctx(), imports, world);
     imports.folders.collapsed.retain(|path| preview.nodes.contains_key(path));
     let paths = &preview.nodes;
-    let files = &preview.files;
     let root = imports
         .folders
         .active()
@@ -113,25 +122,7 @@ pub(super) fn show(ui: &mut egui::Ui, p: &Palette, imports: &mut Imports, world:
         let body_top = columns[0].cursor().top().max(columns[1].cursor().top());
         let room = (height - (body_top - top) - footer_height - columns[0].spacing().item_spacing.y).max(0.0);
         // A flattened tree is virtualized even when every folder is expanded.
-        let mut rows: Vec<(Vec<String>, Option<usize>)> = Vec::new();
-        for index in files.get(&Vec::new()).into_iter().flatten() {
-            rows.push((Vec::new(), Some(*index)));
-        }
-        let mut hidden: Option<&Vec<String>> = None;
-        for path in paths.keys() {
-            if hidden.is_some_and(|parent| path.starts_with(parent) && path.len() > parent.len()) {
-                continue;
-            }
-            hidden = None;
-            rows.push((path.clone(), None));
-            if imports.folders.collapsed.contains(path) {
-                hidden = Some(path);
-                continue;
-            }
-            for index in files.get(path).into_iter().flatten() {
-                rows.push((path.clone(), Some(*index)));
-            }
-        }
+        let rows = preview.ordered_rows(&imports.folders.collapsed);
         let mut toggle = None;
         egui::ScrollArea::both()
             .id_salt("import_plan_tree")

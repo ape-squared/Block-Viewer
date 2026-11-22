@@ -116,18 +116,18 @@ fn row_desc(r: RowId) -> &'static str {
 /// The groups of threads that work for a part.
 fn row_threads(r: RowId) -> &'static [&'static str] {
     match r {
-        RowId::Render => &["block-render", "block-render-finish", "block-worker"],
-        RowId::Textures => &["block-jobs", "block-pages", "block-texcache", "block-net"],
-        RowId::Meshes => &["block-jobs", "block-net"],
-        RowId::Avatars => &["main", "block-worker"],
-        RowId::Scene => &["main", "block-worker", "block-trash"],
+        RowId::Render => &["block-render", "block-render-finish", "aurora-worker"],
+        RowId::Textures => &["aurora-jobs", "aurora-pages", "aurora-texcache", "block-net"],
+        RowId::Meshes => &["aurora-jobs", "block-net"],
+        RowId::Avatars => &["main", "aurora-worker"],
+        RowId::Scene => &["main", "aurora-worker", "aurora-trash"],
         RowId::World => &["block-net", "main"],
-        RowId::Interface => &["main", "block-render", "block-monitor"],
+        RowId::Interface => &["main", "block-render", "aurora-monitor"],
         RowId::Media => &["SLPlugin"],
         RowId::Audio => &["block-audio-out", "block-audio-stream"],
         RowId::Voice => &["block-voice", "block-voice-rt", "block-audio-in"],
-        RowId::Services => &["block-inventory-cache", "block-chatlog", "block-notification-history"],
-        RowId::CacheUpkeep => &["block-cache"],
+        RowId::Services => &["aurora-inventory-cache", "aurora-chatlog", "aurora-notification-history"],
+        RowId::CacheUpkeep => &["aurora-cache"],
         _ => &["main", "unnamed"],
     }
 }
@@ -268,9 +268,18 @@ pub(super) fn show(ui: &mut egui::Ui, p: &Palette, m: &mut Monitor, s: &Snapshot
         ) {
             m.per_core = unit == 1;
         }
-        widgets::search_field(ui, &mut m.filter, tr!("monitor-filter"), 150.0);
+        widgets::search_field(ui, p, &mut m.filter, tr!("monitor-filter"), 150.0);
     });
 
+    if widgets::search_cleared(ui) {
+        let parent = match m.selected {
+            Selected::Row(row) => row.parent(),
+            Selected::Media(_) => Some(RowId::Media),
+        };
+        if let Some(parent) = parent {
+            m.open.insert(parent);
+        }
+    }
     let per_core = m.per_core;
     let scale = move |c: Column, v: f64| if c == Column::Cpu && per_core { v * cores } else { v };
     let lines = lines(m, s);
@@ -285,7 +294,7 @@ pub(super) fn show(ui: &mut egui::Ui, p: &Palette, m: &mut Monitor, s: &Snapshot
         .collect();
 
     let titles: Vec<&str> = Column::ALL.iter().map(|c| column_title(*c, m.per_core)).collect();
-    let mut cols = vec![Col::new(tr!("monitor-col-subsystem"), 0.0, false).total("Block".into())];
+    let mut cols = vec![Col::new(tr!("monitor-col-subsystem"), 0.0, false).total("Aurora".into())];
     for (c, title) in Column::ALL.iter().zip(&titles) {
         let total = s.attribution.total(*c).map_or("–".into(), |v| format(*c, scale(*c, v)));
         cols.push(Col::new(title, 96.0, true).sort(m.sort == *c).total(total));
@@ -402,6 +411,7 @@ fn table_row(ui: &mut egui::Ui, p: &Palette, m: &mut Monitor, cols: &[Col], line
     let (rect, resp) = ui.allocate_exact_size(vec2(ui.available_width(), ROW_H), Sense::click());
     let ranges = draw::col_ranges(cols, rect.left(), rect.width());
     let selected = m.selected == line.select;
+    widgets::reveal_search_selection(ui, &resp, selected);
     draw::row_surface(ui, p, rect, selected, resp.hovered());
     let cy = rect.center().y;
     // values, tinted by their share of the column's largest

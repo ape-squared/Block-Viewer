@@ -193,7 +193,7 @@ mod tests {
 
     #[test]
     fn the_list_comes_back_in_its_order_without_bad_entries() {
-        let dir = std::env::temp_dir().join(format!("block-open-ims-{}", Uuid::new_v4()));
+        let dir = std::env::temp_dir().join(format!("aurora-open-ims-{}", Uuid::new_v4()));
         let path = dir.join(FILE);
         assert!(load(&path).is_empty(), "no file yet");
         let (a, b) = (Uuid::from_u128(2), Uuid::from_u128(1));
@@ -370,7 +370,7 @@ mod tests {
         let id = Uuid::from_u128(42);
         w.on_group_event(NetEvent::Groups(vec![membership(id)]));
         w.mutes.on_server(block_net::MuteListSource::UseCache, None);
-        w.start_group_chat(id);
+        w.start_group_chat(id, false);
         w.groups.take_commands();
         w.reopen_ims = vec![Conversation::Group(id)];
         w.restore_open_ims(true);
@@ -538,6 +538,7 @@ mod tests {
             owner_id: w.agent_id,
             source_type: block_net::ChatSourceType::Object,
             chat_type: block_net::ChatType::OwnerSay,
+            region: None,
             position: glam::Vec3::ZERO,
             message: "@startim=n".into(),
         }));

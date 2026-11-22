@@ -123,7 +123,7 @@ fn file_dialog() -> rfd::FileDialog {
 
 fn spawn(work: impl FnOnce() -> Outcome + Send + 'static) -> Receiver<Outcome> {
     let (tx, rx) = std::sync::mpsc::channel();
-    let _ = std::thread::Builder::new().name("block-stream-list".into()).spawn(move || {
+    let _ = std::thread::Builder::new().name("aurora-stream-list".into()).spawn(move || {
         let _ = tx.send(work());
     });
     rx

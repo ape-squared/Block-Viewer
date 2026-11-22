@@ -126,7 +126,11 @@ impl Viewfinder {
     /// What is chosen, a row each with its cross.
     fn isolate_list(&mut self, ui: &mut egui::Ui, p: &Palette, f: &Frame, out: &mut Vec<Out>) {
         if f.isolate_rows.is_empty() {
-            ui.label(egui::RichText::new(block_i18n::tr!("photo-isolate-none")).size(12.0).color(p.muted));
+            ui.label(
+                egui::RichText::new(block_i18n::tr!("photo-isolate-none"))
+                    .size(12.0)
+                    .color(p.muted),
+            );
             return;
         }
         egui::ScrollArea::vertical()

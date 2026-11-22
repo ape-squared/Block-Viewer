@@ -221,11 +221,11 @@ fn recovery_ease_uses_descent_speed_and_has_a_finite_grounded_fallback() {
 }
 
 #[test]
-fn block_owns_legs_even_without_support_or_during_movement_exclusions() {
+fn aurora_owns_legs_even_without_support_or_during_movement_exclusions() {
     let f = Fixture::new();
     for id in [State::Standing.motion(), State::StandingUp.motion()] {
         let mut controller = f.controller(&[(id, stand())]);
-        controller.block_feet = true;
+        controller.aurora_feet = true;
         assert!(controller.ground.is_none());
         f.render(&mut controller, 0.2, &no_support);
         assert!(controller.motions[0].recovery.is_none(), "replaced recovery still ran");
@@ -339,16 +339,16 @@ fn toggles_interpolate_independent_corrections_and_allow_immediate_reversal() {
 }
 
 #[test]
-fn native_to_block_and_back_never_feed_one_solver_into_the_other() {
+fn native_to_aurora_and_back_never_feed_one_solver_into_the_other() {
     let f = Fixture::new();
     let mut controller = f.controller(&[(State::Standing.motion(), stand())]);
     let native = f.render(&mut controller, 0.1, &support);
-    controller.block_feet = true;
+    controller.aurora_feet = true;
     controller.ground = Some(f.frame);
     let mut output = vec![Mat4::IDENTITY.to_cols_array_2d(); f.rig.len()];
     let mut previous = native;
     for (step, aurora) in [(0, true), (30, true), (31, false), (61, false)] {
-        controller.block_feet = aurora;
+        controller.aurora_feet = aurora;
         controller.evaluate_with_support(
             &f.rig,
             f.at + Duration::from_millis(200 + step * 20),
@@ -374,36 +374,4 @@ fn native_to_block_and_back_never_feed_one_solver_into_the_other() {
         let j = f.rig.names[name];
         assert!(previous[j].abs_diff_eq(reference[j], 1e-4), "return did not restore native {name}");
     }
-}
-
-#[test]
-fn explicit_leg_contact_wins_over_native_placement_and_releases_to_it() {
-    use crate::scene::ik::{Goal, Mode};
-    let f = Fixture::new();
-    let mut controller = f.controller(&[(State::Standing.motion(), stand())]);
-    let native = f.render(&mut controller, 0.1, &support);
-    let ankle = f.rig.names["mAnkleLeft"];
-    let target = native[ankle].w_axis.truncate() + Vec3::new(0.06, 0.0, 0.08);
-    controller.ik.targets.push(Goal {
-        bone: ankle,
-        root: f.rig.names["mHipLeft"],
-        position: target,
-        rotation: Some(Quat::IDENTITY),
-        contact: Vec3::ZERO,
-        pole: Some(Vec3::X),
-        mode: Mode::Ik,
-        weight: 1.0,
-        follow: None,
-    });
-    for step in 1..=12 {
-        f.render(&mut controller, 0.1 + step as f32 * 0.04, &support);
-    }
-    let contacted = f.render(&mut controller, 0.6, &support);
-    assert!(contacted[ankle].w_axis.truncate().distance(target) < 0.001);
-    controller.ik.targets.clear();
-    for step in 1..=12 {
-        f.render(&mut controller, 0.6 + step as f32 * 0.04, &support);
-    }
-    let released = f.render(&mut controller, 1.2, &support);
-    assert!(released[ankle].abs_diff_eq(native[ankle], 1e-4));
 }

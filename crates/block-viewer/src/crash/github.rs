@@ -10,8 +10,8 @@ use crossbeam_channel::{Receiver, Sender};
 use serde_json::Value;
 use std::time::{Duration, Instant};
 
-const API: &str = "https://api.github.com/repos/Block-Viewer/Block-Viewer/issues";
-pub const ISSUES: &str = "https://github.com/Block-Viewer/Block-Viewer/issues";
+const API: &str = "https://api.github.com/repos/Aurora-Viewer/Aurora-Viewer/issues";
+pub const ISSUES: &str = "https://github.com/Aurora-Viewer/Aurora-Viewer/issues";
 pub const VERIFY: &str = "https://github.com/login/device";
 const TOKEN: &str = "https://github.com/login/oauth/access_token";
 // Public identifier of the project's GitHub App (Device Flow enabled).
@@ -344,14 +344,14 @@ fn runtime() -> Result<tokio::runtime::Runtime, Failure> {
 }
 
 fn client() -> Result<reqwest::Client, Failure> {
-    reqwest::Client::builder()
-        .user_agent(block_version::user_agent())
-        .https_only(true)
-        .retry(reqwest::retry::never())
-        .redirect(reqwest::redirect::Policy::none())
-        .timeout(Duration::from_secs(20))
-        .build()
-        .map_err(|_| Failure::Network)
+    block_proxy::http_client(|b| {
+        b.user_agent(block_version::user_agent())
+            .https_only(true)
+            .retry(reqwest::retry::never())
+            .redirect(reqwest::redirect::Policy::none())
+            .timeout(Duration::from_secs(20))
+    })
+    .map_err(|_| Failure::Network)
 }
 
 async fn json(mut response: reqwest::Response) -> Result<Value, Failure> {
@@ -582,7 +582,7 @@ mod tests {
             .unwrap();
         let (title, preview) = (
             "Crash: Rust panic at crates/a.rs:1:2 (0.8.0)",
-            "<!-- block-crash v1 -->\nÉchec & exemple",
+            "<!-- aurora-crash v1 -->\nÉchec & exemple",
         );
         for (status, reply, expected) in [
             (201, r#"{"number":123}"#, Ok(123)),

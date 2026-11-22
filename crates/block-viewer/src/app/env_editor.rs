@@ -15,6 +15,15 @@ use uuid::Uuid;
 impl App {
     /// "new" editors start from what is shown (onOpen without an item),
     /// with the rights of the settings shown (`Rights::of_source`).
+    /// "New sky / water / day cycle…" (World.EnvPreset, Phototools): a day
+    /// cycle starts empty, the others from what is shown.
+    pub(super) fn open_new_environment(&mut self, kind: SettingsKind) {
+        match kind {
+            SettingsKind::Day => self.open_new_day_editor(),
+            kind => self.open_env_editor_snapshot(kind),
+        }
+    }
+
     pub(super) fn open_env_editor_snapshot(&mut self, kind: SettingsKind) {
         let (sky, water) = self.world.eep.current();
         // an open editor of the same kind shows its own settings
@@ -196,7 +205,9 @@ impl App {
                     if let Some(doc) = &self.env_editor.doc {
                         let rights = self.env_editor_source_rights();
                         match env_editor::frames(doc) {
-                            (Some(sky), _) => self.world.eep.apply_local_sky(sky, rights),
+                            (Some(sky), _) => {
+                                self.world.eep.apply_local_sky(sky, rights);
+                            }
                             (_, Some(water)) => self.world.eep.apply_local_water(water, rights),
                             _ => {}
                         }
@@ -273,8 +284,8 @@ impl App {
             // onSaveAsCommit without modify rights: the item is copied as it
             // is (copy_inventory_item), never re-uploaded with new permissions
             (Some(name), Some(it)) if !self.env_editor.rights.modify => {
-                let settings_folder = self.ensure_settings_folder();
                 let inv = &self.world.inventory;
+                let settings_folder = crate::world::inventory::actions::system(inv, 56).unwrap_or(inv.root);
                 let parent = if crate::world::inventory::actions::library(inv, it.id) {
                     settings_folder
                 } else {
@@ -289,11 +300,18 @@ impl App {
                 self.env_editor.message = Some((block_i18n::tr!("ui-env-editor-copied").into(), false));
             }
             (None, Some(it)) => {
+                // Save over the item with a new name: the item is renamed
+                // too, as LLSettingsVOBase::updateInventoryItem does
+                // (update_name, true for the editors' Save;
+                // indra/newview/llsettingsvo.cpp); the port kept the old name
+                // and put it back over the one typed
+                self.rename_settings_item(&it, doc.name());
                 self.env_editor.saving = Some(request);
                 self.send(NetCommand::SaveInventoryContent {
                     request,
                     item: it.id,
                     asset_type: 56,
+                    lua: false,
                     data: doc.to_asset(),
                 });
             }
@@ -308,8 +326,8 @@ impl App {
                 }
                 // the edited item's folder, else the Settings folder (a library
                 // or Marketplace item goes to the Settings folder)
-                let settings_folder = self.ensure_settings_folder();
                 let inv = &self.world.inventory;
+                let settings_folder = crate::world::inventory::actions::system(inv, 56).unwrap_or(inv.root);
                 let own = it.as_ref().filter(|it| !crate::world::inventory::actions::library(inv, it.id));
                 let parent = own.map_or(settings_folder, |it| it.parent);
                 // without transfer at the source, the new item's next owner
@@ -340,28 +358,22 @@ impl App {
         }
     }
 
-    /// Ensure a user Settings folder (type 56) exists; create one under the
-    /// inventory root when the account has none yet (Save As then targets it).
-    fn ensure_settings_folder(&mut self) -> uuid::Uuid {
-        let inv = &self.world.inventory;
-        if let Some(id) = crate::world::inventory::actions::system(inv, 56) {
-            return id;
+    /// A settings item saved over with another name: renamed as the
+    /// inventory renames (an AIS patch of its name).
+    pub(super) fn rename_settings_item(&mut self, it: &block_net::inventory::InvItem, name: &str) {
+        let name = name.trim();
+        if name.is_empty() || name == it.name {
+            return;
         }
-        let root = inv.root;
-        match crate::world::inventory::actions::create_folder_typed(root, block_i18n::tr!("demo-env-settings"), 56) {
-            Ok(change) => {
-                let id = change.operations.iter().find_map(|op| match op {
-                    block_net::inventory::operations::Operation::Folder { id, .. } => Some(*id),
-                    _ => None,
-                });
-                self.apply_inventory_action(crate::ui::inventory::InvAction::Edit(change));
-                self.env_editor.message = Some((block_i18n::tr!("env-editor-creating-settings-folder").into(), false));
-                id.unwrap_or(root)
-            }
-            Err(e) => {
-                log::warn!("could not create Settings folder: {e}");
-                root
-            }
+        // the inventory's own rule (LLItemBridge::isItemRenameable): what
+        // the agent may not modify keeps its name, whatever the editor shows
+        if !crate::world::inventory::actions::renameable(&self.world.inventory, it.id) {
+            log::warn!("settings item not renamed: no right to rename it");
+            return;
+        }
+        match crate::world::inventory::actions::patch(&self.world.inventory, it.id, block_llsd::llsd_map! { "name" => name }) {
+            Ok(change) => self.apply_inventory_action(crate::ui::inventory::InvAction::Edit(change)),
+            Err(e) => log::warn!("settings item not renamed: {e}"),
         }
     }
 
@@ -370,16 +382,23 @@ impl App {
     pub(super) fn env_editor_saved(&mut self, result: Result<block_net::inventory::InvItem, String>) {
         self.env_editor.saving = None;
         match result {
-            Ok(it) => {
+            Ok(mut it) => {
                 let rights = Rights::from_item(crate::world::inventory::actions::agent_mask(&it, self.world.agent_id), 0);
+                // saved over the item: it keeps the name given (renamed
+                // alongside), not the one the answer still carries
+                if self.env_editor.item == Some(it.id)
+                    && let Some(doc) = &self.env_editor.doc
+                {
+                    // (trimmed, as the rename sent it)
+                    it.name = doc.name().trim().to_owned();
+                }
                 self.world.inventory.add_items(vec![it.clone()]);
                 self.env_editor.saved(it.id, &it.name, rights);
                 log::info!("environment settings saved: {} ({})", it.name, it.asset_id);
             }
             Err(e) => {
                 log::warn!("environment settings not saved: {e}");
-                let msg = block_i18n::tr!("env-editor-save-failed", reason = e.as_str());
-                self.env_editor.message = Some((msg, true));
+                self.env_editor.message = Some((e, true));
             }
         }
     }

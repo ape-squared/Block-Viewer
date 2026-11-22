@@ -18,7 +18,6 @@ fn plate_click_label(action: PlateClick) -> &'static str {
         PlateClick::Profile => block_i18n::tr!("common-view-profile"),
         PlateClick::InstantMessage => block_i18n::tr!("ui-context-send-im"),
         PlateClick::OfferTeleport => block_i18n::tr!("common-offer-teleport"),
-        PlateClick::RequestTeleport => block_i18n::tr!("common-request-teleport"),
         PlateClick::Menu => block_i18n::tr!("ui-options-plate-click-menu"),
     }
 }
@@ -39,7 +38,11 @@ pub fn page(cx: &mut Cx, tab: usize) {
     match tab {
         0 => {
             cx.group(tr!("ui-options-name-tags"), |cx| {
-                cx.toggle(tr!("ui-options-show-own-tag"), "", &field!(show_own_name_tag));
+                cx.toggle(
+                    tr!("ui-options-show-own-tag"),
+                    tr!("ui-options-show-own-tag-help"),
+                    &field!(show_own_name_tag),
+                );
                 cx.toggle(tr!("ui-options-show-friend-tags"), "", &field!(show_friend_name_tags));
                 cx.toggle(tr!("ui-options-show-other-tags"), "", &field!(show_other_name_tags));
                 cx.toggle(
@@ -65,6 +68,24 @@ pub fn page(cx: &mut Cx, tab: usize) {
                     " m",
                 );
                 cx.toggle(
+                    tr!("ui-options-contact-markers"),
+                    tr!("ui-options-contact-markers-help"),
+                    &field!(contact_markers),
+                );
+                let off = !cx.s.contact_markers;
+                cx.subs(off, |cx| {
+                    use crate::settings::MarkerAnchor;
+                    cx.combo(
+                        tr!("ui-options-contact-marker-anchor"),
+                        tr!("ui-options-contact-marker-anchor-help"),
+                        &field!(contact_marker_anchor),
+                        &[
+                            (MarkerAnchor::AboveName, tr!("ui-options-contact-marker-anchor-above")),
+                            (MarkerAnchor::Body, tr!("ui-options-contact-marker-anchor-body")),
+                        ],
+                    );
+                });
+                cx.toggle(
                     tr!("ui-options-complexity-in-name-tags"),
                     tr!("ui-options-below-the-name-from-green-to-red-based-on"),
                     &field!(tag_complexity),
@@ -82,9 +103,20 @@ pub fn page(cx: &mut Cx, tab: usize) {
                         &field!(tag_complexity_own),
                     );
                 });
+                // FSTagShowDistance, FSTagShowDistanceColors (panel_preferences_colors.xml)
+                cx.toggle(
+                    tr!("ui-options-distance-in-name-tags"),
+                    tr!("ui-options-distance-in-name-tags-help"),
+                    &field!(tag_distance),
+                );
+                cx.toggle(
+                    tr!("ui-options-names-by-distance"),
+                    tr!("ui-options-names-by-distance-help"),
+                    &field!(tag_distance_colors),
+                );
             });
             // the plates' settings mean nothing to the classic name tags
-            cx.group(tr!("ui-options-block-avatar-plates"), |cx| {
+            cx.group(tr!("ui-options-aurora-avatar-plates"), |cx| {
                 let classic = cx.s.classic_name_tags;
                 cx.greyed(classic);
                 cx.toggle(
@@ -105,7 +137,7 @@ pub fn page(cx: &mut Cx, tab: usize) {
                 let choices: Vec<(PlateClick, &str)> = PlateClick::ALL.iter().map(|a| (*a, plate_click_label(*a))).collect();
                 cx.combo(
                     tr!("ui-options-plate-click"),
-                    tr!("ui-options-plate-click-help"),
+                    tr!("ui-options-plate-click-own-help"),
                     &field!(plate_click),
                     &choices,
                 );
@@ -269,34 +301,35 @@ pub fn page(cx: &mut Cx, tab: usize) {
         _ => {
             cx.group(tr!("ui-options-feet"), |cx| {
                 cx.toggle(
-                    tr!("ui-options-block-ground-feet"),
-                    tr!("ui-options-block-ground-feet-help"),
+                    tr!("ui-options-aurora-ground-feet"),
+                    tr!("ui-options-aurora-ground-feet-help"),
                     &field!(ground_avatar_feet),
                 );
                 let off = !cx.s.ground_avatar_feet;
                 cx.subs(off, |cx| {
                     cx.toggle(
-                        tr!("ui-options-block-ground-feet-moving"),
-                        tr!("ui-options-block-ground-feet-moving-help"),
+                        tr!("ui-options-aurora-ground-feet-moving"),
+                        tr!("ui-options-aurora-ground-feet-moving-help"),
                         &field!(ground_feet_while_moving),
                     );
                     cx.slider(
-                        tr!("ui-options-block-ground-feet-height"),
-                        tr!("ui-options-block-ground-feet-height-help"),
+                        tr!("ui-options-aurora-ground-feet-height"),
+                        tr!("ui-options-aurora-ground-feet-height-help"),
                         &field!(ground_feet_max_height),
                         0.0..=crate::settings::MAX_GROUND_FEET_HEIGHT,
                         " m",
                     );
                     cx.slider(
-                        tr!("ui-options-block-ground-feet-avatars"),
-                        tr!("ui-options-block-ground-feet-avatars-help"),
+                        tr!("ui-options-aurora-ground-feet-avatars"),
+                        tr!("ui-options-aurora-ground-feet-avatars-help"),
                         &field!(ground_feet_max_avatars),
                         0..=crate::settings::MAX_GROUND_FEET_AVATARS,
                         "",
                     );
                 });
             });
-            // PlayTypingAnim and FSTypeDuringEmote (panel_preferences_chat.xml)
+            // PlayTypingAnim, FSTypeDuringEmote and PlayChatAnim
+            // (panel_preferences_chat.xml)
             cx.group(tr!("ui-options-typing-and-voice"), |cx| {
                 cx.toggle(
                     tr!("ui-options-play-typing-anim"),
@@ -311,6 +344,11 @@ pub fn page(cx: &mut Cx, tab: usize) {
                         &field!(type_during_emote),
                     );
                 });
+                cx.toggle(
+                    tr!("ui-options-play-chat-anim"),
+                    tr!("ui-options-play-chat-anim-hint"),
+                    &field!(play_chat_anim),
+                );
                 cx.toggle(tr!("voice-lip-sync"), "", &field!(audio.lip_sync));
             });
             // ANIM_AGENT_CUSTOMIZE, always played by the Legacy Viewer
@@ -324,16 +362,6 @@ pub fn page(cx: &mut Cx, tab: usize) {
                     tr!("ui-options-customize-animation"),
                     tr!("ui-options-customize-animation-hint"),
                     &field!(customize_animation),
-                );
-                cx.toggle(
-                    tr!("ui-appearance-outfit-icons"),
-                    tr!("ui-appearance-outfit-icons-hint"),
-                    &field!(appearance_outfit_icons),
-                );
-                cx.toggle(
-                    tr!("ui-options-avatar-health-detach-all"),
-                    tr!("ui-options-avatar-health-detach-all-hint"),
-                    &field!(avatar_health_detach_all),
                 );
             });
         }

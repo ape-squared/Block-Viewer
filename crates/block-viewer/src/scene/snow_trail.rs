@@ -1,4 +1,4 @@
-//! Aurora Weather: footprints in the lying snow. The feet of the avatars
+//! Weather: footprints in the lying snow. The feet of the avatars
 //! near the camera (their L_FOOT / R_FOOT collision volumes, as the water's
 //! contacts read them) are watched; a foot that lifts and is set down again
 //! presses its print, a rounded sole along its heading, into the renderer's

@@ -14,6 +14,7 @@ mod draft;
 mod estate_wide;
 mod interventions;
 mod manage;
+mod opensim;
 mod overview;
 mod people;
 mod surface;
@@ -197,11 +198,11 @@ pub struct ManageDemo {
 
 /// The menus' and About Land's request to open the window.
 pub fn request_open(ctx: &egui::Context) {
-    ctx.data_mut(|d| d.insert_temp(egui::Id::unique("block_open_region_estate"), true));
+    ctx.data_mut(|d| d.insert_temp(egui::Id::unique("aurora_open_region_estate"), true));
 }
 
 pub fn take_open_request(ctx: &egui::Context) -> bool {
-    ctx.data_mut(|d| d.remove_temp::<bool>(egui::Id::unique("block_open_region_estate")))
+    ctx.data_mut(|d| d.remove_temp::<bool>(egui::Id::unique("aurora_open_region_estate")))
         .unwrap_or(false)
 }
 
@@ -480,7 +481,14 @@ impl RegionUi {
             .or_else(|| info.as_ref().map(|i| i.owner))
             .unwrap_or_default();
         let manager = info.as_ref().is_some_and(|i| i.is_estate_manager);
-        let role = estate::role(world.agent_id, owner, manager);
+        // a god has the owner's whole window (LLPanelEstateInfo /
+        // LLPanelEstateAccess::updateControls: god || owner || manager, the
+        // terrain's and the managers' list owner_or_god); the region checks
+        let role = if world.god_level > 0 {
+            Role::Owner
+        } else {
+            estate::role(world.agent_id, owner, manager)
+        };
         View {
             handle,
             role,

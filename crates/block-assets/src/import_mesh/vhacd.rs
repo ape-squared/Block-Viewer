@@ -12,7 +12,7 @@ use std::{
 };
 
 unsafe extern "C" {
-    fn block_vhacd_compute(
+    fn aurora_vhacd_compute(
         points: *const f32,
         count: u32,
         triangles: *const u32,
@@ -25,9 +25,9 @@ unsafe extern "C" {
         callback: extern "C" fn(*mut c_void, f64) -> bool,
         context: *mut c_void,
     ) -> *mut c_void;
-    fn block_vhacd_free(result: *mut c_void);
-    fn block_vhacd_count(result: *const c_void) -> u32;
-    fn block_vhacd_hull(
+    fn aurora_vhacd_free(result: *mut c_void);
+    fn aurora_vhacd_count(result: *const c_void) -> u32;
+    fn aurora_vhacd_hull(
         result: *const c_void,
         index: u32,
         points: *mut f32,
@@ -41,7 +41,7 @@ impl Drop for Result {
     fn drop(&mut self) {
         // SAFETY: this is the unique handle returned by compute; Drop runs once.
         unsafe {
-            block_vhacd_free(self.0.as_ptr());
+            aurora_vhacd_free(self.0.as_ptr());
         }
     }
 }
@@ -70,7 +70,7 @@ pub(super) fn analyze(
     // indices were checked by geometry(). Both buffers and context outlive
     // the synchronous call. C++ catches exceptions at this ABI boundary.
     let result = unsafe {
-        block_vhacd_compute(
+        aurora_vhacd_compute(
             points.as_ptr().cast(),
             points.len() as u32,
             triangles.as_ptr().cast(),
@@ -90,7 +90,7 @@ pub(super) fn analyze(
     }
     let result = result.ok_or_else(|| AssetError::invalid("physics analysis failed"))?;
     // SAFETY: result remains alive until every hull has been copied.
-    let count = unsafe { block_vhacd_count(result.0.as_ptr()) };
+    let count = unsafe { aurora_vhacd_count(result.0.as_ptr()) };
     if !(1..=options.max_hulls).contains(&count) {
         return Err(AssetError::invalid("physics hull count"));
     }
@@ -100,7 +100,7 @@ pub(super) fn analyze(
         let mut faces = 0;
         // SAFETY: null buffers request counts only; output pointers are valid.
         if !unsafe {
-            block_vhacd_hull(
+            aurora_vhacd_hull(
                 result.0.as_ptr(),
                 index,
                 std::ptr::null_mut(),
@@ -121,7 +121,7 @@ pub(super) fn analyze(
         // SAFETY: capacities match the queried counts and the C++ bridge
         // checks them again before writing. Scalars use the same ABI layout.
         if !unsafe {
-            block_vhacd_hull(
+            aurora_vhacd_hull(
                 result.0.as_ptr(),
                 index,
                 hull.vertices.as_mut_ptr().cast(),

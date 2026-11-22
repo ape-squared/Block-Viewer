@@ -45,7 +45,7 @@ fn read(text: &str) -> Result<Preferences, String> {
     }
     let mut doc: Document = serde_json::from_str(text).map_err(|_| invalid())?;
     let id = |s: &str| !s.is_empty() && s.len() <= 512 && s.bytes().all(|c| c.is_ascii_alphanumeric() || b":_-/".contains(&c));
-    if doc.format != "block-scene-menus"
+    if doc.format != "aurora-scene-menus"
         || doc.version != 1
         || doc.menus.profiles.len() > SCOPES.len()
         || !doc
@@ -64,14 +64,14 @@ fn read(text: &str) -> Result<Preferences, String> {
 
 fn write(menus: &Preferences) -> Result<String, String> {
     let text = serde_json::to_string_pretty(&Document {
-        format: "block-scene-menus".into(),
+        format: "aurora-scene-menus".into(),
         version: 1,
         menus: menus.clone(),
     })
     .map_err(|_| invalid())?;
     let locked = read(&text)?;
     serde_json::to_string_pretty(&Document {
-        format: "block-scene-menus".into(),
+        format: "aurora-scene-menus".into(),
         version: 1,
         menus: locked,
     })
@@ -271,7 +271,7 @@ mod tests {
             assert_eq!(imported.profiles.get(scope), Some(&*profile));
         }
         assert!(read(&text.replace("scene:land", "inventory:shared")).is_err());
-        assert!(read(&text.replace("block-scene-menus", "block-inventory-menu")).is_err());
+        assert!(read(&text.replace("aurora-scene-menus", "aurora-inventory-menu")).is_err());
         assert!(read(&text.replace("\"version\": 1", "\"version\": 255")).is_err());
         assert!(read(&"x".repeat(block_net::inventory::notecard::MAX_TEXT_BYTES + 1)).is_err());
     }

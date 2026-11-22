@@ -100,11 +100,6 @@ impl World {
                 if is_temp_attachment(o.full_id, Some(item)) && !self.inventory.items.contains_key(&item) {
                     return None;
                 }
-                // Server said the AttachItemID does not exist (Experience
-                // temps that do not match is_temp_attachment) — #1812.
-                if self.inventory.missing_items.contains(&item) {
-                    return None;
-                }
                 Some((item, o.attachment_point()))
             })
     }
@@ -115,16 +110,6 @@ impl World {
 
     pub fn outfit_attachment_points(&self) -> HashMap<Uuid, u8> {
         self.outfit_attachments().collect()
-    }
-
-    /// Worn attachments for `appearance::plan`: leave out items already
-    /// marked for detach while the region has not killed them yet, so a
-    /// later outfit write (e.g. RLVa `@detach:<folder>=force` from the
-    /// detaching object) does not put their COF link back (#1739 / #1735).
-    pub fn outfit_plan_points(&self) -> HashMap<Uuid, u8> {
-        self.outfit_attachments()
-            .filter(|(item, _)| !self.outfit.is_removed(*item))
-            .collect()
     }
 
     /// LLAgentWearables::getTempAttachments, by attachment point.

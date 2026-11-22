@@ -15,6 +15,11 @@ pub fn page(cx: &mut Cx) {
             tr!("ui-options-world-mouse-walk-help"),
             &field!(world_mouse_walk),
         );
+        cx.toggle(
+            tr!("ui-options-mmo-mouse-buttons"),
+            tr!("ui-options-mmo-mouse-buttons-help"),
+            &field!(mmo_mouse_buttons),
+        );
         // "Double-click on land" (double_click_action_combo)
         let choices: Vec<(crate::autopilot::DoubleClick, &str)> =
             crate::autopilot::DoubleClick::ALL.iter().map(|a| (*a, a.label())).collect();
@@ -24,11 +29,38 @@ pub fn page(cx: &mut Cx) {
             &field!(double_click),
             &choices,
         );
+        cx.toggle(
+            tr!("ui-options-double-click-scripted"),
+            tr!("ui-options-double-click-scripted-help"),
+            &field!(double_click_scripted),
+        );
         // Legacy Viewer › Protection (FSBlockClickSit)
         cx.toggle(
             tr!("ui-options-block-click-sit"),
             tr!("ui-options-block-click-sit-help"),
             &field!(block_click_sit),
+        );
+    });
+    // The rigged meshes a plain left click acts on (scene/drawn.rs). Off, the
+    // click passes through them, as LLToolPie::handleMouseDown does for all
+    // of them (`pick_rigged = false`); animesh are on at the human's request.
+    cx.group(tr!("ui-options-rigged-clicks"), |cx| {
+        // (a search for "rigged" lists it with the other two)
+        let section = tr!("ui-options-rigged-clicks").to_string();
+        cx.keywords(&section).toggle(
+            tr!("ui-options-rigged-click-animesh"),
+            tr!("ui-options-rigged-click-animesh-help"),
+            &field!(rigged_click_animesh),
+        );
+        cx.toggle(
+            tr!("ui-options-rigged-click-own"),
+            tr!("ui-options-rigged-click-own-help"),
+            &field!(rigged_click_own),
+        );
+        cx.toggle(
+            tr!("ui-options-rigged-click-others"),
+            tr!("ui-options-rigged-click-others-help"),
+            &field!(rigged_click_others),
         );
     });
     cx.group(tr!("ui-options-keyboard"), |cx| {
@@ -52,6 +84,12 @@ pub fn page(cx: &mut Cx) {
             tr!("ui-options-walk-backwards-without-turning"),
             tr!("ui-options-walk-backwards-without-turning-help"),
             &field!(walk_backwards_without_turning),
+        );
+        // FSTurnAvatarToSelectedObject
+        cx.toggle(
+            tr!("ui-options-turn-to-selected"),
+            tr!("ui-options-turn-to-selected-help"),
+            &field!(turn_to_selected),
         );
         // AutomaticFly (agent_jump / LLAgent::propagate), split into two
         // independent choices at the human's request.
@@ -77,6 +115,18 @@ pub fn page(cx: &mut Cx) {
             tr!("ui-options-fly-after-teleport-help"),
             &field!(fly_after_teleport),
         );
+        // FSAlwaysShowTPCancel (panel_preferences_move.xml)
+        cx.toggle(
+            tr!("ui-options-always-show-teleport-cancel"),
+            tr!("ui-options-always-show-teleport-cancel-help"),
+            &field!(always_show_tp_cancel),
+        );
+        // FSShowBackSLURL (panel_preferences_move.xml)
+        cx.toggle(
+            tr!("ui-options-show-back-slurl"),
+            tr!("ui-options-show-back-slurl-help"),
+            &field!(show_back_slurl),
+        );
         friends_only_row(cx);
         friends_only_keep_row(cx);
         cx.link(
@@ -90,9 +140,9 @@ pub fn page(cx: &mut Cx) {
 }
 
 /// "Show Friends Only" itself (FSRenderFriendsOnly), the switch of the
-/// toolbar button and the World menu: an Aurora addition (#2535), the Legacy
-/// Viewer has only the next row in its Preferences. Kept per account, so it
-/// waits for a login.
+/// toolbar button and the World menu: an Aurora addition, the Legacy Viewer
+/// has only the next row in its Preferences. Kept per account, so it waits
+/// for a login.
 fn friends_only_row(cx: &mut Cx) {
     use block_i18n::tr;
     let p = cx.p;

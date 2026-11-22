@@ -190,9 +190,6 @@ pub fn show(
     let title = block_i18n::tr!("ao-title");
     prototype::workbench(ctx, p, state, open);
     Floater::new("ao", title, egui::pos2(220.0, 120.0), Vec2::new(560.0, 760.0))
-        // Hold width/height once opened so UI scale ≠ 100% cannot inflate the
-        // body through ScrollArea + set_min_size (Aurora #1824 / #1761).
-        .steady_size()
         .help(block_i18n::tr!("ao-help"))
         .show(ctx, p, open, |ui| {
             if prototype::before(ui, p, state) {
@@ -273,6 +270,8 @@ pub fn show(
                         }
                         if widgets::icon_button(ui, p, "trash-filled", block_i18n::tr!("common-delete"), true) {
                             state.remove = Some(set.id);
+                            // the question left folded to its title bar opens again
+                            widgets::bring_floater_front(ui.ctx(), "ao_remove");
                         }
                     }
                 });
@@ -481,7 +480,7 @@ fn dialogs(ctx: &egui::Context, p: &Palette, inv: &mut Inventory, catalog: &inve
         )
         .show(ctx, p, &mut open, |ui| {
             ui.label(block_i18n::tr!("ao-picker-help"));
-            ui.text_edit_singleline(&mut state.filter);
+            crate::ui::widgets::search_text_edit(ui, p, &mut state.filter, |edit| edit);
             let key = (
                 inv.generation,
                 state.filter.clone(),

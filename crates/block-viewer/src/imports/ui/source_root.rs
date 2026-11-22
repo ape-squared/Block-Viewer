@@ -104,8 +104,8 @@ fn loose(ui: &mut egui::Ui, p: &Palette, imports: &mut Imports) {
     }
     editor.applied = imports.folders.roots.loose.clone();
     let mut enabled = imports.folders.roots.loose.is_some();
-    let toggle =
-        checkbox(ui, p, &mut enabled, block_i18n::tr!("import-create-folder")).on_hover_text(block_i18n::tr!("import-create-folder-help"));
+    let toggle = checkbox(ui, p, &mut enabled, block_i18n::tr!("import-create-folder"))
+        .on_hover_text(block_i18n::tr!("import-create-folder-help"));
     #[cfg(test)]
     ui.ctx()
         .data_mut(|data| data.insert_temp(egui::Id::unique("import_create_folder"), toggle.rect));

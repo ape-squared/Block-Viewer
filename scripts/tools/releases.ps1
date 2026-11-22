@@ -1,7 +1,7 @@
-﻿# Block Tools: manage the GitHub releases — create one (a SemVer tag on the
+# Aurora Tools: manage the GitHub releases — create one (a SemVer tag on the
 # latest main: the Release workflow builds and publishes it) or delete one
-# (dot-sourced by block-tools.ps1). Needs write access to the repository.
-# $DryRun (block-tools.ps1 -DryRun) prints the GitHub writes instead.
+# (dot-sourced by aurora-tools.ps1). Needs write access to the repository.
+# $DryRun (aurora-tools.ps1 -DryRun) prints the GitHub writes instead.
 
 # gh's JSON output as objects, one per array item: Windows PowerShell 5.1
 # passes a whole JSON array down the pipeline as a single object, so
@@ -108,7 +108,7 @@ function New-AuroraRelease($Repo) {
     foreach ($p in $ctx.Prs) { $t = Get-PrType $p; $types[$t] = 1 + [int]$types[$t] }
     $summary = (($types.GetEnumerator() | Sort-Object Name | ForEach-Object { "$($_.Value) $($_.Name)" }) -join ', ')
     if (-not $summary) { $summary = 'no PR' }
-    # SemVer before 1.0: a new feature or a break bumps MINOR, the rest PATCH
+    # SemVer before 1.0 (AGENTS.md): a new feature or a break bumps MINOR, the rest PATCH
     $minor = "v$($base.Major).$($base.Minor + 1).0"
     $patch = "v$($base.Major).$($base.Minor).$($base.Patch + 1)"
     $major = "v$($base.Major + 1).0.0"
@@ -147,7 +147,7 @@ function New-AuroraRelease($Repo) {
     if (-not $policy) { return }
     Show-Logo 'Confirmation of the release'
     Write-Color "  $tag, on the latest main$(if ($pre) { ', as a pre-release' }): the Release workflow builds the viewer and publishes the Windows zip with the notes, then adds the Linux archive." ink
-    Write-Color "  Update: $(if ($policy.minimum_supported_version) { 'required for versions before ' + $policy.minimum_supported_version + ' (login blocked until they update)' } else { 'optional for every version' })." ink
+    Write-Color "  Update: $(if ($policy.minimum_supported_version) { 'required for versions before ' + $policy.minimum_supported_version + " ($(Get-GraceText $policy.grace_hours) until they update)" } else { 'optional for every version' })." ink
     Write-Color "  Cache: $(if ($policy.cache_invalidation_before) { 'cleared for versions before ' + $policy.cache_invalidation_before } else { 'kept' })." ink
     Write-Color "  Settings: $(if ($policy.settings_reset_before) { 'reset for versions before ' + $policy.settings_reset_before } else { 'kept and migrated automatically if needed' })." ink
     if (-not (Read-YesNo "Create the release ${tag}?")) { return }

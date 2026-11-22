@@ -97,7 +97,7 @@ const LEVEL_STEP: f32 = 0.01;
 const LOG_LEVEL_STEP: f32 = 0.05;
 const LOG_DECAY_STEP: f32 = 0.08;
 const LOG_EVERY: Duration = Duration::from_millis(500);
-/// The profile's summary line (BLOCK_PROFILE).
+/// The profile's summary line (AURORA_PROFILE).
 const SUMMARY_EVERY: Duration = Duration::from_secs(10);
 /// Samples of the terrain along a ray near the horizon, and refinements of
 /// a ray going down.
@@ -110,11 +110,11 @@ const DOWN_STEPS: usize = 3;
 const STEEP: f32 = -0.25;
 const MARCH_TOP: f32 = 0.3;
 
-/// `BLOCK_SOUND_REVERB=0|1`: the setting overridden for this launch (A/B
+/// `AURORA_SOUND_REVERB=0|1`: the setting overridden for this launch (A/B
 /// measures), never saved.
 pub fn forced() -> Option<bool> {
     static FORCED: OnceLock<Option<bool>> = OnceLock::new();
-    *FORCED.get_or_init(|| match std::env::var("BLOCK_SOUND_REVERB").as_deref() {
+    *FORCED.get_or_init(|| match std::env::var("AURORA_SOUND_REVERB").as_deref() {
         Ok("0") => Some(false),
         Ok("1") => Some(true),
         _ => None,
@@ -447,9 +447,9 @@ pub struct SoundReverb {
     /// The send factor last given to each voice.
     sends: HashMap<u64, f32>,
     logged: Option<(ReverbParams, Instant)>,
-    /// Log lines at info level (BLOCK_DEMO_SOUND_REVERB), else debug.
+    /// Log lines at info level (AURORA_DEMO_SOUND_REVERB), else debug.
     verbose: bool,
-    /// A summary every ten seconds (BLOCK_PROFILE).
+    /// A summary every ten seconds (AURORA_PROFILE).
     profile: bool,
     stats: Stats,
     candidates: Vec<(usize, f32)>,
@@ -470,7 +470,7 @@ impl Default for SoundReverb {
             sends: HashMap::new(),
             logged: None,
             verbose: crate::demo::sound_reverb::active(),
-            profile: std::env::var_os("BLOCK_PROFILE").is_some(),
+            profile: std::env::var_os("AURORA_PROFILE").is_some(),
             stats: Stats::default(),
             candidates: Vec::new(),
         }

@@ -519,7 +519,7 @@ fn draw(
     });
     let read = device.create_buffer(&wgpu::BufferDescriptor {
         label: Some("photo look test"),
-        size: (padded * size.1) as u64,
+        size: crate::readback::readback_size((padded * size.1) as u64),
         usage: wgpu::BufferUsages::COPY_DST | wgpu::BufferUsages::MAP_READ,
         mapped_at_creation: false,
     });
@@ -699,17 +699,17 @@ fn looks_shader_is_valid() {
 }
 
 #[test]
-fn every_block_look_reads_into_its_section() {
-    let looks = block_looks();
+fn every_aurora_look_reads_into_its_section() {
+    let looks = aurora_looks();
     assert_eq!(looks.len(), 36);
     for look in looks {
         assert!(!look.ops.is_empty(), "{}", look.id);
         assert!(plan(&look.ops).passes.len() < MAX_PASSES, "{}", look.id);
     }
-    let instant = block_look("instant").expect("instant");
+    let instant = aurora_look("instant").expect("instant");
     assert_eq!(instant.section, AuroraSection::Film);
     assert!(matches!(instant.ops.last(), Some(LookOp::Frame { .. })));
-    assert!(plan(&block_look("subject").expect("subject").ops).focus);
+    assert!(plan(&aurora_look("subject").expect("subject").ops).focus);
 }
 
 #[test]
@@ -783,14 +783,14 @@ fn an_identity_table_changes_nothing() {
 }
 
 #[test]
-fn every_block_look_draws() {
+fn every_aurora_look_draws() {
     let _gpu = crate::test_gpu::lock();
     let Some((device, queue)) = gpu() else {
         return;
     };
     let (w, h) = (96u32, 64u32);
     let image = test_image(w as usize, h as usize);
-    for look in block_looks() {
+    for look in aurora_looks() {
         eprintln!("drawing {}", look.id);
         let out = draw(
             &device,
@@ -846,4 +846,71 @@ fn stacked_layers_draw_one_after_the_other() {
     );
     let under = draw(&device, &queue, wgpu::TextureFormat::Rgba8Unorm, &stacked, (w, h), &image);
     assert_eq!(first, under);
+}
+
+/// A 360° snapshot's faces are looked at one by one, so only an operation
+/// that depends on a pixel's colour alone is applied to them. This match has
+/// no wildcard: a new operation must be classified here, and with it the
+/// answer of `is_pointwise` is checked for every operation of every look.
+#[test]
+fn only_pointwise_operations_are_applied_to_the_faces_of_a_360_snapshot() {
+    fn pointwise(op: &LookOp) -> bool {
+        match op {
+            LookOp::Sepia
+            | LookOp::GrayScale
+            | LookOp::Saturate(_)
+            | LookOp::Rotate(_)
+            | LookOp::Gamma { .. }
+            | LookOp::Colorize { .. }
+            | LookOp::Contrast { .. }
+            | LookOp::Brightness { .. }
+            | LookOp::ColorTransform(_)
+            | LookOp::Selective { .. }
+            | LookOp::GradientMap(_)
+            | LookOp::Split { .. }
+            | LookOp::Lut => true,
+            // a place in the frame, the neighbours, the depth or the histogram
+            LookOp::Stencil { .. }
+            | LookOp::Linearize { .. }
+            | LookOp::Posterize { .. }
+            | LookOp::Screen { .. }
+            | LookOp::Convolve { .. }
+            | LookOp::Grain { .. }
+            | LookOp::Chroma(_)
+            | LookOp::Distort(_)
+            | LookOp::Bars { .. }
+            | LookOp::Frame { .. }
+            | LookOp::Pixelate(_)
+            | LookOp::Glitch { .. }
+            | LookOp::Paint(_)
+            | LookOp::Clarity { .. }
+            | LookOp::Glow { .. }
+            | LookOp::Fog { .. }
+            | LookOp::DepthBlur { .. }
+            | LookOp::Subject { .. } => false,
+        }
+    }
+    let mut kept = Vec::new();
+    let mut dropped = Vec::new();
+    let legacy = parse::legacy_looks().iter().map(|(name, ops)| (name.to_string(), ops.clone()));
+    let aurora = parse::aurora_looks().iter().map(|look| (look.id.to_string(), look.ops.clone()));
+    for (name, ops) in legacy.chain(aurora) {
+        let layer = LookLayer {
+            ops: ops.clone(),
+            intensity: 1.0,
+            lut: None,
+        };
+        let expected = ops.iter().all(pointwise);
+        assert_eq!(layer.is_pointwise(), expected, "{name}");
+        for op in ops.iter() {
+            assert_eq!(op.is_pointwise(), pointwise(op), "{name}: {op:?}");
+        }
+        if expected { kept.push(name) } else { dropped.push(name) }
+    }
+    for name in ["Sepia", "BlackAndWhite", "Intense", "keep-red"] {
+        assert!(kept.iter().any(|k| k == name), "{name} is a colour look: {kept:?}");
+    }
+    for name in ["Sharpen", "Spotlight", "Posterize", "fine-grain", "fisheye", "pixel", "haze"] {
+        assert!(dropped.iter().any(|k| k == name), "{name} is not: {dropped:?}");
+    }
 }

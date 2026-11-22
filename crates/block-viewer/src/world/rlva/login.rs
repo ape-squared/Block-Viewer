@@ -18,22 +18,16 @@ impl Writer {
     fn start(path: PathBuf) -> Option<Self> {
         let (sender, writes) = crossbeam_channel::bounded::<Flags>(1);
         let discard = writes.clone();
-        let worker = std::thread::Builder::new().name("block-rlva-login".into()).spawn(move || {
-            while let Ok(mut flags) = writes.recv() {
-                while let Ok(newer) = writes.try_recv() {
-                    flags = newer;
+        let worker = std::thread::Builder::new().name("aurora-rlva-login".into()).spawn(move || {
+            // a refused write is tried again, and once more when the
+            // writer goes (save_retry)
+            crate::save_retry::write_latest("RLVa next-login state", &writes, |flags| {
+                if let Some(parent) = path.parent() {
+                    std::fs::create_dir_all(parent)?;
                 }
-                let save = || -> std::io::Result<()> {
-                    if let Some(parent) = path.parent() {
-                        std::fs::create_dir_all(parent)?;
-                    }
-                    let bytes = serde_json::to_vec(&flags).map_err(std::io::Error::other)?;
-                    crate::atomic_file::write(&path, &bytes)
-                };
-                if let Err(error) = save() {
-                    log::warn!("Cannot save RLVa next-login state: {error}");
-                }
-            }
+                let bytes = serde_json::to_vec(flags).map_err(std::io::Error::other)?;
+                crate::atomic_file::write(&path, &bytes)
+            });
         });
         match worker {
             Ok(worker) => Some(Self {
@@ -155,7 +149,7 @@ mod tests {
 
     #[test]
     fn rlva_login_state_coalesces_writes_and_persists_the_final_disable_without_frame_thread_io() {
-        let directory = std::env::temp_dir().join(format!("block-rlva-login-{}", Uuid::new_v4()));
+        let directory = std::env::temp_dir().join(format!("aurora-rlva-login-{}", Uuid::new_v4()));
         let path = directory.join("login.json");
         let a = Uuid::from_u128(1);
         {

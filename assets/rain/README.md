@@ -34,7 +34,7 @@ each fades in over 20 ms and out over its last 4 to 6 s, peaks at -1 dBFS.
 ## Wanted
 
 Recordings the rain still needs. Each has an open slot in
-`crates/aurora-viewer/src/scene/rain_sound.rs` with a fallback, so the
+`crates/block-viewer/src/scene/rain_sound.rs` with a fallback, so the
 rain sounds complete without them; a recording filling a slot takes over
 from its fallback. Same format as above: 48 kHz stereo Ogg Vorbis, a
 seamless loop of 30 s or more with no recognisable repeat, levelled to

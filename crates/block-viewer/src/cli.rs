@@ -18,6 +18,7 @@ pub struct Cli {
     /// `--vr`: enter VR once the world shows (the restart that the VR
     /// button offers when the headset came after startup passes it).
     pub vr: bool,
+    pub vr_mode: crate::camera::VrView,
     /// `--grid <name>` or `--loginuri <uri>` (CmdLineGridChoice,
     /// CmdLineLoginURI): the grid the login screen starts on.
     pub grid: Option<Grid>,
@@ -115,6 +116,12 @@ fn parse(args: impl Iterator<Item = String>) -> Cli {
             cli.title = args.next();
         } else if a == "--vr" {
             cli.vr = true;
+        } else if let Some(mode) = a.strip_prefix("--vr-mode=") {
+            cli.vr_mode = match mode {
+                "avatar" => crate::camera::VrView::Avatar,
+                "flycam" => crate::camera::VrView::Flycam,
+                _ => crate::camera::VrView::FirstPerson,
+            };
         } else if let Some(v) = a.strip_prefix("--fps-limit=") {
             cli.fps_limit = parse_fps_limit(v);
         } else if a == "--fps-limit" {
@@ -191,7 +198,10 @@ fn parse_login_uri(value: &str) -> Option<Grid> {
 fn parse_fps_limit(value: &str) -> Option<u32> {
     let limit = value.trim().parse::<u32>().ok().filter(|fps| (1..=500).contains(fps));
     if limit.is_none() {
-        eprintln!("{}", block_i18n::tr!("cli-fps-limit-requires-a-value-between-1-and-500").to_owned());
+        eprintln!(
+            "{}",
+            block_i18n::tr!("cli-fps-limit-requires-a-value-between-1-and-500").to_owned()
+        );
     }
     limit
 }
@@ -237,7 +247,7 @@ fn title_with(title: Option<&str>, profile_dir: &str, version: &str) -> String {
 }
 
 /// Label of a cargo profile from its target directory (`dev` builds into
-/// `debug`; `debugging` is block-tools' debug viewer).
+/// `debug`; `debugging` is aurora-tools' debug viewer).
 pub fn profile_label(dir: &str) -> Option<&'static str> {
     match dir {
         "release" => Some("Release"),
@@ -294,25 +304,24 @@ mod tests {
 
     #[test]
     fn title_ends_with_the_build_profile() {
+        // the catalogue's own words: a language may join the name, the
+        // version and the title another way than " - " (Japanese does), and
+        // translate "Debug"
+        let named = |version: &str, title: &str| block_i18n::tr!("cli-block-viewer-2", version = version, t = title);
+        let plain = |version: &str| block_i18n::tr!("cli-block-viewer", version = version);
         assert_eq!(
             title_with(Some("Test ombres"), "debug", "0.2.0"),
-            block_i18n::tr!("cli-block-viewer", version = "0.2.0 - Test ombres (Dev)").as_str()
+            format!("{} (Dev)", named("0.2.0", "Test ombres"))
         );
-        assert_eq!(
-            title_with(None, "release", "0.2.0"),
-            block_i18n::tr!("cli-block-viewer", version = "0.2.0 (Release)").as_str()
-        );
+        assert_eq!(title_with(None, "release", "0.2.0"), format!("{} (Release)", plain("0.2.0")));
         assert_eq!(
             title_with(None, "debugging", "0.2.0"),
-            block_i18n::tr!("cli-block-viewer", version = "0.2.0 (Debug)").as_str()
+            format!("{} ({})", plain("0.2.0"), block_i18n::tr!("common-debug"))
         );
-        assert_eq!(
-            title_with(Some("X"), "unknown", "0.2.0"),
-            block_i18n::tr!("cli-block-viewer", version = "0.2.0 - X").as_str()
-        );
+        assert_eq!(title_with(Some("X"), "unknown", "0.2.0"), named("0.2.0", "X"));
         assert_eq!(
             title_with(None, "debug", "0.2.0+7.gabcdef123"),
-            block_i18n::tr!("cli-block-viewer", version = "0.2.0+7.gabcdef123 (Dev)").as_str()
+            format!("{} (Dev)", plain("0.2.0+7.gabcdef123"))
         );
     }
 

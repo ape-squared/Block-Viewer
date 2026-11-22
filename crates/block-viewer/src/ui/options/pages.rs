@@ -3,14 +3,16 @@
 
 pub mod accessibility;
 pub mod appearance;
+pub mod aurora;
 pub mod avatars;
-pub mod block;
+pub mod build;
 pub mod camera;
 pub mod chat;
 pub mod commands;
 pub mod confirmations;
 pub mod controls;
 pub mod fun;
+pub mod game_controls;
 pub mod graphics;
 pub mod inventory;
 pub mod joystick;
@@ -19,11 +21,13 @@ pub mod media;
 pub mod network;
 pub mod privacy;
 pub mod protections;
+pub mod proxy;
 pub mod rlva;
 pub mod shortcuts;
 pub mod sound;
 pub mod spelling;
 pub mod system;
+pub mod vr;
 
 use super::Page;
 use super::cx::Cx;
@@ -51,15 +55,19 @@ pub fn tabs(page: Page) -> Vec<&'static str> {
             block_i18n::tr!("common-mouselook"),
         ],
         Page::Controls => vec![block_i18n::tr!("ui-options-page-controls"), block_i18n::tr!("joystick-title")],
+        Page::Gamepad => vec![
+            block_i18n::tr!("joystick-gamepad-settings"),
+            block_i18n::tr!("joystick-map-controls"),
+        ],
         Page::Avatars => vec![
             block_i18n::tr!("ui-options-tab-name-tags"),
             block_i18n::tr!("ui-options-names"),
             block_i18n::tr!("ui-options-look-at-targets"),
-            block_i18n::tr!("ui-options-block-animations"),
+            block_i18n::tr!("ui-options-aurora-animations"),
         ],
         Page::Chat => vec![
             block_i18n::tr!("common-nearby-chat"),
-            block_i18n::tr!("ui-options-block-notifications"),
+            block_i18n::tr!("ui-options-aurora-notifications"),
             block_i18n::tr!("ui-options-tab-keywords"),
             block_i18n::tr!("ui-options-tab-history"),
             block_i18n::tr!("ui-options-tab-away-and-replies"),
@@ -81,6 +89,7 @@ pub fn tabs(page: Page) -> Vec<&'static str> {
             block_i18n::tr!("ui-options-colors"),
             block_i18n::tr!("extra-skin"),
         ],
+        Page::GameControls => game_controls::tabs(),
         Page::Shortcuts => shortcuts::tabs(),
         _ => vec![page.name()],
     }
@@ -89,10 +98,12 @@ pub fn tabs(page: Page) -> Vec<&'static str> {
 /// The rows of one tab of a page.
 pub fn draw(cx: &mut Cx, page: Page, tab: usize) {
     match page {
-        Page::Aurora => block::page(cx, tab),
+        Page::Aurora => aurora::page(cx, tab),
         Page::Graphics => graphics::page(cx, tab),
         Page::Camera => camera::page(cx, tab),
+        Page::Vr => vr::page(cx),
         Page::Avatars => avatars::page(cx, tab),
+        Page::Build => build::page(cx),
         Page::Chat => chat::page(cx, tab),
         Page::Sound => sound::page(cx, tab),
         Page::Media => media::page(cx),
@@ -111,6 +122,8 @@ pub fn draw(cx: &mut Cx, page: Page, tab: usize) {
                 joystick::page(cx)
             }
         }
+        Page::Gamepad => joystick::gamepad_page(cx, tab),
+        Page::GameControls => game_controls::page(cx, tab),
         Page::Shortcuts => shortcuts::page(cx, tab),
         Page::Commands => commands::page(cx),
         Page::System => system::page(cx),

@@ -81,6 +81,9 @@ pub struct Scenario {
     pub estate_wide: Option<EstateWideDialog>,
     /// The classic window (the Legacy Viewer's tabs).
     pub classic: bool,
+    /// The region is an Aurora-Sim one: DispatchOpenRegionSettings and
+    /// OpenRegionInfo ("Region settings").
+    pub open_settings: bool,
 }
 
 fn parse(v: &str) -> Scenario {
@@ -95,6 +98,7 @@ fn parse(v: &str) -> Scenario {
         top: None,
         estate_wide: None,
         classic: false,
+        open_settings: false,
     };
     for part in v.split(':').map(str::trim) {
         match part {
@@ -147,6 +151,10 @@ fn parse(v: &str) -> Scenario {
             "environment" => s.manage.section = Some(5),
             "experiences" => s.manage.section = Some(6),
             "covenant" => s.manage.section = Some(7),
+            "open-settings" => {
+                s.manage.section = Some(8);
+                s.open_settings = true;
+            }
             "pick-env" => {
                 s.manage.section = Some(5);
                 s.estate_wide = Some(EstateWideDialog::environment());
@@ -215,6 +223,13 @@ fn parse(v: &str) -> Scenario {
             "pending" => s.manage.pending = true,
             "ask-override" => s.manage.ask = Some(Ask::AccessOverride),
             "ask-linden" => s.manage.ask = Some(Ask::LindenEstate),
+            "ask-restrict" => {
+                use block_net::estate::estate_flags as ef;
+                s.manage.ask = Some(Ask::RestrictAccess {
+                    what: ef::EXTERNALLY_VISIBLE,
+                    here: 3,
+                })
+            }
             "ask-bonus" => {
                 s.manage.section = Some(1);
                 s.manage.ask = Some(Ask::ObjectBonus { dont_ask: false });
@@ -298,6 +313,38 @@ pub fn is_manager() -> bool {
     scenario().is_some_and(|s| s.role == Role::Manager)
 }
 
+fn open_settings() -> bool {
+    scenario().is_some_and(|s| s.open_settings)
+}
+
+/// `open-settings`: the capability of the "Region settings" tab.
+pub fn open_settings_caps() -> Vec<(String, String)> {
+    if open_settings() {
+        vec![(block_net::open_region::CAP.to_owned(), "demo://open-region-settings".to_owned())]
+    } else {
+        Vec::new()
+    }
+}
+
+/// `open-settings`: the OpenRegionInfo an Aurora-Sim region sends on
+/// arrival, a few values away from the defaults.
+pub fn open_settings_event(handle: block_net::RegionHandle) -> Option<NetEvent> {
+    open_settings().then(|| NetEvent::OpenRegionSettings {
+        handle,
+        settings: Box::new(block_net::open_region::OpenRegionSettings {
+            draw_distance: 256.0,
+            max_prim_scale: 64.0,
+            max_phys_prim_scale: 32.0,
+            max_link_count: 255,
+            max_link_count_phys: 32,
+            max_inventory_items_transfer: -1,
+            show_tags: 1,
+            max_groups: Some(60),
+            ..Default::default()
+        }),
+    })
+}
+
 /// The estate is answered to its owner and managers only.
 fn manages() -> bool {
     scenario().is_some_and(|s| s.role != Role::Resident)
@@ -326,7 +373,7 @@ const QUINN: Uuid = Uuid::from_u128(0x6E6E_0000_0000_0000_0000_0000_0000_0010);
 /// but no join / subdivide, parcels with their own environment.
 pub fn region_details() -> RegionDetails {
     RegionDetails {
-        name: block_i18n::tr!("common-block-demo").into(),
+        name: block_i18n::tr!("common-aurora-demo").into(),
         estate_id: ESTATE_ID,
         parent_estate_id: 1,
         flags: u64::from(rf::BLOCK_TERRAFORM | rf::RESTRICT_PUSHOBJECT | rf::ALLOW_VOICE) | ef::ALLOW_ENVIRONMENT_OVERRIDE,
@@ -842,7 +889,7 @@ fn now_stamp() -> String {
 
 fn estate_info() -> EstateInfo {
     EstateInfo {
-        name: block_i18n::tr!("common-block-demo").into(),
+        name: block_i18n::tr!("common-aurora-demo").into(),
         owner: estate_owner(),
         id: ESTATE_ID,
         flags: with_sent(|s| s.1),
@@ -903,6 +950,11 @@ pub fn reply(c: &EstateCommand) -> Vec<NetEvent> {
             });
             region_info(*handle)
         }
+        // the region takes the tab and says it again
+        EstateCommand::SetOpenRegionSettings { handle, settings } => vec![NetEvent::OpenRegionSettings {
+            handle: *handle,
+            settings: Box::new(*settings),
+        }],
         EstateCommand::BakeTerrain { .. } => Vec::new(),
         EstateCommand::Refresh { handle } => {
             let handle = *handle;
@@ -962,7 +1014,7 @@ pub fn reply(c: &EstateCommand) -> Vec<NetEvent> {
         EstateCommand::Restart { seconds, .. } if *seconds < 0 => vec![NetEvent::RegionRestartCancelled],
         EstateCommand::Restart { seconds, .. } => vec![NetEvent::RegionRestart(block_net::region_restart::Notice {
             seconds: *seconds,
-            region: Some(block_i18n::tr!("common-block-demo").into()),
+            region: Some(block_i18n::tr!("common-aurora-demo").into()),
             opensim: false,
         })],
         EstateCommand::SetRestartSchedule { handle, days, seconds } => {
@@ -1079,9 +1131,13 @@ mod tests {
                 top: None,
                 estate_wide: None,
                 classic: false,
+                open_settings: false,
             }
         );
         assert_eq!(parse("overview:resident").role, Role::Resident);
+        let o = parse("manage:open-settings");
+        assert!(o.open_settings);
+        assert_eq!(o.manage.section, Some(8));
         assert_eq!(parse("overview:manager").role, Role::Manager);
         let s = parse("overview:owner:preview:compact");
         assert!(s.preview && s.compact);

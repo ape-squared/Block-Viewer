@@ -20,7 +20,7 @@ struct Result {
     ~Result() { if (algorithm) algorithm->Release(); }
 };
 
-extern "C" Result* block_vhacd_compute(const float* points, uint32_t point_count,
+extern "C" Result* aurora_vhacd_compute(const float* points, uint32_t point_count,
     const uint32_t* triangles, uint32_t triangle_count, uint32_t resolution,
     uint32_t hulls, uint32_t vertices, double tolerance, uint32_t fill,
     Progress progress, void* context) noexcept {
@@ -47,11 +47,11 @@ extern "C" Result* block_vhacd_compute(const float* points, uint32_t point_count
         return result.release();
     } catch (...) { return nullptr; }
 }
-extern "C" void block_vhacd_free(Result* result) noexcept { delete result; }
-extern "C" uint32_t block_vhacd_count(const Result* result) noexcept {
+extern "C" void aurora_vhacd_free(Result* result) noexcept { delete result; }
+extern "C" uint32_t aurora_vhacd_count(const Result* result) noexcept {
     return result->algorithm->GetNConvexHulls();
 }
-extern "C" bool block_vhacd_hull(const Result* result, uint32_t index,
+extern "C" bool aurora_vhacd_hull(const Result* result, uint32_t index,
     float* points, uint32_t* point_count, uint32_t* triangles, uint32_t* triangle_count) noexcept {
     try {
         VHACD::IVHACD::ConvexHull hull;

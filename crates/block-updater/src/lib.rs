@@ -1,12 +1,21 @@
-//! Portable Windows updates. Optional choices follow llvvmquery.cpp and
-//! llvelopack.cpp (Firestorm, originally LGPL 2.1); package operations use
-//! a separate process because Windows keeps the running executable mapped.
+//! Portable updates, on Windows and Linux. Optional choices follow
+//! llvvmquery.cpp and llvelopack.cpp (the Legacy Viewer, originally LGPL
+//! 2.1); package operations use a separate process because Windows keeps
+//! the running executable mapped, and because it has to wait for the old
+//! viewer to close on every system.
+//!
+//! The packages differ: a ZIP named after the Windows build, a tar.gz after
+//! the Linux one ([`package::Format`]). macOS is installed by hand: its
+//! application bundle is signed and replaced as a whole.
 
 pub mod feed;
+pub mod ffmpeg_pack;
 pub mod install;
 pub mod media_pack;
 pub mod package;
 mod user_data;
+
+pub use user_data::clear_deferred_cache;
 
 /// Effects resolved for the installed version, including skipped releases.
 #[derive(Clone, Copy, Debug, Default, serde::Serialize, serde::Deserialize)]
@@ -34,7 +43,7 @@ pub fn test_environment() -> Option<&'static TestEnvironment> {
         if exe.parent()? != root.join("install") {
             return None;
         }
-        let config: serde_json::Value = serde_json::from_slice(&std::fs::read(root.join("block-update-test.json")).ok()?).ok()?;
+        let config: serde_json::Value = serde_json::from_slice(&std::fs::read(root.join("aurora-update-test.json")).ok()?).ok()?;
         if config["schema"].as_u64()? != 1 {
             return None;
         }
@@ -77,8 +86,22 @@ pub enum Failure {
     Filesystem,
     Package,
     Unsupported,
+    /// The viewer's folder sits at the root of a drive (`E:\Block Viewer`):
+    /// no folder above it to hold the update, the backup and the lock.
+    DriveRoot,
+    /// Something other than the viewer owns the installation folder: a
+    /// sandbox's read-only package (Flatpak, Snap, AppImage) or a folder this
+    /// account may not write (a system package installed by root). The
+    /// package manager or the bundle updates it, never us.
+    Protected,
     Busy,
     Startup,
+}
+
+/// Whether a release installs itself in place on this system. macOS does
+/// not: its application bundle is signed and replaced by hand.
+pub const fn installs_here() -> bool {
+    cfg!(any(windows, target_os = "linux"))
 }
 
 #[derive(Clone, Copy, Debug, Default)]

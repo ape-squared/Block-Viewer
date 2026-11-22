@@ -90,7 +90,11 @@ pub(crate) fn defaults(ui: &mut egui::Ui, p: &Palette, prefs: &mut Preferences) 
             }
         });
     ui.add_space(8.0);
-    ui.label(RichText::new(block_i18n::tr!("import-permissions-fair-use")).small().color(p.muted));
+    ui.label(
+        RichText::new(block_i18n::tr!("import-permissions-fair-use"))
+            .small()
+            .color(p.muted),
+    );
 }
 
 fn cell(ui: &mut egui::Ui, width: f32, body: impl FnOnce(&mut egui::Ui)) {

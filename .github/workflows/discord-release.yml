@@ -21,8 +21,8 @@ jobs:
         run: |
           set -euo pipefail
           if [ -z "${WEBHOOK:-}" ]; then
-            echo "DISCORD_RELEASES_WEBHOOK secret is missing" >&2
-            exit 1
+            echo "DISCORD_RELEASES_WEBHOOK secret is missing; skipping Discord notify" >&2
+            exit 0
           fi
 
           python3 - <<'PY'

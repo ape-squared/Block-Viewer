@@ -130,6 +130,7 @@ try {
         'scripts/package-macos.ps1',
         'scripts/write-update-policy.ps1',
         'scripts/build-release.ps1',
+        'packaging/linux/block-viewer.desktop',
         '.github/release-notes-header.md',
         'news/en.md',
         'news/fr.md',

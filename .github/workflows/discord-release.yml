@@ -8,6 +8,12 @@ on:
   workflow_run:
     workflows: [Release]
     types: [completed]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Viewer release tag to announce (default latest v*)
+        required: false
+        type: string
 
 permissions:
   contents: read
@@ -16,6 +22,39 @@ env:
   GH_RELEASE_JSON: tagName,name,body,url,isPrerelease,publishedAt,assets
 
 jobs:
+  notify-manual:
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          sparse-checkout: .github
+          persist-credentials: false
+      - name: Post release embed (manual)
+        env:
+          WEBHOOK: ${{ secrets.DISCORD_RELEASES_WEBHOOK || vars.DISCORD_RELEASES_WEBHOOK }}
+          TESTER_ROLE: ${{ secrets.DISCORD_TESTER_ROLE_ID || vars.DISCORD_TESTER_ROLE_ID }}
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          TAG_INPUT: ${{ inputs.tag }}
+        run: |
+          set -euo pipefail
+          if [ -z "${WEBHOOK:-}" ]; then
+            echo "::warning::Discord notify skipped — set DISCORD_RELEASES_WEBHOOK secret or variable" >&2
+            exit 0
+          fi
+          if [ -n "${TAG_INPUT:-}" ]; then
+            TAG="$TAG_INPUT"
+          else
+            TAG="$(gh release list --repo "$GH_REPO" --limit 40 --json tagName --jq '.[] | select(.tagName | test("^v[0-9]+\\.")) | .tagName' | head -1)"
+          fi
+          if [ -z "${TAG:-}" ]; then
+            echo "No viewer release on repo"
+            exit 0
+          fi
+          export RELEASE_JSON="$(gh release view "$TAG" --repo "$GH_REPO" --json "$GH_RELEASE_JSON")"
+          python3 .github/scripts/discord_release_embed.py
+
   notify:
     if: >-
       github.event_name == 'release'

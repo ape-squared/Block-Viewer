@@ -112,7 +112,8 @@ struct Perimeter {
 impl Perimeter {
     /// Name-plate outline: squarer corners than a stadium pill.
     fn of(rect: Rect, ppp: f32) -> Perimeter {
-        Perimeter::rounded(rect, super::mesh::plate_corner(rect), ppp)
+        let corner = (rect.height() * 0.18).clamp(2.5, 6.0).min(rect.width() * 0.4);
+        Perimeter::rounded(rect, corner, ppp)
     }
 
     fn rounded(rect: Rect, radius: f32, ppp: f32) -> Perimeter {

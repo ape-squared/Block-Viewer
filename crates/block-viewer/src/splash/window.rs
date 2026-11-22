@@ -86,7 +86,7 @@ pub fn run() -> anyhow::Result<()> {
 
 /// Reads the viewer's lines; its end (the viewer gone) closes the splash.
 fn spawn_reader(proxy: EventLoopProxy<Input>) -> std::io::Result<()> {
-    std::thread::Builder::new().name("block-splash-input".into()).spawn(move || {
+    std::thread::Builder::new().name("aurora-splash-input".into()).spawn(move || {
         let stdin = std::io::stdin();
         for line in stdin.lock().lines() {
             let Ok(line) = line else { break };
@@ -186,8 +186,7 @@ impl Splash {
                 ui.add_space(18.0);
                 ui.allocate_ui(Vec2::new(BAR, 30.0), |ui| {
                     let text = format!("{{}} · {}", self.step.status());
-                    // Solid signal lime (#D4FF3F). The default fill is a two-stop gradient.
-                    widgets::progress(ui, &p, "splash", fraction, BAR, &text, Some(p.violet));
+                    widgets::progress(ui, &p, "splash", fraction, BAR, &text, None);
                 });
             });
         });
@@ -262,9 +261,9 @@ impl Splash {
     }
 }
 
-/// The login screen's card over the whole window (`ui/login.rs`,
-/// `glass_card`): Block's flat sky, one lime light, the brand line along
-/// the top, the border of the overlays. Painted once: the sky stands still.
+/// The login screen's accent card over the whole window
+/// (`ui/login.rs`, `glass_card`): Block's flat sky, one lime light, the brand
+/// line along the top, the border of the overlays. Painted once.
 fn background(p: &Palette, ctx: &egui::Context, rect: egui::Rect) -> Vec<egui::epaint::ClippedShape> {
     use crate::ui::block_bg;
     let lights = vec![block_bg::radial_glow_shape(

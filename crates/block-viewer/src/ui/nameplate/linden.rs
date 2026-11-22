@@ -8,12 +8,12 @@
 //!
 //! Aurora's own: the Legacy Viewer only colours Linden names.
 
-use super::block::light;
+use super::aurora::light;
 use crate::theme::Palette;
 use egui::{Color32, Mesh, Pos2, Rect, Vec2};
 use std::f32::consts::{FRAC_PI_4, PI, TAU};
 
-/// Share of a star's light that covers what is behind it (`block::light`).
+/// Share of a star's light that covers what is behind it (`aurora::light`).
 const STAR_COVER: f32 = 0.8;
 /// Seconds the shine takes to go once around the border.
 const SHINE_LAP: f32 = 2.6;

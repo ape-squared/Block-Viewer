@@ -26,6 +26,8 @@ pub enum Query {
         target: Uuid,
         ask: Option<PoseDialog>,
     },
+    /// Region-local Block Viewer presence ping (nameplate badge for peers).
+    PeerAnnounce,
     Altitudes(Vec<Uuid>),
     ScriptInfo(Uuid),
     ObjectInfo(Uuid),
@@ -167,6 +169,7 @@ pub struct ObjectInfo {
 #[derive(Debug, Clone, PartialEq)]
 pub enum Reply {
     Pose,
+    PeerAnnounce,
     Altitudes(Vec<Altitude>),
     ScriptInfo(ScriptInfo),
     ObjectInfo(Box<ObjectInfo>),
@@ -181,6 +184,7 @@ impl Query {
                     && ask.as_ref().is_none_or(PoseDialog::valid)
                     && self.body(Uuid::nil()).len() <= MAX_BODY
             }
+            Self::PeerAnnounce => true,
             Self::Altitudes(ids) => {
                 !ids.is_empty()
                     && ids.len() <= MAX_AVATARS
@@ -196,6 +200,7 @@ impl Query {
                 Some(dialog) => format!("query|{token}|pose|ask,{request},{target},{}", dialog.encode()),
                 None => format!("query|{token}|pose|forget,{request},{target}"),
             },
+            Self::PeerAnnounce => format!("query|{token}|peer|"),
             Self::Altitudes(ids) => format!(
                 "query|{token}|altitudes|{}",
                 ids.iter().map(Uuid::to_string).collect::<Vec<_>>().join(",")
@@ -212,6 +217,7 @@ impl Query {
         let values = value.as_array()?;
         match self {
             Self::Pose { .. } => values.is_empty().then_some(Reply::Pose),
+            Self::PeerAnnounce => values.is_empty().then_some(Reply::PeerAnnounce),
             Self::Altitudes(requested) => {
                 if values.len() > requested.len() * 2 || values.len() % 2 != 0 {
                     return None;
@@ -433,6 +439,14 @@ mod tests {
         for kind in [PoseKind::Accept, PoseKind::Refuse, PoseKind::Withdraw] {
             assert_eq!(PoseKind::parse(kind.wire()), Some(kind));
         }
+    }
+    #[test]
+    fn peer_announce_is_a_bare_kind_with_empty_targets() {
+        let query = Query::PeerAnnounce;
+        assert!(query.valid());
+        assert_eq!(query.body(id(100)), format!("query|{}|peer|", id(100)));
+        assert_eq!(query.decode(b"[]"), Some(Reply::PeerAnnounce));
+        assert!(query.decode(b"[1]").is_none());
     }
     #[test]
     fn bounded_queries_have_no_movement_fields_and_reject_empty_duplicate_targets() {

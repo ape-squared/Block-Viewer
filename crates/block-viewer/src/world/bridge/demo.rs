@@ -103,6 +103,7 @@ impl Demo {
                 } else {
                     Ok(match query {
                         Query::Pose { .. } => Reply::Pose,
+                        Query::PeerAnnounce => Reply::PeerAnnounce,
                         Query::Altitudes(ids) => Reply::Altitudes(
                             ids.iter()
                                 .filter(|id| **id == SKY_VISITOR)

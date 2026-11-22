@@ -27,6 +27,10 @@ string gGrantedText;
 string gStopped;
 integer gPaired;
 float gNextHello;
+integer gPeerListener;
+integer PEER_CHANNEL = -184735222;
+float gNextPeerSay;
+float gNextPeerHear;
 
 // Forget every consent: after a reset, a detach or a region change.
 forgetPoses() {
@@ -80,6 +84,10 @@ initialize() {
     gListener = llListen(DISCOVERY_CHANNEL, "", gOwner, "auroraHello|" + (string)llGetKey());
     POSE_DIALOG_CHANNEL = -0x40000000 - (integer)("0x" + llGetSubString((string)llGetKey(), 0, 6));
     forgetPoses();
+    llListenRemove(gPeerListener);
+    gPeerListener = llListen(PEER_CHANNEL, "", NULL_KEY, "");
+    gNextPeerSay = 0.0;
+    gNextPeerHear = 0.0;
     requestURL();
 }
 query(key request, string kind, string targets) {
@@ -151,6 +159,19 @@ query(key request, string kind, string targets) {
             details += [llGetPos(), RAD_TO_DEG * llRot2Euler(llList2Rot(details, 13))];
         }
         llHTTPResponse(request, 200, llList2Json(JSON_ARRAY, [(string)object] + details));
+    } else if (kind == "peer") {
+        // Opt-in Block presence for nameplates: the viewer only POSTs this
+        // when Preferences › Advertise is on. Region-local, rate-limited.
+        if (targets != "" || !llGetAttached() || !gPaired) {
+            llHTTPResponse(request, 400, "invalid"); return;
+        }
+        float now = llGetTime();
+        if (now < gNextPeerSay) {
+            llHTTPResponse(request, 200, "[]"); return;
+        }
+        gNextPeerSay = now + 8.0;
+        llRegionSay(PEER_CHANNEL, "block1|" + (string)gOwner);
+        llHTTPResponse(request, 200, "[]");
     } else llHTTPResponse(request, 400, "invalid");
 }
 
@@ -165,6 +186,8 @@ default {
             llListenRemove(gListener);
             forgetPoses();
             gListener = 0;
+            llListenRemove(gPeerListener);
+            gPeerListener = 0;
             llSetTimerEvent(0.0);
             llReleaseURL(gURL);
             gURL = "";
@@ -217,6 +240,22 @@ default {
             poseListeners();
             if (gStopped != "") llRegionSayTo(sender, 0, gStopped);
             llOwnerSay("<auroraPose>" + (string)granted + "|withdraw|" + (string)sender + "</auroraPose>");
+            return;
+        }
+        if (channel == PEER_CHANNEL) {
+            if (!llGetAttached() || !gPaired || llStringLength(message) > 50) return;
+            list fields = llParseStringKeepNulls(message, ["|"], []);
+            if (llGetListLength(fields) != 2 || llList2String(fields, 0) != "block1") return;
+            key peer = llList2Key(fields, 1);
+            if (!validKey(peer) || peer == gOwner) return;
+            key owner = llGetOwnerKey(sender);
+            if (owner != peer) return;
+            list attached = llGetObjectDetails(sender, [OBJECT_ATTACHED_POINT]);
+            if (llGetListLength(attached) != 1 || llList2Integer(attached, 0) <= 0) return;
+            float now = llGetTime();
+            if (now < gNextPeerHear) return;
+            gNextPeerHear = now + 1.0;
+            llOwnerSay("<auroraBlock>" + (string)peer + "</auroraBlock>");
             return;
         }
         if (!llGetAttached() || channel != DISCOVERY_CHANNEL || sender != gOwner

@@ -8,53 +8,20 @@ import time
 import zlib
 import array
 import base64
-import os
 import sys
 
-MAGIC = b"AURBLD2\n"
-TOKEN_LENGTH = 64
+MAGIC = b"AURBLD1\n"
 MAX_BYTES = 64 * 1024 * 1024
 MAX_DECODED_BYTES = 256 * 1024 * 1024
 COMPRESS_THRESHOLD = 1024 * 1024
 MAX_REPLY = 8 * 1024 * 1024 + 4096
-NO_TOKEN = "Enable preview in Aurora's LiveMesh window"
-
-
-def token_path(port):
-    """The secret Aurora writes each time its preview starts, in the viewer's
-    data folder (ProjectDirs "org", "Aurora", "AuroraViewer" of the directories
-    crate, crates/block-viewer/src/blender_live/token.rs)."""
-    if sys.platform == "win32":
-        base = os.environ.get("LOCALAPPDATA") or os.path.join(os.path.expanduser("~"), "AppData", "Local")
-        data = os.path.join(base, "Aurora", "AuroraViewer", "data")
-    elif sys.platform == "darwin":
-        data = os.path.join(os.path.expanduser("~"), "Library", "Application Support", "org.Aurora.AuroraViewer")
-    else:
-        base = os.environ.get("XDG_DATA_HOME", "")
-        if not os.path.isabs(base):
-            base = os.path.join(os.path.expanduser("~"), ".local", "share")
-        data = os.path.join(base, "auroraviewer")
-    return os.path.join(data, "blender-live", "{}.token".format(port))
-
-
-def read_token(port):
-    """Read again at every connection: each start of Aurora's preview draws a
-    new secret."""
-    try:
-        with open(token_path(port), "rb") as file:
-            token = file.read(TOKEN_LENGTH + 1).strip()
-    except OSError:
-        raise ValueError(NO_TOKEN) from None
-    if len(token) != TOKEN_LENGTH:
-        raise ValueError(NO_TOKEN)
-    return token
 
 
 def wire_snapshot(snapshot, features):
     if "static-meshes" not in features and any(mesh.get("joints") == [] for mesh in snapshot.get("meshes", [])):
-        raise ValueError("Update Aurora Viewer to preview non-rigged meshes")
+        raise ValueError("Update Block Viewer to preview non-rigged meshes")
     if not {"object-links", "source-ids"}.issubset(features) and any(mesh.get("link") for mesh in snapshot.get("meshes", [])):
-        raise ValueError("Update Aurora Viewer to preview linked objects")
+        raise ValueError("Update Block Viewer to preview linked objects")
     if "meshes" not in snapshot:
         return snapshot
     meshes = snapshot["meshes"]
@@ -117,7 +84,7 @@ def _encode(snapshot, hello):
     if len(raw) <= limit:
         return raw
     raise SnapshotSizeError("This object exceeds the LiveMesh transfer limit; reduce its geometry or textures" if compressed else
-                            "Update Aurora Viewer to preview this large object")
+                            "Update Block Viewer to preview this large object")
 
 
 def _subset(snapshot, meshes):
@@ -181,9 +148,9 @@ class Client:
         self._import = None
         self._import_received = 0.0
         self._import_result = None
-        self._status = "Connecting to Aurora…"
+        self._status = "Connecting to Block Viewer…"
         self._issues = (None, {})
-        self._thread = threading.Thread(target=self._run, name="Aurora Live", daemon=True)
+        self._thread = threading.Thread(target=self._run, name="Block Live", daemon=True)
         self._thread.start()
 
     def state(self):
@@ -279,16 +246,15 @@ class Client:
     def _line(stream):
         line = stream.readline(MAX_REPLY + 1)
         if not line or len(line) > MAX_REPLY or not line.endswith(b"\n"):
-            raise ValueError("Invalid Aurora response")
+            raise ValueError("Invalid Block Viewer response")
         value = json.loads(line)
         if not isinstance(value, dict):
-            raise ValueError("Invalid Aurora response")
+            raise ValueError("Invalid Block Viewer response")
         return value
 
     def _run(self):
         while not self._stop.is_set():
             try:
-                token = read_token(self.port)
                 with socket.create_connection(("127.0.0.1", self.port), timeout=1.0) as connection:
                     with self._lock:
                         self._connection = connection
@@ -296,17 +262,17 @@ class Client:
                         break
                     connection.settimeout(5.0)
                     connection.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
-                    connection.sendall(MAGIC + token)
+                    connection.sendall(MAGIC)
                     with connection.makefile("rb") as reader:
                         hello = self._line(reader)
                         if hello.get("protocol") != 1 or not hello.get("joints"):
-                            raise ValueError("Incompatible Aurora protocol")
+                            raise ValueError("Incompatible Block Viewer protocol")
                         if "pbr-materials" not in hello.get("features", []):
-                            raise ValueError("Update Aurora Viewer to use live PBR materials")
+                            raise ValueError("Update Block Viewer to use live PBR materials")
                         with self._lock:
                             self._rest_axes = hello.get("rest_axes", {})
                             self._features = frozenset(hello.get("features", []))
-                        self._set_status("Connected to Aurora", hello["joints"])
+                        self._set_status("Connected to Block Viewer", hello["joints"])
                         if "shape-transfer" in hello.get("features", []):
                             features = [name for name in ("shape-transfer", "shape-apply", "import-lods") if name in hello.get("features", [])]
                             payload = json.dumps({"type": "features", "features": features}).encode("utf-8")
@@ -354,7 +320,7 @@ class Client:
                                 if reply.get("ok"):
                                     self._set_status("Connected · revision {}".format(sent))
                                 else:
-                                    self._set_status("Aurora: " + str(reply.get("error", "Snapshot rejected")))
+                                    self._set_status("Block Viewer: " + str(reply.get("error", "Snapshot rejected")))
                                     if reply.get("retry"):
                                         sent = None
                                         self._stop.wait(0.5)
@@ -365,7 +331,7 @@ class Client:
                                 self._reply(reader)
                                 heartbeat = time.monotonic()
             except (OSError, ValueError, TypeError, OverflowError, struct.error) as error:
-                self._set_status("Waiting for Aurora: " + str(error), ())
+                self._set_status("Waiting for Block Viewer: " + str(error), ())
                 self._stop.wait(1.0)
             finally:
                 with self._lock:

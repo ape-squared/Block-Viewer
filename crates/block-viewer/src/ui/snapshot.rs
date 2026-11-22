@@ -525,7 +525,7 @@ impl SnapshotUi {
                 p,
                 "send-filled",
                 block_i18n::tr!("photo-vf-share-web-tip"),
-                ActionKind::Secondary,
+                ActionKind::Flat,
                 Vec2::new(ui.available_width(), 28.0),
                 ready,
             )

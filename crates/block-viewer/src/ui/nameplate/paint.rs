@@ -3,10 +3,11 @@
 //! do not (the blur, the picture, the icons): each change of texture is a
 //! draw of its own.
 
-use super::aurora;
+use super::block;
 use super::mark::Look;
 use super::mesh::{self, Border, Glow, Outline, Ring};
 use super::{Badge, Badges, Content, Halo, Layout, Level, Metrics, Picture, Presence, Role, SCALE, SubLine, Tag, TextSize};
+use crate::settings::VoiceVisualizerStyle;
 use crate::theme::Palette;
 use egui::epaint::TextShape;
 use egui::text::{LayoutJob, TextFormat, TextWrapping};
@@ -14,17 +15,12 @@ use egui::{Color32, FontId, Galley, Mesh, Pos2, Rect, Shape, Vec2};
 use std::sync::Arc;
 
 /// Opacity of the plate's tint over the blurred world, and of the far pill's.
-const TINT_GLASS: (f32, f32) = (0.52, 0.42);
+const TINT_GLASS: (f32, f32) = (0.58, 0.48);
 /// The same without the blur behind: denser, so the text stays readable
 /// over a busy scene.
-const TINT_PLAIN: (f32, f32) = (0.74, 0.62);
+const TINT_PLAIN: (f32, f32) = (0.78, 0.66);
 /// Opacity of the light border, and of the far pill's.
-const BORDER: (f32, f32) = (0.14, 0.10);
-/// The light border of a plate, shared with the contact-set markers.
-pub(crate) fn plain_border(p: &Palette) -> Color32 {
-    p.ink.gamma_multiply(BORDER.0)
-}
-
+const BORDER: (f32, f32) = (0.18, 0.12);
 /// Under the pointer (#473): how far the surface goes toward the ink, and
 /// the opacity the border gains. Faint: the plate answers, it does not flash.
 const HOVER_LIGHT: f32 = 0.12;
@@ -61,12 +57,24 @@ pub(super) struct Env<'a> {
     /// The friends' color of Preferences › Colors, when their plates take
     /// a tint of it (Preferences › Avatars, on by default).
     pub friend: Option<Color32>,
+    /// Preferences › Sound › Voice visualizer style.
+    pub voice_style: VoiceVisualizerStyle,
     /// Changes with the skin's colors: what was built with others is rebuilt.
     skin: u64,
 }
 
 impl<'a> Env<'a> {
     pub fn new(painter: &'a egui::Painter, p: &'a Palette, icons: &'a crate::ui::icons::Icons, now: f64) -> Self {
+        Self::with_voice(painter, p, icons, now, VoiceVisualizerStyle::default())
+    }
+
+    pub fn with_voice(
+        painter: &'a egui::Painter,
+        p: &'a Palette,
+        icons: &'a crate::ui::icons::Icons,
+        now: f64,
+        voice_style: VoiceVisualizerStyle,
+    ) -> Self {
         Env {
             painter,
             p,
@@ -74,8 +82,9 @@ impl<'a> Env<'a> {
             now,
             pixels_per_point: painter.pixels_per_point(),
             semibold: crate::ui::fonts::semibold(painter.ctx()),
-            tint: base_tint(p),
+            tint: p.navy.lerp_to_gamma(p.bar, 0.5),
             friend: None,
+            voice_style,
             skin: {
                 use std::hash::{Hash, Hasher};
                 let mut hasher = std::collections::hash_map::DefaultHasher::new();
@@ -83,6 +92,7 @@ impl<'a> Env<'a> {
                     p.navy, p.bar, p.ink, p.success, p.amber, p.danger, p.raised, p.field, p.violet, p.teal,
                 ]
                 .hash(&mut hasher);
+                (voice_style as u8).hash(&mut hasher);
                 hasher.finish()
             },
         }
@@ -158,8 +168,6 @@ struct SurfaceKey {
     hover: f32,
     pixels_per_point: f32,
     skin: u64,
-    /// ChatBubbleOpacity, against the plate's usual look at its default.
-    opacity: f32,
 }
 
 /// What the rings, discs and bars on a plate are built from.
@@ -200,17 +208,15 @@ pub(super) struct State {
 type Line = (Arc<Galley>, Option<Arc<Galley>>);
 
 /// A plate at one level, laid out.
-pub(super) struct Face {
+struct Face {
     metrics: Metrics,
     layout: Layout,
     name: Arc<Galley>,
-    /// The distance after the name, in a smaller size.
-    name_tail: Option<Arc<Galley>>,
     subs: [Option<Line>; 2],
     badges: Badges,
     dot: Option<Presence>,
     /// A team member's "Aurora Team" tag, and the time of its light.
-    pub(super) staff: Option<(Arc<Galley>, Look, f32)>,
+    staff: Option<(Arc<Galley>, Look, f32)>,
 }
 
 fn lerp(range: (f32, f32), t: f32) -> f32 {
@@ -225,42 +231,23 @@ fn line(env: &Env<'_>, text: &str, format: TextFormat, max_width: f32) -> Arc<Ga
     crate::ui::bidi::galley(env.painter.ctx(), job, crate::ui::bidi::Base::Auto)
 }
 
-pub(super) fn face(env: &Env<'_>, level: Level, c: &Content, t: f32) -> Face {
+fn face(env: &Env<'_>, level: Level, c: &Content, t: f32) -> Face {
     let p = env.p;
     let m = Metrics::of(level, SCALE);
-    let colors = crate::ui::colors::get();
-    // FSTagShowDistanceColors: unless a contact set or the relation colors
-    // the name (the Legacy Viewer's special_color_override)
-    let band = c.distance.map(|d| crate::ui::colors::range_color(p, Some(d.meters)));
-    let by_distance = band.filter(|_| {
-        c.distance.is_some_and(|d| d.color_name)
-            && c.appearance.nameplate_name.is_none()
-            && (!colors.relation_names || c.role == Role::Resident)
-    });
     let color = c
         .appearance
         .nameplate_name
         .map(crate::ui::colors::set_color)
-        .or(by_distance)
-        .unwrap_or_else(|| c.role.name_color(p, &colors));
-    let readable = |color: Color32| surface_tint(env, c).map(|bg| readable_name(color, bg, p.ink)).unwrap_or(color);
-    let color = readable(color);
+        .unwrap_or_else(|| c.role.name_color(p, &crate::ui::colors::get()));
+    let color = surface_tint(env, c).map(|bg| readable_name(color, bg, p.ink)).unwrap_or(color);
     let mut format = match level {
         // the far pill's name is a regular weight
         Level::Far => TextFormat::simple(FontId::proportional(m.name_pt), color),
         _ => crate::ui::fonts::semibold_format(&env.semibold, m.name_pt, color),
     };
     format.italics = c.role == Role::Blocked;
+    let name = line(env, &c.name, format, m.max_text);
     let small = |color: Color32| TextFormat::simple(FontId::proportional(m.sub_pt), color);
-    // FSTagShowDistance: after the name on every level (the Legacy Viewer's
-    // tag gives it a line of its own), and never the part that gets elided
-    let name_tail = c
-        .distance
-        .filter(|d| d.shown)
-        .zip(band)
-        .map(|(d, band)| line(env, &format!(" · {}", d.text()), small(readable(band)), m.max_text * 0.6));
-    let room = m.max_text - name_tail.as_ref().map_or(0.0, |t| t.size().x);
-    let name = line(env, &c.name, format, room);
     let detail_color = |d: &super::Detail| if d.alert { p.amber } else { p.muted };
     let subs = super::sub_lines(level, c).map(|sub| {
         Some(match sub? {
@@ -280,24 +267,30 @@ pub(super) fn face(env: &Env<'_>, level: Level, c: &Content, t: f32) -> Face {
         Vec2::new(l.0.size().x + tail.x, l.0.size().y.max(tail.y))
     };
     let text = TextSize {
-        name: name_tail.as_ref().map_or(name.size(), |t| {
-            Vec2::new(name.size().x + t.size().x, name.size().y.max(t.size().y))
-        }),
+        name: name.size(),
         subs: [subs[0].as_ref().map(size), subs[1].as_ref().map(size)],
     };
     let badges = super::badges(level, c);
     // the staff's tag, its letters in the mark's colors; not on the far pill
     let staff = c.mark.filter(|_| level != Level::Far).map(|mark| {
         let look = Look::new(mark);
-        let job = crate::ui::staff::label_job(env.painter.ctx(), p, &look, aurora::TAG_TEXT * m.scale, t);
+        let label = look.label();
+        let n = label.chars().count();
+        let mut job = LayoutJob {
+            break_on_newline: false,
+            ..Default::default()
+        };
+        for (i, ch) in label.chars().enumerate() {
+            let format = crate::ui::fonts::semibold_format(&env.semibold, block::TAG_TEXT * m.scale, look.letter(p, i, n, t));
+            job.append(ch.encode_utf8(&mut [0; 4]), 0.0, format);
+        }
         (env.painter.layout_job(job), look, t)
     });
-    let lead = staff.as_ref().map_or(0.0, |(g, ..)| aurora::tag_width(g.size().x, m.scale));
+    let lead = staff.as_ref().map_or(0.0, |(g, ..)| block::tag_width(g.size().x, m.scale));
     Face {
         metrics: m,
         layout: super::layout_with(level, &m, &text, badges.len(), lead),
         name,
-        name_tail,
         subs,
         badges,
         dot: super::status_dot(level, c),
@@ -326,7 +319,7 @@ fn friend_color(env: &Env<'_>, c: &Content) -> Option<Color32> {
 /// background, else for a friend a tint of the friends' color.
 pub(super) fn surface_tint(env: &Env<'_>, c: &Content) -> Option<Color32> {
     match c.appearance.background {
-        Some(bg) => Some(set_background(env.p, bg)),
+        Some(bg) => Some(plate_tint(env, crate::ui::colors::set_color(bg), SET_TINT)),
         None => friend_color(env, c).map(|friend| plate_tint(env, friend, FRIEND_TINT)),
     }
 }
@@ -343,40 +336,21 @@ pub(super) fn surface_border(env: &Env<'_>, c: &Content) -> Option<Color32> {
 /// `color` taken `toward` of the way to the plate's own tint, then darkened
 /// until the text reads on it.
 fn plate_tint(env: &Env<'_>, color: Color32, toward: f32) -> Color32 {
-    tint_on(env.p, color, toward)
-}
-
-fn base_tint(p: &Palette) -> Color32 {
-    p.navy.lerp_to_gamma(p.bar, 0.5)
-}
-
-fn tint_on(p: &Palette, color: Color32, toward: f32) -> Color32 {
     // Derive the hue from the color, while keeping the ordinary surface
     // alpha. Check both the main ink and the secondary line against the tint.
-    let mut tint = color.to_opaque().lerp_to_gamma(base_tint(p), toward);
-    let target = if contrast(p.ink, p.navy) >= contrast(p.ink, p.field) {
-        p.navy
+    let mut tint = color.to_opaque().lerp_to_gamma(env.tint, toward);
+    let target = if contrast(env.p.ink, env.p.navy) >= contrast(env.p.ink, env.p.field) {
+        env.p.navy
     } else {
-        p.field
+        env.p.field
     };
     for _ in 0..12 {
-        if contrast(p.ink, tint) >= 4.5 && contrast(p.muted, tint) >= 3.0 {
+        if contrast(env.p.ink, tint) >= 4.5 && contrast(env.p.muted, tint) >= 3.0 {
             break;
         }
         tint = tint.lerp_to_gamma(target, 0.2);
     }
     tint
-}
-
-/// The surface a contact set's background gives a plate, shared with the
-/// contact-set markers.
-pub(crate) fn set_background(p: &Palette, background: [f32; 4]) -> Color32 {
-    tint_on(p, crate::ui::colors::set_color(background), SET_TINT)
-}
-
-/// `color` moved toward the ink until it reads on `background`.
-pub(crate) fn readable_on(color: Color32, background: Color32, ink: Color32) -> Color32 {
-    readable_name(color, background, ink)
 }
 
 fn readable_name(mut name: Color32, background: Color32, ink: Color32) -> Color32 {
@@ -391,9 +365,9 @@ fn readable_name(mut name: Color32, background: Color32, ink: Color32) -> Color3
 
 /// Draw the plate of `tag` and return its rectangle, and its surface as
 /// drawn (moved by its bounce).
-pub(super) fn plate(env: &Env<'_>, tag: &Tag<'_>, st: &State, cache: &mut Cache) -> (Rect, Rect, Option<Rect>) {
+pub(super) fn plate(env: &Env<'_>, tag: &Tag<'_>, st: &State, cache: &mut Cache) -> (Rect, Rect) {
     let c = &tag.content;
-    let t = aurora::time(env.now, st.still);
+    let t = block::time(env.now, st.still);
     let to = face(env, st.level, c, t);
     let from = st.from.map(|level| (level, face(env, level, c, t)));
     let far = |level: Level| if level == Level::Far { 1.0 } else { 0.0 };
@@ -424,6 +398,13 @@ pub(super) fn plate(env: &Env<'_>, tag: &Tag<'_>, st: &State, cache: &mut Cache)
         light(&|mesh| look.above(mesh, env.p, surface, ppp, t, alpha));
     }
     background(env, surface, st, alpha, farness, c, &mut cache.surface);
+    // Block speaking meter: a short lime bar under the plate (not an Aurora
+    // ring/glow). One filled rect — cheap on the GPU.
+    if env.voice_style == VoiceVisualizerStyle::Block
+        && let Some(halo) = st.halo
+    {
+        paint_block_voice_meter(env, surface, halo, alpha);
+    }
     if let Some(look) = look {
         let width = (2.0 * SCALE).max(1.0 / ppp);
         light(&|mesh| look.border(mesh, env.p, surface, ppp, t, alpha, width, SCALE));
@@ -438,19 +419,7 @@ pub(super) fn plate(env: &Env<'_>, tag: &Tag<'_>, st: &State, cache: &mut Cache)
             contents(env, &painter, rect, &to, tag, alpha * st.progress, &mut cache.marks);
         }
     }
-    (rect, surface, marker_slot(st.level, c, &to, rect))
-}
-
-/// Where a contact-set marker lands on a plate (`ui/contact_markers.rs`):
-/// the badge of its set's symbol. Without one, it has nowhere to land.
-fn marker_slot(level: Level, c: &Content, face: &Face, rect: Rect) -> Option<Rect> {
-    let marker = c.appearance.marker.filter(|_| level != Level::Far)?;
-    // as `contents`: a plate changing size keeps its face centred
-    let origin = Vec2::new(rect.left(), rect.center().y - face.layout.size.y * 0.5);
-    face.badges.iter().zip(face.layout.badges).find_map(|(badge, r)| match badge {
-        Badge::Contact { icon, .. } if Some(icon) == marker.icon => Some(r.translate(origin)),
-        _ => None,
-    })
+    (rect, surface)
 }
 
 /// The blur of the world, then the surface, its border, its shadow and
@@ -459,17 +428,11 @@ fn marker_slot(level: Level, c: &Content, face: &Face, rect: Rect) -> Option<Rec
 fn background(env: &Env<'_>, rect: Rect, st: &State, alpha: f32, far: f32, c: &Content, cache: &mut Option<Built<SurfaceKey>>) {
     let p = env.p;
     let s = SCALE;
-    let (tag_tint, tag_blur) =
-        crate::ui::surface_opacity::relative(crate::ui::surface_opacity::name_tags(), crate::ui::surface_opacity::NAME_TAGS);
     if st.glass > 0.0 {
         // inside the antialiased edge of the surface, which hides the blur's own
-        let radius = rect.height() * 0.5 - 0.5;
-        env.painter.add(block_render::glass_region(
-            rect.shrink(0.5),
-            radius,
-            st.glass * alpha * tag_blur,
-            GLASS_SHADE,
-        ));
+        let radius = (mesh::plate_corner(rect) - 0.5).max(2.0);
+        env.painter
+            .add(block_render::glass_region(rect.shrink(0.5), radius, st.glass * alpha, GLASS_SHADE));
     }
     let key = SurfaceKey {
         tint: surface_tint(env, c).unwrap_or(env.tint),
@@ -481,7 +444,6 @@ fn background(env: &Env<'_>, rect: Rect, st: &State, alpha: f32, far: f32, c: &C
         hover: st.hover,
         pixels_per_point: env.pixels_per_point,
         skin: env.skin,
-        opacity: tag_tint,
     };
     let surface = Built::of(cache, key, |key| {
         let shadow = Glow {
@@ -490,23 +452,70 @@ fn background(env: &Env<'_>, rect: Rect, st: &State, alpha: f32, far: f32, c: &C
             spread: 0.0,
             color: p.navy.gamma_multiply(0.35),
         };
-        let opacity = (lerp((lerp(TINT_PLAIN, far), lerp(TINT_GLASS, far)), st.glass) * key.opacity).min(1.0);
+        let opacity = lerp((lerp(TINT_PLAIN, far), lerp(TINT_GLASS, far)), st.glass);
         let plain = key
             .border
             .unwrap_or_else(|| p.ink.gamma_multiply(lerp(BORDER, far) + HOVER_BORDER * key.hover));
-        let voice = key.halo.map(|halo| voice_light(p, halo, plain, key.size.y));
+        // Block speaking uses an under-plate meter drawn outside this mesh
+        // (no ring, no glow bloom — keeps GPU cost flat with silent plates).
+        let voice = key
+            .halo
+            .filter(|_| env.voice_style != VoiceVisualizerStyle::Block)
+            .map(|halo| voice_light(p, env.voice_style, halo, plain, key.size.y));
         let mut plate = Mesh::default();
         let at_origin = Rect::from_min_size(Pos2::ZERO, rect.size());
         let fill = key.tint.lerp_to_gamma(p.ink, HOVER_LIGHT * key.hover).gamma_multiply(opacity);
         let ppp = env.pixels_per_point;
         match voice {
-            Some(v) => mesh::plate(&mut plate, at_origin, ppp, fill, v.border, &[shadow, v.glow], &[v.ring]),
-            // no outline for a silent participant (the human's choice)
+            Some(v) => {
+                let lights = if v.glow.color.a() > 0 {
+                    [shadow, v.glow]
+                } else {
+                    [
+                        shadow,
+                        Glow {
+                            offset: Vec2::ZERO,
+                            blur: 0.0,
+                            spread: 0.0,
+                            color: Color32::TRANSPARENT,
+                        },
+                    ]
+                };
+                mesh::plate(&mut plate, at_origin, ppp, fill, v.border, &lights, &[v.ring])
+            }
+            // silent, or Block style (meter painted after the surface)
             None => mesh::plate(&mut plate, at_origin, ppp, fill, Border::Inside(plain, 1.0), &[shadow], &[]),
         }
         plate
     });
     surface.emit(env.painter, rect.min.to_vec2(), alpha);
+}
+
+/// Block voice: level as a centered lime bar under the plate. No perimeter
+/// ring and no soft glow — one rect, opacity gated like Aurora's halo.
+fn paint_block_voice_meter(env: &Env<'_>, plate: Rect, halo: Halo, alpha: f32) {
+    let g = halo.gate.clamp(0.0, 1.0);
+    if g < 0.02 {
+        return;
+    }
+    let l = halo.level.clamp(0.0, 1.0);
+    let h = halo.heat.clamp(0.0, 1.0);
+    let lime = env.p.violet;
+    let color = if h < 0.5 {
+        lime.lerp_to_gamma(env.p.amber, 2.0 * h)
+    } else {
+        env.p.amber.lerp_to_gamma(env.p.danger, 2.0 * h - 1.0)
+    }
+    .gamma_multiply(alpha * g * (0.55 + 0.45 * l));
+    let gap = 3.0 * SCALE;
+    let height = (2.0 + 2.5 * l) * SCALE;
+    // Whisper: short center tick; shout: almost full plate width.
+    let width = plate.width() * (0.18 + 0.72 * l);
+    let bar = Rect::from_center_size(
+        Pos2::new(plate.center().x, plate.bottom() + gap + height * 0.5),
+        Vec2::new(width, height),
+    );
+    env.painter.rect_filled(bar, height * 0.45, color);
 }
 
 /// What the voice adds to a plate, in points: a ring around it over a glow,
@@ -535,17 +544,10 @@ pub(super) struct LoudRing {
     pub color: Color32,
 }
 
-/// Everything grows with the level, so that a whisper, a voice and a shout
-/// look different at a glance: a whisper (just above the speaking level) is
-/// a faint hairline hugging the plate with almost no glow, a normal voice a
-/// ring a few points away over a soft glow, a shout a thick bright ring
-/// pushed out with a wide glow. The glow grows with the square of the level:
-/// it stays out of the way until the voice is loud. The color is the
-/// microphone badge's green, a little brighter as the voice rises, sliding
-/// to the danger red only past the overdriven level (`overdrive`), through
-/// the amber: halfway between the green and the red directly is a muddy
-/// olive.
-pub(super) fn loud_ring(p: &Palette, level: f32, heat: f32) -> LoudRing {
+/// Aurora / Legacy speaking rings. Block style does not use this path — it
+/// paints a under-plate meter in [`paint_block_voice_meter`] instead (no
+/// perimeter geometry, no glow bloom).
+pub(super) fn loud_ring(p: &Palette, style: VoiceVisualizerStyle, level: f32, heat: f32) -> LoudRing {
     let (l, h) = (level.clamp(0.0, 1.0), heat.clamp(0.0, 1.0));
     let green = p.success.lerp_to_gamma(p.ink, 0.3 * l);
     let color = if h < 0.5 {
@@ -553,25 +555,46 @@ pub(super) fn loud_ring(p: &Palette, level: f32, heat: f32) -> LoudRing {
     } else {
         p.amber.lerp_to_gamma(p.danger, 2.0 * h - 1.0)
     };
-    LoudRing {
-        gap: 1.0 + 7.0 * l,
-        width: 0.9 + 2.7 * l,
-        alpha: 0.4 + 0.6 * l,
-        glow: 0.03 + 0.5 * l * l,
-        edge: 0.25 + 0.35 * l,
-        blur: 2.0 + 24.0 * l * l,
-        color,
+    match style {
+        // Unused for drawing; kept so callers/tests stay typed on the enum.
+        VoiceVisualizerStyle::Block => LoudRing {
+            gap: 0.0,
+            width: 0.0,
+            alpha: 0.0,
+            glow: 0.0,
+            edge: 0.0,
+            blur: 0.0,
+            color: p.violet,
+        },
+        VoiceVisualizerStyle::Legacy => LoudRing {
+            gap: 0.5,
+            width: 1.5 + 1.5 * l,
+            alpha: 0.7 + 0.3 * l,
+            glow: 0.0,
+            edge: 0.2 + 0.3 * l,
+            blur: 0.0,
+            color,
+        },
+        VoiceVisualizerStyle::Aurora => LoudRing {
+            gap: 1.0 + 7.0 * l,
+            width: 0.9 + 2.7 * l,
+            alpha: 0.4 + 0.6 * l,
+            glow: 0.03 + 0.5 * l * l,
+            edge: 0.25 + 0.35 * l,
+            blur: 2.0 + 24.0 * l * l,
+            color,
+        },
     }
 }
 
 /// The voice's light on a plate `height` points high, whose border is
 /// `plain` when silent: the `loud_ring`, a little tighter around the
 /// smaller plates, closing in on the plate as the voice starts (the gate).
-pub(super) fn voice_light(p: &Palette, halo: Halo, plain: Color32, height: f32) -> VoiceLight {
+pub(super) fn voice_light(p: &Palette, style: VoiceVisualizerStyle, halo: Halo, plain: Color32, height: f32) -> VoiceLight {
     let g = halo.gate.clamp(0.0, 1.0);
     // mockup pixels to points
     let k = SCALE * (height / Metrics::of(Level::Full, SCALE).height).clamp(0.55, 1.0);
-    let r = loud_ring(p, halo.level, halo.heat);
+    let r = loud_ring(p, style, halo.level, halo.heat);
     let gap = r.gap + 4.0 * (1.0 - g);
     VoiceLight {
         glow: Glow {
@@ -613,7 +636,7 @@ fn badge_icon(p: &Palette, badge: Badge) -> Option<(&'static str, Color32)> {
         Badge::More(_) => return None,
         Badge::Voice => ("microphone-filled", p.success),
         Badge::BlockViewer => ("box", p.violet),
-        Badge::Friend => ("heart-filled", p.success),
+        Badge::Friend => ("user-filled", p.success),
         Badge::TooComplex => ("alert-triangle-filled", p.amber),
         Badge::RenderNever => ("eye-off", p.amber),
         Badge::Blocked => ("ban", p.danger),
@@ -629,11 +652,15 @@ fn marks(env: &Env<'_>, key: &MarksKey) -> Mesh {
     let (l, s, ppp) = (&key.layout, key.scale, key.pixels_per_point);
     let mut mesh = Mesh::default();
     if let Some(photo) = l.photo {
-        let disc = Outline::circle(photo.center, photo.radius, ppp);
+        // Squared profile picture matching the plate's boxed corners.
+        let rect = Rect::from_center_size(photo.center, Vec2::splat(photo.radius * 2.0));
+        let corner = (photo.radius * 0.28).clamp(2.5, 6.0);
+        let frame = Outline::rounded(rect, corner, ppp);
         if key.placeholder {
-            disc.dot(&mut mesh, p.raised);
+            let fill = frame.ring(&mut mesh, -0.5, p.raised);
+            frame.fill(&mut mesh, fill, p.raised);
         }
-        disc.stroke(&mut mesh, 2.0 * s, p.ink.gamma_multiply(0.22));
+        frame.stroke(&mut mesh, 2.0 * s, p.ink.gamma_multiply(0.22));
     }
     if let (Some(dot), Some(presence)) = (l.dot, key.dot) {
         use crate::ui::presence::Shape as Mark;
@@ -676,7 +703,8 @@ fn marks(env: &Env<'_>, key: &MarksKey) -> Mesh {
     let fill = env.tint.gamma_multiply(BADGE_OPACITY);
     let edge = mesh::over(p.ink.gamma_multiply(0.16), fill);
     for r in &l.badges[..key.badges] {
-        Outline::circle(r.center(), r.width() * 0.5, ppp).disc(&mut mesh, fill, edge, 1.0);
+        let corner = (r.width() * 0.22).clamp(2.0, 5.0);
+        Outline::rounded(*r, corner, ppp).disc(&mut mesh, fill, edge, 1.0);
     }
     mesh
 }
@@ -711,7 +739,9 @@ fn contents(
     if let (Some(photo), Some(texture)) = (l.photo, picture) {
         let mut mesh = Mesh::with_texture(texture.id());
         let tint = ink(crate::ui::widgets::PICTURE_TINT);
-        Outline::circle(photo.center + origin, photo.radius, ppp).picture(&mut mesh, cover(texture.size()), tint);
+        let rect = Rect::from_center_size(photo.center + origin, Vec2::splat(photo.radius * 2.0));
+        let corner = (photo.radius * 0.28).clamp(2.5, 6.0);
+        Outline::rounded(rect, corner, ppp).picture(&mut mesh, cover(texture.size()), tint);
         painter.add(Shape::mesh(mesh));
     }
     // the placeholder's disc, then the rings, discs and bars that lie over
@@ -765,10 +795,6 @@ fn contents(
         painter.add(shape);
     };
     text(&face.name, l.name);
-    if let Some(tail) = &face.name_tail {
-        // on the name's baseline, near enough: their bottoms level
-        text(tail, l.name + Vec2::new(face.name.size().x, face.name.size().y - tail.size().y));
-    }
     for (sub, pos) in face.subs.iter().zip(l.subs) {
         if let (Some((galley, tail)), Some(pos)) = (sub, pos) {
             text(galley, pos);
@@ -790,24 +816,24 @@ fn contents(
 
     // the staff's tag over the top edge, from the name's left
     if let Some((label, look, t)) = &face.staff {
-        let size = Vec2::new(aurora::tag_width(label.size().x, s), aurora::TAG_HEIGHT * s);
-        let at = Pos2::new(origin.x + l.text_x.0 - 2.0 * s, rect.top() - aurora::TAG_RISE * s - size.y * 0.5);
+        let size = Vec2::new(block::tag_width(label.size().x, s), block::TAG_HEIGHT * s);
+        let at = Pos2::new(origin.x + l.text_x.0 - 2.0 * s, rect.top() - block::TAG_RISE * s - size.y * 0.5);
         let pill = Rect::from_min_size(Pos2::new((at.x * ppp).round() / ppp, (at.y * ppp).round() / ppp), size);
         let mut mesh = Mesh::default();
         let fill = env.tint.gamma_multiply(BADGE_OPACITY);
         look.tag(&mut mesh, p, pill, pill.height() * 0.5, ppp, *t, fill, alpha, 1.2 * s);
         painter.add(Shape::mesh(mesh));
-        let icon_at = Pos2::new(pill.left() + aurora::TAG_PAD * s + aurora::TAG_ICON * s * 0.5, pill.center().y);
+        let icon_at = Pos2::new(pill.left() + block::TAG_PAD * s + block::TAG_ICON * s * 0.5, pill.center().y);
         if let Some(icon) = env
             .icons
             .get(look.icon())
             .cloned()
             .or_else(|| crate::ui::icons::global(look.icon()))
         {
-            let size = Vec2::splat(aurora::TAG_ICON * s);
+            let size = Vec2::splat(block::TAG_ICON * s);
             painter.image(icon.id(), Rect::from_center_size(icon_at, size), WHOLE, ink(look.icon_color(p, *t)));
         }
-        let x = pill.left() + (aurora::TAG_PAD + aurora::TAG_ICON + aurora::TAG_GAP) * s;
+        let x = pill.left() + (block::TAG_PAD + block::TAG_ICON + block::TAG_GAP) * s;
         let mut shape = TextShape::new(Pos2::new(x, pill.center().y - label.size().y * 0.5), label.clone(), p.ink);
         shape.opacity_factor = alpha;
         painter.add(shape);

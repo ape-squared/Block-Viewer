@@ -86,7 +86,7 @@ pub fn run() -> anyhow::Result<()> {
 
 /// Reads the viewer's lines; its end (the viewer gone) closes the splash.
 fn spawn_reader(proxy: EventLoopProxy<Input>) -> std::io::Result<()> {
-    std::thread::Builder::new().name("aurora-splash-input".into()).spawn(move || {
+    std::thread::Builder::new().name("block-splash-input".into()).spawn(move || {
         let stdin = std::io::stdin();
         for line in stdin.lock().lines() {
             let Ok(line) = line else { break };
@@ -186,7 +186,8 @@ impl Splash {
                 ui.add_space(18.0);
                 ui.allocate_ui(Vec2::new(BAR, 30.0), |ui| {
                     let text = format!("{{}} · {}", self.step.status());
-                    widgets::progress(ui, &p, "splash", fraction, BAR, &text, None);
+                    // Solid signal lime (#D4FF3F). The default fill is a two-stop gradient.
+                    widgets::progress(ui, &p, "splash", fraction, BAR, &text, Some(p.violet));
                 });
             });
         });
@@ -261,31 +262,22 @@ impl Splash {
     }
 }
 
-/// The login screen's accent card over the whole window
-/// (`ui/login.rs`, `glass_card`): the aurora's sky out of focus with two of
-/// its lights under the panel tint, the brand line along the top, the
-/// border of the overlays. Painted once: the sky stands still here.
+/// The login screen's card over the whole window (`ui/login.rs`,
+/// `glass_card`): Block's flat sky, one lime light, the brand line along
+/// the top, the border of the overlays. Painted once: the sky stands still.
 fn background(p: &Palette, ctx: &egui::Context, rect: egui::Rect) -> Vec<egui::epaint::ClippedShape> {
-    use crate::ui::aurora_bg;
-    let lights = vec![
-        aurora_bg::radial_glow_shape(
-            rect.left_top() + Vec2::new(rect.width() * 0.18, rect.height() * 0.12),
-            rect.width() * 0.95,
-            p.violet,
-            0.24,
-        ),
-        aurora_bg::radial_glow_shape(
-            rect.right_bottom() - Vec2::new(rect.width() * 0.12, rect.height() * 0.14),
-            rect.width() * 0.8,
-            p.teal,
-            0.13,
-        ),
-    ];
-    // the moment of the sky the login screen opens on
-    let mut shapes = aurora_bg::frosted_pane(p, rect, 12.0, rect, lights);
-    shapes.push(crate::ui::login::strip(
+    use crate::ui::block_bg;
+    let lights = vec![block_bg::radial_glow_shape(
+        rect.left_top() + Vec2::new(rect.width() * 0.22, rect.height() * 0.16),
+        rect.width() * 0.85,
+        p.violet,
+        0.22,
+    )];
+    let mut shapes = block_bg::frosted_pane(p, rect, 12.0, rect, lights);
+    shapes.push(egui::Shape::rect_filled(
         egui::Rect::from_min_size(rect.min, Vec2::new(rect.width(), 2.0)),
-        &[(0.0, p.violet), (1.0, p.teal)],
+        0.0,
+        p.violet,
     ));
     let stroke = widgets::overlay_frame(ctx, p).stroke;
     let corners = ctx.global_style().visuals.window_corner_radius;

@@ -26,10 +26,7 @@
 // the upsampling (the SDK's defaults).
 
 struct FsrParams {
-    // this frame's jittered view projection, inverted, and last frame's
-    // unjittered one: the camera's motion where the prepass drew none
-    inv_view_proj: mat4x4<f32>,
-    prev_view_proj: mat4x4<f32>,
+    motion_reproj: mat4x4<f32>,
     render_size: vec2<i32>,
     prev_render_size: vec2<i32>,
     upscale_size: vec2<i32>,
@@ -56,7 +53,8 @@ struct FsrParams {
     motion_on: f32,
     // 0 without the generated reactive mask (AURORA_FSR_REACTIVE=0)
     reactive_on: f32,
-    pad0: f32,
+    // 0 without the transparency and composition mask (AURORA_FSR_COMPOSITION=0)
+    composition_on: f32,
     pad1: f32,
     pad2: f32,
 };

@@ -15,7 +15,7 @@ impl Storage {
     pub(super) fn start(path: PathBuf) -> Option<Self> {
         let (loaded_tx, loaded) = crossbeam_channel::unbounded();
         let (writer, writes) = crossbeam_channel::unbounded::<Saved>();
-        let worker = std::thread::Builder::new().name("block-received-read".into()).spawn(move || {
+        let worker = std::thread::Builder::new().name("aurora-received-read".into()).spawn(move || {
             let saved = match std::fs::read(&path) {
                 Ok(bytes) => {
                     crate::disk_io::read(crate::disk_io::Origin::Other, bytes.len());
@@ -32,21 +32,15 @@ impl Storage {
                 }
             };
             let _ = loaded_tx.send(saved);
-            while let Ok(mut saved) = writes.recv() {
-                while let Ok(newer) = writes.try_recv() {
-                    saved = newer;
+            // a refused write is tried again, and once more when the
+            // storage goes (save_retry)
+            crate::save_retry::write_latest("received inventory state", &writes, |saved| {
+                if let Some(parent) = path.parent() {
+                    std::fs::create_dir_all(parent)?;
                 }
-                let save = || -> std::io::Result<()> {
-                    if let Some(parent) = path.parent() {
-                        std::fs::create_dir_all(parent)?;
-                    }
-                    let bytes = serde_json::to_vec(&saved).map_err(std::io::Error::other)?;
-                    crate::atomic_file::write(&path, &bytes)
-                };
-                if let Err(error) = save() {
-                    log::warn!("Cannot save received inventory state: {error}");
-                }
-            }
+                let bytes = serde_json::to_vec(saved).map_err(std::io::Error::other)?;
+                crate::atomic_file::write(&path, &bytes)
+            });
         });
         match worker {
             Ok(worker) => Some(Self {

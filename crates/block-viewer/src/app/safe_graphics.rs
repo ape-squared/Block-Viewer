@@ -1,15 +1,14 @@
 //! The safe graphics after the graphics card stopped answering. When the
 //! last session ended with the GPU in trouble (stalled, lost, or the window
 //! frozen: `crash::take_gpu_trouble`), the login screen offers to start
-//! with a lighter safe level (Medium on discrete RTX / AMD, Potato on Intel
-//! iGPU). Nothing changes without the user's click: the settings it replaces
-//! are kept aside (`graphics-before-safe.json`, the level's values only) and
-//! the same card then offers them back. The Legacy Viewer's equivalent is
-//! its safe start (`--safe`: `LLFeatureManager::setSafe`, the "safe" feature
-//! mask applied in indra/newview/llfeaturemanager.cpp, and the
-//! DisplaySetToSafe notice of llstartup.cpp); it is only chosen by hand,
-//! never offered after a stall, and leaves no way back but setting each
-//! option again.
+//! with the Potato level. Nothing changes without the user's click: the
+//! settings it replaces are kept aside (`graphics-before-safe.json`, the
+//! level's values only) and the same card then offers them back. The
+//! Legacy Viewer's equivalent is its safe start (`--safe`:
+//! `LLFeatureManager::setSafe`, the "safe" feature mask applied in
+//! indra/newview/llfeaturemanager.cpp, and the DisplaySetToSafe notice of
+//! llstartup.cpp); it is only chosen by hand, never offered after a
+//! stall, and leaves no way back but setting each option again.
 
 use super::*;
 use crate::graphics_presets::{Preset, Values};
@@ -50,33 +49,41 @@ pub(super) fn at_start(trouble: bool, kept: bool, demo: Option<&str>) -> Option<
     }
 }
 
+/// Settings are kept aside, but the level is no longer Potato: the user set
+/// their graphics back by hand in Preferences (#3631). The way back has
+/// nothing left to offer, and would replace what they chose since.
+fn left_by_hand(kept: bool, level: Option<Preset>) -> bool {
+    kept && level != Some(Preset::Potato)
+}
+
 impl App {
     pub(super) fn safe_graphics_at_start(&mut self) {
         let trouble = crate::crash::take_gpu_trouble();
         if trouble {
             log::warn!("the last session ended with the graphics card in trouble: safe graphics offered");
         }
+        let path = backup_path();
+        let mut kept = path.exists();
+        if left_by_hand(kept, Preset::matching(&self.settings)) {
+            match std::fs::remove_file(&path) {
+                Ok(()) => log::info!("safe graphics left by hand: the settings kept aside dropped"),
+                Err(e) => log::warn!("{FILE} not removed ({e})"),
+            }
+            kept = false;
+        }
         let demo = std::env::var_os("AURORA_DEMO").and_then(|_| std::env::var("AURORA_DEMO_SAFE_GRAPHICS").ok());
-        self.login_form.safe_graphics = at_start(trouble, backup_path().exists(), demo.as_deref());
+        self.login_form.safe_graphics = at_start(trouble, kept, demo.as_deref());
     }
 
-    /// Safe level for this session's GPU (login card / recovery). Falls back
-    /// to Potato only when the card looks weak (Intel iGPU / tiny heap).
-    fn safe_graphics_level(&self) -> Preset {
-        let (dedicated_mb, _, integrated) = self.options_ui.vram;
-        Preset::safe_for_machine(integrated, dedicated_mb, self.options_ui.gpu_vendor_id)
-    }
-
-    /// A second GPU loss within a few minutes (gpu_recovery.rs): the safe
-    /// level for this card, the settings before kept aside as the login
-    /// card's choice does, so it offers them back. Settings already kept
-    /// aside stay as they are (the first ones are the user's).
+    /// A second GPU loss within a few minutes (gpu_recovery.rs): the Potato
+    /// level, the settings before kept aside as the login card's choice does,
+    /// so it offers them back. Settings already kept aside stay as they are
+    /// (the first ones are the user's).
     pub(super) fn safe_graphics_after_losses(&mut self) {
-        let level = self.safe_graphics_level();
-        if backup_path().exists() || Preset::matching(&self.settings) == Some(level) {
-            level.apply(&mut self.settings);
+        if backup_path().exists() || Preset::matching(&self.settings) == Some(Preset::Potato) {
+            Preset::Potato.apply(&mut self.settings);
             self.settings.save();
-            log::info!("safe graphics on after GPU losses ({level:?}; settings kept aside already)");
+            log::info!("safe graphics on after GPU losses (settings kept aside already)");
             return;
         }
         self.safe_graphics_choice(Choice::Use);
@@ -92,9 +99,8 @@ impl App {
                     .and_then(|b| std::fs::write(&path, b))
                 {
                     Ok(()) => {
-                        let level = self.safe_graphics_level();
-                        level.apply(&mut self.settings);
-                        log::info!("safe graphics on: {level:?}, the settings before kept in {FILE}");
+                        Preset::Potato.apply(&mut self.settings);
+                        log::info!("safe graphics on: Potato level, the settings before kept in {FILE}");
                         self.login_form.safe_graphics = Some(SafeGraphics::Active);
                     }
                     Err(e) => {
@@ -128,42 +134,6 @@ impl App {
         self.settings.save();
         self.snapshots.settings_changed = true;
     }
-
-    /// A profile still on Potato after the update, on a discrete NVIDIA or
-    /// AMD card: offer the settings kept aside, or step up to the level the
-    /// machine would start on. Intel integrated and a Potato chosen later
-    /// stay. The flag is one-shot (`settings` version 34).
-    pub(super) fn rescue_stuck_potato(&mut self, integrated: bool, vram_mb: Option<u64>, vendor_id: u32) {
-        if !std::mem::take(&mut self.settings.graphics_potato_rescue) {
-            return;
-        }
-        const NVIDIA: u32 = 0x10de;
-        const AMD: u32 = 0x1002;
-        let discrete = !integrated && (vendor_id == NVIDIA || vendor_id == AMD);
-        let still_potato = Preset::matching(&self.settings) == Some(Preset::Potato);
-        if !(discrete && still_potato) {
-            self.settings.save();
-            return;
-        }
-        if backup_path().exists() {
-            if self.login_form.safe_graphics.is_none() {
-                self.login_form.safe_graphics = Some(SafeGraphics::Active);
-            }
-            log::info!("graphics still on Potato on a discrete NVIDIA/AMD card; restore offered from {FILE}");
-            self.settings.save();
-            return;
-        }
-        let level = Preset::for_machine(integrated, vram_mb, None, vendor_id);
-        if level == Preset::Potato {
-            self.settings.save();
-            return;
-        }
-        level.apply(&mut self.settings);
-        self.settings.graphics_machine_tip = None;
-        log::info!("graphics lifted from Potato to {level:?} on a discrete NVIDIA/AMD card");
-        self.settings.save();
-        self.snapshots.settings_changed = true;
-    }
 }
 
 #[cfg(test)]
@@ -181,12 +151,30 @@ mod tests {
         assert_eq!(at_start(false, false, Some("other")), None);
     }
 
+    /// #3631: the card came back at every start once the graphics were set
+    /// back in Preferences, and its Restore would have undone that choice.
+    #[test]
+    fn graphics_set_back_by_hand_end_the_way_back() {
+        let mut settings = crate::settings::Settings::default();
+        Preset::Potato.apply(&mut settings);
+        assert!(
+            !left_by_hand(true, Preset::matching(&settings)),
+            "still on the safe graphics: the card stays"
+        );
+        Preset::High.apply(&mut settings);
+        assert!(left_by_hand(true, Preset::matching(&settings)));
+        assert!(left_by_hand(true, None), "a custom level counts as the user's own");
+        assert!(!left_by_hand(false, Preset::matching(&settings)), "nothing kept aside");
+        // new trouble still offers the safe graphics
+        assert_eq!(at_start(true, false, None), Some(SafeGraphics::Offer));
+    }
+
     #[test]
     fn the_settings_kept_aside_come_back_as_they_were() {
         let mut settings = crate::settings::Settings::default();
         Preset::Deluxe.apply(&mut settings);
         let before = Values::read(&settings);
-        let dir = std::env::temp_dir().join(format!("block-safe-graphics-{}", uuid::Uuid::new_v4()));
+        let dir = std::env::temp_dir().join(format!("aurora-safe-graphics-{}", uuid::Uuid::new_v4()));
         std::fs::create_dir(&dir).unwrap();
         let path = dir.join(FILE);
         std::fs::write(&path, serde_json::to_vec(&before).unwrap()).unwrap();

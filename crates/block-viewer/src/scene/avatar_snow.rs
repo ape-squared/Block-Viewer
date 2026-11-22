@@ -1,4 +1,4 @@
-//! Aurora Weather: snow gathering on avatars. Out in falling snow an
+//! Weather: snow gathering on avatars. Out in falling snow an
 //! avatar slowly whitens on what faces up (shoulders, a hood, hair, a hat:
 //! the object shader, `eval_material`); under cover, in the rain, or once
 //! the snow stops, it melts away again. Under cover means something solid

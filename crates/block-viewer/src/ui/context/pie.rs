@@ -126,7 +126,7 @@ fn layout(target: &Target, entries: &[Entry]) -> Vec<Entry> {
                 _ => Vec::new(),
             };
             let profile = take_action(&mut community, |a| matches!(a, CtxAction::Profile(_)));
-            let groups = take_action(&mut community, |a| matches!(a, CtxAction::OpenPeople(2, _)));
+            let groups = take_action(&mut community, |a| matches!(a, CtxAction::OpenPeople(2)));
             rest.extend(community);
             let remove = take_icon(&mut rest, "shirt-filled");
             let sit = seated(&mut rest);
@@ -217,87 +217,35 @@ fn paint_icon(painter: &egui::Painter, icon: &str, center: Pos2, size: f32, colo
     }
 }
 
-fn voice_area_id(id: uuid::Uuid) -> egui::Id {
-    egui::Id::unique(("world_pie_voice", id))
-}
-
-const VOICE_PANEL_W: f32 = 250.0;
-const VOICE_PANEL_H: f32 = 38.0;
-
-/// Where the voice panel sits under (or above) the disc — used to keep the
-/// pie's full-screen grab off the slider.
-fn voice_panel_rect(screen: Rect, center: Pos2, radius: f32) -> Rect {
-    let below = center.y + radius + 8.0;
-    let y = if below + VOICE_PANEL_H <= screen.bottom() {
-        below
-    } else {
-        center.y - radius - 8.0 - VOICE_PANEL_H
-    };
-    let x = (center.x - VOICE_PANEL_W * 0.5).clamp(screen.left(), (screen.right() - VOICE_PANEL_W).max(screen.left()));
-    Rect::from_min_size(egui::pos2(x, y), egui::vec2(VOICE_PANEL_W, VOICE_PANEL_H))
-}
-
-/// Pie input over the screen, leaving `hole` free for the voice slider
-/// (a full-screen `click_and_drag` sat on top of the panel and stole drags).
-fn allocate_pie_surface(ui: &mut egui::Ui, screen: Rect, hole: Option<Rect>) -> egui::Response {
-    let sense = Sense::click();
-    let Some(hole) = hole.map(|r| r.expand(10.0).intersect(screen)) else {
-        return ui.allocate_rect(screen, sense);
-    };
-    if hole.width() <= 1.0 || hole.height() <= 1.0 {
-        return ui.allocate_rect(screen, sense);
-    }
-    let mut response = ui.allocate_rect(Rect::NOTHING, Sense::hover());
-    let strips = [
-        Rect::from_min_max(screen.min, egui::pos2(screen.right(), hole.top())),
-        Rect::from_min_max(egui::pos2(screen.left(), hole.bottom()), screen.max),
-        Rect::from_min_max(egui::pos2(screen.left(), hole.top()), egui::pos2(hole.left(), hole.bottom())),
-        Rect::from_min_max(egui::pos2(hole.right(), hole.top()), egui::pos2(screen.right(), hole.bottom())),
-    ];
-    for strip in strips {
-        if strip.width() > 1.0 && strip.height() > 1.0 {
-            response |= ui.allocate_rect(strip, sense);
-        }
-    }
-    response
-}
-
 /// The voice row of an avatar in our voice channel, in a panel under the
 /// disc (above it when the screen ends there), the pie having no rows;
 /// returns the panel's rectangle, where clicks leave the pie open.
 fn voice_panel(ctx: &egui::Context, p: &Palette, center: Pos2, radius: f32, id: uuid::Uuid, voice: crate::ui::menu::VoiceVolume) -> Rect {
+    const WIDTH: f32 = 250.0;
+    const HEIGHT: f32 = 38.0;
     let screen = ctx.content_rect();
-    let rect = voice_panel_rect(screen, center, radius);
-    // Salted unique id stays stable across frames (needed for the slider).
-    egui::Area::new(voice_area_id(id))
+    let below = center.y + radius + 8.0;
+    let y = if below + HEIGHT <= screen.bottom() {
+        below
+    } else {
+        center.y - radius - 8.0 - HEIGHT
+    };
+    let x = (center.x - WIDTH * 0.5).clamp(screen.left(), (screen.right() - WIDTH).max(screen.left()));
+    egui::Area::new(egui::Id::unique("world_pie_voice"))
         .order(egui::Order::Foreground)
-        .fixed_pos(rect.min)
+        .fixed_pos(egui::pos2(x, y))
         .movable(false)
         .fade_in(false)
-        .interactable(true)
         .show(ctx, |ui| {
-            // Over the pie disc: the pie surface leaves this rect free so
-            // drags reach the slider (see allocate_pie_surface).
+            // over the pie's input surface
             ui.ctx().move_to_top(ui.layer_id());
             crate::ui::widgets::overlay(ui, p, egui::Margin::same(4), |ui| {
-                ui.set_width(VOICE_PANEL_W - 10.0);
+                ui.set_width(WIDTH - 10.0);
                 super::voice_control(ui, p, id, voice);
             });
         })
         .response
         .rect
-}
-
-/// Pointer is on the voice panel, started a drag there, or clicked the
-/// keep-open voice row — do not treat that as an outside-pie close.
-fn voice_keeps_pie(ctx: &egui::Context, id: uuid::Uuid, panel: Rect) -> bool {
-    let pad = panel.expand(12.0);
-    let over_or_drag = ctx.input(|i| {
-        let over_now = i.pointer.interact_pos().is_some_and(|pos| pad.contains(pos));
-        let drag_from_panel = i.pointer.any_down() && i.pointer.press_origin().is_some_and(|o| pad.contains(o));
-        over_now || drag_from_panel
-    });
-    over_or_drag || crate::ui::menu::clicks_kept_row(ctx, voice_area_id(id))
 }
 
 #[allow(clippy::too_many_arguments)]
@@ -338,26 +286,30 @@ pub(super) fn show(
     let hot = hovered.filter(|&index| current.get(index).is_some_and(|e| e.enabled));
     let mut primary_released = false;
     let mut secondary_released = false;
-    let panel = Color32::from_rgba_unmultiplied(p.panel.r(), p.panel.g(), p.panel.b(), p.panel_alpha);
-    let voice_at_root = voice.as_ref().filter(|_| menu.pie_path.is_empty()).map(|(id, v)| (*id, *v));
-    let voice_hole = voice_at_root.map(|_| voice_panel_rect(screen, center, radius));
+    // OverridePieColors and PieMenuOpacity (PieMenu::draw)
+    let override_opacity = crate::ui::surface_opacity::pie();
+    let alpha = override_opacity.map_or(p.panel_alpha, |o| (f32::from(p.panel_alpha) * o).round() as u8);
+    let panel = Color32::from_rgba_unmultiplied(p.panel.r(), p.panel.g(), p.panel.b(), alpha);
+    // The pie takes the pointer on its square only, transparent corners
+    // included, like the PieMenu view's rect (indra/newview/piemenu.cpp).
+    // A press elsewhere goes to what lies under it, a floater or the world
+    // (a right-click there opens a fresh menu at the new target), and its
+    // release closes the pie: LLMenuHolderGL::handleMouseDown and
+    // handleRightMouseDown (indra/llui/llmenugl.cpp) hide the menus without
+    // handling the click.
+    let square = egui::Rect::from_center_size(center, egui::Vec2::splat(radius * 2.0));
     egui::Area::new(egui::Id::unique("world_pie_menu"))
         .order(egui::Order::Foreground)
-        .fixed_pos(screen.min)
+        .fixed_pos(square.min)
         .movable(false)
         .show(ctx, |ui| {
-            // Modal input for the disc and empty corners — not over the voice
-            // panel, or the slider's drag never reaches it.
-            let response = allocate_pie_surface(ui, screen, voice_hole);
-            // Stay under the voice Area when that panel is open.
-            if voice_hole.is_none() {
-                ui.ctx().move_to_top(ui.layer_id());
-            }
+            let response = ui.allocate_rect(square, Sense::click_and_drag());
+            ui.ctx().move_to_top(ui.layer_id());
             let painter = ui.painter();
             if p.panel_alpha < 255 {
                 // a square with fully rounded corners is the disc
-                let disc = egui::Rect::from_center_size(center, egui::Vec2::splat(radius * 2.0));
-                painter.add(block_render::glass_panel(disc, radius, Color32::TRANSPARENT));
+                let blur = override_opacity.map_or(1.0, |o| o * o);
+                painter.add(block_render::glass_panel_faded(square, radius, Color32::TRANSPARENT, blur));
             }
             for index in 0..SLICES {
                 ring_segment(
@@ -441,11 +393,9 @@ pub(super) fn show(
             secondary_released = ui.input(|i| i.pointer.button_released(egui::PointerButton::Secondary));
         });
     // at the first level only, with the avatar's own entries
-    let mut voice_holds = false;
-    if let Some((id, voice)) = voice_at_root {
+    if let Some((id, voice)) = voice.filter(|_| menu.pie_path.is_empty()) {
         let panel = voice_panel(ctx, p, center, radius, id, voice);
-        voice_holds = voice_keeps_pie(ctx, id, panel);
-        if voice_holds {
+        if ctx.input(|i| i.pointer.interact_pos()).is_some_and(|pos| panel.contains(pos)) {
             primary_released = false;
             secondary_released = false;
         }
@@ -456,8 +406,6 @@ pub(super) fn show(
         *open = false;
     } else if back {
         menu.pie_path.pop();
-    } else if voice_holds {
-        // slider / mute: leave the pie open for the whole gesture
     } else if (primary_released || secondary_released) && menu.pie_input_frame.is_some_and(|frame| frame != ctx.cumulative_frame_nr()) {
         if secondary_released {
             if menu.pie_path.pop().is_none() {
@@ -551,6 +499,29 @@ mod tests {
             pie_path: Vec::new(),
             pie_input_frame: None,
         })
+    }
+
+    #[test]
+    fn the_pie_takes_the_pointer_on_its_square_only() {
+        let ctx = egui::Context::default();
+        let facts = Facts::default();
+        let mut menu = open(Target::Ground);
+        frame(&ctx, &mut menu, &facts, Vec::new());
+        frame(&ctx, &mut menu, &facts, Vec::new());
+        let screen = Rect::from_min_size(Pos2::ZERO, egui::vec2(1280.0, 900.0));
+        let (center, radius) = geometry(screen, egui::pos2(400.0, 400.0));
+        let on_pie = |pos: Pos2| ctx.layer_id_at(pos).is_some_and(|layer| layer.order == egui::Order::Foreground);
+        // a slice, the center and a transparent corner of the square
+        assert!(on_pie(center + egui::vec2(radius * 0.6, 0.0)));
+        assert!(on_pie(center));
+        assert!(on_pie(center - egui::Vec2::splat(radius - 2.0)));
+        // beyond the square: a floater or the world under it gets the press
+        assert!(!on_pie(center + egui::vec2(radius + 20.0, 0.0)));
+        assert!(!on_pie(egui::pos2(1200.0, 850.0)));
+        // its release still closes the pie
+        click(&ctx, &mut menu, &facts, egui::pos2(1200.0, 850.0), egui::PointerButton::Primary);
+        assert!(menu.is_none());
+        assert!(super::super::take_requests(&ctx).is_empty());
     }
 
     #[test]
@@ -743,47 +714,6 @@ mod tests {
                     .iter()
                     .all(|r| matches!(r, CtxAction::SetVoiceVolume(id, v) if *id == tess && *v < 0.5)),
             "{requests:?}"
-        );
-        // drag off the panel then release: still open (slider gesture)
-        frame(
-            &ctx,
-            &mut menu,
-            &facts,
-            vec![
-                egui::Event::PointerMoved(egui::pos2(320.0, 607.0)),
-                egui::Event::PointerButton {
-                    pos: egui::pos2(320.0, 607.0),
-                    button: egui::PointerButton::Primary,
-                    pressed: true,
-                    modifiers: egui::Modifiers::NONE,
-                },
-            ],
-        );
-        frame(
-            &ctx,
-            &mut menu,
-            &facts,
-            vec![
-                egui::Event::PointerMoved(egui::pos2(100.0, 700.0)),
-                egui::Event::PointerButton {
-                    pos: egui::pos2(100.0, 700.0),
-                    button: egui::PointerButton::Primary,
-                    pressed: false,
-                    modifiers: egui::Modifiers::NONE,
-                },
-            ],
-        );
-        assert!(
-            menu.is_some(),
-            "releasing a drag that started on the voice panel leaves the pie open"
-        );
-        // mute button (right of the percentage)
-        click(&ctx, &mut menu, &facts, egui::pos2(520.0, 607.0), egui::PointerButton::Primary);
-        assert!(menu.is_some(), "mute leaves the pie open");
-        let mute = super::super::take_requests(&ctx);
-        assert!(
-            mute.iter().any(|r| matches!(r, CtxAction::ToggleVoiceMute(id) if *id == tess)),
-            "{mute:?}"
         );
         // out of voice: no panel, a click there closes the pie
         let mut menu = open(Target::Avatar {

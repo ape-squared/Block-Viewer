@@ -136,7 +136,7 @@ fn missing_flight_ascent_keeps_the_migrated_swimming_gate_locked() {
 fn manual_migration_requires_a_distinct_valid_name_and_ready_services() {
     let (mut inv, native, mut migration, _, _) = fixture();
     let generation = inv.generation;
-    assert_eq!(migration.name, "Block AO");
+    assert_eq!(migration.name, "Aurora AO");
     assert!(migration.plan(&inv, &native).is_err(), "a collision cannot overwrite native data");
     for name in ["", "Bad:name", "  Aurora AO  "] {
         migration.name = name.into();

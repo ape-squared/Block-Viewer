@@ -5,7 +5,7 @@
 //! fades into its texture the moment that texture shows its first pixels
 //! (`Scene::rez_first_texels`): no face waits for another, nothing is ever
 //! grey, and nothing is followed on the CPU for it. The colors run along
-//! the brand gradient of the theme (`Palette::block_gradient`). A texture
+//! the brand gradient of the theme (`Palette::aurora_gradient`). A texture
 //! that will not come (missing on the asset server, failing again and
 //! again) leaves the grid for the grey the Legacy Viewer shows in its place
 //! (`textures::MISSING`, `TextureStreamer::show_unavailable`).
@@ -645,7 +645,9 @@ impl Scene {
                 let Some(att) = world.objects.get(c) else {
                     continue;
                 };
-                if (31..=38).contains(&att.attachment_point()) {
+                // (nor the copies drawn from the cache, world/avatar_cache:
+                // drawn as they are, they never hold the avatar's line)
+                if (31..=38).contains(&att.attachment_point()) || crate::world::avatar_cache::is_copy(att.key) {
                     out.pop();
                     continue;
                 }
@@ -942,10 +944,15 @@ impl Scene {
         let loaded = if u.avatar {
             // (ours, and a new look: its bakes downloaded and shown too)
             let complete = u.id == f.world.agent_id || u.outfit;
+            // (one drawn from the cache shows as it is once out of its
+            // cloud: no grid over what is real while its copies are not,
+            // world/avatar_cache)
+            let cached = f.world.avatar_cache.draws(&u.id);
             !self.loading.indices.contains(&root)
                 && self.gpu.get(root).is_some_and(|g| !g.faces.is_empty())
-                && (!complete || self.avatar_complete(f.world, root) && !self.holds_bake(&u.id))
-                && self.members_loaded(u.members.get(1..).unwrap_or_default())
+                && (cached
+                    || (!complete || self.avatar_complete(f.world, root) && !self.holds_bake(&u.id))
+                        && self.members_loaded(u.members.get(1..).unwrap_or_default()))
         } else {
             self.members_loaded(&u.members)
         };
@@ -1153,6 +1160,13 @@ impl Scene {
             present.insert(o.full_id);
             let look = Self::own_look(world, idx);
             let ours = o.full_id == world.agent_id;
+            // the animation editor's mirror of us is a copy made of what is
+            // already on the screen: no arrival grid or line over it (nor
+            // over what it wears, which comes with it)
+            if world.is_mirror(&o.full_id) && !rez.avatars_seen.contains_key(&o.full_id) {
+                rez.avatars_seen.insert(o.full_id, (now, look));
+                continue;
+            }
             let (start, outfit) = rez.avatar_look(o.full_id, look, now, watching, ours, lifted);
             if start && !rez.units.contains_key(&idx) {
                 rez.add_unit(idx, Self::avatar_unit(o.full_id, idx, now, outfit));
@@ -1173,7 +1187,9 @@ impl Scene {
 
         // objects synced for the first time
         for idx in std::mem::take(&mut rez.arrivals) {
-            let Some(o) = world.objects.get(idx) else {
+            // (a copy drawn from the cache shows as it is: no grid, no line,
+            // and never one of its avatar's members, world/avatar_cache)
+            let Some(o) = world.objects.get(idx).filter(|o| !crate::world::avatar_cache::is_copy(o.key)) else {
                 continue;
             };
             let region_since = *rez.regions.entry(o.key.region).or_insert(now);
@@ -1207,6 +1223,15 @@ impl Scene {
                 let Some(avatar) = parent.filter(|&p| world.objects.get(p).is_some_and(|a| a.is_avatar())) else {
                     continue;
                 };
+                // (the region's object of a copy drawn from the cache takes
+                // its place as it is: it was on the screen already)
+                if world
+                    .objects
+                    .get(avatar)
+                    .is_some_and(|a| world.avatar_cache.replaced_by(&a.full_id, o.full_id, o.attachment_item_id()))
+                {
+                    continue;
+                }
                 let settled = world
                     .objects
                     .get(avatar)

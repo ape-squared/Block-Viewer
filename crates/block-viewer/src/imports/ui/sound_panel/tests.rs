@@ -95,9 +95,8 @@ fn waveform_crop_and_reset_dispatch_the_audio_controls_without_changing_pcm() {
     editor.options.gain = 2.5;
     let (output, _) = frame(&mut editor, Vec::new());
     assert!(
-        output
-            .shapes
-            .iter()
-            .any(|shape| matches!(&shape.shape, egui::Shape::Text(text) if text.galley.text() == block_i18n::tr!("import-sound-clipping")))
+        output.shapes.iter().any(
+            |shape| matches!(&shape.shape, egui::Shape::Text(text) if text.galley.text() == block_i18n::tr!("import-sound-clipping"))
+        )
     );
 }

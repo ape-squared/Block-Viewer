@@ -124,7 +124,7 @@ impl Source {
     /// `None` where the login screen stays offline: demo and updater test
     /// installation.
     fn from_environment() -> Option<Self> {
-        if crate::block_env::demo_mode() || block_updater::test_environment().is_some() {
+        if std::env::var_os("AURORA_DEMO").is_some() || block_updater::test_environment().is_some() {
             return None;
         }
         if let Ok(address) = std::env::var("AURORA_NEWS_URL") {
@@ -168,11 +168,13 @@ impl Source {
     }
 
     async fn fetch(&self, language: &str) -> anyhow::Result<Vec<NewsItem>> {
-        let builder = reqwest::Client::builder()
-            .user_agent(block_version::user_agent())
-            .https_only(!self.loopback)
-            .timeout(Duration::from_secs(8));
-        let http = if self.loopback { builder.no_proxy() } else { builder }.build()?;
+        // a loopback feed stays on this computer: the rule never proxies it
+        let loopback = self.loopback;
+        let http = block_proxy::http_client(|b| {
+            b.user_agent(block_version::user_agent())
+                .https_only(!loopback)
+                .timeout(Duration::from_secs(8))
+        })?;
         for code in candidates(language) {
             if let Some(text) = download(&http, &format!("{}{code}.md", self.base)).await? {
                 let news = markdown::parse(&text);
@@ -474,8 +476,8 @@ mod tests {
             ("http://localhost:8123/news/", "http://localhost:8123/news/", true),
             ("http://[::1]:8123/news", "http://[::1]:8123/news/", true),
             (
-                " https://raw.githubusercontent.com/Block-Viewer/Block-Viewer/feat/actualites-md/news ",
-                "https://raw.githubusercontent.com/Block-Viewer/Block-Viewer/feat/actualites-md/news/",
+                " https://raw.githubusercontent.com/Aurora-Viewer/Aurora-Viewer/feat/actualites-md/news ",
+                "https://raw.githubusercontent.com/Aurora-Viewer/Aurora-Viewer/feat/actualites-md/news/",
                 false,
             ),
         ] {
@@ -492,10 +494,10 @@ mod tests {
             "http://127.0.0.1.example.org/",
             "http://user:secret@127.0.0.1/",
             "http://127.0.0.1/?next=https://example.org",
-            "http://raw.githubusercontent.com/Block-Viewer/Block-Viewer/main/news/",
-            "https://raw.githubusercontent.com/Somebody/Block-Viewer/main/news/",
-            "https://raw.githubusercontent.com/Block-Viewer/Block-Viewer/../../Somebody/Else/main/",
-            "https://raw.githubusercontent.com.example.org/Block-Viewer/Block-Viewer/main/news/",
+            "http://raw.githubusercontent.com/Aurora-Viewer/Aurora-Viewer/main/news/",
+            "https://raw.githubusercontent.com/Somebody/Aurora-Viewer/main/news/",
+            "https://raw.githubusercontent.com/Aurora-Viewer/Aurora-Viewer/../../Somebody/Else/main/",
+            "https://raw.githubusercontent.com.example.org/Aurora-Viewer/Aurora-Viewer/main/news/",
             "file:///C:/news/",
         ] {
             assert!(Source::test(address).is_none(), "{address}");
@@ -535,7 +537,7 @@ mod tests {
     #[test]
     fn download_replaces_the_news_and_is_kept_for_the_next_start() {
         let rt = runtime();
-        let cache = std::env::temp_dir().join(format!("block-news-test-{}", uuid::Uuid::new_v4()));
+        let cache = std::env::temp_dir().join(format!("aurora-news-test-{}", uuid::Uuid::new_v4()));
         let base = serve(vec![
             ("/fr.md", "## 2026-11-02 — Publié\nTexte.\n[Suite](https://example.org/fr)\n".into()),
             ("/en.md", "## 2026-11-02 — Published\nText.\n".into()),

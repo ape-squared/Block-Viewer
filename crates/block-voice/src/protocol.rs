@@ -247,7 +247,8 @@ pub fn parse_provision_response(result: &Llsd) -> Option<ProvisionAnswer> {
 /// One-line summary of the ICE parameters of an SDP answer, for the log:
 /// where each `ice-ufrag` / `ice-pwd` sits (`s` session level, `m0`, `m1`…
 /// media level), the ufrag, the password length (never the password),
-/// `ice-lite` and the candidates.
+/// `ice-lite` and the candidates. Tells a credentials mismatch from a
+/// network problem when a voice host ignores our checks (issue #3364).
 pub fn answer_ice_summary(sdp: &str) -> String {
     let mut section = "s".to_string();
     let mut media = 0usize;
@@ -266,6 +267,7 @@ pub fn answer_ice_summary(sdp: &str) -> String {
         } else if line == "a=ice-lite" {
             lite = true;
         } else if let Some(c) = line.strip_prefix("a=candidate:") {
+            // foundation component protocol priority address port typ type …
             let parts: Vec<&str> = c.split_whitespace().collect();
             if parts.len() >= 8 {
                 let mut s = format!("{} {}:{} {}", parts[2].to_ascii_lowercase(), parts[4], parts[5], parts[7]);
@@ -688,6 +690,7 @@ a=ice-ufrag:abcd\r\n";
             "ufrag [s sess, m0 abcd, m1 abcd], pwd [m0 24 chars], ice-lite yes, 3 candidates \
              [udp 203.0.113.7:10626 host, tcp 203.0.113.7:9 host active, unparsed `broken`]"
         );
+        // The password itself never reaches the log.
         assert!(!answer_ice_summary(sdp).contains("0123456789"));
     }
 }

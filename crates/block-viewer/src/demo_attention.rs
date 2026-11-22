@@ -60,6 +60,7 @@ pub fn events(frame: u64, agent: Uuid) -> Vec<NetEvent> {
             owner_id: DEMO_TESS,
             source_type: ChatSourceType::Agent,
             chat_type: ChatType::Normal,
+            region: Some(crate::demo::HANDLE),
             position: glam::Vec3::new(130.0, 130.0, 22.0),
             message: mention(agent, block_i18n::tr!("demo-attention-mention")),
         }),
@@ -73,7 +74,7 @@ pub fn events(frame: u64, agent: Uuid) -> Vec<NetEvent> {
             b"Aurora Builders\0",
         ),
         940 => {
-            let location = format!("{}/128/128/25\0", block_i18n::tr!("common-block-demo"));
+            let location = format!("{}/128/128/25\0", block_i18n::tr!("common-aurora-demo"));
             im(
                 agent,
                 agent,

@@ -945,11 +945,11 @@ mod tests {
 
     #[test]
     fn latin_letters_in_a_right_to_left_row_are_read_from_the_left() {
-        let rows = visual_rows(&job("שלום Blocks"), Base::Auto, &mut units);
+        let rows = visual_rows(&job("שלום Aurora"), Base::Auto, &mut units);
         let latin = rows[0]
             .segments
             .iter()
-            .find(|s| s.text.starts_with("Blocks"))
+            .find(|s| s.text.starts_with("Aurora"))
             .expect("the Latin run");
         // the space after it is read from the right (level 1), the letters
         // from the left (level 2)

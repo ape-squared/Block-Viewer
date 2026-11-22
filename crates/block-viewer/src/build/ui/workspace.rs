@@ -2,8 +2,8 @@
 use super::INSPECTOR_ID;
 use crate::ui::widgets;
 use egui::{Vec2, vec2};
-pub(super) const DEFAULT_SIZE: Vec2 = vec2(380.0, 840.0);
-pub(super) const MIN_SIZE: Vec2 = vec2(360.0, 440.0);
+pub(super) const DEFAULT_SIZE: Vec2 = vec2(350.0, 820.0);
+pub(super) const MIN_SIZE: Vec2 = vec2(344.0, 420.0);
 
 /// A reproducible initial size for captures; production uses the floater's
 /// ordinary saved geometry; the style override is limited to this demo run.
@@ -37,5 +37,41 @@ pub(super) fn prepare(ctx: &egui::Context, demo: bool, s: &mut crate::build::Bui
                 .max(if s.legacy_window { super::legacy::MIN_SIZE } else { MIN_SIZE })
                 .min(work.size()),
         );
+    }
+    if let Ok(tab) = std::env::var("AURORA_DEMO_BUILD_TAB") {
+        for extra in tab.split('+').skip(1) {
+            let column = match extra.trim() {
+                "notice" => {
+                    ctx.data_mut(|data| data.insert_temp(egui::Id::unique("build-demo-notice"), false));
+                    continue;
+                }
+                "drag-option" | "drag-actions" => {
+                    let item = if extra.trim() == "drag-actions" {
+                        crate::build::layout::Item::Actions
+                    } else {
+                        crate::build::layout::Item::RootAxis
+                    };
+                    ctx.data_mut(|data| data.insert_temp(egui::Id::unique("build-demo-layout-drag"), item));
+                    continue;
+                }
+                "default-layout" => {
+                    s.layout = Default::default();
+                    continue;
+                }
+                "expanded" => {
+                    s.transform_expanded = true;
+                    continue;
+                }
+                "snap-left" => crate::build::layout::FooterColumn::Left,
+                "snap-right" => crate::build::layout::FooterColumn::Right,
+                _ => continue,
+            };
+            s.layout.place_in_footer(
+                crate::build::layout::Item::Snap,
+                column,
+                Some(crate::build::layout::Item::Actions),
+                false,
+            );
+        }
     }
 }

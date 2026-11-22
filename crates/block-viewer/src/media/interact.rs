@@ -77,6 +77,18 @@ impl MediaManager {
         Some(faces)
     }
 
+    /// The average direction a face looks to, in the prim's frame with its
+    /// scale (LLVOVolume::getApproximateFaceNormal, which sums the face's
+    /// normals): its triangles' normals, weighted by their area. The caller
+    /// turns it with the prim's rotation. `None` without the face's shape
+    /// (a sculpt, a mesh not loaded yet).
+    pub fn face_normal(&mut self, world: &World, scene: &Scene, idx: usize, face: u8) -> Option<Vec3> {
+        let scale = world.objects.get(idx)?.scale;
+        let faces = self.cpu_faces(world, scene, idx)?;
+        let f = faces.get(face as usize)?.as_ref()?;
+        area_normal(&f.positions, &f.indices, scale)
+    }
+
     /// Number of faces (texture entries) of an object: the prim volume's,
     /// or the mesh asset's submeshes once it is cached (the local mesh's
     /// during a preview).
@@ -91,9 +103,11 @@ impl MediaManager {
         Some(block_prim::volume::num_faces(&volume).max(1))
     }
 
-    /// The nearest media face along a ray. Prefer ObjectMedia face lists;
-    /// fall back to texture-entry media flags so a TV can still be clicked
-    /// while ObjectMedia is in flight or after a failed fetch.
+    /// The nearest media face along a ray (objects with media data only),
+    /// unless something drawn is in front (`depth_t`: distance of the
+    /// picked depth).
+    /// `picked`: the object the click's own pick found (a HUD's): only its
+    /// faces count, as LLToolPie::handleMediaClick looks at mPick's face.
     pub fn hit_test(
         &mut self,
         world: &World,
@@ -116,16 +130,12 @@ impl MediaManager {
                     .is_some_and(|g| g.owner_avatar == world.objects.index_of_uuid(&world.agent_id))
             })
             .filter_map(|(id, om)| {
-                if let Some(d) = om.data.as_ref() {
-                    return Some((
-                        *id,
-                        om.idx,
-                        d.faces.iter().map(|f| f.as_ref().is_some_and(|e| !e.url().is_empty())).collect(),
-                    ));
-                }
-                let te = world.objects.get(om.idx)?.te.as_ref()?;
-                let flags: Vec<bool> = te.faces.iter().map(|f| f.media_flags & 1 != 0).collect();
-                flags.iter().any(|&m| m).then_some((*id, om.idx, flags))
+                let d = om.data.as_ref()?;
+                Some((
+                    *id,
+                    om.idx,
+                    d.faces.iter().map(|f| f.as_ref().is_some_and(|e| !e.url().is_empty())).collect(),
+                ))
             })
             .collect();
         let mut best: Option<MediaHit> = None;
@@ -144,9 +154,10 @@ impl MediaManager {
                 continue;
             };
             // LLVOVolume::lineSegmentIntersect: a face at alpha 0 is not
-            // picked unless its own prim shows the special cursor, so a
-            // hidden media panel in front of a HUD button lets the button
-            // take the click (#2967 / #3394).
+            // picked unless its own prim shows the special cursor
+            // (specialHoverCursor: physics, a touch script, a click action),
+            // so a hidden media panel in front of a HUD button lets the
+            // button take the click
             let special_cursor = crate::interaction::special_hover_cursor(o);
             let shown = |fi: usize| special_cursor || self.build_mode || o.te.as_ref().is_none_or(|te| te.face(fi).color[3] > 0.0);
             let tris = faces.iter().enumerate().filter_map(|(fi, f)| {
@@ -199,7 +210,8 @@ impl MediaManager {
     /// and LLVOVolume::mediaNavigated only refuses the navigation it leads
     /// to (`MediaImpl::may_navigate`). Refusing the click sent it to the
     /// object's script instead: a HUD page with interaction set to nobody
-    /// closed at the first click.
+    /// closed at the first click. Under @interact no face is picked at all,
+    /// a HUD's included (`World::rlva_drops_picks`).
     fn may_touch(&self, world: &World, key: &MediaKey, position: Option<Vec3>) -> bool {
         let MediaKey::Prim { object, .. } = key else {
             return false;
@@ -208,10 +220,32 @@ impl MediaManager {
             return false;
         };
         !world.rlva.enabled()
-            || world
-                .objects
-                .get(om.idx)
-                .is_some_and(|o| world.rlva_can_touch_at(o.key.region, o.key.local_id, position))
+            || !world.rlva_drops_picks()
+                && world
+                    .objects
+                    .get(om.idx)
+                    .is_some_and(|o| world.rlva_can_touch_at(o.key.region, o.key.local_id, position))
+    }
+
+    /// Owner and group of the linkset of a media face, from its
+    /// ObjectPropertiesFamily (asked as the pointer comes on it,
+    /// `has_media`), or the owner the object update gave.
+    fn owner_of(&self, world: &World, key: &MediaKey, props: &HashMap<Uuid, block_net::build::ObjectProps>) -> Option<(Uuid, Uuid)> {
+        let MediaKey::Prim { object, .. } = key else {
+            return None;
+        };
+        let idx = self.objects.get(object)?.idx;
+        let root = crate::interaction::root(world, idx).map_or(idx, |(r, _)| r);
+        let o = world.objects.get(root)?;
+        props
+            .get(&o.full_id)
+            .map(|p| (p.owner_id, p.group_id))
+            .or_else(|| (!o.owner_id.is_nil()).then_some((o.owner_id, Uuid::nil())))
+    }
+
+    /// Whether the prim `idx` shows prim media.
+    pub fn has_media(&self, world: &World, idx: usize) -> bool {
+        world.objects.get(idx).is_some_and(|o| self.objects.contains_key(&o.full_id))
     }
 
     /// Left press in the world. Returns true when a media face took it.
@@ -225,6 +259,7 @@ impl MediaManager {
         mods: Modifiers,
         hud: bool,
         picked: Option<usize>,
+        props: &HashMap<Uuid, block_net::build::ObjectProps>,
     ) -> bool {
         if !settings.enabled || !settings.prim_media {
             return false;
@@ -237,41 +272,26 @@ impl MediaManager {
         if !self.may_touch(world, &hit.key, position) {
             return false;
         }
+        let owner = self.owner_of(world, &hit.key, props);
+        let is_friend = |id: &Uuid| world.social.is_friend(id);
+        let in_group = |id: &Uuid| world.groups.groups.iter().any(|g| g.id == *id);
+        let clicked = first_click::Clicked {
+            hud,
+            owner,
+            agent: world.agent_id,
+            is_friend: &is_friend,
+            in_group: &in_group,
+            parcel: position
+                .filter(|_| !hud)
+                .and_then(|at| world.on_agent_parcel(at).filter(|on| *on))
+                .and(world.parcel.as_ref())
+                .map(|p| (p.owner_id, p.group_id)),
+        };
         let already = self.focus == Some(hit.key);
         if !already {
             self.unfocus();
             self.focus = Some(hit.key);
             self.last_surface = position;
-            // ObjectMedia still loading or last GET failed: ask again.
-            // World TVs keep the click so the page receives it once ready;
-            // HUD face HUDs (LeLutka Axis) must fall through to touch while
-            // ObjectMedia is still queued behind world screens (#2967 / #3394).
-            if self.find(&hit.key).is_none() {
-                if let MediaKey::Prim { object, .. } = hit.key
-                    && let Some(e) = self.objects.get_mut(&object)
-                {
-                    // Clear the paced "asked once per version" gate so a
-                    // click can retry after the simulator stayed busy.
-                    let update = e.fetched_version.is_some() || e.data.is_some();
-                    let priority = if hud {
-                        super::entry::HUD
-                    } else if e.on_own_avatar {
-                        super::entry::ATTACHMENT
-                    } else {
-                        super::entry::WORLD
-                    };
-                    e.asked_version = None;
-                    e.fetched_version = None;
-                    if let Some(o) = world.objects.get(e.idx)
-                        && let Some(cap) = world.regions.get(&o.key.region).and_then(|r| r.caps.get("ObjectMedia"))
-                    {
-                        let version = super::entry::media_version(&o.media_url).unwrap_or(0);
-                        e.asked_version = Some(version);
-                        self.client.request(object, cap, update, priority);
-                    }
-                }
-                return !hud;
-            }
             let Some(m) = self.find_mut(&hit.key) else {
                 return false;
             };
@@ -289,7 +309,8 @@ impl MediaManager {
             if let Some(p) = m.plugin.as_mut() {
                 p.focus(true);
             }
-            let first_click = settings.first_click_interact && m.entry.as_ref().is_some_and(|e| e.first_click_interact);
+            let face_asks = m.entry.as_ref().is_some_and(|e| e.first_click_interact);
+            let first_click = first_click::allowed(settings.first_click_interact, &settings.first_click, face_asks, &clicked);
             if !first_click || !m.is_loaded() {
                 return true;
             }
@@ -393,6 +414,7 @@ impl MediaManager {
     pub fn on_key(
         &mut self,
         world: &World,
+        letter: Option<char>,
         code: winit::keyboard::KeyCode,
         scancode: u32,
         pressed: bool,
@@ -411,7 +433,7 @@ impl MediaManager {
         let Some(p) = self.focused_mut().and_then(|m| m.plugin.as_mut()) else {
             return pressed;
         };
-        keys::forward(p, code, scancode, pressed, repeat, text, mods) || pressed
+        keys::edit(p, letter, code, pressed, repeat, mods) || keys::forward(p, code, scancode, pressed, repeat, text, mods) || pressed
     }
 
     /// Release the focus (LLViewerMediaFocus::clearFocus).
@@ -439,65 +461,45 @@ impl MediaManager {
     }
 }
 
+/// The area-weighted normal of triangles (counter-clockwise faces look
+/// out, as the volume generator winds them), positions scaled first.
+fn area_normal(positions: &[[f32; 3]], indices: &[u16], scale: Vec3) -> Option<Vec3> {
+    let at = |i: u16| positions.get(i as usize).map(|p| Vec3::from(*p) * scale);
+    let mut sum = Vec3::ZERO;
+    for &[i, j, k] in indices.as_chunks::<3>().0 {
+        if let (Some(a), Some(b), Some(c)) = (at(i), at(j), at(k)) {
+            sum += (b - a).cross(c - a);
+        }
+    }
+    sum.try_normalize()
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
 
     #[test]
-    fn invisible_back_of_a_media_face_cannot_steal_world_clicks() {
-        let library = Arc::new(crate::scene::avatar::AvatarLibrary::load());
-        let mut world = World::new(library.clone());
-        for event in crate::demo::events().into_iter().chain(crate::demo::action_events()) {
-            world.apply(event);
+    fn face_normals_follow_the_generated_normals_and_the_scale() {
+        let boxp = block_prim::RawShape {
+            path_curve: block_prim::params::LL_PCODE_PATH_LINE,
+            profile_curve: block_prim::params::LL_PCODE_PROFILE_SQUARE,
+            path_scale_x: 100,
+            path_scale_y: 100,
+            ..Default::default()
         }
-        let idx = world.objects.index_of_uuid(&crate::demo::action_id(970)).unwrap();
-        let object = world.objects.get_mut(idx).unwrap();
-        object.position = Vec3::X * 3.0;
-        object.rotation = glam::Quat::IDENTITY;
-        object.scale = Vec3::ONE;
-        let id = object.full_id;
-        let cache_key = object.visual_volume().cache_key() ^ (3u64 << 60);
-        let mut scene = Scene::new(std::path::PathBuf::new(), library);
-        let mut media = MediaManager::default();
-        media.objects.insert(
-            id,
-            ObjMedia {
-                idx,
-                data: Some(ObjectMediaData {
-                    faces: vec![Some(MediaEntry {
-                        current_url: "https://example.invalid/media".into(),
-                        ..Default::default()
-                    })],
-                    ..Default::default()
-                }),
-                ..Default::default()
-            },
-        );
-        media.pick_cache.insert(
-            id,
-            (
-                cache_key,
-                Arc::new(vec![Some(CpuFace {
-                    positions: vec![[0.0, -0.5, -0.5], [0.0, 0.5, -0.5], [0.0, 0.5, 0.5], [0.0, -0.5, 0.5]],
-                    uvs: vec![[0.0; 2]; 4],
-                    indices: vec![0, 1, 2, 0, 2, 3],
-                })]),
-            ),
-        );
-        assert!(media.hit_test(&world, &scene, Vec3::ZERO, Vec3::X, None, false, None).is_none());
-        world.objects.get_mut(idx).unwrap().rotation = glam::Quat::from_rotation_z(std::f32::consts::PI);
-        assert!(media.hit_test(&world, &scene, Vec3::ZERO, Vec3::X, None, false, None).is_some());
-        world.objects.get_mut(idx).unwrap().rotation = glam::Quat::IDENTITY;
-        let material = Uuid::from_u128(8896);
-        world.objects.get_mut(idx).unwrap().extra.render_materials = vec![(0, material)];
-        scene.materials.insert(
-            material,
-            block_assets::PbrMaterial {
-                double_sided: true,
-                ..Default::default()
-            },
-        );
-        assert!(media.hit_test(&world, &scene, Vec3::ZERO, Vec3::X, None, false, None).is_some());
+        .to_params();
+        let mesh = block_prim::generate_volume(&boxp, 1.0);
+        for f in &mesh.faces {
+            let given = f.normals.iter().map(|n| Vec3::from(*n)).sum::<Vec3>().normalize();
+            let n = area_normal(&f.positions, &f.indices, Vec3::ONE).unwrap();
+            assert!(n.dot(given) > 0.99, "{n} vs {given}");
+        }
+        // a flat panel: stretching it does not tilt a side's normal
+        let f = &mesh.faces[1];
+        let given = f.normals.iter().map(|n| Vec3::from(*n)).sum::<Vec3>().normalize();
+        let n = area_normal(&f.positions, &f.indices, Vec3::new(0.1, 4.0, 2.25)).unwrap();
+        assert!(n.dot(given) > 0.99);
+        assert_eq!(area_normal(&[], &[0, 1, 2], Vec3::ONE), None);
     }
 
     #[test]
@@ -558,7 +560,7 @@ mod tests {
         }
         Arc::make_mut(world.objects.get_mut(front).unwrap().te.as_mut().unwrap()).faces[0].color[3] = 0.0;
         crate::scene::picking::tests::index_test_objects(&mut scene);
-        scene.build_huds(&world, [1280, 720], true);
+        scene.build_huds(&world, [1280, 720], true, |_| None);
         let cursor = (640.0, 360.0);
         let press = |media: &mut MediaManager, world: &World, scene: &Scene| {
             let (idx, point, ray) = scene.hud_click_pick(world, cursor).unwrap();
@@ -572,6 +574,7 @@ mod tests {
                 Modifiers::default(),
                 true,
                 Some(idx),
+                &HashMap::new(),
             ));
             idx
         };
@@ -587,5 +590,136 @@ mod tests {
         // A touch script makes the transparent front face a deliberate clicker.
         world.objects.get_mut(front).unwrap().update_flags = crate::ui::context::flags::HANDLE_TOUCH;
         assert_eq!(press(&mut media, &world, &scene), front);
+    }
+
+    #[test]
+    fn a_media_face_at_alpha_zero_lets_the_click_through_unless_its_prim_is_touchable() {
+        let library = Arc::new(crate::scene::avatar::AvatarLibrary::load());
+        let mut world = World::new(library.clone());
+        for event in crate::demo::events().into_iter().chain(crate::demo::action_events()) {
+            world.apply(event);
+        }
+        let idx = world.objects.index_of_uuid(&crate::demo::action_id(970)).unwrap();
+        let object = world.objects.get_mut(idx).unwrap();
+        object.position = Vec3::X * 3.0;
+        // facing the ray
+        object.rotation = glam::Quat::from_rotation_z(std::f32::consts::PI);
+        object.scale = Vec3::ONE;
+        object.click_action = 0;
+        object.update_flags = 0;
+        let id = object.full_id;
+        let cache_key = object.visual_volume().cache_key() ^ (3u64 << 60);
+        let scene = Scene::new(std::path::PathBuf::new(), library);
+        let mut media = MediaManager::default();
+        media.objects.insert(
+            id,
+            ObjMedia {
+                idx,
+                data: Some(ObjectMediaData {
+                    faces: vec![Some(MediaEntry {
+                        current_url: "https://example.invalid/media".into(),
+                        ..Default::default()
+                    })],
+                    ..Default::default()
+                }),
+                ..Default::default()
+            },
+        );
+        media.pick_cache.insert(
+            id,
+            (
+                cache_key,
+                Arc::new(vec![Some(CpuFace {
+                    positions: vec![[0.0, -0.5, -0.5], [0.0, 0.5, -0.5], [0.0, 0.5, 0.5], [0.0, -0.5, 0.5]],
+                    uvs: vec![[0.0; 2]; 4],
+                    indices: vec![0, 1, 2, 0, 2, 3],
+                })]),
+            ),
+        );
+        let set_alpha = |world: &mut World, alpha: f32| {
+            let o = world.objects.get_mut(idx).unwrap();
+            let mut te = o.te.as_deref().cloned().unwrap_or_default();
+            for f in &mut te.faces {
+                f.color[3] = alpha;
+            }
+            o.te = Some(Arc::new(te));
+        };
+        set_alpha(&mut world, 1.0);
+        assert!(media.hit_test(&world, &scene, Vec3::ZERO, Vec3::X, None, false, None).is_some());
+        // a click whose own pick found another object in front (a HUD button
+        // with a partly transparent texture) is not the media's
+        assert!(
+            media
+                .hit_test(&world, &scene, Vec3::ZERO, Vec3::X, None, false, Some(idx))
+                .is_some()
+        );
+        assert!(
+            media
+                .hit_test(&world, &scene, Vec3::ZERO, Vec3::X, None, false, Some(idx + 1))
+                .is_none()
+        );
+        // a web HUD's collapsed panel: hidden in front of its root button
+        set_alpha(&mut world, 0.0);
+        assert!(media.hit_test(&world, &scene, Vec3::ZERO, Vec3::X, None, false, None).is_none());
+        // a prim with its own touch handler still takes it (specialHoverCursor)
+        world.objects.get_mut(idx).unwrap().update_flags = crate::ui::context::flags::HANDLE_TOUCH;
+        assert!(media.hit_test(&world, &scene, Vec3::ZERO, Vec3::X, None, false, None).is_some());
+    }
+
+    #[test]
+    fn invisible_back_of_a_media_face_cannot_steal_world_clicks() {
+        let library = Arc::new(crate::scene::avatar::AvatarLibrary::load());
+        let mut world = World::new(library.clone());
+        for event in crate::demo::events().into_iter().chain(crate::demo::action_events()) {
+            world.apply(event);
+        }
+        let idx = world.objects.index_of_uuid(&crate::demo::action_id(970)).unwrap();
+        let object = world.objects.get_mut(idx).unwrap();
+        object.position = Vec3::X * 3.0;
+        object.rotation = glam::Quat::IDENTITY;
+        object.scale = Vec3::ONE;
+        let id = object.full_id;
+        let cache_key = object.visual_volume().cache_key() ^ (3u64 << 60);
+        let mut scene = Scene::new(std::path::PathBuf::new(), library);
+        let mut media = MediaManager::default();
+        media.objects.insert(
+            id,
+            ObjMedia {
+                idx,
+                data: Some(ObjectMediaData {
+                    faces: vec![Some(MediaEntry {
+                        current_url: "https://example.invalid/media".into(),
+                        ..Default::default()
+                    })],
+                    ..Default::default()
+                }),
+                ..Default::default()
+            },
+        );
+        media.pick_cache.insert(
+            id,
+            (
+                cache_key,
+                Arc::new(vec![Some(CpuFace {
+                    positions: vec![[0.0, -0.5, -0.5], [0.0, 0.5, -0.5], [0.0, 0.5, 0.5], [0.0, -0.5, 0.5]],
+                    uvs: vec![[0.0; 2]; 4],
+                    indices: vec![0, 1, 2, 0, 2, 3],
+                })]),
+            ),
+        );
+        assert!(media.hit_test(&world, &scene, Vec3::ZERO, Vec3::X, None, false, None).is_none());
+        world.objects.get_mut(idx).unwrap().rotation = glam::Quat::from_rotation_z(std::f32::consts::PI);
+        assert!(media.hit_test(&world, &scene, Vec3::ZERO, Vec3::X, None, false, None).is_some());
+        world.objects.get_mut(idx).unwrap().rotation = glam::Quat::IDENTITY;
+        let material = Uuid::from_u128(8896);
+        world.objects.get_mut(idx).unwrap().extra.render_materials = vec![(0, material)];
+        scene.materials.insert(
+            material,
+            block_assets::PbrMaterial {
+                double_sided: true,
+                ..Default::default()
+            },
+        );
+        assert!(media.hit_test(&world, &scene, Vec3::ZERO, Vec3::X, None, false, None).is_some());
     }
 }

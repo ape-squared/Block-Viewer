@@ -19,14 +19,12 @@
 use super::*;
 use std::collections::VecDeque;
 
-/// Shortest gap between two requests. Still paced: a burst is what the
-/// simulator refuses. Slightly tighter than 30 ms so an outfit of
-/// attachments finishes sooner without dropping the gap entirely.
-const SPACING: Duration = Duration::from_millis(20);
+/// Shortest gap between two requests.
+const SPACING: Duration = Duration::from_millis(50);
 /// Requests waiting for their object at once: at first, at least, at most.
-const START_LIMIT: usize = 12;
+const START_LIMIT: usize = 8;
 const MIN_LIMIT: usize = 2;
-const MAX_LIMIT: usize = 16;
+const MAX_LIMIT: usize = 12;
 /// Objects arrived between two raises of the limit.
 const GROW_EVERY: usize = 4;
 /// A request whose object has not arrived by then frees its place.

@@ -64,6 +64,7 @@ impl Default for Layout {
                 tb("Command_Search_Icon", "search", block_i18n::tr!("search-title")),
                 tb("Command_Places_Icon", "places", block_i18n::tr!("common-places")),
                 tb("Command_Snapshot_Icon", "snapshot", block_i18n::tr!("photo-title")),
+                tb("movie", "director", block_i18n::tr!("toolbar-command-director")),
                 tb("Command_Map_Icon", "worldmap", block_i18n::tr!("common-world-map")),
                 tb("Command_MiniMap_Icon", "minimap", block_i18n::tr!("common-mini-map")),
                 tb("Command_Performance_Icon", "performance", block_i18n::tr!("common-performance")),
@@ -206,7 +207,7 @@ mod tests {
 
     #[test]
     fn a_theme_value_this_build_cannot_read_costs_only_that_value() {
-        let dir = std::env::temp_dir().join(format!("block-skin-{}", uuid::Uuid::new_v4()));
+        let dir = std::env::temp_dir().join(format!("aurora-skin-{}", uuid::Uuid::new_v4()));
         std::fs::create_dir_all(&dir).unwrap();
         let path = dir.join("theme.json");
         let file = serde_json::json!({ "violet": "#123456", "panel_alpha": "a newer kind of value", "a_newer_key": 1 });

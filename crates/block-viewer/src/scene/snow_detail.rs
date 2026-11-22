@@ -1,4 +1,4 @@
-//! Aurora Weather: the detail of the snow lying on the ground ("Snow 004",
+//! Weather: the detail of the snow lying on the ground ("Snow 004",
 //! ambientCG, CC0; assets/snow/README.md): a normal and height map, and a
 //! colour and roughness map, uploaded once as bindless textures with their
 //! mips, their slots given to the wet ground pass (`RainLook::snow_detail`:

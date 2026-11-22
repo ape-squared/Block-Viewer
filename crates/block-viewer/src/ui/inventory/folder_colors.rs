@@ -230,7 +230,7 @@ pub fn demo_frame(ctx: &egui::Context, st: &mut InventoryUi, prefs: &InventoryPr
     };
     match (mode.as_str(), frame) {
         (_, 600) => select(st, 8200),
-        ("aurora-folder-colors-behind", 640) => super::block::widen(ctx, "inventory"),
+        ("aurora-folder-colors-behind", 640) => super::aurora::widen(ctx, "inventory"),
         ("aurora-folder-colors-behind", 700) => crate::ui::widgets::bring_floater_front(ctx, "inventory"),
         ("aurora-folder-colors-behind", 760) => {
             select(st, 8000);

@@ -5,7 +5,6 @@
 //! presentation replaces the dot / waves with a level-driven outline; listening
 //! stays neutral and avatars outside voice get a filled red microphone slash.
 
-use crate::settings::VoiceVisualizerStyle;
 use crate::theme::Palette;
 use egui::{Color32, Rect, Stroke, StrokeKind};
 use std::collections::HashMap;
@@ -63,19 +62,15 @@ pub struct VoiceTags {
     envelopes: HashMap<Uuid, Envelope>,
 }
 
-/// Level colour for a visualizer style, calibrated for WebRTC's range.
-fn level_color(p: &Palette, style: VoiceVisualizerStyle, level: f32) -> Color32 {
+/// Green → amber → red, calibrated for WebRTC's actual participant range.
+fn level_color(p: &Palette, level: f32) -> Color32 {
     let lerp = |a: Color32, b: Color32, t: f32| {
         let t = t.clamp(0.0, 1.0);
         let mix = |x: u8, y: u8| (x as f32 + (y as f32 - x as f32) * t).round() as u8;
         Color32::from_rgb(mix(a.r(), b.r()), mix(a.g(), b.g()), mix(a.b(), b.b()))
     };
-    let cool = match style {
-        VoiceVisualizerStyle::Block => p.violet,
-        VoiceVisualizerStyle::Aurora | VoiceVisualizerStyle::Legacy => p.success,
-    };
     if level < LEVEL_AMBER {
-        lerp(cool, p.amber, (level - LEVEL_MIN) / (LEVEL_AMBER - LEVEL_MIN))
+        lerp(p.success, p.amber, (level - LEVEL_MIN) / (LEVEL_AMBER - LEVEL_MIN))
     } else {
         lerp(p.amber, p.danger, (level - LEVEL_AMBER) / (LEVEL_MAX - LEVEL_AMBER))
     }
@@ -83,17 +78,7 @@ fn level_color(p: &Palette, style: VoiceVisualizerStyle, level: f32) -> Color32 
 
 impl VoiceTags {
     /// Draw outside the tag so the thicker outline leaves its text unobstructed.
-    pub fn paint(
-        &mut self,
-        painter: &egui::Painter,
-        p: &Palette,
-        id: Uuid,
-        rect: Rect,
-        voice: Option<(f32, bool)>,
-        now: f64,
-        fade: f32,
-        style: VoiceVisualizerStyle,
-    ) {
+    pub fn paint(&mut self, painter: &egui::Painter, p: &Palette, id: Uuid, rect: Rect, voice: Option<(f32, bool)>, now: f64, fade: f32) {
         let Some((level, speaking)) = voice else {
             self.envelopes.remove(&id);
             return;
@@ -107,33 +92,15 @@ impl VoiceTags {
             let volume = ((e.level - LEVEL_MIN) / (LEVEL_MAX - LEVEL_MIN)).clamp(0.0, 1.0);
             // Keep speech readable at a distance and against bright scene backgrounds.
             let opacity = e.opacity * fade.sqrt();
-            let color = level_color(p, style, e.level).gamma_multiply(opacity);
-            match style {
-                // Under-tag lime meter — not a full outline (distinct from Aurora).
-                VoiceVisualizerStyle::Block => {
-                    let height = 2.0 + 2.5 * volume;
-                    let width = rect.width() * (0.18 + 0.72 * volume);
-                    let bar = Rect::from_center_size(
-                        egui::pos2(rect.center().x, rect.bottom() + 3.0 + height * 0.5),
-                        egui::vec2(width, height),
-                    );
-                    painter.rect_filled(bar, height * 0.45, color);
-                }
-                VoiceVisualizerStyle::Aurora => {
-                    let width = 3.0 + volume * 1.5;
-                    painter.rect_stroke(
-                        rect,
-                        3.0,
-                        Stroke::new(width + 2.0, p.bar.gamma_multiply(opacity)),
-                        StrokeKind::Outside,
-                    );
-                    painter.rect_stroke(rect, 3.0, Stroke::new(width, color), StrokeKind::Outside);
-                }
-                VoiceVisualizerStyle::Legacy => {
-                    let width = 2.5 + volume;
-                    painter.rect_stroke(rect, 2.0, Stroke::new(width, color), StrokeKind::Outside);
-                }
-            }
+            let width = 3.0 + volume * 1.5;
+            let color = level_color(p, e.level).gamma_multiply(opacity);
+            painter.rect_stroke(
+                rect,
+                3.0,
+                Stroke::new(width + 2.0, p.bar.gamma_multiply(opacity)),
+                StrokeKind::Outside,
+            );
+            painter.rect_stroke(rect, 3.0, Stroke::new(width, color), StrokeKind::Outside);
         }
     }
 
@@ -155,10 +122,9 @@ mod tests {
         let level = 0.18 + 0.1 * (0.35_f32 * 32_768.0).log10();
         let mut e = Envelope::new(0.0);
         e.update(level, true, 0.3);
-        assert_eq!(level_color(&p, VoiceVisualizerStyle::Aurora, e.level), p.danger);
-        assert_eq!(level_color(&p, VoiceVisualizerStyle::Aurora, 0.30), p.success);
-        assert_ne!(level_color(&p, VoiceVisualizerStyle::Aurora, 0.48), p.danger);
-        assert_eq!(level_color(&p, VoiceVisualizerStyle::Block, 0.30), p.violet);
+        assert_eq!(level_color(&p, e.level), p.danger);
+        assert_eq!(level_color(&p, 0.30), p.success);
+        assert_ne!(level_color(&p, 0.48), p.danger);
     }
 
     #[test]

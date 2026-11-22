@@ -256,7 +256,7 @@ mod tests {
     /// of them, lands after.
     #[test]
     fn a_cache_write_never_replaces_more_with_less() {
-        let dir = std::env::temp_dir().join(format!("block-mesh-save-{}", uuid::Uuid::new_v4()));
+        let dir = std::env::temp_dir().join(format!("aurora-mesh-save-{}", uuid::Uuid::new_v4()));
         std::fs::create_dir_all(&dir).expect("dir");
         let path = dir.join("asset.mesh");
         let read = || MeshBytes::decode(crate::cache::read(&path).expect("file")).expect("cache file");

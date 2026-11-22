@@ -15,7 +15,6 @@ mod carousel;
 mod chrome;
 mod credentials_form;
 mod derez;
-mod destinations;
 mod driver_notice;
 mod fade;
 mod layout;
@@ -54,6 +53,12 @@ pub struct LoginForm {
     pub portraits: std::collections::HashMap<uuid::Uuid, egui::TextureHandle>,
     pub portrait_rx: Option<crossbeam_channel::Receiver<(uuid::Uuid, egui::ColorImage)>>,
     pub password: String,
+    /// "Create an account" was pressed: the page the app opens
+    /// (`ui/signup.rs`).
+    pub create_account: Option<super::signup::SignupPage>,
+    /// The sign-up window is open over the form: the keys typed in its page
+    /// reach egui too, so the form's Enter and arrow shortcuts wait.
+    pub signup_open: bool,
     pub mfa_token: String,
     pub show_mfa: bool,
     pub tos_message: Option<String>,
@@ -63,6 +68,14 @@ pub struct LoginForm {
     /// apart from the Terms of Service (LLLoginInstance::handleTOSResponse).
     pub critical_message: Option<String>,
     pub read_critical: bool,
+    /// The other server the login server sends the login on to
+    /// (`NetEvent::LoginFailed::next_server`), until the next attempt;
+    /// `accept_next_server` is its own checkbox.
+    pub next_server: Option<String>,
+    pub accept_next_server: bool,
+    /// The other servers agreed to for this account and grid, named in
+    /// every attempt (`LoginRequest::accepted_next_servers`).
+    pub accepted_next_servers: Vec<String>,
     pub error: Option<String>,
     /// The session ended with its region's restart: the login button reads
     /// "Reconnect" (region_restart.rs).
@@ -104,6 +117,15 @@ pub struct LoginForm {
     pub camera_limits_restored: bool,
 }
 
+impl LoginForm {
+    /// Another account or grid: no other login server is agreed to any more.
+    pub fn forget_next_server(&mut self) {
+        self.next_server = None;
+        self.accept_next_server = false;
+        self.accepted_next_servers.clear();
+    }
+}
+
 #[derive(Default)]
 pub enum LoginAction {
     ReportBug,
@@ -130,9 +152,14 @@ pub enum LoginAction {
     Accessibility,
 }
 
-/// Tagline under the product name (login, carousel, About).
+/// "Second Life client · Rust · <graphics API>" under the name (login
+/// screen, its carousel, About), with the API this build draws with.
 pub(crate) fn client_tagline() -> &'static str {
-    "Build your look, block by block · Vulkan"
+    if cfg!(target_os = "macos") {
+        block_i18n::tr!("ui-login-second-life-client-rust-metal")
+    } else {
+        block_i18n::tr!("ui-login-second-life-client-rust-vulkan")
+    }
 }
 
 /// The Terms of Service page of Linden Lab's grids (the `real_url` of
@@ -163,6 +190,63 @@ pub(crate) fn terms_link(ui: &mut egui::Ui, p: &Palette, url: &str) {
     }
 }
 
+/// "Create an account" (LLPanelLogin::onClickSignUp, FSPanelLogin::
+/// onClickNewAccount): Second Life's sign-up page, or the grid's own
+/// registration page, in the sign-up window; hidden on a grid that has none.
+/// `size`: its room (a width of 0 fits the label).
+pub(crate) fn create_account_button(ui: &mut egui::Ui, p: &Palette, settings: &Settings, form: &mut LoginForm, size: Vec2) {
+    let Some(page) = super::signup::signup_page(settings) else {
+        return;
+    };
+    let hint = match &page {
+        super::signup::SignupPage::SecondLife => block_i18n::tr!("ui-login-create-account-hint").to_owned(),
+        super::signup::SignupPage::Grid(url) => url.clone(),
+    };
+    if widgets::action_button(
+        ui,
+        p,
+        "user-plus",
+        block_i18n::tr!("ui-login-create-account"),
+        ActionKind::Flat,
+        size,
+    )
+    .on_hover_text(hint)
+    .clicked()
+    {
+        form.create_account = Some(page);
+    }
+}
+
+/// The new account the sign-up page created, in the login form, as
+/// LLPanelLogin::setCredentialFields does: its name and password, with
+/// "Remember me" and "Remember password" on. On the account cards, the
+/// "Add an account" form opens for it. The form then reads as typed: the
+/// password is not saved before a login, like any typed one.
+pub fn fill_from_signup(settings: &mut Settings, form: &mut LoginForm, username: String, password: String) {
+    if form.accounts_loaded && !form.accounts.is_empty() && !form.adding {
+        carousel::begin_adding(settings, form);
+    }
+    settings.username = username;
+    settings.remember_username = true;
+    settings.remember_password = true;
+    form.password = password;
+    form.show_password = false;
+    // the name and password arrive together: the remembered one of another
+    // name must not clear the password given here (`sync_remembered_password`)
+    form.stored = None;
+    form.stored_for = Some((settings.login_uri(), settings.username.trim().to_lowercase()));
+    form.show_mfa = false;
+    form.mfa_token.clear();
+    form.error = None;
+    form.tos_message = None;
+    form.agree_tos = false;
+    form.critical_message = None;
+    form.read_critical = false;
+    form.forget_next_server();
+    // the login button takes the keyboard
+    form.focused = false;
+}
+
 /// Animated aurora background (also behind the loading screens without a
 /// last view).
 pub fn draw_background(ui: &egui::Ui, p: &Palette) {
@@ -170,7 +254,7 @@ pub fn draw_background(ui: &egui::Ui, p: &Palette) {
     let rect = ctx.content_rect();
     let painter = ctx.layer_painter(egui::LayerId::background());
     let t = ctx.input(|i| i.time) as f32;
-    super::block_bg::paint(&painter, p, rect, t, 1.0);
+    super::aurora_bg::paint(&painter, p, rect, t, 1.0);
     // slow animation: ~30 images/s are plenty
     ctx.request_repaint_after(std::time::Duration::from_millis(33));
 }
@@ -265,6 +349,17 @@ fn field(
         .inner
 }
 
+/// Where "Remember password" keeps the login hash on this system.
+fn remember_password_hint() -> &'static str {
+    if cfg!(windows) {
+        block_i18n::tr!("ui-login-stored-in-windows-credential-manager-as-the-hash-sent")
+    } else if cfg!(target_os = "macos") {
+        block_i18n::tr!("ui-login-stored-in-the-macos-keychain-as-the-hash-sent")
+    } else {
+        block_i18n::tr!("ui-login-stored-in-the-secret-service-as-the-hash-sent")
+    }
+}
+
 fn caption(ui: &mut egui::Ui, p: &Palette, text: &str) {
     ui.label(RichText::new(text).size(11.5).color(p.muted));
     ui.add_space(-2.0);
@@ -336,16 +431,6 @@ pub(super) fn demo_open_start_menu(ui: &egui::Ui, salt: &str, favorites: &StartF
 /// comes first and stays chosen until another entry is, as the Legacy
 /// Viewer's location combo shows the start SLURL
 /// (FSPanelLogin::onUpdateStartSLURL).
-/// Favourites cached for the account matching the typed username.
-fn login_favorites_for(settings: &Settings) -> Vec<crate::login_favorites::Entry> {
-    let key = (settings.login_uri(), settings.username.trim().to_lowercase());
-    let agent = crate::login_accounts::load()
-        .into_iter()
-        .find(|a| a.key() == key)
-        .and_then(|a| a.agent);
-    crate::login_favorites::load(agent.as_ref())
-}
-
 pub(super) fn start_menu(
     ui: &mut egui::Ui,
     combo: egui::ComboBox,
@@ -442,7 +527,7 @@ fn link_button(ui: &mut egui::Ui, p: &Palette, icon: &str, name: &str, url: &str
 
 /// A strip whose color runs through `stops` (position 0..1, color) from left
 /// to right.
-fn strip(r: egui::Rect, stops: &[(f32, Color32)]) -> egui::Shape {
+pub(crate) fn strip(r: egui::Rect, stops: &[(f32, Color32)]) -> egui::Shape {
     let mut mesh = egui::Mesh::default();
     for (at, color) in stops {
         let x = egui::lerp(r.left()..=r.right(), *at);
@@ -459,17 +544,11 @@ fn strip(r: egui::Rect, stops: &[(f32, Color32)]) -> egui::Shape {
 
 /// Card of the login screen: a pane of frosted glass. Under the tint of the
 /// in-world windows it shows the sky behind it out of focus
-/// (`block_bg::frosted`) and two lights of the aurora, which also spill
+/// (`aurora_bg::frosted`) and two lights of the aurora, which also spill
 /// around the card; its top edge catches the light, and the card the screen
 /// is for (`accent`) wears the brand line. An opaque skin (panel_alpha =
 /// 255) keeps its plain surface.
-pub(super) fn card<R>(
-    ui: &mut egui::Ui,
-    p: &Palette,
-    margin: i8,
-    accent: bool,
-    body: impl FnOnce(&mut egui::Ui) -> R,
-) -> egui::InnerResponse<R> {
+fn card<R>(ui: &mut egui::Ui, p: &Palette, margin: i8, accent: bool, body: impl FnOnce(&mut egui::Ui) -> R) -> egui::InnerResponse<R> {
     card_hover(ui, p, margin, accent, 0.0, body)
 }
 
@@ -514,13 +593,13 @@ fn glass_card<R>(
         let rect = outer.shrink(1.0);
         let strength = if accent { 1.0 } else { 0.6 } + hover * 0.45;
         let lights = vec![
-            super::block_bg::radial_glow_shape(
+            super::aurora_bg::radial_glow_shape(
                 outer.left_top() + Vec2::new(outer.width() * 0.18, outer.height() * 0.12),
                 outer.width() * 0.95,
                 p.violet,
                 0.24 * strength,
             ),
-            super::block_bg::radial_glow_shape(
+            super::aurora_bg::radial_glow_shape(
                 outer.right_bottom() - Vec2::new(outer.width() * 0.12, outer.height() * 0.14),
                 outer.width() * 0.8,
                 p.teal,
@@ -528,7 +607,7 @@ fn glass_card<R>(
             ),
         ];
         behind.0.set(behind.1, egui::Shape::Vec(lights.clone()));
-        let mut shapes = super::block_bg::frosted_pane(p, ctx.content_rect(), ctx.input(|i| i.time) as f32, rect, lights);
+        let mut shapes = super::aurora_bg::frosted_pane(p, ctx.content_rect(), ctx.input(|i| i.time) as f32, rect, lights);
         let top = |height: f32| egui::Rect::from_min_size(rect.min, Vec2::new(rect.width(), height));
         if accent {
             shapes.push(strip(top(2.0), &[(0.0, p.violet), (1.0, p.teal)]));
@@ -724,7 +803,7 @@ pub fn show(
                     let r = ui.add(egui::Image::new(l).fit_to_exact_size(Vec2::splat(logo_size))).rect;
                     // soft light behind the logo (additive)
                     let painter = ctx.layer_painter(egui::LayerId::new(egui::Order::Background, egui::Id::unique("halo")));
-                    super::block_bg::radial_glow(&painter, r.center(), 150.0, p.violet, 0.42);
+                    super::aurora_bg::radial_glow(&painter, r.center(), 150.0, p.violet, 0.42);
                 }
                 ui.add_space(2.0);
                 ui.label(RichText::new("Block Viewer").size(34.0).strong().color(p.ink));
@@ -826,7 +905,6 @@ pub fn show(
                         );
                     }
                     if settings.start_location == "region" && form.start_slurl.is_none() && !favorite_chosen {
-                        let before = settings.start_region.clone();
                         field(
                             ui,
                             p,
@@ -837,18 +915,16 @@ pub fn show(
                             &mut settings.start_region,
                             None,
                         );
-                        // Legacy-like: paste a secondlife:// / maps.secondlife.com link into Region.
-                        if settings.start_region != before
-                            && let Some(loc) = crate::slurl::parse(settings.start_region.trim())
-                        {
-                            settings.start_region = loc.region.clone();
-                            form.start_slurl = Some(loc);
-                        }
                     }
                     ui.add_space(2.0);
                     ui.horizontal(|ui| {
                         super::widgets::switch(ui, p, &mut settings.remember_username);
                         ui.label(RichText::new(block_i18n::tr!("ui-login-remember-me")).size(12.5).color(p.muted));
+                        // "Create an account" at the end of the row: the card
+                        // keeps its height in a low window
+                        ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+                            create_account_button(ui, p, settings, form, Vec2::new(0.0, 24.0));
+                        });
                     });
                     ui.horizontal(|ui| {
                         super::widgets::switch(ui, p, &mut settings.remember_password);
@@ -857,14 +933,12 @@ pub fn show(
                                 .size(12.5)
                                 .color(p.muted),
                         )
-                        .on_hover_text(block_i18n::tr!("ui-login-stored-in-windows-credential-manager-as-the-hash-sent"));
+                        .on_hover_text(remember_password_hint());
                     });
                     ui.add_space(10.0);
-                    let mfa_ready = !form.show_mfa || form.mfa_token.chars().any(|c| !c.is_whitespace());
                     let can = form.block_reason.is_none()
                         && !settings.username.trim().is_empty()
-                        && (!form.password.is_empty() || form.stored.is_some())
-                        && mfa_ready;
+                        && (!form.password.is_empty() || form.stored.is_some());
                     let (r, resp) = ui.allocate_exact_size(
                         Vec2::new(ui.available_width(), 38.0),
                         if can { Sense::click() } else { Sense::hover() },
@@ -874,8 +948,8 @@ pub fn show(
                     // returns to the user-name field when both are present.
                     if !form.focused && enabled {
                         form.focused = true;
-                        match mfa.as_ref() {
-                            Some(m) if !mfa_ready => m.request_focus(),
+                        match mfa {
+                            Some(m) if form.mfa_token.is_empty() => m.request_focus(),
                             _ if settings.username.trim().is_empty() => user.request_focus(),
                             _ if can => resp.request_focus(),
                             _ => pass.request_focus(),
@@ -914,10 +988,9 @@ pub fn show(
                     if hot {
                         ui.ctx().set_cursor_icon(egui::CursorIcon::PointingHand);
                     }
-                    // Enter from the MFA field must submit too (classic path
-                    // only watched username / password / the button).
-                    let mfa_enter = mfa.as_ref().is_some_and(|r| r.has_focus() || r.lost_focus());
-                    let enter = (user.lost_focus() || pass.lost_focus() || mfa_enter || resp.has_focus())
+                    // the keys typed in the sign-up page reach egui too
+                    let enter = !form.signup_open
+                        && (user.lost_focus() || pass.lost_focus() || resp.has_focus())
                         && ui.input(|i| i.key_pressed(egui::Key::Enter));
                     if (resp.clicked() || enter) && can && enabled {
                         action = LoginAction::Login;
@@ -973,6 +1046,28 @@ pub fn show(
                         action = LoginAction::Login;
                     }
                 }
+                // the login would go on to another server: the user decides
+                if let Some(server) = form.next_server.clone() {
+                    ui.add_space(8.0);
+                    widgets::divider(ui, p);
+                    ui.label(RichText::new(block_i18n::tr!("ui-login-next-server")).strong());
+                    ui.label(
+                        RichText::new(block_i18n::tr!("ui-login-next-server-body", server = server.as_str()))
+                            .size(12.0)
+                            .color(p.muted),
+                    );
+                    if ui
+                        .add_enabled(
+                            form.block_reason.is_none() && !form.busy,
+                            egui::Button::new(block_i18n::tr!("ui-login-next-server-accept")),
+                        )
+                        .clicked()
+                    {
+                        form.accepted_next_servers.push(server);
+                        form.next_server = None;
+                        action = LoginAction::Login;
+                    }
+                }
                 if let Some((msg, frac)) = progress {
                     ui.add_space(10.0);
                     widgets::progress(ui, p, "login_progress", frac, ui.available_width(), "", None);
@@ -987,21 +1082,9 @@ pub fn show(
             .rect;
         });
 
-    // ---- version + destinations (right)
+    // ---- version + news (right)
     if wide {
-        let favorites = login_favorites_for(settings);
-        if chrome::sidebar(
-            &ctx,
-            p,
-            icons,
-            info,
-            login_card,
-            330.0,
-            lowest,
-            &mut settings.start_location,
-            &mut form.start_slurl,
-            &favorites,
-        ) {
+        if chrome::sidebar(&ctx, p, icons, info, login_card, 330.0, lowest) {
             action = LoginAction::CheckUpdates;
         }
     } else if info.can_check_updates {
@@ -1042,7 +1125,7 @@ mod tests {
         fn position(shape: &egui::Shape, label: &str) -> Option<egui::Pos2> {
             match shape {
                 egui::Shape::Text(t) if t.galley.text() == label => Some(t.pos + egui::vec2(3.0, 5.0)),
-                egui::Shape::Vec(shapes) => shapes.iter().find_map(|s| position(s, label)),
+                egui::Shape::Vec(shapes) => shapes.iter().rev().find_map(|s| position(s, label)),
                 _ => None,
             }
         }
@@ -1085,6 +1168,7 @@ mod tests {
         let pos = output
             .shapes
             .iter()
+            .rev() // the button, painted after the heading (Japanese writes both ログイン)
             .find_map(|s| position(&s.shape, block_i18n::tr!("ui-login-log-in")))
             .expect("button");
         for pressed in [true, false] {
@@ -1148,6 +1232,7 @@ mod tests {
         let pos = output
             .shapes
             .iter()
+            .rev() // the button, painted after the heading (Japanese writes both ログイン)
             .find_map(|s| position(&s.shape, block_i18n::tr!("ui-login-log-in")))
             .expect("enabled button");
         draw(
@@ -1260,6 +1345,81 @@ mod tests {
         assert!(form.read_critical);
         assert!(!form.agree_tos);
         assert!(form.critical_message.is_none());
+    }
+
+    /// Another login server is a step of its own: agreeing names that
+    /// server in the next attempt, and nothing else.
+    #[test]
+    fn another_login_server_is_agreed_to_in_its_own_step() {
+        fn position(shape: &egui::Shape, label: &str) -> Option<egui::Pos2> {
+            match shape {
+                egui::Shape::Text(t) if t.galley.text() == label => Some(t.pos + egui::vec2(3.0, 5.0)),
+                egui::Shape::Vec(shapes) => shapes.iter().find_map(|s| position(s, label)),
+                _ => None,
+            }
+        }
+        let ctx = egui::Context::default();
+        let mut settings = Settings {
+            username: "Demo Resident".into(),
+            ..Default::default()
+        };
+        let mut form = LoginForm {
+            password: "synthetic".into(),
+            next_server: Some("login.other-grid.example".into()),
+            ..Default::default()
+        };
+        let p = crate::theme::Theme::default().palette();
+        let icons = Icons::default();
+        let info = LoginInfo::preview_release("0.3.0");
+        let mut draw = |events, form: &mut LoginForm| {
+            let mut action = LoginAction::None;
+            let mut output = ctx.run_ui(
+                egui::RawInput {
+                    screen_rect: Some(egui::Rect::from_min_size(egui::Pos2::ZERO, Vec2::new(1600.0, 900.0))),
+                    events,
+                    ..Default::default()
+                },
+                |ui| {
+                    action = show(ui, &p, &icons, None, &mut settings, form, &info, None);
+                },
+            );
+            output.textures_delta.clear();
+            (action, output)
+        };
+        draw(vec![], &mut form);
+        let (_, output) = draw(vec![], &mut form);
+        let body = block_i18n::tr!("ui-login-next-server-body", server = "login.other-grid.example");
+        assert!(
+            output.shapes.iter().any(|s| position(&s.shape, &body).is_some()),
+            "the server is named"
+        );
+        let pos = output
+            .shapes
+            .iter()
+            .find_map(|s| position(&s.shape, block_i18n::tr!("ui-login-next-server-accept")))
+            .expect("the other server's button");
+        let mut last = LoginAction::None;
+        for pressed in [true, false] {
+            last = draw(
+                vec![
+                    egui::Event::PointerMoved(pos),
+                    egui::Event::PointerButton {
+                        pos,
+                        button: egui::PointerButton::Primary,
+                        pressed,
+                        modifiers: Default::default(),
+                    },
+                ],
+                &mut form,
+            )
+            .0;
+        }
+        assert!(matches!(last, LoginAction::Login));
+        assert_eq!(form.accepted_next_servers, ["login.other-grid.example"]);
+        assert!(form.next_server.is_none());
+        assert!(!form.agree_tos && !form.read_critical);
+        form.forget_next_server();
+        assert!(form.accepted_next_servers.is_empty());
     }
 
     /// At 1280 × 720 the news, as tall as the login card, stood over the
@@ -1497,5 +1657,45 @@ mod tests {
         assert!(!has_mask(&draw(REMEMBERED_PASSWORD_MASK, vec![])));
         assert_eq!(password, "replacement");
         assert!(!show_password);
+    }
+    #[test]
+    fn the_new_account_from_the_sign_up_page_fills_the_form() {
+        // the first account: the form shown fills in place
+        let mut settings = Settings::default();
+        let mut form = LoginForm {
+            accounts_loaded: true,
+            error: Some("old".into()),
+            mfa_token: "123456".into(),
+            ..Default::default()
+        };
+        form.stored_for = Some((settings.login_uri(), "someone else".into()));
+        fill_from_signup(&mut settings, &mut form, "synthetic.resident".into(), "synthetic-input".into());
+        assert_eq!(settings.username, "synthetic.resident");
+        assert_eq!(form.password, "synthetic-input");
+        assert!(settings.remember_username && settings.remember_password);
+        assert!(!form.adding);
+        assert_eq!(form.error, None);
+        assert!(form.mfa_token.is_empty());
+        // the remembered password of another name no longer clears it
+        assert_eq!(form.stored_for, Some((settings.login_uri(), "synthetic.resident".into())));
+        assert_eq!(form.stored, None);
+        // on the cards: the "Add an account" form opens for it
+        let mut settings = Settings {
+            username: "saved.resident".into(),
+            ..Default::default()
+        };
+        let mut form = LoginForm {
+            accounts_loaded: true,
+            accounts: vec![crate::login_accounts::Account::from_settings(&settings, false, None)],
+            ..Default::default()
+        };
+        fill_from_signup(&mut settings, &mut form, "synthetic.resident".into(), "synthetic-input".into());
+        assert!(form.adding && form.editing);
+        assert_eq!(form.add_return, Some((settings.login_uri(), "saved.resident".into())));
+        assert_eq!(
+            (settings.username.as_str(), form.password.as_str()),
+            ("synthetic.resident", "synthetic-input")
+        );
+        assert!(settings.remember_password);
     }
 }

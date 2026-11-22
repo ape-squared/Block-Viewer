@@ -35,11 +35,26 @@ const STAR_CELL_TABLE: u32 = 3460u; // stars.rs CELL_TABLE
 const STAR_MARGIN: f32 = 0.025;     // stars.rs MARGIN (radians)
 // a cell holds about 6 stars, up to a few dozen in the Milky Way
 const STAR_MAX_PER_CELL: u32 = 96u;
+// the Milky Way's light at its brightest, and the size of its points
+// (sigma, pixels)
+const MW_GLOW: f32 = 0.12;
+const MW_GRAIN_SIGMA: f32 = 0.6;
+// the band's light left as a haze, the rest in points; points per lattice
+// cell at the band's brightest; the floor of the points' mean (see milky_way)
+const MW_HAZE: f32 = 0.45;
+const MW_POINTS: f32 = 2.0;
+const MW_POINT_MEAN_MIN: f32 = 0.6;
 
 struct GpuStar {
     pos: vec4<f32>,   // unit direction, peak intensity
     color: vec4<f32>, // linear colour, point size (pixels)
 };
+
+// The Milky Way map (stars.rs MILKY_WAY_*): galactic longitude -180° to
+// 180° across, latitude -MW_REACH to +MW_REACH down.
+const MW_WIDTH: u32 = 2048u;
+const MW_HEIGHT: u32 = 512u;
+const MW_REACH: f32 = 0.785398163; // 45°
 
 struct StarSky {
     cells: array<u32, 6920>, // 2 * STAR_CELL_TABLE: real sky, then the Legacy Viewer's
@@ -47,6 +62,9 @@ struct StarSky {
 };
 
 @group(0) @binding(24) var<storage, read> star_sky: StarSky;
+// The Milky Way map (stars.rs milky_way_texels), MW_WIDTH x MW_HEIGHT, one
+// packed texel per element (mw_texel)
+@group(0) @binding(25) var milky_way_map: texture_2d<u32>;
 
 // stars.rs cell_of
 fn star_cell(q: vec3<f32>) -> u32 {
@@ -122,89 +140,127 @@ fn pcg3(v0: vec3<u32>) -> vec3<u32> {
     return v;
 }
 
-fn lattice_gradient(i: vec3<f32>) -> vec3<f32> {
-    let h = pcg3(vec3<u32>(vec3<i32>(i) + vec3<i32>(4096)));
-    return normalize(vec3<f32>(h & vec3<u32>(0xffffu)) / 32767.5 - 1.0 + vec3<f32>(1e-4));
+// One texel of the Milky Way map: glow (square root of the light), grain
+// (stars of V 6.5 to 9.5 per texel, x 16) and B-V colour (x 100), 0..255.
+fn mw_texel(x: i32, y: i32) -> vec3<f32> {
+    let xi = (x + i32(MW_WIDTH)) % i32(MW_WIDTH);
+    let yi = clamp(y, 0, i32(MW_HEIGHT) - 1);
+    let t = textureLoad(milky_way_map, vec2<i32>(xi, yi), 0).x;
+    return vec3<f32>(f32(t & 255u), f32((t >> 8u) & 255u), f32((t >> 16u) & 255u));
 }
 
-fn corner(i: vec3<f32>, f: vec3<f32>, o: vec3<f32>) -> f32 {
-    return dot(lattice_gradient(i + o), f - o);
+// The map between texel centres (`uv` in texels, centres on the integers).
+fn mw_bilinear(uv: vec2<f32>) -> vec3<f32> {
+    let i = vec2<i32>(floor(uv));
+    let f = uv - floor(uv);
+    return mix(mix(mw_texel(i.x, i.y), mw_texel(i.x + 1, i.y), f.x), mix(mw_texel(i.x, i.y + 1), mw_texel(i.x + 1, i.y + 1), f.x), f.y);
 }
 
-// Gradient noise in 0..1, quintic fade: no facets along the lattice (the
-// value noise it replaces drew straight edges across the Milky Way).
-fn gradient_noise(p: vec3<f32>) -> f32 {
-    let i = floor(p);
-    let f = fract(p);
-    let u = f * f * f * (f * (f * 6.0 - 15.0) + 10.0);
-    let x00 = mix(corner(i, f, vec3<f32>(0.0, 0.0, 0.0)), corner(i, f, vec3<f32>(1.0, 0.0, 0.0)), u.x);
-    let x10 = mix(corner(i, f, vec3<f32>(0.0, 1.0, 0.0)), corner(i, f, vec3<f32>(1.0, 1.0, 0.0)), u.x);
-    let x01 = mix(corner(i, f, vec3<f32>(0.0, 0.0, 1.0)), corner(i, f, vec3<f32>(1.0, 0.0, 1.0)), u.x);
-    let x11 = mix(corner(i, f, vec3<f32>(0.0, 1.0, 1.0)), corner(i, f, vec3<f32>(1.0, 1.0, 1.0)), u.x);
-    let n = mix(mix(x00, x10, u.y), mix(x01, x11, u.y), u.z);
-    return clamp(0.5 + 0.75 * n, 0.0, 1.0);
+// The chance that a lattice cell holds a point, from the map's light and its
+// counted stars there.
+fn mw_occupancy(t: vec3<f32>) -> f32 {
+    let glow = (t.x / 255.0) * (t.x / 255.0);
+    return 1.0 - exp(-(glow * MW_POINTS + t.y / 16.0 / 4.0));
 }
 
-// `octaves` octaves, each turned by a fixed rotation so that the lattices
-// do not line up from one octave to the next.
-fn fbm3(p: vec3<f32>, octaves: i32) -> f32 {
-    let turn = mat3x3<f32>(
-        vec3<f32>(0.00, 0.80, 0.60),
-        vec3<f32>(-0.80, 0.36, -0.48),
-        vec3<f32>(-0.60, -0.48, 0.64),
-    );
-    var sum = 0.0;
-    var amp = 0.5;
-    var total = 0.0;
-    var q = turn * p;
-    for (var i = 0; i < octaves; i++) {
-        sum += gradient_noise(q) * amp;
-        total += amp;
-        q = turn * q * 2.03 + vec3<f32>(1.7, 9.2, 5.3);
-        amp *= 0.5;
-    }
-    return sum / total;
-}
-
-// The Milky Way at catalogue direction `q` (J2000 equatorial), linear.
-// Procedural, laid on the real galactic plane: a band a few degrees wide,
-// brighter and wider towards the centre (Sagittarius, l = 0), faint
-// towards the anticentre (Auriga), with the dark Great Rift from Cygnus to
-// Sagittarius just north of the plane, and mottling.
-fn milky_way(q: vec3<f32>) -> vec3<f32> {
-    // J2000 equatorial to galactic (IAU 1958, Hipparcos values)
-    let g = vec3<f32>(
-        dot(vec3<f32>(-0.0548756, -0.8734371, -0.4838350), q),
-        dot(vec3<f32>(0.4941094, -0.4448296, 0.7469822), q),
-        dot(vec3<f32>(-0.8676661, -0.1980764, 0.4559838), q),
-    );
-    let l = atan2(g.y, g.x);
+// The Milky Way at catalogue direction `q` (J2000 equatorial), linear,
+// from the map of the real stars too faint for the naked eye (stars.rs,
+// Tycho-2): their glow, with its clouds and dark lanes, and their grain,
+// faint points scattered as densely as the counted stars, fixed in the
+// sky. `ax`, `ay`: the pixel's footprint across and down (catalogue
+// frame), `pixel` its angle (radians).
+fn milky_way(q: vec3<f32>, ax: vec3<f32>, ay: vec3<f32>, pixel: f32) -> vec3<f32> {
+    // J2000 equatorial to galactic (IAU 1958, Hipparcos values; the same
+    // rows as scripts/generate-star-catalog.py)
+    let m0 = vec3<f32>(-0.0548756, -0.8734371, -0.4838350);
+    let m1 = vec3<f32>(0.4941094, -0.4448296, 0.7469822);
+    let m2 = vec3<f32>(-0.8676661, -0.1980764, 0.4559838);
+    let g = vec3<f32>(dot(m0, q), dot(m1, q), dot(m2, q));
     let b = asin(clamp(g.z, -1.0, 1.0));
-    let centre = exp(-l * l / (0.5 * 0.5));
-    let width = 0.075 + 0.1 * centre;
-    let along = 0.3 + 0.7 * (0.5 + 0.5 * cos(l));
-    let band = exp(-(b * b) / (width * width)) * along;
-    let bulge = exp(-(l * l + 2.4 * b * b) / (0.2 * 0.2));
-    // most of the sky is far from the band: no noise there
-    if (band + bulge < 0.004) {
+    if (abs(b) >= MW_REACH) {
         return vec3<f32>(0.0);
     }
-    let coarse = fbm3(g * 5.0, 4);
-    let fine = fbm3(g * 21.0 + vec3<f32>(7.1, 3.3, 1.9), 3);
-    // star clouds: the band is patchy, not a smooth stripe
-    let clouds = smoothstep(0.3, 0.75, coarse) * (0.45 + 0.75 * fine);
-    var light = band * (0.15 + 1.2 * clouds) + bulge * (0.6 + 0.6 * fine);
-    // the Great Rift: l from -10° to 90°, centred a little north of the plane
-    // (1 - smoothstep: reversed edges are undefined in SPIR-V's and
-    // Metal's smoothstep)
-    let rift_l = smoothstep(-0.35, -0.1, l) * (1.0 - smoothstep(1.3, 1.75, l));
-    let rift_b = (b - 0.025 - 0.02 * sin(l * 3.0)) / 0.035;
-    let rift_shape = exp(-rift_b * rift_b) * rift_l;
-    if (rift_shape > 0.01) {
-        light *= 1.0 - 0.8 * rift_shape * (0.55 + 0.45 * fbm3(g * 13.0 + vec3<f32>(2.0), 3));
+    let l = atan2(g.y, g.x);
+    // texel coordinates, centres on the integers
+    let uv = vec2<f32>((l / 6.28318531 + 0.5) * f32(MW_WIDTH), (b / MW_REACH * 0.5 + 0.5) * f32(MW_HEIGHT)) - 0.5;
+    let t = mw_bilinear(uv);
+    if (t.x + t.y < 0.5) {
+        return vec3<f32>(0.0);
     }
-    let tint = mix(vec3<f32>(0.80, 0.86, 1.0), vec3<f32>(1.0, 0.86, 0.68), clamp(centre * 0.7 + bulge, 0.0, 1.0));
-    return tint * light * 0.09;
+    let glow = (t.x / 255.0) * (t.x / 255.0);
+    // dust reddens the light towards the centre; the eye sees little colour
+    let warm = clamp((t.z / 100.0 - 0.45) / 0.9, 0.0, 1.0);
+    let tint = mix(vec3<f32>(0.82, 0.88, 1.0), vec3<f32>(1.0, 0.87, 0.70), warm);
+    let light = tint * glow * MW_GLOW;
+
+    // The band is made of stars: part of its light stays a haze (the stars
+    // too faint to tell apart), the rest is gathered into faint points on a
+    // lattice fixed in the sky, two cells per texel each way, each holding a
+    // star or none, as many as the map's light and its counted stars say at
+    // the cell's centre (so every pixel that sees a point agrees whether it
+    // is there). The points keep the band's mean light; where a pixel covers
+    // more than a cell (wide views, reflection probes) they would shimmer,
+    // and give way to that mean.
+    let cell = MW_REACH * 2.0 / f32(MW_HEIGHT * 2u);
+    let sparkle = 1.0 - smoothstep(0.8 * cell, 1.6 * cell, pixel);
+    if (sparkle <= 0.0) {
+        return light;
+    }
+    // the chance here, for the field's expected mean below
+    let p = mw_occupancy(t);
+    // the pixel's footprint along longitude (east) and latitude (north),
+    // and back: a point's offset in pixels
+    let east = vec3<f32>(-sin(l), cos(l), 0.0);
+    let north = vec3<f32>(-sin(b) * cos(l), -sin(b) * sin(l), cos(b));
+    let gx = vec3<f32>(dot(m0, ax), dot(m1, ax), dot(m2, ax));
+    let gy = vec3<f32>(dot(m0, ay), dot(m1, ay), dot(m2, ay));
+    let j = mat2x2<f32>(vec2<f32>(dot(east, gx), dot(north, gx)), vec2<f32>(dot(east, gy), dot(north, gy)));
+    let det = j[0].x * j[1].y - j[1].x * j[0].y;
+    if (abs(det) < 1e-20) {
+        return light;
+    }
+    let inv = mat2x2<f32>(vec2<f32>(j[1].y, -j[0].y), vec2<f32>(-j[1].x, j[0].x)) * (1.0 / det);
+    let c = uv * 2.0 + 0.5; // cell coordinates
+    // the pixel's cell and its eight neighbours: a point of any other cell
+    // is at least a cell away, where each point has faded to nothing
+    // (`reach`), so none is cut off as the sky turns
+    let base = vec2<i32>(floor(c)) - 1;
+    let reach = cell * max(cos(b), 0.1) / max(pixel, 1e-9);
+    var field = vec3<f32>(0.0);
+    for (var k = 0; k < 9; k++) {
+        let ci = base + vec2<i32>(k % 3, k / 3);
+        let h = pcg3(vec3<u32>(u32((ci.x + i32(MW_WIDTH * 2u)) % i32(MW_WIDTH * 2u)), u32(ci.y + 4), 0x5717u));
+        let r = vec3<f32>(h & vec3<u32>(0xffffu)) / 65535.0;
+        // the cell's centre is at c = ci + 0.5, so uv = ci / 2
+        if (r.z >= mw_occupancy(mw_bilinear(vec2<f32>(ci) * 0.5))) {
+            continue;
+        }
+        let d = (vec2<f32>(ci) + r.xy - c) * vec2<f32>(cell * cos(b), cell);
+        let px = inv * d;
+        let r2 = dot(px, px) / (MW_GRAIN_SIGMA * MW_GRAIN_SIGMA);
+        let fade = 1.0 - smoothstep(0.5 * reach, reach, sqrt(dot(px, px)));
+        if (r2 < 9.0 && fade > 0.0) {
+            // brightness: the faint ones the more numerous (star counts
+            // grow about 2.5 times a magnitude over three magnitudes), mean 1
+            let u = mix(0.0316, 1.0, f32(h.z >> 16u) / 65535.0);
+            let w = 0.518 * pow(u, -0.6);
+            // a little colour of its own, bluer or redder than the band
+            let hue = f32((h.x >> 16u) & 255u) / 255.0 - 0.5;
+            field += w * fade * exp(-0.5 * r2) * (vec3<f32>(1.0) + vec3<f32>(0.12, 0.0, -0.12) * hue);
+        }
+    }
+    // the field's mean over a pixel: occupied cells per pixel times a
+    // point's area (within its fade, about). The points are scaled by it, but
+    // never by less than a floor, so that zooming in shows separate points
+    // rather than ever brighter ones; the light the floor holds back stays as
+    // haze, so the band keeps its mean light at every zoom.
+    let cells = pixel * pixel / (cell * cell * max(cos(b), 0.1));
+    let kept = 0.75 * reach / MW_GRAIN_SIGMA;
+    let area = 6.2831853 * MW_GRAIN_SIGMA * MW_GRAIN_SIGMA * (1.0 - exp(-0.5 * kept * kept));
+    let expected = p * area * cells;
+    let mean = max(expected, MW_POINT_MEAN_MIN);
+    let points = mix(vec3<f32>(1.0), field / mean + vec3<f32>(1.0 - expected / mean), sparkle);
+    return light * (MW_HAZE + (1.0 - MW_HAZE) * points);
 }
 
 // Stars and Milky Way in region direction `d` (unit), linear, before the
@@ -275,14 +331,22 @@ fn sky_stars(d: vec3<f32>, background: vec3<f32>, foot: SkyFootprint) -> vec3<f3
     // Preferences › "Star brightness" (1 for the Legacy Viewer's stars)
     var col = sum * max(frame.sky_stars[2].w, 0.0);
     if (frame.sky_stars[1].w > 0.0) {
-        col += milky_way(q) * frame.sky_stars[1].w;
+        col += milky_way(q, ax, ay, pixel) * frame.sky_stars[1].w;
     }
     return col * gain * extinction * glare;
 }
 
-// Textured (or analytic) disc of a heavenly body; rgb premultiplied, a coverage.
-fn body_disc(dir: vec3<f32>, body: vec3<f32>, half_size: f32, slot: u32) -> vec4<f32> {
+// Texel of a heavenly body's texture in direction `dir`, as stored: rgb in the
+// texture's sRGB, not premultiplied, a its alpha (0 outside the quad).
+// `radius` is LLHeavenBody's disc radius (SUN_DISK_RADIUS 0.5, the moon 0.9
+// of it). LLVOSky::updateHeavenlyBodyGeometry lays the quad at
+// HEAVENLY_BODY_DIST with half sides HEAVENLY_BODY_DIST x 0.1 x radius x
+// scale, wider and taller towards the horizon: as tangents, 0.1 x radius x
+// scale x (1 + 0.3 (1 - z)) across and (1 + 0.2 (1 - z)) up.
+fn body_disc(dir: vec3<f32>, body: vec3<f32>, radius: f32, scale: f32, slot: u32) -> vec4<f32> {
     let b = normalize(body);
+    let low = 1.0 - b.z;
+    let half_size = vec2<f32>(1.0 + low * 0.3, 1.0 + low * 0.2) * (0.1 * radius * scale);
     let mu = dot(dir, b);
     if (mu < 0.0) {
         return vec4<f32>(0.0);
@@ -298,8 +362,7 @@ fn body_disc(dir: vec3<f32>, body: vec3<f32>, half_size: f32, slot: u32) -> vec4
     if (any(uv < vec2<f32>(0.0)) || any(uv > vec2<f32>(1.0))) {
         return vec4<f32>(0.0);
     }
-    let t = sample_tex_level(slot, uv, 0.0);
-    return vec4<f32>(srgb_to_linear(t.rgb) * t.a, t.a);
+    return sample_tex_level(slot, uv, 0.0);
 }
 
 // Rainbow and 22° halo, port of skyF.glsl's rainbow() and halo22() (Second
@@ -351,29 +414,56 @@ fn sky_full(dir: vec3<f32>) -> vec3<f32> {
 
 fn sky_full_at(dir: vec3<f32>, foot: SkyFootprint) -> vec3<f32> {
     let d = normalize(dir);
+    if (frame.studio_aurora[0].w > 0.0) {
+        let c = studio_sky_color(d);
+        return c + sky_stars(d, c, foot) * smoothstep(0.01, 0.08, d.z);
+    }
     let a = atmos_eval(d, false);
     // skyF.glsl: added to the haze color before its x 2, under the clouds
     let haze = a.color + sky_rainbow(a.light_dot) + sky_halo(a.light_dot);
     var c = clamp(haze * 2.0, vec3<f32>(0.0), vec3<f32>(5.0));
-    let clouds = sky_clouds(d);
+    // Sun then moon over the haze, under the clouds, like
+    // LLDrawPoolWLSky::renderHeavenlyBodies (lldrawpoolwlsky.cpp): plain alpha
+    // blending (BT_ALPHA) of the texel as stored, in the same space as the
+    // haze, so softenLightF's srgb_to_linear x sky_hdr_scale below applies to
+    // both. sunDiscF.glsl draws the texel as it is; moonF.glsl scales its rgb
+    // by the moon brightness, fades its alpha near the horizon and discards
+    // alpha <= 2/255. Premultiplying in linear and adding the sun x 6 (moon at
+    // 90 % opacity) blew soft halos out to a white disc with stepped rings and
+    // a visible quad (#2782).
+    var hidden = 0.0;
+    let sd = normalize(frame.sky_sun.xyz);
+    if (frame.tex_slots.y != 0u) {
+        let s = body_disc(d, sd, 0.5, frame.sky_sun.w, frame.tex_slots.y);
+        c = mix(c, s.rgb, s.a);
+        // the Legacy Viewer's sun quad writes depth and hides every star
+        // behind it, even where it is clear: here only as much as it covers
+        hidden = s.a;
+    }
+    if (frame.tex_slots.z != 0u) {
+        let md = normalize(frame.sky_moon.xyz);
+        let m = body_disc(d, md, 0.45, frame.sky_moon.w, frame.tex_slots.z);
+        if (m.a > 2.0 / 255.0) {
+            let fade = select(1.0, clamp(md.z * md.z * 4.0, 0.0, 1.0), md.z > 0.0);
+            c = mix(c, m.rgb * frame.sky_misc.z, m.a * fade);
+            // SL-14113: the moon's kept texels write depth, the stars behind
+            // them are hidden
+            hidden = 1.0;
+        }
+    }
+    // (frame.features.w: the main view's clouds are composited over the sky
+    // by the volumetric layer, clouds.rs; the Legacy layer is skipped)
+    var clouds = vec4<f32>(0.0);
+    if (frame.features.w == 0u) {
+        clouds = sky_clouds(d);
+    }
     c = mix(c, clouds.rgb, clouds.a);
     var col = srgb_to_linear(c) * frame.sky_cloud_pd2.w;
     let cover = 1.0 - clouds.a;
-    // stars and Milky Way (above), behind the clouds
-    // stars and Milky Way behind the clouds and the sun and moon; the
+    // stars and Milky Way (above) behind the clouds and the sun and moon; the
     // aurora, in the atmosphere, behind the clouds only
-    col += (sky_stars(d, col, foot) + aurora_sky(d)) * cover;
-    // moon
-    if (frame.tex_slots.z != 0u) {
-        let m = body_disc(d, frame.sky_moon.xyz, 0.035 * frame.sky_moon.w, frame.tex_slots.z);
-        col = col * (1.0 - m.a * 0.9 * cover) + m.rgb * frame.sky_misc.z * 2.0 * cover;
-    }
-    // sun
-    let sd = normalize(frame.sky_sun.xyz);
-    if (frame.tex_slots.y != 0u) {
-        let s = body_disc(d, sd, 0.025 * frame.sky_sun.w, frame.tex_slots.y);
-        col += s.rgb * 6.0 * cover;
-    } else {
+    col += (sky_stars(d, col, foot) * (1.0 - hidden) + aurora_sky(d)) * cover;
+    if (frame.tex_slots.y == 0u) {
         let mu = dot(d, sd);
         let disk = smoothstep(0.99955, 0.9997, mu) * clamp(sd.z * 10.0 + 1.0, 0.0, 1.0);
         col += frame.sun_color.rgb * disk * 6.0 * cover;
@@ -381,15 +471,78 @@ fn sky_full_at(dir: vec3<f32>, foot: SkyFootprint) -> vec3<f32> {
     return col;
 }
 
-// Northern lights, at night. Curtains of light stand in a layer high over a
-// flat sky, from their foot (height 1) to their top (3.5), along a line that
-// folds and drifts, `dist` away toward their heading so that their foot is
-// seen at the height chosen (5° to 80° up). The view is marched through the
-// stretch of the layer where it can meet the curtain (16 steps at High,
-// fewer at a lower Weather quality, jittered): each step adds the sheet it
-// passes, thin, streaked with rays that flicker; green at the foot, violet
-// or red toward the top (frame.aurora.w). Seen through more of the layer
-// near the horizon, it brightens there, as a real one does.
+// The volumetric clouds' weather map (clouds.rs), drawn when the sky's cloud
+// parameters or the cloud texture change, never per frame. One tile of the
+// map is one repeat of the cloud texture, as the Legacy layer's `alpha1`
+// (sky_clouds) cuts its coverage from it: the same two taps (the texture,
+// and the texture 16 times smaller as detail), the same cover shift from
+// `cloud_shadow`. The scroll and the placement are applied by the trace.
+// R: coverage, G: the share of the continuous sheet (0 for heaps, 1 for an
+// overcast sky; the trace closes the sheet's gaps with it), B: the detail
+// tap, which varies the cloud tops, A: unused.
+const CLOUD_WEATHER_SIZE: f32 = 512.0;
+const HEAP_KNEE: f32 = 0.4;
+const HEAP_SLOPE: f32 = 0.2;
+
+@fragment
+fn fs_cloud_weather(@builtin(position) pos: vec4<f32>) -> @location(0) vec4<f32> {
+    if (frame.tex_slots.x == 0u) {
+        return vec4<f32>(0.0);
+    }
+    let uv = pos.xy / CLOUD_WEATHER_SIZE;
+    let pd2 = frame.sky_cloud_pd2.xyz;
+    let density = 2.0 * (frame.sky_sunlight.w - 0.25);
+    let n1 = cloud_noise(uv) - 0.5;
+    let detail = cloud_noise(uv * 8.0);
+    let fine = n1 + (detail - 0.5) * pd2.z * 0.35;
+    let wc0 = smoothstep(-0.05, 0.45, fine + density);
+    // Two coverage channels (Haggstrom 2018): separate heaps from `wc0`, and
+    // as the sky's cover passes one half a continuous sheet `wc1` whose own
+    // light and dark patches (thin and thick places) give it structure.
+    let gc = smoothstep(0.0, 1.0, saturate((frame.sky_sunlight.w - 0.1) / 0.56));
+    let wc1 = 0.55 + 0.45 * smoothstep(-0.25, 0.25, fine);
+    let sheet = saturate((gc - 0.5) * 2.0);
+    // Until the sheet takes over the heaps never close up: above HEAP_KNEE
+    // their cover rises at a fifth of the pace and tops out at 0.52 (a full
+    // cover makes a slab of them), the gaps stay and fair heaps are untouched.
+    let heaps = mix(min(wc0, HEAP_KNEE) + max(wc0 - HEAP_KNEE, 0.0) * HEAP_SLOPE, wc0, sheet);
+    return vec4<f32>(mix(heaps, wc1, sheet), sheet, detail, 0.0);
+}
+
+fn lattice_gradient(i: vec3<f32>) -> vec3<f32> {
+    let h = pcg3(vec3<u32>(vec3<i32>(i) + vec3<i32>(4096)));
+    return normalize(vec3<f32>(h & vec3<u32>(0xffffu)) / 32767.5 - 1.0 + vec3<f32>(1e-4));
+}
+
+fn corner(i: vec3<f32>, f: vec3<f32>, o: vec3<f32>) -> f32 {
+    return dot(lattice_gradient(i + o), f - o);
+}
+
+// Gradient noise in 0..1, quintic fade: no facets along the lattice. The
+// northern lights' folds and rays (the Milky Way, which it was written for,
+// is a texture now).
+fn gradient_noise(p: vec3<f32>) -> f32 {
+    let i = floor(p);
+    let f = fract(p);
+    let u = f * f * f * (f * (f * 6.0 - 15.0) + 10.0);
+    let x00 = mix(corner(i, f, vec3<f32>(0.0, 0.0, 0.0)), corner(i, f, vec3<f32>(1.0, 0.0, 0.0)), u.x);
+    let x10 = mix(corner(i, f, vec3<f32>(0.0, 1.0, 0.0)), corner(i, f, vec3<f32>(1.0, 1.0, 0.0)), u.x);
+    let x01 = mix(corner(i, f, vec3<f32>(0.0, 0.0, 1.0)), corner(i, f, vec3<f32>(1.0, 0.0, 1.0)), u.x);
+    let x11 = mix(corner(i, f, vec3<f32>(0.0, 1.0, 1.0)), corner(i, f, vec3<f32>(1.0, 1.0, 1.0)), u.x);
+    let n = mix(mix(x00, x10, u.y), mix(x01, x11, u.y), u.z);
+    return clamp(0.5 + 0.75 * n, 0.0, 1.0);
+}
+
+// Aurora Weather: the aurora (northern lights), at night. Curtains of light
+// stand in a layer high over a flat sky, from their foot (height 1) to their
+// top (3.5), along a line that folds and drifts, `dist` away toward their
+// heading so that their foot is seen at the height chosen (5° to 80° up).
+// The view is marched through the stretch of the layer where it can meet
+// the curtain (16 steps at High, fewer at a lower Weather quality,
+// jittered): each step adds the sheet it passes, thin, streaked with rays
+// that flicker; green at the foot, violet or red toward the top
+// (frame.aurora.w). Seen through more of the layer near the horizon, it
+// brightens there, as a real one does.
 fn aurora_sky(d: vec3<f32>) -> vec3<f32> {
     let a = frame.aurora;
     if (a.x <= 0.001 || d.z <= 0.005) { return vec3<f32>(0.0); }
@@ -468,6 +621,21 @@ fn sky_pixel(in: SkyOut) -> vec4<f32> {
     // from the camera, not region positions minus the camera: those rounded
     // differently each frame and the sky shook as it moved (#1059)
     let dir = sky_ray(in.ndc);
+    // Under the rim of the dome a probe's capture has no sky: LLVOWLSky::calcPhi
+    // ends the dome at pi/8 from its apex, and LLDrawPoolWLSky::renderDome
+    // lowers it by the dome offset (about 5.4 degrees under the horizon by
+    // default). The Legacy Viewer's captures draw the water there; Aurora's have
+    // no water pass, so this stands in for the open sea around the terrain: the
+    // sky in the mirror, by a Fresnel term. Haze here lit the sides of everything
+    // outdoors; black left a band the Legacy Viewer does not have.
+    if ((frame.light_mode.z & PROBE_CAPTURE_DOME) != 0u) {
+        let rim_up = 0.92387953 - frame.sky_misc.x;
+        let d = normalize(dir);
+        if (d.z < rim_up / sqrt(0.14644661 + rim_up * rim_up)) {
+            let fresnel = 0.02 + 0.98 * pow(1.0 - min(abs(d.z), 1.0), 5.0);
+            return vec4<f32>(sky_color(vec3<f32>(d.x, d.y, abs(d.z))) * fresnel, 1.0);
+        }
+    }
     var col = sky_full_at(dir, sky_footprint(in.ndc, dir));
     col += lightning_glow(dir);
     if (camera_underwater()) {
@@ -542,7 +710,7 @@ fn vs_terrain(in: VsIn) -> TerrainOut {
     let model = eye_model(rec, in);
     let ep = model * vec4<f32>(vertex_position(rec, in), 1.0);
     var out: TerrainOut;
-    out.clip = frame.eye_view_proj * ep;
+    out.clip = eye_clip(rec, ep);
     // (lighting, shadows and fog keep region coordinates)
     out.world_pos = ep.xyz + frame.eye.xyz;
     out.normal = vertex_normal(rec, in);
@@ -560,10 +728,10 @@ fn vs_terrain_pbr(in: VsIn) -> TerrainPbrOut {
     let model = eye_model(rec, in);
     let ep = model * vec4<f32>(vertex_position(rec, in), 1.0);
     var out: TerrainPbrOut;
-    out.clip = frame.eye_view_proj * ep;
+    out.clip = eye_clip(rec, ep);
     out.world_pos = ep.xyz + frame.eye.xyz;
     out.normal = vertex_normal(rec, in);
-    let raw = vec4<f32>(terrain_direction(vec4<u32>(round(in.weights * 255.0))), in.normal.w);
+    let raw = vec4<f32>(terrain_tangent(in.weights), in.normal.w);
     out.tangent0 = terrain_transform_tangent(records[rec.tex.x], out.normal, raw);
     out.tangent1 = terrain_transform_tangent(records[rec.tex.y], out.normal, raw);
     out.tangent2 = terrain_transform_tangent(records[rec.tex.z], out.normal, raw);
@@ -617,13 +785,13 @@ fn terrain_weights(c: f32) -> vec4<f32> {
 // used by the old approximation above. Slot 6 is reserved by TextureTable.
 // Its decoded image is top-down; LLSurfacePatch::eval supplies GL coordinates.
 fn terrain_noise_weights(c: f32, noise: f32, dx: vec2<f32>, dy: vec2<f32>, clamp_sampler: sampler) -> vec4<f32> {
-    let ramp_loc = tex_loc[6u];
+    let ramp_loc = tex_loc.values[6u];
     let uv = vec2<f32>(c, 1.0 - noise);
     let gx = dx * vec2<f32>(1.0, -1.0);
     let gy = dy * vec2<f32>(1.0, -1.0);
-    let a = textureSampleGrad(tex_pages[ramp_loc >> 16u], clamp_sampler, uv, ramp_loc & 0xffffu, gx, gy).r;
-    let b = textureSampleGrad(tex_pages[ramp_loc >> 16u], clamp_sampler, uv - vec2<f32>(2.0, 0.0), ramp_loc & 0xffffu, gx, gy).r;
-    let f = textureSampleGrad(tex_pages[ramp_loc >> 16u], clamp_sampler, uv - vec2<f32>(1.0, 0.0), ramp_loc & 0xffffu, gx, gy).r;
+    let a = textureSampleGrad(tex_pages[texture_page_index(ramp_loc)], clamp_sampler, uv, ramp_loc & 0xffffu, gx, gy).r;
+    let b = textureSampleGrad(tex_pages[texture_page_index(ramp_loc)], clamp_sampler, uv - vec2<f32>(2.0, 0.0), ramp_loc & 0xffffu, gx, gy).r;
+    let f = textureSampleGrad(tex_pages[texture_page_index(ramp_loc)], clamp_sampler, uv - vec2<f32>(1.0, 0.0), ramp_loc & 0xffffu, gx, gy).r;
     return vec4<f32>(f * a, f * (1.0 - a), (1.0 - f) * b, (1.0 - f) * (1.0 - b));
 }
 
@@ -633,10 +801,10 @@ fn terrain_mix_weights(in: TerrainPbrOut, dx: vec3<f32>, dy: vec3<f32>, blend_dx
         // LLTerrainPaintMap stores slots 2..4 in linear RGB; slot 1 is the
         // remainder. No height/noise threshold is applied to a paintmap.
         let slot = rec.flags.z;
-        let loc = tex_loc[slot];
+        let loc = tex_loc.values[slot];
         // Clamp each mip level at region edges; detail maps use repeat.
         let uv = in.region_pos.xy / rec.mat_uv.xy;
-        var other = max(textureSampleGrad(tex_pages[loc >> 16u], clamp_sampler, uv, loc & 0xffffu, dx.xy / rec.mat_uv.xy, dy.xy / rec.mat_uv.xy).rgb, vec3<f32>(0.0));
+        var other = max(textureSampleGrad(tex_pages[texture_page_index(loc)], clamp_sampler, uv, loc & 0xffffu, dx.xy / rec.mat_uv.xy, dy.xy / rec.mat_uv.xy).rgb, vec3<f32>(0.0));
         other /= max(1.0, dot(other, vec3<f32>(1.0)));
         return vec4<f32>(max(0.0, 1.0 - dot(other, vec3<f32>(1.0))), other);
     }
@@ -666,8 +834,8 @@ fn terrain_uv(p: vec2<f32>, rec: DrawRecord) -> vec2<f32> {
 }
 
 fn terrain_sample(slot: u32, uv: vec2<f32>, dx: vec2<f32>, dy: vec2<f32>) -> vec4<f32> {
-    let loc = tex_loc[slot];
-    return textureSampleGrad(tex_pages[loc >> 16u], tex_sampler, uv, loc & 0xffffu, dx, dy);
+    let loc = tex_loc.values[slot];
+    return textureSampleGrad(tex_pages[texture_page_index(loc)], tex_sampler, uv, loc & 0xffffu, dx, dy);
 }
 
 fn terrain_layer(rec: DrawRecord, p: vec3<f32>, dx: vec3<f32>, dy: vec3<f32>, n: vec3<f32>, tangent: vec4<f32>, planes: vec3<f32>, alpha_only: bool) -> TerrainMaterial {
@@ -792,12 +960,12 @@ fn terrain_color(in: TerrainOut) -> vec3<f32> {
     }
     if (is_classic_sky()) {
         let a = ll_atmos(in.world_pos - frame.camera_pos.xyz);
-        let hazed = ll_haze(ll_classic_diffuse(albedo, n, in.world_pos, sh, in.clip.xy, a) + wet_light + albedo*water_caustics(in.world_pos,n), a);
+        let hazed = ll_haze(ll_classic_diffuse(albedo, n, in.world_pos, sh, in.clip.xy, a) + wet_light + albedo*water_caustic_light(in.world_pos,n)*sh, a);
         var color=hazed*water_scene_light(in.world_pos);
-        if(camera_underwater() || (water_fx_on(256u) && in.world_pos.z<camera_water_level())){color=apply_fog(color,in.world_pos);}
+        if(water_fogs_source(in.world_pos)){color=apply_fog(color,in.world_pos);}
         return light_tiles_checked(debug_view(color, in.world_pos, n, dist, in.clip.xy), in.world_pos, in.clip.xy);
     }
-    let col = shade_pbr(albedo, 0.0, mix(0.92,0.4,wet), 1.0, n, v, in.world_pos, sh, in.clip.xy, true) + wet_light + albedo*water_caustics(in.world_pos,n);
+    let col = shade_pbr(albedo, 0.0, mix(0.92,0.4,wet), 1.0, n, v, in.world_pos, sh, in.clip.xy, true) + wet_light + albedo*water_caustic_light(in.world_pos,n)*sh;
     return light_tiles_checked(debug_view(apply_fog(col*water_scene_light(in.world_pos), in.world_pos), in.world_pos, n, dist, in.clip.xy), in.world_pos, in.clip.xy);
 }
 
@@ -809,8 +977,8 @@ fn terrain_pbr_shaded(in: TerrainPbrOut) -> Shaded {
     let geo = normalize(in.normal);
     let material = terrain_material(in, dx, dy, blend_dx, blend_dy, false, lin_clamp);
     surface_occlusion = normal_map_occlusion(geo, material.normal, in.world_pos, 1.0 / in.clip.w);
-    screen_surface = true;
-    contact_surface = true;
+    screen_share = 1.0;
+    contact_share = 1.0;
     if (material.color.a < material.cutoff) { discard; }
     let n = material.normal;
     let v = normalize(frame.camera_pos.xyz - in.world_pos);
@@ -829,13 +997,13 @@ fn terrain_pbr_shaded(in: TerrainPbrOut) -> Shaded {
         color = (ll_classic_pbr(material.color.rgb, metal, rough, ao, n, v, in.world_pos, sh, in.clip.xy, a)
             + emissive) * ll_final_scale()
             + ll_classic_pbr_local(material.color.rgb, metal, rough, n, v, in.world_pos, in.clip.xy);
-        color = ll_haze(color + material.color.rgb * water_caustics(in.world_pos, n), a);
-        if (camera_underwater() || (water_fx_on(256u) && in.world_pos.z < camera_water_level())) {
+        color = ll_haze(color + material.color.rgb * water_caustic_light(in.world_pos, n) * sh, a);
+        if (water_fogs_source(in.world_pos)) {
             color = apply_fog(color * water_scene_light(in.world_pos), in.world_pos);
         }
     } else {
         color = shade_pbr(material.color.rgb, metal, rough, ao, n, v, in.world_pos, sh, in.clip.xy, false) + emissive;
-        color += material.color.rgb * water_caustics(in.world_pos, n);
+        color += material.color.rgb * water_caustic_light(in.world_pos, n) * sh;
         color = apply_fog(color * water_scene_light(in.world_pos), in.world_pos);
     }
     color = debug_view(color, in.world_pos, n, dist, in.clip.xy);
@@ -955,7 +1123,7 @@ fn fs_terrain_depth_normal(in: TerrainPbrOut, @builtin(front_facing) front: bool
     terrain_depth_mask(in);
     // the terrain stays put: the camera's motion alone
     let ep = vec4<f32>(in.world_pos - frame.eye.xyz, 1.0);
-    return depth_normal(in.normal, front, frame.motion_vp * ep, frame.motion_prev_vp * ep);
+    return depth_normal(in.normal, front, frame.motion_vp * ep, frame.motion_prev_vp * ep, 0.0);
 }
 
 // Picking gives the region metres as the surface coordinates of a hit (the
@@ -1024,9 +1192,10 @@ fn analytic_wave(p: vec2<f32>, t: f32) -> vec3<f32> {
 }
 
 // Reuse opaque depth/color: no second scene render or GPU/CPU synchronization.
+// The water fog a point of the scene copy already holds (apply_fog).
 fn water_source_fog(source:vec3<f32>)->WaterFog {
-    if(!water_fx_on(256u) && !camera_underwater()){return WaterFog(vec3<f32>(0.0),vec3<f32>(1.0));}
-    return water_fog_view(source-frame.camera_pos.xyz,frame.water_normal.w);
+    if(!water_fogs_source(source)){return WaterFog(vec3<f32>(0.0),vec3<f32>(1.0));}
+    return water_fog_view(source-frame.camera_pos.xyz,water_source_density());
 }
 
 // Rays cover the same 200 m at every quality, with finer steps at high quality.
@@ -1211,6 +1380,10 @@ fn legacy_water_punctual(n: vec3<f32>, v: vec3<f32>, l: vec3<f32>, roughness: f3
     return clamp(nl * (f * g * d / (4.0 * nl * nv)), vec3<f32>(0.0), vec3<f32>(10.0));
 }
 
+// The sun glint under which its shadow is not looked up (water_pixel):
+// 1 / 255 / 1000 of the white the surface is capped at.
+const WATER_GLINT_FLOOR: f32 = 0.0000039;
+
 fn water_pixel(in: WaterOut) -> vec4<f32> {
     if(water_excluded(in.world_pos)){discard;}
     if(water_fx_on(1u) || water_fx_on(16u)) {
@@ -1243,17 +1416,27 @@ fn water_pixel(in: WaterOut) -> vec4<f32> {
         wave2 = wave1;
         wave3 = wave1;
     }
-    let wavef = (wave1 + wave2 * 0.4 + wave3 * 0.6) * 0.5;
+    var wavef = (wave1 + wave2 * 0.4 + wave3 * 0.6) * 0.5;
+    // rain prototype: the puddles' rings in the waves themselves, so they
+    // bend the reflection and the refraction and ride the waves
+    let rain_footprint = max(length(dpdx(in.world_pos.xy)), length(dpdy(in.world_pos.xy)));
+    wavef = vec3<f32>(wavef.xy + rain_water_rings(in.world_pos, rain_footprint), wavef.z);
     var n = wavef * frame.water_normal.xyz;
     n.z *= 2.0;
     let footprint=max(length(dpdx(in.world_pos.xy)),length(dpdy(in.world_pos.xy)));
-    let wake=water_wake_sample(in.world_pos.xy,in.level);
+    // The terrain and the water's own level under this point, and the swell
+    // at it: read once, for the wake, the normal and the foam below.
+    var bed=vec2<f32>(0.0);
+    if((water_fx.counts.z&31u)!=0u){bed=water_fx_bed(in.world_pos.xy);}
+    var swell=WaterSwell(vec3<f32>(0.0),vec2<f32>(0.0),0.0);
+    if((water_fx.counts.z&9u)!=0u){swell=water_swell(in.world_pos.xy,frame.camera_pos.w,water_fx.counts.w);}
+    let wake=water_wake_at(in.world_pos.xy,in.level,bed.y);
     let furrow=1.0-smoothstep(0.003,0.035,-wake.z)*0.7;
     if(water_fx_on(1u)) {
         let micro=water_micro(in.world_pos.xy,frame.camera_pos.w,water_fx.counts.w,footprint);
         let detail=clamp(length(frame.water_normal.xy)*0.35,0.5,1.5);
-        n=normalize(vec3<f32>((n.xy*0.18-micro.xy*detail)*furrow,1.0)+water_fx_normal(in.world_pos.xy,in.level,wake.xy));
-    } else { n=water_unit(n+water_fx_normal(in.world_pos.xy,in.level,wake.xy)); }
+        n=normalize(vec3<f32>((n.xy*0.18-micro.xy*detail)*furrow,1.0)+water_fx_normal(in.world_pos.xy,in.level,wake.xy,swell.gradient,bed.x));
+    } else { n=water_unit(n+water_fx_normal(in.world_pos.xy,in.level,wake.xy,swell.gradient,bed.x)); }
     // waterF.glsl: the reflection follows the waves scaled by the EEP normal
     // scale (wave_ibl), the sun glint the unscaled waves flattened with
     // distance (enhanced water off). With a normal scale of 0, wave_ibl is
@@ -1285,6 +1468,60 @@ fn water_pixel(in: WaterOut) -> vec4<f32> {
         return vec4<f32>(water_underside(in.world_pos,in.level,view_vec,n),1.0);
     }
 
+    let d0 = scene_depth_at(uv);
+    // The foam of enhanced water, how much of it: here, while the terrain
+    // and the swell it shares with the normal are at hand (kept any longer,
+    // they weigh on the whole shader, the plain water included), and before
+    // the sun's shadow, looked up only where the glint or the foam shows it.
+    var foam = 0.0;
+    if((water_fx.counts.z &14u)!=0u) {
+        let p=in.world_pos.xy;let depth=max(in.level-bed.x,0.0);
+        // Shore depth always comes from terrain, never an avatar or submerged
+        // mesh in the opaque depth. Contact refinement is masked below.
+        foam=smoothstep(0.3,0.95,water_fx_foam(p))*0.55;
+        if(water_fx_on(2u) && depth<2.0) {
+            // Travel along the depth gradient: the front approaches every coast orientation.
+            let phase=depth*3.4+frame.camera_pos.w*1.25+water_fx_noise(p*0.32)*1.1;
+            let breaker=pow(max(sin(phase),0.0),4.0);
+            let runup=0.12+0.28*sin(frame.camera_pos.w*0.6+water_fx_noise(p*0.15));
+            let front=exp(-pow((depth-0.18-runup)*5.0,2.0));
+            foam=max(foam,front*breaker*0.95);
+            foam=max(foam,breaker*exp(-pow((depth-0.7)*2.8,2.0))*0.65);
+        }
+        if(water_fx_on(4u) && d0>0.0) {
+            // the obstacles' field is read only where something stands
+            // behind the surface
+            let contact=water_fx_sample(p).w;
+            if(contact>0.02) {
+                let hit=world_from_depth(uv,d0);
+                let ground=water_fx_bed(hit.xy).x;
+                let clearance=in.level-hit.z;
+                // The visible intersection refines the proxy to the actual mesh silhouette.
+                let obstacle=smoothstep(0.18,0.55,hit.z-ground);
+                foam+=obstacle*(1.0-smoothstep(0.03,0.42,clearance))*smoothstep(-0.08,0.03,clearance)*0.45*contact;
+            }
+        }
+        // crests: the wind patches are worked out only where the swell
+        // folds enough to whiten (the first smoothstep is 0 under 0.08)
+        if(water_fx_on(8u) && swell.compression>0.08) {
+            let windpatch=water_fx_noise(p*0.22-frame.camera_pos.w*0.04);
+            foam+=smoothstep(0.08,0.2,swell.compression)*smoothstep(0.45,0.8,windpatch)*0.6;
+        }
+        // Fine breaking filaments already have a narrow, resolved footprint.
+        // Applying the coarse accumulation threshold twice erased slow swimmers.
+        // The torn pattern is the costly part: one for both, and none where
+        // neither the field (under 0.08) nor a wake has foam to tear.
+        var wake_foam=0.0;
+        if(water_fx_on(4u)){wake_foam=smoothstep(0.018,0.18,wake.w);}
+        if(foam>=0.08 || wake_foam>0.0) {
+            let pattern=water_foam_pattern(p,footprint);
+            foam=water_foam_coverage(foam,pattern)+wake_foam*water_foam_coverage(1.0,pattern)*0.55;
+        } else {
+            foam=0.0;
+        }
+        foam=clamp(foam,0.0,1.0)*smoothstep(0.0,0.06,depth);
+    }
+
     // fresnel (calculateFresnelFactors)
     let fs = frame.water_params.y;
     let fo = frame.water_params.z;
@@ -1300,7 +1537,6 @@ fn water_pixel(in: WaterOut) -> vec4<f32> {
     var distortion=waver.xy*ref_scale/max(dmod,1.0)*2.0;
     if(water_fx_on(1u) || water_fx_on(16u)){distortion=n.xy*0.08/max(dmod,1.0);}
     var distort2=clamp(uv+distortion,vec2<f32>(0.0),vec2<f32>(0.999));
-    let d0 = scene_depth_at(uv);
     let surf_dist = dist;
     var refr_dist = 1e5;
     if (d0 > 0.0) {
@@ -1313,25 +1549,37 @@ fn water_pixel(in: WaterOut) -> vec4<f32> {
         distort2=clamp(uv+n.xy*min(water_path*0.018,0.16)/max(dmod*0.5,1.0),vec2<f32>(0.0),vec2<f32>(0.999));
     }
     distort2 = mix(uv, distort2, min(1.0, fade * 10.0));
-    let d1 = scene_depth_at(distort2);
+    var d1 = scene_depth_at(distort2);
     var ref_pos = frame.camera_pos.xyz + view_vec * 1e5;
     if (d1 > 0.0) {
         ref_pos = world_from_depth(distort2, d1);
     }
     if (distance(ref_pos, frame.camera_pos.xyz) < surf_dist - 0.05) {
-        // the distorted sample is in front of the water: don't refract it
+        // the distorted sample is in front of the water: don't refract it.
+        // The depth goes back to the pixel's own with it: kept, the depth of
+        // what stands in front (a leaf, a cliff's edge) left the void behind
+        // deep water without its fog below, and the bare sky showed as white
+        // ripples along everything standing over the sea.
         distort2 = uv;
+        d1 = d0;
         ref_pos = frame.camera_pos.xyz + view_vec * refr_dist;
     }
     var fb = textureSampleLevel(scene_tex, lin_clamp, distort2, 0.0).rgb;
     // Fog of the water volume between the surface and the refracted point.
-    let wf = water_fog_view(ref_pos - frame.camera_pos.xyz, frame.water_fog.w);
     if (water_fx_on(256u)) {
         let source_fog=water_source_fog(ref_pos);
         fb=max(fb-source_fog.color,vec3<f32>(0.0))/max(source_fog.transmission,vec3<f32>(0.05));
         let volume=water_fog_segment(ref_pos-in.world_pos,frame.water_normal.w,0.0,max(in.level-ref_pos.z,0.0));
         fb=fb*volume.transmission+volume.color;
-    } else { fb = fb * wf.transmission + wf.color; }
+    } else if (d1 <= 0.0) {
+        // Legacy fog: what lies under the water holds its own already, each
+        // layer by its own depth (water_fogs_source; waterF.glsl adds none
+        // to its screen copy). Only where nothing was drawn behind the
+        // surface (the void, the sky under the horizon) does the water take
+        // its fog here, to its far end.
+        let wf = water_fog_view(ref_pos - frame.camera_pos.xyz, frame.water_fog.w);
+        fb = fb * wf.transmission + wf.color;
+    }
 
     // reflection: planar texture, screen-space rays, or the sky
     var r = reflect(view_vec, normalize(mix(vec3<f32>(0.0, 0.0, 1.0), n, 0.6)));
@@ -1345,24 +1593,29 @@ fn water_pixel(in: WaterOut) -> vec4<f32> {
         r = reflect(view_vec, normalize(wave_ibl));
         sky_dir = r;
     }
-    var radiance = sky_color(vec3<f32>(sky_dir.x, sky_dir.y, abs(sky_dir.z)));
-    if (probes_on()) {
-        // without a planar reflection the water reflects its probes
-        // as blurred as the EEP asks (doProbeSample: lod = (1 - gloss) x
-        // max lod, gloss = 1 - blur_multiplier): a sharp sun disc and haze
-        // at lod 0 whitened the surface
-        let lod = clamp(frame.water_params.w, 0.0, 1.0) * probe_max_lod();
-        let s = sample_probes_water(in.world_pos, in.clip.xy, sky_dir, lod);
-        if (s.w > 0.0) {
-            radiance = s.rgb;
-        }
-    }
+    var radiance = vec3<f32>(0.0);
     if (frame.misc.z > 0.5) {
+        // the planar reflection stands for the sky and the probes: neither
+        // is read under it
         let ruv = clamp(uv + n.xy * 0.035 / max(dmod * 0.25, 1.0), vec2<f32>(0.001), vec2<f32>(0.999));
         radiance = textureSampleLevel(water_refl_tex, lin_clamp, ruv, 0.0).rgb;
-    } else if (frame.misc.y > 0.5) {
-        let hit = ssr_trace(in.world_pos + vec3<f32>(0.0, 0.0, 0.02), r, select(40,16 + i32(water_fx.counts.w) * 12,water_fx.counts.z!=0u));
-        radiance = mix(radiance, hit.rgb, hit.a);
+    } else {
+        radiance = sky_color(vec3<f32>(sky_dir.x, sky_dir.y, abs(sky_dir.z)));
+        if (probes_on()) {
+            // without a planar reflection the water reflects its probes
+            // as blurred as the EEP asks (doProbeSample: lod = (1 - gloss) x
+            // max lod, gloss = 1 - blur_multiplier): a sharp sun disc and haze
+            // at lod 0 whitened the surface
+            let lod = clamp(frame.water_params.w, 0.0, 1.0) * probe_max_lod();
+            let s = sample_probes_water(in.world_pos, in.clip.xy, sky_dir, lod);
+            if (s.w > 0.0) {
+                radiance = s.rgb;
+            }
+        }
+        if (frame.misc.y > 0.5) {
+            let hit = ssr_trace(in.world_pos + vec3<f32>(0.0, 0.0, 0.02), r, select(40,16 + i32(water_fx.counts.w) * 12,water_fx.counts.z!=0u));
+            radiance = mix(radiance, hit.rgb, hit.a);
+        }
     }
     if (!water_fx_on(512u)) { radiance *= df2.y; }
     if (!legacy_reflects) { radiance = vec3<f32>(0.0); }
@@ -1375,7 +1628,6 @@ fn water_pixel(in: WaterOut) -> vec4<f32> {
     if(water_fx_on(1u)){rough=clamp(rough*0.65+footprint*0.06,0.035,0.25);}
     rough=mix(rough,0.055,smoothstep(0.004,0.045,-wake.z)*0.65);
     let gn = select(n, legacy_glint_n, legacy_water);
-    let shadow = shadow_factor(in.world_pos, vec3<f32>(0.0, 0.0, 1.0), dist);
     // waterF.glsl: punctual = clamp(nl x (diffPunc + specPunc), 0, 10) x
     // sunlit_linear x shadow x atten, metallic 1 (no diffuse), roughness the
     // blur multiplier, F0 the `specular` uniform (LLDrawPoolWater: the
@@ -1391,7 +1643,16 @@ fn water_pixel(in: WaterOut) -> vec4<f32> {
     // calcAtmosphericVarsLinear: sunlit made linear only on a sky with a
     // probe ambiance, then x sky_sunlight_scale (1.5)
     let sunlit_linear = select(srgb_to_linear(atm.sunlit), atm.sunlit, frame.sky_ll.x > 0.5) * 1.5;
-    let punctual = legacy_water_punctual(gn, vv, l, perceptual, spec_color) * sunlit_linear * shadow * atm.atten;
+    let glint_lit = legacy_water_punctual(gn, vv, l, perceptual, spec_color) * sunlit_linear * atm.atten;
+    // The sun's shadow, the costliest lookup of the surface, only where
+    // something shows it: the glint, a narrow lobe that is next to nothing
+    // over most of the water (under WATER_GLINT_FLOOR, a thousandth of the
+    // smallest step an 8-bit image can show), or the foam.
+    var shadow = 1.0;
+    if (foam > 0.0 || max(glint_lit.r, max(glint_lit.g, glint_lit.b)) > WATER_GLINT_FLOOR) {
+        shadow = shadow_factor(in.world_pos, vec3<f32>(0.0, 0.0, 1.0), dist);
+    }
+    let punctual = glint_lit * shadow;
 
     var reflectance = min(1.0,df2.x);
     var glint = punctual;
@@ -1402,39 +1663,7 @@ fn water_pixel(in: WaterOut) -> vec4<f32> {
     }
     var color = mix(fb, radiance, reflectance) + glint;
     color = mix(fb, color, min(1.0, fade * 60.0));
-    if((water_fx.counts.z &14u)!=0u) {
-        let p=in.world_pos.xy;let bed=water_fx_bed(p);let depth=max(in.level-bed.x,0.0);
-        let field=water_fx_sample(p);
-        // Shore depth always comes from terrain, never an avatar or submerged
-        // mesh in the opaque depth. Contact refinement is masked below.
-        var foam=smoothstep(0.3,0.95,water_fx_foam(p))*0.55;
-        if(water_fx_on(2u) && depth<2.0) {
-            // Travel along the depth gradient: the front approaches every coast orientation.
-            let phase=depth*3.4+frame.camera_pos.w*1.25+water_fx_noise(p*0.32)*1.1;
-            let breaker=pow(max(sin(phase),0.0),4.0);
-            let runup=0.12+0.28*sin(frame.camera_pos.w*0.6+water_fx_noise(p*0.15));
-            let front=exp(-pow((depth-0.18-runup)*5.0,2.0));
-            foam=max(foam,front*breaker*0.95);
-            foam=max(foam,breaker*exp(-pow((depth-0.7)*2.8,2.0))*0.65);
-        }
-        if(water_fx_on(4u) && d0>0.0 && field.w>0.02) {
-            let hit=world_from_depth(uv,d0);
-            let ground=water_fx_bed(hit.xy).x;
-            let clearance=in.level-hit.z;
-            // The visible intersection refines the proxy to the actual mesh silhouette.
-            let obstacle=smoothstep(0.18,0.55,hit.z-ground);
-            foam+=obstacle*(1.0-smoothstep(0.03,0.42,clearance))*smoothstep(-0.08,0.03,clearance)*0.45*field.w;
-        }
-        if(water_fx_on(8u)) {
-            let wave=water_swell(p,frame.camera_pos.w,water_fx.counts.w);
-            let windpatch=water_fx_noise(p*0.22-frame.camera_pos.w*0.04);
-            foam+=smoothstep(0.08,0.2,wave.compression)*smoothstep(0.45,0.8,windpatch)*0.6;
-        }
-        foam=water_foam_coverage(p,foam,footprint);
-        // Fine breaking filaments already have a narrow, resolved footprint.
-        // Applying the coarse accumulation threshold twice erased slow swimmers.
-        if(water_fx_on(4u)){foam+=smoothstep(0.018,0.18,wake.w)*water_foam_coverage(p,1.0,footprint)*0.55;}
-        foam=clamp(foam,0.0,1.0)*smoothstep(0.0,0.06,depth);
+    if(foam>0.0) {
         let nl=max(frame.sun_dir.z,0.0);
         var foam_light=(frame.sky_horizon.rgb*0.3+frame.sun_color.rgb*nl*shadow/PI)*0.75;
         if(is_classic_sky()) {
@@ -1706,9 +1935,6 @@ fn fs_water_particle_under(in: WaterParticleOut) -> @location(0) vec4<f32> {
 }
 
 // ------------------------------------------------------------ rain (prototype)
-
-// Bloom: this rain is drawn into the HDR color target with the other
-// transparent passes. Aurora has no flag that keeps rain out of the bloom.
 // Drops are not simulated: each instance has a fixed random place in a box
 // around the camera, falls at its own steady speed and wraps around the box,
 // so rain reaches as far as the box everywhere the camera looks. Streaks bend
@@ -1722,7 +1948,7 @@ const RAIN_EXPOSURE: f32 = 0.05;
 // Drops are never drawn thinner than this many pixels (they fade instead).
 const RAIN_MIN_PX: f32 = 1.3;
 
-// BLOCK_RAIN_DEBUG=1: the wet pass shows the wetness memory instead
+// AURORA_RAIN_DEBUG=1: the wet pass shows the wetness memory instead
 override rain_debug: f32 = 0.0;
 
 // What falls is snow (`RainLook::snow`): the drops pass draws flakes, and
@@ -2384,7 +2610,7 @@ fn fs_rain_wet_update(in: RainWetOut) -> @location(0) vec4<f32> {
 
 // How wet the surface at `world` is from the memory (0..1, blended between
 // cells); -1 outside it.
-// The memory's cell at `world`, for BLOCK_RAIN_DEBUG: yellow, outside the
+// The memory's cell at `world`, for AURORA_RAIN_DEBUG: yellow, outside the
 // memory; red, only assumed open (seen beyond the shelter map); green, wet
 // by the memory, blue, dry (under cover); brighter, the wetter.
 fn rain_debug_color(world: vec3<f32>) -> vec4<f32> {
@@ -2400,7 +2626,7 @@ fn rain_debug_color(world: vec3<f32>) -> vec4<f32> {
     return vec4<f32>(vec3<f32>(0.0, open, 1.0 - open) * (0.3 + 0.7 * s.y) * 0.6, 0.6);
 }
 
-// Why the snow lies or not at `world` (facing `n`), for BLOCK_RAIN_DEBUG=snow:
+// Why the snow lies or not at `world` (facing `n`), for AURORA_RAIN_DEBUG=snow:
 // white, deep snow's own surface; red, none in the memory there (beyond it,
 // or none has built up); yellow, too steep by the surface's facing; blue,
 // off the surface the shelter map has there (under cover, or above it: what
@@ -2840,8 +3066,8 @@ fn snow_cover(clip: vec2<f32>, world: vec3<f32>, n: vec3<f32>) -> vec4<f32> {
 fn snow_cover_lit(clip: vec2<f32>, world: vec3<f32>, lies_at: vec3<f32>, n: vec3<f32>, lit: vec3<f32>) -> vec4<f32> {
     // the screen-space terms (ambient occlusion, contact shadows) were
     // made from the depth under the snow: what it buries would darken it
-    screen_surface = false;
-    contact_surface = false;
+    screen_share = 0.0;
+    contact_share = 0.0;
     // "Snow settles" off: none drawn, whatever falls (it was read from the
     // puddles' switch, rain_look.x, which is the snow's only while it
     // snows: in rain or clear weather the snow melting away showed)
@@ -3907,4 +4133,3 @@ fn fs_snow_mesh(in: SnowMeshOut) -> @location(0) vec4<f32> {
     if (c.a < 0.5) { discard; }
     return vec4<f32>(c.rgb / c.a, 1.0);
 }
-

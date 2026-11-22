@@ -63,8 +63,6 @@ struct MicShared {
     capture_delay_ms: AtomicU32,
     /// Requested gain (f32 bits).
     gain: AtomicU32,
-    /// Voice morph pitch (f32 bits); 1.0 = unchanged. Applied after gain.
-    pitch: AtomicU32,
     /// Smoothed RMS of the gained signal, 0..1 (f32 bits).
     rms: AtomicU32,
     /// Samples written so far (stall detection).
@@ -72,6 +70,8 @@ struct MicShared {
     /// Name of the device being captured ("" = none).
     device: Mutex<String>,
     fallback: AtomicBool,
+    /// The device is held closed ([`MicCapture::set_paused`]).
+    paused: AtomicBool,
 }
 
 impl MicShared {
@@ -80,11 +80,11 @@ impl MicShared {
             processing: Mutex::new(None),
             capture_delay_ms: AtomicU32::new(0),
             gain: AtomicU32::new(1.0f32.to_bits()),
-            pitch: AtomicU32::new(1.0f32.to_bits()),
             rms: AtomicU32::new(0),
             captured: AtomicU64::new(0),
             device: Mutex::new(String::new()),
             fallback: AtomicBool::new(false),
+            paused: AtomicBool::new(false),
         }
     }
 
@@ -122,25 +122,11 @@ impl MicWriter {
     /// many were queued (the rest is dropped when the reader lags).
     fn write(&mut self, samples: &[f32]) -> usize {
         let target = f32::from_bits(self.shared.gain.load(Ordering::Relaxed));
-        let pitch = f32::from_bits(self.shared.pitch.load(Ordering::Relaxed));
-        let pitch_shift = (pitch - 1.0).abs() > 0.01;
         let step = 1.0 / GAIN_RAMP_SAMPLES * MAX_INPUT_GAIN;
         let mut buf = [0.0f32; 256];
         let mut queued = 0;
-        let mut offset = 0usize;
-        while offset < samples.len() {
-            let n = (samples.len() - offset).min(buf.len());
-            for (j, o) in buf[..n].iter_mut().enumerate() {
-                let s = if pitch_shift {
-                    let src = (offset + j) as f32 * pitch;
-                    let i0 = src.floor() as usize;
-                    let frac = src - i0 as f32;
-                    let a = samples.get(i0).copied().unwrap_or(0.0);
-                    let b = samples.get(i0 + 1).copied().unwrap_or(a);
-                    a + (b - a) * frac
-                } else {
-                    samples[offset + j]
-                };
+        for chunk in samples.chunks(buf.len()) {
+            for (o, &s) in buf.iter_mut().zip(chunk) {
                 if self.gain != target {
                     self.gain += (target - self.gain).clamp(-step, step);
                 }
@@ -149,9 +135,8 @@ impl MicWriter {
                 *o = v;
                 self.meter(v);
             }
-            let (done, _) = self.prod.push_partial_slice(&buf[..n]);
+            let (done, _) = self.prod.push_partial_slice(&buf[..chunk.len()]);
             queued += done.len();
-            offset += n;
         }
         self.shared.captured.fetch_add(samples.len() as u64, Ordering::Relaxed);
         queued
@@ -227,6 +212,8 @@ impl InputAdapter {
 /// Requests to the capture thread.
 enum MicCmd {
     SetDevice(Option<String>),
+    /// [`MicShared::paused`] changed: close or reopen the device.
+    Pause,
 }
 
 struct MicInner {
@@ -326,7 +313,16 @@ impl MicCapture {
     /// Fails with [`AudioError::NoDevice`] when there is no input device at
     /// all. Once open, a lost device is reopened in the background.
     pub fn open(device: Option<String>) -> Result<Self, AudioError> {
+        Self::open_with(device, false)
+    }
+
+    /// [`MicCapture::open`], already paused when `paused` is set: the
+    /// capture thread starts but the device stays closed (no OS microphone
+    /// indicator) until [`MicCapture::set_paused`]`(false)`. Still fails with
+    /// [`AudioError::NoDevice`] when there is no input device at all.
+    pub fn open_with(device: Option<String>, paused: bool) -> Result<Self, AudioError> {
         let (writer, mic) = Self::with_ring();
+        mic.inner.shared.paused.store(paused, Ordering::Relaxed);
         let writer = Arc::new(Mutex::new(writer));
         let (ready_tx, ready_rx) = bounded::<Result<(), AudioError>>(1);
         let (ctl_tx, ctl_rx) = unbounded::<MicCmd>();
@@ -374,8 +370,28 @@ impl MicCapture {
         }
     }
 
+    /// Closes the device while `paused` (the OS microphone indicator goes
+    /// off, a Bluetooth headset leaves its hands-free mode) and reopens it
+    /// when `paused` is cleared, keeping this handle, its gain and its
+    /// reader. Both happen on the capture thread: this returns at once, and
+    /// an unchanged value sends nothing, so it can be called every frame.
+    /// Nothing is captured while paused (the reader gets no samples, the
+    /// level falls to 0). No device effect on a virtual input.
+    pub fn set_paused(&self, paused: bool) {
+        if self.inner.shared.paused.swap(paused, Ordering::Relaxed) != paused
+            && let Some(tx) = self.inner.ctl.lock().as_ref()
+        {
+            let _ = tx.send(MicCmd::Pause);
+        }
+    }
+
+    /// Whether [`MicCapture::set_paused`] holds the device closed.
+    pub fn is_paused(&self) -> bool {
+        self.inner.shared.paused.load(Ordering::Relaxed)
+    }
+
     /// Name of the device being captured; `None` while no device is open
-    /// (unplugged, reopening).
+    /// (unplugged, reopening, paused).
     pub fn device_name(&self) -> Option<String> {
         let name = self.inner.shared.device.lock();
         (!name.is_empty()).then(|| name.clone())
@@ -392,13 +408,6 @@ impl MicCapture {
     pub fn set_gain(&self, gain: f32) {
         let gain = if gain.is_finite() { gain.clamp(0.0, MAX_INPUT_GAIN) } else { 1.0 };
         self.inner.shared.gain.store(gain.to_bits(), Ordering::Relaxed);
-    }
-
-    /// Pitch ratio for voice morphing (0.5..=2.0; 1.0 = none). Keeps the
-    /// output length; higher pitch reads the buffer faster.
-    pub fn set_pitch(&self, pitch: f32) {
-        let pitch = if pitch.is_finite() { pitch.clamp(0.5, 2.0) } else { 1.0 };
-        self.inner.shared.pitch.store(pitch.to_bits(), Ordering::Relaxed);
     }
 
     /// Enables WebRTC processing on the capture worker, before manual gain.
@@ -521,6 +530,24 @@ fn capture_main(
     let mut output = [0.0; BLOCK];
     let mut fill = 0;
     loop {
+        if shared.paused.load(Ordering::Relaxed) {
+            // Held closed: tell `open_with` whether a device exists at all,
+            // then wait for a resume, a device change or the close.
+            if let Some(tx) = ready.take() {
+                let found = devices::pick(Direction::Input, wanted.as_deref()).is_some();
+                let _ = tx.send(if found { Ok(()) } else { Err(AudioError::NoDevice) });
+                if !found {
+                    return;
+                }
+                log::info!("audio input: paused");
+            }
+            match ctl.recv() {
+                Ok(MicCmd::SetDevice(name)) => wanted = name,
+                Ok(MicCmd::Pause) => {}
+                Err(_) => return,
+            }
+            continue;
+        }
         let mut reopen_now = false;
         let (raw_prod, mut raw_cons) = rtrb::RingBuffer::new(RING_SAMPLES);
         let raw_prod = Arc::new(Mutex::new(raw_prod));
@@ -579,6 +606,13 @@ fn capture_main(
                                 break;
                             }
                         }
+                        Ok(MicCmd::Pause) => {
+                            if shared.paused.load(Ordering::Relaxed) {
+                                log::info!("audio input: paused");
+                                reopen_now = true;
+                                break;
+                            }
+                        }
                         Err(RecvTimeoutError::Timeout) => {
                             if failed.load(Ordering::Relaxed) {
                                 log::warn!("audio input lost; reopening the device");
@@ -631,7 +665,7 @@ fn capture_main(
         }
         match ctl.recv_timeout(Duration::from_secs(1)) {
             Ok(MicCmd::SetDevice(name)) => wanted = name,
-            Err(RecvTimeoutError::Timeout) => {}
+            Ok(MicCmd::Pause) | Err(RecvTimeoutError::Timeout) => {}
             Err(RecvTimeoutError::Disconnected) => return,
         }
     }
@@ -739,6 +773,26 @@ mod tests {
         assert!(output[480..].iter().all(|&v| v == 0.0));
         feed.push(&[0.0; 14_400]);
         assert_eq!(mic.level(), 0.0);
+    }
+
+    #[test]
+    fn pausing_wakes_the_capture_thread_only_on_a_change() {
+        let (_writer, mic) = MicCapture::with_ring();
+        let (tx, rx) = unbounded();
+        *mic.inner.ctl.lock() = Some(tx);
+        assert!(!mic.is_paused());
+        // called every frame: the thread is told once per change
+        for _ in 0..3 {
+            mic.set_paused(true);
+        }
+        assert!(mic.is_paused());
+        assert!(matches!(rx.try_recv(), Ok(MicCmd::Pause)));
+        assert!(rx.try_recv().is_err());
+        mic.set_paused(false);
+        mic.set_paused(false);
+        assert!(!mic.is_paused());
+        assert!(matches!(rx.try_recv(), Ok(MicCmd::Pause)));
+        assert!(rx.try_recv().is_err());
     }
 
     #[test]

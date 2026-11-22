@@ -1,5 +1,5 @@
 # Fuzzing of the readers of untrusted data: assets and messages that any
-# resident or simulator can send (fuzz/). Its own
+# resident or simulator can send (docs/TESTING.md, "Fuzzing"). Its own
 # workspace, outside the viewer's: normal builds and check.ps1 never compile
 # it. The `fuzz-local` runner works on stable Rust (Windows included); the
 # libFuzzer targets of fuzz_targets/ need nightly and `cargo fuzz`
@@ -7,7 +7,7 @@
 # No lock of its own: copy the viewer's Cargo.lock here first, so that every
 # shared crate is fuzzed at its shipped version.
 [package]
-name = "block-fuzz"
+name = "aurora-fuzz"
 version = "0.0.0"
 edition = "2024"
 license = "GPL-3.0-or-later"
@@ -24,6 +24,7 @@ libfuzzer = ["dep:libfuzzer-sys"]
 [dependencies]
 block-assets = { path = "../crates/block-assets" }
 block-audio = { path = "../crates/block-audio" }
+block-editor-sync = { path = "../crates/block-editor-sync" }
 block-llsd = { path = "../crates/block-llsd" }
 block-msg = { path = "../crates/block-msg" }
 block-net = { path = "../crates/block-net" }
@@ -50,6 +51,10 @@ debug-assertions = true
 overflow-checks = true
 
 [profile.release.package.block-audio]
+debug-assertions = true
+overflow-checks = true
+
+[profile.release.package.block-editor-sync]
 debug-assertions = true
 overflow-checks = true
 
@@ -102,6 +107,14 @@ bench = false
 [[bin]]
 name = "llsd"
 path = "fuzz_targets/llsd.rs"
+required-features = ["libfuzzer"]
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "editor"
+path = "fuzz_targets/editor.rs"
 required-features = ["libfuzzer"]
 test = false
 doc = false

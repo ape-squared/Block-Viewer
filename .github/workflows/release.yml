@@ -1,33 +1,23 @@
 name: Release
 
 # A version tag (SemVer: v0.2.0, v0.2.1…) pushed by a human builds the
-# viewer and publishes the release with notes: the Windows zip (the one the
-# updater installs), its crash symbols, the Linux x64 archive, and the
-# macOS DMG. Use workflow_dispatch with an existing tag and only=macos /
-# only=linux / only=windows to attach one platform to a release that already
-# has the others. Nightly may call this workflow with a beta tag.
+# viewer and publishes the release with notes grouped by PR label: the
+# Windows zip (the one the updater installs) and its crash symbols, then the
+# Linux archive and the macOS application. A pull request that changes these
+# release files gets a dry run of the three jobs (the version Git describes,
+# the symbols, the Linux archive and the macOS application kept as the run's
+# artifacts, nothing published): no agent can try the Linux or macOS build
+# on its PC, and the symbols need the release build.
 # The Nightly workflow calls it with the beta tag it has just pushed (a tag
 # pushed with the workflow token starts no workflow by itself); a tag with
 # a pre-release part is published as a GitHub pre-release.
+# The three build jobs run with a read-only token and hand their files to
+# the publish jobs as the run's artifacts; only the publish jobs, which never
+# run on a pull request, can write the release. A dry run signs the macOS
+# application ad hoc, whatever the repository's signing setup.
 on:
   push:
     tags: ['v[0-9]+.[0-9]+.[0-9]+*']
-  workflow_dispatch:
-    inputs:
-      tag:
-        description: Existing version tag to build for (e.g. v0.1.0)
-        required: true
-        type: string
-      only:
-        description: Build only this platform (empty = Windows + Linux + macOS)
-        required: false
-        type: choice
-        options:
-          - ''
-          - linux
-          - macos
-          - windows
-        default: ''
   workflow_call:
     inputs:
       tag:
@@ -41,7 +31,7 @@ on:
       - packaging/linux/**
       - packaging/macos/**
       - scripts/package-macos.ps1
-      - assets/branding/block.icns
+      - assets/branding/aurora.icns
       - scripts/verify-version.ps1
 
 # a new push to a pull request stops its previous dry run; a release (a
@@ -51,23 +41,31 @@ concurrency:
   cancel-in-progress: true
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   windows:
-    if: ${{ !(github.event_name == 'workflow_dispatch' && (inputs.only == 'macos' || inputs.only == 'linux')) }}
     runs-on: windows-latest
+    permissions:
+      contents: read
+      # SignPath reads the job and downloads the unsigned exe (Sign below)
+      actions: read
+    outputs:
+      signed: ${{ steps.signed.outputs.signed }}
     env:
       TAG: ${{ inputs.tag || github.event_name == 'push' && github.ref_name || 'dry-run' }}
+      # Code signing (docs/UPDATES.md, "Code signing"): a stable tag only,
+      # once the repository turns it on with the SIGNPATH_SIGN_RELEASES
+      # variable. A beta (a tag with a pre-release part, the nightly's) stays
+      # unsigned: each signature waits for an approver in SignPath.
+      SIGN: ${{ github.event_name != 'pull_request' && vars.SIGNPATH_SIGN_RELEASES == 'true' && !contains(inputs.tag || github.ref_name, '-') }}
     steps:
-      # Tag / dispatch must build the tagged commit (AURORA_VERSION_TAG refuses
-      # a tree ahead of the tag). PRs keep the PR head.
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
-          ref: ${{ github.event_name == 'pull_request' && github.ref || inputs.tag || github.ref }}
+          persist-credentials: false
       - name: Rust stable
-        run: rustup update stable
+        run: rustup toolchain install --profile minimal --no-self-update
       - uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0 # v2.9.3
       # the version comes from the tag; a dry run keeps the one Git describes
       # (block-version refuses a tag that is not the checked-out commit's)
@@ -75,11 +73,15 @@ jobs:
         shell: pwsh
         run: |
           if ($env:TAG -ne 'dry-run') { $env:AURORA_VERSION_TAG = $env:TAG }
-          cargo build --release --locked -p block-viewer
+          # the OpenXR loader built in: the published exe needs nothing beside it
+          cargo build --release --locked -p block-viewer --features xr-static-loader
       - name: Verify compiled version
         if: env.TAG != 'dry-run'
         shell: pwsh
-        run: ./scripts/verify-version.ps1 -Exe target/release/block-viewer.exe -Tag $env:TAG
+        run: |
+          ./scripts/verify-version.ps1 -Exe target/release/block-viewer.exe -Tag $env:TAG
+          # the exe's ProductVersion (build.rs), which SignPath checks
+          "VERSION=$($env:TAG -replace '^v', '')" >> $env:GITHUB_ENV
       # Breakpad symbols of the exe for the crash reports (docs/BUG_REPORTING.md):
       # the release profile's line-tables-only PDB, read through the path the
       # exe records, stored as <file>.pdb/<debug id>/<file>.sym, the layout
@@ -91,7 +93,7 @@ jobs:
         run: |
           dump_syms target/release/block-viewer.exe --store symbols
           if ($LASTEXITCODE -ne 0) { throw 'dump_syms failed' }
-          $zip = "Block-Viewer-$env:TAG-windows-x64-symbols.zip"
+          $zip = "Aurora-Viewer-$env:TAG-windows-x64-symbols.zip"
           & 7z a -tzip -mx=9 $zip ./symbols/* | Out-Null
           if ($LASTEXITCODE -ne 0) { throw '7z failed' }
           $hash = (Get-FileHash -LiteralPath $zip -Algorithm SHA256).Hash.ToLowerInvariant()
@@ -99,63 +101,56 @@ jobs:
           Get-ChildItem symbols -Recurse -File | ForEach-Object { "$($_.FullName.Substring((Resolve-Path symbols).Path.Length + 1)) $([math]::Round($_.Length / 1MB)) MB" }
           "zip $([math]::Round((Get-Item $zip).Length / 1MB)) MB"
           "SYMBOLS=$zip" >> $env:GITHUB_ENV
+      # after the symbols: signing does not change the code nor the debug
+      # id, so they still match the published exe. Up to an hour for an
+      # approver to accept the request in SignPath (link in the step's log);
+      # a refused or expired request fails the run before anything is
+      # published.
+      - name: Sign (SignPath)
+        if: env.SIGN == 'true'
+        uses: ./.github/actions/signpath-sign
+        with:
+          exe: target/release/block-viewer.exe
+          version: ${{ env.VERSION }}
+          signing-policy: release-signing
+          organization-id: ${{ vars.SIGNPATH_ORGANIZATION_ID }}
+          api-token: ${{ secrets.SIGNPATH_API_TOKEN }}
+          trusted: 'true'
+          timeout: '3600'
+      - name: Verify signed version
+        id: signed
+        if: env.SIGN == 'true'
+        shell: pwsh
+        run: |
+          ./scripts/verify-version.ps1 -Exe target/release/block-viewer.exe -Tag $env:TAG
+          "signed=true" >> $env:GITHUB_OUTPUT
       - name: Package
         if: env.TAG != 'dry-run'
         shell: pwsh
         run: |
           $v = $env:TAG
-          $dir = "Block-Viewer-$v-windows-x64"
+          $dir = "Aurora-Viewer-$v-windows-x64"
           ./scripts/package.ps1 -Exe target/release/block-viewer.exe -Out $dir
           Compress-Archive -Path $dir -DestinationPath "$dir.zip"
           $hash = (Get-FileHash -LiteralPath "$dir.zip" -Algorithm SHA256).Hash.ToLowerInvariant()
           "$hash  $dir.zip" | Set-Content -LiteralPath "$dir.zip.sha256" -Encoding utf8NoBOM
           ./scripts/write-update-policy.ps1 -Tag $v
           "ZIP=$dir.zip" >> $env:GITHUB_ENV
-      - name: Publish
+      # what the publish job puts in the release
+      - name: Release files
         if: env.TAG != 'dry-run'
-        shell: pwsh
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          $v = $env:TAG
-          # Title must say Block Viewer (not Aurora). GITHUB_TOKEN creates do
-          # not fire other workflows' `release` events, so Discord is notified
-          # by the notify-discord job below (DISCORD_RELEASES_WEBHOOK).
-          # Notes: header + commit subjects since the previous tag. Pure
-          # --generate-notes is empty on this fork (no labeled PRs), so the
-          # release page only showed a compare link; list the commits instead.
-          $header = Get-Content -LiteralPath .github/release-notes-header.md -Raw
-          $prev = git tag --list 'v*' --sort=-v:refname |
-            Where-Object { $_ -ne $v -and $_ -notmatch '-' } |
-            Select-Object -First 1
-          $range = if ($prev) { "$prev..$v" } else { $v }
-          $commits = @(git log --pretty=format:'- %s' $range)
-          if (-not $commits -or $commits.Count -eq 0) {
-            $commits = @('- See the repository history for this tag.')
-          }
-          $notesPath = Join-Path $env:RUNNER_TEMP "release-notes-$v.md"
-          $body = ($header.TrimEnd() + "`n`n## What's new`n`n" + ($commits -join "`n") + "`n")
-          if ($prev) {
-            $body += "`n**Full Changelog**: https://github.com/$($env:GITHUB_REPOSITORY)/compare/$prev...$v`n"
-          }
-          Set-Content -LiteralPath $notesPath -Value $body -Encoding utf8
-          $title = "Block Viewer $($v.TrimStart('v'))"
-          $assets = @($env:ZIP, "$($env:ZIP).sha256", $env:SYMBOLS, "$($env:SYMBOLS).sha256", 'block-update-policy.json')
-          # Rebuilding an existing tag (Windows-only re-dispatch) must replace
-          # the zip, not fail on "release already exists".
-          $exists = $false
-          gh release view $v 2>$null | Out-Null
-          if ($LASTEXITCODE -eq 0) { $exists = $true }
-          if ($exists) {
-            gh release upload $v @assets --clobber
-            $edit = @($v, '--title', $title, '--notes-file', $notesPath)
-            if ($v -match '-') { $edit += '--prerelease' } else { $edit += '--latest' }
-            gh release edit @edit
-          } else {
-            $ghArgs = @($v) + $assets + @('--title', $title, '--notes-file', $notesPath, '--verify-tag')
-            if ($v -match '-') { $ghArgs += '--prerelease' }   # v0.3.0-beta.1
-            gh release create @ghArgs
-          }
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: release-windows
+          path: |
+            ${{ env.ZIP }}
+            ${{ env.ZIP }}.sha256
+            ${{ env.SYMBOLS }}
+            ${{ env.SYMBOLS }}.sha256
+            aurora-update-policy.json
+          if-no-files-found: error
+          compression-level: 0
+          retention-days: 7
       - name: Dry-run symbols
         if: github.event_name == 'pull_request'
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
@@ -166,118 +161,56 @@ jobs:
             ${{ env.SYMBOLS }}.sha256
           compression-level: 0
 
-  # GITHUB_TOKEN release creates do not trigger discord-release.yml (`release`
-  # events from the default token are swallowed). Post here once Windows has
-  # published the zip the Stable updater installs.
-  notify-discord:
+  # Creates the release with the Windows files. The publish jobs are the only
+  # ones whose token can write, and they never run on a pull request. The
+  # header (Linden Lab disclaimer, support, privacy: Third-Party Viewer
+  # Policy §1.c) comes before the generated notes.
+  publish-windows:
     needs: windows
-    if: ${{ !cancelled() && needs.windows.result == 'success' && github.event_name != 'pull_request' }}
+    if: github.event_name != 'pull_request'
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     env:
       TAG: ${{ inputs.tag || github.event_name == 'push' && github.ref_name || 'dry-run' }}
+      SIGNED: ${{ needs.windows.outputs.signed }}
     steps:
-      - name: Post release embed
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          sparse-checkout: .github
+          persist-credentials: false
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: release-windows
+      - name: Publish
+        shell: pwsh
         env:
-          WEBHOOK: ${{ secrets.DISCORD_RELEASES_WEBHOOK }}
-          TESTER_ROLE: ${{ secrets.DISCORD_TESTER_ROLE_ID }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
         run: |
-          set -euo pipefail
-          if [ -z "${WEBHOOK:-}" ]; then
-            echo "DISCORD_RELEASES_WEBHOOK secret is missing; skipping Discord notify" >&2
-            exit 0
-          fi
-          if [ "${TAG}" = dry-run ]; then
-            echo "dry-run: no Discord notify"
-            exit 0
-          fi
-          RELEASE_JSON=$(gh api "repos/${GITHUB_REPOSITORY}/releases/tags/${TAG}")
-          export RELEASE_JSON
-          python3 - <<'PY'
-          import json, os, re, urllib.request
-          release = json.loads(os.environ["RELEASE_JSON"])
-          webhook = os.environ["WEBHOOK"].rstrip("/")
-          if webhook.endswith("/github"):
-              webhook = webhook[: -len("/github")]
-          tag = release.get("tag_name") or ""
-          name = (release.get("name") or tag or "Release").strip()
-          url = release.get("html_url") or ""
-          prerelease = bool(release.get("prerelease"))
-          body = (release.get("body") or "").strip()
-          body = re.sub(r"<!--.*?-->", "", body, flags=re.S)
-          body = re.sub(r"(?im)^#+\s*Block Viewer\s*$", "", body)
-          body = re.sub(r"(?im)^Support:.*$", "", body)
-          body = re.sub(r"(?im)^Sister project.*$", "", body)
-          body = re.sub(r"\n{3,}", "\n\n", body).strip()
-          if len(body) > 1800:
-              body = body[:1797].rstrip() + "…"
-          if not body:
-              body = "Release notes are on GitHub."
-          assets = release.get("assets") or []
-          windows = next(
-              (a for a in assets if a.get("name", "").endswith("-windows-x64.zip") and not a.get("name", "").endswith("-symbols.zip")),
-              None,
-          )
-          macos = next(
-              (a for a in assets if a.get("name", "").endswith("-macos-arm64.dmg")),
-              None,
-          )
-          linux = next(
-              (a for a in assets if a.get("name", "").endswith("-linux-x64.tar.gz")),
-              None,
-          )
-          fields = []
-          if windows and windows.get("browser_download_url"):
-              fields.append({"name": "Windows", "value": f"[Download zip]({windows['browser_download_url']})", "inline": True})
-          if linux and linux.get("browser_download_url"):
-              fields.append({"name": "Linux", "value": f"[Download tar.gz]({linux['browser_download_url']})", "inline": True})
-          if macos and macos.get("browser_download_url"):
-              fields.append({"name": "macOS", "value": f"[Download DMG]({macos['browser_download_url']})", "inline": True})
-          fields.append({"name": "Tag", "value": f"[`{tag}`]({url})" if tag and url else (tag or "—"), "inline": True})
-          color = 0x38BDF8 if prerelease else 0xD4FF3F
-          title = name if name.lower().startswith("block") else f"Block Viewer {name}"
-          embed = {
-              "title": title, "url": url, "description": body, "color": color, "fields": fields,
-              "thumbnail": {"url": "https://raw.githubusercontent.com/ape-squared/Block-Viewer/main/assets/branding/block-logo-bg.png"},
-              "footer": {"text": "Block Viewer · GitHub Releases"},
+          $v = $env:TAG
+          $zip = "Aurora-Viewer-$v-windows-x64.zip"
+          $symbols = "Aurora-Viewer-$v-windows-x64-symbols.zip"
+          $notes = '.github/release-notes-header.md'
+          # a signed release names its signing first: the SignPath
+          # Foundation's terms ask for it on the download pages
+          if ($env:SIGNED -eq 'true') {
+            $line = 'The Windows executable is signed. Free code signing provided by [SignPath.io](https://signpath.io), certificate by [SignPath Foundation](https://signpath.org). [Code signing policy](https://block-viewer.org/code-signing/)'
+            $notes = Join-Path $env:RUNNER_TEMP 'release-notes-header.md'
+            Set-Content -LiteralPath $notes -Value @($line, '', (Get-Content -Raw -LiteralPath '.github/release-notes-header.md')) -Encoding utf8NoBOM
           }
-          if release.get("published_at"):
-              embed["timestamp"] = release["published_at"]
-          kind = "New pre-release" if prerelease else "New release"
-          role = (os.environ.get("TESTER_ROLE") or "").strip()
-          allowed = {"parse": []}
-          if role.isdigit():
-              content = f"{kind} <@&{role}>"
-              allowed = {"roles": [role]}
-          else:
-              content = f"{kind} — testers welcome"
-          payload = {
-              "username": "Block Viewer",
-              "avatar_url": "https://raw.githubusercontent.com/ape-squared/Block-Viewer/main/assets/branding/block-logo-bg.png",
-              "content": content,
-              "embeds": [embed],
-              "allowed_mentions": allowed,
-          }
-          req = urllib.request.Request(
-              webhook + "?wait=true",
-              data=json.dumps(payload).encode(),
-              headers={"Content-Type": "application/json", "User-Agent": "Block-Viewer-Release-Notify"},
-              method="POST",
-          )
-          with urllib.request.urlopen(req, timeout=30) as resp:
-              print(f"Discord {resp.status}")
-          PY
+          $ghArgs = @($v, $zip, "$zip.sha256", $symbols, "$symbols.sha256", 'aurora-update-policy.json', '--title', "Block Viewer $v", '--notes-file', $notes, '--generate-notes', '--verify-tag')
+          if ($v -match '-') { $ghArgs += '--prerelease' }   # v0.3.0-beta.1
+          gh release create @ghArgs
 
-  # Linux x64 archive (Ubuntu 24.04: glibc 2.39). Tag / dispatch / nightly
-  # publish; PRs that touch packaging dry-run an artifact only.
+  # The Linux archive joins the release once it is published: a Linux build
+  # that fails leaves the Windows release in place and the run red (re-run
+  # the failed jobs after a passing failure; a fix in the code needs a new
+  # version). Ubuntu 24.04: glibc 2.39, so current distributions (Arch,
+  # Fedora, Ubuntu 24.04 and later) run it.
   linux:
     needs: windows
-    if: |
-      always() &&
-      (needs.windows.result == 'success' || needs.windows.result == 'skipped') &&
-      !(github.event_name == 'workflow_dispatch' && (inputs.only == 'windows' || inputs.only == 'macos')) &&
-      (github.event_name == 'pull_request' || github.event_name == 'push' ||
-       github.event_name == 'workflow_call' || github.event_name == 'workflow_dispatch')
+    if: ${{ !cancelled() && (needs.windows.result == 'success' || github.event_name == 'pull_request') }}
     runs-on: ubuntu-24.04
     env:
       TAG: ${{ inputs.tag || github.event_name == 'push' && github.ref_name || 'dry-run' }}
@@ -285,14 +218,14 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
-          ref: ${{ github.event_name == 'pull_request' && github.ref || inputs.tag || github.ref }}
+          persist-credentials: false
       # ALSA for the sound, the rest for winit's X11 / Wayland back ends
       - name: System libraries
         run: |
           sudo apt-get update
           sudo apt-get install -y libasound2-dev libudev-dev libxkbcommon-dev libwayland-dev
       - name: Rust stable
-        run: rustup update stable
+        run: rustup toolchain install --profile minimal --no-self-update
       - uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0 # v2.9.3
       # the version comes from the tag; a dry run keeps the one Git describes
       # (block-version refuses a tag that is not the checked-out commit's)
@@ -313,18 +246,24 @@ jobs:
         shell: pwsh
         run: |
           $v = $env:TAG
-          $dir = "Block-Viewer-$v-linux-x64"
+          $dir = "Aurora-Viewer-$v-linux-x64"
           ./scripts/package.ps1 -Exe target/release/block-viewer -Out $dir
           & tar -czf "$dir.tar.gz" $dir
           if ($LASTEXITCODE -ne 0) { throw 'tar failed' }
           $hash = (Get-FileHash -LiteralPath "$dir.tar.gz" -Algorithm SHA256).Hash.ToLowerInvariant()
           "$hash  $dir.tar.gz" | Set-Content -LiteralPath "$dir.tar.gz.sha256" -Encoding utf8NoBOM
           "ARCHIVE=$dir.tar.gz" >> $env:GITHUB_ENV
-      - name: Publish
-        if: env.TAG != 'dry-run' && github.event_name != 'pull_request'
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: gh release upload "$TAG" "$ARCHIVE" "$ARCHIVE.sha256" --clobber
+      - name: Release files
+        if: env.TAG != 'dry-run'
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: release-linux
+          path: |
+            ${{ env.ARCHIVE }}
+            ${{ env.ARCHIVE }}.sha256
+          if-no-files-found: error
+          compression-level: 0
+          retention-days: 7
       - name: Dry-run archive
         if: github.event_name == 'pull_request'
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
@@ -335,40 +274,49 @@ jobs:
             ${{ env.ARCHIVE }}.sha256
           compression-level: 0
 
-  # App bundle + DMG; signing/notarization when Apple secrets exist (docs/MACOS.md).
-  # Tag pushes and workflow_dispatch publish to the release; PRs only dry-run.
+  publish-linux:
+    needs: [linux, publish-windows]
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    env:
+      TAG: ${{ inputs.tag || github.event_name == 'push' && github.ref_name || 'dry-run' }}
+    steps:
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: release-linux
+      - name: Publish
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          archive="Aurora-Viewer-$TAG-linux-x64.tar.gz"
+          gh release upload "$TAG" "$archive" "$archive.sha256"
+
+  # The macOS application (Apple Silicon) joins the release like the Linux
+  # archive: "Block Viewer.app" in a disk image, next to a link to
+  # Applications to drag it onto, as Mac applications are installed. Signed with the Developer ID, then notarized and stapled,
+  # when the repository has the Apple secrets (docs/MACOS.md, "Signing");
+  # signed ad hoc otherwise, which macOS opens only after "Open Anyway" in
+  # Privacy & Security. The updater does not install it: the viewer points
+  # to the release page, as on Linux.
   macos:
     needs: windows
-    if: |
-      always() &&
-      (needs.windows.result == 'success' || needs.windows.result == 'skipped') &&
-      !(github.event_name == 'workflow_dispatch' && (inputs.only == 'windows' || inputs.only == 'linux')) &&
-      (github.event_name == 'pull_request' || github.event_name == 'push' ||
-       github.event_name == 'workflow_call' || github.event_name == 'workflow_dispatch')
+    if: ${{ !cancelled() && (needs.windows.result == 'success' || github.event_name == 'pull_request') }}
     runs-on: macos-15
     env:
       TAG: ${{ inputs.tag || github.event_name == 'push' && github.ref_name || 'dry-run' }}
       APP: Block Viewer.app
-      SIGNED: ${{ secrets.MACOS_CERTIFICATE_P12 != '' && secrets.APPLE_API_KEY_P8 != '' }}
+      # never on a pull request: its dry run signs ad hoc
+      SIGNED: ${{ github.event_name != 'pull_request' && secrets.MACOS_CERTIFICATE_P12 != '' && secrets.APPLE_API_KEY_P8 != '' }}
     steps:
-      # Tag / dispatch must build the tagged commit (AURORA_VERSION_TAG refuses
-      # a tree ahead of the tag). PRs keep the PR head. A macos-only dispatch
-      # then overlays packaging from the workflow commit so Block.app branding
-      # shipped after the tag still applies to that release.
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
-          ref: ${{ github.event_name == 'pull_request' && github.ref || inputs.tag || github.ref }}
-      - name: Packaging from workflow commit
-        if: github.event_name == 'workflow_dispatch' && inputs.tag != ''
-        run: |
-          git checkout "${{ github.sha }}" -- \
-            packaging/macos/Info.plist \
-            scripts/package-macos.ps1 \
-            assets/branding/block.icns \
-            assets/branding/block/02-app-icon
+          persist-credentials: false
       - name: Rust stable
-        run: rustup update stable
+        run: rustup toolchain install --profile minimal --no-self-update
       - uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0 # v2.9.3
       # (see the Linux job: the tag's version, no debug info in the binary)
       - name: Build
@@ -436,7 +384,7 @@ jobs:
       # signature (and its stapled ticket)
       - name: Disk image
         run: |
-          dmg="Block-Viewer-$TAG-macos-arm64.dmg"
+          dmg="Aurora-Viewer-$TAG-macos-arm64.dmg"
           stage="$RUNNER_TEMP/dmg"
           mkdir -p "$stage"
           ditto "$APP" "$stage/$APP"
@@ -444,14 +392,17 @@ jobs:
           hdiutil create -volname "Block Viewer" -srcfolder "$stage" -fs HFS+ -format UDZO -ov "$dmg"
           shasum -a 256 "$dmg" > "$dmg.sha256"
           echo "ARCHIVE=$dmg" >> "$GITHUB_ENV"
-      - name: Publish
+      - name: Release files
         if: env.TAG != 'dry-run'
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          # Attach to the existing GitHub release for this tag (clobber if a
-          # previous Mac asset for the same name is already there).
-          gh release upload "$TAG" "$ARCHIVE" "$ARCHIVE.sha256" --clobber
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: release-macos
+          path: |
+            ${{ env.ARCHIVE }}
+            ${{ env.ARCHIVE }}.sha256
+          if-no-files-found: error
+          compression-level: 0
+          retention-days: 7
       - name: Dry-run application
         if: github.event_name == 'pull_request'
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
@@ -461,3 +412,23 @@ jobs:
             ${{ env.ARCHIVE }}
             ${{ env.ARCHIVE }}.sha256
           compression-level: 0
+
+  publish-macos:
+    needs: [macos, publish-windows]
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    env:
+      TAG: ${{ inputs.tag || github.event_name == 'push' && github.ref_name || 'dry-run' }}
+    steps:
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: release-macos
+      - name: Publish
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          dmg="Aurora-Viewer-$TAG-macos-arm64.dmg"
+          gh release upload "$TAG" "$dmg" "$dmg.sha256"

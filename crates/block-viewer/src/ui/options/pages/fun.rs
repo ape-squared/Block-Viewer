@@ -1,4 +1,8 @@
-//! Preferences › Just for fun: name-plate toys and optional Lovense Connect.
+//! Preferences › Just for fun (Aurora's own page, #1112 and #1114): little
+//! things to play with, all off by default. The name plates wobble like a
+//! jelly under the pointer (`ui/nameplate/fidget.rs`), and a click combo
+//! counts the clicks on each plate (`ui/nameplate/combo.rs`). A sample
+//! plate under them tries both as they are set.
 
 use super::super::cx::{Cx, Nothing, field};
 
@@ -27,45 +31,5 @@ pub fn page(cx: &mut Cx) {
                 crate::ui::nameplate::playground::show(ui, &p, s.plates_jiggle, s.plates_click_combo, s.reduce_motion);
                 false
             });
-    });
-    cx.group(tr!("ui-options-lovense"), |cx| {
-        cx.note(tr!("ui-options-lovense-help"));
-        cx.toggle(
-            tr!("ui-options-lovense-enable"),
-            tr!("ui-options-lovense-enable-help"),
-            &field!(lovense.enabled),
-        );
-        cx.toggle(
-            tr!("ui-options-lovense-chat"),
-            tr!("ui-options-lovense-chat-help"),
-            &field!(lovense.chat_commands),
-        );
-        let off = !cx.s.lovense.enabled;
-        cx.subs(off, |cx| {
-            cx.row(
-                tr!("ui-options-lovense-endpoint"),
-                tr!("ui-options-lovense-endpoint-help"),
-                &field!(lovense.endpoint),
-                |ui, s| {
-                    ui.add(
-                        egui::TextEdit::singleline(&mut s.lovense.endpoint)
-                            .hint_text("http://127.0.0.1:20010/command")
-                            .desired_width(280.0),
-                    )
-                    .changed()
-                },
-            );
-            cx.row(
-                tr!("ui-options-lovense-max"),
-                tr!("ui-options-lovense-max-help"),
-                &field!(lovense.max_strength),
-                |ui, s| {
-                    let mut n = s.lovense.max_strength as u32;
-                    let ch = ui.add(egui::Slider::new(&mut n, 1..=20).trailing_fill(true)).changed();
-                    s.lovense.max_strength = n as u8;
-                    ch
-                },
-            );
-        });
     });
 }

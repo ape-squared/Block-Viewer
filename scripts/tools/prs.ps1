@@ -1,6 +1,6 @@
-﻿# Block Tools: pull requests followed live — background refresh from GitHub,
+﻿# Aurora Tools: pull requests followed live — background refresh from GitHub,
 # footer summary, Windows notifications, full panel (dot-sourced by
-# block-tools.ps1).
+# aurora-tools.ps1).
 
 # One GraphQL query per refresh (one point of the 5000/hour quota the agents
 # share with the tools): open PRs with their CI, merge queue entry and review
@@ -35,9 +35,12 @@ query($o: String!, $r: String!) {
 }
 '@
 
-# A PR a human put on hold carries this label: the
-# tools hide it until the label is removed, unless it is in the merge queue.
+# A PR a human put on hold carries this label (AGENTS.md section 9), and an
+# outside contributor's PR waiting for a review slot the other (Review slots
+# workflow): the tools hide both until the label is removed, unless the PR
+# is in the merge queue.
 $OnHoldLabel = 'on-hold'
+$HiddenLabels = @($OnHoldLabel, 'waiting-for-slot')
 
 # Shared with the background runspace: the last answer, its time, an error.
 $GitHub = [hashtable]::Synchronized(@{ Data = $null; Error = $null; Updated = $null; Version = 0; Force = $false; Stop = $false })
@@ -222,7 +225,7 @@ function Get-PrRows {
             QueueState = $queueState; Queue = $queue; QueueColor = $queueColor; QueueSince = $queueSince; QueuePosition = $position
             ReviewState = $reviewState; Verdict = $verdict; VerdictColor = $verdictColor; Status = $status
             Waiting = $waiting
-            OnHold = -not $queueState -and [bool]@($p.labels.nodes | Where-Object { $_.name -eq $OnHoldLabel }).Count
+            OnHold = -not $queueState -and [bool]@($p.labels.nodes | Where-Object { $HiddenLabels -contains $_.name }).Count
         }
     }
 }
@@ -439,7 +442,7 @@ function Show-PrPanel {
             # switch skips a null value entirely, default included: test it first
             $main = if (-not $mainState) { '…', 'muted' } else { switch ($mainState) { 'SUCCESS' { 'CI OK', 'success' } { $_ -in 'FAILURE', 'ERROR' } { 'CI FAIL', 'danger' } { $_ -in 'PENDING', 'EXPECTED' } { 'CI RUN', 'amber' } default { '?', 'muted' } } }
             $fresh = if ($GitHub.Updated) { Format-Ago $GitHub.Updated } else { 'loading…' }
-            $header = @(@(' Block · PR', 'violet_light'), @('   main  ', 'muted'), @("$StatusMark $($main[0])", $main[1]))
+            $header = @(@(' Aurora · PR', 'violet_light'), @('   main  ', 'muted'), @("$StatusMark $($main[0])", $main[1]))
             # the Windows downloads of the latest stable release, live
             $dl = Get-WindowsDownloads
             if ($dl) {

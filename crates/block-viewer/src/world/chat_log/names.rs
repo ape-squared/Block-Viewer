@@ -274,7 +274,7 @@ mod tests {
 
     #[test]
     fn history_comes_from_the_latest_file() {
-        let dir = std::env::temp_dir().join(format!("block-chatlog-names-{}", Uuid::new_v4()));
+        let dir = std::env::temp_dir().join(format!("aurora-chatlog-names-{}", Uuid::new_v4()));
         std::fs::create_dir_all(&dir).unwrap();
         assert_eq!(existing_file(&dir, "Jane Doe", None), None);
         std::fs::write(dir.join("Jane Doe.txt"), "a").unwrap();

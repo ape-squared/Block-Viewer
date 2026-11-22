@@ -17,7 +17,9 @@
 //! `:land-sales` on those pages): two parcels, our 512 m² given out of the
 //! 1 024 we may give, and eight weeks of accounts; `:experiences` the
 //! Experiences tab: the group owns the sandbox's doors, whose profile reads
-//! and changes our permission.
+//! and changes our permission. `:classic` anywhere after the scenario shows
+//! the classic window (Preferences › Aurora › Profiles), the section of the
+//! chosen tab open.
 //!
 //! The other demo groups get generated members and the three roles every
 //! group has.
@@ -58,6 +60,16 @@ pub fn admin_tab() -> bool {
     std::env::var("AURORA_DEMO_GROUP_PROFILE").is_ok_and(|v| matches!(v.split(':').nth(1), Some("admin" | "identity")))
 }
 
+/// `<scenario>[:…]:classic`: the classic look of the group profile.
+pub fn profile_classic() -> bool {
+    std::env::var("AURORA_DEMO_GROUP_PROFILE").is_ok_and(|v| v.split(':').skip(1).any(|p| p == "classic"))
+}
+
+/// A wide profile for comparing the notice's two-column layout.
+pub fn profile_wide() -> bool {
+    std::env::var("AURORA_DEMO_GROUP_PROFILE").is_ok_and(|v| v.split(':').skip(1).any(|p| p == "wide"))
+}
+
 pub fn identity_section() -> bool {
     std::env::var("AURORA_DEMO_GROUP_PROFILE").is_ok_and(|v| v.split(':').nth(1) == Some("identity"))
 }
@@ -95,6 +107,7 @@ fn group_experience() -> ExperienceDetails {
         owner: DEMO_LOUP,
         group: DEMO_GROUP1,
         slurl: "secondlife://Aurora%20D%C3%A9mo/64/200/24".into(),
+        ..Default::default()
     }
 }
 
@@ -141,13 +154,42 @@ const DEFAULT_OFFICER: u64 = DEFAULT_MEMBER
     | powers::MEMBER_OPTIONS
     | powers::ROLE_ASSIGN_MEMBER_LIMITED
     | powers::NOTICES_SEND
-    | powers::MEMBER_VISIBLE_IN_DIR;
+    | powers::MEMBER_VISIBLE_IN_DIR
+    | powers::SESSION_POST_LINKS;
+
+/// With AURORA_DEMO_GROUP_PROFILE, the region applies the ability to post
+/// links in group chat, like the grid's (GroupChatPostLinksEnabled), so the
+/// role editor lists it; `<scenario>:no-links` leaves it off, as on a
+/// region that does not apply it yet.
+pub fn simulator_features() -> Option<NetEvent> {
+    let v = std::env::var("AURORA_DEMO_GROUP_PROFILE").ok()?;
+    Some(NetEvent::SimulatorFeatures {
+        handle: super::HANDLE,
+        animated_object_max_tris: 0,
+        voice_server_type: String::new(),
+        avatar_hover_height: false,
+        materials_rate: None,
+        materials_max: None,
+        lsl_syntax_id: Uuid::nil(),
+        lua_scripts: false,
+        grid_status_feed: String::new(),
+        grid_status_page: String::new(),
+        currency_base_uri: String::new(),
+        opensim: Default::default(),
+        currency_symbol: String::new(),
+        export_supported: false,
+        group_chat_post_links: !v.split(':').any(|part| part == "no-links"),
+        game_control: false,
+    })
+}
 
 /// Our powers in "Aurora Builders" (AgentGroupDataUpdate).
 pub fn my_powers() -> u64 {
     match scenario() {
         Scenario::Owner => u64::MAX,
         Scenario::Officer => DEFAULT_OFFICER,
+        // AURORA_DEMO_CONV_MODERATE: every ability, to moderate its chat
+        _ if crate::ui::chat::moderation::demo_mode().is_some() => u64::MAX,
         // AURORA_DEMO_SOCIAL_MENU: someone to invite into it
         _ if super::social_menu::step().is_some() => DEFAULT_OFFICER,
         _ => DEFAULT_MEMBER,
@@ -496,7 +538,7 @@ fn group_land(group: Uuid, transaction: Uuid) -> Vec<NetEvent> {
             totals: None,
             parcels: vec![parcel(
                 block_i18n::tr!("demo-group-land-workshop"),
-                block_i18n::tr!("common-block-demo"),
+                block_i18n::tr!("common-aurora-demo"),
                 (256_140.0, 256_130.0),
                 512,
             )],
@@ -512,7 +554,7 @@ fn group_land(group: Uuid, transaction: Uuid) -> Vec<NetEvent> {
     }
     let sandbox = parcel(
         block_i18n::tr!("demo-group-land-sandbox"),
-        block_i18n::tr!("common-block-demo"),
+        block_i18n::tr!("common-aurora-demo"),
         (256_000.0 + 64.0, 256_000.0 + 200.0),
         4096,
     );
@@ -903,6 +945,21 @@ pub fn reply(cmd: &NetCommand) -> Option<Vec<NetEvent>> {
             }
             vec![NetEvent::GroupBanList { group: *group, bans: list }]
         }
+        // a ban in all our groups: each group answers; the Northern Wolves
+        // refuse, so that the report has both lists
+        // (AURORA_DEMO_CONV_MODERATE=ban-all-run)
+        NetCommand::BanInGroups { agent, groups, ban } => {
+            log::info!("demo group: ban {ban} of {agent} in {} group(s)", groups.len());
+            groups
+                .iter()
+                .map(|g| NetEvent::GroupBanInGroup {
+                    group: *g,
+                    agent: *agent,
+                    ban: *ban,
+                    ok: *g != crate::demo::DEMO_GROUP2,
+                })
+                .collect()
+        }
         NetCommand::GroupRoleUpdate { updates, .. } => {
             log::info!("demo group: {} role update(s)", updates.len());
             Vec::new()
@@ -1086,7 +1143,7 @@ mod tests {
     }
 
     #[test]
-    fn block_builders_has_its_named_members_among_all() {
+    fn aurora_builders_has_its_named_members_among_all() {
         let s = spec(&DEMO_GROUP1).expect("demo group");
         assert_eq!(s.members.len(), 1248);
         let online = s.members.iter().filter(|m| m.last_seen == LastSeen::Online).count();

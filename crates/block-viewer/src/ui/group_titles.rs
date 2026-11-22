@@ -12,6 +12,13 @@
 //! (the Legacy Viewer only shows them in the titles' column), where a
 //! region's title is changed or removed, and a rule whose group was left is
 //! shown as ignored. The rules themselves are `world/region_titles.rs`.
+//!
+//! A blank role title is listed as "<Blank title>". The Legacy Viewer drops
+//! it (`LLGroupMgr::processGroupTitlesReply`, `llgroupmgr.cpp`). Listing it
+//! is beyond that viewer: the human asked for it. Legacy Viewer origin: no,
+//! extends it (#3147). The stored title stays empty, so a region rule still
+//! matches the worn title by role, and by the empty string before the list
+//! is known. The group profile's "Title shown" combo does not list it.
 
 use super::widgets::{self, ActionKind, Floater};
 use crate::theme::Palette;
@@ -63,6 +70,9 @@ pub enum TitlesAction {
 #[derive(Debug, Clone)]
 struct Row {
     target: Target,
+    /// What the list, the filter and the change menu show. A blank role
+    /// title is the placeholder; `target.title` stays the real string.
+    label: String,
     active: bool,
 }
 
@@ -81,12 +91,14 @@ pub struct GroupTitlesUi {
 /// The titles of `view`: "<No group title>" first, then by title and group
 /// (title_sort_column, `0` for no group).
 fn rows(view: &View) -> Vec<Row> {
+    let none = block_i18n::tr!("group-titles-no-title").to_owned();
     let mut out = vec![Row {
         target: Target {
-            title: block_i18n::tr!("group-titles-no-title").to_owned(),
+            title: none.clone(),
             group_name: block_i18n::tr!("common-none").to_owned(),
             ..Default::default()
         },
+        label: none,
         active: view.active.is_nil(),
     }];
     let mut rest: Vec<Row> = view
@@ -100,20 +112,47 @@ fn rows(view: &View) -> Vec<Row> {
                     title: t.title.clone(),
                     group_name: g.name.clone(),
                 },
+                label: title_label(g.id, &t.title),
                 active: t.selected && g.id == view.active,
             })
         })
         .collect();
-    rest.sort_by_cached_key(|r| (r.target.title.to_lowercase(), r.target.group_name.to_lowercase()));
+    rest.sort_by_cached_key(|r| (crate::natural_order::key(&r.label), crate::natural_order::key(&r.target.group_name)));
     out.extend(rest);
     out
+}
+
+/// The text shown for a role title. A blank one is the placeholder. The
+/// Legacy Viewer never lists it (`LLGroupMgr::processGroupTitlesReply`).
+/// Legacy Viewer origin: no, extends it (#3147).
+fn title_label(group: Uuid, title: &str) -> String {
+    if !group.is_nil() && title.is_empty() {
+        block_i18n::tr!("group-titles-blank").to_owned()
+    } else {
+        title.to_owned()
+    }
+}
+
+/// The "wears" line of a region rule. The saved title stays empty; the
+/// line substitutes the placeholder.
+fn role_wears(target: &Target) -> String {
+    if target.group.is_nil() {
+        block_i18n::tr!("group-titles-no-title").to_owned()
+    } else {
+        let title = title_label(target.group, &target.title);
+        block_i18n::tr!(
+            "group-titles-rule-wears",
+            title = title.as_str(),
+            group = target.group_name.as_str()
+        )
+    }
 }
 
 /// The filter matches the title, the group or one of its regions.
 fn matches(filter: &str, row: &Row, regions: &str) -> bool {
     let f = filter.trim().to_lowercase();
     f.is_empty()
-        || row.target.title.to_lowercase().contains(&f)
+        || row.label.to_lowercase().contains(&f)
         || row.target.group_name.to_lowercase().contains(&f)
         || regions.to_lowercase().contains(&f)
 }
@@ -175,6 +214,7 @@ impl GroupTitlesUi {
         for (row, regions) in shown {
             let (rect, resp) = ui.allocate_exact_size(Vec2::new(ui.available_width(), ROW_H), Sense::click());
             let key = (row.target.group, row.target.role);
+            widgets::reveal_search_selection(ui, &resp, self.selected == Some(key));
             if resp.clicked() || resp.secondary_clicked() {
                 self.selected = Some(key);
             }
@@ -199,7 +239,7 @@ impl GroupTitlesUi {
                 FontId::proportional(12.5)
             };
             for (cell, text, color) in [
-                (title, row.target.title.as_str(), p.ink),
+                (title, row.label.as_str(), p.ink),
                 (group, row.target.group_name.as_str(), p.muted),
                 (region_cell, regions.as_str(), p.muted),
             ] {
@@ -224,7 +264,14 @@ impl GroupTitlesUi {
         widgets::section_header(ui, p, "map-pin-filled", block_i18n::tr!("group-titles-rules"));
         let saved = &view.titles.saved;
         if saved.rules.is_empty() {
-            ui.add(egui::Label::new(RichText::new(block_i18n::tr!("group-titles-rules-empty")).size(12.0).color(p.muted)).wrap());
+            ui.add(
+                egui::Label::new(
+                    RichText::new(block_i18n::tr!("group-titles-rules-empty"))
+                        .size(12.0)
+                        .color(p.muted),
+                )
+                .wrap(),
+            );
             return;
         }
         let radius = ui.visuals().window_corner_radius;
@@ -247,11 +294,7 @@ impl GroupTitlesUi {
                 FontId::new(12.5, crate::ui::fonts::semibold(ui.ctx())),
                 p.ink,
             );
-            let wears = if t.group.is_nil() {
-                block_i18n::tr!("group-titles-no-title").to_owned()
-            } else {
-                block_i18n::tr!("group-titles-rule-wears", title = t.title.as_str(), group = t.group_name.as_str())
-            };
+            let wears = role_wears(t);
             let mut x = text.left() + region_w;
             if left {
                 icon(ui, "alert-triangle-filled", egui::pos2(x + 7.0, text.center().y), 13.0, p.muted);
@@ -288,11 +331,11 @@ impl GroupTitlesUi {
                 for row in all {
                     let current = t.same(row.target.group, row.target.role);
                     let label = if row.target.group.is_nil() {
-                        row.target.title.clone()
+                        row.label.clone()
                     } else {
                         block_i18n::tr!(
                             "group-titles-rule-wears",
-                            title = row.target.title.as_str(),
+                            title = row.label.as_str(),
                             group = row.target.group_name.as_str()
                         )
                     };
@@ -504,7 +547,7 @@ impl GroupTitlesUi {
         floater.show(ctx, p, open, |ui| {
             let w = ui.available_width();
             ui.allocate_ui_with_layout(Vec2::new(w, 30.0), egui::Layout::left_to_right(egui::Align::Center), |ui| {
-                widgets::search_box(ui, p, &mut self.filter, block_i18n::tr!("group-titles-filter"), w);
+                widgets::clearable_search_box(ui, p, &mut self.filter, block_i18n::tr!("group-titles-filter"), w);
             });
             ui.add_space(6.0);
             let shown: Vec<(Row, String)> = all
@@ -624,6 +667,73 @@ mod tests {
         assert!(matches("region 1", guide, "Region 1, Region 2"));
         assert!(matches("wol", guide, ""));
         assert!(!matches("builder", guide, ""));
+    }
+
+    /// A role whose title is empty is still a row. The stored title stays
+    /// empty (a region rule matches the worn title); the list shows the
+    /// placeholder and the filter matches it. Activate uses the role id.
+    #[test]
+    fn a_blank_role_title_is_listed_and_can_be_activated() {
+        let groups = [group(G1, "Builders")];
+        let mut t = RegionTitles::default();
+        t.request_titles([G1]);
+        let cmd = t.take_commands().pop().expect("request");
+        let block_net::NetCommand::GroupTitlesRequest { group, request } = cmd else {
+            panic!("titles request");
+        };
+        let blank = Uuid::from_u128(6);
+        t.on_titles(
+            group,
+            request,
+            &[
+                GroupTitle {
+                    title: "Member".into(),
+                    role: Uuid::nil(),
+                    selected: false,
+                },
+                GroupTitle {
+                    title: String::new(),
+                    role: blank,
+                    selected: true,
+                },
+            ],
+            "Builders",
+        );
+        let view = View {
+            groups: &groups,
+            active: G1,
+            titles: &t,
+            region: Some("Home"),
+        };
+        let listed = rows(&view);
+        let row = listed.iter().find(|row| row.target.role == blank).expect("blank role is listed");
+        assert!(row.target.title.is_empty(), "the stored title stays empty");
+        assert_eq!(row.target.group, G1);
+        assert!(row.active, "the selected blank title is the active row");
+        assert_eq!(row.label, block_i18n::tr!("group-titles-blank"));
+        // typed as the catalogue writes it: the tests run in the system language
+        assert!(
+            matches(block_i18n::tr!("group-titles-blank"), row, ""),
+            "the filter sees the placeholder"
+        );
+    }
+
+    #[test]
+    fn a_blank_title_rule_says_the_placeholder() {
+        let wears = role_wears(&Target {
+            group: G1,
+            role: Uuid::from_u128(6),
+            title: String::new(),
+            group_name: "Builders".into(),
+        });
+        assert_eq!(
+            wears,
+            block_i18n::tr!(
+                "group-titles-rule-wears",
+                title = block_i18n::tr!("group-titles-blank"),
+                group = "Builders"
+            )
+        );
     }
 
     /// The window keeps its size with a long list over its footer, the

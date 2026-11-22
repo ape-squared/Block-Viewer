@@ -1,5 +1,5 @@
-﻿# Block Tools: the menu actions — viewers, demo, worktrees, disk, logs,
-# shortcut (dot-sourced by block-tools.ps1).
+# Aurora Tools: the menu actions — viewers, demo, agents' tasks, disk, logs,
+# shortcut (dot-sourced by aurora-tools.ps1).
 
 # Starts a viewer in its own window; the console stays on the tools.
 function Start-Viewer([string]$Exe, [string]$Title, [hashtable]$Env = @{}) {
@@ -35,7 +35,7 @@ function Invoke-ReleaseViewer {
     Write-Color '  Built in RELEASE\; your local changes are not included.' muted
     & (Join-Path $Paths.Repo 'scripts\build-release.ps1')
     if ($LASTEXITCODE -eq 0 -and (Read-YesNo 'Start this viewer?')) {
-        Start-Viewer (Join-Path $Paths.Release 'Block-Viewer\block-viewer.exe') 'Release'
+        Start-Viewer (Join-Path $Paths.Release 'Aurora-Viewer\block-viewer.exe') 'Release'
     }
 }
 
@@ -56,14 +56,15 @@ function Invoke-DebugViewer {
     }
 }
 
-# Demo scenarios switched on with "=1" via AURORA_DEMO_* environment variables.
-# Labels are hardcoded here; the old docs/TESTING.md catalogue was removed.
+# Demo scenarios switched on with "=1", read from the tables of docs/TESTING.md.
 function Get-DemoScenarios {
-    @(
-        [pscustomobject]@{ Var = 'AURORA_DEMO_OPTIONS'; Label = 'Preferences / options' }
-        [pscustomobject]@{ Var = 'AURORA_DEMO_MAP'; Label = 'Map' }
-        [pscustomobject]@{ Var = 'AURORA_DEMO_UPDATE'; Label = 'Updater (no download)' }
-    )
+    $switches = Join-Path $Paths.Repo 'docs\TESTING.md'
+    if (-not (Test-Path $switches)) { return @() }
+    Get-Content $switches -Encoding UTF8 | ForEach-Object {
+        if ($_ -match '^\| `(AURORA_DEMO_[A-Z_]+)=1`[^|]*\| ([^|]+)\|') {
+            [pscustomobject]@{ Var = $Matches[1]; Label = $Matches[2].Trim() }
+        }
+    }
 }
 
 function Invoke-Demo {
@@ -154,7 +155,7 @@ function Invoke-Disk {
 }
 
 function Invoke-Logs {
-    $dir = Join-Path $env:LOCALAPPDATA 'Aurora\BlockViewer\data\logs'
+    $dir = Join-Path $env:LOCALAPPDATA 'Aurora\AuroraViewer\data\logs'
     Write-Title "Viewer logs ($dir)"
     $logs = @(Get-ChildItem -LiteralPath $dir -Filter *.log -ErrorAction SilentlyContinue | Sort-Object LastWriteTime -Descending | Select-Object -First 8)
     if (-not $logs) { Write-Color '  No log yet.' muted; Wait-Back; return }
@@ -177,20 +178,19 @@ function Invoke-Logs {
 }
 
 function Invoke-Shortcut {
-    Write-Title 'Shortcuts to Block Tools'
-    $target = Join-Path $Paths.Repo 'block-tools.cmd'
-    $icon = Join-Path $Paths.Repo 'assets\branding\block.ico'
-    if (-not (Test-Path $icon)) { $icon = Join-Path $Paths.Repo 'assets\branding\block\02-app-icon\block.ico' }
+    Write-Title 'Shortcuts to the Aurora tools'
+    $target = Join-Path $Paths.Repo 'aurora-tools.cmd'
+    $icon = Join-Path $Paths.Repo 'assets\branding\aurora.ico'
     $places = @(
         @{ Name = 'Desktop'; Dir = [Environment]::GetFolderPath('Desktop') }
         @{ Name = 'Start menu'; Dir = [Environment]::GetFolderPath('Programs') }
     )
-    # "Block PR" opens the PR panel straight away (to keep in a corner)
+    # "Aurora PR" opens the PR panel straight away (to keep in a corner)
     $links = @(
-        @{ Name = 'Block Tools'; Arguments = ''; Description = 'Block Viewer development tools' }
-        @{ Name = 'Block PR'; Arguments = '-Action prs'; Description = 'Block Viewer PR tracking, live' }
+        @{ Name = 'Aurora Tools'; Arguments = ''; Description = 'Block Viewer development tools' }
+        @{ Name = 'Aurora PR'; Arguments = '-Action prs'; Description = 'Block Viewer PR tracking, live' }
     )
-    if (-not (Read-YesNo 'Create "Block Tools" and "Block PR" on the Desktop and in the Start menu?')) { return }
+    if (-not (Read-YesNo 'Create "Aurora Tools" and "Aurora PR" on the Desktop and in the Start menu?')) { return }
     $shell = New-Object -ComObject WScript.Shell
     foreach ($pl in $places) {
         foreach ($l in $links) {

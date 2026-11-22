@@ -78,7 +78,7 @@ impl Drop for PrivateProfile {
         }
         // the plugin still holds its files for a moment: off the frame
         let _ = std::thread::Builder::new()
-            .name("block-web-profile".into())
+            .name("aurora-web-profile".into())
             .spawn(|| finish(RELEASE_TIMEOUT));
     }
 }
@@ -149,7 +149,7 @@ mod tests {
     use super::*;
 
     fn root(name: &str) -> PathBuf {
-        let dir = std::env::temp_dir().join(format!("block-private-profile-{}-{name}", std::process::id()));
+        let dir = std::env::temp_dir().join(format!("aurora-private-profile-{}-{name}", std::process::id()));
         let _ = std::fs::remove_dir_all(&dir);
         dir
     }

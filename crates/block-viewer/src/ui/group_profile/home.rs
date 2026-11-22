@@ -10,6 +10,7 @@ use super::{Env, GroupAction, GroupProfileUi, Tab};
 use crate::theme::Palette;
 use crate::ui::place_details::Ctx;
 use crate::ui::widgets;
+use crate::world::names::NameScope;
 use egui::{FontId, Pos2, Rect, Sense, Vec2};
 
 /// Notices shown on the tab, and members online at most.
@@ -164,7 +165,7 @@ fn online(st: &mut GroupProfileUi, ui: &mut egui::Ui, c: &mut Ctx, env: &Env, v:
             let world = c.world;
             let mut list: Vec<_> = d
                 .online()
-                .map(|m| (m, members::chip_of(v, m), world.social.display_name_of(&m.id)))
+                .map(|m| (m, members::chip_of(v, m), world.social.display_name_in(NameScope::Roster, &m.id)))
                 .collect();
             if list.is_empty() {
                 ui.label(
@@ -174,7 +175,7 @@ fn online(st: &mut GroupProfileUi, ui: &mut egui::Ui, c: &mut Ctx, env: &Env, v:
                 );
                 return;
             }
-            list.sort_by_cached_key(|(_, chip, name)| (*chip as u8, name.to_lowercase()));
+            list.sort_by_cached_key(|(_, chip, name)| (*chip as u8, crate::natural_order::key(name)));
             for (m, chip, name) in list.into_iter().take(ONLINE) {
                 if name == "…" {
                     c.want_names.insert(m.id);
@@ -186,7 +187,7 @@ fn online(st: &mut GroupProfileUi, ui: &mut egui::Ui, c: &mut Ctx, env: &Env, v:
                     st.want_pic(m.id, env.now);
                 }
                 widgets::avatar_disc(ui, p, pic, pics, &name, false);
-                let status = match crate::ui::presence::of(world, &m.id) {
+                let status = match crate::ui::presence::of_in(world, NameScope::Roster, &m.id) {
                     crate::ui::presence::Status::Away => crate::ui::presence::Status::Away,
                     crate::ui::presence::Status::Busy => crate::ui::presence::Status::Busy,
                     _ => crate::ui::presence::Status::Online,
@@ -218,10 +219,10 @@ fn online(st: &mut GroupProfileUi, ui: &mut egui::Ui, c: &mut Ctx, env: &Env, v:
                     p.ink,
                 );
                 if resp.double_clicked() {
-                    crate::ui::context::request(ui.ctx(), crate::ui::context::CtxAction::Profile(m.id));
+                    crate::ui::context::request(ui.ctx(), crate::ui::context::CtxAction::RosterProfile(m.id));
                 }
                 crate::ui::menu::context_menu(&resp, p, |ui| {
-                    crate::ui::context::avatar_list_menu(ui, p, world, m.id, crate::ui::context::AvatarList::Name);
+                    crate::ui::context::avatar_roster_menu(ui, p, world, m.id, crate::ui::context::AvatarList::Name);
                 });
             }
         },
@@ -243,69 +244,110 @@ fn setting_row(ui: &mut egui::Ui, p: &Palette, icon: &str, label: &str, control:
     });
 }
 
+/// Titles listed in "Title shown". A blank role title is not offered here:
+/// the Legacy group profile never received one
+/// (`LLGroupMgr::processGroupTitlesReply`, `llgroupmgr.cpp`). The Group
+/// titles window lists it instead (#3147).
+fn profile_title_choices(titles: &[block_net::groups::GroupTitle]) -> impl Iterator<Item = &block_net::groups::GroupTitle> {
+    titles.iter().filter(|t| !t.title.is_empty())
+}
+
 /// Our settings in the group (LLPanelGroupGeneral's "My group settings"
 /// and LLGroupActions::activate, exoGroupMuteList for the chat).
 fn me(ui: &mut egui::Ui, c: &mut Ctx, v: &View, actions: &mut Vec<GroupAction>) {
     let p = c.p;
     let Some(m) = v.member else { return };
-    view::card(ui, p, "user-cog", p.muted_dim, block_i18n::tr!("ui-group-profile-me"), None, |ui| {
-        ui.spacing_mut().item_spacing.y = 2.0;
-        setting_row(ui, p, "star-filled", block_i18n::tr!("ui-group-profile-active"), |ui| {
-            let mut on = v.active;
-            if widgets::switch(ui, p, &mut on).changed() {
-                actions.push(GroupAction::Activate(if on { v.id } else { uuid::Uuid::nil() }));
-            }
-        });
-        setting_row(ui, p, "tag-filled", block_i18n::tr!("ui-group-profile-title-shown"), |ui| {
-            let titles = v.data.map(|d| d.titles.as_slice()).unwrap_or_default();
-            let current = titles.iter().find(|t| t.selected);
-            let text = current.map_or_else(|| v.my_title().unwrap_or_default(), |t| t.title.clone());
-            ui.add_enabled_ui(!titles.is_empty(), |ui| {
-                egui::ComboBox::from_id_salt(("group_title", v.id))
-                    .width(130.0)
-                    .selected_text(text)
-                    .show_ui(ui, |ui| {
-                        for t in titles {
-                            if ui.selectable_label(t.selected, &t.title).clicked() && !t.selected {
-                                actions.push(GroupAction::SetTitle { group: v.id, role: t.role });
-                            }
-                        }
-                    });
+    view::card(
+        ui,
+        p,
+        "user-cog",
+        p.muted_dim,
+        block_i18n::tr!("ui-group-profile-me"),
+        None,
+        |ui| {
+            ui.spacing_mut().item_spacing.y = 2.0;
+            setting_row(ui, p, "star-filled", block_i18n::tr!("ui-group-profile-active"), |ui| {
+                let mut on = v.active;
+                if widgets::switch(ui, p, &mut on).changed() {
+                    actions.push(GroupAction::Activate(if on { v.id } else { uuid::Uuid::nil() }));
+                }
             });
-        });
-        setting_row(ui, p, "bell-filled", block_i18n::tr!("ui-group-profile-receive-notices"), |ui| {
-            let mut on = m.accept_notices;
-            if widgets::switch(ui, p, &mut on).changed() {
-                actions.push(GroupAction::SetFlags {
-                    group: v.id,
-                    accept_notices: on,
-                    list_in_profile: m.list_in_profile,
+            setting_row(ui, p, "tag-filled", block_i18n::tr!("ui-group-profile-title-shown"), |ui| {
+                let titles = v.data.map(|d| d.titles.as_slice()).unwrap_or_default();
+                let choices: Vec<_> = profile_title_choices(titles).collect();
+                let current = titles.iter().find(|t| t.selected);
+                let text = current.map_or_else(|| v.my_title().unwrap_or_default(), |t| t.title.clone());
+                ui.add_enabled_ui(!choices.is_empty(), |ui| {
+                    egui::ComboBox::from_id_salt(("group_title", v.id))
+                        .width(130.0)
+                        .selected_text(text)
+                        .show_ui(ui, |ui| {
+                            for t in &choices {
+                                if ui.selectable_label(t.selected, &t.title).clicked() && !t.selected {
+                                    actions.push(GroupAction::SetTitle { group: v.id, role: t.role });
+                                }
+                            }
+                        });
                 });
-            }
-        });
-        setting_row(ui, p, "messages-filled", block_i18n::tr!("ui-group-profile-receive-chat"), |ui| {
-            let blocked = c.world.mutes.group_chat_muted(&v.id);
-            let mut on = !blocked;
-            if widgets::switch(ui, p, &mut on).changed() {
-                crate::ui::context::request(ui.ctx(), crate::ui::context::CtxAction::GroupChatBlocked(v.id, !on));
-            }
-        });
-        setting_row(ui, p, "id-filled", block_i18n::tr!("ui-group-profile-show-in-profile"), |ui| {
-            let mut on = m.list_in_profile;
-            if widgets::switch(ui, p, &mut on).changed() {
-                actions.push(GroupAction::SetFlags {
-                    group: v.id,
-                    accept_notices: m.accept_notices,
-                    list_in_profile: on,
-                });
-            }
-        });
-    });
+            });
+            setting_row(ui, p, "bell-filled", block_i18n::tr!("ui-group-profile-receive-notices"), |ui| {
+                let mut on = m.accept_notices;
+                if widgets::switch(ui, p, &mut on).changed() {
+                    actions.push(GroupAction::SetFlags {
+                        group: v.id,
+                        accept_notices: on,
+                        list_in_profile: m.list_in_profile,
+                    });
+                }
+            });
+            setting_row(ui, p, "messages-filled", block_i18n::tr!("ui-group-profile-receive-chat"), |ui| {
+                let blocked = c.world.mutes.group_chat_muted(&v.id);
+                let mut on = !blocked;
+                if widgets::switch(ui, p, &mut on).changed() {
+                    crate::ui::context::request(ui.ctx(), crate::ui::context::CtxAction::GroupChatBlocked(v.id, !on));
+                }
+            });
+            setting_row(ui, p, "id-filled", block_i18n::tr!("ui-group-profile-show-in-profile"), |ui| {
+                let mut on = m.list_in_profile;
+                if widgets::switch(ui, p, &mut on).changed() {
+                    actions.push(GroupAction::SetFlags {
+                        group: v.id,
+                        accept_notices: m.accept_notices,
+                        list_in_profile: on,
+                    });
+                }
+            });
+        },
+    );
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+    use block_net::groups::GroupTitle;
+
+    #[test]
+    fn a_blank_title_is_not_offered_in_the_profile_combo() {
+        let titles = [
+            GroupTitle {
+                title: "Member".into(),
+                role: uuid::Uuid::nil(),
+                selected: false,
+            },
+            GroupTitle {
+                title: String::new(),
+                role: uuid::Uuid::from_u128(6),
+                selected: true,
+            },
+            GroupTitle {
+                title: "Founder".into(),
+                role: uuid::Uuid::from_u128(5),
+                selected: false,
+            },
+        ];
+        let offered: Vec<&str> = profile_title_choices(&titles).map(|t| t.title.as_str()).collect();
+        assert_eq!(offered, ["Member", "Founder"]);
+    }
 
     #[test]
     fn notice_dates_read_today_yesterday_then_the_day() {
@@ -317,8 +359,10 @@ mod tests {
             notice_date(at(2026, 10, 13), now),
             block_i18n::tr!("ui-chat-yesterday").to_lowercase()
         );
-        let oct = crate::ui::land::months()[9];
-        assert_eq!(notice_date(at(2026, 10, 3), now), format!("3 {oct}"));
-        assert_eq!(notice_date(at(2025, 10, 3), now), format!("3 {oct} 2025"));
+        // the day and month in the language's order, the year only when
+        // it is not this one
+        let date = crate::ui::land::day_month;
+        assert_eq!(notice_date(at(2026, 10, 3), now), date(None, 10, 3));
+        assert_eq!(notice_date(at(2025, 10, 3), now), date(Some(2025), 10, 3));
     }
 }

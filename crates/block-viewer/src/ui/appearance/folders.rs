@@ -58,7 +58,7 @@ impl AppearanceUi {
     pub(super) fn begin_new_folder(&mut self, parent: Uuid, then_move: Vec<Uuid>) {
         self.folders.dialog = Some(Dialog::New {
             parent,
-            name: block_i18n::tr!("common-new-folder").into(),
+            name: crate::text_validation::default_name("common-new-folder").into(),
             then_move,
         });
         self.folders.focus = true;
@@ -70,15 +70,7 @@ impl AppearanceUi {
 /// and, at the end, how many outfits it holds. It takes the inventory's
 /// row height, `depth` indents below the groups above it; a click
 /// opens or closes it.
-pub(super) fn header(
-    ui: &mut egui::Ui,
-    p: &Palette,
-    title: &str,
-    count: usize,
-    open: Option<bool>,
-    depth: usize,
-    show_icon: bool,
-) -> egui::Response {
+pub(super) fn header(ui: &mut egui::Ui, p: &Palette, title: &str, count: usize, open: Option<bool>, depth: usize) -> egui::Response {
     const ICON: f32 = 14.0;
     const CARET: f32 = 12.0;
     let unit = ui.spacing().indent;
@@ -110,15 +102,12 @@ pub(super) fn header(
         }
         x += unit;
     }
-    let draw_icon = open.is_some() || show_icon;
-    if draw_icon {
-        let icon = if open.is_some() { "folder-filled" } else { "hanger-2-filled" };
-        if let Some(t) = icons::global(icon) {
-            let at = egui::Rect::from_center_size(egui::pos2(x + ICON / 2.0, row.center().y), Vec2::splat(ICON));
-            painter.image(t.id(), at, uv, p.violet_light);
-        }
-        x += ICON + 6.0;
+    let icon = if open.is_some() { "folder-filled" } else { "hanger-2-filled" };
+    if let Some(t) = icons::global(icon) {
+        let at = egui::Rect::from_center_size(egui::pos2(x + ICON / 2.0, row.center().y), Vec2::splat(ICON));
+        painter.image(t.id(), at, uv, p.violet_light);
     }
+    x += ICON + 6.0;
     let count = painter.layout_no_wrap(
         if count == 0 {
             block_i18n::tr!("ui-appearance-folders-empty").to_string()

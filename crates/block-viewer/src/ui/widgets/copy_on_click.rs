@@ -30,7 +30,7 @@ struct Copied {
 }
 
 fn key() -> Id {
-    Id::unique("block_copy_on_click")
+    Id::unique("aurora_copy_on_click")
 }
 
 /// `resp` comes from a widget that senses clicks (a `Label` with

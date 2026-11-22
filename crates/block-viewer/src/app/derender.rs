@@ -10,45 +10,68 @@ use crate::world::objects::ObjKey;
 use uuid::Uuid;
 
 impl App {
-    /// derenderObject on the menu's object (its linkset or the worn
-    /// object, from its root) or LLAvatarActions::derender on an avatar,
-    /// in view or only in a list. With "Edit linked parts", only the
-    /// selected prims go: an individual selection has no root node, so
-    /// derenderObject is handed each prim.
+    /// derenderObject on the menu's object, and on every other linkset of
+    /// the selection when the object is one of them (the Legacy Viewer
+    /// takes each selected root), or LLAvatarActions::derender on an
+    /// avatar, in view or only in a list. With "Edit linked parts", only
+    /// the selected prims go (#3384): an individual selection has no root
+    /// node, so getFirstRootObject(true) hands derenderObject each prim.
     pub(super) fn derender(&mut self, id: Uuid, permanent: bool) {
-        let part = {
-            let w = &self.world;
-            w.objects.index_of_uuid(&id).is_some_and(|idx| {
-                self.build.selection_linked && w.objects.get(idx).is_some_and(|o| !o.is_avatar() && self.build.is_selected(&o.key))
-            })
-        };
-        if part {
-            let ids: Vec<Uuid> = self
-                .build
-                .selection
-                .iter()
-                .filter_map(|k| self.world.objects.index_of(k))
-                .filter_map(|i| self.world.objects.get(i))
-                .filter(|o| !o.is_avatar())
-                .map(|o| o.full_id)
-                .collect();
-            for id in ids {
-                if self.world.objects.index_of_uuid(&id).is_none() {
-                    continue;
-                }
-                self.derender_one(id, permanent, true);
+        let w = &self.world;
+        let (targets, part) = match w.objects.index_of_uuid(&id) {
+            Some(idx) if w.objects.get(idx).is_some_and(|o| !o.is_avatar()) => {
+                let part = self.build.selection_linked && w.objects.get(idx).is_some_and(|o| self.build.is_selected(&o.key));
+                let units: Vec<usize> = if part {
+                    self.build.selection.iter().filter_map(|k| w.objects.index_of(k)).collect()
+                } else {
+                    self.build.menu_roots(w, idx)
+                };
+                let ids = units
+                    .into_iter()
+                    .filter_map(|i| w.objects.get(i))
+                    .filter(|o| !o.is_avatar())
+                    .map(|o| o.full_id)
+                    .collect();
+                (ids, part)
             }
-            return;
+            _ => (vec![id], false),
+        };
+        for id in targets {
+            // a prim already gone with a linkset derendered before it
+            if part && self.world.objects.index_of_uuid(&id).is_none() {
+                continue;
+            }
+            self.derender_one(id, permanent, part);
         }
-        self.derender_one(id, permanent, false);
     }
 
+    /// derenderObject on one linkset or worn object (from its root), or on
+    /// one prim alone (`part`), or LLAvatarActions::derender on an avatar.
     fn derender_one(&mut self, id: Uuid, permanent: bool, part: bool) {
         let w = &self.world;
         if id == w.agent_id || id.is_nil() {
             return;
         }
         let idx = w.objects.index_of_uuid(&id);
+        // with RLVa on, never one of our own attachments, whatever path
+        // asked (derenderObject's RLVa-1.4.5 check)
+        if w.rlva.enabled() && idx.is_some_and(|i| crate::ui::context::wearer(w, i) == Some(w.agent_id)) {
+            log::info!("derender {id} refused: our own attachment while RLVa is on");
+            return;
+        }
+        // the seat held by @unsit keeps its root prim
+        if let Some(prims) = idx.and_then(|i| w.rlva_seat_derender(i, part))
+            && !(part && prims == [id])
+        {
+            log::info!(
+                "derender {id}: the root of the seat held by @unsit stays, {} linked prim(s) go",
+                prims.len()
+            );
+            for prim in prims {
+                self.derender_one(prim, permanent, true);
+            }
+            return;
+        }
         let avatar = idx.and_then(|i| w.objects.get(i)).is_none_or(|o| o.is_avatar());
         let (target, entry) = if avatar {
             // FirstName / LastName of the avatar, or its user name
@@ -68,7 +91,9 @@ impl App {
             let Some(o) = w.objects.get(root) else {
                 return;
             };
-            // the selection's root node name (ObjectProperties)
+            // the selection's root node name (ObjectProperties); a prim
+            // alone takes its own name, where the Legacy Viewer leaves the
+            // entry unnamed (an individual selection has no root node)
             let name = self
                 .build
                 .props

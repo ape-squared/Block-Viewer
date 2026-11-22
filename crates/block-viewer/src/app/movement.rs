@@ -281,11 +281,13 @@ impl App {
             flying: self.world.agent.flying,
             can_fly,
             seated: self.world.agent.is_sitting(),
-            suspended: self.world.teleporting
-                || !self.world.movement_complete
-                || !self.focused
-                || self.camera.free().is_some()
-                || self.autopilot.is_some(),
+            suspended: crate::movement::aids_suspended(
+                self.world.teleporting,
+                !self.world.movement_complete,
+                self.camera.free().is_some(),
+                self.autopilot.is_some(),
+                self.focused,
+            ),
             locked: self.settings.bridge.get(&self.world.agent_id).is_some_and(|prefs| prefs.enabled)
                 && self.bridge_runtime.locked()
                 && !(self.input.forward
@@ -386,6 +388,7 @@ impl App {
             self.movement_runtime.cancel_water_gesture();
         }
         let was_water_walking = self.movement_runtime.water_walk.active();
+        self.vr_walk_override.apply_frame(&mut frame);
         let step = self.movement_runtime.update(&prefs, &frame, &input, now);
         let set = self.ao_catalog.selected(selected);
         let mut loaded = |state| {
@@ -504,7 +507,7 @@ impl App {
             self.world.teleporting || !self.world.movement_complete || frame.seated,
         );
         if self.demo && self.frame_count.is_multiple_of(30) {
-            log::trace!(target: "block_viewer::water_contacts", "surface float: active {floating}, pose {pose:?}, physical_z {:.3}, wave {target:.3}, visual {:.3}", position.z, self.world.water_float.offset());
+            log::trace!(target: "aurora_viewer::water_contacts", "surface float: active {floating}, pose {pose:?}, physical_z {:.3}, wave {target:.3}, visual {:.3}", position.z, self.world.water_float.offset());
         }
     }
     pub(super) fn pass_wall(&mut self) {
@@ -620,18 +623,13 @@ impl App {
         self.panels.ao = open;
         self.toolbar_ui.movement_active = prefs.swimming;
         self.toolbar_ui.water_walk_active = prefs.water_walk;
-        let prefs_changed = actions.iter().any(|a| matches!(a, crate::ui::ao::Action::MovementPreferences));
-        let ao_changed = actions.iter().any(|a| matches!(a, crate::ui::ao::Action::Preferences));
-        if prefs_changed {
+        if actions.iter().any(|a| matches!(a, crate::ui::ao::Action::MovementPreferences)) {
             self.settings.movements.insert(self.world.agent_id, prefs);
         }
         if actions.iter().any(|a| matches!(a, crate::ui::ao::Action::Preferences)) {
             let saved = self.settings.ao.accounts.entry(self.world.agent_id).or_default();
             saved.enabled = account.enabled;
             saved.selected = account.selected;
-        }
-        if ao_changed || prefs_changed {
-            self.settings.save();
         }
         for action in actions {
             self.apply_ao_action(action);

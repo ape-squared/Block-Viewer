@@ -117,11 +117,19 @@ pub(super) fn show(
                     }
                 }
             });
-            if dialog.track != before && (dialog.name == block_i18n::tr!("ao-new-group") || dialog.name == block_i18n::tr!("ao-new-track"))
+            if dialog.track != before
+                && (dialog.name == block_i18n::tr!("ao-new-group") || dialog.name == block_i18n::tr!("ao-new-track"))
             {
                 dialog.name = block_i18n::text(if dialog.track { "ao-new-track" } else { "ao-new-group" }).into();
             }
-            ui.label(RichText::new(block_i18n::text(if dialog.track { "ao-track-example" } else { "ao-group-example" })).color(p.muted));
+            ui.label(
+                RichText::new(block_i18n::text(if dialog.track {
+                    "ao-track-example"
+                } else {
+                    "ao-group-example"
+                }))
+                .color(p.muted),
+            );
         }
         ui.label(block_i18n::text(if dialog.track { "ao-track-name" } else { "ao-group-name" }));
         widgets::restricted_text_field(ui, true, &mut dialog.name, widgets::TextPolicy::AoName, |b, _| {

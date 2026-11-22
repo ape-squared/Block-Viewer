@@ -1,7 +1,7 @@
 <#
 .SYNOPSIS
     Builds the latest main of GitHub (or a PR) in --release, next to the
-    repository: ..\RELEASE\Block-Viewer\block-viewer.exe, ready to launch.
+    repository: ..\RELEASE\Aurora-Viewer\block-viewer.exe, ready to launch.
 
 .DESCRIPTION
     The code built always comes from GitHub, never from the local
@@ -22,7 +22,7 @@ param([int]$Pr)
 $p = Get-AuroraPaths
 $rel = Join-Path $p.Root 'RELEASE'
 $src = Join-Path $rel 'src'
-$out = Join-Path $rel 'Block-Viewer'
+$out = Join-Path $rel 'Aurora-Viewer'
 New-Item -ItemType Directory -Force -Path $rel -ErrorAction Stop | Out-Null
 
 # Double-click launcher (build-release.bat 42 builds PR 42). It runs the
@@ -94,9 +94,20 @@ Push-Location $src
 # A shell inherited from a release job must not stamp another commit with
 # its tag. The local build resolves the version from this checkout's Git.
 $previousVersionTag = [Environment]::GetEnvironmentVariable('AURORA_VERSION_TAG', 'Process')
+# The OpenXR loader built in, like the published exe (release.yml): without
+# it, VR depends on an openxr_loader.dll found on the PC, which a headset
+# software update can remove. Building it needs CMake (docs/VR_WINDOWS.md).
+$features = @()
+if (Get-Command cmake -ErrorAction SilentlyContinue) {
+    $features = '--features', 'xr-static-loader'
+} else {
+    Write-Host 'CMake not found: the OpenXR loader is not built in, VR will need an openxr_loader.dll on this PC. Install CMake (winget install Kitware.CMake) to build it in.' -ForegroundColor Yellow
+}
 try {
     [Environment]::SetEnvironmentVariable('AURORA_VERSION_TAG', $null, 'Process')
-    Invoke-Checked 'cargo build' { cargo build --release --locked -p block-viewer }
+    # the Rust version this commit names, one install at a time for the PC
+    Install-RustVersion $src
+    Invoke-Checked 'cargo build' { cargo build --release --locked -p block-viewer @features }
 } finally {
     [Environment]::SetEnvironmentVariable('AURORA_VERSION_TAG', $previousVersionTag, 'Process')
     Pop-Location

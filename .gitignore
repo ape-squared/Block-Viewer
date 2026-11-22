@@ -3,10 +3,6 @@
 **/target/
 # The macOS bundle scripts/package-macos.ps1 builds (docs/MACOS.md)
 /Aurora Viewer.app/
-/Block Viewer.app/
-
-# Local demo / production packages
-/dist/
 
 # Agent worktrees, scratch space and release builds (they live outside the
 # repository, this is a safety net)
@@ -33,7 +29,7 @@
 /fuzz/corpus/
 /fuzz/artifacts/
 /fuzz/coverage/
-# made from the viewer's Cargo.lock (see fuzz/)
+# made from the viewer's Cargo.lock (docs/TESTING.md, "Fuzzing")
 /fuzz/Cargo.lock
 
 # Logs, captures, local settings
@@ -53,5 +49,10 @@ Thumbs.db
 # Per-task scratch files (agents)
 /.scratch/
 
+# Claude Code: each person's own settings and the worktrees of its app. The
+# shared settings (.claude/settings.json) and hook (.claude/hooks/) are in git.
+/.claude/settings.local.json
+/.claude/worktrees/
+
+# Python's bytecode caches (scripts/*.py)
 __pycache__/
-*.py[cod]

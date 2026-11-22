@@ -163,6 +163,7 @@ pub(super) fn editor(
                 result.save |= right.save;
                 result.open = right.open.or(result.open);
                 result.copy = right.copy.or(result.copy);
+                result.drag = right.drag.or(result.drag);
                 result
             })
         }
@@ -423,7 +424,7 @@ impl Rendered {
             let color = if let Some(role) = s.role {
                 settings.color(role, p)
             } else if s.link.is_some() {
-                p.violet_light
+                p.teal
             } else if s.quote {
                 p.muted
             } else {

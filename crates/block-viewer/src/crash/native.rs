@@ -632,7 +632,7 @@ mod platform {
             let modules = modules(&text);
             assert!(modules.iter().any(|line| line.starts_with("ntdll ")), "{text}");
             // This test binary has a PDB: GUID (32 hex digits) and age.
-            let own = modules.iter().find(|line| line.starts_with("block_viewer")).expect("own module");
+            let own = modules.iter().find(|line| line.starts_with("aurora_viewer")).expect("own module");
             let id = own.split(' ').find_map(|part| part.strip_prefix("id=")).expect("debug id");
             assert!(id.len() >= 33 && id.chars().all(|c| c.is_ascii_hexdigit()), "{own}");
             assert!(own.contains(" code="), "{own}");
@@ -646,7 +646,7 @@ mod platform {
             let text = String::from_utf8(out).unwrap();
             let mut lines = text.lines();
             let fault = lines.next().unwrap();
-            assert!(fault.starts_with("Fault: block_viewer") && fault.contains("+0x"), "{text}");
+            assert!(fault.starts_with("Fault: aurora_viewer") && fault.contains("+0x"), "{text}");
             assert_eq!(lines.next(), Some("Native stack (modules):"));
             assert_eq!(lines.next(), Some(&*format!("00: {}", &fault["Fault: ".len()..])));
             assert_eq!(lines.next(), Some("01: ?"));
@@ -658,7 +658,7 @@ mod platform {
             let (ids, id) = std::sync::mpsc::channel();
             let (release, wait) = std::sync::mpsc::channel::<()>();
             let blocked = std::thread::Builder::new()
-                .name("block-crash-test-blocked".into())
+                .name("aurora-crash-test-blocked".into())
                 .spawn(move || {
                     // SAFETY: no argument.
                     ids.send(unsafe { GetCurrentThreadId() }).unwrap();
@@ -670,7 +670,7 @@ mod platform {
             let thread = Thread::open(id).expect("thread handle");
             let mut out = Vec::new();
             assert!(thread.write_stack(&mut out));
-            assert!(named_threads().contains(&(id, "block-crash-test-blocked".into())));
+            assert!(named_threads().contains(&(id, "aurora-crash-test-blocked".into())));
             release.send(()).unwrap();
             blocked.join().unwrap();
             let text = String::from_utf8(out).unwrap();
@@ -678,7 +678,7 @@ mod platform {
             // From the wait in the system down to the thread's start, through
             // this test binary's own code.
             assert!(frames.len() > 4, "{text}");
-            assert!(frames.iter().any(|f| f.contains("block_viewer")), "{text}");
+            assert!(frames.iter().any(|f| f.contains("aurora_viewer")), "{text}");
             assert!(modules(&text).iter().any(|line| line.starts_with("ntdll ")), "{text}");
         }
     }

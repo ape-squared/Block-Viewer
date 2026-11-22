@@ -437,6 +437,7 @@ fn the_picker_apply_refuses_a_locked_attachment() {
         owner_id: agent,
         source_type: block_net::ChatSourceType::Object,
         chat_type: block_net::ChatType::OwnerSay,
+        region: None,
         position: glam::Vec3::ZERO,
         message: "@detach=n".to_owned(),
     }));

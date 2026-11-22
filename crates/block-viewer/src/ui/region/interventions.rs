@@ -490,7 +490,7 @@ fn show_dialog(
                 // in a row: the field takes its own height
                 ui.horizontal(|ui| {
                     let w = ui.available_width();
-                    widgets::search_box(ui, p, query, block_i18n::tr!("region-int-home-search"), w);
+                    widgets::clearable_search_box(ui, p, query, block_i18n::tr!("region-int-home-search"), w);
                 });
                 ui.add_space(6.0);
                 egui::ScrollArea::vertical().max_height(220.0).show(ui, |ui| {
@@ -531,7 +531,11 @@ fn show_dialog(
                     if widgets::radio(ui, p, *target == Some(Home::Everyone), everyone.as_str()).clicked() {
                         *target = Some(Home::Everyone);
                     }
-                    ui.label(RichText::new(block_i18n::tr!("region-int-home-all-desc")).size(11.5).color(p.muted));
+                    ui.label(
+                        RichText::new(block_i18n::tr!("region-int-home-all-desc"))
+                            .size(11.5)
+                            .color(p.muted),
+                    );
                 });
                 ui.add_space(2.0);
                 if ui

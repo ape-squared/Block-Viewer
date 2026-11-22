@@ -1,8 +1,9 @@
 //! What each staff mark (`world::staff::Mark`) looks like, for the plates
-//! (`paint.rs`) and the windows (`ui/staff.rs`): Block team's modular
-//! signal mark (`aurora.rs`) or Linden Lab's stars and shine (`linden.rs`).
+//! (`paint.rs`) and the windows (`ui/staff.rs`): the Aurora team's
+//! northern light (`aurora.rs`) or Linden Lab's stars and shine
+//! (`linden.rs`), their tag's words, icon and colors.
 
-use super::{block, linden};
+use super::{aurora, block, linden};
 use crate::theme::Palette;
 use crate::world::staff::Mark;
 use egui::{Color32, Mesh, Rect};
@@ -33,6 +34,7 @@ impl Look {
             Mark::Block => block_i18n::tr!("nameplate-block-staff"),
             Mark::Manager => block_i18n::tr!("nameplate-block-manager"),
             Mark::Tester => block_i18n::tr!("nameplate-block-tester"),
+            Mark::Aurora => block_i18n::tr!("nameplate-aurora-staff"),
             Mark::Linden => block_i18n::tr!("nameplate-linden-lab"),
         }
     }
@@ -43,14 +45,17 @@ impl Look {
             Mark::Block => block_i18n::tr!("nameplate-block-staff-tooltip"),
             Mark::Manager => block_i18n::tr!("nameplate-block-manager-tooltip"),
             Mark::Tester => block_i18n::tr!("nameplate-block-tester-tooltip"),
+            Mark::Aurora => block_i18n::tr!("nameplate-aurora-staff-tooltip"),
             Mark::Linden => block_i18n::tr!("nameplate-linden-lab-tooltip"),
         }
     }
 
-    /// The tag's icon: stacked cubes for Block team, verified rosette for Linden.
+    /// The tag's icon: sparkles for the team, the verified rosette for
+    /// Linden Lab.
     pub fn icon(&self) -> &'static str {
         match self.mark {
             Mark::Block | Mark::Manager | Mark::Tester => "box",
+            Mark::Aurora => "sparkles-filled",
             Mark::Linden => "rosette-discount-check-filled",
         }
     }
@@ -59,6 +64,7 @@ impl Look {
     pub fn letter(&self, p: &Palette, i: usize, n: usize, t: f32) -> Color32 {
         match self.mark {
             Mark::Block | Mark::Manager | Mark::Tester => block::letter_color(p, i, n, t),
+            Mark::Aurora => aurora::letter_color(p, i, n, t),
             Mark::Linden => linden::letter_color(p, self.linden, i, n, t),
         }
     }
@@ -72,14 +78,16 @@ impl Look {
     pub fn edge(&self, p: &Palette, s: f32, t: f32) -> Color32 {
         match self.mark {
             Mark::Block | Mark::Manager | Mark::Tester => block::border_color(p, s, t),
+            Mark::Aurora => aurora::border_color(p, s, t),
             Mark::Linden => linden::edge(p, self.linden, s, t),
         }
     }
 
-    /// The light over a plate's top edge: Block cubes or rising Linden stars.
+    /// The light over a plate's top edge: curtains or rising stars.
     pub fn above(&self, mesh: &mut Mesh, p: &Palette, rect: Rect, ppp: f32, t: f32, alpha: f32) {
         match self.mark {
             Mark::Block | Mark::Manager | Mark::Tester => block::curtains(mesh, p, rect, ppp, t, alpha),
+            Mark::Aurora => aurora::curtains(mesh, p, rect, ppp, t, alpha),
             Mark::Linden => linden::stars(mesh, p, self.linden, rect, t, alpha),
         }
     }
@@ -87,13 +95,13 @@ impl Look {
     /// A plate's border, `width` points inside its edge, over its halo.
     #[allow(clippy::too_many_arguments)]
     pub fn border(&self, mesh: &mut Mesh, p: &Palette, rect: Rect, ppp: f32, t: f32, alpha: f32, width: f32, scale: f32) {
-        block::border(mesh, rect, ppp, alpha, width, scale, |s| self.edge(p, s, t));
+        aurora::border(mesh, rect, ppp, alpha, width, scale, |s| self.edge(p, s, t));
     }
 
     /// The tag's surface at `rect`: `fill` inside the border.
     #[allow(clippy::too_many_arguments)]
     pub fn tag(&self, mesh: &mut Mesh, p: &Palette, rect: Rect, radius: f32, ppp: f32, t: f32, fill: Color32, alpha: f32, width: f32) {
-        block::tag(mesh, rect, radius, ppp, fill, alpha, width, |s| self.edge(p, s + 0.25, t));
+        aurora::tag(mesh, rect, radius, ppp, fill, alpha, width, |s| self.edge(p, s + 0.25, t));
     }
 
     /// The light over a profile's banner: the curtains rising from its
@@ -103,6 +111,10 @@ impl Look {
             Mark::Block | Mark::Manager | Mark::Tester => {
                 let foot = Rect::from_min_size(egui::pos2(banner.left(), banner.bottom() - 1.0), banner.size());
                 block::curtains(mesh, p, foot, ppp, t, 1.0);
+            }
+            Mark::Aurora => {
+                let foot = Rect::from_min_size(egui::pos2(banner.left(), banner.bottom() - 1.0), banner.size());
+                aurora::curtains(mesh, p, foot, ppp, t, 1.0);
             }
             Mark::Linden => linden::starfield(mesh, p, self.linden, banner, t, 26.0),
         }

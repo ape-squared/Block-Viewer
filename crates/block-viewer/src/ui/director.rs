@@ -1077,8 +1077,7 @@ fn path_section(ui: &mut egui::Ui, p: &Palette, d: &mut Director) {
             }
         }
     });
-    widgets::checkbox(ui, p, &mut d.track.ease_ends, block_i18n::tr!("director-ease"))
-        .on_hover_text(block_i18n::tr!("director-ease-tip"));
+    widgets::checkbox(ui, p, &mut d.track.ease_ends, block_i18n::tr!("director-ease")).on_hover_text(block_i18n::tr!("director-ease-tip"));
     widgets::checkbox(ui, p, &mut d.show_path, block_i18n::tr!("director-show-path"));
     let summary = block_i18n::tr!(
         "director-summary",

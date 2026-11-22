@@ -1,6 +1,6 @@
 //! Login sidebar: start destinations (Legacy-style), without Aurora news.
 
-use crate::login_favorites::Entry as FavoritePlace;
+use crate::login_favorites::Favorite;
 use crate::theme::Palette;
 use crate::ui::{icons::Icons, widgets};
 use egui::{RichText, Sense, Vec2};
@@ -19,7 +19,7 @@ pub fn panel(
     icons: &Icons,
     start_location: &mut String,
     start_slurl: &mut Option<crate::slurl::Location>,
-    favorites: &[FavoritePlace],
+    favorites: &[Favorite],
     height: f32,
     on_region: &mut dyn FnMut(),
 ) {
@@ -63,7 +63,7 @@ pub fn panel(
                     );
                     ui.add_space(4.0);
                     for fav in favorites {
-                        let loc = crate::slurl::parse(&fav.place);
+                        let loc = favorite_slurl(fav).and_then(|s| crate::slurl::parse(&s));
                         let selected = loc.as_ref().is_some_and(|l| start_slurl.as_ref() == Some(l));
                         if dest_row(ui, p, icons, "star-filled", &fav.name, selected) {
                             *start_location = "favorite".into();
@@ -79,6 +79,17 @@ pub fn panel(
                 );
             });
     });
+}
+
+fn favorite_slurl(fav: &Favorite) -> Option<String> {
+    let metre = |v: f32| if v.is_finite() { v.round().max(0.0) as u32 } else { 0 };
+    Some(format!(
+        "secondlife:///app/teleport/{}/{}/{}/{}",
+        fav.region,
+        metre(fav.pos[0]),
+        metre(fav.pos[1]),
+        metre(fav.pos[2])
+    ))
 }
 
 fn dest_row(ui: &mut egui::Ui, p: &Palette, icons: &Icons, icon: &str, label: &str, selected: bool) -> bool {

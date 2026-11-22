@@ -403,8 +403,7 @@ fn plate_content(
         // distinguishes an explicit rendering choice from an automatic limit.
         render_never: !own && too_complex && settings.render_exception(&id) == 1,
         blocked,
-        block_viewer: named
-            && crate::world::block_peers::is_block_viewer(world, &id, &legacy, settings.advertise_block_viewer),
+        block_viewer: named && crate::world::block_peers::is_block_viewer(world, &id, &legacy, settings.advertise_block_viewer),
         mark: crate::world::staff::mark_named(&id, &legacy).filter(|_| named),
         distance: Distance::of(agent_distance, own, settings.tag_distance, settings.tag_distance_colors),
     }

@@ -538,10 +538,7 @@ pub fn show(ui: &mut egui::Ui, p: &Palette, tool: &mut BuildTool, world: &mut Wo
             }
             let deed_ok = can_deed_targets(tool, world, &targets, first.group_id);
             if ui
-                .add_enabled(
-                    deed_ok,
-                    egui::Button::new(RichText::new(block_i18n::tr!("common-deed")).size(12.0)),
-                )
+                .add_enabled(deed_ok, egui::Button::new(RichText::new(block_i18n::tr!("common-deed")).size(12.0)))
                 .on_hover_text(block_i18n::tr!("build-ui-general-deed-this-object-to-group"))
                 .clicked()
             {

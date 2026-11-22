@@ -52,10 +52,7 @@ fn source_label(s: Source) -> (&'static str, &'static str) {
             block_i18n::tr!("omnifilter-source-nearby"),
             block_i18n::tr!("omnifilter-source-nearby-tip"),
         ),
-        Source::InstantMessage => (
-            block_i18n::tr!("omnifilter-source-im"),
-            block_i18n::tr!("omnifilter-source-im-tip"),
-        ),
+        Source::InstantMessage => (block_i18n::tr!("omnifilter-source-im"), block_i18n::tr!("omnifilter-source-im-tip")),
         Source::GroupChat => (
             block_i18n::tr!("omnifilter-source-group"),
             block_i18n::tr!("omnifilter-source-group-tip"),

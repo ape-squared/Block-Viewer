@@ -656,16 +656,9 @@ pub fn ffmpeg_section(ui: &mut egui::Ui, p: &Palette, library: &mut LibraryUi, a
         {
             actions.push(Action::ChooseFfmpeg);
         }
-        if widgets::action_button(
-            ui,
-            p,
-            "refresh",
-            block_i18n::tr!("director-record-again"),
-            ActionKind::Flat,
-            BUTTON,
-        )
-        .on_hover_text(block_i18n::tr!("director-ffmpeg-again-tip"))
-        .clicked()
+        if widgets::action_button(ui, p, "refresh", block_i18n::tr!("director-record-again"), ActionKind::Flat, BUTTON)
+            .on_hover_text(block_i18n::tr!("director-ffmpeg-again-tip"))
+            .clicked()
         {
             actions.push(Action::FindFfmpeg);
         }

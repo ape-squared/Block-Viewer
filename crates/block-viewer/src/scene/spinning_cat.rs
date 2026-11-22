@@ -332,12 +332,7 @@ impl SpinningCat {
                 emissive: [CAT_LIGHT + cat.glow, CAT_LIGHT + 0.6 * cat.glow, CAT_LIGHT + cat.glow, cat.glow],
                 // The model's material: not metallic, rough like fur.
                 params: [0.0, 0.0, 0.85, 0.5],
-                tex: [
-                    gpu.fur,
-                    block_render::textures::FLAT_NORMAL,
-                    block_render::textures::WHITE,
-                    gpu.fur,
-                ],
+                tex: [gpu.fur, block_render::textures::FLAT_NORMAL, block_render::textures::WHITE, gpu.fur],
                 // The emissive map as the colour map: scale 1, no offset.
                 spec_color: [1.0, 1.0, 0.0, 0.0],
                 flags: [flags::PBR | flags::DOUBLE_SIDED, 0, 0, 0],

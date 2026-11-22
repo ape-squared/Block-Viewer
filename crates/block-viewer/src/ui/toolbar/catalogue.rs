@@ -89,6 +89,8 @@ pub const COMMANDS: &[Command] = commands![
     "second_camera", "device-cctv-filled", "second-camera-title", true;
     // Aurora's own: the viewer steps back for a game (app/gaming_mode.rs)
     "gaming_mode", "device-gamepad-2-filled", "toolbar-command-gaming-mode", true;
+    // Block: immersive + fullscreen capture for streamers / creators
+    "streamer_mode", "broadcast", "toolbar-command-streamer-mode", true;
     // Firestorm's, not in Aurora yet
     "avatar", "user-circle", "toolbar-command-avatar", true;
     "destinations", "map-2", "toolbar-command-destinations", true;
@@ -108,7 +110,7 @@ pub const COMMANDS: &[Command] = commands![
     "soundexplorer", "music", "toolbar-command-sound-explorer", true;
     "assetblacklist", "shield-off", "toolbar-command-asset-blacklist", true;
     "phototools", "camera-cog", "toolbar-command-phototools", true;
-    "phototools_view", "video-filled", "toolbar-command-phototools-camera", false;
+    "phototools_view", "video-filled", "toolbar-command-phototools-camera", true;
     "pose_stand", "man-filled", "toolbar-command-pose-stand", true;
     "conversation_log", "file-text-filled", "toolbar-command-conversation-log", true;
     "movelock", "lock-filled", "movelock-title", true;

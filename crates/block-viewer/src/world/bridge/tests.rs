@@ -2389,10 +2389,7 @@ fn a_new_bridge_takes_its_look_as_soon_as_the_library_container_is_worn() {
     let volume = shape.to_params();
     assert_eq!(
         (volume.profile.curve_type, volume.path.curve_type),
-        (
-            block_prim::params::LL_PCODE_PROFILE_SQUARE,
-            block_prim::params::LL_PCODE_PATH_LINE
-        )
+        (block_prim::params::LL_PCODE_PROFILE_SQUARE, block_prim::params::LL_PCODE_PATH_LINE)
     );
     assert_eq!((volume.profile.hollow, volume.path.scale, volume.sculpt), (0.0, [1.0, 1.0], None));
     assert_eq!(*local_id, worn.local_id);

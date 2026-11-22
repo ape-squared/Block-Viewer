@@ -924,15 +924,8 @@ impl ListingsUi {
                     {
                         answer = Some(true);
                     }
-                    if widgets::action_button(
-                        ui,
-                        p,
-                        "x",
-                        block_i18n::tr!("common-cancel"),
-                        ActionKind::Flat,
-                        Vec2::new(0.0, 28.0),
-                    )
-                    .clicked()
+                    if widgets::action_button(ui, p, "x", block_i18n::tr!("common-cancel"), ActionKind::Flat, Vec2::new(0.0, 28.0))
+                        .clicked()
                     {
                         answer = Some(false);
                     }
@@ -1007,15 +1000,7 @@ impl ListingsUi {
                 {
                     answer = Some(true);
                 }
-                if widgets::action_button(
-                    ui,
-                    p,
-                    "x",
-                    block_i18n::tr!("common-cancel"),
-                    ActionKind::Flat,
-                    Vec2::new(0.0, 28.0),
-                )
-                .clicked()
+                if widgets::action_button(ui, p, "x", block_i18n::tr!("common-cancel"), ActionKind::Flat, Vec2::new(0.0, 28.0)).clicked()
                     || ui.input(|i| i.key_pressed(egui::Key::Escape))
                 {
                     answer = Some(false);
@@ -1222,8 +1207,7 @@ mod tests {
         assert_eq!(commands.len(), 1);
         assert_eq!(commands[0].command, Command::Edit);
         // doToSelected asks before "rename" and "properties" too
-        let change =
-            crate::world::inventory::actions::patch(&inv, item, block_llsd::llsd_map! { "name" => "Renamed" }).expect("name edit");
+        let change = crate::world::inventory::actions::patch(&inv, item, block_llsd::llsd_map! { "name" => "Renamed" }).expect("name edit");
         assert!(ui.guard_inventory_change(&inv, change, false, false).is_none());
         assert!(matches!(
             ui.confirm,
@@ -1245,8 +1229,7 @@ mod tests {
         ));
         // the same edits outside an active listing go through
         let idle = Uuid::from_u128(8_400_101);
-        let change =
-            crate::world::inventory::actions::patch(&inv, idle, block_llsd::llsd_map! { "name" => "Renamed" }).expect("name edit");
+        let change = crate::world::inventory::actions::patch(&inv, idle, block_llsd::llsd_map! { "name" => "Renamed" }).expect("name edit");
         assert!(ui.guard_inventory_change(&inv, change, false, false).is_some());
     }
 

@@ -164,6 +164,7 @@ fn lines(c: &Ctx, filter: &str, set: Option<&str>) -> Vec<Line> {
         sort,
         |id| by_name.get(id).map(|n| n.0.clone()).unwrap_or_default(),
         |id| by_name.get(id).map(|n| n.1.clone()).unwrap_or_default(),
+        |id| crate::world::staff::is_block_team(world, id),
     );
     let order: HashMap<Uuid, usize> = friends.iter().enumerate().map(|(i, f)| (f.id, i)).collect();
     out.sort_by_key(|l| order.get(&l.friend.id).copied().unwrap_or(usize::MAX));

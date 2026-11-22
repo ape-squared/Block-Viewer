@@ -52,9 +52,9 @@ pub fn run() -> anyhow::Result<()> {
     let context = egui::Context::default();
     let theme = crate::theme::Theme::default();
     theme.apply(&context, 1.0);
-    // the system's fonts for the scripts the embedded ones lack (Japanese):
-    // a few milliseconds
-    crate::ui::fonts::fallback::wait();
+    // Embedded fonts are enough for splash labels; do not block the splash on a
+    // full system font scan (that can stall the bar near the end of startup).
+    crate::ui::fonts::fallback::start();
     crate::ui::fonts::apply(&context, "");
     let mut app = Splash {
         context,

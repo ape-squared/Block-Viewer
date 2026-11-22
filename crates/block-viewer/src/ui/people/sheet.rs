@@ -611,17 +611,7 @@ fn footer(ui: &mut egui::Ui, p: &Palette, world: &World, id: Uuid, friend: Optio
     }
     // LLInspectAvatar::enablePay
     let payable = context::can_pay_resident(world);
-    if widgets::action_button_if(
-        ui,
-        p,
-        "coin-filled",
-        block_i18n::tr!("common-pay"),
-        ActionKind::Flat,
-        size,
-        payable,
-    )
-    .clicked()
-    {
+    if widgets::action_button_if(ui, p, "coin-filled", block_i18n::tr!("common-pay"), ActionKind::Flat, size, payable).clicked() {
         context::request(ui.ctx(), CtxAction::PayResident(id));
     }
     if friend.is_some() {

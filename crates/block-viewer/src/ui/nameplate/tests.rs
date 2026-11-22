@@ -97,7 +97,7 @@ fn animated_staff_plate_lead_width_is_constant() {
     Theme::default().apply(&ctx, 1.0);
     let p = Theme::default().palette();
     let icons = crate::ui::icons::Icons::default();
-    for mark in [crate::world::staff::Mark::Linden, crate::world::staff::Mark::Aurora] {
+    for mark in [crate::world::staff::Mark::Linden, crate::world::staff::Mark::Block] {
         let mut widths = Vec::new();
         for step in 0..=2600 {
             let t = step as f64 * 0.001;

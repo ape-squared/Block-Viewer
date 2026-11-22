@@ -146,12 +146,7 @@ impl ExportWindow {
                         &mut settings.skip_transparent,
                         block_i18n::tr!("object-export-skip-transparent"),
                     );
-                    widgets::checkbox(
-                        ui,
-                        p,
-                        &mut settings.texture_params,
-                        block_i18n::tr!("object-export-texture-params"),
-                    );
+                    widgets::checkbox(ui, p, &mut settings.texture_params, block_i18n::tr!("object-export-texture-params"));
                     ui.add_enabled_ui(settings.format == Format::Collada, |ui| {
                         widgets::checkbox(ui, p, &mut settings.single_uv_map, block_i18n::tr!("object-export-single-uv"))
                             .on_hover_text(block_i18n::tr!("object-export-single-uv-tip"));

@@ -94,9 +94,7 @@ pub struct GroupData {
 impl GroupData {
     /// The members online now (OnlineStatus "Online").
     pub fn online(&self) -> impl Iterator<Item = &GroupMember> {
-        self.members
-            .values()
-            .filter(|m| m.last_seen == block_net::groups::LastSeen::Online)
+        self.members.values().filter(|m| m.last_seen == block_net::groups::LastSeen::Online)
     }
 
     /// A ban waits for the group's members and roles (mPendingBanRequest).

@@ -1116,15 +1116,7 @@ fn preset_label(s: &Settings) -> &'static str {
 /// list shows the last ones and says so, and the current choice is not
 /// called missing meanwhile.
 pub(super) fn device_combo(ui: &mut egui::Ui, id: &str, value: &mut String, devices: &[String], width: f32, listing: bool) -> (bool, bool) {
-    choice_combo(
-        ui,
-        id,
-        value,
-        devices,
-        width,
-        block_i18n::tr!("ui-options-system-default"),
-        listing,
-    )
+    choice_combo(ui, id, value, devices, width, block_i18n::tr!("ui-options-system-default"), listing)
 }
 
 /// `device_combo` whose empty choice reads `default_label`.

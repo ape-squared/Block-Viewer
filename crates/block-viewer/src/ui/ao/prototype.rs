@@ -126,20 +126,13 @@ pub fn before(ui: &mut egui::Ui, p: &Palette, state: &mut AoUi) -> bool {
             }
         }
         2 => {
-            let result = widgets::collapsing(
-                ui,
-                p,
-                "ao_design_movement_section",
-                block_i18n::tr!("movement-title"),
-                true,
-                |ui| {
-                    egui::ScrollArea::vertical()
-                        .id_salt("ao_design_movement_scroll")
-                        .max_height(210.0)
-                        .show(ui, |ui| movements(ui, p, prototype))
-                        .inner
-                },
-            );
+            let result = widgets::collapsing(ui, p, "ao_design_movement_section", block_i18n::tr!("movement-title"), true, |ui| {
+                egui::ScrollArea::vertical()
+                    .id_salt("ao_design_movement_scroll")
+                    .max_height(210.0)
+                    .show(ui, |ui| movements(ui, p, prototype))
+                    .inner
+            });
             if result.body == Some(true) {
                 choose_swimming(prototype, &mut state.state);
             }

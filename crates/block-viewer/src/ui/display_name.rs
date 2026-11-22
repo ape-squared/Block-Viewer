@@ -186,9 +186,7 @@ pub fn reply_message(status: i32, content: &block_llsd::Llsd) -> Result<String, 
     // known error tags (notifications.xml)
     let tag = content["error_tag"].to_string_value();
     let known = match tag.as_str() {
-        "SetDisplayNameBlocked" => Some(block_i18n::tr!(
-            "ui-display-name-cannot-change-your-display-name-if-you-think-this"
-        )),
+        "SetDisplayNameBlocked" => Some(block_i18n::tr!("ui-display-name-cannot-change-your-display-name-if-you-think-this")),
         "SetDisplayNameMismatch" => Some(block_i18n::tr!("ui-display-name-the-display-names-do-not-match-please-enter-them")),
         "AgentDisplayNameUpdateThresholdExceeded" => {
             Some(block_i18n::tr!("ui-display-name-you-cannot-change-your-display-name-yet-see-http"))

@@ -1121,20 +1121,13 @@ impl MiniMap {
                     }
                 } else {
                     // "View profile ▸" lists the avatars under the pointer
-                    menu::submenu(
-                        ui,
-                        p,
-                        "user-filled",
-                        block_i18n::tr!("common-view-profile"),
-                        can_show_names,
-                        |ui| {
-                            for id in &avs {
-                                if menu::item(ui, p, "user-filled", &avatar_name(world, id, opts.mini_avatar_name_format)) {
-                                    actions.push(MiniMapAction::Profile(*id));
-                                }
+                    menu::submenu(ui, p, "user-filled", block_i18n::tr!("common-view-profile"), can_show_names, |ui| {
+                        for id in &avs {
+                            if menu::item(ui, p, "user-filled", &avatar_name(world, id, opts.mini_avatar_name_format)) {
+                                actions.push(MiniMapAction::Profile(*id));
                             }
-                        },
-                    );
+                        }
+                    });
                 }
                 menu::todo(ui, p, "users-group", block_i18n::tr!("common-add-to-contact-set"));
                 if menu::item(ui, p, "zoom-in-filled", block_i18n::tr!("common-zoom-2")) {

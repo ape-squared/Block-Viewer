@@ -217,12 +217,7 @@ impl DestinationsUi {
         let height = last.map_or(first.y, |s| s.y);
         let wide = if synced { *saved } else { measured.unwrap_or(*saved) };
         let (mut widen, mut reduce) = (false, false);
-        let mut floater = Floater::new(
-            WINDOW,
-            block_i18n::tr!("toolbar-command-destinations"),
-            default.min,
-            default.size(),
-        );
+        let mut floater = Floater::new(WINDOW, block_i18n::tr!("toolbar-command-destinations"), default.min, default.size());
         floater.min_size = aurora::MIN_SIZE;
         // the mockup's panes reach the window's edges
         floater.flush_body = true;
@@ -273,12 +268,7 @@ impl DestinationsUi {
             widgets::size_floater(ctx, WINDOW, size);
         }
         let default = Rect::from_min_size((work.center() - size * 0.5).round(), size);
-        let mut floater = Floater::new(
-            WINDOW,
-            block_i18n::tr!("toolbar-command-destinations"),
-            default.min,
-            default.size(),
-        );
+        let mut floater = Floater::new(WINDOW, block_i18n::tr!("toolbar-command-destinations"), default.min, default.size());
         floater.min_size = MIN_SIZE;
         floater.show(ctx, p, open, |ui| self.contents(ui, p, env));
         if (!*open || widgets::floater_minimized(ctx, WINDOW)) && self.web.focused {
@@ -299,11 +289,7 @@ impl DestinationsUi {
             }
             ui.add_space(24.0);
             ui.vertical_centered(|ui| {
-                ui.label(
-                    RichText::new(block_i18n::tr!("destinations-unavailable"))
-                        .size(12.5)
-                        .color(p.muted),
-                );
+                ui.label(RichText::new(block_i18n::tr!("destinations-unavailable")).size(12.5).color(p.muted));
             });
             return;
         };

@@ -34,7 +34,6 @@ impl Look {
             Mark::Block => block_i18n::tr!("nameplate-block-staff"),
             Mark::Manager => block_i18n::tr!("nameplate-block-manager"),
             Mark::Tester => block_i18n::tr!("nameplate-block-tester"),
-            Mark::Aurora => block_i18n::tr!("nameplate-aurora-staff"),
             Mark::Linden => block_i18n::tr!("nameplate-linden-lab"),
         }
     }
@@ -45,7 +44,6 @@ impl Look {
             Mark::Block => block_i18n::tr!("nameplate-block-staff-tooltip"),
             Mark::Manager => block_i18n::tr!("nameplate-block-manager-tooltip"),
             Mark::Tester => block_i18n::tr!("nameplate-block-tester-tooltip"),
-            Mark::Aurora => block_i18n::tr!("nameplate-aurora-staff-tooltip"),
             Mark::Linden => block_i18n::tr!("nameplate-linden-lab-tooltip"),
         }
     }
@@ -55,7 +53,6 @@ impl Look {
     pub fn icon(&self) -> &'static str {
         match self.mark {
             Mark::Block | Mark::Manager | Mark::Tester => "box",
-            Mark::Aurora => "sparkles-filled",
             Mark::Linden => "rosette-discount-check-filled",
         }
     }
@@ -64,7 +61,6 @@ impl Look {
     pub fn letter(&self, p: &Palette, i: usize, n: usize, t: f32) -> Color32 {
         match self.mark {
             Mark::Block | Mark::Manager | Mark::Tester => block::letter_color(p, i, n, t),
-            Mark::Aurora => aurora::letter_color(p, i, n, t),
             Mark::Linden => linden::letter_color(p, self.linden, i, n, t),
         }
     }
@@ -78,7 +74,6 @@ impl Look {
     pub fn edge(&self, p: &Palette, s: f32, t: f32) -> Color32 {
         match self.mark {
             Mark::Block | Mark::Manager | Mark::Tester => block::border_color(p, s, t),
-            Mark::Aurora => aurora::border_color(p, s, t),
             Mark::Linden => linden::edge(p, self.linden, s, t),
         }
     }
@@ -87,7 +82,6 @@ impl Look {
     pub fn above(&self, mesh: &mut Mesh, p: &Palette, rect: Rect, ppp: f32, t: f32, alpha: f32) {
         match self.mark {
             Mark::Block | Mark::Manager | Mark::Tester => block::curtains(mesh, p, rect, ppp, t, alpha),
-            Mark::Aurora => aurora::curtains(mesh, p, rect, ppp, t, alpha),
             Mark::Linden => linden::stars(mesh, p, self.linden, rect, t, alpha),
         }
     }
@@ -111,10 +105,6 @@ impl Look {
             Mark::Block | Mark::Manager | Mark::Tester => {
                 let foot = Rect::from_min_size(egui::pos2(banner.left(), banner.bottom() - 1.0), banner.size());
                 block::curtains(mesh, p, foot, ppp, t, 1.0);
-            }
-            Mark::Aurora => {
-                let foot = Rect::from_min_size(egui::pos2(banner.left(), banner.bottom() - 1.0), banner.size());
-                aurora::curtains(mesh, p, foot, ppp, t, 1.0);
             }
             Mark::Linden => linden::starfield(mesh, p, self.linden, banner, t, 26.0),
         }

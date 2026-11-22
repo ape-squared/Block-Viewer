@@ -700,10 +700,7 @@ impl Editor {
                 }
                 let values = [
                     (block_i18n::text("poser-values-total"), block_i18n::text("poser-tip-values-total")),
-                    (
-                        block_i18n::text("poser-values-change"),
-                        block_i18n::text("poser-tip-values-change"),
-                    ),
+                    (block_i18n::text("poser-values-change"), block_i18n::text("poser-tip-values-change")),
                 ];
                 if let Some(i) = widgets::labelled_choice(
                     ui,

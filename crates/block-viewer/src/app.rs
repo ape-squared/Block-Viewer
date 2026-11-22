@@ -41,6 +41,7 @@ mod particle_editor;
 mod portals;
 mod poser;
 mod sound_explorer;
+mod streamer_mode;
 // Bug report form (disabled, see main.rs):
 // mod bug_report;
 mod alt_graph;
@@ -1080,6 +1081,12 @@ pub struct App {
     busy_pause: busy_pause::BusyPause,
     /// The viewer stepped back for a game (app/gaming_mode.rs).
     gaming_mode: gaming_mode::GamingMode,
+    /// Streamer mode turned fullscreen on; turning streamer off restores windowed.
+    streamer_forced_fullscreen: bool,
+    /// Streamer mode hid the chat bar; turning streamer off restores it.
+    streamer_forced_chat_hide: bool,
+    /// Streamer mode hid HUDs via show_huds; turning streamer off restores it.
+    streamer_forced_huds_off: bool,
     /// The other viewers on this PC (instances.rs).
     instances: crate::instances::Instances,
     /// The Down key's latch (FSCrouchToggle).
@@ -2233,6 +2240,9 @@ impl App {
             gpu_stall: Default::default(),
             busy_pause: Default::default(),
             gaming_mode: Default::default(),
+            streamer_forced_fullscreen: false,
+            streamer_forced_chat_hide: false,
+            streamer_forced_huds_off: false,
             instances: crate::instances::Instances::new(),
             crouch_toggle: Default::default(),
             key_to_name: Vec::new(),
@@ -2647,9 +2657,7 @@ impl App {
                 return;
             }
             match &cmd {
-                NetCommand::Build(block_net::build::BuildCmd::SetTextures { local_id, .. })
-                    if ui::color_picker::demo::mode().is_some() =>
-                {
+                NetCommand::Build(block_net::build::BuildCmd::SetTextures { local_id, .. }) if ui::color_picker::demo::mode().is_some() => {
                     log::info!("demo color ObjectImage: prim={local_id}");
                 }
                 NetCommand::TeleportTo { handle, position, look_at } => {
@@ -12156,6 +12164,9 @@ impl App {
             if self.world.movement_complete && since.elapsed() > Duration::from_millis(1500) && (terrain > 0.97 || moved > 6.0) {
                 self.screen = Screen::World;
                 self.world.notifications.started = true;
+                if self.settings.streamer_mode {
+                    self.ensure_streamer_chrome();
+                }
                 self.camera.snap();
                 // the loading screen fades out over the world
                 let mut o = TpOverlay::new(String::new(), true);
@@ -12592,12 +12603,10 @@ impl App {
                 .rlva_overlay_frames(Instant::now())
                 .into_iter()
                 .filter_map(|frame| {
-                    self.rlva_overlay_slots
-                        .get(&frame.texture)
-                        .map(|slot| block_render::OverlayEffect {
-                            color: frame.color,
-                            texture: [*slot, 0, 0, 0],
-                        })
+                    self.rlva_overlay_slots.get(&frame.texture).map(|slot| block_render::OverlayEffect {
+                        color: frame.color,
+                        texture: [*slot, 0, 0, 0],
+                    })
                 })
                 .collect(),
             rlva_spheres: self.world.rlva_sphere_frames(self.camera.position, Instant::now()),
@@ -16494,6 +16503,7 @@ impl App {
                 }
             }
             BarAction::ToggleImmersive => self.toggle_immersive(),
+            BarAction::ToggleStreamerMode => self.set_streamer_mode(!self.settings.streamer_mode),
             BarAction::ToggleGamingMode => self.toggle_gaming_mode(),
             BarAction::ImmersiveHuds(visible) => self.set_immersive_huds(visible),
             BarAction::HoverTips(menu) => {
@@ -16652,13 +16662,17 @@ impl App {
     /// Immersive mode (#859): nothing in mouselook, as Show User Interface;
     /// no question first (asked for by its own button); on, its button or
     /// the shortcut of Show User Interface leaves it. Its HUDs hidden
-    /// (#1190), entering it is leaving them.
+    /// (#1190), entering it is leaving them. Leaving also ends streamer
+    /// mode when immersive is one of its knobs.
     fn toggle_immersive(&mut self) {
         if self.camera.mouselook() {
             return;
         }
         if self.interface.immersive {
             self.interface.set_hidden(&self.egui_ctx, false);
+            if self.settings.streamer_mode && self.settings.streamer.immersive {
+                self.apply_streamer_mode(false);
+            }
         } else {
             if !self.settings.immersive_huds && !self.world.rlva_has_locked_hud() {
                 self.leave_huds();
@@ -17750,7 +17764,13 @@ impl App {
         self.options_ui.game_control = crate::game_control::View::of(&self.game_control.engine);
         self.options_ui.flycam_active = self.joystick.active;
         let before_camera = self.settings.camera.clone();
+        let before_streamer = self.settings.streamer_mode;
         let mut res = ui::options::show(ctx, p, &self.skin.icons, &mut self.settings, &mut self.options_ui, &mut open);
+        if self.settings.streamer_mode != before_streamer {
+            let on = self.settings.streamer_mode;
+            self.settings.streamer_mode = before_streamer;
+            self.apply_streamer_mode(on);
+        }
         if res.show_contacts_tab_on {
             self.dock_contacts();
         }
@@ -18343,7 +18363,7 @@ impl App {
                         ui::hud::avatar_tags(
                             self.interface.immersive,
                             self.settings.immersive_name_tags,
-                            self.settings.show_name_tags,
+                            self.settings.show_name_tags && !self.streamer_hides_name_tags(),
                         ),
                         &self.settings,
                         &mut self.name_tag_visibility,
@@ -18423,7 +18443,8 @@ impl App {
                 }
                 // the hover tips of what the pointer rested on (none in
                 // mouselook nor over a held photo)
-                if let Some(action) = self.draw_hover_tips(&ctx, &p, !self.camera.mouselook() && !bare) {
+                if let Some(action) = self.draw_hover_tips(&ctx, &p, !self.camera.mouselook() && !bare && !self.streamer_hides_hover_tips())
+                {
                     a.ctx_action = Some(action);
                 }
                 if !filming {
@@ -18508,6 +18529,8 @@ impl App {
                 self.toolbar_ui.interface_hidden = self.interface.hidden;
                 let show_balance = if self.demo {
                     ui::bars::demo::get().show_balance.unwrap_or(self.settings.show_balance)
+                } else if self.streamer_hides_balance() {
+                    false
                 } else {
                     self.settings.show_balance
                 };
@@ -18526,7 +18549,7 @@ impl App {
                     } else {
                         self.settings.show_bug_report
                     },
-                    show_huds: self.settings.show_huds,
+                    show_huds: self.settings.show_huds && !(self.streamer_on() && self.settings.streamer.hide_huds),
                     hud_zoom: self.world.hud_zoom,
                     ban_lines: self.settings.maps.ban_lines,
                     world_overlays: self.settings.world_overlays,
@@ -18580,6 +18603,7 @@ impl App {
                     quickjump: self.settings.quickjump,
                     friends_only: self.world.friends_only(),
                     show_name_tags: self.settings.show_name_tags,
+                    streamer_mode: self.settings.streamer_mode,
                     fly_override: self.world.fly_override,
                     quiet_snapshots: !self.settings.snapshot.sound,
                     animation_speed: self.scene.animation_speed,
@@ -19230,7 +19254,7 @@ impl App {
                         let picture = ui::crosshair::picture(&ctx, crosshair);
                         ui::crosshair::draw(&painter, c, crosshair, picture.as_ref());
                     }
-                    if self.settings.camera.show_mouselook_instructions {
+                    if self.settings.camera.show_mouselook_instructions && !self.streamer_hides_mouselook_esc() {
                         // LLViewerWindow::drawMouselookInstructions: the way
                         // out, half transparent above the bottom bar (the
                         // hidden cursor cannot reach its button)
@@ -20208,8 +20232,8 @@ impl App {
                 // in do not disturb only the script menus come out, in both
                 // styles (#491)
                 let aurora = self.notifications_aurora();
-                let dnd = self.world.status.dnd;
-                let toasts_hidden = self.camera.mouselook() || self.photo_full_frame();
+                let dnd = self.world.status.dnd || self.streamer_suppresses_toasts();
+                let toasts_hidden = self.camera.mouselook() || self.photo_full_frame() || self.streamer_suppresses_toasts();
                 self.world.notifications.aurora = aurora;
                 // #465: a friendship offer in the middle of the screen, before
                 // the toasts it replaces (AURORA_DEMO_FRIEND_PROMPT: on for the run)
@@ -20693,6 +20717,7 @@ impl App {
                 self.toolbar_ui.photo_roll_empty = self.snapshots.reel.reel.is_empty();
                 self.toolbar_ui.photo_roll_active = self.snapshots.reel.quick.is_open();
                 self.toolbar_ui.gaming_mode_active = self.gaming_mode.on;
+                self.toolbar_ui.streamer_mode_active = self.settings.streamer_mode;
                 self.toolbar_ui.shown = ui::toolbar::Shown {
                     profile: self.profile_ui.mine_shown(self.world.agent_id),
                     build: self.build.open,

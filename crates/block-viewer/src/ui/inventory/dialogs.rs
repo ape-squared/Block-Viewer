@@ -1123,10 +1123,7 @@ fn animation(
                             })
                             .to_string()
                         ));
-                        ui.label(block_i18n::tr!(
-                            "ui-inventory-dialogs-joints",
-                            value0 = format!("{}", stats.joints)
-                        ));
+                        ui.label(block_i18n::tr!("ui-inventory-dialogs-joints", value0 = format!("{}", stats.joints)));
                         ui.end_row();
                     });
             } else {

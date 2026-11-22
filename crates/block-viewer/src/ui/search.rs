@@ -25,9 +25,7 @@ use super::widgets::{self, ActionKind, Floater};
 use crate::settings::ClockZone;
 use crate::theme::Palette;
 use crate::world::search::{Key, List, RatingBoxes, Request, Row, RowIcon, SearchSettings, Status, Tab, Value};
-use block_net::search::{
-    AgentAccess, EventsMode, LandFilter, LandKind, LandSort, PLACE_CATEGORY_ANY, SIM_ACCESS_ADULT, SIM_ACCESS_MATURE,
-};
+use block_net::search::{AgentAccess, EventsMode, LandFilter, LandKind, LandSort, PLACE_CATEGORY_ANY, SIM_ACCESS_ADULT, SIM_ACCESS_MATURE};
 use egui::{Rect, RichText, Sense, Vec2};
 use glam::DVec3;
 use std::collections::{HashMap, HashSet};

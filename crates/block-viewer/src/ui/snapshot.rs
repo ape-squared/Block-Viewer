@@ -557,12 +557,7 @@ impl SnapshotUi {
                 block_i18n::tr!("photo-email-to-hint"),
                 usize::MAX,
             ),
-            (
-                block_i18n::tr!("photo-email-from"),
-                &mut form.name,
-                &mail.sender,
-                POSTCARD_NAME_MAX,
-            ),
+            (block_i18n::tr!("photo-email-from"), &mut form.name, &mail.sender, POSTCARD_NAME_MAX),
             (
                 block_i18n::tr!("photo-email-subject"),
                 &mut form.subject,
@@ -1170,16 +1165,7 @@ fn pano_qualities(ui: &mut egui::Ui, p: &Palette, s: &mut Settings) {
         ui.spacing_mut().item_spacing = Vec2::new(4.0, 4.0);
         for q in Quality::ALL {
             let sub = q.output().0.to_string();
-            if chip(
-                ui,
-                p,
-                block_i18n::text(q.label_key()),
-                Some(&sub),
-                s.capture_360.quality == q,
-                true,
-            )
-            .clicked()
-            {
+            if chip(ui, p, block_i18n::text(q.label_key()), Some(&sub), s.capture_360.quality == q, true).clicked() {
                 s.capture_360.quality = q;
             }
         }

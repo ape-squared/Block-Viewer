@@ -689,10 +689,7 @@ fn wind_rows(ui: &mut egui::Ui, p: &Palette, w: &mut WeatherSettings) {
                 slider_row(
                     ui,
                     p,
-                    (
-                        block_i18n::tr!("ui-weather-wind-from"),
-                        block_i18n::tr!("ui-weather-wind-from-tip"),
-                    ),
+                    (block_i18n::tr!("ui-weather-wind-from"), block_i18n::tr!("ui-weather-wind-from-tip")),
                     &from,
                     None,
                     egui::Slider::new(&mut w.wind_from, 0.0..=355.0).step_by(f64::from(DIRECTION_STEP)),
@@ -781,42 +778,35 @@ fn thunder_card(ui: &mut egui::Ui, p: &Palette, w: &mut WeatherSettings) {
             on: &mut on,
             tip: block_i18n::tr!("ui-weather-thunder-tip"),
         };
-        card(
-            ui,
-            p,
-            "bolt-filled",
-            block_i18n::tr!("ui-weather-thunder"),
-            Some(head),
-            |ui, on| {
-                w.thunder = on;
-                let note = if snowing {
-                    block_i18n::tr!("ui-weather-thunder-snow-note")
+        card(ui, p, "bolt-filled", block_i18n::tr!("ui-weather-thunder"), Some(head), |ui, on| {
+            w.thunder = on;
+            let note = if snowing {
+                block_i18n::tr!("ui-weather-thunder-snow-note")
+            } else {
+                block_i18n::tr!("ui-weather-thunder-tip")
+            };
+            ui.add(egui::Label::new(RichText::new(note).size(VALUE_SIZE).color(p.muted)).wrap());
+            ui.add_enabled_ui(w.thunder, |ui| {
+                let often = if w.thunder_frequency < 0.25 {
+                    block_i18n::tr!("ui-weather-strikes-seldom")
+                } else if w.thunder_frequency < 0.7 {
+                    block_i18n::tr!("ui-weather-strikes-storm")
                 } else {
-                    block_i18n::tr!("ui-weather-thunder-tip")
+                    block_i18n::tr!("ui-weather-strikes-often")
                 };
-                ui.add(egui::Label::new(RichText::new(note).size(VALUE_SIZE).color(p.muted)).wrap());
-                ui.add_enabled_ui(w.thunder, |ui| {
-                    let often = if w.thunder_frequency < 0.25 {
-                        block_i18n::tr!("ui-weather-strikes-seldom")
-                    } else if w.thunder_frequency < 0.7 {
-                        block_i18n::tr!("ui-weather-strikes-storm")
-                    } else {
-                        block_i18n::tr!("ui-weather-strikes-often")
-                    };
-                    slider_row(
-                        ui,
-                        p,
-                        (block_i18n::tr!("ui-weather-strikes"), block_i18n::tr!("ui-weather-strikes-tip")),
-                        often,
-                        Some((
-                            block_i18n::tr!("ui-weather-strikes-seldom"),
-                            block_i18n::tr!("ui-weather-strikes-often"),
-                        )),
-                        egui::Slider::new(&mut w.thunder_frequency, 0.0..=1.0),
-                    );
-                });
-            },
-        );
+                slider_row(
+                    ui,
+                    p,
+                    (block_i18n::tr!("ui-weather-strikes"), block_i18n::tr!("ui-weather-strikes-tip")),
+                    often,
+                    Some((
+                        block_i18n::tr!("ui-weather-strikes-seldom"),
+                        block_i18n::tr!("ui-weather-strikes-often"),
+                    )),
+                    egui::Slider::new(&mut w.thunder_frequency, 0.0..=1.0),
+                );
+            });
+        });
     });
 }
 

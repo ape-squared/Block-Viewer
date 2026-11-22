@@ -314,11 +314,7 @@ fn show_impl(ctx: &Context, p: &Palette, icons: &Icons, settings: &mut Settings,
                     ui.set_width(width - 20.0);
                     ui.horizontal(|ui| {
                         widgets::glyph(ui, "alert-triangle-filled", p.warn, 22.0);
-                        ui.label(
-                            RichText::new(block_i18n::tr!("login-accounts-confirm-title"))
-                                .strong()
-                                .color(p.ink),
-                        );
+                        ui.label(RichText::new(block_i18n::tr!("login-accounts-confirm-title")).strong().color(p.ink));
                     });
                     ui.label(match pending.action {
                         Action::Password => block_i18n::tr!("login-accounts-confirm-password", name = pending.account.username.as_str()),
@@ -326,15 +322,9 @@ fn show_impl(ctx: &Context, p: &Palette, icons: &Icons, settings: &mut Settings,
                         Action::Remove => block_i18n::tr!("login-accounts-confirm-remove", name = pending.account.username.as_str()),
                     });
                     ui.horizontal(|ui| {
-                        cancel = widgets::action_button(
-                            ui,
-                            p,
-                            "x",
-                            block_i18n::tr!("common-cancel"),
-                            ActionKind::Flat,
-                            Vec2::new(0.0, 32.0),
-                        )
-                        .clicked();
+                        cancel =
+                            widgets::action_button(ui, p, "x", block_i18n::tr!("common-cancel"), ActionKind::Flat, Vec2::new(0.0, 32.0))
+                                .clicked();
                         confirmed = widgets::action_button(
                             ui,
                             p,
@@ -363,15 +353,8 @@ fn show_impl(ctx: &Context, p: &Palette, icons: &Icons, settings: &mut Settings,
                         .color(p.muted),
                 );
                 ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
-                    close = widgets::action_button(
-                        ui,
-                        p,
-                        "x",
-                        block_i18n::tr!("common-close"),
-                        ActionKind::Flat,
-                        Vec2::new(90.0, 32.0),
-                    )
-                    .clicked();
+                    close = widgets::action_button(ui, p, "x", block_i18n::tr!("common-close"), ActionKind::Flat, Vec2::new(90.0, 32.0))
+                        .clicked();
                 });
             });
         });

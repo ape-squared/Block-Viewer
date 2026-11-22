@@ -629,11 +629,15 @@ fn marks(env: &Env<'_>, key: &MarksKey) -> Mesh {
     let (l, s, ppp) = (&key.layout, key.scale, key.pixels_per_point);
     let mut mesh = Mesh::default();
     if let Some(photo) = l.photo {
-        let disc = Outline::circle(photo.center, photo.radius, ppp);
+        // Squared profile picture matching the plate's boxed corners.
+        let rect = Rect::from_center_size(photo.center, Vec2::splat(photo.radius * 2.0));
+        let corner = (photo.radius * 0.28).clamp(2.5, 6.0);
+        let frame = Outline::rounded(rect, corner, ppp);
         if key.placeholder {
-            disc.dot(&mut mesh, p.raised);
+            let fill = frame.ring(&mut mesh, -0.5, p.raised);
+            frame.fill(&mut mesh, fill, p.raised);
         }
-        disc.stroke(&mut mesh, 2.0 * s, p.ink.gamma_multiply(0.22));
+        frame.stroke(&mut mesh, 2.0 * s, p.ink.gamma_multiply(0.22));
     }
     if let (Some(dot), Some(presence)) = (l.dot, key.dot) {
         use crate::ui::presence::Shape as Mark;
@@ -711,7 +715,9 @@ fn contents(
     if let (Some(photo), Some(texture)) = (l.photo, picture) {
         let mut mesh = Mesh::with_texture(texture.id());
         let tint = ink(crate::ui::widgets::PICTURE_TINT);
-        Outline::circle(photo.center + origin, photo.radius, ppp).picture(&mut mesh, cover(texture.size()), tint);
+        let rect = Rect::from_center_size(photo.center + origin, Vec2::splat(photo.radius * 2.0));
+        let corner = (photo.radius * 0.28).clamp(2.5, 6.0);
+        Outline::rounded(rect, corner, ppp).picture(&mut mesh, cover(texture.size()), tint);
         painter.add(Shape::mesh(mesh));
     }
     // the placeholder's disc, then the rings, discs and bars that lie over

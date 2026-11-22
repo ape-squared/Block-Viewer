@@ -313,6 +313,8 @@ pub struct ToolbarUi {
     pub photo_roll_active: bool,
     /// Gaming mode is on (app/gaming_mode.rs).
     pub gaming_mode_active: bool,
+    /// Streamer mode is on (app/streamer_mode.rs).
+    pub streamer_mode_active: bool,
     /// The nearby chat bar is shown (MainChatbarVisible).
     pub chat_bar_active: bool,
     /// The windows the app opens itself, for their buttons' highlight.
@@ -614,21 +616,13 @@ fn align_rows(bar: Bar) -> [(Align, &'static str, &'static str); 3] {
     if bar.vertical() {
         [
             (Align::Start, "layout-align-top-filled", block_i18n::tr!("toolbar-align-top")),
-            (
-                Align::Center,
-                "layout-align-middle-filled",
-                block_i18n::tr!("toolbar-align-middle"),
-            ),
+            (Align::Center, "layout-align-middle-filled", block_i18n::tr!("toolbar-align-middle")),
             (Align::End, "layout-align-bottom-filled", block_i18n::tr!("toolbar-align-bottom")),
         ]
     } else {
         [
             (Align::Start, "layout-align-left-filled", block_i18n::tr!("toolbar-align-left")),
-            (
-                Align::Center,
-                "layout-align-center-filled",
-                block_i18n::tr!("toolbar-align-center"),
-            ),
+            (Align::Center, "layout-align-center-filled", block_i18n::tr!("toolbar-align-center")),
             (Align::End, "layout-align-right-filled", block_i18n::tr!("toolbar-align-right")),
         ]
     }

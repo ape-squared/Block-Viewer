@@ -727,11 +727,7 @@ fn value(ui: &mut egui::Ui, p: &Palette, text: impl Into<String>) -> egui::Respo
 /// What the header shows of the owner's capacity: "10 500 / 15 000" and
 /// "4 500 free" (or how many are over).
 pub(super) fn objects_fact(used: i32, max: i32) -> (String, String) {
-    let main = format!(
-        "{} / {}",
-        block_i18n::integer(i64::from(used)),
-        block_i18n::integer(i64::from(max))
-    );
+    let main = format!("{} / {}", block_i18n::integer(i64::from(used)), block_i18n::integer(i64::from(max)));
     let left = max - used;
     let rest = if left >= 0 {
         block_i18n::tr!(

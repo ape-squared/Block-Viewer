@@ -104,10 +104,7 @@ impl Inspector {
         for level in (0..4).rev() {
             let models: Vec<_> = prepared.lods.iter().filter_map(|lods| lods[level].as_ref()).collect();
             let triangles: usize = models.iter().map(|model| model.triangles()).sum();
-            self.push(
-                block_i18n::tr!("import-log-lod-ready", level = level, triangles = triangles),
-                false,
-            );
+            self.push(block_i18n::tr!("import-log-lod-ready", level = level, triangles = triangles), false);
             if self.verbose {
                 for model in models {
                     let vertices: usize = model.faces.iter().map(|face| face.vertices.len()).sum();

@@ -1406,6 +1406,11 @@ pub struct Settings {
     /// FSShowCurrencyBalanceInStatusbar, on by default; #1340): hidden, it
     /// stays out of sight on a stream.
     pub show_balance: bool,
+    /// Streamer / creator capture mode master switch. What it changes is
+    /// chosen in [`StreamerSettings`].
+    pub streamer_mode: bool,
+    /// Which chrome Streamer mode turns on or suppresses.
+    pub streamer: StreamerSettings,
     /// People › Near you as Firestorm's radar table (`ui/people/radar.rs`)
     /// instead of the rows grouped by range and the sheet of
     /// `ui/people/nearby.rs`.
@@ -2324,6 +2329,39 @@ impl Default for AudioSettings {
     }
 }
 
+/// What Streamer mode applies while the master switch is on. Defaults are a
+/// clean capture layout; each knob can be turned off.
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[serde(default)]
+pub struct StreamerSettings {
+    pub immersive: bool,
+    pub fullscreen: bool,
+    pub hide_balance: bool,
+    pub hide_hover_tips: bool,
+    pub hide_name_tags: bool,
+    pub hide_mouselook_esc: bool,
+    pub hide_huds: bool,
+    pub hide_chat_bar: bool,
+    /// Hold notification toasts (like Do Not Disturb for capture).
+    pub suppress_toasts: bool,
+}
+
+impl Default for StreamerSettings {
+    fn default() -> Self {
+        Self {
+            immersive: true,
+            fullscreen: true,
+            hide_balance: true,
+            hide_hover_tips: true,
+            hide_name_tags: true,
+            hide_mouselook_esc: true,
+            hide_huds: false,
+            hide_chat_bar: false,
+            suppress_toasts: false,
+        }
+    }
+}
+
 /// VoiceEarLocation and MediaSoundsEarLocation (panel_preferences_sound.xml):
 /// the same two choices for voice and for sounds and media.
 #[derive(Debug, Clone, Copy, Default, Serialize, Deserialize, PartialEq, Eq)]
@@ -2681,6 +2719,8 @@ impl Default for Settings {
             immersive_huds: true,
             show_net_stats: false,
             show_balance: true,
+            streamer_mode: false,
+            streamer: StreamerSettings::default(),
             classic_people: false,
             classic_restart_alert: false,
             classic_chat_lines: false,

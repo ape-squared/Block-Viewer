@@ -234,10 +234,7 @@ fn poll_dialog(st: &mut SpellingPage) {
             st.dialog = None;
             let mut lists = crate::autoreplace::lists().as_ref().clone();
             list.name = crate::autoreplace::unique_name(&lists, &list.name);
-            st.message = Some((
-                false,
-                block_i18n::tr!("ui-options-auto-replace-imported", name = list.name.clone()),
-            ));
+            st.message = Some((false, block_i18n::tr!("ui-options-auto-replace-imported", name = list.name.clone())));
             lists.push(list);
             st.list = lists.len() - 1;
             crate::autoreplace::set_lists(lists);

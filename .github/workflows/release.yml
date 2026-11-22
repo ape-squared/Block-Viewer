@@ -207,15 +207,15 @@ jobs:
         if: env.TAG != 'dry-run'
         continue-on-error: true
         env:
-          WEBHOOK: ${{ secrets.DISCORD_RELEASES_WEBHOOK }}
-          TESTER_ROLE: ${{ secrets.DISCORD_TESTER_ROLE_ID }}
+          WEBHOOK: ${{ secrets.DISCORD_RELEASES_WEBHOOK || vars.DISCORD_RELEASES_WEBHOOK }}
+          TESTER_ROLE: ${{ secrets.DISCORD_TESTER_ROLE_ID || vars.DISCORD_TESTER_ROLE_ID }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GH_REPO: ${{ github.repository }}
           TAG: ${{ env.TAG }}
         run: |
           set -euo pipefail
           if [ -z "${WEBHOOK:-}" ]; then
-            echo "DISCORD_RELEASES_WEBHOOK secret is missing; skipping Discord notify" >&2
+            echo "::warning::Discord notify skipped — set repo secret or variable DISCORD_RELEASES_WEBHOOK (releases channel webhook)" >&2
             exit 0
           fi
           export RELEASE_JSON="$(gh release view "$TAG" --repo "$GH_REPO" --json tagName,name,body,htmlUrl,prerelease,publishedAt,assets)"

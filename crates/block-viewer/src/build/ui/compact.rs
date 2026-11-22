@@ -234,10 +234,7 @@ pub(super) fn manipulation_choice(
             block_i18n::tr!("build-compact-stretch"),
             block_i18n::tr!("build-compact-mode-stretch"),
         ),
-        EditMode::Align => (
-            block_i18n::tr!("build-compact-align"),
-            block_i18n::tr!("build-compact-mode-align"),
-        ),
+        EditMode::Align => (block_i18n::tr!("build-compact-align"), block_i18n::tr!("build-compact-mode-align")),
         EditMode::Face => return,
     };
     let mut active = tool.effective_mode(mods) == mode;

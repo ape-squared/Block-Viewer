@@ -15,6 +15,7 @@ mod carousel;
 mod chrome;
 mod credentials_form;
 mod derez;
+mod destinations;
 mod driver_notice;
 mod fade;
 mod layout;
@@ -431,6 +432,12 @@ pub(super) fn demo_open_start_menu(ui: &egui::Ui, salt: &str, favorites: &StartF
 /// comes first and stays chosen until another entry is, as the Legacy
 /// Viewer's location combo shows the start SLURL
 /// (FSPanelLogin::onUpdateStartSLURL).
+/// Favourites cached for the account matching the typed username.
+pub(super) fn login_favorites_for(settings: &Settings, store: &crate::login_favorites::Store) -> Vec<crate::login_favorites::Favorite> {
+    let key = crate::login_favorites::key(&settings.login_uri(), &settings.username);
+    store.favorites(&key).to_vec()
+}
+
 pub(super) fn start_menu(
     ui: &mut egui::Ui,
     combo: egui::ComboBox,
@@ -1082,9 +1089,21 @@ pub fn show(
             .rect;
         });
 
-    // ---- version + news (right)
+    // ---- version + destinations (right)
     if wide {
-        if chrome::sidebar(&ctx, p, icons, info, login_card, 330.0, lowest) {
+        let favorites = login_favorites_for(settings, &form.favorites);
+        if chrome::sidebar(
+            &ctx,
+            p,
+            icons,
+            info,
+            login_card,
+            330.0,
+            lowest,
+            &mut settings.start_location,
+            &mut form.start_slurl,
+            &favorites,
+        ) {
             action = LoginAction::CheckUpdates;
         }
     } else if info.can_check_updates {
@@ -1458,7 +1477,7 @@ mod tests {
                 );
                 output.textures_delta.clear();
             }
-            let (block, news, quit) = (rect("login_area"), rect("login_news"), rect("login_quit"));
+            let (block, news, quit) = (rect("login_area"), rect("login_destinations"), rect("login_quit"));
             assert!(block.top() >= BAR_GAP - 0.5, "{size:?}: the brand stays in the window ({block:?})");
             assert!(
                 block.bottom() <= quit.top(),
@@ -1516,7 +1535,7 @@ mod tests {
                 cog.right() <= size.x - 20.0 && cog.right() >= size.x - 30.0 && cog.top() <= 25.0,
                 "{size:?}: top right corner ({cog:?})"
             );
-            for other in ["login_check_updates", "login_news", "login_version", "login_area"] {
+            for other in ["login_check_updates", "login_destinations", "login_version", "login_area"] {
                 if let Some(r) = rect(other) {
                     assert!(!r.intersects(cog), "{size:?}: {other} {r:?} under the cogwheel {cog:?}");
                 }
@@ -1547,7 +1566,7 @@ mod tests {
                 "{size:?}: left of the cogwheel ({access:?}, {cog:?})"
             );
             assert_eq!(access.size(), cog.size(), "{size:?}: the cogwheel's size");
-            for other in ["login_check_updates", "login_news", "login_version", "login_area"] {
+            for other in ["login_check_updates", "login_destinations", "login_version", "login_area"] {
                 if let Some(r) = rect(other) {
                     assert!(
                         !r.intersects(access),

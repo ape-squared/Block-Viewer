@@ -335,13 +335,7 @@ pub(super) fn toolbar(
         // only, or to a god (`ImageView::copy_uuid_allowed`); Save As needs
         // full permissions (both through `gates`)
         let gates = gates(rules::held(inventory, item), copy_uuid);
-        if widgets::icon_button(
-            ui,
-            p,
-            "copy-filled",
-            block_i18n::tr!("resource-preview-copy-uuid"),
-            gates.copy_uuid,
-        ) {
+        if widgets::icon_button(ui, p, "copy-filled", block_i18n::tr!("resource-preview-copy-uuid"), gates.copy_uuid) {
             ui.ctx().copy_text(item.asset_id.to_string());
         }
         ui.add_enabled_ui(gates.save_as, |ui| {

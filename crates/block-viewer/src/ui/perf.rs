@@ -715,10 +715,7 @@ pub(crate) fn gpu_part_names() -> [(&'static str, &'static str); GpuElement::ALL
             block_i18n::tr!("ui-perf-transparent-objects-and-particles"),
             block_i18n::tr!("ui-perf-semi-transparent-faces-and-particles"),
         ),
-        GpuElement::Weather => (
-            block_i18n::tr!("ui-perf-weather"),
-            block_i18n::tr!("ui-perf-rain-and-wet-surfaces"),
-        ),
+        GpuElement::Weather => (block_i18n::tr!("ui-perf-weather"), block_i18n::tr!("ui-perf-rain-and-wet-surfaces")),
         GpuElement::Post => (
             block_i18n::tr!("ui-perf-post-processing"),
             block_i18n::tr!("ui-perf-glow-anti-aliasing-taa-smaa-tone-mapping"),

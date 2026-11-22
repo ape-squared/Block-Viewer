@@ -61,11 +61,7 @@ pub(super) fn show(ui: &mut egui::Ui, p: &Palette, s: &mut LandUi, v: &View, wor
         },
     );
     line(ui, block_i18n::tr!("ui-land-objects-parcel-capacity"), max.to_string());
-    line(
-        ui,
-        block_i18n::tr!("ui-land-objects-parcel-impact"),
-        parcel.total_prims.to_string(),
-    );
+    line(ui, block_i18n::tr!("ui-land-objects-parcel-impact"), parcel.total_prims.to_string());
 
     let can_owned = v.can(powers::LAND_RETURN_GROUP_OWNED);
     let can_group = v.can(powers::LAND_RETURN_GROUP_SET);

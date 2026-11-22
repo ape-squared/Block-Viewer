@@ -38,16 +38,9 @@ fn list(ui: &mut egui::Ui, c: &mut Ctx, _data: &super::RadarData, st: &mut Peopl
     ui.allocate_ui_with_layout(line, egui::Layout::right_to_left(egui::Align::Center), |ui| {
         ui.spacing_mut().item_spacing.x = 6.0;
         let size = Vec2::new(0.0, rows::TOOLBAR_H);
-        if widgets::action_button(
-            ui,
-            p,
-            "world-search",
-            block_i18n::tr!("people-groups-join"),
-            ActionKind::Flat,
-            size,
-        )
-        .on_hover_text(block_i18n::tr!("people-groups-join-tip"))
-        .clicked()
+        if widgets::action_button(ui, p, "world-search", block_i18n::tr!("people-groups-join"), ActionKind::Flat, size)
+            .on_hover_text(block_i18n::tr!("people-groups-join-tip"))
+            .clicked()
         {
             c.actions.push(PeopleAction::SearchGroups);
         }

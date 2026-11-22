@@ -101,11 +101,11 @@ use crate::frame_par::{self, Grain};
 use crate::world::World;
 use crate::world::objects::{Object, ObjectStore};
 use crate::world::terrain::{self, CHUNK_CELLS, Composition};
+use avatar::AvatarLibrary;
 use block_net::NetClient;
 use block_prim::te::TextureFace;
 use block_render::gpu_cull::{CullFace, CullObject, FACE_FIRST, GpuCullView, NO_OBJECT, avatar_state, object_flags};
 use block_render::{DrawCmd, DrawLists, DrawRecord, MeshAlloc, Renderer, ShadowCaster, flags};
-use avatar::AvatarLibrary;
 use glam::{Mat4, Quat, Vec3, Vec4};
 use jobs::{AlphaKind, JobResult, Jobs};
 use meshes::{MaterialStreamer, MeshStreamer};
@@ -2028,12 +2028,8 @@ impl Scene {
                 self.jobs.spawn_or(
                     move || {
                         let sim = block_prim::flexible::Flexible::new(0, 1.0, Vec3::ZERO, Quat::IDENTITY);
-                        let mesh = block_prim::volume::generate_flexible_volume(
-                            &params,
-                            detail,
-                            &sim.path(Vec3::ZERO, Quat::IDENTITY),
-                            Vec3::ONE,
-                        );
+                        let mesh =
+                            block_prim::volume::generate_flexible_volume(&params, detail, &sim.path(Vec3::ZERO, Quat::IDENTITY), Vec3::ONE);
                         JobResult::geometry(key, jobs::volume_to_faces(&mesh), (1.0, 0.0), pool.as_deref())
                     },
                     failed,

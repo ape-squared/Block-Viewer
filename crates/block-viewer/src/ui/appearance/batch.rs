@@ -265,12 +265,7 @@ fn hd_total_ui(ui: &mut egui::Ui, p: &Palette, s: &mut PortraitSettings, hd: &Hd
             let text = block_i18n::tr!("ui-appearance-batch-hd-short", total = total, balance = hd.balance.unwrap_or(0));
             portrait::note(ui, p, "alert-triangle-filled", &text);
         }
-        HdOffer::Unknown => portrait::note(
-            ui,
-            p,
-            "alert-triangle-filled",
-            block_i18n::tr!("ui-appearance-portrait-hd-unknown"),
-        ),
+        HdOffer::Unknown => portrait::note(ui, p, "alert-triangle-filled", block_i18n::tr!("ui-appearance-portrait-hd-unknown")),
         HdOffer::Ready(_) if on => {
             let mut text = block_i18n::tr!("ui-appearance-batch-hd-about").to_string();
             if let Some(balance) = &balance {

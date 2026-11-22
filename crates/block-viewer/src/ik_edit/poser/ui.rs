@@ -596,8 +596,7 @@ impl Editor {
             });
         });
         crate::ui::widgets::search_text_edit(ui, p, &mut self.poser.storage.filter, |edit| {
-            edit.hint_text(block_i18n::tr!("poser-library-search"))
-                .desired_width(f32::INFINITY)
+            edit.hint_text(block_i18n::tr!("poser-library-search")).desired_width(f32::INFINITY)
         });
         let filter = self.poser.storage.filter.clone();
         let scroll_to = std::mem::take(&mut self.poser.storage.scroll_to_selected) || widgets::search_cleared(ui);

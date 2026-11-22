@@ -579,14 +579,7 @@ fn look(ui: &mut egui::Ui, p: &Palette, world: &mut World, st: &mut ContactsUi, 
         v.size = [PlateSize::Inherit, PlateSize::Expanded, PlateSize::Reduced][i];
     }
     ui.add_space(6.0);
-    ui.add(
-        egui::Label::new(
-            RichText::new(block_i18n::tr!("contact-visual-size-hint"))
-                .size(11.0)
-                .color(p.muted),
-        )
-        .wrap(),
-    );
+    ui.add(egui::Label::new(RichText::new(block_i18n::tr!("contact-visual-size-hint")).size(11.0).color(p.muted)).wrap());
     world.contact_sets.set_visuals(set, v);
 }
 

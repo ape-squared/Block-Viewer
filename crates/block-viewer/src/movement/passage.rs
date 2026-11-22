@@ -127,10 +127,6 @@ mod tests {
     #[test]
     fn refusals_say_why() {
         assert_ne!(Refusal::NotAllowed.message(), Refusal::Unknown.message());
-        assert!(
-            Refusal::NotAllowed
-                .message()
-                .contains(&*block_i18n::tr!("movement-pass-no-rights"))
-        );
+        assert!(Refusal::NotAllowed.message().contains(&*block_i18n::tr!("movement-pass-no-rights")));
     }
 }

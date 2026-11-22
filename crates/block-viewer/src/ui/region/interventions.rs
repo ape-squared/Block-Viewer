@@ -531,11 +531,7 @@ fn show_dialog(
                     if widgets::radio(ui, p, *target == Some(Home::Everyone), everyone.as_str()).clicked() {
                         *target = Some(Home::Everyone);
                     }
-                    ui.label(
-                        RichText::new(block_i18n::tr!("region-int-home-all-desc"))
-                            .size(11.5)
-                            .color(p.muted),
-                    );
+                    ui.label(RichText::new(block_i18n::tr!("region-int-home-all-desc")).size(11.5).color(p.muted));
                 });
                 ui.add_space(2.0);
                 if ui

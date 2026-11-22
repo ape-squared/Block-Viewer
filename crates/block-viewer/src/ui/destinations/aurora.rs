@@ -841,9 +841,7 @@ impl AuroraState {
         ui.add_space(4.0);
         if ui
             .add(egui::Link::new(
-                RichText::new(block_i18n::tr!("common-about-land"))
-                    .size(12.0)
-                    .color(p.violet_light),
+                RichText::new(block_i18n::tr!("common-about-land")).size(12.0).color(p.violet_light),
             ))
             .clicked()
         {

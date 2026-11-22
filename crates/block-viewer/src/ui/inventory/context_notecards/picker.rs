@@ -92,13 +92,7 @@ impl Picker {
             egui::vec2(440.0, 480.0),
         )
         .show(ctx, p, &mut open, |ui| {
-            let filter = widgets::search_field(
-                ui,
-                p,
-                query,
-                block_i18n::tr!("build-layout-filter-notecards"),
-                ui.available_width(),
-            );
+            let filter = widgets::search_field(ui, p, query, block_i18n::tr!("build-layout-filter-notecards"), ui.available_width());
             if !self.focus {
                 filter.request_focus();
                 self.focus = true;

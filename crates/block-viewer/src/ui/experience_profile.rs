@@ -12,9 +12,7 @@ use super::texture_picker::TexturePicker;
 use super::widgets::{self, ActionKind, Floater, action_button_if, flat_button};
 use crate::theme::Palette;
 use crate::world::World;
-use block_net::experience::{
-    ExperienceDetails, ExperienceEdit, ExperiencePermission, ExperiencePermissionChange, MATURITIES, update_body,
-};
+use block_net::experience::{ExperienceDetails, ExperienceEdit, ExperiencePermission, ExperiencePermissionChange, MATURITIES, update_body};
 use egui::{RichText, Vec2};
 use std::collections::{HashMap, HashSet};
 use uuid::Uuid;

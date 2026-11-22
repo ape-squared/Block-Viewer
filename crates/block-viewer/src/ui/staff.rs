@@ -162,7 +162,7 @@ mod tests {
         crate::theme::Theme::default().apply(&ctx, 1.0);
         ctx.all_styles_mut(|style| style.animation_time = 0.2);
         let p = crate::theme::Theme::default().palette();
-        for mark in [Mark::Linden, Mark::Aurora] {
+        for mark in [Mark::Linden, Mark::Block] {
             let mut widths = Vec::new();
             for step in 0..=2600 {
                 let t = step as f64 * 0.001;

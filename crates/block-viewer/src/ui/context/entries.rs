@@ -680,12 +680,7 @@ fn sound_block_items(ui: &mut Builder, f: &Facts, owner: Uuid) {
 /// People menus, which Aurora keeps as they are).
 fn avatar_social_items(ui: &mut Builder, f: &Facts, id: Uuid) {
     let named = !f.name_hidden;
-    ui.item_if(
-        "user-filled",
-        block_i18n::tr!("common-view-profile"),
-        named,
-        CtxAction::Profile(id),
-    );
+    ui.item_if("user-filled", block_i18n::tr!("common-view-profile"), named, CtxAction::Profile(id));
     avatar_navigation(ui, f, id);
     ui.item_if(
         "user-plus",
@@ -750,11 +745,7 @@ fn avatar_groups(ui: &mut Builder, f: &Facts, id: Uuid, attachment: Option<Uuid>
         block_i18n::tr!("common-look-toward-avatar"),
         CtxAction::LookAtAvatar(id),
     );
-    ui.item(
-        "zoom-in-filled",
-        block_i18n::tr!("common-zoom-2"),
-        CtxAction::Zoom(point, Some(id)),
-    );
+    ui.item("zoom-in-filled", block_i18n::tr!("common-zoom-2"), CtxAction::Zoom(point, Some(id)));
     ui.item_if(
         "coin-filled",
         block_i18n::tr!("common-pay"),
@@ -1253,11 +1244,7 @@ fn land_menu(ui: &mut Builder, f: &Facts, point: Vec3) {
         block_i18n::tr!("ui-context-buy-this-land"),
         CtxAction::BuyLand(point),
     );
-    ui.item(
-        "ticket-filled",
-        block_i18n::tr!("ui-context-buy-access"),
-        CtxAction::BuyPass(point),
-    );
+    ui.item("ticket-filled", block_i18n::tr!("ui-context-buy-access"), CtxAction::BuyPass(point));
     ui.separator();
     ui.item_if("box", block_i18n::tr!("common-build"), !f.build_blocked, CtxAction::Build);
     ui.item("mountain-filled", block_i18n::tr!("ui-context-edit-land"), CtxAction::EditTerrain);

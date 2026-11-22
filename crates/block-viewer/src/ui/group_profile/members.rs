@@ -376,13 +376,7 @@ fn list(st: &mut GroupProfileUi, ui: &mut egui::Ui, c: &mut Ctx, env: &Env, v: &
         if !compact {
             // room for the pills, Invite and Export
             let w = (ui.available_width() - 350.0).max(120.0);
-            widgets::search_field(
-                ui,
-                p,
-                &mut st.members.filter,
-                block_i18n::tr!("ui-group-profile-filter-members"),
-                w,
-            );
+            widgets::search_field(ui, p, &mut st.members.filter, block_i18n::tr!("ui-group-profile-filter-members"), w);
         }
         if pill(ui, p, block_i18n::tr!("common-all"), st.members.show == Show::All).clicked() {
             st.members.show = Show::All;

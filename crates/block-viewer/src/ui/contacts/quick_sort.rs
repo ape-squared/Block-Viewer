@@ -513,13 +513,9 @@ fn finished(ui: &mut egui::Ui, p: &Palette, qs: &QuickSort) -> bool {
     );
     ui.add_space(6.0);
     ui.label(
-        RichText::new(block_i18n::tr!(
-            "quick-sort-done",
-            placed = qs.placed.len(),
-            total = qs.queue.len()
-        ))
-        .size(13.0)
-        .color(p.muted),
+        RichText::new(block_i18n::tr!("quick-sort-done", placed = qs.placed.len(), total = qs.queue.len()))
+            .size(13.0)
+            .color(p.muted),
     );
     ui.add_space(16.0);
     widgets::action_button(

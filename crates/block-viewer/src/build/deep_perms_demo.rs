@@ -109,13 +109,7 @@ pub fn contents(
         ],
     );
     let heirloom = item(chest, 9, block_i18n::tr!("content-perms-demo-heirloom"), 6, PERM_ALL & !perm::COPY);
-    let sealed = item(
-        chest,
-        10,
-        block_i18n::tr!("content-perms-demo-sealed"),
-        6,
-        PERM_ALL & !perm::MODIFY,
-    );
+    let sealed = item(chest, 10, block_i18n::tr!("content-perms-demo-sealed"), 6, PERM_ALL & !perm::MODIFY);
     stored.insert(heirloom.item_id, Vec::new());
     stored.insert(sealed.item_id, Vec::new());
     // the child prim's item ids are made when it is rezzed: `parent` is a

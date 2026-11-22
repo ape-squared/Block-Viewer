@@ -1,8 +1,6 @@
-//! Preferences › Aurora: what Aurora does differently from the Legacy
-//! Viewer, and for each redrawn element the way back to the Legacy look.
-//! The entry of the sidebar carries the aurora gradient, the one exception
-//! to the theme here (docs/BRANDING.md); the settings keep the rows of the
-//! other pages.
+//! Preferences › Block: what Block does differently from the Legacy Viewer,
+//! and for each redrawn element the way back to the Legacy look. The sidebar
+//! entry uses the Block signal accent (docs/BRANDING.md).
 
 use super::super::cx::{Cx, F, field};
 use crate::build::MoveHologram;
@@ -77,10 +75,9 @@ pub fn set_all(s: &mut Settings, look: Look) {
     s.colored_sky_ambient = aurora;
 }
 
-/// The aurora gradient at `t` (0 at its start, 1 at its end): the brand's
-/// green, turquoise, indigo, violet and rose, taken from the palette.
+/// Block brand gradient at `t` (0..1): data cyan → signal lime (see theme).
 pub(crate) fn aurora_color(p: &Palette, t: f32) -> Color32 {
-    let stops = [p.success, p.teal, p.indigo_light, p.violet_light, p.rose];
+    let stops = p.block_gradient();
     let x = t.clamp(0.0, 1.0) * (stops.len() - 1) as f32;
     let i = (x.floor() as usize).min(stops.len() - 2);
     stops[i].lerp_to_gamma(stops[i + 1], x - i as f32)
@@ -121,19 +118,17 @@ pub(crate) fn aurora_text(p: &Palette, text: &str, font: FontId) -> egui::text::
     job
 }
 
-/// `text` with only the word "Aurora" in the aurora gradient, the rest in
-/// `ink`: an Aurora feature's title outside Preferences (Weather),
-/// whatever the word order of the language.
+/// Highlights the product name "Block" in the brand accent; rest in `ink`.
 pub(crate) fn aurora_word(p: &Palette, text: &str, font: FontId, ink: Color32) -> egui::text::LayoutJob {
     let mut job = egui::text::LayoutJob::default();
     let mut rest = text;
-    while let Some(at) = rest.find("Aurora") {
+    while let Some(at) = rest.find("Block") {
         job.append(&rest[..at], 0.0, egui::TextFormat::simple(font.clone(), ink));
-        for (i, ch) in "Aurora".chars().enumerate() {
-            let color = aurora_color(p, i as f32 / 5.0);
+        for (i, ch) in "Block".chars().enumerate() {
+            let color = aurora_color(p, i as f32 / 4.0);
             job.append(&ch.to_string(), 0.0, egui::TextFormat::simple(font.clone(), color));
         }
-        rest = &rest[at + "Aurora".len()..];
+        rest = &rest[at + "Block".len()..];
     }
     job.append(rest, 0.0, egui::TextFormat::simple(font, ink));
     job
@@ -152,10 +147,9 @@ pub fn nav_entry(ui: &mut egui::Ui, p: &Palette, label: &str, icon: &str, select
         p.raised.gamma_multiply(0.3)
     };
     ui.painter().rect_filled(rect, radius, face);
-    ui.painter().add(aurora_strip(
-        p,
-        Rect::from_min_max(rect.left_top(), Pos2::new(rect.left() + 3.0, rect.bottom())),
-    ));
+    let mark = Rect::from_min_max(rect.left_top(), Pos2::new(rect.left() + 3.0, rect.bottom()));
+    ui.painter()
+        .rect_filled(mark, 0.0, if selected { p.violet } else { p.violet.gamma_multiply(0.55) });
     if let Some(texture) = crate::ui::icons::global(icon) {
         ui.painter().image(
             texture.id(),
@@ -164,9 +158,15 @@ pub fn nav_entry(ui: &mut egui::Ui, p: &Palette, label: &str, icon: &str, select
             p.teal,
         );
     }
-    // the name in the gradient, one letter after the other
     let font = FontId::new(12.0, crate::ui::fonts::semibold(ui.ctx()));
-    let galley = ui.painter().layout_job(aurora_text(p, label, font));
+    let job = if selected {
+        aurora_text(p, label, font)
+    } else {
+        let mut job = egui::text::LayoutJob::default();
+        job.append(label, 0.0, egui::TextFormat::simple(font, p.ink));
+        job
+    };
+    let galley = ui.painter().layout_job(job);
     ui.painter()
         .galley(rect.left_center() + Vec2::new(34.0, -galley.size().y / 2.0), galley, p.ink);
     response.widget_info(|| egui::WidgetInfo::selected(egui::Role::Button, true, selected, label));
@@ -674,10 +674,11 @@ mod tests {
     }
 
     #[test]
-    fn the_aurora_gradient_runs_from_green_to_rose() {
+    fn the_brand_gradient_uses_block_palette_stops() {
         let p = crate::theme::Theme::default().palette();
-        assert_eq!(aurora_color(&p, 0.0), p.success);
-        assert_eq!(aurora_color(&p, 1.0), p.rose);
-        assert_eq!(aurora_color(&p, 0.5), p.indigo_light);
+        let stops = p.block_gradient();
+        assert_eq!(aurora_color(&p, 0.0), stops[0]);
+        assert_eq!(aurora_color(&p, 1.0), stops[2]);
+        assert_eq!(aurora_color(&p, 0.5), stops[1]);
     }
 }

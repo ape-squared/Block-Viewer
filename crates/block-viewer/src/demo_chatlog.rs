@@ -341,24 +341,14 @@ pub fn message(agent: Uuid, text: &str) -> NetEvent {
 pub fn offline_messages(agent: Uuid) -> Vec<NetEvent> {
     let now = u32::try_from(scenario_now()).unwrap_or(u32::MAX);
     vec![
-        im(
-            agent,
-            block_i18n::tr!("demo-chatlog-offline-1"),
-            true,
-            now.saturating_sub(9 * 3600),
-        ),
+        im(agent, block_i18n::tr!("demo-chatlog-offline-1"), true, now.saturating_sub(9 * 3600)),
         im(
             agent,
             block_i18n::tr!("demo-chatlog-offline-2"),
             true,
             now.saturating_sub(9 * 3600 - 40),
         ),
-        im(
-            agent,
-            block_i18n::tr!("demo-chatlog-offline-3"),
-            true,
-            now.saturating_sub(2 * 3600),
-        ),
+        im(agent, block_i18n::tr!("demo-chatlog-offline-3"), true, now.saturating_sub(2 * 3600)),
     ]
 }
 

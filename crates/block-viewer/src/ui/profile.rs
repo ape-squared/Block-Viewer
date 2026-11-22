@@ -1758,13 +1758,7 @@ fn overflow_menu(
             actions.push(ProfileAction::Share(id));
         }
         // LLAvatarActions::startCall (canCall: voice enabled)
-        if menu::item_if(
-            ui,
-            p,
-            "phone-filled",
-            block_i18n::tr!("ui-profile-call"),
-            world.calls.voice_enabled,
-        ) {
+        if menu::item_if(ui, p, "phone-filled", block_i18n::tr!("ui-profile-call"), world.calls.voice_enabled) {
             crate::ui::context::request(ui.ctx(), crate::ui::context::CtxAction::Call(id));
         }
         let block = if blocked {
@@ -2262,10 +2256,7 @@ fn pick_detail(
                 {
                     save = true;
                 }
-                if ui
-                    .add_enabled(dirty, egui::Button::new(block_i18n::tr!("common-cancel")))
-                    .clicked()
-                {
+                if ui.add_enabled(dirty, egui::Button::new(block_i18n::tr!("common-cancel"))).clicked() {
                     *e = base.clone();
                 }
             }

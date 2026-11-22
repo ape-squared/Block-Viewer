@@ -1,45 +1,44 @@
 # Posts each published GitHub release to Discord #viewer-releases.
-# Webhook URL: repository secret DISCORD_RELEASES_WEBHOOK (never commit it).
+# Webhook: repository secret or Actions variable DISCORD_RELEASES_WEBHOOK.
 name: Discord release
 
 on:
   release:
     types: [published]
+  workflow_run:
+    workflows: [Release]
+    types: [completed]
 
 permissions:
   contents: read
 
 jobs:
   notify:
+    if: github.event_name == 'release'
     runs-on: ubuntu-latest
     steps:
       - name: Post release embed
         env:
-          WEBHOOK: ${{ secrets.DISCORD_RELEASES_WEBHOOK }}
-          TESTER_ROLE: ${{ secrets.DISCORD_TESTER_ROLE_ID }}
+          WEBHOOK: ${{ secrets.DISCORD_RELEASES_WEBHOOK || vars.DISCORD_RELEASES_WEBHOOK }}
+          TESTER_ROLE: ${{ secrets.DISCORD_TESTER_ROLE_ID || vars.DISCORD_TESTER_ROLE_ID }}
           RELEASE_JSON: ${{ toJson(github.event.release) }}
         run: |
           set -euo pipefail
           if [ -z "${WEBHOOK:-}" ]; then
-            echo "DISCORD_RELEASES_WEBHOOK secret is missing; skipping Discord notify" >&2
+            echo "::warning::Discord notify skipped — set DISCORD_RELEASES_WEBHOOK secret or variable" >&2
             exit 0
           fi
-
           python3 - <<'PY'
           import json, os, re, urllib.request
-
           release = json.loads(os.environ["RELEASE_JSON"])
           webhook = os.environ["WEBHOOK"].rstrip("/")
-          # Discord's GitHub formatter wants /github; plain embeds use the raw URL.
           if webhook.endswith("/github"):
               webhook = webhook[: -len("/github")]
-
-          tag = release.get("tag_name") or ""
+          tag = release.get("tag_name") or release.get("tagName") or ""
           name = (release.get("name") or tag or "Release").strip()
-          url = release.get("html_url") or ""
+          url = release.get("html_url") or release.get("htmlUrl") or ""
           prerelease = bool(release.get("prerelease"))
           body = (release.get("body") or "").strip()
-          # Drop the shared notes header / HTML comments / excessive blank lines.
           body = re.sub(r"<!--.*?-->", "", body, flags=re.S)
           body = re.sub(r"(?im)^#+\s*Block Viewer\s*$", "", body)
           body = re.sub(r"(?im)^Support:.*$", "", body)
@@ -49,51 +48,24 @@ jobs:
               body = body[:1797].rstrip() + "…"
           if not body:
               body = "Release notes are on GitHub."
-
           assets = release.get("assets") or []
           windows = next(
-              (
-                  a
-                  for a in assets
-                  if a.get("name", "").endswith("-windows-x64.zip")
-                  and not a.get("name", "").endswith("-symbols.zip")
-              ),
+              (a for a in assets if a.get("name", "").endswith("-windows-x64.zip") and not a.get("name", "").endswith("-symbols.zip")),
               None,
           )
           fields = []
-          if windows and windows.get("browser_download_url"):
-              fields.append(
-                  {
-                      "name": "Windows",
-                      "value": f"[Download zip]({windows['browser_download_url']})",
-                      "inline": True,
-                  }
-              )
-          fields.append(
-              {
-                  "name": "Tag",
-                  "value": f"[`{tag}`]({url})" if tag and url else (tag or "—"),
-                  "inline": True,
-              }
-          )
-
-          # Brand signal lime (#D4FF3F); beta gets a cooler teal.
+          if windows and (windows.get("browser_download_url") or windows.get("browserDownloadUrl")):
+              link = windows.get("browser_download_url") or windows.get("browserDownloadUrl")
+              fields.append({"name": "Windows", "value": f"[Download zip]({link})", "inline": True})
+          fields.append({"name": "Tag", "value": f"[`{tag}`]({url})" if tag and url else (tag or "—"), "inline": True})
           color = 0x38BDF8 if prerelease else 0xD4FF3F
           title = name if name.lower().startswith("block") else f"Block Viewer {name}"
-          embed = {
-              "title": title,
-              "url": url,
-              "description": body,
-              "color": color,
-              "fields": fields,
-              "thumbnail": {
-                  "url": "https://raw.githubusercontent.com/ape-squared/Block-Viewer/main/assets/branding/block-logo-bg.png"
-              },
-              "footer": {"text": "Block Viewer · GitHub Releases"},
-          }
-          if release.get("published_at"):
-              embed["timestamp"] = release["published_at"]
-
+          thumb = "https://raw.githubusercontent.com/ape-squared/Block-Viewer/main/assets/branding/block-logo-bg.png"
+          embed = {"title": title, "url": url, "description": body, "color": color, "fields": fields,
+                   "thumbnail": {"url": thumb}, "footer": {"text": "Block Viewer · GitHub Releases"}}
+          published = release.get("published_at") or release.get("publishedAt")
+          if published:
+              embed["timestamp"] = published
           kind = "New pre-release" if prerelease else "New release"
           role = (os.environ.get("TESTER_ROLE") or "").strip()
           allowed = {"parse": []}
@@ -102,19 +74,87 @@ jobs:
               allowed = {"roles": [role]}
           else:
               content = f"{kind} — testers welcome"
-          payload = {
-              "username": "Block Viewer",
-              "avatar_url": "https://raw.githubusercontent.com/ape-squared/Block-Viewer/main/assets/branding/block-logo-bg.png",
-              "content": content,
-              "embeds": [embed],
-              "allowed_mentions": allowed,
-          }
-          req = urllib.request.Request(
-              webhook + "?wait=true",
-              data=json.dumps(payload).encode(),
-              headers={"Content-Type": "application/json", "User-Agent": "Block-Viewer-Release-Notify"},
-              method="POST",
+          payload = {"username": "Block Viewer", "avatar_url": thumb, "content": content, "embeds": [embed], "allowed_mentions": allowed}
+          req = urllib.request.Request(webhook + "?wait=true", data=json.dumps(payload).encode(),
+                                     headers={"Content-Type": "application/json", "User-Agent": "Block-Viewer-Release-Notify"}, method="POST")
+          with urllib.request.urlopen(req, timeout=30) as resp:
+              print(f"Discord {resp.status}")
+          PY
+
+  notify-after-release:
+    if: >-
+      github.event_name == 'workflow_run'
+      && github.event.workflow_run.conclusion == 'success'
+      && github.event.workflow_run.event == 'push'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Post latest release embed
+        env:
+          WEBHOOK: ${{ secrets.DISCORD_RELEASES_WEBHOOK || vars.DISCORD_RELEASES_WEBHOOK }}
+          TESTER_ROLE: ${{ secrets.DISCORD_TESTER_ROLE_ID || vars.DISCORD_TESTER_ROLE_ID }}
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          if [ -z "${WEBHOOK:-}" ]; then
+            echo "::warning::Discord notify skipped — set DISCORD_RELEASES_WEBHOOK secret or variable" >&2
+            exit 0
+          fi
+          TAG="$(gh release list --repo "$GH_REPO" --limit 1 --json tagName -q '.[0].tagName')"
+          if [ -z "${TAG:-}" ]; then
+            echo "No release on repo"
+            exit 0
+          fi
+          export RELEASE_JSON="$(gh release view "$TAG" --repo "$GH_REPO" --json tagName,name,body,htmlUrl,prerelease,publishedAt,assets)"
+          python3 - <<'PY'
+          import json, os, re, urllib.request
+          release = json.loads(os.environ["RELEASE_JSON"])
+          webhook = os.environ["WEBHOOK"].rstrip("/")
+          if webhook.endswith("/github"):
+              webhook = webhook[: -len("/github")]
+          tag = release.get("tagName") or ""
+          name = (release.get("name") or tag or "Release").strip()
+          url = release.get("htmlUrl") or ""
+          prerelease = bool(release.get("prerelease"))
+          body = (release.get("body") or "").strip()
+          body = re.sub(r"<!--.*?-->", "", body, flags=re.S)
+          body = re.sub(r"(?im)^#+\s*Block Viewer\s*$", "", body)
+          body = re.sub(r"(?im)^Support:.*$", "", body)
+          body = re.sub(r"(?im)^Sister project.*$", "", body)
+          body = re.sub(r"\n{3,}", "\n\n", body).strip()
+          if len(body) > 1800:
+              body = body[:1797].rstrip() + "…"
+          if not body:
+              body = "Release notes are on GitHub."
+          assets = release.get("assets") or []
+          windows = next(
+              (a for a in assets if a.get("name", "").endswith("-windows-x64.zip") and not a.get("name", "").endswith("-symbols.zip")),
+              None,
           )
+          fields = []
+          if windows and windows.get("browserDownloadUrl"):
+              fields.append({"name": "Windows", "value": f"[Download zip]({windows['browserDownloadUrl']})", "inline": True})
+          fields.append({"name": "Tag", "value": f"[`{tag}`]({url})" if tag and url else (tag or "—"), "inline": True})
+          color = 0x38BDF8 if prerelease else 0xD4FF3F
+          title = name if name.lower().startswith("block") else f"Block Viewer {name}"
+          thumb = "https://raw.githubusercontent.com/ape-squared/Block-Viewer/main/assets/branding/block-logo-bg.png"
+          embed = {"title": title, "url": url, "description": body, "color": color, "fields": fields,
+                   "thumbnail": {"url": thumb}, "footer": {"text": "Block Viewer · GitHub Releases"}}
+          if release.get("publishedAt"):
+              embed["timestamp"] = release["publishedAt"]
+          kind = "New pre-release" if prerelease else "New release"
+          role = (os.environ.get("TESTER_ROLE") or "").strip()
+          allowed = {"parse": []}
+          if role.isdigit():
+              content = f"{kind} <@&{role}>"
+              allowed = {"roles": [role]}
+          else:
+              content = f"{kind} — testers welcome"
+          payload = {"username": "Block Viewer", "avatar_url": thumb, "content": content, "embeds": [embed], "allowed_mentions": allowed}
+          req = urllib.request.Request(webhook + "?wait=true", data=json.dumps(payload).encode(),
+                                     headers={"Content-Type": "application/json", "User-Agent": "Block-Viewer-Release-Notify"}, method="POST")
           with urllib.request.urlopen(req, timeout=30) as resp:
               print(f"Discord {resp.status}")
           PY

@@ -30,8 +30,7 @@ pub fn content(
     progress: Option<(&str, f32)>,
 ) -> bool {
     let grids_open = crate::ui::grids::is_open(ui.ctx());
-    // the keys typed in the sign-up page reach egui too: its Enter is not ours
-    let enter = !grids_open && !form.signup_open && !egui::Popup::is_any_open(ui.ctx()) && widgets::enter_pressed(ui);
+    let enter = !grids_open && !egui::Popup::is_any_open(ui.ctx()) && widgets::enter_pressed(ui);
     let can = ui
         .add_enabled_ui(!form.busy && !grids_open, |ui| {
             ui.label(
@@ -69,7 +68,6 @@ pub fn content(
                         form.agree_tos = false;
                         form.critical_message = None;
                         form.read_critical = false;
-                        form.forget_next_server();
                     }
                 }
                 ui.add_space(8.0);
@@ -92,7 +90,6 @@ pub fn content(
                     form.agree_tos = false;
                     form.critical_message = None;
                     form.read_critical = false;
-                    form.forget_next_server();
                 }
                 Some(user)
             } else {
@@ -115,8 +112,7 @@ pub fn content(
                     p,
                     &mut settings.remember_password,
                     block_i18n::tr!("ui-login-remember-password"),
-                )
-                .on_hover_text(super::remember_password_hint());
+                );
                 Some(response)
             } else {
                 None
@@ -177,13 +173,6 @@ pub fn content(
                     });
                 widgets::checkbox(ui, p, &mut form.read_critical, block_i18n::tr!("ui-login-critical-message-read"));
             }
-            // the login would go on to another server: the user decides
-            if let Some(server) = &form.next_server {
-                ui.add_space(8.0);
-                ui.label(RichText::new(block_i18n::tr!("ui-login-next-server")).strong());
-                ui.label(block_i18n::tr!("ui-login-next-server-body", server = server.as_str()));
-                widgets::checkbox(ui, p, &mut form.accept_next_server, block_i18n::tr!("ui-login-next-server-accept"));
-            }
             if let Some(error) = &form.error {
                 ui.label(RichText::new(error).color(p.danger));
             }
@@ -194,10 +183,9 @@ pub fn content(
                 && !settings.username.trim().is_empty()
                 && !settings.login_uri().is_empty()
                 && (!form.password.is_empty() || form.stored.is_some())
-                && (!form.show_mfa || !form.mfa_token.trim().is_empty())
+                && (!form.show_mfa || form.mfa_token.chars().any(|c| !c.is_whitespace()))
                 && (form.tos_message.is_none() || form.agree_tos)
                 && (form.critical_message.is_none() || form.read_critical)
-                && (form.next_server.is_none() || form.accept_next_server)
         })
         .inner
         && !grids_open;
@@ -223,11 +211,6 @@ pub fn content(
     )
     .clicked()
         || (can && enter && !egui::Popup::is_any_open(ui.ctx()));
-    // a new account: "Create an account" under the login button
-    if new_account && !grids_open {
-        ui.add_space(4.0);
-        super::create_account_button(ui, p, settings, form, Vec2::new(ui.available_width(), 28.0));
-    }
     if pressed {
         settings.remember_username = true;
         form.show_password = false;
@@ -236,12 +219,6 @@ pub fn content(
         form.tos_message = None;
         form.critical_message = None;
         form.show_mfa = false;
-        let next_server = form.next_server.take();
-        if std::mem::take(&mut form.accept_next_server)
-            && let Some(server) = next_server
-        {
-            form.accepted_next_servers.push(server);
-        }
     }
     pressed
 }
@@ -278,7 +255,6 @@ pub fn dialog(
         form.show_mfa = false;
         form.tos_message = None;
         form.critical_message = None;
-        form.forget_next_server();
         form.password.clear();
         form.mfa_token.clear();
         if adding

@@ -12639,7 +12639,7 @@ impl App {
                         .filter(|s| (1..=3).contains(s))
                         .unwrap_or(3) as f32
                 });
-                let mut g = self.palette.aurora_gradient().map(|c| egui::Rgba::from(c).to_array());
+                let mut g = self.palette.block_gradient().map(|c| egui::Rgba::from(c).to_array());
                 g[0][3] = style;
                 // (faces still grey are drawn as the grid only with it on)
                 g[1][3] = if self.scene.rez.enabled { 1.0 } else { 0.0 };

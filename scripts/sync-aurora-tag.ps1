@@ -131,6 +131,18 @@ try {
         'scripts/write-update-policy.ps1',
         'scripts/build-release.ps1',
         'packaging/linux/block-viewer.desktop',
+        'crates/block-viewer/src/theme.rs',
+        'crates/block-viewer/src/splash',
+        'crates/block-viewer/src/ui/block_bg.rs',
+        'crates/block-viewer/src/ui/login.rs',
+        'crates/block-viewer/src/ui/login',
+        'crates/block-viewer/src/ui/loading.rs',
+        'crates/block-viewer/src/ui/nameplate.rs',
+        'crates/block-viewer/src/ui/nameplate',
+        'crates/block-viewer/src/ui/toolbar/catalogue.rs',
+        'assets/models/block-3d.glb',
+        'docs/BRANDING.md',
+        'blender/block_live/blender_manifest.toml',
         '.github/release-notes-header.md',
         'news/en.md',
         'news/fr.md',
@@ -169,7 +181,9 @@ try {
     $restore = @($KeepFromOurs + $KeepTrees)
     git checkout HEAD -- @restore
     if ($LASTEXITCODE -ne 0) { throw "git checkout of Block branding failed" }
-    $logos = @(git ls-tree -r --name-only HEAD -- assets/branding | Where-Object { $_ -like 'assets/branding/block*' })
+    $logos = @(git ls-tree -r --name-only HEAD -- assets/branding | Where-Object {
+            $_ -like 'assets/branding/block*' -and $_ -notlike 'assets/branding/block/*'
+        })
     if ($logos.Count -gt 0) {
         git checkout HEAD -- @logos
         if ($LASTEXITCODE -ne 0) { throw "git checkout of Block logos failed" }

@@ -780,7 +780,7 @@ impl Modal {
 
     /// Login glass includes the sky and account cards, drawn below the modal.
     pub fn login_surface(mut self, p: &Palette) -> Self {
-        self.1 = Some((*p, super::super::aurora_bg::LOGIN_TINT));
+        self.1 = Some((*p, super::super::block_bg::LOGIN_TINT));
         if p.panel_alpha < 255 {
             self.0 = self.0.backdrop_color(Color32::TRANSPARENT);
         }
@@ -957,7 +957,7 @@ mod tests {
                 .collect::<Vec<_>>();
             assert_eq!(markers.len(), usize::from(alpha < 255));
             let tint_alpha = if alpha < 255 {
-                (f32::from(alpha) * super::super::super::aurora_bg::LOGIN_TINT) as u8
+                (f32::from(alpha) * super::super::super::block_bg::LOGIN_TINT) as u8
             } else {
                 255
             };

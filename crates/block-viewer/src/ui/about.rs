@@ -296,7 +296,7 @@ fn hero(ui: &mut egui::Ui, p: &Palette, logo: Option<&egui::TextureHandle>) {
     ui.painter()
         .set(face, Shape::rect_filled(rect, ui.visuals().window_corner_radius, p.field));
     if let Some(logo) = logo_rect {
-        let glow = crate::ui::aurora_bg::radial_glow_shape(logo.center(), LOGO * 1.6, p.violet, 0.38);
+        let glow = crate::ui::block_bg::radial_glow_shape(logo.center(), LOGO * 1.6, p.violet, 0.38);
         // the light stays in the banner: a shape set keeps the clip of the
         // painter that sets it
         ui.painter().with_clip_rect(rect.intersect(ui.clip_rect())).set(light, glow);

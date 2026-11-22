@@ -13725,7 +13725,16 @@ impl App {
         // its mode)
         self.screen_rate.poll(&gfx.window, Instant::now());
         let monitor_hz = self.screen_rate.hz();
-        let timed = self.capture.is_some() || self.frame_profile.enabled();
+        let record_pace = self
+            .director
+            .recording
+            .is_some()
+            .then(|| self.settings.director_record.fps);
+        let timed = self.capture.is_some() || self.frame_profile.enabled() || record_pace.is_some();
+        let mut fps_limit = crate::cli::get().fps_limit;
+        if let Some(fps) = record_pace {
+            fps_limit = Some(fps_limit.map_or(fps, |l| l.max(fps)));
+        }
         let cap = frame_cap(
             &self.settings,
             self.focused,
@@ -13733,7 +13742,8 @@ impl App {
             self.in_world(),
             monitor_hz,
             timed,
-            crate::cli::get().fps_limit,
+            fps_limit,
+            record_pace,
         );
         // another viewer in front on this card: a window behind draws slowly
         // (instances.rs)
@@ -25275,6 +25285,7 @@ fn frame_cap(
     monitor_hz: f32,
     timed: bool,
     fps_limit: Option<u32>,
+    pace_fps: Option<u32>,
 ) -> f32 {
     // The OpenXR frame waiter paces VR. Desktop foreground/background limits
     // must not throttle simulation while the headset is presenting.
@@ -25290,6 +25301,9 @@ fn frame_cap(
     }
     if !in_world {
         cap = cap.min(monitor_hz);
+    }
+    if let Some(pace) = pace_fps {
+        cap = cap.max(pace as f32);
     }
     if cap.is_finite() { cap } else { 0.0 }
 }
@@ -25953,7 +25967,7 @@ mod tests {
             super::apply_test_fps_limit(&mut settings, value);
             assert_eq!((settings.fps_cap, settings.fps_limit), (enabled, limit), "{value}");
             if !enabled {
-                assert_eq!(frame_cap(&settings, false, false, true, 144.0, true, None), 0.0);
+                assert_eq!(frame_cap(&settings, false, false, true, 144.0, true, None, None), 0.0);
             }
         }
     }
@@ -25983,9 +25997,9 @@ mod tests {
             background_fps_limit: 15,
             ..Settings::default()
         };
-        assert_eq!(frame_cap(&settings, false, true, true, 60.0, false, None), 0.0);
-        assert_eq!(frame_cap(&settings, false, false, true, 60.0, false, None), 15.0);
-        assert_eq!(frame_cap(&settings, false, true, true, 60.0, false, Some(120)), 120.0);
+        assert_eq!(frame_cap(&settings, false, true, true, 60.0, false, None, None), 0.0);
+        assert_eq!(frame_cap(&settings, false, false, true, 60.0, false, None, None), 15.0);
+        assert_eq!(frame_cap(&settings, false, true, true, 60.0, false, Some(120), None), 120.0);
     }
 
     #[test]
@@ -25996,10 +26010,10 @@ mod tests {
             ..Settings::default()
         };
         // in world: free unless the user asks for a cap
-        assert_eq!(frame_cap(&free, true, false, true, 144.0, false, None), 0.0);
-        assert_eq!(frame_cap(&free, false, false, true, 144.0, false, None), 0.0);
+        assert_eq!(frame_cap(&free, true, false, true, 144.0, false, None, None), 0.0);
+        assert_eq!(frame_cap(&free, false, false, true, 144.0, false, None, None), 0.0);
         // outside the world (login): never above the screen rate
-        assert_eq!(frame_cap(&free, true, false, false, 144.0, false, None), 144.0);
+        assert_eq!(frame_cap(&free, true, false, false, 144.0, false, None, None), 144.0);
         let capped = Settings {
             fps_cap: true,
             fps_limit: 90,
@@ -26007,27 +26021,30 @@ mod tests {
             background_fps_limit: 15,
             ..Settings::default()
         };
-        assert_eq!(frame_cap(&capped, true, false, true, 144.0, false, None), 90.0);
-        assert_eq!(frame_cap(&capped, true, false, false, 144.0, false, None), 90.0);
-        assert_eq!(frame_cap(&capped, true, false, false, 60.0, false, None), 60.0);
+        assert_eq!(frame_cap(&capped, true, false, true, 144.0, false, None, None), 90.0);
+        assert_eq!(frame_cap(&capped, true, false, false, 144.0, false, None, None), 90.0);
+        assert_eq!(frame_cap(&capped, true, false, false, 60.0, false, None, None), 60.0);
         // not focused: the lower of the two caps
-        assert_eq!(frame_cap(&capped, false, false, true, 144.0, false, None), 15.0);
-        assert_eq!(frame_cap(&capped, false, false, false, 144.0, false, None), 15.0);
+        assert_eq!(frame_cap(&capped, false, false, true, 144.0, false, None, None), 15.0);
+        assert_eq!(frame_cap(&capped, false, false, false, 144.0, false, None, None), 15.0);
         // captures and profiles keep their pace without the focus
-        assert_eq!(frame_cap(&capped, false, false, true, 144.0, true, None), 90.0);
-        assert_eq!(frame_cap(&free, false, false, false, 144.0, true, None), 144.0);
-        assert_eq!(frame_cap(&free, true, false, true, 144.0, true, None), 0.0);
-        assert_eq!(frame_cap(&free, true, false, true, 144.0, false, Some(500)), 500.0);
+        assert_eq!(frame_cap(&capped, false, false, true, 144.0, true, None, None), 90.0);
+        assert_eq!(frame_cap(&free, false, false, false, 144.0, true, None, None), 144.0);
+        assert_eq!(frame_cap(&free, true, false, true, 144.0, true, None, None), 0.0);
+        assert_eq!(frame_cap(&free, true, false, true, 144.0, false, Some(500), None), 500.0);
+        // Director live recording at 120 lifts a lower preferences cap.
+        assert_eq!(frame_cap(&capped, true, false, true, 144.0, true, None, Some(120)), 120.0);
+        assert_eq!(frame_cap(&capped, false, false, true, 144.0, true, None, Some(120)), 120.0);
         // A process cap survives preferences, capture mode and loss of focus.
         for focused in [false, true] {
             for in_world in [false, true] {
                 for timed in [false, true] {
-                    assert_eq!(frame_cap(&free, focused, false, in_world, 144.0, timed, Some(60)), 60.0);
-                    assert!(frame_cap(&capped, focused, false, in_world, 144.0, timed, Some(60)) <= 60.0);
+                    assert_eq!(frame_cap(&free, focused, false, in_world, 144.0, timed, Some(60), None), 60.0);
+                    assert!(frame_cap(&capped, focused, false, in_world, 144.0, timed, Some(60), None) <= 60.0);
                 }
             }
         }
-        assert_eq!(frame_cap(&capped, true, false, true, 144.0, false, Some(30)), 30.0);
+        assert_eq!(frame_cap(&capped, true, false, true, 144.0, false, Some(30), None), 30.0);
     }
 
     #[test]

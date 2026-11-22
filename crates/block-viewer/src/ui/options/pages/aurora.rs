@@ -8,8 +8,7 @@ use crate::settings::{ChatStyle, DestinationsStyle, NotificationsStyle, PhotoWin
 use crate::theme::Palette;
 use crate::world::beams::Style as BeamStyle;
 use crate::world::lookat::{Aim, Style};
-use egui::epaint::{Mesh, Vertex, WHITE_UV};
-use egui::{Color32, FontId, Pos2, Rect, Sense, Shape, Vec2};
+use egui::{Color32, FontId, Pos2, Rect, Sense, Vec2};
 
 /// The two looks a redrawn element can take.
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
@@ -81,29 +80,6 @@ pub(crate) fn aurora_color(p: &Palette, t: f32) -> Color32 {
     let x = t.clamp(0.0, 1.0) * (stops.len() - 1) as f32;
     let i = (x.floor() as usize).min(stops.len() - 2);
     stops[i].lerp_to_gamma(stops[i + 1], x - i as f32)
-}
-
-fn vertex(pos: Pos2, color: Color32) -> Vertex {
-    Vertex { pos, uv: WHITE_UV, color }
-}
-
-/// A strip of the aurora gradient, from its top to its bottom.
-fn aurora_strip(p: &Palette, r: Rect) -> Shape {
-    const STEPS: usize = 16;
-    let mut m = Mesh::default();
-    for i in 0..=STEPS {
-        let t = i as f32 / STEPS as f32;
-        let c = aurora_color(p, t);
-        let y = r.top() + r.height() * t;
-        m.vertices.push(vertex(Pos2::new(r.left(), y), c));
-        m.vertices.push(vertex(Pos2::new(r.right(), y), c));
-        if i > 0 {
-            let k = (i as u32) * 2;
-            m.add_triangle(k - 2, k - 1, k);
-            m.add_triangle(k - 1, k + 1, k);
-        }
-    }
-    Shape::mesh(m)
 }
 
 /// `text` in the aurora gradient, one letter after the other: the mark of

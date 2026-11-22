@@ -89,13 +89,23 @@ impl Look {
     /// A plate's border, `width` points inside its edge, over its halo.
     #[allow(clippy::too_many_arguments)]
     pub fn border(&self, mesh: &mut Mesh, p: &Palette, rect: Rect, ppp: f32, t: f32, alpha: f32, width: f32, scale: f32) {
-        aurora::border(mesh, rect, ppp, alpha, width, scale, |s| self.edge(p, s, t));
+        match self.mark {
+            Mark::Block | Mark::Manager | Mark::Tester => {
+                block::border(mesh, rect, ppp, alpha, width, scale, |s| self.edge(p, s, t));
+            }
+            Mark::Linden => aurora::border(mesh, rect, ppp, alpha, width, scale, |s| self.edge(p, s, t)),
+        }
     }
 
     /// The tag's surface at `rect`: `fill` inside the border.
     #[allow(clippy::too_many_arguments)]
     pub fn tag(&self, mesh: &mut Mesh, p: &Palette, rect: Rect, radius: f32, ppp: f32, t: f32, fill: Color32, alpha: f32, width: f32) {
-        aurora::tag(mesh, rect, radius, ppp, fill, alpha, width, |s| self.edge(p, s + 0.25, t));
+        match self.mark {
+            Mark::Block | Mark::Manager | Mark::Tester => {
+                block::tag(mesh, rect, radius, ppp, fill, alpha, width, |s| self.edge(p, s + 0.25, t));
+            }
+            Mark::Linden => aurora::tag(mesh, rect, radius, ppp, fill, alpha, width, |s| self.edge(p, s + 0.25, t)),
+        }
     }
 
     /// The light over a profile's banner: the curtains rising from its

@@ -1887,6 +1887,12 @@ impl App {
             Action::Refresh => self.snapshots.preview_wanted = true,
             // the outfit's photo mode: its own photo, shown for confirmation
             Action::Take if self.outfit_photo_mode() => self.outfit_portrait_shoot(),
+            Action::ShareWeb => {
+                let dest = self.snapshots.ui.destination;
+                self.snapshots.ui.destination = Destination::Profile;
+                self.photo_action(Action::Take, renderer);
+                self.snapshots.ui.destination = dest;
+            }
             Action::Take => {
                 self.snapshots.quiet = false;
                 // the photo quality waits for the textures in view to load
@@ -1944,6 +1950,7 @@ impl App {
                 }
             }
             Action::PersonalLighting => self.panels.personal_lighting = true,
+            Action::EditEnvironment(kind) => self.open_env_editor_snapshot(kind),
             Action::KeepLight => {
                 if self.world.eep.keep_photo() {
                     self.snapshots.ui.light.env = Default::default();

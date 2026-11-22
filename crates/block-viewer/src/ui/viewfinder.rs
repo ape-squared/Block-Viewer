@@ -474,6 +474,13 @@ fn destination_label(d: Destination) -> &'static str {
     }
 }
 
+fn destination_icon(d: Destination) -> &'static str {
+    match d {
+        Destination::Profile => "world-www",
+        _ => "device-floppy-filled",
+    }
+}
+
 fn peaking_label(k: Peaking) -> &'static str {
     match k {
         Peaking::White => block_i18n::tr!("photo-vf-peaking-white"),
@@ -589,7 +596,7 @@ impl Viewfinder {
         }
         if shows {
             self.bottom_bar(ctx, p, &back, screen, s, panel, fov, f, ctl, &mut out);
-            self.dock(ctx, p, screen, s, panel, f, &mut out);
+            self.dock(ctx, p, screen, s, panel, f, view, &mut out);
         } else if ghost_disp(ctx, p, screen) {
             s.viewfinder.display = display.next();
         }
@@ -799,7 +806,7 @@ impl Viewfinder {
                     if icon_text_button(
                         ui,
                         p,
-                        "device-floppy-filled",
+                        destination_icon(panel.destination),
                         destination_label(panel.destination),
                         p.ink,
                         block_i18n::tr!("photo-vf-destination-tip"),
@@ -1609,6 +1616,7 @@ impl Viewfinder {
         s: &mut Settings,
         panel: &mut SnapshotUi,
         f: &Frame,
+        view: &View,
         out: &mut Vec<Out>,
     ) {
         egui::Area::new(Id::unique("vf_dock"))
@@ -1683,6 +1691,27 @@ impl Viewfinder {
                     ui.add_space(6.0);
                     self.shutter_button(ui, p, out);
                     ui.add_space(6.0);
+                    let web_ready = view.busy.is_none() && view.profile.as_ref().is_some_and(|prof| prof.connected && prof.ready);
+                    let web_tip = if view.busy.is_some() {
+                        block_i18n::tr!("photo-profile-encoding")
+                    } else if view.profile.as_ref().is_some_and(|prof| prof.connected && prof.ready) {
+                        block_i18n::tr!("photo-vf-share-web-tip")
+                    } else if view.profile.as_ref().is_some_and(|prof| prof.connected) {
+                        block_i18n::tr!("photo-profile-not-ready")
+                    } else {
+                        block_i18n::tr!("photo-profile-offline")
+                    };
+                    ui.add_enabled_ui(web_ready, |ui| {
+                        if dock_button(
+                            ui,
+                            p,
+                            Face::Icon("send-filled"),
+                            &web_tip,
+                            panel.destination == Destination::Profile,
+                        ) {
+                            out.push(Out::Panel(Action::ShareWeb));
+                        }
+                    });
                     let isolating = self.isolate || f.isolation.mode != crate::snapshot::isolate::Mode::Off;
                     if dock_button(ui, p, Face::Icon("user-scan"), block_i18n::tr!("photo-isolate-tip"), isolating) {
                         self.isolate = !self.isolate;

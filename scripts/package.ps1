@@ -6,9 +6,9 @@
     runs it too (PowerShell 7), with the executable without extension.
 
 .EXAMPLE
-    ./scripts/package.ps1 -Exe target/release/block-viewer.exe -Out Aurora-Viewer
+    ./scripts/package.ps1 -Exe target/release/block-viewer.exe -Out Block-Viewer
 .EXAMPLE
-    ./scripts/package.ps1 -Exe target/release/block-viewer -Out Aurora-Viewer-v0.8.0-linux-x64
+    ./scripts/package.ps1 -Exe target/release/block-viewer -Out Block-Viewer-v0.8.0-linux-x64
 #>
 param(
     [Parameter(Mandatory)][string]$Exe,
@@ -50,6 +50,6 @@ $taskExePath = (Resolve-Path -LiteralPath $Exe).Path
 $taskVersion = (& $taskExePath --version | Out-String).Trim() -replace '^Block Viewer ', ''
 if ($LASTEXITCODE -ne 0 -or $taskVersion -notmatch '^\d+\.\d+\.\d+([+-][0-9A-Za-z.+-]+)?$') { throw 'Invalid package version.' }
 $taskJson = @{ schema = 1; version = $taskVersion } | ConvertTo-Json
-$taskMetadataPath = Join-Path (Resolve-Path -LiteralPath $Out -ErrorAction Stop).Path 'aurora-install.json'
+$taskMetadataPath = Join-Path (Resolve-Path -LiteralPath $Out -ErrorAction Stop).Path 'block-install.json'
 # Windows PowerShell 5.1 does not support Set-Content -Encoding utf8NoBOM.
 [IO.File]::WriteAllText($taskMetadataPath, $taskJson, [Text.UTF8Encoding]::new($false))

@@ -75,8 +75,8 @@ mod bus {
     use zbus::blocking::Connection;
     use zbus::fdo::{RequestNameFlags, RequestNameReply};
 
-    const PATH: &str = "/org/aurora_viewer/AuroraViewer";
-    const INTERFACE: &str = "org.aurora_viewer.AuroraViewer";
+    const PATH: &str = "/org/block_viewer/BlockViewer";
+    const INTERFACE: &str = "org.block_viewer.BlockViewer";
     /// Past it, the launch starts a viewer of its own with the link.
     const HAND_OFF_TIMEOUT: std::time::Duration = std::time::Duration::from_secs(5);
 
@@ -84,7 +84,7 @@ mod bus {
     /// until `release`.
     static OWNER: std::sync::Mutex<Option<(Connection, String)>> = std::sync::Mutex::new(None);
 
-    /// `org.aurora_viewer.AuroraViewer[.Demo][.T_<title>]`.
+    /// `org.block_viewer.BlockViewer[.Demo][.T_<title>]`.
     fn bus_name() -> String {
         name_for(std::env::var_os("AURORA_DEMO").is_some(), crate::cli::title_slug().as_deref())
     }
@@ -105,7 +105,7 @@ mod bus {
 
     struct Links(Sender<String>);
 
-    #[zbus::interface(name = "org.aurora_viewer.AuroraViewer")]
+    #[zbus::interface(name = "org.block_viewer.BlockViewer")]
     impl Links {
         /// A link of a later launch (the Legacy Viewer's method name).
         /// An error when the viewer no longer reads them (closing): the
@@ -210,10 +210,10 @@ mod tests {
     #[test]
     fn bus_names_are_valid() {
         use super::bus::name_for;
-        assert_eq!(name_for(false, None), "org.aurora_viewer.AuroraViewer");
+        assert_eq!(name_for(false, None), "org.block_viewer.BlockViewer");
         assert_eq!(
             name_for(true, Some("test-linux-slurl")),
-            "org.aurora_viewer.AuroraViewer.Demo.T_test_linux_slurl"
+            "org.block_viewer.BlockViewer.Demo.T_test_linux_slurl"
         );
         // non-ASCII letters of a title, a leading digit, a very long title
         for slug in ["été-2", "9lives", &"a".repeat(400)] {

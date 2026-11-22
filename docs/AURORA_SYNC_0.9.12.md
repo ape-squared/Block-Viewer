@@ -53,6 +53,9 @@ Sync should bring all of the above in code; branding pass renames “Aurora Weat
 
 - `assets/branding/block/**`
 - `LICENSE.md`, `NOTICE.md`, `TRADEMARKS.md`, `README.md` (Block copy)
+- Release/update: `Block-Viewer-*` zip names, `block-update-policy.json`, `block-install.json`, `ape-squared/Block-Viewer` in `block-updater` feed URLs
+- `.github/workflows/release.yml`, `discord-release.yml`, `scripts/package.ps1`, `write-update-policy.ps1`
+- Data dirs: `com.ape-squared.BlockViewer` (`settings.rs`, `logging.rs`, …), not `org.Aurora.AuroraViewer`
 - `news/*`, `peers/*`, `.github/release-notes-header.md`
 - `update-policy.json` (merge with care)
 

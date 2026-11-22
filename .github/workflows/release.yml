@@ -93,7 +93,7 @@ jobs:
         run: |
           dump_syms target/release/block-viewer.exe --store symbols
           if ($LASTEXITCODE -ne 0) { throw 'dump_syms failed' }
-          $zip = "Aurora-Viewer-$env:TAG-windows-x64-symbols.zip"
+          $zip = "Block-Viewer-$env:TAG-windows-x64-symbols.zip"
           & 7z a -tzip -mx=9 $zip ./symbols/* | Out-Null
           if ($LASTEXITCODE -ne 0) { throw '7z failed' }
           $hash = (Get-FileHash -LiteralPath $zip -Algorithm SHA256).Hash.ToLowerInvariant()
@@ -129,7 +129,7 @@ jobs:
         shell: pwsh
         run: |
           $v = $env:TAG
-          $dir = "Aurora-Viewer-$v-windows-x64"
+          $dir = "Block-Viewer-$v-windows-x64"
           ./scripts/package.ps1 -Exe target/release/block-viewer.exe -Out $dir
           Compress-Archive -Path $dir -DestinationPath "$dir.zip"
           $hash = (Get-FileHash -LiteralPath "$dir.zip" -Algorithm SHA256).Hash.ToLowerInvariant()
@@ -147,7 +147,7 @@ jobs:
             ${{ env.ZIP }}.sha256
             ${{ env.SYMBOLS }}
             ${{ env.SYMBOLS }}.sha256
-            aurora-update-policy.json
+            block-update-policy.json
           if-no-files-found: error
           compression-level: 0
           retention-days: 7
@@ -189,8 +189,8 @@ jobs:
           GH_REPO: ${{ github.repository }}
         run: |
           $v = $env:TAG
-          $zip = "Aurora-Viewer-$v-windows-x64.zip"
-          $symbols = "Aurora-Viewer-$v-windows-x64-symbols.zip"
+          $zip = "Block-Viewer-$v-windows-x64.zip"
+          $symbols = "Block-Viewer-$v-windows-x64-symbols.zip"
           $notes = '.github/release-notes-header.md'
           # a signed release names its signing first: the SignPath
           # Foundation's terms ask for it on the download pages
@@ -199,9 +199,75 @@ jobs:
             $notes = Join-Path $env:RUNNER_TEMP 'release-notes-header.md'
             Set-Content -LiteralPath $notes -Value @($line, '', (Get-Content -Raw -LiteralPath '.github/release-notes-header.md')) -Encoding utf8NoBOM
           }
-          $ghArgs = @($v, $zip, "$zip.sha256", $symbols, "$symbols.sha256", 'aurora-update-policy.json', '--title', "Block Viewer $v", '--notes-file', $notes, '--generate-notes', '--verify-tag')
+          $ghArgs = @($v, $zip, "$zip.sha256", $symbols, "$symbols.sha256", 'block-update-policy.json', '--title', "Block Viewer $v", '--notes-file', $notes, '--generate-notes', '--verify-tag')
           if ($v -match '-') { $ghArgs += '--prerelease' }   # v0.3.0-beta.1
           gh release create @ghArgs
+      # GITHUB_TOKEN publishes do not trigger release: workflows; notify Discord here.
+      - name: Notify Discord
+        if: env.TAG != 'dry-run'
+        env:
+          WEBHOOK: ${{ secrets.DISCORD_RELEASES_WEBHOOK }}
+          TESTER_ROLE: ${{ secrets.DISCORD_TESTER_ROLE_ID }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+          TAG: ${{ env.TAG }}
+        run: |
+          set -euo pipefail
+          if [ -z "${WEBHOOK:-}" ]; then
+            echo "DISCORD_RELEASES_WEBHOOK secret is missing" >&2
+            exit 1
+          fi
+          export RELEASE_JSON="$(gh release view "$TAG" --repo "$GH_REPO" --json tagName,name,body,htmlUrl,prerelease,publishedAt,assets)"
+          python3 - <<'PY'
+          import json, os, re, urllib.request
+          release = json.loads(os.environ["RELEASE_JSON"])
+          webhook = os.environ["WEBHOOK"].rstrip("/")
+          if webhook.endswith("/github"):
+              webhook = webhook[: -len("/github")]
+          tag = release.get("tagName") or ""
+          name = (release.get("name") or tag or "Release").strip()
+          url = release.get("htmlUrl") or ""
+          prerelease = bool(release.get("prerelease"))
+          body = (release.get("body") or "").strip()
+          body = re.sub(r"<!--.*?-->", "", body, flags=re.S)
+          body = re.sub(r"(?im)^#+\s*Block Viewer\s*$", "", body)
+          body = re.sub(r"(?im)^Support:.*$", "", body)
+          body = re.sub(r"(?im)^Sister project.*$", "", body)
+          body = re.sub(r"\n{3,}", "\n\n", body).strip()
+          if len(body) > 1800:
+              body = body[:1797].rstrip() + "…"
+          if not body:
+              body = "Release notes are on GitHub."
+          assets = release.get("assets") or []
+          windows = next(
+              (a for a in assets if a.get("name", "").endswith("-windows-x64.zip") and not a.get("name", "").endswith("-symbols.zip")),
+              None,
+          )
+          fields = []
+          if windows and windows.get("browserDownloadUrl"):
+              fields.append({"name": "Windows", "value": f"[Download zip]({windows['browserDownloadUrl']})", "inline": True})
+          fields.append({"name": "Tag", "value": f"[`{tag}`]({url})" if tag and url else (tag or "—"), "inline": True})
+          color = 0x38BDF8 if prerelease else 0xD4FF3F
+          title = name if name.lower().startswith("block") else f"Block Viewer {name}"
+          embed = {"title": title, "url": url, "description": body, "color": color, "fields": fields,
+                   "thumbnail": {"url": "https://raw.githubusercontent.com/ape-squared/Block-Viewer/main/assets/branding/block-logo-bg.png"},
+                   "footer": {"text": "Block Viewer · GitHub Releases"}}
+          if release.get("publishedAt"):
+              embed["timestamp"] = release["publishedAt"]
+          kind = "New pre-release" if prerelease else "New release"
+          role = (os.environ.get("TESTER_ROLE") or "").strip()
+          allowed = {"parse": []}
+          if role.isdigit():
+              content = f"{kind} <@&{role}>"
+              allowed = {"roles": [role]}
+          else:
+              content = f"{kind} — testers welcome"
+          payload = {"username": "Block Viewer", "avatar_url": embed["thumbnail"]["url"], "content": content, "embeds": [embed], "allowed_mentions": allowed}
+          req = urllib.request.Request(webhook + "?wait=true", data=json.dumps(payload).encode(),
+                                     headers={"Content-Type": "application/json", "User-Agent": "Block-Viewer-Release-Notify"}, method="POST")
+          with urllib.request.urlopen(req, timeout=30) as resp:
+              print(f"Discord {resp.status}")
+          PY
 
   # The Linux archive joins the release once it is published: a Linux build
   # that fails leaves the Windows release in place and the run red (re-run
@@ -246,7 +312,7 @@ jobs:
         shell: pwsh
         run: |
           $v = $env:TAG
-          $dir = "Aurora-Viewer-$v-linux-x64"
+          $dir = "Block-Viewer-$v-linux-x64"
           ./scripts/package.ps1 -Exe target/release/block-viewer -Out $dir
           & tar -czf "$dir.tar.gz" $dir
           if ($LASTEXITCODE -ne 0) { throw 'tar failed' }
@@ -291,7 +357,7 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GH_REPO: ${{ github.repository }}
         run: |
-          archive="Aurora-Viewer-$TAG-linux-x64.tar.gz"
+          archive="Block-Viewer-$TAG-linux-x64.tar.gz"
           gh release upload "$TAG" "$archive" "$archive.sha256"
 
   # The macOS application (Apple Silicon) joins the release like the Linux
@@ -384,7 +450,7 @@ jobs:
       # signature (and its stapled ticket)
       - name: Disk image
         run: |
-          dmg="Aurora-Viewer-$TAG-macos-arm64.dmg"
+          dmg="Block-Viewer-$TAG-macos-arm64.dmg"
           stage="$RUNNER_TEMP/dmg"
           mkdir -p "$stage"
           ditto "$APP" "$stage/$APP"
@@ -430,5 +496,5 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GH_REPO: ${{ github.repository }}
         run: |
-          dmg="Aurora-Viewer-$TAG-macos-arm64.dmg"
+          dmg="Block-Viewer-$TAG-macos-arm64.dmg"
           gh release upload "$TAG" "$dmg" "$dmg.sha256"

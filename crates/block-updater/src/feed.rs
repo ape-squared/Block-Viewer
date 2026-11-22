@@ -1,4 +1,4 @@
-//! A bounded GitHub release list, filtered by SemVer rather than GitHub's
+﻿//! A bounded GitHub release list, filtered by SemVer rather than GitHub's
 //! creation date (the assets-only release is not a viewer): stable versions,
 //! plus the `-beta.…` pre-releases for the Beta channel.
 
@@ -8,10 +8,10 @@ use semver::Version;
 use serde::Deserialize;
 use std::time::Duration;
 
-pub const RELEASES: &str = "https://api.github.com/repos/Aurora-Viewer/Aurora-Viewer/releases?per_page=100";
-pub const RELEASE_PAGE: &str = "https://github.com/Aurora-Viewer/Aurora-Viewer/releases";
-const DOWNLOADS: &str = "https://github.com/Aurora-Viewer/Aurora-Viewer/releases/download";
-pub const POLICY: &str = "aurora-update-policy.json";
+pub const RELEASES: &str = "https://api.github.com/repos/ape-squared/Block-Viewer/releases?per_page=100";
+pub const RELEASE_PAGE: &str = "https://github.com/ape-squared/Block-Viewer/releases";
+const DOWNLOADS: &str = "https://github.com/ape-squared/Block-Viewer/releases/download";
+pub const POLICY: &str = "block-update-policy.json";
 pub const MAX_ARCHIVE: u64 = 2 * 1024 * 1024 * 1024;
 /// How long an installation below a new minimum may still sign in, when
 /// the policy does not say (#3014): a show or a DJ set under way ends
@@ -267,9 +267,9 @@ pub fn version(value: &str) -> Option<Version> {
 /// hand, so a release offers it no package to install.
 fn package_name(tag: &str) -> Option<String> {
     if cfg!(windows) {
-        Some(format!("Aurora-Viewer-{tag}-windows-x64.zip"))
+        Some(format!("Block-Viewer-{tag}-windows-x64.zip"))
     } else if cfg!(target_os = "linux") {
-        Some(format!("Aurora-Viewer-{tag}-linux-x64.tar.gz"))
+        Some(format!("Block-Viewer-{tag}-linux-x64.tar.gz"))
     } else {
         None
     }
@@ -384,9 +384,9 @@ mod tests {
     fn the_package_of_this_system_is_the_one_the_release_publishes() {
         let name = package_name("v0.9.0");
         if cfg!(windows) {
-            assert_eq!(name.as_deref(), Some("Aurora-Viewer-v0.9.0-windows-x64.zip"));
+            assert_eq!(name.as_deref(), Some("Block-Viewer-v0.9.0-windows-x64.zip"));
         } else if cfg!(target_os = "linux") {
-            assert_eq!(name.as_deref(), Some("Aurora-Viewer-v0.9.0-linux-x64.tar.gz"));
+            assert_eq!(name.as_deref(), Some("Block-Viewer-v0.9.0-linux-x64.tar.gz"));
         } else {
             // macOS: installed by hand, no package to install
             assert_eq!(name, None);
@@ -398,7 +398,7 @@ mod tests {
         let production = Source::default();
         assert!(
             production
-                .validate_url("https://github.com/Aurora-Viewer/Aurora-Viewer/releases")
+                .validate_url("https://github.com/ape-squared/Block-Viewer/releases")
                 .is_ok()
         );
         for url in [

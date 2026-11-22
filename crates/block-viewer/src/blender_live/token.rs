@@ -19,7 +19,7 @@ pub(super) const LEN: usize = 64;
 /// The folder of the token files, the add-on's `token_path` in
 /// blender/aurora_live/client.py.
 pub(super) fn folder() -> Option<PathBuf> {
-    directories::ProjectDirs::from("org", "Aurora", "AuroraViewer").map(|d| d.data_local_dir().join("blender-live"))
+    directories::ProjectDirs::from("com", "ape-squared", "BlockViewer").map(|d| d.data_local_dir().join("blender-live"))
 }
 
 pub(super) fn file_name(port: u16) -> String {

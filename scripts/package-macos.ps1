@@ -29,7 +29,7 @@ Move-Item -LiteralPath (Join-Path $resources (Split-Path $Exe -Leaf)) -Destinati
 
 # MAJOR.MINOR.PATCH of the build, the only form CFBundleShortVersionString
 # takes (a beta's pre-release part and the commits since the tag are left out)
-$version = (Get-Content -LiteralPath (Join-Path $resources 'aurora-install.json') -Raw | ConvertFrom-Json).version
+$version = (Get-Content -LiteralPath (Join-Path $resources 'block-install.json') -Raw | ConvertFrom-Json).version
 if ($version -notmatch '^(\d+\.\d+\.\d+)') { throw "Invalid package version: $version" }
 $plist = Get-Content -LiteralPath (Join-Path $Source 'packaging/macos/Info.plist') -Raw
 Set-Content -LiteralPath (Join-Path $contents 'Info.plist') -Value $plist.Replace('@VERSION@', $Matches[1]) -Encoding utf8NoBOM -NoNewline

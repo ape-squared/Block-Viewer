@@ -10,8 +10,8 @@ use crossbeam_channel::{Receiver, Sender};
 use serde_json::Value;
 use std::time::{Duration, Instant};
 
-const API: &str = "https://api.github.com/repos/Aurora-Viewer/Aurora-Viewer/issues";
-pub const ISSUES: &str = "https://github.com/Aurora-Viewer/Aurora-Viewer/issues";
+const API: &str = "https://api.github.com/repos/ape-squared/Block-Viewer/issues";
+pub const ISSUES: &str = "https://github.com/ape-squared/Block-Viewer/issues";
 pub const VERIFY: &str = "https://github.com/login/device";
 const TOKEN: &str = "https://github.com/login/oauth/access_token";
 // Public identifier of the project's GitHub App (Device Flow enabled).

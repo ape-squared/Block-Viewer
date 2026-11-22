@@ -98,7 +98,7 @@ const PACKAGE: &[&str] = &[
     "NOTICE.md",
     "README.md",
     "version.txt",
-    "aurora-install.json",
+    "block-install.json",
     // the Linux package's desktop entry and icon (`package.ps1`), named after
     // the viewer's app_id (cli.rs DESKTOP_ID)
     #[cfg(target_os = "linux")]
@@ -106,7 +106,7 @@ const PACKAGE: &[&str] = &[
     #[cfg(target_os = "linux")]
     "block-viewer.svg",
 ];
-const MANIFEST: &str = "aurora-install.json";
+const MANIFEST: &str = "block-install.json";
 
 /// What an update replaces in the folder of the running viewer. Anything
 /// else there (a shortcut, notes, a whole Desktop) stays where it is.

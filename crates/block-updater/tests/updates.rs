@@ -125,11 +125,11 @@ fn zip(entries: &[(&str, &[u8])]) -> Vec<u8> {
 }
 fn valid_zip() -> Vec<u8> {
     zip(&[
-        ("Aurora-Viewer-v0.3.0-windows-x64/block-viewer.exe", b"new viewer"),
-        ("Aurora-Viewer-v0.3.0-windows-x64/assets/character/avatar.llm", b"avatar"),
-        ("Aurora-Viewer-v0.3.0-windows-x64/LICENSE", b"license"),
+        ("Block-Viewer-v0.3.0-windows-x64/block-viewer.exe", b"new viewer"),
+        ("Block-Viewer-v0.3.0-windows-x64/assets/character/avatar.llm", b"avatar"),
+        ("Block-Viewer-v0.3.0-windows-x64/LICENSE", b"license"),
         (
-            "Aurora-Viewer-v0.3.0-windows-x64/aurora-install.json",
+            "Block-Viewer-v0.3.0-windows-x64/block-install.json",
             br#"{"schema":1,"version":"0.3.0"}"#,
         ),
     ])
@@ -208,13 +208,13 @@ fn tar_gz(members: &[Member]) -> Vec<u8> {
 
 fn valid_tar_gz() -> Vec<u8> {
     tar_gz(&[
-        Member::dir("Aurora-Viewer-v0.3.0-linux-x64/"),
-        Member::file("Aurora-Viewer-v0.3.0-linux-x64/block-viewer", b"new viewer", 0o755),
-        Member::dir("Aurora-Viewer-v0.3.0-linux-x64/assets/"),
-        Member::file("Aurora-Viewer-v0.3.0-linux-x64/assets/character/avatar.llm", b"avatar", 0o644),
-        Member::file("Aurora-Viewer-v0.3.0-linux-x64/LICENSE", b"license", 0o644),
+        Member::dir("Block-Viewer-v0.3.0-linux-x64/"),
+        Member::file("Block-Viewer-v0.3.0-linux-x64/block-viewer", b"new viewer", 0o755),
+        Member::dir("Block-Viewer-v0.3.0-linux-x64/assets/"),
+        Member::file("Block-Viewer-v0.3.0-linux-x64/assets/character/avatar.llm", b"avatar", 0o644),
+        Member::file("Block-Viewer-v0.3.0-linux-x64/LICENSE", b"license", 0o644),
         Member::file(
-            "Aurora-Viewer-v0.3.0-linux-x64/aurora-install.json",
+            "Block-Viewer-v0.3.0-linux-x64/block-install.json",
             br#"{"schema":1,"version":"0.3.0"}"#,
             0o644,
         ),
@@ -272,7 +272,7 @@ fn verifies_and_extracts_real_download() {
 #[test]
 fn verifies_and_extracts_a_linux_tarball() {
     let bytes = valid_tar_gz();
-    let name = "Aurora-Viewer-v0.3.0-linux-x64.tar.gz";
+    let name = "Block-Viewer-v0.3.0-linux-x64.tar.gz";
     let hash = format!("{}  {name}\n", digest(&bytes));
     let server = Server::new(HashMap::from([
         ("/package.tar.gz".into(), bytes.clone()),
@@ -340,8 +340,8 @@ fn invalid_zip_paths_and_case_aliases_do_not_escape_staging() {
     for entries in [
         vec![("../escape.txt", b"bad".as_slice())],
         vec![
-            ("Aurora-Viewer-v0.3.0-windows-x64/FILE", b"a".as_slice()),
-            ("Aurora-Viewer-v0.3.0-windows-x64/file", b"b".as_slice()),
+            ("Block-Viewer-v0.3.0-windows-x64/FILE", b"a".as_slice()),
+            ("Block-Viewer-v0.3.0-windows-x64/file", b"b".as_slice()),
         ],
     ] {
         let temp = Temp::new();
@@ -355,7 +355,7 @@ fn invalid_zip_paths_and_case_aliases_do_not_escape_staging() {
 
 #[test]
 fn tarballs_with_links_traversal_or_case_aliases_never_escape_staging() {
-    let root = "Aurora-Viewer-v0.3.0-linux-x64";
+    let root = "Block-Viewer-v0.3.0-linux-x64";
     for members in [
         // a valid entry first: nothing is extracted before the last is known
         vec![
@@ -405,7 +405,7 @@ fn installation(path: &Path, version: &[u8]) {
     fs::write(path.join(exe()), version).expect("viewer");
     fs::write(path.join("assets/dictionary.dic"), version).expect("asset");
     fs::write(path.join("LICENSE"), b"license").expect("license");
-    fs::write(path.join("aurora-install.json"), version).expect("manifest");
+    fs::write(path.join("block-install.json"), version).expect("manifest");
     // the package kept the executable bit, and so does the swap
     #[cfg(unix)]
     {
@@ -491,7 +491,7 @@ fn a_viewer_copied_alone_updates_only_itself() {
     assert!(!desktop.join("assets/dictionary.dic").exists(), "no package asset added");
     assert_eq!(fs::read(desktop.join("LICENSE")).expect("licence kept"), b"my licence");
     assert_eq!(fs::read(desktop.join("README.md")).expect("readme kept"), b"my notes");
-    assert!(!desktop.join("aurora-install.json").exists(), "no package file added");
+    assert!(!desktop.join("block-install.json").exists(), "no package file added");
     assert_personal_files(&desktop);
 }
 
@@ -817,7 +817,7 @@ fn release_filter_ignores_assets_drafts_prereleases_and_retrieves_minimum_versio
         {"tag_name":"assets-1","html_url":format!("{base}/assets")},
         {"tag_name":"v1.0.0-beta.1","prerelease":true,"html_url":format!("{base}/beta")},
         {"tag_name":"v9.0.0","draft":true,"html_url":format!("{base}/draft")},
-        {"tag_name":"v0.3.0","html_url":format!("{base}/release"),"body":"Real notes","assets":[{"name":"aurora-update-policy.json","size":100,"browser_download_url":format!("{base}/policy")}]},
+        {"tag_name":"v0.3.0","html_url":format!("{base}/release"),"body":"Real notes","assets":[{"name":"block-update-policy.json","size":100,"browser_download_url":format!("{base}/policy")}]},
         {"tag_name":"v0.2.0","html_url":format!("{base}/old")}
     ]).to_string();
     let thread = std::thread::spawn(move || {
@@ -855,7 +855,7 @@ fn the_policy_sets_the_grace_period_below_a_new_minimum() {
         let listener = TcpListener::bind("127.0.0.1:0").expect("loopback");
         let base = format!("http://{}", listener.local_addr().expect("address"));
         let list = serde_json::json!([
-            {"tag_name":"v0.3.0","html_url":format!("{base}/release"),"assets":[{"name":"aurora-update-policy.json","size":100,"browser_download_url":format!("{base}/policy")}]}
+            {"tag_name":"v0.3.0","html_url":format!("{base}/release"),"assets":[{"name":"block-update-policy.json","size":100,"browser_download_url":format!("{base}/policy")}]}
         ])
         .to_string();
         let policy = format!("{{\"schema\":1,\"version\":\"0.3.0\",\"minimum_supported_version\":\"0.3.0\"{grace}}}");

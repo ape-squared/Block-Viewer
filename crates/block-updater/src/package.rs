@@ -52,8 +52,8 @@ impl Format {
     /// The folder the package's entries sit under.
     fn root(self, tag: &str) -> String {
         match self {
-            Self::Zip => format!("Aurora-Viewer-{tag}-windows-x64"),
-            Self::TarGz => format!("Aurora-Viewer-{tag}-linux-x64"),
+            Self::Zip => format!("Block-Viewer-{tag}-windows-x64"),
+            Self::TarGz => format!("Block-Viewer-{tag}-linux-x64"),
         }
     }
     /// The viewer's executable inside the package, which is not this
@@ -222,7 +222,7 @@ pub fn extract(path: &Path, root: &Path, tag: &str, cancel: &Cancel) -> Result<P
     } else {
         unpack_tar_gz(path, root, &format.root(tag), cancel)?;
     }
-    let manifest: InstallManifest = serde_json::from_slice(&fs::read(root.join("aurora-install.json"))?)?;
+    let manifest: InstallManifest = serde_json::from_slice(&fs::read(root.join("block-install.json"))?)?;
     ensure!(
         manifest.schema == 1 && manifest.version == tag.trim_start_matches('v'),
         "package version mismatch"
@@ -396,12 +396,12 @@ mod tests {
     }
     #[test]
     fn an_archive_format_is_told_by_its_name() {
-        assert_eq!(Format::of("Aurora-Viewer-v0.9.0-windows-x64.zip"), Some(Format::Zip));
-        assert_eq!(Format::of("Aurora-Viewer-v0.9.0-linux-x64.tar.gz"), Some(Format::TarGz));
+        assert_eq!(Format::of("Block-Viewer-v0.9.0-windows-x64.zip"), Some(Format::Zip));
+        assert_eq!(Format::of("Block-Viewer-v0.9.0-linux-x64.tar.gz"), Some(Format::TarGz));
         assert_eq!(Format::of("PACKAGE.TAR.GZ"), Some(Format::TarGz));
         for name in [
-            "aurora-update-policy.json",
-            "Aurora-Viewer-v0.9.0-macos-universal.dmg",
+            "block-update-policy.json",
+            "Block-Viewer-v0.9.0-macos-universal.dmg",
             "package.tar.xz",
             "package",
         ] {
@@ -411,8 +411,8 @@ mod tests {
 
     #[test]
     fn each_format_names_its_own_package_layout() {
-        assert_eq!(Format::Zip.root("v1.2.3"), "Aurora-Viewer-v1.2.3-windows-x64");
-        assert_eq!(Format::TarGz.root("v1.2.3"), "Aurora-Viewer-v1.2.3-linux-x64");
+        assert_eq!(Format::Zip.root("v1.2.3"), "Block-Viewer-v1.2.3-windows-x64");
+        assert_eq!(Format::TarGz.root("v1.2.3"), "Block-Viewer-v1.2.3-linux-x64");
         assert_eq!(Format::Zip.exe(), "block-viewer.exe");
         assert_eq!(Format::TarGz.exe(), "block-viewer");
         assert_eq!(Format::Zip.file(), "download.zip");

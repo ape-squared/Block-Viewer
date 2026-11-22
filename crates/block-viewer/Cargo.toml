@@ -157,7 +157,7 @@ objc2-core-foundation = { version = "0.3.2", default-features = false, features 
 [target.'cfg(target_os = "linux")'.dependencies]
 # The freedesktop notification service (system_notify.rs), over the session
 # bus; already in the tree through keyring's Secret Service store
-zbus = "5.19.0"
+zbus = "6.3.0"
 # Race the portal's response with importer cancellation, without blocking a
 # bus reader. Already used by zbus (MIT / Apache-2.0).
 async-io = "2.6.0"
@@ -182,7 +182,7 @@ winresource = { version = "0.1.34", default-features = false }
 
 [dev-dependencies]
 # Type-check the portal integration and test cancellation races on every host.
-zbus = "5.19.0"
+zbus = "6.3.0"
 async-io = "2.6.0"
 futures-lite = "2.6.1"
 

@@ -1,4 +1,4 @@
-﻿## European Portuguese localization based on the draft by SmurfCat1234 (branch localization-review of their fork, Aurora-Viewer/Aurora-Viewer#4220).
+## European Portuguese localization based on the draft by SmurfCat1234 (branch localization-review of their fork, Aurora-Viewer/Aurora-Viewer#4220).
 
 language-name = Português (Portugal)
 avatar-studio-title = Estúdio de avatar

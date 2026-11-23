@@ -458,8 +458,20 @@ pub unsafe fn disable(allow_overlays: bool) -> Vec<Layer> {
         // nothing reads the environment while it changes.
         unsafe { std::env::set_var(l.variable, "1") };
     }
+    // Overlays whose manifest variable is not known are kept out by name
+    // through the loader's filter (loader 1.3.234 and later), unless the
+    // user keeps the layers or already set the filter.
+    let keep = keep.as_deref().is_some_and(|v| v.trim().eq_ignore_ascii_case("keep"));
+    if !allow_overlays && !keep && std::env::var_os("VK_LOADER_LAYERS_DISABLE").is_none() {
+        // SAFETY: as above, no other thread runs yet.
+        unsafe { std::env::set_var("VK_LOADER_LAYERS_DISABLE", BY_NAME.join(",")) };
+    }
     layers
 }
+
+/// Overlay layers kept out by name (`VK_LOADER_LAYERS_DISABLE`): Medal's
+/// clip recorder, whose capture layer loads into every Vulkan program.
+pub const BY_NAME: &[&str] = &["VK_LAYER_MEDAL_CAPTURE_V2", "VK_LAYER_MEDAL_CAPTURE"];
 
 #[cfg(test)]
 mod tests {

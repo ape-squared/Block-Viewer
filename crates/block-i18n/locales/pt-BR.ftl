@@ -1,4 +1,4 @@
-﻿## Brazilian Portuguese catalogue for Block Viewer.
+## Brazilian Portuguese catalogue for Block Viewer.
 ## Based on the community translation by wolfosbournesl in Aurora-Viewer/Aurora-Viewer#1634.
 
 language-name = Português (Brasil)

@@ -1,4 +1,4 @@
-﻿language-name = Français
+language-name = Français
 avatar-studio-title = Studio avatar
 avatar-studio-pose = Pose
 avatar-studio-pose-animated = AO / En monde

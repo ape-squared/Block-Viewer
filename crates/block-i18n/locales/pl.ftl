@@ -1,4 +1,4 @@
-﻿## Polish localization based on the draft by SmurfCat1234 (branch localization-review of their fork, Aurora-Viewer/Aurora-Viewer#4220).
+## Polish localization based on the draft by SmurfCat1234 (branch localization-review of their fork, Aurora-Viewer/Aurora-Viewer#4220).
 
 language-name = Polski
 avatar-studio-title = Studio awatara

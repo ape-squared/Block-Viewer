@@ -1,4 +1,4 @@
-﻿## German localization based on the contribution by DDynamic-Evolution in Aurora-Viewer/Aurora-Viewer#3587.
+## German localization based on the contribution by DDynamic-Evolution in Aurora-Viewer/Aurora-Viewer#3587.
 
 language-name = Deutsch
 avatar-studio-title = Avatar-Studio

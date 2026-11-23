@@ -1,4 +1,4 @@
-﻿## Ukrainian localization, translated from English.
+## Ukrainian localization, translated from English.
 
 language-name = Українська
 avatar-studio-title = Студія аватара

@@ -1,4 +1,4 @@
-﻿## Russian localization based on the contribution by deontodi-ctrl in Aurora-Viewer/Aurora-Viewer#3878.
+## Russian localization based on the contribution by deontodi-ctrl in Aurora-Viewer/Aurora-Viewer#3878.
 
 language-name = Русский
 avatar-studio-title = Студия аватара

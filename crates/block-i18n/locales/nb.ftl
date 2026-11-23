@@ -1,4 +1,4 @@
-﻿## Norwegian Bokmål localization, translated from English.
+## Norwegian Bokmål localization, translated from English.
 
 language-name = Norsk bokmål
 avatar-studio-title = Avatarstudio

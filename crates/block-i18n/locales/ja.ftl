@@ -1,4 +1,4 @@
-﻿language-name = 日本語
+language-name = 日本語
 avatar-studio-title = アバタースタジオ
 avatar-studio-pose = ポーズ
 avatar-studio-pose-animated = ＡＯ／インワールド

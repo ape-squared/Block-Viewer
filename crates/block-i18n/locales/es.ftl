@@ -1,4 +1,4 @@
-﻿## Spanish localization based on the draft by SmurfCat1234 (branch localization-review of their fork, Aurora-Viewer/Aurora-Viewer#4220).
+## Spanish localization based on the draft by SmurfCat1234 (branch localization-review of their fork, Aurora-Viewer/Aurora-Viewer#4220).
 
 language-name = Español
 avatar-studio-title = Avatar Studio

@@ -1,4 +1,4 @@
-﻿## Italian localization based on the contribution by 00JackWild00 in Aurora-Viewer/Aurora-Viewer#4259.
+## Italian localization based on the contribution by 00JackWild00 in Aurora-Viewer/Aurora-Viewer#4259.
 
 language-name = Italiano
 avatar-studio-title = Studio avatar

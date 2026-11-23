@@ -1,4 +1,4 @@
-﻿## Unofficial Block Viewer translation preview.
+## Unofficial Block Viewer translation preview.
 ## Adapted from Block Viewer PR #2678 via OpenCC; Taiwan terminology requires review.
 ## Missing messages use the viewer's English catalog.
 

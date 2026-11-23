@@ -77,6 +77,8 @@ fn bundled(index: usize) -> &'static Catalog {
     let catalogs = CATALOGS.get_or_init(|| SOURCES.iter().map(|_| OnceLock::new()).collect());
     catalogs[index].get_or_init(|| {
         let (code, source) = SOURCES[index];
+        // a byte order mark (left by some Windows editors) is not Fluent syntax
+        let source = source.strip_prefix('\u{feff}').unwrap_or(source);
         let resource = FluentResource::try_new(source.to_owned()).expect("bundled Fluent syntax is checked by tests");
         assemble(code, resource, false).0
     })

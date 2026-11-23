@@ -1,4 +1,4 @@
-﻿## Unofficial Block Viewer translation preview.
+## Unofficial Block Viewer translation preview.
 ## Adapted from Block Viewer PR #2678 (bd3265a400b51f26d2ab75c1136c1511379b0b08).
 ## Missing messages use the viewer's English catalog.
 

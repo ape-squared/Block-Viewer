@@ -1,4 +1,4 @@
-//! Bring a Legacy Viewer's transcripts into Aurora, one way: its files are
+//! Bring a Legacy Viewer's transcripts into Block, one way: its files are
 //! only read. The text of a line and the name of a file are the same on
 //! both sides (`format`, `names`), so a line is kept as written; what differs
 //! is the folder, `<logs>/<first_last>[.<grid label>]` there
@@ -7,7 +7,7 @@
 //! here (`store::folder`).
 //!
 //! A conversation both viewers have is merged by time, with what the
-//! Aurora file already holds left out, so importing again adds nothing.
+//! Block file already holds left out, so importing again adds nothing.
 //! Merging rewrites the file: one file at a time on the transcript thread
 //! (`store::Job::Merge`), so that the lines of a live conversation wait for
 //! that file only, then a rename, so that a failure leaves it as it was.
@@ -32,7 +32,7 @@ pub struct Found {
     pub dir: PathBuf,
     pub files: usize,
     pub bytes: u64,
-    /// The folder Aurora writes to, through a link: nothing to import.
+    /// The folder Block writes to, through a link: nothing to import.
     pub same: bool,
 }
 
@@ -196,8 +196,8 @@ pub fn undated(stem: &str) -> &str {
     }
 }
 
-/// The file in Aurora's folder that receives a Legacy file. With dated names
-/// off a conversation is one file, as it is here, or the months Aurora
+/// The file in Block's folder that receives a Legacy file. With dated names
+/// off a conversation is one file, as it is here, or the months Block
 /// does not read back would stay out of its history.
 fn target_of(dir: &Path, source: &Path, dated: bool, spelled: &Spellings) -> Option<PathBuf> {
     let stem = source.file_stem()?.to_str()?;
@@ -208,8 +208,8 @@ fn target_of(dir: &Path, source: &Path, dated: bool, spelled: &Spellings) -> Opt
 /// The files' names with their capitals, by their name in lower case.
 type Spellings = HashMap<String, String>;
 
-/// What Aurora's folder and the sources say of the capitals of a name that
-/// lost them. Aurora's come first: that file is the one it reads.
+/// What Block's folder and the sources say of the capitals of a name that
+/// lost them. Block's come first: that file is the one it reads.
 fn spellings(dir: &Path, sources: &[PathBuf]) -> Spellings {
     let mut spelled = Spellings::new();
     let mut add = |file: &Path| {
@@ -228,10 +228,10 @@ fn spellings(dir: &Path, sources: &[PathBuf]) -> Spellings {
     spelled
 }
 
-/// `jane_doe` as Aurora names that resident's file, `Jane Doe`: a Legacy Viewer
+/// `jane_doe` as Block names that resident's file, `Jane Doe`: a Legacy Viewer
 /// with UseLegacyIMLogNames off, or without it, names it from
 /// LLCacheName::buildUsername, then cleanFileName turns its dot into '_'.
-/// That leaves the name in lower case, and Aurora's file of `JaneDoe` or
+/// That leaves the name in lower case, and Block's file of `JaneDoe` or
 /// `Jane McDoe` keeps its capitals: taken from `spelled`, or each word's
 /// first one comes back when nothing says more.
 fn resident_name(stem: &str, spelled: &Spellings) -> String {
@@ -252,7 +252,7 @@ fn resident_name(stem: &str, spelled: &Spellings) -> String {
 }
 
 /// A group's file with one " (group)": Legacy Viewers leave many as
-/// `Club (group) (group)`, beside or instead of `Club (group)`, and Aurora
+/// `Club (group) (group)`, beside or instead of `Club (group)`, and Block
 /// reads only the second. In a dated name the suffix is before the date.
 fn once_group(stem: &str) -> String {
     let twice = format!("{0}{0}", names::GROUP_SUFFIX);
@@ -417,7 +417,7 @@ fn merged(ours: &[u8], theirs: &[u8], group: bool) -> Option<(Vec<u8>, u64)> {
     Some((out, new.len() as u64))
 }
 
-/// Merge a Legacy file into an Aurora one, on the transcript thread; the
+/// Merge a Legacy file into a Block one, on the transcript thread; the
 /// number of messages added. The target is replaced in one step and only if
 /// it did not grow in the meantime, which another viewer on the same account
 /// could do. The source is never written.
@@ -506,7 +506,7 @@ pub struct Request {
     /// A file left out here is not marked as imported: it comes in at the
     /// first login with its setting on.
     pub kinds: Kinds,
-    /// The folder of the account in Aurora.
+    /// The folder of the account in Block.
     pub dir: PathBuf,
     pub dated: bool,
     /// What was imported, to leave alone at login the files that did not
@@ -523,7 +523,7 @@ pub struct Request {
 pub struct Report {
     /// Messages added.
     pub added: u64,
-    /// The Aurora files that changed, by the stem of their name.
+    /// The Block files that changed, by the stem of their name.
     pub changed: BTreeSet<String>,
     /// Files that could not be merged; they stay as they were.
     pub failed: usize,
@@ -604,7 +604,7 @@ fn write_brought(state: &Path, keys: Vec<String>) {
 }
 
 /// The file stem the transcript of a Legacy conversation log entry has in
-/// Aurora's folder (`target_of` renames the files, so the entry follows).
+/// Block's folder (`target_of` renames the files, so the entry follows).
 fn renamed_history(dir: &Path, history_file: &str, spelled: &Spellings) -> String {
     if history_file.trim().is_empty() {
         return history_file.to_owned();
@@ -649,7 +649,7 @@ pub fn start(port: store::MergePort, request: Request) -> Option<Running> {
     let cancel = Arc::new(AtomicBool::new(false));
     let (d, t, c) = (done.clone(), total.clone(), cancel.clone());
     std::thread::Builder::new()
-        .name("aurora-chatlog-import".into())
+        .name("block-chatlog-import".into())
         .spawn(move || run(&port, request, &d, &t, &c, &tx))
         .map_err(|e| log::warn!("conversation transcripts: no import thread ({e})"))
         .ok()?;
@@ -764,7 +764,7 @@ mod tests {
     use uuid::Uuid;
 
     fn temp() -> PathBuf {
-        let dir = std::env::temp_dir().join(format!("aurora-chatlog-import-{}", Uuid::new_v4()));
+        let dir = std::env::temp_dir().join(format!("block-chatlog-import-{}", Uuid::new_v4()));
         std::fs::create_dir_all(&dir).unwrap();
         dir
     }
@@ -792,7 +792,7 @@ mod tests {
     #[test]
     fn finds_the_account_in_the_default_and_in_a_chosen_folder() {
         let root = temp();
-        let target = root.join("aurora");
+        let target = root.join("block");
         std::fs::create_dir_all(&target).unwrap();
         // one viewer with the default folder
         let app = root.join("one");
@@ -1174,7 +1174,7 @@ mod tests {
     #[test]
     fn group_history_written_again_is_left_out() {
         let again = "[2026/11/05 07:45]  Bob: hi\n[2026/11/05 07:45]  Ann: hello\n";
-        // what the Aurora file already has
+        // what the Block file already has
         assert_eq!(merge_group(SAID, again), None);
         // a first import: the source says it twice itself
         let source = format!("{SAID}{again}");
@@ -1271,7 +1271,7 @@ mod tests {
     #[test]
     fn a_file_is_merged_in_place_and_the_source_is_not_touched() {
         let dir = temp();
-        let (source, target) = (dir.join("legacy/Bob.txt"), dir.join("aurora/x/Bob.txt"));
+        let (source, target) = (dir.join("legacy/Bob.txt"), dir.join("block/x/Bob.txt"));
         std::fs::create_dir_all(source.parent().unwrap()).unwrap();
         std::fs::write(&source, "[2026/10/12 14:05]  Bob: a\n").unwrap();
         assert_eq!(merge_file(&source, &target).unwrap(), 1);
@@ -1302,7 +1302,7 @@ mod tests {
     fn a_failure_leaves_the_file_as_it_was() {
         use std::os::unix::fs::PermissionsExt;
         let dir = temp();
-        let (source, aurora) = (dir.join("legacy.txt"), dir.join("aurora"));
+        let (source, aurora) = (dir.join("legacy.txt"), dir.join("block"));
         std::fs::create_dir_all(&aurora).unwrap();
         let target = aurora.join("Bob.txt");
         std::fs::write(&target, "[2026/10/14 09:00]  Bob: mine\n").unwrap();

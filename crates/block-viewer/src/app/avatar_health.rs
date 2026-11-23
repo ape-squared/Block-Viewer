@@ -63,11 +63,11 @@ struct Worn {
 
 impl App {
     /// Once per frame: the customise animation follows the appearance
-    /// editors, and the `AURORA_DEMO_AVATAR_HEALTH` scenario. The physics
+    /// editors, and the `BLOCK_DEMO_AVATAR_HEALTH` scenario. The physics
     /// layer editor does not count: its wearable type keeps the camera
     /// (LLWearableType WT_PHYSICS, disable_camera_switch), so the Legacy
     /// Viewer never enters customise mode for it. With the customise
-    /// animation turned off (an Aurora choice), our avatar keeps its pose.
+    /// animation turned off (a Block choice), our avatar keeps its pose.
     pub(super) fn update_avatar_health(&mut self) {
         // LLAgentCamera::changeCameraToCustomizeAvatar (llagentcamera.cpp)
         // returns before anything when RLVa keeps the avatar seated
@@ -101,7 +101,7 @@ impl App {
         }
         self.sync_appearance_camera();
         if self.demo && self.frame_count == 600 {
-            match std::env::var("AURORA_DEMO_AVATAR_HEALTH").as_deref() {
+            match std::env::var("BLOCK_DEMO_AVATAR_HEALTH").as_deref() {
                 Ok("undeform") => self.undeform_avatar(),
                 Ok("refresh") => self.refresh_attachments(),
                 _ => {}

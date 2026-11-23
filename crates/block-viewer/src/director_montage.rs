@@ -1,6 +1,6 @@
 //! A montage played: the shots (saved tracks) one after the other, cut from
 //! the last view of one to the first view of the next, as one playback and
-//! so as one film. Aurora's own: the Legacy Viewer has no camera path tool.
+//! so as one film. Block's own: the Legacy Viewer has no camera path tool.
 //!
 //! Each shot is played by the Director's own playback (`Director::tick`,
 //! `view`): the player only puts the shot's track in the Director's place,

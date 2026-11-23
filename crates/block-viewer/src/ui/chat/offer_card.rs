@@ -235,7 +235,7 @@ mod tests {
                     names: crate::world::names::NameScope::World,
                     want_names: &mut names,
                     wanted: &mut wanted,
-                    own_name: "Aurora Demo",
+                    own_name: "Block Demo",
                     plain_history: false,
                     compact_automated: false,
                     compact_notices: false,

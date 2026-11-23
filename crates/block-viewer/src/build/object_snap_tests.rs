@@ -1,4 +1,4 @@
-//! Snap to objects through the move handles, on the AURORA_DEMO_OBJECT_SNAP boxes.
+//! Snap to objects through the move handles, on the BLOCK_DEMO_OBJECT_SNAP boxes.
 
 use super::*;
 use crate::demo::object_snap::FIRST_ID;

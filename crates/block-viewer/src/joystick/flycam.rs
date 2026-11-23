@@ -5,7 +5,7 @@ use glam::{Mat3, Quat, Vec3};
 
 /// Physical headset orientation rotates travel only; artificial yaw stays on the rig.
 pub fn vr_axes(mut axes: [f32; 7], head_rotation: Quat) -> [f32; 7] {
-    // Aurora: +X forward, +Y left, +Z up. OpenXR: +X right, +Y up, -Z forward.
+    // Block: +X forward, +Y left, +Z up. OpenXR: +X right, +Y up, -Z forward.
     let travel = head_rotation * Vec3::new(-axes[1], axes[2], -axes[0]);
     axes[0] = -travel.z;
     axes[1] = -travel.x;

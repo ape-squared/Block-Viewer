@@ -1,4 +1,4 @@
-//! Parcel-name commits through the actual Aurora and classic windows.
+//! Parcel-name commits through the actual Block and classic windows.
 
 use super::*;
 use crate::world::land::powers;

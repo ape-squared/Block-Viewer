@@ -436,7 +436,7 @@ impl Params {
     }
 }
 
-/// The demo's fountain (AURORA_DEMO_PARTICLE_EDITOR=fountain): a glowing
+/// The demo's fountain (BLOCK_DEMO_PARTICLE_EDITOR=fountain): a glowing
 /// violet to turquoise cone falling back, every interpolation on.
 pub fn demo_fountain() -> Params {
     let mut p = Params {

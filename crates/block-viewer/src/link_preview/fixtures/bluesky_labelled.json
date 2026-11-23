@@ -3,11 +3,11 @@
     "$type": "app.bsky.feed.defs#threadViewPost",
     "post": {
       "uri": "at://did:plc:auroraexampledemo2345abcd/app.bsky.feed.post/3demolabelled",
-      "cid": "bafyreiauroraexampledemolabelledcid",
+      "cid": "bafyreiblockexampledemolabelledcid",
       "author": {
         "did": "did:plc:auroraexampledemo2345abcd",
-        "handle": "aurora-demo.bsky.social",
-        "displayName": "Aurora Demo",
+        "handle": "block-demo.bsky.social",
+        "displayName": "Block Demo",
         "labels": []
       },
       "record": {
@@ -23,9 +23,9 @@
         "$type": "app.bsky.embed.recordWithMedia#view",
         "media": {
           "$type": "app.bsky.embed.video#view",
-          "cid": "bafkreiauroraexampledemovideo01",
-          "playlist": "https://video.bsky.app/watch/did%3Aplc%3Aauroraexampledemo2345abcd/bafkreiauroraexampledemovideo01/playlist.m3u8",
-          "thumbnail": "https://video.bsky.app/watch/did%3Aplc%3Aauroraexampledemo2345abcd/bafkreiauroraexampledemovideo01/thumbnail.jpg",
+          "cid": "bafkreiblockexampledemovideo01",
+          "playlist": "https://video.bsky.app/watch/did%3Aplc%3Aauroraexampledemo2345abcd/bafkreiblockexampledemovideo01/playlist.m3u8",
+          "thumbnail": "https://video.bsky.app/watch/did%3Aplc%3Aauroraexampledemo2345abcd/bafkreiblockexampledemovideo01/thumbnail.jpg",
           "aspectRatio": { "width": 1280, "height": 720 }
         },
         "record": {

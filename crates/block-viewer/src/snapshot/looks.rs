@@ -1,7 +1,7 @@
 //! The photo's look (issue #969), in three families that the interface
 //! shows as tabs: the Legacy Viewer's photo filters (LLImageFiltersManager,
 //! the Filter list of LLFloaterSnapshot, indra/newview, originally LGPL
-//! 2.1), Aurora's own looks in sections, and the user's 3D look-up tables
+//! 2.1), Block's own looks in sections, and the user's 3D look-up tables
 //! (.cube files, `luts`), with the creators' tables built into the viewer
 //! above them (`lut_packs`). All are drawn on the GPU by `block_render::looks`
 //! on the live view of the photo mode and on the photo, at a strength, with
@@ -9,7 +9,7 @@
 //!
 //! Looks stack: each layer of `Settings::looks` is drawn over the ones
 //! before at its own strength, and can be switched off without losing its
-//! place. Aurora's looks have settings (`knobs`), kept per look.
+//! place. Block's looks have settings (`knobs`), kept per look.
 //!
 //! A look is saved by its id: the Legacy Viewer's file name (`Sepia`),
 //! `aurora:<id>`, `lut:<file name>` or `pack:<pack>/<table>`.
@@ -17,7 +17,7 @@
 use super::knobs;
 use super::lut_packs;
 use super::luts::LutLibrary;
-use block_render::looks::{AuroraSection, LookLayer, LookOp, Lut, PhotoLook, aurora_look, aurora_looks, legacy_look, legacy_looks};
+use block_render::looks::{BlockSection, LookLayer, LookOp, Lut, PhotoLook, aurora_look, block_looks, legacy_look, legacy_looks};
 use serde::{Deserialize, Serialize};
 use std::borrow::Cow;
 use std::collections::BTreeMap;
@@ -97,7 +97,7 @@ pub fn choose(stack: &mut Vec<Layer>, id: &str, mode: Mode, selected: usize) -> 
     }
 }
 
-pub const AURORA: &str = "aurora:";
+pub const BLOCK: &str = "block:";
 pub const LUT: &str = "lut:";
 pub const PACK: &str = "pack:";
 
@@ -106,17 +106,17 @@ pub const PACK: &str = "pack:";
 pub enum Tab {
     #[default]
     Legacy,
-    Aurora,
+    Block,
     Luts,
 }
 
 impl Tab {
-    pub const ALL: [Tab; 3] = [Tab::Legacy, Tab::Aurora, Tab::Luts];
+    pub const ALL: [Tab; 3] = [Tab::Legacy, Tab::Block, Tab::Luts];
 
     pub fn label(self) -> &'static str {
         match self {
             Tab::Legacy => block_i18n::tr!("photo-looks-legacy"),
-            Tab::Aurora => block_i18n::tr!("photo-looks-aurora"),
+            Tab::Block => block_i18n::tr!("photo-looks-block"),
             Tab::Luts => block_i18n::tr!("photo-looks-luts"),
         }
     }
@@ -124,8 +124,8 @@ impl Tab {
 
 /// The tab a look is in.
 pub fn tab_of(id: &str) -> Tab {
-    if id.starts_with(AURORA) {
-        Tab::Aurora
+    if id.starts_with(BLOCK) {
+        Tab::Block
     } else if id.starts_with(LUT) || id.starts_with(PACK) {
         Tab::Luts
     } else {
@@ -170,8 +170,8 @@ fn legacy_name(file: &str) -> Option<&'static str> {
     })
 }
 
-/// The name and the description of one of Aurora's looks.
-fn aurora_text(id: &str) -> Option<(&'static str, &'static str)> {
+/// The name and the description of one of Block's looks.
+fn block_text(id: &str) -> Option<(&'static str, &'static str)> {
     use block_i18n::tr;
     Some(match id {
         "fine-grain" => (tr!("photo-look-a-fine-grain"), tr!("photo-look-a-fine-grain-tip")),
@@ -214,20 +214,20 @@ fn aurora_text(id: &str) -> Option<(&'static str, &'static str)> {
     })
 }
 
-pub fn section_name(section: AuroraSection) -> &'static str {
+pub fn section_name(section: BlockSection) -> &'static str {
     match section {
-        AuroraSection::Film => block_i18n::tr!("photo-looks-film"),
-        AuroraSection::Color => block_i18n::tr!("photo-looks-color"),
-        AuroraSection::Lens => block_i18n::tr!("photo-looks-lens"),
-        AuroraSection::Creative => block_i18n::tr!("photo-looks-creative"),
-        AuroraSection::Depth => block_i18n::tr!("photo-looks-depth"),
+        BlockSection::Film => block_i18n::tr!("photo-looks-film"),
+        BlockSection::Color => block_i18n::tr!("photo-looks-color"),
+        BlockSection::Lens => block_i18n::tr!("photo-looks-lens"),
+        BlockSection::Creative => block_i18n::tr!("photo-looks-creative"),
+        BlockSection::Depth => block_i18n::tr!("photo-looks-depth"),
     }
 }
 
 /// The name of a look: translated, or a table's file name.
 pub fn name(id: &str) -> Option<Cow<'static, str>> {
-    if let Some(aurora) = id.strip_prefix(AURORA) {
-        aurora_text(aurora).map(|(name, _)| Cow::Borrowed(name))
+    if let Some(aurora) = id.strip_prefix(BLOCK) {
+        block_text(aurora).map(|(name, _)| Cow::Borrowed(name))
     } else if let Some(lut) = id.strip_prefix(LUT) {
         Some(Cow::Owned(lut_display(lut).to_owned()))
     } else if let Some(packed) = id.strip_prefix(PACK) {
@@ -290,13 +290,13 @@ pub fn legacy_list() -> Vec<Entry> {
     looks
 }
 
-/// Aurora's looks by section.
-pub fn aurora_list() -> Vec<(AuroraSection, Vec<Entry>)> {
-    let mut sections: Vec<(AuroraSection, Vec<Entry>)> = Vec::new();
-    for look in aurora_looks() {
-        let Some((name, tip)) = aurora_text(look.id) else { continue };
+/// Block's looks by section.
+pub fn block_list() -> Vec<(BlockSection, Vec<Entry>)> {
+    let mut sections: Vec<(BlockSection, Vec<Entry>)> = Vec::new();
+    for look in block_looks() {
+        let Some((name, tip)) = block_text(look.id) else { continue };
         let entry = Entry {
-            id: format!("{AURORA}{}", look.id),
+            id: format!("{BLOCK}{}", look.id),
             name: Cow::Borrowed(name),
             tip: Some(tip),
         };
@@ -344,7 +344,7 @@ pub fn search(query: &str, lut_names: &[String]) -> Vec<Entry> {
     let query = fold(query.trim());
     legacy_list()
         .into_iter()
-        .chain(aurora_list().into_iter().flat_map(|(_, entries)| entries))
+        .chain(block_list().into_iter().flat_map(|(_, entries)| entries))
         .chain(pack_list().into_iter().flat_map(|(_, entries)| entries))
         .chain(lut_list(lut_names))
         .filter(|e| fold(&e.name).contains(&query) || e.tip.is_some_and(|t| fold(t).contains(&query)))
@@ -358,7 +358,7 @@ pub fn is_pointwise(id: &str) -> bool {
     if id.starts_with(LUT) {
         return true;
     }
-    if let Some(aurora) = id.strip_prefix(AURORA) {
+    if let Some(aurora) = id.strip_prefix(BLOCK) {
         return aurora_look(aurora).is_some_and(|look| look.ops.iter().all(LookOp::is_pointwise));
     }
     legacy_look(id).is_some_and(|ops| ops.iter().all(LookOp::is_pointwise))
@@ -371,13 +371,13 @@ pub struct Resolved {
     pub lut: Option<Arc<Lut>>,
 }
 
-/// The settings of one of Aurora's looks by id.
+/// The settings of one of Block's looks by id.
 pub type Settings = BTreeMap<String, Vec<f32>>;
 
 /// The operations of a look with its settings; a table not read yet gives
 /// None (it is being read, on a worker).
 pub fn resolve(id: &str, settings: &Settings, luts: &mut LutLibrary) -> Option<Resolved> {
-    if let Some(aurora) = id.strip_prefix(AURORA) {
+    if let Some(aurora) = id.strip_prefix(BLOCK) {
         let look = aurora_look(aurora)?;
         let ops = match settings.get(id) {
             Some(values) => knobs::apply(knobs::knobs(aurora), &look.ops, values).into(),
@@ -451,7 +451,7 @@ pub fn frame_look(layers: &[(Resolved, u8)], place: Placement, compare: Option<f
 
 /// The world's look (Preferences › Graphics › Image › World look, and its
 /// window `ui/world_look.rs`): a stack of its own, with its own settings,
-/// drawn on the 3D view, under the interface. Aurora's own: the Legacy
+/// drawn on the 3D view, under the interface. Block's own: the Legacy
 /// Viewer has looks only in its snapshot window.
 #[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
 #[serde(default)]
@@ -459,7 +459,7 @@ pub struct WorldLook {
     /// Drawn (off: the stack is kept for later).
     pub on: bool,
     pub looks: Vec<Layer>,
-    /// The settings of its Aurora looks by id, apart from the photos'.
+    /// The settings of its Block looks by id, apart from the photos'.
     pub look_settings: Settings,
 }
 
@@ -485,12 +485,12 @@ mod tests {
     #[test]
     fn colour_looks_are_kept_for_a_360_snapshot_and_the_others_are_not() {
         assert!(is_pointwise("Sepia") && is_pointwise("BlackAndWhite") && is_pointwise("Intense"));
-        assert!(is_pointwise(&format!("{AURORA}keep-red")));
+        assert!(is_pointwise(&format!("{BLOCK}keep-red")));
         assert!(is_pointwise(&format!("{LUT}warm.cube")), "a table is a colour operation");
         assert!(!is_pointwise("Spotlight") && !is_pointwise("Sharpen") && !is_pointwise("Posterize"));
-        assert!(!is_pointwise(&format!("{AURORA}fine-grain")) && !is_pointwise(&format!("{AURORA}fisheye")));
+        assert!(!is_pointwise(&format!("{BLOCK}fine-grain")) && !is_pointwise(&format!("{BLOCK}fisheye")));
         assert!(!is_pointwise("No such look"));
-        let all = legacy_list().into_iter().chain(aurora_list().into_iter().flat_map(|(_, e)| e));
+        let all = legacy_list().into_iter().chain(block_list().into_iter().flat_map(|(_, e)| e));
         let kept = all.filter(|e| is_pointwise(&e.id)).count();
         assert!(kept > 5 && kept < 66, "{kept} of the 66 looks are colour looks");
     }
@@ -499,7 +499,7 @@ mod tests {
     fn every_look_has_a_name() {
         // a missing message gives its key back (the French catalogue has
         // every English key, block-i18n's tests)
-        let all = legacy_list().into_iter().chain(aurora_list().into_iter().flat_map(|(_, e)| e));
+        let all = legacy_list().into_iter().chain(block_list().into_iter().flat_map(|(_, e)| e));
         let mut count = 0;
         for entry in all {
             assert!(!entry.name.starts_with("photo-look"), "{}: {}", entry.id, entry.name);
@@ -507,13 +507,13 @@ mod tests {
             count += 1;
         }
         assert_eq!(count, 30 + 36);
-        assert_eq!(aurora_list().len(), 5);
+        assert_eq!(block_list().len(), 5);
     }
 
     #[test]
     fn ids_name_their_tab() {
         assert_eq!(tab_of("Sepia"), Tab::Legacy);
-        assert_eq!(tab_of("aurora:vhs"), Tab::Aurora);
+        assert_eq!(tab_of("block:vhs"), Tab::Block);
         assert_eq!(tab_of("lut:Warm.cube"), Tab::Luts);
         assert_eq!(name("lut:Warm.cube").as_deref(), Some("Warm"));
         assert_eq!(tab_of("pack:czar-fenris/Noir"), Tab::Luts);
@@ -539,7 +539,7 @@ mod tests {
 
     #[test]
     fn a_pack_table_draws_as_a_lut() {
-        let mut luts = LutLibrary::new(std::env::temp_dir().join("aurora-no-luts"));
+        let mut luts = LutLibrary::new(std::env::temp_dir().join("block-no-luts"));
         let look = resolve("pack:czar-fenris/Film look", &Settings::new(), &mut luts).expect("resolves");
         assert_eq!(look.lut.map(|l| l.size), Some(33));
         assert!(resolve("pack:czar-fenris/Nothing", &Settings::new(), &mut luts).is_none());
@@ -555,9 +555,9 @@ mod tests {
             photo: (3840, 2160),
             scale: 0.5,
         };
-        let mut luts = LutLibrary::new(std::env::temp_dir().join("aurora-no-luts"));
+        let mut luts = LutLibrary::new(std::env::temp_dir().join("block-no-luts"));
         let settings = Settings::new();
-        let mut stack = vec![Layer::new("Sepia"), Layer::new("aurora:vhs"), Layer::new("Nothing")];
+        let mut stack = vec![Layer::new("Sepia"), Layer::new("block:vhs"), Layer::new("Nothing")];
         stack[0].strength = 140;
         stack[1].on = false;
         let layers = resolve_stack(&stack, &settings, &mut luts);
@@ -569,16 +569,16 @@ mod tests {
         assert!(look.hold);
         assert_eq!(look.focus, Some(3.0));
         assert!(frame_look(&[], place, None, false, None).is_none());
-        assert!(resolve("aurora:nothing", &settings, &mut luts).is_none());
+        assert!(resolve("block:nothing", &settings, &mut luts).is_none());
     }
 
     #[test]
-    fn settings_change_an_aurora_look() {
-        let mut luts = LutLibrary::new(std::env::temp_dir().join("aurora-no-luts"));
+    fn settings_change_an_block_look() {
+        let mut luts = LutLibrary::new(std::env::temp_dir().join("block-no-luts"));
         let mut settings = Settings::new();
-        let plain = resolve("aurora:glitch", &settings, &mut luts).expect("glitch");
-        settings.insert("aurora:glitch".into(), vec![0.05, 0.02, 9.0]);
-        let set = resolve("aurora:glitch", &settings, &mut luts).expect("glitch");
+        let plain = resolve("block:glitch", &settings, &mut luts).expect("glitch");
+        settings.insert("block:glitch".into(), vec![0.05, 0.02, 9.0]);
+        let set = resolve("block:glitch", &settings, &mut luts).expect("glitch");
         assert_ne!(plain.ops, set.ops);
         assert_eq!(set.ops[0].param(0), Some(0.05));
     }
@@ -587,10 +587,10 @@ mod tests {
     fn clicks_replace_the_chosen_layer_or_add_one() {
         let mut stack = Vec::new();
         assert_eq!(choose(&mut stack, "Sepia", Mode::Replace, 0), 0);
-        assert_eq!(choose(&mut stack, "aurora:vhs", Mode::Add, 0), 1);
+        assert_eq!(choose(&mut stack, "block:vhs", Mode::Add, 0), 1);
         assert_eq!(choose(&mut stack, "Negative", Mode::Replace, 0), 0);
         let ids: Vec<&str> = stack.iter().map(|l| l.id.as_str()).collect();
-        assert_eq!(ids, ["Negative", "aurora:vhs"]);
+        assert_eq!(ids, ["Negative", "block:vhs"]);
         // trying leaves the stack as it is
         let tried = tried(&stack, Some(Some("Sepia")), Mode::Add, 0);
         assert_eq!(tried.len(), 3);
@@ -598,7 +598,7 @@ mod tests {
         assert!(super::tried(&stack, Some(None), Mode::Add, 0).is_empty());
         // the stack has a ceiling: the top layer gives way
         for _ in 0..10 {
-            choose(&mut stack, "aurora:pixel", Mode::Add, 0);
+            choose(&mut stack, "block:pixel", Mode::Add, 0);
         }
         assert_eq!(stack.len(), MAX_LAYERS);
     }

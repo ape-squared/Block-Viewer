@@ -38,6 +38,7 @@ block-voice = { version = "0.1.0", path = "../block-voice" }
 block-version = { version = "0.1.0", path = "../block-version" }
 crossbeam-channel = "0.5.17"
 directories = "6.0.0"
+discord-rich-presence = "1.1.0"
 # experimental: only makes egui::theme public (the text fields' size, theme.rs)
 egui = { version = "0.37.0", features = ["experimental", "monochrome_emoji_fonts", "persistence"] }
 egui-winit = "0.37.0"

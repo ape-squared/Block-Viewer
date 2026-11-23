@@ -1,6 +1,6 @@
 //! The second camera (camera/second.rs, ui/second_camera.rs,
 //! block_render::second_view): its window, and the view it asks the
-//! renderer for each frame. Aurora's own; the idea comes from SnowPastel's
+//! renderer for each frame. Block's own; the idea comes from SnowPastel's
 //! multi-view-viewer.
 use super::*;
 use crate::camera::second::Subject;
@@ -71,7 +71,7 @@ impl App {
             .map(|job| crate::scene::CullView::frustum_planes(job.proj * job.view))
     }
 
-    /// AURORA_DEMO_SECOND_CAMERA=face|body|back: at frame 300 of the demo,
+    /// BLOCK_DEMO_SECOND_CAMERA=face|body|back: at frame 300 of the demo,
     /// the window opens on that framing (the main camera stays behind the
     /// avatar: the picture shows what it does not).
     fn second_camera_demo(&mut self) {
@@ -79,7 +79,7 @@ impl App {
             return;
         }
         self.second_camera_ui.demo_done = true;
-        let Ok(mode) = std::env::var("AURORA_DEMO_SECOND_CAMERA") else {
+        let Ok(mode) = std::env::var("BLOCK_DEMO_SECOND_CAMERA") else {
             return;
         };
         use crate::camera::second::Framing;

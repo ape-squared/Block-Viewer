@@ -396,7 +396,7 @@ mod tests {
             billable_area: billable,
             global_x: 256_064.0,
             global_y: 256_200.0,
-            sim_name: str_field("Aurora Démo"),
+            sim_name: str_field("Block Démo"),
             ..Default::default()
         }
     }
@@ -424,7 +424,7 @@ mod tests {
         assert_eq!(r.totals.map(|t| t.available()), Some(512));
         assert_eq!(r.parcels.len(), 2);
         assert_eq!(r.parcels[1].name, "Workshop");
-        assert_eq!(r.parcels[0].sim_name, "Aurora Démo");
+        assert_eq!(r.parcels[0].sim_name, "Block Démo");
     }
 
     #[test]
@@ -483,7 +483,7 @@ mod tests {
                     "BillableArea" => 4096,
                     "GlobalX" => 256_064.0,
                     "GlobalY" => 256_200.0,
-                    "SimName" => "Aurora Démo",
+                    "SimName" => "Block Démo",
                     "ProductSKU" => "023",
                 },
             ]),

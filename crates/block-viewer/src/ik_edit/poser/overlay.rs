@@ -123,7 +123,7 @@ impl Editor {
     /// (`world_hints`): Ctrl + click on a part another group governs selects
     /// its joint and opens that group; Ctrl + click on another avatar posed,
     /// or who accepted, poses that one at once; anywhere else, unless a worn
-    /// HUD took the click, it unselects the joint. Aurora's own: the Legacy
+    /// HUD took the click, it unselects the joint. Block's own: the Legacy
     /// Viewer's poser keeps its joint until another is chosen in its list.
     fn click_beside(&mut self, ctx: &egui::Context, world: &World, hint: world_hints::Hint, markers_on: bool) {
         let (clicked, released, ctrl) = ctx.input(|i| {

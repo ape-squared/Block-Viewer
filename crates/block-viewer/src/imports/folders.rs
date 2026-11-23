@@ -1,5 +1,5 @@
 //! Editable upload destinations. Folder creation follows createNewCategory /
-//! AISAPI::CreateInventory; recursive disk discovery is an Aurora addition.
+//! AISAPI::CreateInventory; recursive disk discovery is a Block addition.
 
 use super::*;
 use crate::world::inventory::{Inventory, actions as rules};

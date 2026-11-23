@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
-"""Aurora Weather: the GPU cost of each weather feature, measured.
+"""Block Weather: the GPU cost of each weather feature, measured.
 
 Runs the release viewer in demo mode once per scene (the same place, camera
-and sun each time, the weather set by the AURORA_* variables of
-docs/TESTING.md, "Weather"), with AURORA_PROFILE=1, for a few seconds each,
+and sun each time, the weather set by the BLOCK_* variables of
+docs/TESTING.md, "Weather"), with BLOCK_PROFILE=1, for a few seconds each,
 then reads each scene's `perf summary` lines and prints a Markdown table:
 the frame, the GPU time, the weather's (`g_weather`) and its parts, against
 the scene without weather.
@@ -37,26 +37,26 @@ import sys
 import time
 from pathlib import Path
 
-NIGHT = {"AURORA_DEMO_NIGHT_SKY": "real:0,20"}
+NIGHT = {"BLOCK_DEMO_NIGHT_SKY": "real:0,20"}
 
 # name: (what it measures, variables)
 SCENES = {
     "base": ("no weather", {}),
-    "rain-light": ("light rain", {"AURORA_RAIN": "0.25"}),
-    "rain-heavy": ("heavy rain", {"AURORA_RAIN": "1"}),
-    "rain-heavy-low": ("heavy rain, Low", {"AURORA_RAIN": "1", "AURORA_WEATHER_QUALITY": "low"}),
-    "rain-heavy-medium": ("heavy rain, Medium", {"AURORA_RAIN": "1", "AURORA_WEATHER_QUALITY": "medium"}),
-    "thunder": ("heavy rain, a strike held", {"AURORA_RAIN": "1", "AURORA_THUNDER_AT": "3", "AURORA_THUNDER_HOLD": "1"}),
-    "snow": ("snow falling", {"AURORA_SNOW": "0.7", "AURORA_SNOW_LYING": "0"}),
-    "snow-lying": ("snow lying", {"AURORA_SNOW": "0.7", "AURORA_SNOW_LYING": "1"}),
-    "snow-deep": ("deep snow", {"AURORA_SNOW": "0.7", "AURORA_SNOW_LYING": "1", "AURORA_SNOW_DEEP": "1"}),
-    "snow-lying-low": ("snow lying, Low", {"AURORA_SNOW": "0.7", "AURORA_SNOW_LYING": "1", "AURORA_WEATHER_QUALITY": "low"}),
-    "night": ("night, no aurora", dict(NIGHT)),
-    "aurora": ("northern lights", {**NIGHT, "AURORA_NORTHERN_LIGHTS": "0.9,0,1"}),
+    "rain-light": ("light rain", {"BLOCK_RAIN": "0.25"}),
+    "rain-heavy": ("heavy rain", {"BLOCK_RAIN": "1"}),
+    "rain-heavy-low": ("heavy rain, Low", {"BLOCK_RAIN": "1", "BLOCK_WEATHER_QUALITY": "low"}),
+    "rain-heavy-medium": ("heavy rain, Medium", {"BLOCK_RAIN": "1", "BLOCK_WEATHER_QUALITY": "medium"}),
+    "thunder": ("heavy rain, a strike held", {"BLOCK_RAIN": "1", "BLOCK_THUNDER_AT": "3", "BLOCK_THUNDER_HOLD": "1"}),
+    "snow": ("snow falling", {"BLOCK_SNOW": "0.7", "BLOCK_SNOW_LYING": "0"}),
+    "snow-lying": ("snow lying", {"BLOCK_SNOW": "0.7", "BLOCK_SNOW_LYING": "1"}),
+    "snow-deep": ("deep snow", {"BLOCK_SNOW": "0.7", "BLOCK_SNOW_LYING": "1", "BLOCK_SNOW_DEEP": "1"}),
+    "snow-lying-low": ("snow lying, Low", {"BLOCK_SNOW": "0.7", "BLOCK_SNOW_LYING": "1", "BLOCK_WEATHER_QUALITY": "low"}),
+    "night": ("night, no block", dict(NIGHT)),
+    "block": ("northern lights", {**NIGHT, "BLOCK_NORTHERN_LIGHTS": "0.9,0,1"}),
 }
 
 # what a scene does not set: no weather (the demo's saved settings may hold some)
-NEUTRAL = {"AURORA_RAIN": "0", "AURORA_SNOW_DEEP": "0", "AURORA_WEATHER_QUALITY": "high"}
+NEUTRAL = {"BLOCK_RAIN": "0", "BLOCK_SNOW_DEEP": "0", "BLOCK_WEATHER_QUALITY": "high"}
 
 # the columns, from each summary line
 KEYS = ["fps", "frame", "gpu", "g_weather", "g_shelter", "g_weather_memory", "g_wet_ground", "g_drops", "g_terrain_sky"]
@@ -70,10 +70,10 @@ def logs_dir() -> Path:
     home = Path.home()
     system = platform.system()
     if system == "Windows":
-        return Path(os.environ.get("LOCALAPPDATA", home / "AppData/Local")) / "Aurora/AuroraViewer/data/logs"
+        return Path(os.environ.get("LOCALAPPDATA", home / "AppData/Local")) / "Block/BlockViewer/data/logs"
     if system == "Darwin":
-        return home / "Library/Application Support/org.Aurora.AuroraViewer/logs"
-    return Path(os.environ.get("XDG_DATA_HOME", home / ".local/share")) / "auroraviewer/logs"
+        return home / "Library/Application Support/org.Block.BlockViewer/logs"
+    return Path(os.environ.get("XDG_DATA_HOME", home / ".local/share")) / "blockviewer/logs"
 
 
 def default_exe() -> Path:
@@ -91,18 +91,18 @@ def demo_settings_warning() -> str | None:
     system = platform.system()
     home = Path.home()
     if system == "Windows":
-        base = Path(os.environ.get("APPDATA", home / "AppData/Roaming")) / "Aurora/AuroraViewer/config"
+        base = Path(os.environ.get("APPDATA", home / "AppData/Roaming")) / "Block/BlockViewer/config"
     elif system == "Darwin":
-        base = home / "Library/Application Support/org.Aurora.AuroraViewer"
+        base = home / "Library/Application Support/org.Block.BlockViewer"
     else:
-        base = Path(os.environ.get("XDG_CONFIG_HOME", home / ".config")) / "auroraviewer"
+        base = Path(os.environ.get("XDG_CONFIG_HOME", home / ".config")) / "blockviewer"
     path = base / "demo" / "settings.json"
     try:
         weather = json.loads(path.read_text(encoding="utf-8")).get("weather", {})
     except (OSError, ValueError):
         return None
     if weather.get("region_weather"):
-        return f"{path}: \"Let regions set the weather\" is on; turn it off in the Aurora Weather window first"
+        return f"{path}: \"Let regions set the weather\" is on; turn it off in the Block Weather window first"
     return None
 
 
@@ -111,10 +111,10 @@ def run(exe: Path, scene: str, seconds: float, logs: Path, size: str, preset: st
     env = dict(os.environ)
     # nothing left over from the shell's own tests
     for k in list(env):
-        if k.startswith(("AURORA_RAIN", "AURORA_SNOW", "AURORA_THUNDER", "AURORA_NORTHERN", "AURORA_WEATHER", "AURORA_DEMO_NIGHT")):
+        if k.startswith(("BLOCK_RAIN", "BLOCK_SNOW", "BLOCK_THUNDER", "BLOCK_NORTHERN", "BLOCK_WEATHER", "BLOCK_DEMO_NIGHT")):
             del env[k]
-    env.update({"AURORA_DEMO": "1", "AURORA_PROFILE": "1", "AURORA_LOG_NAME": log_name(scene)})
-    env.update({"AURORA_WINDOW_SIZE": size, "AURORA_GRAPHICS_PRESET": preset})
+    env.update({"BLOCK_DEMO": "1", "BLOCK_PROFILE": "1", "BLOCK_LOG_NAME": log_name(scene)})
+    env.update({"BLOCK_WINDOW_SIZE": size, "BLOCK_GRAPHICS_PRESET": preset})
     env.update(NEUTRAL)
     env.update(variables)
     # this run's numbers only
@@ -154,7 +154,7 @@ def table(results: dict) -> str:
     head = "| Scene | fps | frame ms | GPU ms | vs base | weather | shelter | memory | wet ground | drops | samples |"
     out = [head, "|---" * 11 + "|"]
     for scene, r in results.items():
-        ref = night if scene == "aurora" else base
+        ref = night if scene == "block" else base
         delta = None if r.get("gpu") is None or ref is None else r["gpu"] - ref
         what = SCENES[scene][0]
         out.append(

@@ -89,7 +89,7 @@ mod tests {
         for event in crate::demo::events() {
             world.apply(event);
         }
-        let scene = Scene::new(std::env::temp_dir().join("aurora-shape-camera"), world.avatar_lib.clone());
+        let scene = Scene::new(std::env::temp_dir().join("block-shape-camera"), world.avatar_lib.clone());
         let body = view(&world, &scene, 0, 1.05, false).expect("body");
         let head = view(&world, &scene, 1, 1.05, false).expect("head");
         let torso = view(&world, &scene, 7, 1.05, false).expect("torso");
@@ -116,7 +116,7 @@ mod tests {
         }
         // the heading the body has not caught up with yet does not count
         world.agent.yaw += 2.0;
-        let scene = Scene::new(std::env::temp_dir().join("aurora-shape-camera-turn"), world.avatar_lib.clone());
+        let scene = Scene::new(std::env::temp_dir().join("block-shape-camera-turn"), world.avatar_lib.clone());
         let index = world.objects.index_of_uuid(&world.agent_id).expect("our avatar");
         let (_, rotation, _) = Scene::object_transform(&world, index, Instant::now(), 0).expect("drawn");
         let (at, left) = (rotation * Vec3::X, rotation * Vec3::Y);

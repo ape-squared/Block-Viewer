@@ -224,7 +224,7 @@ mod tests {
         assert_eq!(part_weights(upper, &male).map(|(_, k)| k), Some(mkey));
     }
 
-    /// AURORA_DEMO_CLASSIC: two shapes as a simulator sends them, each with
+    /// BLOCK_DEMO_CLASSIC: two shapes as a simulator sends them, each with
     /// its own geometries.
     #[test]
     fn the_demo_shapes_are_read_back_from_their_appearance_values() {

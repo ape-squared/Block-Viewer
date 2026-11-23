@@ -1,6 +1,6 @@
-//! AURORA_DEMO_SCULPT_ZERO: the same circular path/profile with no sculpt
+//! BLOCK_DEMO_SCULPT_ZERO: the same circular path/profile with no sculpt
 //! block, a subtype-zero sculpt and a sphere sculpt, using a synthetic map.
-//! AURORA_DEMO_SCULPT_MISSING: a sculpt whose map is missing.
+//! BLOCK_DEMO_SCULPT_MISSING: a sculpt whose map is missing.
 
 use super::{HANDLE, floor_at, prim, shape, te};
 use block_net::NetEvent;
@@ -13,7 +13,7 @@ const MAP: Uuid = Uuid::from_u128(0xde7e_5c00_0000_4000_8000_0000_0000_0001);
 const SIDE: u32 = 64;
 
 pub fn events() -> Vec<NetEvent> {
-    if std::env::var("AURORA_DEMO_SCULPT_ZERO").ok().as_deref() != Some("1") {
+    if std::env::var("BLOCK_DEMO_SCULPT_ZERO").ok().as_deref() != Some("1") {
         return Vec::new();
     }
     let pixels = map_pixels(|v, u| {
@@ -62,7 +62,7 @@ pub fn events() -> Vec<NetEvent> {
     vec![NetEvent::ObjectUpdates { handle: HANDLE, objects }]
 }
 
-/// The map of AURORA_DEMO_SCULPT_MISSING, a torus.
+/// The map of BLOCK_DEMO_SCULPT_MISSING, a torus.
 const MISSING_MAP: Uuid = Uuid::from_u128(0xde7e_5c00_0000_4000_8000_0000_0000_0002);
 const MISSING_LOCAL_ID: u32 = 81_110;
 /// The sculpt arrives once the loading screen is gone; with `late` its map
@@ -70,7 +70,7 @@ const MISSING_LOCAL_ID: u32 = 81_110;
 const ARRIVE_FRAME: u64 = 300;
 const LATE_FRAME: u64 = 900;
 
-/// AURORA_DEMO_SCULPT_MISSING=1|late: a gold torus sculpt east of the start
+/// BLOCK_DEMO_SCULPT_MISSING=1|late: a gold torus sculpt east of the start
 /// position whose map the asset server does not have (a 404): LL's sphere
 /// placeholder stands in for it. With `late`, the map turns up at frame
 /// `LATE_FRAME` (in the disk cache, read again as a retry would find it on
@@ -83,7 +83,7 @@ pub struct MissingMapDemo {
 
 impl MissingMapDemo {
     pub fn from_env() -> Option<Self> {
-        let value = std::env::var("AURORA_DEMO_SCULPT_MISSING").ok()?;
+        let value = std::env::var("BLOCK_DEMO_SCULPT_MISSING").ok()?;
         Some(MissingMapDemo {
             late: value.trim() == "late",
             sent: false,

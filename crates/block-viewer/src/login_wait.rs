@@ -6,7 +6,7 @@
 //! logged in, deleted on a clean exit. A marker found at the next start means
 //! the previous run did not end cleanly: its session id goes to the login
 //! server as `last_exec_session_id`, with a `last_exec_event`
-//! (lllogininstance.cpp). Aurora keeps the same facts per account, plus when
+//! (lllogininstance.cpp). Block keeps the same facts per account, plus when
 //! the session was last seen alive and when it ended. The login screen then
 //! waits a moment for the grid instead of landing in a region that is still
 //! logging the previous session out, where the avatar stays frozen until the

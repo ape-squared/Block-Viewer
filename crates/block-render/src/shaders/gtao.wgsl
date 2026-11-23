@@ -52,7 +52,7 @@
 //    refused where the depth there does not match (a surface uncovered) and
 //    clipped to its 3 x 3 neighbourhood;
 // 4. `denoise` (then `denoise_final`): XeGTAO's edge-aware 3 x 3 blur. Without
-//    the accumulation (`AURORA_GTAO_TEMPORAL=0`) the noise stays the same
+//    the accumulation (`BLOCK_GTAO_TEMPORAL=0`) the noise stays the same
 //    every frame, so the result does not flicker, and the blur alone removes
 //    its pattern, leaving a fine grain in the penumbra;
 // 5. at half resolution (low quality, or a scene of 1920 x 1009 and more),

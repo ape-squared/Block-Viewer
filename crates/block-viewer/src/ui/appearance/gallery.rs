@@ -75,7 +75,7 @@ pub(super) fn menu_rules(inv: &Inventory, worn: &HashSet<Uuid>, busy: bool, id: 
 }
 
 /// One item per line, as LLPanelWearing::copyToClipboard
-/// (indra/newview/llpanelwearing.cpp). Aurora also offers this on saved
+/// (indra/newview/llpanelwearing.cpp). Block also offers this on saved
 /// outfits (#1379), with the names and creators of their resolved originals.
 fn outfit_list(inv: &Inventory, id: Uuid) -> Option<Vec<CopyItem>> {
     if !model::complete(inv, id) {
@@ -332,7 +332,7 @@ fn menu_body(ui: &mut egui::Ui, p: &Palette, world: &World, st: &mut AppearanceU
     ) {
         st.gallery.confirm = Some((id, false));
     }
-    // an Aurora addition, with the groups of My Outfits (#1002)
+    // a Block addition, with the groups of My Outfits (#1002)
     if rules.folder {
         super::folders::move_menu(ui, p, inv, st, &[id], actions);
     }

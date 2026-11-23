@@ -152,7 +152,7 @@ item is answered here; Command+H stays Hide.</p>
 <h2 id="web-pages-and-video">Web pages and video</h2>
 <p>Web pages and video in the world need the media plugins, which are not part
 of the application: the first time they are needed, the viewer asks before
-it downloads Aurora&rsquo;s media plugins pack (about 335 MB) into the
+it downloads Block&rsquo;s media plugins pack (about 335 MB) into the
 <code>media-plugins</code> folder of its settings (table below), once. &ldquo;Not now&rdquo; leaves
 a Download button in Preferences › Sound and voice › Media and where the page
 would show. A Legacy Viewer installed on the Mac can
@@ -202,7 +202,7 @@ cd block-viewer
 cargo build --release --locked -p block-viewer
 ./target/release/block-viewer
 </code></pre>
-<p><code>AURORA_DEMO=1 ./target/release/block-viewer</code> starts the offline demo,
+<p><code>BLOCK_DEMO=1 ./target/release/block-viewer</code> starts the offline demo,
 without the network. To build the application itself as the release does,
 run <code>pwsh ./scripts/package-macos.ps1 -Exe target/release/block-viewer -Out "Block Viewer.app"</code>
 (PowerShell 7: <code>brew install powershell</code>). The same PowerShell runs the local

@@ -1288,7 +1288,7 @@ pub fn sync_plan(inv: &Inventory, agent: Uuid, worn: &HashSet<Uuid>) -> CofSync 
     sync_plan_keeping(inv, agent, worn, Uuid::nil())
 }
 
-/// `sync_plan` that never takes `keep` off, linked or not: the Aurora bridge,
+/// `sync_plan` that never takes `keep` off, linked or not: the Block bridge,
 /// which the Legacy Viewer puts back into every replaced outfit (FSLSLBridge
 /// in LLAppearanceMgr::updateCOF, llappearancemgr.cpp). It stays in `worn`,
 /// or its link would ask to wear it again at each sync.
@@ -1505,10 +1505,10 @@ pub fn seed_demo(inv: &mut Inventory, agent: Uuid) {
     }
     let mut items = Vec::new();
     for (i, (name, kind, flags)) in [
-        (block_i18n::tr!("world-appearance-aurora-silhouette"), 13, 0),
-        (block_i18n::tr!("world-appearance-aurora-skin"), 13, 1),
-        (block_i18n::tr!("world-appearance-aurora-hair"), 13, 2),
-        (block_i18n::tr!("world-appearance-aurora-eyes"), 13, 3),
+        (block_i18n::tr!("world-appearance-block-silhouette"), 13, 0),
+        (block_i18n::tr!("world-appearance-block-skin"), 13, 1),
+        (block_i18n::tr!("world-appearance-block-hair"), 13, 2),
+        (block_i18n::tr!("world-appearance-block-eyes"), 13, 3),
         (block_i18n::tr!("world-appearance-star-tattoo"), 5, 14),
         (block_i18n::tr!("world-appearance-leather-jacket-2"), 5, 8),
         (block_i18n::tr!("world-appearance-black-pants"), 5, 5),
@@ -1572,7 +1572,7 @@ pub fn seed_demo(inv: &mut Inventory, agent: Uuid) {
     demo_replace(inv, agent, cof, &current);
 }
 
-/// `AURORA_DEMO_APPEARANCE=broken`: the third outfit and the current
+/// `BLOCK_DEMO_APPEARANCE=broken`: the third outfit and the current
 /// outfit hold a link to a deleted original, answered missing as the grid
 /// would (issue #1441): both still wear, without it.
 pub fn seed_demo_broken(inv: &mut Inventory, agent: Uuid) {
@@ -1591,7 +1591,7 @@ pub fn seed_demo_broken(inv: &mut Inventory, agent: Uuid) {
     inv.items_missing(vec![gone.target]);
 }
 
-/// `AURORA_DEMO_APPEARANCE=layers…`: two more tattoos worn over the star
+/// `BLOCK_DEMO_APPEARANCE=layers…`: two more tattoos worn over the star
 /// tattoo of `seed_demo`, for the layer order of the outfit editor.
 pub fn seed_demo_layers(inv: &mut Inventory, agent: Uuid) {
     let cof = Uuid::from_u128(701);
@@ -1624,7 +1624,7 @@ pub fn seed_demo_layers(inv: &mut Inventory, agent: Uuid) {
 }
 
 /// All wearable icons and ordering in Appearance, with three tattoo layers
-/// and attachments: `AURORA_DEMO_APPEARANCE=wearables[-outfits|-edit]`.
+/// and attachments: `BLOCK_DEMO_APPEARANCE=wearables[-outfits|-edit]`.
 pub fn seed_demo_wearables(inv: &mut Inventory, agent: Uuid) {
     seed_demo_layers(inv, agent);
     let Some(cof) = cof(inv) else { return };
@@ -1660,16 +1660,16 @@ pub fn seed_demo_wearables(inv: &mut Inventory, agent: Uuid) {
     demo_replace(inv, agent, cof, &links);
 }
 
-/// `AURORA_DEMO_OUTFITS=<count>[,closed][,scroll][,locate]`: the number of generated
+/// `BLOCK_DEMO_OUTFITS=<count>[,closed][,scroll][,locate]`: the number of generated
 /// outfits added to the Appearance demo (a large wardrobe), 0 without it.
 pub fn demo_outfit_count() -> usize {
-    std::env::var("AURORA_DEMO_OUTFITS")
+    std::env::var("BLOCK_DEMO_OUTFITS")
         .ok()
         .and_then(|v| v.split(',').next().and_then(|n| n.trim().parse().ok()))
         .unwrap_or(0)
 }
 
-/// `AURORA_DEMO_APPEARANCE=take-off-folder` (#1849): an ordinary folder,
+/// `BLOCK_DEMO_APPEARANCE=take-off-folder` (#1849): an ordinary folder,
 /// not a saved outfit, as a demo or a delivery worn from Recent. It holds
 /// the worn jacket and pants originals and, in a subfolder, a link to the
 /// worn mesh hair; frame 600 takes it off as the inventory's Remove from
@@ -1721,9 +1721,9 @@ pub fn seed_demo_take_off(inv: &mut Inventory, agent: Uuid) {
     demo_replace(inv, agent, sub, &hair);
 }
 
-/// A mode of `AURORA_DEMO_OUTFITS` (`closed`, `scroll`, `locate`).
+/// A mode of `BLOCK_DEMO_OUTFITS` (`closed`, `scroll`, `locate`).
 pub fn demo_outfit_mode(mode: &str) -> bool {
-    std::env::var("AURORA_DEMO_OUTFITS").is_ok_and(|v| v.split(',').skip(1).any(|m| m.trim() == mode))
+    std::env::var("BLOCK_DEMO_OUTFITS").is_ok_and(|v| v.split(',').skip(1).any(|m| m.trim() == mode))
 }
 
 /// A large wardrobe for the Appearance demo: `count` outfits with generated

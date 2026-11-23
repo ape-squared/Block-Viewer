@@ -47,11 +47,11 @@ pub(super) fn report(error: &str, memory_full: bool, automated: bool) {
 mod tests {
     #[test]
     fn the_message_names_the_error_and_the_log() {
-        let log = std::path::Path::new("C:/logs/aurora.log");
+        let log = std::path::Path::new("C:/logs/block.log");
         let (title, body) = super::text("Vulkan lists no graphics card", false, log);
         assert!(!title.is_empty());
         assert!(body.contains("Vulkan lists no graphics card"));
-        assert!(body.contains("aurora.log"));
+        assert!(body.contains("block.log"));
         assert!(body.contains("AMD"));
         assert!(body.contains("NVIDIA"));
         // one paragraph per advice, not a single line
@@ -60,14 +60,14 @@ mod tests {
 
     #[test]
     fn a_full_video_memory_says_what_to_close_not_which_driver_to_update() {
-        let log = std::path::Path::new("C:/logs/aurora.log");
+        let log = std::path::Path::new("C:/logs/block.log");
         let error = "the graphics card's video memory is full";
         let (_, body) = super::text(error, true, log);
         // in every language: checks on the text's own words would only
         // hold for one
         assert_ne!(body, super::text(error, false, log).1);
         assert!(!body.contains(error), "its own text, not the error's: {body}");
-        assert!(body.contains("aurora.log"));
+        assert!(body.contains("block.log"));
         assert!(!body.contains("NVIDIA"), "no driver advice: {body}");
         // one paragraph per advice, not a single line
         assert!(body.lines().count() >= 5);

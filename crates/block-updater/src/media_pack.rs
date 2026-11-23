@@ -29,27 +29,26 @@ pub struct Pack {
 /// The pack this viewer uses, built by the "Media plugins" workflow
 /// (.github/workflows/media-plugins.yml) and published under the tag
 /// `media-plugins-<version>`, one archive per system.
+// Pack 3, published on this repository's release media-plugins-3 (the
+// Aurora 0.9.12 sync had put Aurora's own pins here, for packs that are not
+// on this repository: every download was a 404).
 #[cfg(not(any(target_os = "linux", target_os = "macos")))]
 pub const PACK: Pack = Pack {
-    version: "1",
-    size: 252_643_186,
-    sha256: "eb2c9c70bcf87df6d987ad38efca83e38a6f2d934fdbc1d00fceb1d20ea1c93e",
+    version: "3",
+    size: 252_643_285,
+    sha256: "849daaa96ec85cfd56c56eabdef543d9a9827931507b1c61fda5a987b0489f6b",
 };
-// Pack 3, not pack 2: pack 2 was built on a branch and published by hand.
-// Pack 3's Linux archive holds the same files (only its manifest's version
-// differs) and the workflow published it from main, so its origin can be
-// checked.
 #[cfg(target_os = "linux")]
 pub const PACK: Pack = Pack {
     version: "3",
-    size: 206_114_621,
-    sha256: "cdab4b09c1489f3d4e1b0b13f247be14f9692810d5087ca529c8a91ae06b6b13",
+    size: 206_113_516,
+    sha256: "fe8691878bc0598646fb4e6e701331b90b9a30ebe076d4249088789707da1b40",
 };
 #[cfg(target_os = "macos")]
 pub const PACK: Pack = Pack {
     version: "3",
-    size: 334_919_416,
-    sha256: "28b21b12416459b67e7a5148d7a0239830b339db95267b517517b40ba68b15a0",
+    size: 334_919_231,
+    sha256: "6f374b26529c7d0b98d9c2890c522d358cd223bcbc4f30dd27f162c2a02f4157",
 };
 
 /// The system part of the archive's name.

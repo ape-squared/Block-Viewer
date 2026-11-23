@@ -1,4 +1,4 @@
-//! Firestorm's shape editor layout with Aurora's shared surfaces and controls.
+//! Firestorm's shape editor layout with Block's shared surfaces and controls.
 use super::widgets::{self, ActionKind};
 use crate::{
     shape_editor::{State, catalog},

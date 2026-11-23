@@ -144,7 +144,7 @@ impl Rlva {
             .any(|name| self.has(name))
     }
 
-    /// The second camera (Aurora's own, `camera/second.rs`) pauses while
+    /// The second camera (Block's own, `camera/second.rs`) pauses while
     /// RLVa holds the avatar's view in any way: the camera itself
     /// (`camera_restricted`), its distances and zoom, what the view may show
     /// (spheres, overlays, textures) and whether our avatar may be seen.

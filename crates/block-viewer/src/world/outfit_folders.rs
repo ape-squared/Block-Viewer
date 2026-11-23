@@ -3,7 +3,7 @@
 //! myoutfit_object_subfolder_type, indra/newview/llinventoryfunctions.cpp)
 //! and lists the outfits they hold flat (LLOutfitListBase::refreshList and
 //! isOutfitFolder, lloutfitslist.cpp; originally LGPL 2.1), leaving the
-//! folders to the inventory. Aurora shows them as groups in Appearance and
+//! folders to the inventory. Block shows them as groups in Appearance and
 //! creates, renames, moves and deletes them there (#1002); the inventory
 //! keeps the same layout, so the Legacy Viewer still lists every outfit.
 
@@ -429,7 +429,7 @@ pub fn path(inv: &Inventory, id: Uuid) -> String {
     names.join(" › ")
 }
 
-/// Offline fixture for `AURORA_DEMO_APPEARANCE=folders…`: a "Club" group
+/// Offline fixture for `BLOCK_DEMO_APPEARANCE=folders…`: a "Club" group
 /// with two outfits, a "Beach" group with one and a "Night" subgroup with
 /// one, and an empty "Spring" group, beside the four demo outfits.
 pub fn seed_demo(inv: &mut Inventory, agent: Uuid) {

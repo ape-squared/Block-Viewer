@@ -143,7 +143,7 @@ fn voice(ui: &mut egui::Ui, p: &Palette, world: &World, actions: &mut Vec<ConvAc
     }
 }
 
-/// `AURORA_DEMO_CONV_MENU=local|im|group|conference`: the entry whose menu
+/// `BLOCK_DEMO_CONV_MENU=local|im|group|conference`: the entry whose menu
 /// the demo opens (the first conversation of that kind), for a capture.
 pub(super) fn demo_mark(ctx: &egui::Context, world: &World, st: &ChatUi, conversation: Option<Uuid>, rect: egui::Rect) {
     let Some(want) = st.demo_menu.as_deref() else {
@@ -167,8 +167,8 @@ fn demo_id() -> egui::Id {
     egui::Id::unique("conv_menu_demo")
 }
 
-/// The right click of `AURORA_DEMO_CONV_MENU` on its entry, at frames 700
-/// to 702 (capture at 780 with `AURORA_FPS_LIMIT=60`).
+/// The right click of `BLOCK_DEMO_CONV_MENU` on its entry, at frames 700
+/// to 702 (capture at 780 with `BLOCK_FPS_LIMIT=60`).
 pub(super) fn demo_events(ctx: &egui::Context, frame: u64) -> Vec<egui::Event> {
     if !(700..=702).contains(&frame) {
         return Vec::new();

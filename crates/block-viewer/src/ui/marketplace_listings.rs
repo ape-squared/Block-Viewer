@@ -936,7 +936,7 @@ impl ListingsUi {
                 self.confirm = None;
                 self.dont_ask = false;
                 if yes {
-                    // the box counts with OK, like Aurora's other questions;
+                    // the box counts with OK, like Block's other questions;
                     // silenced, the question answers OK from then on
                     // (IGNORE_WITH_DEFAULT_RESPONSE, llnotifications.cpp)
                     if dont_ask {

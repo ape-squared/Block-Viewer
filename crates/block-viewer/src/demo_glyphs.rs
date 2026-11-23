@@ -1,11 +1,11 @@
-//! AURORA_DEMO_GLYPHS: residents whose group title, display name and chat
+//! BLOCK_DEMO_GLYPHS: residents whose group title, display name and chat
 //! line use the characters residents really put there (mathematical "fancy"
 //! letters, symbols, Georgian hearts, Japanese, Korean, Chinese, Arabic,
 //! Hebrew, emoji…), and a prim with such a hover text. Everything the
 //! embedded fonts lack must come from the system's fonts
 //! (`ui::fonts::fallback`) instead of showing squares.
 //!
-//! `AURORA_DEMO_GLYPHS=rtl`: the same scene in right-to-left text (Arabic,
+//! `BLOCK_DEMO_GLYPHS=rtl`: the same scene in right-to-left text (Arabic,
 //! Hebrew, mixed with English, numbers, brackets, a link, a long line), read
 //! in its order (`ui::bidi`); `rtl2` with the chat lines in reverse order,
 //! the two-word Arabic and Hebrew names among the last lines.
@@ -29,7 +29,7 @@ pub struct Sample {
 pub const SAMPLES: &[Sample] = &[
     // the characters of the report (#127): a title wrapped in Georgian "hearts"
     Sample {
-        title: "ღAurora Friendღ",
+        title: "ღBlock Friendღ",
         display_name: "ნინო ღ Նարե",
         chat: "Georgian ქართული ღ · Armenian Հայերեն",
     },
@@ -71,7 +71,7 @@ pub const SAMPLES: &[Sample] = &[
     },
 ];
 
-/// `AURORA_DEMO_GLYPHS=rtl`: what right-to-left text puts to the test.
+/// `BLOCK_DEMO_GLYPHS=rtl`: what right-to-left text puts to the test.
 pub const RTL_SAMPLES: &[Sample] = &[
     Sample {
         title: "فريق أورورا",
@@ -131,10 +131,10 @@ pub struct Mode {
     pub rtl: bool,
 }
 
-/// `AURORA_DEMO_GLYPHS=1`, `2` for the chat lines in reverse order, `rtl`
+/// `BLOCK_DEMO_GLYPHS=1`, `2` for the chat lines in reverse order, `rtl`
 /// for right-to-left text, `rtl2` for both.
 pub fn scenario() -> Option<Mode> {
-    std::env::var("AURORA_DEMO_GLYPHS").ok().map(|v| Mode {
+    std::env::var("BLOCK_DEMO_GLYPHS").ok().map(|v| Mode {
         reversed: matches!(v.trim(), "2" | "rtl2"),
         rtl: matches!(v.trim(), "rtl" | "rtl2"),
     })

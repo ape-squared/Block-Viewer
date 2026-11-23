@@ -1,6 +1,6 @@
 //! Material survival after LOD simplification. LLModelPreview's fallback in
 //! genMeshOptimizerPerModel can leave a [0, 0, 0] placeholder for a lost face
-//! (indra/newview/llmodelpreview.cpp). Aurora keeps a real source triangle
+//! (indra/newview/llmodelpreview.cpp). Block keeps a real source triangle
 //! instead, and exposes one triangle per occupied material as Automatic's
 //! explicit minimum. Error-limited reduction never forces that minimum.
 

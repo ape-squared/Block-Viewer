@@ -1,9 +1,9 @@
-//! The outfit showcase: Aurora's outfit gallery (Fider #447, the mockup the
+//! The outfit showcase: Block's outfit gallery (Fider #447, the mockup the
 //! human chose on 2026-11-10, "B v2 — Vitrine"). A rail of collections (all
 //! outfits, the favorites, those without a picture, the folders of My
 //! Outfits), a grid of large square pictures whose actions show on hover,
 //! and the preview of the chosen outfit with what it holds. Preferences ›
-//! Aurora › Outfit gallery brings back the Legacy Viewer's grid of small
+//! Block › Outfit gallery brings back the Legacy Viewer's grid of small
 //! tiles (`appearance.rs`, `gallery`).
 //!
 //! The data and the rules are the gallery's and the list's: the outfits of
@@ -865,7 +865,7 @@ fn preview_panel(
             }
         });
     }
-    // What an outfit holds is an Aurora addition to the gallery. The Legacy
+    // What an outfit holds is a Block addition to the gallery. The Legacy
     // Viewer shows it in the "My Outfits" list alone, which @showinv
     // disables (RlvBehaviourToggleHandler<RLV_BHVR_SHOWINV>,
     // indra/newview/rlvhandler.cpp): the items and their copied list follow

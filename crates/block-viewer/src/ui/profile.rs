@@ -8,12 +8,12 @@
 //! "Notes". Our own profile can be edited (texts, pictures, picks, show in
 //! search, full birth date); notes can be written on anyone.
 //!
-//! This is the classic window (Preferences › Aurora › Profiles); the
+//! This is the classic window (Preferences › Block › Profiles); the
 //! default one is drawn by `aurora`, on the same state, data and actions.
 
-mod aurora;
+mod block;
 
-pub use aurora::banner_image;
+pub use block::banner_image;
 
 use super::menu;
 use super::texture_library::texture_view::{self, ImageView};
@@ -43,7 +43,7 @@ pub fn request_open(ctx: &egui::Context, id: Uuid) {
 pub fn request_open_in(ctx: &egui::Context, scope: NameScope, id: Uuid) {
     // only the two places that name people in a text matter here; any other
     // scope asks as the world does, the stricter one
-    ctx.data_mut(|d| d.insert_temp(egui::Id::unique("aurora_open_profile"), (scope == NameScope::Roster, id)));
+    ctx.data_mut(|d| d.insert_temp(egui::Id::unique("block_open_profile"), (scope == NameScope::Roster, id)));
 }
 
 #[cfg(test)]
@@ -52,7 +52,7 @@ pub fn take_open_request(ctx: &egui::Context) -> Option<Uuid> {
 }
 
 pub fn take_open_request_in(ctx: &egui::Context) -> Option<(NameScope, Uuid)> {
-    ctx.data_mut(|d| d.remove_temp::<(bool, Uuid)>(egui::Id::unique("aurora_open_profile")))
+    ctx.data_mut(|d| d.remove_temp::<(bool, Uuid)>(egui::Id::unique("block_open_profile")))
         .map(|(roster, id)| (if roster { NameScope::Roster } else { NameScope::World }, id))
 }
 
@@ -71,7 +71,7 @@ pub enum ProfileAction {
     /// Our display name (the button next to our name).
     DisplayName,
     /// The right to modify our objects, granted or revoked once confirmed
-    /// (the rights bar of the Aurora window).
+    /// (the rights bar of the Block window).
     ModifyRights {
         friend: Uuid,
         rights: i32,
@@ -213,11 +213,11 @@ struct Window {
     rights_edit: Option<i32>,
     /// Height under "Info" in the "Second Life" tab (previous frame).
     bottom_h: f32,
-    /// Our own profile edited in place (the Aurora window).
+    /// Our own profile edited in place (the Block window).
     editing: bool,
     /// The selected profile picture shown at full resolution.
     photo: Option<PhotoPreview>,
-    /// Our classified being edited and its saved state (the Aurora window).
+    /// Our classified being edited and its saved state (the Block window).
     classified_edit: Option<(ClassifiedEdit, ClassifiedEdit)>,
     /// The price asked before a new classified is published.
     publish: Option<Publish>,
@@ -423,7 +423,7 @@ pub struct ProfileUi {
     pub wanted_images: HashSet<Uuid>,
     picker: TexturePicker,
     picker_slot: Option<PictureSlot>,
-    /// Banners of the Aurora window by profile picture (`banner_image`),
+    /// Banners of the Block window by profile picture (`banner_image`),
     /// made by the viewer when it decodes the picture.
     pub banners: HashMap<Uuid, egui::TextureHandle>,
 }
@@ -534,7 +534,7 @@ impl ProfileUi {
                     let win_id = if classic {
                         format!("profile-{}", w.id)
                     } else {
-                        aurora::window_id(w.id)
+                        block::window_id(w.id)
                     };
                     w.open && world.rlva_shows_name(w.scope, w.id) && !widgets::floater_minimized(ctx, &win_id)
                 })
@@ -553,7 +553,7 @@ impl ProfileUi {
     /// (unsaved edits still ask).
     pub fn toggle_mine(&mut self, ctx: &egui::Context, world: &mut World, classic: bool) {
         let me = world.agent_id;
-        let win_id = if classic { format!("profile-{me}") } else { aurora::window_id(me) };
+        let win_id = if classic { format!("profile-{me}") } else { block::window_id(me) };
         if let Some(w) = self.windows.iter_mut().find(|w| w.id == me && w.open) {
             if widgets::floater_minimized(ctx, &win_id) {
                 widgets::expand_floater(ctx, &win_id);
@@ -578,7 +578,7 @@ impl ProfileUi {
     /// second press with Picks shown closes it (unsaved edits still ask).
     pub fn toggle_picks(&mut self, ctx: &egui::Context, world: &mut World, classic: bool) {
         let me = world.agent_id;
-        let win_id = if classic { format!("profile-{me}") } else { aurora::window_id(me) };
+        let win_id = if classic { format!("profile-{me}") } else { block::window_id(me) };
         if let Some(w) = self.windows.iter_mut().find(|w| w.id == me && w.open) {
             if w.tab == TAB_PICKS && !widgets::floater_minimized(ctx, &win_id) {
                 close_or_confirm(w, false);
@@ -620,7 +620,7 @@ impl ProfileUi {
         self.windows.iter().any(|w| w.id == me && w.open && w.tab == TAB_PICKS)
     }
 
-    /// Demo captures of the Aurora window (AURORA_DEMO_PROFILE): `edit` puts
+    /// Demo captures of the Block window (BLOCK_DEMO_PROFILE): `edit` puts
     /// our profile in edit mode, `compact` gives the window the width of
     /// the compact layout, a number shows that tab.
     pub fn demo(&mut self, ctx: &egui::Context, id: Uuid, option: &str) {
@@ -647,7 +647,7 @@ impl ProfileUi {
                 "compact" => {
                     let size = Vec2::new(380.0, 640.0);
                     let pos = ctx.content_rect().center() - size * 0.5;
-                    widgets::place_floater(ctx, &aurora::window_id(id), pos, size);
+                    widgets::place_floater(ctx, &block::window_id(id), pos, size);
                 }
                 tab => w.tab = tab.parse::<usize>().unwrap_or(TAB_SL).min(TAB_NOTES),
             }
@@ -655,10 +655,10 @@ impl ProfileUi {
     }
 
     /// Where the first open profile window stands, either style
-    /// (`AURORA_DEMO_GIVE=profile`).
+    /// (`BLOCK_DEMO_GIVE=profile`).
     pub fn demo_window_rect(&self, ctx: &egui::Context) -> Option<egui::Rect> {
         let w = self.windows.iter().find(|w| w.open)?;
-        [aurora::window_id(w.id), format!("profile-{}", w.id)]
+        [block::window_id(w.id), format!("profile-{}", w.id)]
             .iter()
             .find_map(|id| ctx.memory(|m| m.area_rect(egui::Id::unique(id.as_str()))))
     }
@@ -726,11 +726,11 @@ impl ProfileUi {
                     continue;
                 }
                 if std::mem::take(&mut w.raise) {
-                    let win_id = aurora::window_id(w.id);
+                    let win_id = block::window_id(w.id);
                     widgets::expand_floater(ctx, &win_id);
                 }
                 world.social.avatar_names.want(&w.id);
-                let mut env = aurora::Env {
+                let mut env = block::Env {
                     p,
                     emoji,
                     pics,
@@ -745,7 +745,7 @@ impl ProfileUi {
                     pick_picture: &mut pick_picture,
                     friend_rights,
                 };
-                let open = aurora::window(ctx, &mut env, w, i);
+                let open = block::window(ctx, &mut env, w, i);
                 photo_window(ctx, p, world, pics, images, w);
                 close_or_confirm(w, open);
                 continue;
@@ -859,7 +859,7 @@ impl ProfileUi {
             let title = match slot {
                 PictureSlot::SecondLife => block_i18n::tr!("ui-profile-profile-picture"),
                 PictureSlot::FirstLife => block_i18n::tr!("ui-profile-rl-picture"),
-                PictureSlot::Pick(_) | PictureSlot::Classified(_) => block_i18n::tr!("ui-profile-aurora-snapshot"),
+                PictureSlot::Pick(_) | PictureSlot::Classified(_) => block_i18n::tr!("ui-profile-block-snapshot"),
             };
             self.picker.open(title, current);
             self.picker_slot = Some(slot);
@@ -950,11 +950,11 @@ fn photo_window(
     window: &mut Window,
 ) {
     let Some(photo) = &mut window.photo else { return };
-    let name = aurora::display_name(world, window.scope, &window.id);
+    let name = block::display_name(world, window.scope, &window.id);
     let caption = match photo.slot {
         PictureSlot::FirstLife => block_i18n::tr!("ui-profile-rl-picture"),
         PictureSlot::SecondLife => block_i18n::tr!("ui-profile-profile-picture"),
-        PictureSlot::Pick(_) | PictureSlot::Classified(_) => block_i18n::tr!("ui-profile-aurora-snapshot"),
+        PictureSlot::Pick(_) | PictureSlot::Classified(_) => block_i18n::tr!("ui-profile-block-snapshot"),
     };
     let id = format!("profile-photo-{}", window.id);
     let size = Vec2::new(460.0, 520.0);
@@ -1441,7 +1441,7 @@ fn second_life_tab(
             *pick_picture = Some((PictureSlot::SecondLife, pr.sl_image));
         } else if !own
             && let Some(pr) = profile.filter(|pr| !pr.sl_image.is_nil())
-            && r.on_hover_text(block_i18n::tr!("ui-profile-aurora-big-photo")).clicked()
+            && r.on_hover_text(block_i18n::tr!("ui-profile-block-big-photo")).clicked()
         {
             w.open_photo(PictureSlot::SecondLife, pr.sl_image);
         }
@@ -1581,7 +1581,7 @@ fn second_life_tab(
 }
 
 /// group_list: names as links (double-click: chat of one of our groups,
-/// there is no group profile in Aurora yet).
+/// there is no group profile in Block yet).
 fn groups_list(
     ui: &mut egui::Ui,
     p: &Palette,
@@ -2142,10 +2142,10 @@ fn pick_detail(
         "user-filled",
         "",
     )
-    .on_hover_text(block_i18n::tr!("ui-profile-aurora-big-photo"))
+    .on_hover_text(block_i18n::tr!("ui-profile-block-big-photo"))
     .clicked()
     {
-        // Same read-only preview as the Aurora profile: no asset id or export.
+        // Same read-only preview as the Block profile: no asset id or export.
         w.open_photo(PictureSlot::Pick(w.id), snapshot);
     }
     ui.label(RichText::new(block_i18n::tr!("common-name-2")).size(12.0).strong().color(p.ink));
@@ -2376,7 +2376,7 @@ fn classified_detail(
         "user-filled",
         "",
     )
-    .on_hover_text(block_i18n::tr!("ui-profile-aurora-big-photo"))
+    .on_hover_text(block_i18n::tr!("ui-profile-block-big-photo"))
     .clicked()
     {
         w.open_photo(PictureSlot::Classified(w.id), info.snapshot);
@@ -2472,7 +2472,7 @@ fn first_life_tab(
             if r.on_hover_text(block_i18n::tr!("ui-profile-click-change-image")).clicked() {
                 *pick_picture = Some((PictureSlot::FirstLife, pr.fl_image));
             }
-        } else if !pr.fl_image.is_nil() && r.on_hover_text(block_i18n::tr!("ui-profile-aurora-big-photo")).clicked() {
+        } else if !pr.fl_image.is_nil() && r.on_hover_text(block_i18n::tr!("ui-profile-block-big-photo")).clicked() {
             w.open_photo(PictureSlot::FirstLife, pr.fl_image);
         }
         if c.own {
@@ -2777,7 +2777,7 @@ mod tests {
         let me = Uuid::from_u128(1);
         world.agent_id = me;
         for classic in [false, true] {
-            let win_id = if classic { format!("profile-{me}") } else { aurora::window_id(me) };
+            let win_id = if classic { format!("profile-{me}") } else { block::window_id(me) };
             let mut ui = ProfileUi::default();
             ui.toggle_picks(&ctx, &mut world, classic);
             assert!(ui.picks_shown(me), "classic {classic}: opens on Picks");

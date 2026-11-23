@@ -1,6 +1,6 @@
-# Installing Aurora Viewer on macOS
+# Installing Block Viewer on macOS
 
-Every release of Aurora Viewer comes with a macOS application for Apple
+Every release of Block Viewer comes with a macOS application for Apple
 Silicon Macs (M1 and later). It draws through Metal, Apple's graphics API:
 nothing else to install. macOS support is new: tell us what does not work
 (below).
@@ -28,43 +28,43 @@ shadows or ambient occlusion, FXAA, manual reflection probes), shown as
 
 ## 1. Download and install
 
-1. On the [latest release](https://github.com/Aurora-Viewer/Aurora-Viewer/releases/latest),
-   download `Aurora-Viewer-<version>-macos-arm64.dmg`.
-2. Open it (a double click in the Finder): a window shows **Aurora Viewer**
+1. On the [latest release](https://github.com/ape-squared/Block-Viewer/releases/latest),
+   download `Block-Viewer-<version>-macos-arm64.dmg`.
+2. Open it (a double click in the Finder): a window shows **Block Viewer**
    next to your **Applications** folder.
-3. Drag **Aurora Viewer** onto **Applications**, then eject the disk image
-   (the eject button next to "Aurora Viewer" in the Finder's sidebar).
+3. Drag **Block Viewer** onto **Applications**, then eject the disk image
+   (the eject button next to "Block Viewer" in the Finder's sidebar).
 
 ## 2. Start the viewer
 
-Open **Aurora Viewer** from Applications or the Launchpad.
+Open **Block Viewer** from Applications or the Launchpad.
 
 If macOS says that it cannot check the application or its developer, the
 release you downloaded is not notarized by Apple yet. Open it once this way:
 
 1. Click **Done** (or **OK**) on that message.
 2. Open **System Settings › Privacy & Security**, scroll down to the
-   message about Aurora Viewer and click **Open Anyway**, then confirm with
+   message about Block Viewer and click **Open Anyway**, then confirm with
    your password or Touch ID.
 
 macOS remembers the choice: the next starts are normal. In the Terminal,
 this command does the same, once the application is in Applications:
 
 ```bash
-xattr -dr com.apple.quarantine "/Applications/Aurora Viewer.app"
+xattr -dr com.apple.quarantine "/Applications/Block Viewer.app"
 ```
 
 Until the releases are notarized, macOS may also ask again, after an
-update, whether Aurora Viewer may use the keychain (your saved password:
+update, whether Block Viewer may use the keychain (your saved password:
 choose **Always Allow**) and the microphone.
 
-The first time voice chat opens the microphone, macOS asks whether Aurora
+The first time voice chat opens the microphone, macOS asks whether Block
 Viewer may use it: allow it to speak in voice chat (you can change it later
 in **System Settings › Privacy & Security › Microphone**).
 
 ## Game Mode
 
-Aurora Viewer declares itself as a game to macOS, so macOS turns on its
+Block Viewer declares itself as a game to macOS, so macOS turns on its
 Game Mode automatically when the viewer is in native full screen on Apple
 Silicon with macOS 14 Sonoma or later. To enter full screen, move the
 pointer over the green button in the title bar and choose **Enter Full
@@ -116,7 +116,7 @@ item is answered here; Command+H stays Hide.
 
 Web pages and video in the world need the media plugins, which are not part
 of the application: the first time they are needed, the viewer asks before
-it downloads Aurora's media plugins pack (about 335 MB) into the
+it downloads Block's media plugins pack (about 335 MB) into the
 `media-plugins` folder of its settings (table below), once. "Not now" leaves
 a Download button in Preferences › Sound and voice › Media and where the page
 would show. A Legacy Viewer installed on the Mac can
@@ -132,8 +132,8 @@ cache and logs are kept: they are not inside the application.
 
 | What | Where |
 |---|---|
-| Settings, logs | `~/Library/Application Support/org.Aurora.AuroraViewer` |
-| Cache | `~/Library/Caches/org.Aurora.AuroraViewer` |
+| Settings, logs | `~/Library/Application Support/org.Block.BlockViewer` |
+| Cache | `~/Library/Caches/org.Block.BlockViewer` |
 | Saved passwords | the macOS keychain (Keychain Access) |
 
 To see these folders in the Finder: **Go › Go to Folder…** (Cmd+Shift+G) and
@@ -152,21 +152,21 @@ Install Apple's command line tools and Rust, then build:
 ```bash
 xcode-select --install
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
-git clone https://github.com/Aurora-Viewer/Aurora-Viewer block-viewer
+git clone https://github.com/ape-squared/Block-Viewer block-viewer
 cd block-viewer
 cargo build --release --locked -p block-viewer
 ./target/release/block-viewer
 ```
 
-`AURORA_DEMO=1 ./target/release/block-viewer` starts the offline demo,
+`BLOCK_DEMO=1 ./target/release/block-viewer` starts the offline demo,
 without the network. To build the application itself as the release does,
-run `pwsh ./scripts/package-macos.ps1 -Exe target/release/block-viewer -Out "Aurora Viewer.app"`
+run `pwsh ./scripts/package-macos.ps1 -Exe target/release/block-viewer -Out "Block Viewer.app"`
 (PowerShell 7: `brew install powershell`). The same PowerShell runs the local
 checks: `pwsh -File ./scripts/check.ps1` (formatting, clippy, tests).
 
 To work on the code with an AI agent, also install the search tools the
 agents are told to use ([AGENTS.md](../AGENTS.md), section 5, "Tools";
-optional, the Aurora tools install them on Windows):
+optional, the Block tools install them on Windows):
 `brew install ripgrep fd jq ast-grep`.
 
 ## Signing (for the maintainers)

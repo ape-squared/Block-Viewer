@@ -1,9 +1,9 @@
-//! AURORA_DEMO_BUMP=sphere: a low-poly mesh ball (12 × 8 quads, smooth
+//! BLOCK_DEMO_BUMP=sphere: a low-poly mesh ball (12 × 8 quads, smooth
 //! normals, its UVs warped as an unwrapping tool leaves them) in front of
 //! the normal-mapped panel, with a normal map baked the way a modelling
 //! tool bakes one: from a perfectly round, dimpled ball, through the mesh's
 //! own MikkTSpace tangents (the ones the viewer builds, scene/tangents.rs).
-//! On the vertices' tangents (AURORA_TANGENTS=vertex) the ball is round and
+//! On the vertices' tangents (BLOCK_TANGENTS=vertex) the ball is round and
 //! evenly dimpled, its triangles invisible; on a per-pixel frame (`pixel`,
 //! `derivative`) each triangle turns the baked relief its own way and the
 //! facets show.
@@ -22,7 +22,7 @@ const RINGS: usize = 8;
 const SIZE: usize = 512;
 
 pub fn enabled() -> bool {
-    std::env::var("AURORA_DEMO_BUMP").as_deref() == Ok("sphere")
+    std::env::var("BLOCK_DEMO_BUMP").as_deref() == Ok("sphere")
 }
 
 /// Unwrapped coordinates of the ball's (longitude, latitude) grid point,

@@ -499,7 +499,7 @@ fn login_restores_the_bridge_detached_by_its_script_on_another_viewer() {
     let item = sim.bridge.item;
     let before = (sim.uploads, sim.query_uploads, sim.attaches, sim.detaches);
     let command = NetCommand::DetachAttachments(vec![item]);
-    // The script detaches on another viewer: Aurora never observes a user
+    // The script detaches on another viewer: Block never observes a user
     // command that would deliberately pause the bridge for this new session.
     for event in sim
         .demo
@@ -2187,7 +2187,7 @@ fn worn_firestorm_bridge_is_only_detached_once_without_any_inventory_or_script_e
     let command = sim.bridge.commands.pop().expect("detach");
     assert!(
         !sim.bridge.observe_command(&command, sim.now),
-        "legacy detach cannot disable Aurora Movelock"
+        "legacy detach cannot disable Block Movelock"
     );
     for _ in 0..20 {
         sim.now += Duration::from_secs(1);

@@ -1,4 +1,4 @@
-//! AURORA_DEMO_PHOTO_ROLL=<n>[:quick][:delete][:send][:upload][:item][:mail][:apply][:applied][:moved][:toolbar][:apart]:
+//! BLOCK_DEMO_PHOTO_ROLL=<n>[:quick][:delete][:send][:upload][:item][:mail][:apply][:applied][:moved][:toolbar][:apart]:
 //! the reel filled with `n` real photos of the plaza, saved to a folder of
 //! the cache (never the Pictures folder), the focal length changed between
 //! them so that they differ. `quick` then opens the quick view on the
@@ -12,8 +12,8 @@
 //! of the screen: the photos fly to it there. `toolbar` puts the Photo roll
 //! button on the right toolbar (dimmed until the first photo), then closes
 //! photo mode and opens the quick view with it. `apart` takes the photos 600 frames
-//! apart, each card and flight over before the next. From AURORA_DEMO_SNAPSHOT_FRAME
-//! (700 by default); the photo mode's look follows AURORA_DEMO_SNAPSHOT.
+//! apart, each card and flight over before the next. From BLOCK_DEMO_SNAPSHOT_FRAME
+//! (700 by default); the photo mode's look follows BLOCK_DEMO_SNAPSHOT.
 
 use super::super::App;
 use super::super::snapshot::Purpose;
@@ -56,11 +56,11 @@ pub(in crate::app) struct Demo {
 
 impl Demo {
     fn from_env() -> Option<Demo> {
-        let value = std::env::var("AURORA_DEMO_PHOTO_ROLL").ok()?;
+        let value = std::env::var("BLOCK_DEMO_PHOTO_ROLL").ok()?;
         let mut parts = value.split(':');
         let count = parts.next()?.trim().parse::<usize>().ok()?.clamp(1, 12);
         let words: Vec<&str> = parts.collect();
-        let start = std::env::var("AURORA_DEMO_SNAPSHOT_FRAME")
+        let start = std::env::var("BLOCK_DEMO_SNAPSHOT_FRAME")
             .ok()
             .and_then(|v| v.parse().ok())
             .unwrap_or(700);

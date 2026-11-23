@@ -95,7 +95,7 @@ fn object_figures() -> Vec<Figure<ObjectRow>> {
 
 /// The figures of a worn object; a HUD has no complexity (it does not
 /// count). The Legacy Viewer measures each one's drawing time on the
-/// graphics card instead (LLPipeline::profileAvatar): Aurora has no such
+/// graphics card instead (LLPipeline::profileAvatar): Block has no such
 /// per-object timing, its triangles and texture memory say the same.
 fn worn_figures(huds: bool) -> Vec<Figure<WornRow>> {
     let mut figures: Vec<Figure<WornRow>> = Vec::new();

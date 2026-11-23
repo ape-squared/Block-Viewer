@@ -31,14 +31,14 @@ pub(super) struct BusyPause {
     /// again each frame until a new one comes, and one slow frame seen
     /// twice is not two.
     last_ms: Option<f32>,
-    /// AURORA_DEMO_BUSY_PAUSE: a click in the window while paused, the
+    /// BLOCK_DEMO_BUSY_PAUSE: a click in the window while paused, the
     /// demo's busy card is over (its window often has the focus already).
     pub(super) demo_released: bool,
     /// Dev Toolbox R13: the same pause on demand, in front or behind, with
     /// or without the setting, until R13 is pressed again (a click in the
     /// window does not end it: the button itself is one).
     pub(super) forced: bool,
-    /// The setting follows the newest change made in any Aurora window
+    /// The setting follows the newest change made in any Block window
     /// (instances.rs): the one that pauses is the window behind.
     pub(super) follow: crate::instances::SwitchFollow,
 }
@@ -73,12 +73,12 @@ impl BusyPause {
     }
 }
 
-/// `AURORA_DEMO_BUSY_PAUSE=<frame>`: from that frame on, the window counts
+/// `BLOCK_DEMO_BUSY_PAUSE=<frame>`: from that frame on, the window counts
 /// as behind with slow GPU frames, until it gets the focus (a click), to
 /// see the pause, its notice and its title without a second program.
 fn demo_from() -> Option<u64> {
     static FROM: std::sync::OnceLock<Option<u64>> = std::sync::OnceLock::new();
-    *FROM.get_or_init(|| std::env::var("AURORA_DEMO_BUSY_PAUSE").ok()?.trim().parse().ok())
+    *FROM.get_or_init(|| std::env::var("BLOCK_DEMO_BUSY_PAUSE").ok()?.trim().parse().ok())
 }
 
 impl App {

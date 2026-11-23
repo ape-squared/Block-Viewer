@@ -4325,7 +4325,7 @@ fn rlva_fartouch_keeps_far_objects_out_of_the_build_selection() {
 }
 
 /// render_hud_attachments (llviewerdisplay.cpp): while a HUD is locked the
-/// HUD view zooms out to 85 % at most, and Aurora's own zoom of that HUD
+/// HUD view zooms out to 85 % at most, and Block's own zoom of that HUD
 /// does not shrink it; the saved size comes back with the release.
 #[test]
 fn rlva_locked_hud_bounds_the_hud_view_zoom_and_keeps_its_own_size() {

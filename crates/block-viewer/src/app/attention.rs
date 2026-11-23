@@ -82,7 +82,7 @@ pub fn keyword_sound(s: &Settings, k: &KeywordSettings) -> Option<uuid::Uuid> {
 
 /// Whether the system is told now (GrowlManager::shouldNotify): turned on,
 /// never in do not disturb, and only while the window is not in front
-/// unless FSGrowlWhenActive. `forced`: turned on by AURORA_DEMO_ATTENTION.
+/// unless FSGrowlWhenActive. `forced`: turned on by BLOCK_DEMO_ATTENTION.
 pub fn notifies(s: &Settings, forced: bool, in_front: bool, dnd: bool) -> bool {
     (s.system_notifications || forced) && !dnd && (s.system_notifications_when_active || !in_front)
 }
@@ -150,7 +150,7 @@ impl App {
         }
     }
 
-    /// The keyword alerts in force: AURORA_DEMO_KEYWORDS's for the run
+    /// The keyword alerts in force: BLOCK_DEMO_KEYWORDS's for the run
     /// (never saved), else the preferences'.
     pub(super) fn keyword_settings(&self) -> KeywordSettings {
         match crate::demo::keywords::settings() {

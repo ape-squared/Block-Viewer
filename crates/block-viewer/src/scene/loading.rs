@@ -438,7 +438,7 @@ impl Scene {
     /// LLVOAvatar::getRezzedStatus, as far as the avatar render info needs
     /// it: 0 an appearance still missing (getHasMissingParts), 1 grey (a
     /// bake not downloaded yet), 2 textured, 4 also everything it wears
-    /// built (`worn`: only then is what it wears looked at). Aurora shows a
+    /// built (`worn`: only then is what it wears looked at). Block shows a
     /// bake once downloaded, so the Legacy Viewer's 3 (bakes fully
     /// downloaded but something worn missing) reads as 2.
     pub fn avatar_rez_status(&self, world: &World, idx: usize, worn: bool) -> u8 {
@@ -877,7 +877,7 @@ mod tests {
         assert!(t.loaded && !t.first_show && !t.timed_out);
     }
 
-    /// The demo region with our avatar dressed by AURORA_DEMO_CLOUD=self.
+    /// The demo region with our avatar dressed by BLOCK_DEMO_CLOUD=self.
     fn cloud_self() -> (World, Scene, usize, usize) {
         let lib = Arc::new(AvatarLibrary::load());
         let mut world = World::new(lib.clone());

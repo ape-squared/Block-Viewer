@@ -122,7 +122,7 @@ impl Step {
         }
     }
 
-    /// A step as `AURORA_DEMO_SPLASH` or a line of the viewer names it
+    /// A step as `BLOCK_DEMO_SPLASH` or a line of the viewer names it
     /// (`shaders:23/61` or `shaders 23 61`).
     pub fn parse(text: &str) -> Option<Step> {
         let mut words = text.trim().split([' ', ':', '/']).filter(|w| !w.is_empty());

@@ -1,4 +1,4 @@
-//! Aurora's notification center (Preferences › Aurora › Notifications,
+//! Block's notification center (Preferences › Block › Notifications,
 //! "Animated bell"): a new notification unrolls from the bell at the right
 //! end of the navigation bar, stays a few seconds (a fine bar shows the time
 //! left, hovering pauses it), then folds back into the bell, whose count
@@ -258,7 +258,7 @@ pub fn visible(c: &CenterUi) -> (Vec<Peek>, usize) {
 /// bounce when the count grows, a small ring; in do not disturb a grey bell
 /// with a moon. Returns its response: a click opens the center, a right
 /// click turns do not disturb on or off (#491).
-/// In an island of the Aurora bars (`island`): a slot of the island, the
+/// In an island of the Block bars (`island`): a slot of the island, the
 /// ringing bell while something waits, and the count in the violet of the
 /// Conversations button's (one counter for both, grey while paused).
 #[allow(clippy::too_many_arguments)]
@@ -688,7 +688,7 @@ fn full_list(
     }
 }
 
-/// The "To do" / "History" tabs of a list (Aurora's center and Firestorm's
+/// The "To do" / "History" tabs of a list (Block's center and Firestorm's
 /// well); returns whether the history is shown.
 pub(super) fn tabs(ui: &mut egui::Ui, p: &Palette, tab: &mut Tab) -> bool {
     let options = [
@@ -831,9 +831,9 @@ fn center_card(
             cards::card(ui, p, icons, world, env.images, wanted_images, n, false, true)
         }
     });
-    // a new version of Aurora: the aurora's edge, read or not
+    // a new version of Block: the aurora's edge, read or not
     if matches!(n.data, Data::Update { .. }) {
-        aurora::paint_edge(ui, p, inner.response.rect);
+        block::paint_edge(ui, p, inner.response.rect);
     } else if !read {
         let r = inner.response.rect;
         ui.painter().rect_filled(
@@ -1099,7 +1099,7 @@ fn hhmm(secs: u64) -> String {
     super::chat::hhmm(at(secs))
 }
 
-pub mod aurora;
+pub mod block;
 pub mod presence;
 
 #[cfg(test)]

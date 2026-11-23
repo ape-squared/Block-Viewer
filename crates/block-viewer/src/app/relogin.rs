@@ -24,7 +24,7 @@ impl App {
     }
 
     /// The last session of the account about to log in (the demo's made-up
-    /// one with `AURORA_DEMO_LOGIN_WAIT`).
+    /// one with `BLOCK_DEMO_LOGIN_WAIT`).
     fn previous_session(&self) -> Option<login_wait::Session> {
         if self.demo {
             return demo_session();
@@ -140,10 +140,10 @@ impl App {
         }
     }
 
-    /// `AURORA_DEMO_LOGIN_WAIT=refused`: the offline login server answers as
+    /// `BLOCK_DEMO_LOGIN_WAIT=refused`: the offline login server answers as
     /// the grid does while it logs out a previous session, once.
     pub(super) fn demo_refusal(&mut self) -> bool {
-        if std::env::var("AURORA_DEMO_LOGIN_WAIT").as_deref() != Ok("refused") || self.relogin.retries > 0 {
+        if std::env::var("BLOCK_DEMO_LOGIN_WAIT").as_deref() != Ok("refused") || self.relogin.retries > 0 {
             return false;
         }
         log::info!("demo login: refused, a previous session is still on the grid");
@@ -160,11 +160,11 @@ impl App {
     }
 }
 
-/// `AURORA_DEMO_LOGIN_WAIT=logout|sudden`: the demo account's previous
+/// `BLOCK_DEMO_LOGIN_WAIT=logout|sudden`: the demo account's previous
 /// session logged out, or was never seen ending, when the viewer started.
 fn demo_session() -> Option<login_wait::Session> {
     static START: std::sync::OnceLock<u64> = std::sync::OnceLock::new();
-    let mode = std::env::var("AURORA_DEMO_LOGIN_WAIT").ok()?;
+    let mode = std::env::var("BLOCK_DEMO_LOGIN_WAIT").ok()?;
     let at = *START.get_or_init(crate::credentials::now);
     let ended = match mode.as_str() {
         "logout" => Some(at),

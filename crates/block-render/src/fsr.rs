@@ -3,7 +3,7 @@
 //! NOTICE.md). The host side here follows ffx_fsr3upscaler.cpp
 //! (FfxFsr3UpscalerContext's resources, constants and dispatches).
 //!
-//! FSR is one of the anti-aliasing choices, in the place of Aurora's TAA:
+//! FSR is one of the anti-aliasing choices, in the place of Block's TAA:
 //! the world is drawn at the size of its quality mode (`FsrQuality`, the
 //! display size for "native AA") and FSR draws it at the display size, the
 //! passes after it (glow, bloom, tone mapping, the selection outline, the
@@ -15,10 +15,10 @@
 //! fragment pass (see `shaders/fsr/common.wgsl` for the differences from
 //! the SDK). The reactive mask is generated from the scene before and after
 //! the blended faces, the particles and the water (FSR's autogen reactive
-//! pass, `AURORA_FSR_REACTIVE=0` turns it off). The transparency and
+//! pass, `BLOCK_FSR_REACTIVE=0` turns it off). The transparency and
 //! composition mask marks the faces with a running texture animation, read
 //! from the prepass's normals (`NORMAL_COMPOSITION` in common.wgsl,
-//! `AURORA_FSR_COMPOSITION=0` turns it off). The exposure is 1 (FSR's tone
+//! `BLOCK_FSR_COMPOSITION=0` turns it off). The exposure is 1 (FSR's tone
 //! mapping of the history works on the HDR values as they are).
 
 use bytemuck::{Pod, Zeroable};
@@ -60,11 +60,11 @@ pub(crate) fn device_to_view(proj: Mat4) -> [f32; 2] {
 /// than the window: `log2(render / display) - 1`, as AMD's integration
 /// guide asks, so that the textures keep the window's detail (Quality
 /// -1.58, Performance -2); 0 at the window's size, where the textures stay
-/// those of TAA and the Legacy Viewer. `AURORA_FSR_MIP_BIAS=0` keeps 0
+/// those of TAA and the Legacy Viewer. `BLOCK_FSR_MIP_BIAS=0` keeps 0
 /// (comparison).
 pub(crate) fn mip_bias(render_width: u32, display_width: u32) -> f32 {
     static ON: std::sync::OnceLock<bool> = std::sync::OnceLock::new();
-    let on = *ON.get_or_init(|| std::env::var("AURORA_FSR_MIP_BIAS").map_or(true, |v| v.trim() != "0"));
+    let on = *ON.get_or_init(|| std::env::var("BLOCK_FSR_MIP_BIAS").map_or(true, |v| v.trim() != "0"));
     if on { mip_bias_for(render_width, display_width) } else { 0.0 }
 }
 
@@ -85,24 +85,24 @@ pub(crate) fn render_size(display: (u32, u32), ratio: f32) -> (u32, u32) {
     )
 }
 
-/// `AURORA_FSR_REACTIVE=0`: no generated reactive mask (read once).
+/// `BLOCK_FSR_REACTIVE=0`: no generated reactive mask (read once).
 fn reactive_on() -> bool {
     static ON: std::sync::OnceLock<bool> = std::sync::OnceLock::new();
-    *ON.get_or_init(|| std::env::var("AURORA_FSR_REACTIVE").map_or(true, |v| v.trim() != "0"))
+    *ON.get_or_init(|| std::env::var("BLOCK_FSR_REACTIVE").map_or(true, |v| v.trim() != "0"))
 }
 
-/// `AURORA_FSR_COMPOSITION=0`: no transparency and composition mask (read
+/// `BLOCK_FSR_COMPOSITION=0`: no transparency and composition mask (read
 /// once).
 fn composition_on() -> bool {
     static ON: std::sync::OnceLock<bool> = std::sync::OnceLock::new();
-    *ON.get_or_init(|| std::env::var("AURORA_FSR_COMPOSITION").map_or(true, |v| v.trim() != "0"))
+    *ON.get_or_init(|| std::env::var("BLOCK_FSR_COMPOSITION").map_or(true, |v| v.trim() != "0"))
 }
 
-/// `AURORA_FSR_SHARPNESS=<0..1>|off`: RCAS's strength, or no RCAS, over
+/// `BLOCK_FSR_SHARPNESS=<0..1>|off`: RCAS's strength, or no RCAS, over
 /// the setting (read once).
 fn sharpness_override() -> Option<Option<f32>> {
     static S: std::sync::OnceLock<Option<Option<f32>>> = std::sync::OnceLock::new();
-    *S.get_or_init(|| std::env::var("AURORA_FSR_SHARPNESS").ok().map(|v| parse_sharpness(Some(&v))))
+    *S.get_or_init(|| std::env::var("BLOCK_FSR_SHARPNESS").ok().map(|v| parse_sharpness(Some(&v))))
 }
 
 fn parse_sharpness(v: Option<&str>) -> Option<f32> {

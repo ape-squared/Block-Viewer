@@ -1,4 +1,4 @@
-//! AURORA_DEMO_TEXTURE_RES=1: Preferences › Graphics › Maximum texture
+//! BLOCK_DEMO_TEXTURE_RES=1: Preferences › Graphics › Maximum texture
 //! resolution without a grid. The demo's own textures are drawn on the
 //! spot, never streamed, so nothing in it ever went past 512 pixels; here
 //! three boards east of the start position (8, 4 and 2 m wide) each wear a
@@ -12,7 +12,7 @@
 //! green under 2048, amber under 1024, red under 512. The two others show
 //! it whole, smaller on screen: the GPU draws a coarser level there
 //! whatever the setting, as the Legacy Viewer would.
-//! Not with AURORA_DEMO_STREAM, which has its own demo source.
+//! Not with BLOCK_DEMO_STREAM, which has its own demo source.
 
 use super::{HANDLE, floor_at, prim, shape, te};
 use crate::scene::jobs::{AlphaKind, Jobs};
@@ -102,7 +102,7 @@ pub struct TextureResDemo {
 
 impl TextureResDemo {
     pub fn from_env() -> Option<Self> {
-        (std::env::var("AURORA_DEMO_TEXTURE_RES").ok()?.trim() == "1").then_some(TextureResDemo { sent: false })
+        (std::env::var("BLOCK_DEMO_TEXTURE_RES").ok()?.trim() == "1").then_some(TextureResDemo { sent: false })
     }
 
     pub fn tick(

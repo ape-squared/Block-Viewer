@@ -53,7 +53,7 @@ mod tests {
 
     #[test]
     fn recovered_draft_keeps_original_session_and_excludes_unselected_data() {
-        let dir = std::env::temp_dir().join(format!("aurora-crash-report-test-{}", uuid::Uuid::new_v4()));
+        let dir = std::env::temp_dir().join(format!("block-crash-report-test-{}", uuid::Uuid::new_v4()));
         std::fs::create_dir(&dir).unwrap();
         let record = super::super::Record {
             schema: 1,
@@ -104,7 +104,7 @@ mod tests {
 
     #[test]
     fn missing_crash_metadata_does_not_invent_exit_code_or_recovery_uptime() {
-        let dir = std::env::temp_dir().join(format!("aurora-crash-report-test-{}", uuid::Uuid::new_v4()));
+        let dir = std::env::temp_dir().join(format!("block-crash-report-test-{}", uuid::Uuid::new_v4()));
         std::fs::create_dir(&dir).unwrap();
         let mut record: super::super::Record = serde_json::from_str(&format!(
             r##"{{"schema":1,"pid":1,"process_started":0,"started_unix":0,"version":"old","profile":"debug","language":"en","font":"Inter","font_scale":1,"theme":{},"log_path":"old.log","demo":true}}"##,

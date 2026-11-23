@@ -101,7 +101,7 @@ pub enum PlateSize {
     Reduced,
 }
 
-/// Where a set's members get a marker in the world (an Aurora addition).
+/// Where a set's members get a marker in the world (a Block addition).
 #[derive(Debug, Default, Clone, Copy, PartialEq, Eq)]
 pub enum MarkerScope {
     #[default]

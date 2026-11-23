@@ -13,7 +13,7 @@
 //! pointer, `Scene::drawn_hover_on`) and which posed object is drawn
 //! around (`Scene::drawn_hover_between`). No query is added.
 //!
-//! `AURORA_HOVER_TRACE=1` writes a `hover trace` line each time the
+//! `BLOCK_HOVER_TRACE=1` writes a `hover trace` line each time the
 //! cursor's target or where it comes from changes, and a `hover trace
 //! cost` line every 5 s with the time spent on the CPU (docs/TESTING.md).
 
@@ -94,7 +94,7 @@ impl Kept {
     }
 }
 
-/// Where the cursor's target comes from (AURORA_HOVER_TRACE).
+/// Where the cursor's target comes from (BLOCK_HOVER_TRACE).
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 enum Source {
     /// The search of the CPU: nothing posed near the ray.
@@ -114,10 +114,10 @@ enum Source {
 
 fn trace_enabled() -> bool {
     static ON: std::sync::OnceLock<bool> = std::sync::OnceLock::new();
-    *ON.get_or_init(|| std::env::var_os("AURORA_HOVER_TRACE").is_some())
+    *ON.get_or_init(|| std::env::var_os("BLOCK_HOVER_TRACE").is_some())
 }
 
-/// AURORA_HOVER_TRACE: the time one part of the hover took, over the
+/// BLOCK_HOVER_TRACE: the time one part of the hover took, over the
 /// frames of a `hover trace cost` line.
 #[derive(Clone, Copy, Default)]
 struct Span {
@@ -152,7 +152,7 @@ impl std::fmt::Display for Span {
     }
 }
 
-/// AURORA_HOVER_TRACE: what the hover cost since the last `hover trace
+/// BLOCK_HOVER_TRACE: what the hover cost since the last `hover trace
 /// cost` line.
 #[derive(Default)]
 struct Cost {
@@ -202,9 +202,9 @@ pub(super) struct HoverDrawn {
     pending: Option<(u64, Question, Instant)>,
     kept: Option<Kept>,
     last_request: Option<Instant>,
-    /// AURORA_HOVER_TRACE: what the last line said.
+    /// BLOCK_HOVER_TRACE: what the last line said.
     traced: Option<(Source, Option<usize>)>,
-    /// AURORA_HOVER_TRACE.
+    /// BLOCK_HOVER_TRACE.
     cost: Cost,
 }
 
@@ -271,7 +271,7 @@ impl HoverDrawn {
         far: f32,
         click_waiting: bool,
     ) -> (Hit, Source) {
-        // (AURORA_HOVER_TRACE: the clock is read only then)
+        // (BLOCK_HOVER_TRACE: the clock is read only then)
         let timed = trace_enabled();
         let started = timed.then(Instant::now);
         let cpu = scene.hover_pick(world, ray, depth, far);

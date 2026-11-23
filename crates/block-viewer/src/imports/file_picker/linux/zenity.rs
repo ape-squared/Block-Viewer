@@ -48,7 +48,7 @@ pub(super) fn select(request: &Request, cancellation: &Cancellation) -> io::Resu
     // Drain concurrently: a large multi-selection must not fill the pipe and
     // prevent the child from exiting. The picker worker, never a frame, waits.
     let reader = std::thread::Builder::new()
-        .name("aurora-import-picker-output".into())
+        .name("block-import-picker-output".into())
         .spawn(move || {
             let mut bytes = Vec::new();
             stdout.read_to_end(&mut bytes).map(|_| bytes)

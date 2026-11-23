@@ -1,4 +1,4 @@
-//! The region settings of Aurora-Sim based grids: the event queue's
+//! The region settings of Block-Sim based grids: the event queue's
 //! OpenRegionInfo message, read over LLWorld::refreshLimits' OpenSim
 //! defaults (OpenRegionInfoUpdate::post, indra/newview/llpanelopenregionsettings.cpp,
 //! originally LGPL 2.1, Copyright (C) 2011 Patrick Sapinski, Matthew

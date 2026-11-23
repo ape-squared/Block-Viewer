@@ -140,7 +140,7 @@ pub struct WeatherSettings {
     pub aurora_height: f32,
     pub aurora_colours: AuroraColours,
     pub quality: WeatherQuality,
-    /// The menu was used this session: `AURORA_RAIN` no longer applies.
+    /// The menu was used this session: `BLOCK_RAIN` no longer applies.
     #[serde(skip)]
     pub touched: bool,
 }
@@ -188,7 +188,7 @@ impl WeatherSettings {
     /// The weather drawn: these settings with what their switches turn off
     /// taken out (`App::update_weather_now`, the window's summary). Off is
     /// what it was before the switches: nothing falling, no wind, no aurora.
-    /// `AURORA_RAIN`, `AURORA_SNOW` and `AURORA_NORTHERN_LIGHTS` still win
+    /// `BLOCK_RAIN`, `BLOCK_SNOW` and `BLOCK_NORTHERN_LIGHTS` still win
     /// until the window is used (they are read before these values).
     pub fn in_effect(&self) -> WeatherSettings {
         let mut w = self.clone();
@@ -236,7 +236,7 @@ impl WeatherSettings {
         }
     }
 
-    /// How hard it rains, 0 to 1: the menu's, or `AURORA_RAIN` until the
+    /// How hard it rains, 0 to 1: the menu's, or `BLOCK_RAIN` until the
     /// menu is used (demo captures).
     pub fn rain(&self) -> f32 {
         if !self.touched
@@ -251,7 +251,7 @@ impl WeatherSettings {
         }
     }
 
-    /// Snow is chosen (the menu's, or `AURORA_SNOW` until the menu is used).
+    /// Snow is chosen (the menu's, or `BLOCK_SNOW` until the menu is used).
     pub fn snowing(&self) -> bool {
         if !self.touched && env_snow().is_some() {
             return true;
@@ -273,7 +273,7 @@ impl WeatherSettings {
         self.rain()
     }
 
-    /// The amount the slider shows: `AURORA_SNOW` or `AURORA_RAIN` until
+    /// The amount the slider shows: `BLOCK_SNOW` or `BLOCK_RAIN` until
     /// the menu is used.
     pub fn rain_or_amount(&self) -> f32 {
         if !self.touched
@@ -284,8 +284,8 @@ impl WeatherSettings {
         self.amount
     }
 
-    /// The menu is used for the first time: what `AURORA_SNOW` or
-    /// `AURORA_RAIN` showed becomes the setting, so that nothing changes
+    /// The menu is used for the first time: what `BLOCK_SNOW` or
+    /// `BLOCK_RAIN` showed becomes the setting, so that nothing changes
     /// under the pointer (snow shown as snow, its amount kept).
     pub fn take_over(&mut self, before: &WeatherSettings) {
         if before.touched {
@@ -385,7 +385,7 @@ impl WeatherSettings {
             snow: if self.snowing() { self.flake_scale() } else { 0.0 },
             // the app gives the detail texture's slot (scene/snow_detail.rs)
             snow_detail: 0,
-            // the app gives AURORA_SNOW_LYING's floor (demo captures)
+            // the app gives BLOCK_SNOW_LYING's floor (demo captures)
             snow_lying: 0.0,
             memory_reach: self.memory_reach(),
             // the same while it melts as while it fell
@@ -502,24 +502,24 @@ impl Wind {
     }
 }
 
-/// `AURORA_SNOW=<0..1>`: snow of this strength until the menu is used
+/// `BLOCK_SNOW=<0..1>`: snow of this strength until the menu is used
 /// (demo captures).
 fn env_snow() -> Option<f32> {
     static SNOW: std::sync::OnceLock<Option<f32>> = std::sync::OnceLock::new();
     *SNOW.get_or_init(|| {
-        std::env::var("AURORA_SNOW")
+        std::env::var("BLOCK_SNOW")
             .ok()
             .and_then(|v| v.parse::<f32>().ok())
             .map(|v| v.clamp(0.0, 1.0))
     })
 }
 
-/// `AURORA_WEATHER_QUALITY=low|medium|high`: the weather's quality until
-/// the menu is used (measurements, `AURORA_PROFILE`).
+/// `BLOCK_WEATHER_QUALITY=low|medium|high`: the weather's quality until
+/// the menu is used (measurements, `BLOCK_PROFILE`).
 fn env_quality() -> Option<WeatherQuality> {
     static QUALITY: std::sync::OnceLock<Option<WeatherQuality>> = std::sync::OnceLock::new();
     *QUALITY.get_or_init(|| {
-        std::env::var("AURORA_WEATHER_QUALITY")
+        std::env::var("BLOCK_WEATHER_QUALITY")
             .ok()
             .and_then(|v| match v.trim().to_ascii_lowercase().as_str() {
                 "low" => Some(WeatherQuality::Low),
@@ -530,24 +530,24 @@ fn env_quality() -> Option<WeatherQuality> {
     })
 }
 
-/// `AURORA_SNOW_DEEP=0|1`: deep snow off or on until the menu is used.
+/// `BLOCK_SNOW_DEEP=0|1`: deep snow off or on until the menu is used.
 fn env_snow_deep() -> Option<bool> {
     static DEEP: std::sync::OnceLock<Option<bool>> = std::sync::OnceLock::new();
-    *DEEP.get_or_init(|| std::env::var("AURORA_SNOW_DEEP").ok().map(|v| v.trim() == "1"))
+    *DEEP.get_or_init(|| std::env::var("BLOCK_SNOW_DEEP").ok().map(|v| v.trim() == "1"))
 }
 
-/// `AURORA_SNOW_DEEP_REACH=<m>`: deep snow's reach until the menu is used
+/// `BLOCK_SNOW_DEEP_REACH=<m>`: deep snow's reach until the menu is used
 /// (demo captures: the terrain past the plaza's floor).
 fn env_snow_deep_reach() -> Option<f32> {
     static REACH: std::sync::OnceLock<Option<f32>> = std::sync::OnceLock::new();
-    *REACH.get_or_init(|| std::env::var("AURORA_SNOW_DEEP_REACH").ok().and_then(|v| v.trim().parse().ok()))
+    *REACH.get_or_init(|| std::env::var("BLOCK_SNOW_DEEP_REACH").ok().and_then(|v| v.trim().parse().ok()))
 }
 
-/// `AURORA_NORTHERN_LIGHTS=<0..1>[,<deg>[,<colours>]]`: the northern lights
+/// `BLOCK_NORTHERN_LIGHTS=<0..1>[,<deg>[,<colours>]]`: the northern lights
 /// until the menu is used (demo captures).
 fn env_northern_lights() -> Option<(f32, f32, u8)> {
     static LIGHTS: std::sync::OnceLock<Option<(f32, f32, u8)>> = std::sync::OnceLock::new();
-    *LIGHTS.get_or_init(|| std::env::var("AURORA_NORTHERN_LIGHTS").ok().and_then(|v| parse_northern_lights(&v)))
+    *LIGHTS.get_or_init(|| std::env::var("BLOCK_NORTHERN_LIGHTS").ok().and_then(|v| parse_northern_lights(&v)))
 }
 
 fn parse_northern_lights(spec: &str) -> Option<(f32, f32, u8)> {
@@ -565,7 +565,7 @@ fn parse_northern_lights(spec: &str) -> Option<(f32, f32, u8)> {
 fn env_rain() -> Option<f32> {
     static RAIN: std::sync::OnceLock<Option<f32>> = std::sync::OnceLock::new();
     *RAIN.get_or_init(|| {
-        std::env::var("AURORA_RAIN")
+        std::env::var("BLOCK_RAIN")
             .ok()
             .and_then(|v| v.parse::<f32>().ok())
             .map(|v| v.clamp(0.0, 1.0))

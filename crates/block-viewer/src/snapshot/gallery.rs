@@ -1,5 +1,5 @@
 //! The latest photos of the photo folder, newest first, with thumbnails
-//! read on a worker (Aurora's own: Firestorm only shows the last one).
+//! read on a worker (Block's own: Firestorm only shows the last one).
 
 use super::save::thumbnail;
 use std::path::{Path, PathBuf};

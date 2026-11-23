@@ -116,7 +116,7 @@ pub mod pipette {
     }
 
     fn key() -> egui::Id {
-        egui::Id::unique("aurora_color_pipette")
+        egui::Id::unique("block_color_pipette")
     }
 
     fn load(ctx: &egui::Context) -> Shared {
@@ -569,14 +569,14 @@ fn close(ctx: &egui::Context, id: egui::Id) {
     ctx.data_mut(|d| d.remove::<ColorPickState>(id));
 }
 
-/// Demo captures: `AURORA_DEMO_COLORPICK=1` opens the first swatch drawn at
+/// Demo captures: `BLOCK_DEMO_COLORPICK=1` opens the first swatch drawn at
 /// frame 300.
 fn demo_opens(ctx: &egui::Context) -> bool {
     static DEMO: std::sync::OnceLock<bool> = std::sync::OnceLock::new();
-    if !*DEMO.get_or_init(|| std::env::var_os("AURORA_DEMO_COLORPICK").is_some()) || ctx.cumulative_frame_nr() != 300 {
+    if !*DEMO.get_or_init(|| std::env::var_os("BLOCK_DEMO_COLORPICK").is_some()) || ctx.cumulative_frame_nr() != 300 {
         return false;
     }
-    let done = egui::Id::unique("aurora_color_pick_demo");
+    let done = egui::Id::unique("block_color_pick_demo");
     let first = !ctx.data(|d| d.get_temp::<bool>(done)).unwrap_or(false);
     ctx.data_mut(|d| d.insert_temp(done, true));
     first

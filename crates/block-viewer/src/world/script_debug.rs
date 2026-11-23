@@ -3,7 +3,7 @@
 //!
 //! Every script error of our own objects is kept for the Script debug
 //! window. With "Show script errors in the nearby chat" (ShowScriptErrors-
-//! Location 0, on by default in Aurora, #1263) it also goes on to the
+//! Location 0, on by default in Block, #1263) it also goes on to the
 //! nearby chat and the window does not open by itself; otherwise the window
 //! opens on it, as with the Legacy Viewer's default. "Also send them on a
 //! channel" (off) queues each one for that chat channel, a few per second.

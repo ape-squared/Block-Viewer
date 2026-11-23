@@ -233,7 +233,7 @@ pub fn role_members_reply(m: &msgs::GroupRoleMembersReply) -> RoleMembersPage {
 }
 
 /// GroupTitlesReply. The Legacy Viewer drops a title left empty
-/// (`LLGroupMgr::processGroupTitlesReply`, `llgroupmgr.cpp`). Aurora keeps
+/// (`LLGroupMgr::processGroupTitlesReply`, `llgroupmgr.cpp`). Block keeps
 /// it so the Group titles window can list that role. Legacy Viewer origin:
 /// no, extends it (#3147). The group profile's "Title shown" combo filters
 /// the blank title out again.
@@ -661,7 +661,7 @@ mod tests {
 
     #[test]
     fn a_new_group_name_follows_firestorm_rules() {
-        assert!(name::accepts("Aurora Builders"));
+        assert!(name::accepts("Block Builders"));
         assert!(name::accepts(""));
         assert!(!name::accepts(" Leading"), "no leading space");
         assert!(!name::accepts("Café"), "ASCII only");

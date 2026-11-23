@@ -6,8 +6,8 @@ several AI agents (Claude Code, Codex…) in parallel. The agents follow
 fits together.
 
 **To get started:** [clone the repository and double-click
-`aurora-tools.cmd`](#installing-the-environment); after that, everything is
-done with [the Aurora tools](#the-aurora-tools-aurora-toolscmd).
+`block-tools.cmd`](#installing-the-environment); after that, everything is
+done with [the Block tools](#the-block-tools-block-toolscmd).
 
 ## What the agents do, what you do
 
@@ -33,7 +33,7 @@ to your agent in French or in English: it answers in your language.
 2. The agent creates its working folder `..\work\<task>` on a branch of its
    own: it does not see the other agents' code in progress, and vice versa.
 3. It codes, tests in demo mode, then **builds and launches the viewer for
-   you** with a window named "Aurora Viewer <version> - Test <task> (Dev)";
+   you** with a window named "Block Viewer <version> - Test <task> (Dev)";
    the title ends with the build profile: (Dev), (Release) or (Debug).
 4. **You test** what it asks you to (in demo mode or on the grid: you are the
    one who logs in) and tell it whether it is good. For a PR with no effect
@@ -63,13 +63,13 @@ a review or that left the queue.
 
 ## Credits and licences
 
-Aurora is built on other people's work: the Second Life viewer, the Legacy
+Block is built on other people's work: the Second Life viewer, the Legacy
 Viewer and the residents and projects whose code they hold, shader authors,
 hundreds of Rust crates. We credit all of them, precisely, every time:
 
 - **Ported code**: the authors named in the original file's copyright are
   listed in [NOTICE.md](NOTICE.md), "Authors of the ported code", with the
-  Aurora files that follow their work. Code under another licence (MIT,
+  Block files that follow their work. Code under another licence (MIT,
   BSD…) keeps its full notice there.
 - **Rust crates**: [THIRD-PARTY-LICENSES.md](THIRD-PARTY-LICENSES.md) lists
   each one with its licence and the notices to keep. Whoever changes
@@ -132,7 +132,7 @@ hundreds of Rust crates. We credit all of them, precisely, every time:
   [AGENTS.md](AGENTS.md#15-github-issues-read-analyse-type-reply-and-close);
   the labels are created by `scripts/setup-labels.ps1`, which keeps the
   other labels.
-- **The project board** (GitHub project Aurora Team Planning): the project
+- **The project board** (GitHub project Block Team Planning): the project
   manager sets each issue's Priority and milestone, which say what to work on
   first. Even when you ask for a task directly, the agent first looks for an
   open issue that already covers it (often the sub-issue of an epic) and
@@ -161,7 +161,7 @@ hundreds of Rust crates. We credit all of them, precisely, every time:
   "Restrict editing to collaborators only" under Settings › Features ›
   Wikis. The workflow can then be started from the Actions tab ("Wiki" ›
   "Run workflow") or waits for the next change to a guide.
-- **The repository** belongs to the `Aurora-Viewer` organisation; the
+- **The repository** belongs to the `Block-Viewer` organisation; the
   developers are in the `Devs` team.
 
 ### Publishing a release
@@ -176,7 +176,7 @@ build also gives the number of commits and the short identifier, for example
 publishing. The workflow checks the number announced by the exe with
 `--version` and refuses an inconsistent release.
 
-The simplest way: the **Manage releases** choice of the Aurora tools (section
+The simplest way: the **Manage releases** choice of the Block tools (section
 below). They check that `main` is green, suggest the number from the labels
 of the PRs merged since the last version, show these PRs, create the tag and
 follow the publication up to the release link. They are also used to
@@ -205,7 +205,7 @@ sorted by category, from the merged PRs. By hand, it is:
 
 ```bash
 git switch main && git pull
-git tag -a v0.4.0 -m "Aurora Viewer 0.4.0"
+git tag -a v0.4.0 -m "Block Viewer 0.4.0"
 git push origin v0.4.0
 ```
 
@@ -247,19 +247,19 @@ that they read correctly (empty title, text too long).
 After the merge, GitHub takes about five minutes to serve the new file; each
 viewer displays it at its next start and keeps it for offline launches. To
 see the news item in the viewer **before** merging, launch it with
-`AURORA_NEWS_URL` (see [docs/TESTING.md](docs/TESTING.md#interface)).
+`BLOCK_NEWS_URL` (see [docs/TESTING.md](docs/TESTING.md#interface)).
 
 ## Installing the environment
 
-1. Create a folder for the project (for example `C:\Aurora-Viewer`), open a
+1. Create a folder for the project (for example `C:\Block-Viewer`), open a
    command prompt in it (in Explorer: type `cmd` in the address bar, then
    Enter) and clone the repository:
 
    ```bat
-   git clone https://github.com/Aurora-Viewer/Aurora-Viewer block-viewer
+   git clone https://github.com/ape-squared/Block-Viewer block-viewer
    ```
 
-2. Double-click **`block-viewer\aurora-tools.cmd`** (the Aurora tools, next
+2. Double-click **`block-viewer\block-tools.cmd`** (the Block tools, next
    section). They check what is missing and offer **Repair / update**:
    - they install what is missing with winget: GitHub CLI (for the whole
      machine), the Visual Studio C++ tools that Rust needs to build (several
@@ -284,17 +284,17 @@ command installs everything, Git included, then opens the tools (it first
 shows what it is going to do and asks where to install):
 
 ```bat
-powershell -NoProfile -ExecutionPolicy Bypass -Command "$f = Join-Path $env:TEMP 'aurora-setup.ps1'; irm https://raw.githubusercontent.com/Aurora-Viewer/Aurora-Viewer/main/scripts/setup.ps1 -OutFile $f; & $f"
+powershell -NoProfile -ExecutionPolicy Bypass -Command "$f = Join-Path $env:TEMP 'block-setup.ps1'; irm https://raw.githubusercontent.com/ape-squared/Block-Viewer/main/scripts/setup.ps1 -OutFile $f; & $f"
 ```
 
 From here on, **the project folder** is the one of the installation: it
 contains `block-viewer\`, `phoenix-firestorm\`, `work\` (the agents' tasks)
 and, later, `RELEASE\`.
 
-## The Aurora tools: `aurora-tools.cmd`
+## The Block tools: `block-tools.cmd`
 
-Double-click **`aurora-tools.cmd`**, at the root of the repository (or the
-"Aurora Tools" shortcut the tool can create). Everything is done with the
+Double-click **`block-tools.cmd`**, at the root of the repository (or the
+"Block Tools" shortcut the tool can create). Everything is done with the
 keyboard: **↑ ↓** to choose, **Enter** to confirm, **Esc** or **Backspace**
 to go back, and the key shown in front of each choice as a shortcut.
 
@@ -303,7 +303,7 @@ opens. It also works when placed in the project folder, next to
 `block-viewer/`; alone in an empty folder, it downloads the installer from
 the `main` of GitHub. On the command line, it passes the arguments to the
 tools and returns their exit code, for example
-`aurora-tools.cmd -Action diagnose`. Exclamation marks in the path stay valid
+`block-tools.cmd -Action diagnose`. Exclamation marks in the path stay valid
 even from a prompt with delayed expansion.
 
 The active choice carries a **›** mark on a violet background; the text
@@ -320,7 +320,7 @@ When it opens, the tool checks the environment: tools, repository behind
 GitHub, outdated Legacy Viewer sources, Rust not up to date, font, GitHub
 login… If something is missing or outdated, the first choice is **Repair /
 update** (the same installation as the one-line command: what is there is
-updated, nothing is reinstalled). If that update changes the Aurora Tools
+updated, nothing is reinstalled). If that update changes the Block Tools
 scripts, the tool restarts automatically in the same console and reopens its
 menu with the new behaviour. This also applies to the `-Action repair`
 action; a repair that does not change the tools keeps the current session.
@@ -334,13 +334,13 @@ hidden Windows consoles and the restart on isolated temporary scripts.
 | Release viewer | The latest `main` of GitHub in `--release`, in `RELEASE\` (see below), then "launch?" |
 | Dev viewer | Your local repository, default profile (the agents' one) |
 | Debug viewer | Your local repository with a console, the debug controls and full debug information (`debugging` profile, its own folder of a few GB) |
-| Demo | The viewer offline, with the choice of an `AURORA_DEMO_*` scenario (read from [docs/TESTING.md](docs/TESTING.md)) |
+| Demo | The viewer offline, with the choice of an `BLOCK_DEMO_*` scenario (read from [docs/TESTING.md](docs/TESTING.md)) |
 | Agent tasks | The folders of `work\`: PR, changes in progress, last build, size; cleanup of those whose PR is merged |
 | Disk | The space taken by the builds, and the cleanup (`clean.ps1`) |
 | Viewer logs | Open the folder, read the end of the last log, copy its path for an agent |
 | PR tracking | The live panel (see below) |
 | Manage releases | Create or delete a release (see [Publishing a release](#publishing-a-release)) |
-| Shortcuts | "Aurora Tools" and "Aurora PR" (the PR panel directly) on the Desktop and in the Start menu, with the logo |
+| Shortcuts | "Block Tools" and "Block PR" (the PR panel directly) on the Desktop and in the Start menu, with the logo |
 | Claude permissions | Lets your Claude Code agents follow their PRs and CI, post their review and their screenshots, merge their PR, triage the issues and reply to them (`gh pr view / list / checks / comment`, `gh run view / list / watch`, `gh issue list / view / edit / comment / close / reopen`, `merge-pr.ps1`, `pr-captures.ps1`), which auto mode can otherwise refuse them ("auto-approval", "write to an external system", "interference with workloads"). `gh api`, `git push`, `gh pr merge`, the releases and `end-task.ps1` stay without a rule, left to the judgement of auto mode. Adds these rules to your Claude Code settings (`%USERPROFILE%\.claude\settings.json`) without touching the rest, keeping a copy of the former file; the merge queue and the protection of `main` still apply. Run it again after a tools update that adds a rule: only the missing rules are added. Then open a new Claude Code session |
 | Check again | The full table of the environment |
 | Reset the repository | Start again from a fresh clone of the `main` of GitHub: the tool first lists everything that would be lost (uncommitted changes, commits never pushed, stashes, agents' tasks with their changes, ignored files such as a `.env`), refuses if a build or a viewer is running, and does nothing unless you type `RESET`. It then deletes the tasks of `work\` and `RELEASE\`, puts the repository back on `origin/main` (untracked files and builds erased, local branches and stashes deleted), then repairs the environment. Your git identity, your GitHub login and the Legacy Viewer sources are kept |
@@ -349,7 +349,7 @@ hidden Windows consoles and the restart on isolated temporary scripts.
 PRs ("PR: 3 to review · 2 waiting · 1 CI · 1 queued · 1 red", then the
 downloads of the latest stable release's Windows zip, "↓ 1 274 v0.8.4"), and a **Windows notification**
 reports a merged PR, a CI that turns red, a PR that left the merge queue, a
-new PR, or `main` breaking. The **PR tracking** panel (or the "Aurora PR"
+new PR, or `main` breaking. The **PR tracking** panel (or the "Block PR"
 shortcut) shows the same download count in its header, with how many since
 it opened ("(+12)"), and has four sections: the **merge queue** (position and duration),
 the PRs **ready to review / merge** (CI with its running duration, verdict of
@@ -373,7 +373,7 @@ refresh. GitHub is queried every 10 to 20 seconds, no more: GitHub's quota
 (5,000 requests per hour) is shared with your agents.
 
 Each choice also exists without the menu, for a script:
-`./scripts/tools/aurora-tools.ps1 -Action diagnose` (`repair`, `release`,
+`./scripts/tools/block-tools.ps1 -Action diagnose` (`repair`, `release`,
 `dev`, `debug`, `demo`, `tasks`, `disk`, `logs`, `prs`, `releases`,
 `reset`, `shortcut`, `claude`); `-DryRun` shows what `releases`, `reset` and
 `claude` would do without doing it.
@@ -405,7 +405,7 @@ have the rule written in AGENTS.md. `./scripts/test-agent-hook.ps1` (a step of
 
 The **Release viewer** choice of the tools, or a double-click on
 `RELEASE\build-release.bat` in the project folder. The ready-to-launch exe is
-in `RELEASE\Aurora-Viewer\` (the same folder as the zip of the releases: the
+in `RELEASE\Block-Viewer\` (the same folder as the zip of the releases: the
 avatar files and the emoji font are inside the exe),
 and `version.txt` gives the version announced by the viewer and the commit
 built.
@@ -433,7 +433,7 @@ cargo run -p block-viewer
   like the published version, without the slow optimisation of `--release`.
   `cargo build --release` is still possible to measure performance (it
   rebuilds everything a second time).
-- Demo mode (no connection): `$env:AURORA_DEMO="1"` before launching.
+- Demo mode (no connection): `$env:BLOCK_DEMO="1"` before launching.
 - Naming the window: `cargo run -p block-viewer -- --title "My test"`.
 - Checking everything like CI: `./scripts/check.ps1`.
 - The agents build in their own folder `..\work\<task>\target`: their open
@@ -446,7 +446,7 @@ cargo run -p block-viewer
 - **Compiler cache.** With sccache installed (Repair / update), the
   repository and every task share the dependencies they already built, kept
   in `.sccache\` in the project folder (10 GB at most; set
-  `AURORA_BUILD_CACHE_SIZE`, for example `20G`, then run `check.ps1` or
+  `BLOCK_BUILD_CACHE_SIZE`, for example `20G`, then run `check.ps1` or
   `new-task.ps1` again). Cargo finds it through `.cargo\config.toml` in the
   project folder, which the scripts write (with the build gate, below). To
   stop using it, uninstall sccache (`winget uninstall Mozilla.sccache`),
@@ -459,7 +459,7 @@ cargo run -p block-viewer
 - **Two heavy builds at a time.** One compile of the viewer crate takes 8 to
   17 GB of memory: eight agents compiling at once ask for several times the
   PC's memory, and all of them crawl in the page file. Two limits, each of
-  `AURORA_BUILD_SLOTS` slots (2 by default; set it to 1 if the PC still
+  `BLOCK_BUILD_SLOTS` slots (2 by default; set it to 1 if the PC still
   swaps, before opening the agents' sessions, which read it at their start):
   - the **build gate**: Cargo runs every compiler through
     `block-build-gate` (`.cargo\` in the project folder, built by the
@@ -514,16 +514,16 @@ for the format of the packages and their policy.
 | Task tracking | [TASKS.md](TASKS.md) (open work and what was finished since the last release); older finished tasks in [docs/TASKS_ARCHIVE.md](docs/TASKS_ARCHIVE.md) |
 | Agents' working folders | `work\`, in the project folder |
 | Legacy Viewer sources (reference) | `phoenix-firestorm\`, in the project folder |
-| Settings, skins, layout | `%APPDATA%\Aurora\AuroraViewer\config\` |
-| Conversation history (text files, per account and per grid; Preferences › Chat to open it, turn it off or erase it) | `%APPDATA%\Aurora\AuroraViewer\config\accounts\<account uuid>\chat_logs\<grid>\` |
-| Cache (textures, mesh…) — can be deleted safely | `%LOCALAPPDATA%\Aurora\AuroraViewer\cache\` |
-| Logs (to send to an agent after a test) | `%LOCALAPPDATA%\Aurora\AuroraViewer\data\logs\` |
-| `--release` viewer of the latest `main` | `RELEASE\Aurora-Viewer\block-viewer.exe`, in the project folder |
+| Settings, skins, layout | `%APPDATA%\Block\BlockViewer\config\` |
+| Conversation history (text files, per account and per grid; Preferences › Chat to open it, turn it off or erase it) | `%APPDATA%\Block\BlockViewer\config\accounts\<account uuid>\chat_logs\<grid>\` |
+| Cache (textures, mesh…) — can be deleted safely | `%LOCALAPPDATA%\Block\BlockViewer\cache\` |
+| Logs (to send to an agent after a test) | `%LOCALAPPDATA%\Block\BlockViewer\data\logs\` |
+| `--release` viewer of the latest `main` | `RELEASE\Block-Viewer\block-viewer.exe`, in the project folder |
 | Program built by hand | `target\debug\block-viewer.exe` (or `work\<task>\target\debug\`) |
 
-`aurora.log` is the log of your last real session; the session before is kept
-as `aurora.previous.log`. Demo sessions have their own logs
-(`aurora-demo*.log`).
+`block.log` is the log of your last real session; the session before is kept
+as `block.previous.log`. Demo sessions have their own logs
+(`block-demo*.log`).
 
 ## Security
 
@@ -531,7 +531,7 @@ as `aurora.previous.log`. Demo sessions have their own logs
   policy forbids a viewer to store its own data where the grid keeps it or
   where other residents receive it (asset and object names, descriptions,
   EEP settings, hidden bits in numbers, chat channels…) so that only that
-  viewer makes something of it; the region weather of Aurora Weather did,
+  viewer makes something of it; the region weather of Block Weather did,
   and was removed. The agents follow the rule (AGENTS.md, section 2) and
   stop to ask you when a feature would need it.
 - The agents never connect to the grid and never handle your credentials.

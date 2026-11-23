@@ -193,7 +193,7 @@ pub fn prepare_animation_upload(data: &[u8]) -> Result<(Animation, Vec<u8>), Ass
 /// LLKeyframeMotion::deserialize blends each joint at its own priority and
 /// the base priority alone changes nothing for them. Two differences, both
 /// so that the chosen priority is the one that plays: the clamp stops at 6,
-/// Aurora's priority range, not HIGHEST_PRIORITY (4); and a joint stored as
+/// Block's priority range, not HIGHEST_PRIORITY (4); and a joint stored as
 /// USE_MOTION_PRIORITY (-1) stays so, as it already follows the base priority.
 /// An unchanged base priority leaves every joint as the file has it (an
 /// ADDITIVE_PRIORITY joint, 7, included).
@@ -552,7 +552,7 @@ impl Animation {
     }
 
     /// Periodic completion of missing boundary intervals is an intentional
-    /// adaptation of Aurora's sampler, not Firestorm's clamped getValue.
+    /// adaptation of Block's sampler, not Firestorm's clamped getValue.
     pub fn loop_range(&self) -> Option<(f32, f32)> {
         (self.looping && self.loop_out > self.loop_in).then_some((self.loop_in, self.loop_out))
     }
@@ -780,7 +780,7 @@ mod tests {
     fn native_joint_priorities_follow_the_base_priority() {
         assert_eq!(shift_joint_priority(3, 3, 5), 5);
         assert_eq!(shift_joint_priority(2, 4, 1), 0, "clamped at LOW_PRIORITY");
-        assert_eq!(shift_joint_priority(5, 3, 6), 6, "clamped at Aurora's top priority");
+        assert_eq!(shift_joint_priority(5, 3, 6), 6, "clamped at Block's top priority");
         assert_eq!(shift_joint_priority(-1, 3, 6), -1, "USE_MOTION_PRIORITY follows the base");
         assert_eq!(shift_joint_priority(2, -1, 4), 6, "from a base of USE_MOTION_PRIORITY");
         assert_eq!(shift_joint_priority(7, 4, 4), 7, "an unchanged base keeps ADDITIVE_PRIORITY");

@@ -20,7 +20,7 @@ LIMBS = {
 
 
 def resolve(context):
-    rig = context.scene.aurora_live.rig
+    rig = context.scene.block_live.rig
     if rig is None:
         obj = context.object
         rig = obj if obj and obj.type == "ARMATURE" else obj.find_armature() if obj and obj.type == "MESH" else None
@@ -39,9 +39,9 @@ def bones(rig):
 
 
 def part(bone):
-    name = str(bone.get("aurora_joint", bone.name))
-    if bone.get("aurora_control", False):
-        return bone.get("aurora_control_kind", "IK")
+    name = str(bone.get("block_joint", bone.name))
+    if bone.get("block_control", False):
+        return bone.get("block_control_kind", "IK")
     if bone.get("sl_collision_volume", False) or name.isupper():
         return "FITTED"
     if name in SPINE:
@@ -143,7 +143,7 @@ def constraint_name(key):
 
 
 def chain(rig, key):
-    lookup = {str(bone.get("aurora_joint", bone.name)): bone.name for bone in rig.data.bones if not bone.get("aurora_control", False)}
+    lookup = {str(bone.get("block_joint", bone.name)): bone.name for bone in rig.data.bones if not bone.get("block_control", False)}
     try:
         return tuple(lookup[name] for name in LIMBS[key][1:])
     except KeyError:
@@ -165,7 +165,7 @@ def _pole_settings(rig, key, posed=False):
     # Avatar facing comes from SL joint geometry, independent of bone roll,
     # object rotation and the starter's native/-Y orientation.
     left, right = (rig.data.bones[chain(rig, hand)[0]] for hand in ("HAND_L", "HAND_R"))
-    pelvis = next((bone for bone in rig.data.bones if bone.get("aurora_joint", bone.name) == "mPelvis"), None)
+    pelvis = next((bone for bone in rig.data.bones if bone.get("block_joint", bone.name) == "mPelvis"), None)
     up = pelvis.tail_local - pelvis.head_local if pelvis else Vector((0, 0, 1))
     direction = (left.head_local - right.head_local).normalized().cross(up.normalized())
     if direction.length < 1e-6:
@@ -305,7 +305,7 @@ def setup(context, rig):
                 raise ValueError("The limb already has constraints; use a simple SL rig for Block Viewer IK")
         for pole in (False, True):
             bone = rig.data.bones.get(control_name(key, pole))
-            if bone and not bone.get("aurora_control", False):
+            if bone and not bone.get("block_control", False):
                 raise ValueError("An IK control name is already used by another bone")
     selected, active = list(context.selected_objects), context.view_layer.objects.active
     mode = active.mode if active else "OBJECT"
@@ -330,14 +330,14 @@ def setup(context, rig):
                     continue
                 bone = rig.data.edit_bones.new(name)
                 parent = rig.data.edit_bones.get("auroraPose.Root")
-                if parent and parent.get("aurora_control_kind") == "ROOT":
+                if parent and parent.get("block_control_kind") == "ROOT":
                     bone.parent = parent
                 bone.matrix = end_matrix
                 bone.length = max(end_length, size)
                 bone.head = pole_position if pole else tip
                 bone.tail = bone.head + (end_matrix.to_3x3() @ Vector((0, size, 0)))
                 bone.use_deform = False
-                bone["aurora_control"] = True
+                bone["block_control"] = True
         bpy.ops.object.mode_set(mode="OBJECT")
         if hasattr(rig.data, "collections"):
             group = rig.data.collections.get("Block Viewer IK") or rig.data.collections.new("Block Viewer IK")
@@ -369,7 +369,7 @@ def setup(context, rig):
             rotation.target, rotation.subtarget = rig, control_name(key)
             rotation.owner_space = rotation.target_space = "POSE"
             rotation.influence = 0
-        rig["aurora_ik_version"] = 3
+        rig["block_ik_version"] = 3
         handles.apply(rig)
         context.view_layer.update()
     finally:
@@ -418,7 +418,7 @@ def select_control(context, rig, key, pole=False):
 
 
 def select_named_control(context, rig, name, part):
-    if name not in rig.data.bones or not rig.data.bones[name].get("aurora_control"):
+    if name not in rig.data.bones or not rig.data.bones[name].get("block_control"):
         raise ValueError("Create the pose control first")
     if context.object and context.object.mode != "OBJECT":
         bpy.ops.object.mode_set(mode="OBJECT")

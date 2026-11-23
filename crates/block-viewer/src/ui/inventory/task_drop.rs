@@ -220,13 +220,13 @@ pub fn target(ui: &mut egui::Ui, p: &Palette, r: &egui::Response, inv: &Inventor
     }
 }
 
-/// `AURORA_DEMO_ACTIONS=open-folder[-drop]`: the Open window's root folder
+/// `BLOCK_DEMO_ACTIONS=open-folder[-drop]`: the Open window's root folder
 /// dragged onto the inventory's Objects folder (app/contents_folder_drag_demo.rs).
 pub(crate) fn demo_enabled() -> bool {
     static ON: std::sync::OnceLock<bool> = std::sync::OnceLock::new();
     *ON.get_or_init(|| {
-        std::env::var("AURORA_DEMO").as_deref() == Ok("1")
-            && std::env::var("AURORA_DEMO_ACTIONS").is_ok_and(|mode| mode.starts_with("open-folder"))
+        std::env::var("BLOCK_DEMO").as_deref() == Ok("1")
+            && std::env::var("BLOCK_DEMO_ACTIONS").is_ok_and(|mode| mode.starts_with("open-folder"))
     })
 }
 

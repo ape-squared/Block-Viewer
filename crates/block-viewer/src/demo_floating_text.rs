@@ -7,20 +7,20 @@ pub const ROOT: u32 = 121_000;
 pub const TEXTS: [u32; 3] = [ROOT + 1, ROOT + 2, ROOT + 3];
 
 pub fn scenario() -> bool {
-    std::env::var_os("AURORA_DEMO_FLOATING_TEXT").is_some()
+    std::env::var_os("BLOCK_DEMO_FLOATING_TEXT").is_some()
 }
 
 /// `background`: every floating text on its background
 /// (FSHudTextShowBackground 2), fading from 16 m instead of 8.
 pub fn apply_preferences(settings: &mut crate::settings::Settings) {
-    if std::env::var("AURORA_DEMO_FLOATING_TEXT").is_ok_and(|mode| mode == "background") {
+    if std::env::var("BLOCK_DEMO_FLOATING_TEXT").is_ok_and(|mode| mode == "background") {
         settings.floating_text_background = crate::settings::FloatingTextBackground::All;
         settings.floating_text_fade_distance = 16.0;
     }
 }
 
 pub fn events() -> Vec<NetEvent> {
-    let mode = std::env::var("AURORA_DEMO_FLOATING_TEXT").unwrap_or_default();
+    let mode = std::env::var("BLOCK_DEMO_FLOATING_TEXT").unwrap_or_default();
     if mode == "world" || mode == "background" {
         let start = Vec3::new(132.0, 126.0, 0.0);
         let ahead = Vec3::new(0.8, 0.4, 0.0).normalize();
@@ -110,7 +110,7 @@ pub fn hud_events() -> Vec<NetEvent> {
 }
 
 pub fn guides(ctx: &egui::Context, world: &crate::world::World, scene: &crate::scene::Scene) {
-    if !std::env::var("AURORA_DEMO_FLOATING_TEXT").is_ok_and(|mode| mode == "guides") {
+    if !std::env::var("BLOCK_DEMO_FLOATING_TEXT").is_ok_and(|mode| mode == "guides") {
         return;
     }
     let Some(view) = scene.lists.hud_view else { return };

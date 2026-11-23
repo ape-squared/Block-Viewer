@@ -7,7 +7,7 @@
 //! Firestorm draws the name tags over the HUD attachments (render_ui in
 //! indra/newview/llviewerdisplay.cpp: render_hud_attachments, then
 //! LLHUDObject::renderAll): a name can cover the button of a HUD. This order
-//! is an explicit Aurora choice, requested by the user.
+//! is an explicit Block choice, requested by the user.
 
 use std::sync::Arc;
 

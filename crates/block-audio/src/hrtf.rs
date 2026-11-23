@@ -1,7 +1,7 @@
 //! 3D sound for headphones: world voices rendered binaurally through
 //! head-related impulse responses (HRTF), so that a sound in front, behind,
 //! above or below is heard there, not only to the left or the right.
-//! Aurora's own (Preferences › Sound, off by default: on speakers it sounds
+//! Block's own (Preferences › Sound, off by default: on speakers it sounds
 //! wrong); the Legacy Viewer pans world sounds between the two channels.
 //!
 //! The responses are the MIT Media Lab's KEMAR measurements (Bill Gardner

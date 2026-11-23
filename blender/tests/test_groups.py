@@ -10,26 +10,26 @@ import bpy
 from mathutils import Vector
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-import aurora_live
-from aurora_live import exporter, starter, tracking
+import block_live
+from block_live import exporter, starter, tracking
 
 
 class GroupTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        aurora_live.register()
+        block_live.register()
 
     @classmethod
     def tearDownClass(cls):
-        aurora_live.unregister()
+        block_live.unregister()
 
     def setUp(self):
-        aurora_live._stop()
+        block_live._stop()
         if bpy.context.object and bpy.context.object.mode != "OBJECT":
             bpy.ops.object.mode_set(mode="OBJECT")
-        bpy.context.scene.aurora_live.objects.clear()
-        bpy.context.scene.aurora_live.auto_update = True
-        bpy.context.scene.aurora_live.interval = 0.2
+        bpy.context.scene.block_live.objects.clear()
+        bpy.context.scene.block_live.auto_update = True
+        bpy.context.scene.block_live.interval = 0.2
         bpy.context.scene.unit_settings.scale_length = 1
         bpy.ops.object.select_all(action="SELECT")
         bpy.ops.object.delete(use_global=False)
@@ -42,27 +42,27 @@ class GroupTests(unittest.TestCase):
         self.scene = bpy.context.scene
 
     def entry(self, obj):
-        return next(entry for entry in bpy.context.scene.aurora_live.objects if entry.object == obj)
+        return next(entry for entry in bpy.context.scene.block_live.objects if entry.object == obj)
 
     def add(self, *objects, root=None):
         bpy.ops.object.select_all(action="DESELECT")
         for obj in objects:
             obj.select_set(True)
         bpy.context.view_layer.objects.active = root or objects[0]
-        self.assertEqual(bpy.ops.aurora.live_selection(), {"FINISHED"})
+        self.assertEqual(bpy.ops.block.live_selection(), {"FINISHED"})
 
     def mark(self, *objects, focus=None):
-        for index, entry in enumerate(bpy.context.scene.aurora_live.objects):
+        for index, entry in enumerate(bpy.context.scene.block_live.objects):
             entry.marked = entry.object in objects
             if entry.object == focus:
-                bpy.context.scene.aurora_live.object_index = index
+                bpy.context.scene.block_live.object_index = index
 
     def pick(self, obj, extend=False, range_select=False):
-        index = next(index for index, entry in enumerate(self.scene.aurora_live.objects) if entry.object == obj)
-        self.assertEqual(bpy.ops.aurora.live_pick(index=index, extend=extend, range_select=range_select), {"FINISHED"})
+        index = next(index for index, entry in enumerate(self.scene.block_live.objects) if entry.object == obj)
+        self.assertEqual(bpy.ops.block.live_pick(index=index, extend=extend, range_select=range_select), {"FINISHED"})
 
     def selected(self):
-        return {entry.object for entry in self.scene.aurora_live.objects if entry.marked}
+        return {entry.object for entry in self.scene.block_live.objects if entry.marked}
 
     def snapshot(self, **kwargs):
         scene = bpy.context.scene
@@ -83,8 +83,8 @@ class GroupTests(unittest.TestCase):
                                submit=self.sent.append, close=lambda: None)
 
     def tick(self):
-        aurora_live._last_capture = 0
-        aurora_live._tick()
+        block_live._last_capture = 0
+        block_live._tick()
 
     def test_multiple_added_objects_use_the_active_root_without_touching_scene_transforms(self):
         a, b, c, _d = self.objects
@@ -101,7 +101,7 @@ class GroupTests(unittest.TestCase):
             mesh = next(mesh for mesh in value["meshes"] if mesh["name"] == obj.name)
             self.assertLess((Vector(mesh["link"]["offset"]) - (obj.location - b.location)).length, 1e-6)
         rows = tracking.rows(self.scene)
-        self.assertEqual([self.scene.aurora_live.objects[index].object for index, *_rest in rows], [b, a, c])
+        self.assertEqual([self.scene.block_live.objects[index].object for index, *_rest in rows], [b, a, c])
         self.assertEqual([(number, count) for _index, _root, number, count in rows], [(1, 3), (2, 3), (3, 3)])
 
     def test_separate_additions_create_independent_linksets_and_keep_paused_entries(self):
@@ -120,7 +120,7 @@ class GroupTests(unittest.TestCase):
         self.add(a, b, root=a)
         self.add(c, d, root=c)
         self.mark(b, c, focus=b)
-        self.assertEqual(bpy.ops.aurora.live_group(), {"FINISHED"})
+        self.assertEqual(bpy.ops.block.live_group(), {"FINISHED"})
         self.assert_links({a: None, b: None, c: b, d: None})
         self.assertTrue(all(obj.parent is None for obj in self.objects))
 
@@ -129,7 +129,7 @@ class GroupTests(unittest.TestCase):
         self.add(a, b, c, root=a)
         ids = tracking.source_ids(self.scene)
         self.mark(focus=c)
-        self.assertEqual(bpy.ops.aurora.live_root(), {"FINISHED"})
+        self.assertEqual(bpy.ops.block.live_root(), {"FINISHED"})
         self.assert_links({a: c, b: c, c: None})
         self.assertEqual(tracking.source_ids(self.scene), ids)
 
@@ -137,14 +137,14 @@ class GroupTests(unittest.TestCase):
         a, b, c, _d = self.objects
         self.add(a, b, c, root=a)
         self.mark(b)
-        self.assertEqual(bpy.ops.aurora.live_ungroup(), {"FINISHED"})
+        self.assertEqual(bpy.ops.block.live_ungroup(), {"FINISHED"})
         self.assert_links({a: None, b: None, c: a})
 
     def test_ungrouping_the_root_splits_its_complete_family(self):
         a, b, c, _d = self.objects
         self.add(a, b, c, root=a)
         self.mark(a)
-        bpy.ops.aurora.live_ungroup()
+        bpy.ops.block.live_ungroup()
         self.assert_links({a: None, b: None, c: None})
 
     def test_row_click_and_ctrl_click_group_only_the_selected_subset(self):
@@ -152,10 +152,10 @@ class GroupTests(unittest.TestCase):
         self.add(a, b, c, d, root=a)
         self.pick(b)
         self.assertEqual(self.selected(), {b})
-        self.assertFalse(bpy.ops.aurora.live_group.poll())
+        self.assertFalse(bpy.ops.block.live_group.poll())
         self.pick(d, extend=True)
         self.assertEqual(self.selected(), {b, d})
-        bpy.ops.aurora.live_group()
+        bpy.ops.block.live_group()
         self.assert_links({a: None, b: d, c: a, d: None})
 
     def test_ctrl_click_toggles_entries_and_can_clear_the_selection(self):
@@ -168,9 +168,9 @@ class GroupTests(unittest.TestCase):
         self.assertEqual(tracking.focused(bpy.context).object, d)
         self.pick(d, extend=True)
         self.assertFalse(self.selected())
-        self.assertEqual(self.scene.aurora_live.object_index, -1)
-        self.assertFalse(bpy.ops.aurora.live_group.poll())
-        self.assertFalse(bpy.ops.aurora.live_ungroup.poll())
+        self.assertEqual(self.scene.block_live.object_index, -1)
+        self.assertFalse(bpy.ops.block.live_group.poll())
+        self.assertFalse(bpy.ops.block.live_ungroup.poll())
 
     def test_shift_click_uses_display_order_with_a_root_reordered_to_the_top(self):
         a, b, c, d = self.objects
@@ -187,7 +187,7 @@ class GroupTests(unittest.TestCase):
         a, b, c, d = self.objects
         self.add(a, b, c, d, root=a)
         self.pick(b)
-        self.scene.aurora_live.objects.move(1, 3)
+        self.scene.block_live.objects.move(1, 3)
         self.pick(d, range_select=True)
         self.assertEqual(self.selected(), {b, d})
 
@@ -197,7 +197,7 @@ class GroupTests(unittest.TestCase):
         self.entry(b).enabled = False
         self.pick(b)
         self.pick(c, extend=True)
-        bpy.ops.aurora.live_group()
+        bpy.ops.block.live_group()
         self.assertFalse(self.entry(b).enabled)
         self.assertEqual(self.entry(b).group_id, self.entry(c).group_id)
         self.assert_links({a: None, c: None, d: a})
@@ -208,7 +208,7 @@ class GroupTests(unittest.TestCase):
         ids = tracking.source_ids(self.scene)
         self.pick(b)
         self.pick(c, extend=True)
-        bpy.ops.aurora.live_ungroup()
+        bpy.ops.block.live_ungroup()
         self.assert_links({a: None, b: None, c: None, d: a})
         self.assertEqual(tracking.source_ids(self.scene), ids)
 
@@ -217,7 +217,7 @@ class GroupTests(unittest.TestCase):
         self.add(a, b, root=a)
         self.add(c, d, root=c)
         self.pick(a)
-        bpy.ops.aurora.live_ungroup()
+        bpy.ops.block.live_ungroup()
         self.assert_links({a: None, b: None, c: None, d: c})
 
     def test_ungroup_mixed_root_and_child_selection_uses_each_family_role(self):
@@ -228,7 +228,7 @@ class GroupTests(unittest.TestCase):
         self.add(c, d, e, root=c)
         self.pick(a)
         self.pick(d, extend=True)
-        bpy.ops.aurora.live_ungroup()
+        bpy.ops.block.live_ungroup()
         self.assert_links({a: None, b: None, c: None, d: None, e: c})
 
     def test_list_selection_leaves_scene_selection_and_preview_updates_alone(self):
@@ -236,10 +236,10 @@ class GroupTests(unittest.TestCase):
         self.add(a, b, c, root=a)
         scene_selection = set(bpy.context.selected_objects)
         scene_active = bpy.context.view_layer.objects.active
-        with patch.object(aurora_live, "_client", self.fake_client()):
-            aurora_live._force_capture = True
+        with patch.object(block_live, "_client", self.fake_client()):
+            block_live._force_capture = True
             self.tick()
-            aurora_live._dirty = False
+            block_live._dirty = False
             self.pick(b)
             self.pick(c, extend=True)
             with patch.object(exporter, "snapshot", wraps=exporter.snapshot) as capture:
@@ -255,7 +255,7 @@ class GroupTests(unittest.TestCase):
         before = [obj.matrix_world.copy() for obj in (a, b, c)]
         self.add(a, b, c, root=a)
         self.mark(a, b, c)
-        bpy.ops.aurora.live_ungroup()
+        bpy.ops.block.live_ungroup()
         self.add(a, b, c, root=b)
         self.assert_links({a: None, b: None, c: None})
         self.assertEqual((b.parent, c.parent), (a, b))
@@ -266,15 +266,15 @@ class GroupTests(unittest.TestCase):
         for obj in (a, b, c):
             self.add(obj)
         self.mark(a, c, focus=c)
-        bpy.ops.aurora.live_group()
+        bpy.ops.block.live_group()
         b.parent = a
         self.assert_links({a: c, b: c, c: None})
 
     def test_removing_or_deleting_the_root_keeps_the_remaining_group_and_scene_objects(self):
         a, b, c, d = self.objects
         self.add(a, b, c, d, root=a)
-        index = next(index for index, entry in enumerate(self.scene.aurora_live.objects) if entry.object == a)
-        bpy.ops.aurora.live_remove(index=index)
+        index = next(index for index, entry in enumerate(self.scene.block_live.objects) if entry.object == a)
+        bpy.ops.block.live_remove(index=index)
         self.assertIn(a.name, self.scene.objects)
         self.assert_links({b: None, c: b, d: b})
         bpy.data.objects.remove(b, do_unlink=True)
@@ -311,17 +311,17 @@ class GroupTests(unittest.TestCase):
         a, b, c, _d = self.objects
         self.add(a, b, c, root=b)
         a.name = "Renamed linked object"
-        self.scene.aurora_live.objects.move(0, 2)
+        self.scene.block_live.objects.move(0, 2)
         self.entry(c).enabled = False
         tracking.source_ids(self.scene)
         expected = [(entry.object.name, entry.source_id, entry.group_id, entry.group_root, entry.enabled)
-                    for entry in self.scene.aurora_live.objects]
+                    for entry in self.scene.block_live.objects]
         with tempfile.TemporaryDirectory() as directory:
             path = str(Path(directory) / "livemesh-groups.blend")
             bpy.ops.wm.save_as_mainfile(filepath=path)
             bpy.ops.wm.open_mainfile(filepath=path)
         self.assertEqual([(entry.object.name, entry.source_id, entry.group_id, entry.group_root, entry.enabled)
-                          for entry in bpy.context.scene.aurora_live.objects], expected)
+                          for entry in bpy.context.scene.block_live.objects], expected)
         self.assert_links({bpy.data.objects["Renamed linked object"]: bpy.data.objects["Group B"],
                            bpy.data.objects["Group B"]: None})
 
@@ -329,19 +329,19 @@ class GroupTests(unittest.TestCase):
         a, b, _c, _d = self.objects
         self.add(a)
         self.add(b)
-        self.scene.aurora_live.auto_update = False
-        with patch.object(aurora_live, "_client", self.fake_client()):
-            aurora_live._force_capture = True
+        self.scene.block_live.auto_update = False
+        with patch.object(block_live, "_client", self.fake_client()):
+            block_live._force_capture = True
             self.tick()
             self.mark(a, b, focus=b)
-            bpy.ops.aurora.live_group()
+            bpy.ops.block.live_group()
             self.tick()
             self.assertEqual(len(self.sent), 1)
-            bpy.ops.aurora.live_refresh()
+            bpy.ops.block.live_refresh()
             self.assertEqual(len(self.sent), 2)
             self.assertEqual(sum("link" in mesh for mesh in self.sent[-1]["meshes"]), 1)
-            self.scene.aurora_live.auto_update = True
-            aurora_live._dirty = False
+            self.scene.block_live.auto_update = True
+            block_live._dirty = False
             self.mark(a)
             with patch.object(exporter, "snapshot", wraps=exporter.snapshot) as capture:
                 self.tick()
@@ -354,10 +354,10 @@ class GroupTests(unittest.TestCase):
         bpy.context.preferences.edit.use_global_undo = True
         bpy.ops.ed.undo_push(message="Before LiveMesh grouping")
         self.mark(a, b, focus=b)
-        bpy.ops.aurora.live_group()
+        bpy.ops.block.live_group()
         bpy.ops.ed.undo_push(message="After LiveMesh grouping")
-        with patch.object(aurora_live, "_client", self.fake_client()):
-            aurora_live._force_capture = True
+        with patch.object(block_live, "_client", self.fake_client()):
+            block_live._force_capture = True
             self.tick()
             self.assertEqual(sum("link" in mesh for mesh in self.sent[-1]["meshes"]), 1)
             bpy.ops.ed.undo()
@@ -371,4 +371,4 @@ class GroupTests(unittest.TestCase):
 result = unittest.TextTestRunner(verbosity=2).run(unittest.defaultTestLoader.loadTestsFromTestCase(GroupTests))
 if not result.wasSuccessful():
     sys.exit(1)
-print("AURORA_BLENDER_GROUP_TESTS_OK", flush=True)
+print("BLOCK_BLENDER_GROUP_TESTS_OK", flush=True)

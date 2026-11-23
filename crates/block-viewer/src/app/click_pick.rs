@@ -35,10 +35,10 @@
 //! their surface; interactions retain invisible Blend surfaces. The answer
 //! comes a frame after the depth.
 //!
-//! `AURORA_CLICK_PICK=wait` reads the depth as before, waiting;
-//! `AURORA_CLICK_PICK=check` does both and logs every click (`click
+//! `BLOCK_CLICK_PICK=wait` reads the depth as before, waiting;
+//! `BLOCK_CLICK_PICK=check` does both and logs every click (`click
 //! check`): whether the two depths are the same, and whether the click
-//! lands on the same point and object. `AURORA_DEMO_CLICKS` clicks at a
+//! lands on the same point and object. `BLOCK_DEMO_CLICKS` clicks at a
 //! steady rate, to measure a click's cost in a loaded scene.
 
 use super::*;
@@ -97,14 +97,14 @@ pub(super) enum Held {
 /// Log lines the demo scripts write right after a click, once it is done.
 #[derive(Clone, Debug, PartialEq)]
 pub(super) enum DemoNote {
-    /// AURORA_DEMO_CAMERA: the camera at this frame of the script.
+    /// BLOCK_DEMO_CAMERA: the camera at this frame of the script.
     Camera(u64),
-    /// AURORA_DEMO_ACTIONS: the result of the mode's click.
+    /// BLOCK_DEMO_ACTIONS: the result of the mode's click.
     Action(String),
-    /// AURORA_DEMO_MEDIA_CLICK: the media focus after the click made there
+    /// BLOCK_DEMO_MEDIA_CLICK: the media focus after the click made there
     /// at this frame.
     Media((f32, f32), u64),
-    /// AURORA_DEMO_MMO: the mouse mode after the press on the avatar.
+    /// BLOCK_DEMO_MMO: the mouse mode after the press on the avatar.
     Mmo,
 }
 
@@ -158,7 +158,7 @@ struct Pending {
     tags: Vec<(Uuid, Vec3)>,
     asked: Instant,
     frame: u64,
-    /// AURORA_CLICK_PICK=check: the waiting read made at the click.
+    /// BLOCK_CLICK_PICK=check: the waiting read made at the click.
     check: Option<Check>,
 }
 
@@ -175,7 +175,7 @@ type Target = (Option<Vec3>, Option<u32>);
 /// An answer that never comes (frames no longer drawn) drops its click.
 const GIVE_UP: Duration = Duration::from_secs(2);
 
-/// AURORA_CLICK_PICK: how a click reads the depth under the cursor.
+/// BLOCK_CLICK_PICK: how a click reads the depth under the cursor.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 enum PickMode {
     /// Asked with the next frame, answered a few frames later.
@@ -197,9 +197,9 @@ fn pick_mode_of(var: Option<&str>) -> PickMode {
 fn pick_mode() -> PickMode {
     static MODE: std::sync::OnceLock<PickMode> = std::sync::OnceLock::new();
     *MODE.get_or_init(|| {
-        let mode = pick_mode_of(std::env::var("AURORA_CLICK_PICK").ok().as_deref());
+        let mode = pick_mode_of(std::env::var("BLOCK_CLICK_PICK").ok().as_deref());
         if mode != PickMode::Deferred {
-            log::info!("click pick: {mode:?} (AURORA_CLICK_PICK)");
+            log::info!("click pick: {mode:?} (BLOCK_CLICK_PICK)");
         }
         mode
     })
@@ -270,12 +270,12 @@ impl ClickWait {
         self.in_hand.is_some()
     }
 
-    /// AURORA_DEMO_CLICKS is making the clicks.
+    /// BLOCK_DEMO_CLICKS is making the clicks.
     pub(super) fn scripted(&self) -> bool {
         self.demo.spec().is_some()
     }
 
-    /// AURORA_DEMO_CLICKS=...,clickable: its left clicks act on every
+    /// BLOCK_DEMO_CLICKS=...,clickable: its left clicks act on every
     /// scripted rigged mesh, ours included, whatever the preferences say.
     fn demo_clickable(&self) -> bool {
         self.demo.spec().is_some_and(|spec| spec.clickable)
@@ -696,9 +696,9 @@ impl App {
             self.build.open,
         );
         if self.clicks.scripted()
-            || self.demo && (std::env::var_os("AURORA_DEMO_ACTIONS").is_some() || std::env::var_os("AURORA_DEMO_WORLD_CLICKS").is_some())
+            || self.demo && (std::env::var_os("BLOCK_DEMO_ACTIONS").is_some() || std::env::var_os("BLOCK_DEMO_WORLD_CLICKS").is_some())
         {
-            // AURORA_DEMO_CLICKS: what the click designates, against two
+            // BLOCK_DEMO_CLICKS: what the click designates, against two
             // things the CPU knows by itself: the object the click was
             // aimed at (`rigged`), and the posed bounds of the object
             // designated, which must hold the point read from the GPU
@@ -844,7 +844,7 @@ impl App {
 
     /// The point and the object a click with this ray and depth lands on:
     /// the first search of each kind of click (the build tools' pick, the
-    /// action point then the surface under it), for AURORA_CLICK_PICK=check.
+    /// action point then the surface under it), for BLOCK_CLICK_PICK=check.
     fn click_target(&self, click: Click, ray: Option<(Vec3, Vec3)>, depth: Option<Vec3>) -> Target {
         let now = Instant::now();
         let build = self.build.open;
@@ -881,7 +881,7 @@ impl App {
         (point, idx.and_then(|i| self.world.objects.get(i)).map(|o| o.key.local_id))
     }
 
-    /// AURORA_CLICK_PICK=check: the answer against the read that waited.
+    /// BLOCK_CLICK_PICK=check: the answer against the read that waited.
     /// The two depths are the same texel of the same frame: any difference
     /// is a defect. The click itself is run a few frames later than before:
     /// its target differs only if what is under the cursor changed meanwhile.
@@ -912,7 +912,7 @@ impl App {
         }
     }
 
-    /// AURORA_DEMO_CLICKS: the scripted clicks of this frame.
+    /// BLOCK_DEMO_CLICKS: the scripted clicks of this frame.
     pub(super) fn demo_click_steps(&mut self) {
         let Some(spec) = self.clicks.demo.spec() else {
             return;
@@ -990,7 +990,7 @@ impl App {
 }
 
 impl App {
-    /// AURORA_DEMO_CLICKS=...,rigged: the `n`th click aims at a rigged mesh
+    /// BLOCK_DEMO_CLICKS=...,rigged: the `n`th click aims at a rigged mesh
     /// on screen, in turn: its local id and the pixel of the middle of its
     /// posed bounds. The first call completes the fixture: a rigged mesh on
     /// our own avatar, and every rigged mesh scripted for touch, so a left
@@ -1027,7 +1027,7 @@ impl App {
     }
 }
 
-/// AURORA_DEMO_CLICKS="<ms>[,x,y|sweep|rigged][,clickable][,left|alt|menu|build|focus]": a
+/// BLOCK_DEMO_CLICKS="<ms>[,x,y|sweep|rigged][,clickable][,left|alt|menu|build|focus]": a
 /// click on the world every `ms` milliseconds (250 if it is not a number)
 /// once the world shows, held 60 ms: at pixel (x, y) of the window (a
 /// quarter of the width, near the bottom, by default), or with `sweep` at a
@@ -1108,7 +1108,7 @@ struct DemoClicks {
 impl DemoClicks {
     fn spec(&self) -> Option<DemoSpec> {
         static SPEC: std::sync::OnceLock<Option<DemoSpec>> = std::sync::OnceLock::new();
-        *SPEC.get_or_init(|| std::env::var("AURORA_DEMO_CLICKS").ok().map(|v| demo_spec(&v)))
+        *SPEC.get_or_init(|| std::env::var("BLOCK_DEMO_CLICKS").ok().map(|v| demo_spec(&v)))
     }
 }
 

@@ -1,4 +1,4 @@
-// Aurora LSL Bridge query and posing-consent services v1.44: the Legacy Viewer's getZOffsets
+// Block LSL Bridge query and posing-consent services v1.44: the Legacy Viewer's getZOffsets
 // and getScriptInfo equivalents (fsradar.cpp, fs_resources/EBEDD1D2-*.lsltxt,
 // originally LGPL 2.1). A separate script beside the movement controller:
 // Mono gives each script its own 64 KB, and a query can never halt Movelock.

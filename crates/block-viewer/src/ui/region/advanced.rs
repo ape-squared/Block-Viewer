@@ -77,7 +77,7 @@ pub(super) struct AdvancedState {
     telehub_asked: bool,
     /// The kind chosen in the window; None follows the region's.
     pub kind: Option<TerrainKind>,
-    /// AURORA_DEMO_REGION: scroll to the end once the telehub is there.
+    /// BLOCK_DEMO_REGION: scroll to the end once the telehub is there.
     pub demo_jump: bool,
     /// … which happens after the column was drawn.
     pub demo_scroll: bool,

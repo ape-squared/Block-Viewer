@@ -432,7 +432,7 @@ impl DepthPick {
 
     /// The depth under a pixel of the last frame, waiting for the GPU: what
     /// a click did before [`Self::submit_clicks`], kept to compare with it
-    /// (AURORA_CLICK_PICK).
+    /// (BLOCK_CLICK_PICK).
     pub fn blocking(
         &self,
         device: &wgpu::Device,

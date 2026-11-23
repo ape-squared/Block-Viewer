@@ -1,4 +1,4 @@
-//! The field of a conversation in Aurora's workspace: who is typing above
+//! The field of a conversation in Block's workspace: who is typing above
 //! it, then a wide box with the emoji, the volume of the nearby chat (a
 //! menu of whisper, say, shout, kept at every width: the Shout and Whisper
 //! keys, when set, override whatever is chosen, like the chat bar), the text, the
@@ -379,7 +379,7 @@ pub(super) fn show(
 /// active after sending", like FSFloaterNearbyChat::sendChat
 /// (CloseChatOnReturn, FSUnfocusChatHistoryOnReturn); on an empty field it
 /// keeps the keyboard, as there (onChatBoxCommit sends nothing and keeps
-/// it). "Enter toggles typing in conversations" (Aurora's) gives every
+/// it). "Enter toggles typing in conversations" (Block's) gives every
 /// conversation the chat bar's rule: an empty Enter returns to the world,
 /// and a message follows "Keep the chat bar active". The Send button always
 /// keeps the keyboard.

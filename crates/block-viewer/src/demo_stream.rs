@@ -1,4 +1,4 @@
-//! AURORA_DEMO_STREAM=<n>[,<wave>]: streaming hitch test. As when arriving
+//! BLOCK_DEMO_STREAM=<n>[,<wave>]: streaming hitch test. As when arriving
 //! in a busy region or turning the camera toward a full shop, `n` textured
 //! objects keep arriving in waves (`wave` every 250 ms; 100 by default,
 //! ~400 a second as measured on Agni; `wave` = `n` sends everything at
@@ -171,7 +171,7 @@ fn texture_index(id: &Uuid) -> Option<u32> {
 }
 
 /// The scenario's textures for the streamer, when it wants one finer than
-/// it is: only under a forced memory budget (AURORA_TEXTURE_BUDGET_MB),
+/// it is: only under a forced memory budget (BLOCK_TEXTURE_BUDGET_MB),
 /// where they are lowered and must be able to load again. Without it the
 /// scenario alone decides what is decoded, as before.
 fn source() -> Option<DemoSource> {
@@ -328,7 +328,7 @@ fn lost_on_the_gpu(textures: &TextureStreamer, i: u32) -> bool {
 
 impl StreamDemo {
     pub fn from_env() -> Option<Self> {
-        std::env::var("AURORA_DEMO_STREAM").ok().map(|value| Self::from_value(&value))
+        std::env::var("BLOCK_DEMO_STREAM").ok().map(|value| Self::from_value(&value))
     }
 
     fn from_value(value: &str) -> Self {

@@ -10,9 +10,9 @@ struct PostParams {
     fxaa: f32,
     sharpen: f32, // AMD CAS sharpness (0 = off)
     glow: f32,    // 1: add the blurred glow (glowcombineF.glsl)
-    debug_glow: f32, // AURORA_DEBUG_GLOW: show the glow amount of each pixel
+    debug_glow: f32, // BLOCK_DEBUG_GLOW: show the glow amount of each pixel
     legacy_gamma: f32, // sky gamma on skies without probe ambiance, else 1
-    // Aurora's bloom (bloom.wgsl): the share of the light above the
+    // Block's bloom (bloom.wgsl): the share of the light above the
     // threshold spread around (0 = off), the threshold and its soft knee in
     // exposed units (1 = white), the gain / the number of bloom levels
     bloom: f32,

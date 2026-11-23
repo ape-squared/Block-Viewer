@@ -1,4 +1,4 @@
-//! Aurora's movement prediction of our own avatar (Preferences › Aurora ›
+//! Block's movement prediction of our own avatar (Preferences › Block ›
 //! Movement; Firestorm's behaviour stays the default until it has been
 //! tried on the grid).
 //!

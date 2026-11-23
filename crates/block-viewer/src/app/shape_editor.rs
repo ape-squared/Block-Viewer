@@ -34,13 +34,13 @@ impl App {
                 self.scene
                     .meshes
                     .insert_local(crate::shape_editor::demo::ASSET, asset.data, asset.header, asset.skin);
-                let object = if std::env::var("AURORA_DEMO_SHAPE").as_deref() == Ok("layered-head") {
+                let object = if std::env::var("BLOCK_DEMO_SHAPE").as_deref() == Ok("layered-head") {
                     crate::shape_editor::demo::layered_object(&self.world)
                 } else {
                     crate::shape_editor::demo::object(&self.world)
                 };
                 if let Some(mut object) = object {
-                    if std::env::var("AURORA_DEMO_SHAPE").as_deref() == Ok("pbr-head") {
+                    if std::env::var("BLOCK_DEMO_SHAPE").as_deref() == Ok("pbr-head") {
                         let id = uuid::Uuid::from_u128(0xA0E0_5A9E_0000_0000_0000_0000_0000_0003);
                         self.scene.materials.resolve(&id);
                         self.scene.materials.on_material(
@@ -100,7 +100,7 @@ impl App {
 
     /// Appearance > Export shape XML: read the worn shape's asset, then
     /// export it (`shape_xml_menu_loaded`). `path` skips the save dialog
-    /// (`AURORA_DEMO_SHAPE_XML_MENU`).
+    /// (`BLOCK_DEMO_SHAPE_XML_MENU`).
     pub(super) fn export_worn_shape_xml(&mut self, item: uuid::Uuid) {
         self.export_worn_shape_xml_to(item, None);
     }
@@ -273,7 +273,7 @@ impl App {
         if !self.demo {
             return;
         }
-        let Ok(mode) = std::env::var("AURORA_DEMO_SHAPE") else {
+        let Ok(mode) = std::env::var("BLOCK_DEMO_SHAPE") else {
             return;
         };
         if mode == "t-pose" {
@@ -345,22 +345,22 @@ impl App {
             );
         }
         self.shape_ui.changed(&mut self.world);
-        // AURORA_DEMO_SHAPE_XML=<file>: the Import button's path without its dialog.
-        if let Ok(path) = std::env::var("AURORA_DEMO_SHAPE_XML")
+        // BLOCK_DEMO_SHAPE_XML=<file>: the Import button's path without its dialog.
+        if let Ok(path) = std::env::var("BLOCK_DEMO_SHAPE_XML")
             && let Some(draft) = &self.shape_ui.draft
         {
             self.shape_ui.xml.start_file(&self.egui_ctx, draft, path.into());
         }
-        // AURORA_DEMO_SHAPE_XML_MENU=<file>: Appearance > Export shape XML
+        // BLOCK_DEMO_SHAPE_XML_MENU=<file>: Appearance > Export shape XML
         // of our avatar's menu without its dialog, under the same rule.
-        if let Ok(path) = std::env::var("AURORA_DEMO_SHAPE_XML_MENU")
+        if let Ok(path) = std::env::var("BLOCK_DEMO_SHAPE_XML_MENU")
             && let Some(item) = crate::shape_editor::worn_shape(&self.world)
         {
             self.export_worn_shape_xml_to(item, Some(path.into()));
         }
-        // AURORA_DEMO_SHAPE_XML_EXPORT=<file>: the Export button's path without
+        // BLOCK_DEMO_SHAPE_XML_EXPORT=<file>: the Export button's path without
         // its dialog, under the same permission rule (`readonly` refuses it).
-        if let Ok(path) = std::env::var("AURORA_DEMO_SHAPE_XML_EXPORT")
+        if let Ok(path) = std::env::var("BLOCK_DEMO_SHAPE_XML_EXPORT")
             && let Some(draft) = &self.shape_ui.draft
         {
             let allowed = draft.can_export_xml(&self.world);

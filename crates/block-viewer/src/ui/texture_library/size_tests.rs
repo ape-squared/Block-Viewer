@@ -376,7 +376,7 @@ fn material_maps_have_thumbnails_without_a_new_scene_upload_and_shapes_are_selec
         assert_eq!(*map, Some(maps[slot]));
         assert!(texture.is_some(), "map {slot} needs actual pixels");
     }
-    for shape in [MaterialShape::Cube, MaterialShape::Aurora, MaterialShape::Sphere] {
+    for shape in [MaterialShape::Cube, MaterialShape::Block, MaterialShape::Sphere] {
         let choice = f
             .ctx
             .data(|data| data.get_temp::<egui::Rect>(egui::Id::unique(("resource_material_shape_choice", Uuid::from_u128(113)))))

@@ -63,7 +63,7 @@ impl std::fmt::Debug for Password {
 }
 
 /// The refusal to send a typed password to a helper that is not https.
-/// Aurora addition: the Legacy Viewer posts it whatever the scheme
+/// Block addition: the Legacy Viewer posts it whatever the scheme
 /// (LLCurrencyUIManager::Impl::startCurrencyBuy, LLFloaterBuyLandUI::
 /// runWebSitePrep), so anyone on the way reads it over http, and an OpenSim
 /// region may name its own helper (currency-base-uri).

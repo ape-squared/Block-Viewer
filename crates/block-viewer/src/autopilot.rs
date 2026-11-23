@@ -8,7 +8,7 @@
 //! 2.1. Like the Legacy Viewer, the viewer only turns the body and sends the walk
 //! flags of `AgentUpdate`; the simulator moves the avatar. Firestorm offers
 //! no action, walk or teleport; "run" is the walk with running on
-//! (SetAlwaysRun), Aurora's own.
+//! (SetAlwaysRun), Block's own.
 
 use block_net::control;
 use glam::Vec3;
@@ -141,7 +141,7 @@ pub struct ObjectPick {
 /// (FSAllowDoubleClickOnScriptedObjects as `allow_scripted`): never a HUD nor
 /// ourselves; a prim with a click action only when the setting allows it and
 /// that action is not Sit. The Legacy Viewer gates the teleport only
-/// (`walkToClickedLocation` takes any object); Aurora gates Walk and Run the
+/// (`walkToClickedLocation` takes any object); Block gates Walk and Run the
 /// same way, as the setting's label says.
 pub fn object_takes_double_click(pick: ObjectPick, allow_scripted: bool) -> bool {
     !pick.hud_or_self && ((allow_scripted && !pick.sit) || !pick.click_action)
@@ -164,7 +164,7 @@ pub const AU_FLAGS_HIDETITLE: u8 = 0x01;
 /// walkToClickedLocation lasts 3 s).
 pub const MARK_DURATION: Duration = Duration::from_secs(3);
 
-/// Aurora's follow controls. The Legacy Viewer's startFollowPilot accepts
+/// Block's follow controls. The Legacy Viewer's startFollowPilot accepts
 /// a stop distance but has no live controls or teleport recovery.
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq)]
 #[serde(default)]
@@ -876,12 +876,12 @@ pub fn teleport_destination(origin: (u32, u32), size: (f32, f32), point: Vec3, p
     (slot, Vec3::new((gx - slot.0 as f64) as f32, (gy - slot.1 as f64) as f32, p.z))
 }
 
-/// AURORA_DEMO_DOUBLECLICK=walk|run|tp: the double-click action of the
+/// BLOCK_DEMO_DOUBLECLICK=walk|run|tp: the double-click action of the
 /// session, without saving it (`menu` keeps the saved one).
 pub fn demo_action() -> Option<DoubleClick> {
     static ACTION: std::sync::OnceLock<Option<DoubleClick>> = std::sync::OnceLock::new();
     *ACTION.get_or_init(|| {
-        let v = std::env::var("AURORA_DEMO_DOUBLECLICK").ok()?;
+        let v = std::env::var("BLOCK_DEMO_DOUBLECLICK").ok()?;
         match v.split(',').next().unwrap_or("").trim() {
             "walk" => Some(DoubleClick::Walk),
             "run" => Some(DoubleClick::Run),

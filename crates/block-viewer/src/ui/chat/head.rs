@@ -1,4 +1,4 @@
-//! The head of a conversation in Aurora's workspace: a 48 px band with its
+//! The head of a conversation in Block's workspace: a 48 px band with its
 //! picture, its name and a line on it (the resident's user name and status,
 //! a group's participants and call, the nearby chat's region and who hears
 //! us), then its actions: call (green while in the call), the resident's
@@ -318,7 +318,7 @@ pub(super) fn show(
         rect.center().y - gap * 8.0 / LINE_GAP
     };
     let title_font = egui::FontId::new(14.0, crate::ui::fonts::semibold(ui.ctx()));
-    // a member of the Aurora team's tag after the name, cut before it
+    // a member of the Block team's tag after the name, cut before it
     let room = text_right - text_left;
     let mark = who.avatar.and_then(|id| crate::world::staff::mark(world, &id));
     let staff = crate::ui::staff::width(ui, p, mark, 14.0);

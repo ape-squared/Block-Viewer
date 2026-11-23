@@ -30,7 +30,7 @@ fn supported() -> HashSet<String> {
 fn blender_live_window_stays_steady_at_reported_ui_scales() {
     // Fluent's language is process-wide. Run the French layout alone so other
     // tests keep their own language, including when the suite runs in parallel.
-    const ALONE: &str = "AURORA_TEST_LIVEMESH_SCALE_ALONE";
+    const ALONE: &str = "BLOCK_TEST_LIVEMESH_SCALE_ALONE";
     if std::env::var_os(ALONE).is_none() {
         let path = concat!(module_path!(), "::blender_live_window_stays_steady_at_reported_ui_scales");
         let (_, name) = path.split_once("::").expect("test module path");

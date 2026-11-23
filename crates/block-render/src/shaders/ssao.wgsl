@@ -59,7 +59,7 @@ fn pixel_noise(px: vec2<i32>) -> f32 {
 
 // getKern: exponentially (^2) distant taps spread around the pixel, in
 // pixels of the full resolution target (times the scale). Taps 8..15 are
-// Aurora's higher quality option: the same rings turned by 22.5 degrees,
+// Block's higher quality option: the same rings turned by 22.5 degrees,
 // in between LL's distances.
 fn ao_kernel(i: i32) -> vec2<f32> {
     let dirs = array<vec2<f32>, 8>(

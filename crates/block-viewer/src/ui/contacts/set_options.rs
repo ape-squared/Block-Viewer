@@ -5,7 +5,7 @@
 //! the sets with "Show notifications" as a toast or in nearby chat
 //! (FSContactSetsNotificationToast / ...NearbyChat), and whether a plate
 //! shows every set's badge or the highest set's only. The Legacy Viewer
-//! keeps the default colour in each set's floater; Aurora gathers what
+//! keeps the default colour in each set's floater; Block gathers what
 //! applies to all sets here, so that a set's editor is about that set.
 
 use super::*;

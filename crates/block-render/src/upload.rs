@@ -283,7 +283,7 @@ impl StagingPool {
         // One job writes at a time: staging memory is write-combined, and
         // 30 jobs streaming into it at once stalled every thread of the
         // process, the main one included (a 16 ms frame per wave of
-        // textures in AURORA_DEMO_STREAM). One writer still moves ~9 GB/s,
+        // textures in BLOCK_DEMO_STREAM). One writer still moves ~9 GB/s,
         // far more than a region streams.
         let turn = self.write_turn.lock().unwrap_or_else(|e| e.into_inner());
         Self::write(chunk, offset, size, turn, fill)

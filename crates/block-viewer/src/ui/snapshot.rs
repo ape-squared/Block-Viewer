@@ -18,7 +18,7 @@ use egui::{Color32, Pos2, Rect, RichText, Sense, Stroke, Vec2};
 use std::path::{Path, PathBuf};
 
 pub const WINDOW: &str = "photo";
-/// Firestorm's floater (Preferences › Aurora › Photo window): its own
+/// Firestorm's floater (Preferences › Block › Photo window): its own
 /// place and size, kept apart from the panel's.
 pub const CLASSIC_WINDOW: &str = "photo_classic";
 /// Side of the classic window's preview (floater_snapshot.xml's
@@ -231,6 +231,9 @@ pub struct PanoShown {
 pub enum Action {
     Refresh,
     Take,
+    /// Capture once and post to the web profile feed, whatever destination
+    /// is chosen for the shutter.
+    ShareWeb,
     SaveAs,
     ChooseFolder,
     OpenFolder,
@@ -249,6 +252,9 @@ pub enum Action {
     ShowProfile,
     /// Open the personal lighting window.
     PersonalLighting,
+    /// Open the fixed environment editor for the sky or water (snapshot of
+    /// what the photo shows).
+    EditEnvironment(crate::world::env_select::SettingsKind),
     /// "Keep this light": the photo's environment becomes the user's.
     KeepLight,
     /// Open the Controls window (it drives the free camera).
@@ -512,6 +518,23 @@ impl SnapshotUi {
                 });
             }
         });
+        if let Some(prof) = &view.profile {
+            let ready = view.busy.is_none() && prof.connected && prof.ready;
+            if widgets::action_button_if(
+                ui,
+                p,
+                "send-filled",
+                block_i18n::tr!("photo-vf-share-web-tip"),
+                ActionKind::Flat,
+                Vec2::new(ui.available_width(), 28.0),
+                ready,
+            )
+            .on_hover_text(block_i18n::tr!("photo-vf-share-web-tip"))
+            .clicked()
+            {
+                out.push(Action::ShareWeb);
+            }
+        }
         if let Some((fraction, what)) = &view.busy {
             widgets::progress(ui, p, "photo_progress", *fraction, ui.available_width(), what, None);
         } else if let Some((text, error)) = view.message {
@@ -590,7 +613,7 @@ impl SnapshotUi {
     }
 
     /// Firestorm's snapshot floater (floater_snapshot.xml, Preferences ›
-    /// Aurora › Photo window › Classic window): a floating window, the
+    /// Block › Photo window › Classic window): a floating window, the
     /// controls in a column on the left (Refresh first, then the options and
     /// the destination), the preview on the right; the same controls.
     #[allow(clippy::too_many_arguments)]
@@ -1405,6 +1428,22 @@ fn light_rows(
             out.push(Action::PersonalLighting);
         }
     });
+    if !env.locked {
+        ui.horizontal(|ui| {
+            if widgets::flat_button(ui, p, block_i18n::tr!("ui-env-editor-edit-sky"))
+                .on_hover_text(block_i18n::tr!("ui-environment-edit-sky-hint"))
+                .clicked()
+            {
+                out.push(Action::EditEnvironment(crate::world::env_select::SettingsKind::Sky));
+            }
+            if widgets::flat_button(ui, p, block_i18n::tr!("ui-env-editor-edit-water"))
+                .on_hover_text(block_i18n::tr!("ui-environment-edit-water-hint"))
+                .clicked()
+            {
+                out.push(Action::EditEnvironment(crate::world::env_select::SettingsKind::Water));
+            }
+        });
+    }
 }
 
 /// Width of a list's label in the Light section.

@@ -263,14 +263,14 @@ pub fn installed(_gpu: &str) -> Option<Installed> {
     None
 }
 
-/// `AURORA_DEMO_GPU_DRIVER=old|old-linux|aged`: a GeForce GTX 1060 on an
+/// `BLOCK_DEMO_GPU_DRIVER=old|old-linux|aged`: a GeForce GTX 1060 on an
 /// NVIDIA driver of 2023 (`old`, under the minimum), the same card on a
 /// Linux driver of 2024 (`old-linux`, under the Linux minimum), or an AMD
 /// card whose driver was installed three years ago (`aged`).
 pub fn demo_input() -> Option<Input> {
-    std::env::var_os("AURORA_DEMO")?;
+    std::env::var_os("BLOCK_DEMO")?;
     let today = today();
-    let (vendor_id, gpu, driver, installed, linux) = match std::env::var("AURORA_DEMO_GPU_DRIVER").ok()?.as_str() {
+    let (vendor_id, gpu, driver, installed, linux) = match std::env::var("BLOCK_DEMO_GPU_DRIVER").ok()?.as_str() {
         "old" => (
             0x10DE,
             "NVIDIA GeForce GTX 1060 6GB",

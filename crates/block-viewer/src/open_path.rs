@@ -16,7 +16,7 @@ pub fn spawn(command: &mut Command) -> std::io::Result<()> {
 fn spawn_waited(command: &mut Command) -> std::io::Result<u32> {
     let mut child = command.spawn()?;
     let id = child.id();
-    let reaper = std::thread::Builder::new().name("aurora-open-wait".into()).spawn(move || {
+    let reaper = std::thread::Builder::new().name("block-open-wait".into()).spawn(move || {
         let _ = child.wait();
     });
     if let Err(e) = reaper {

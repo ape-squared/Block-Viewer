@@ -8,7 +8,7 @@ use std::{
 /// The add-on's greeting, followed by the session's secret (`token.rs`).
 const MAGIC: &[u8; 8] = b"AURBLD2\n";
 /// The greeting of add-ons that send no secret: refused, with a reply that
-/// makes them say "Incompatible Aurora protocol" instead of retrying silently.
+/// makes them say "Incompatible Block protocol" instead of retrying silently.
 const OLD_MAGIC: &[u8; 8] = b"AURBLD1\n";
 
 pub(super) fn start(

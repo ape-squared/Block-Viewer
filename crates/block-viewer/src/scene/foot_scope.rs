@@ -39,11 +39,11 @@ impl Scope {
     pub fn from_environment() -> Self {
         // Keep historical A/B controls in offline demos only. A normal viewer
         // always follows the saved preference, including existing accounts.
-        let mode = std::env::var("AURORA_FOOT_IK_SCOPE")
+        let mode = std::env::var("BLOCK_FOOT_IK_SCOPE")
             .ok()
-            .filter(|_| std::env::var_os("AURORA_DEMO").is_some());
+            .filter(|_| std::env::var_os("BLOCK_DEMO").is_some());
         Self {
-            profile: std::env::var_os("AURORA_PROFILE").is_some(),
+            profile: std::env::var_os("BLOCK_PROFILE").is_some(),
             ..Self::from_mode(mode.as_deref().unwrap_or_default())
         }
     }
@@ -129,7 +129,7 @@ impl Scope {
                 cached
             };
             let limit = self.limit.map_or_else(|| "all".to_owned(), |limit| limit.to_string());
-            log::info!(target: "aurora_viewer::foot_scope",
+            log::info!(target: "block_viewer::foot_scope",
                 "foot scope: mode={mode} limit={limit} selected_remote={selected} cached_remote={cached} support_frames={}", self.support_frames);
         }
     }

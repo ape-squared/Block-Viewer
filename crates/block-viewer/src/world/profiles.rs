@@ -388,7 +388,7 @@ fn age_short(language: &str, born: f64, now: f64) -> (String, bool) {
     (block_i18n::tr_in!(language, "world-profiles-joined-today").to_owned(), false)
 }
 
-/// The birth line of the Aurora profile's header: the date, and the age
+/// The birth line of the Block profile's header: the date, and the age
 /// without its total days (those are in the tooltip, `birth_text`). Only
 /// the day and the month, without an age, when someone hides their age.
 pub fn birth_line(p: &AvatarProfile, own: bool, now: f64) -> Option<String> {
@@ -508,7 +508,7 @@ fn premium(p: &AvatarProfile) -> Option<&'static str> {
     }
 }
 
-/// The account badge of the Aurora profile's header: a Linden first, then
+/// The account badge of the Block profile's header: a Linden first, then
 /// a membership the server names, then Firestorm's other badges. `true`
 /// for a Linden (its own color).
 pub fn header_badge(p: &AvatarProfile) -> Option<(&'static str, bool)> {
@@ -518,7 +518,7 @@ pub fn header_badge(p: &AvatarProfile) -> Option<(&'static str, bool)> {
     premium(p).or_else(|| badge(p)).map(|b| (b, false))
 }
 
-/// "Account" on one line (the Aurora profile's Infos card): a membership the
+/// "Account" on one line (the Block profile's Infos card): a membership the
 /// server names stands for the plain resident.
 pub fn account_line(p: &AvatarProfile) -> String {
     let text = account_text(p);
@@ -539,7 +539,7 @@ pub enum Online {
 /// Status line of the profile (processProfileProperties /
 /// processOnlineStatus). `friend`: (online in our friend list, they let us
 /// see it). A friend who hides it but whom the server says online is
-/// "unknown" (FIRE-32184). For other residents Aurora shows the `online`
+/// "unknown" (FIRE-32184). For other residents Block shows the `online`
 /// key of the reply when the server sends it (Firestorm only uses it to
 /// tell "unknown" apart).
 pub fn online_status(p: Option<&AvatarProfile>, own: bool, friend: Option<(bool, bool)>) -> Online {

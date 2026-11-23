@@ -199,7 +199,7 @@ pub mod flags {
     /// expressions, hand poses), evaluated before skinning.
     pub const LIP_SYNC: u32 = 8192;
     pub const PORTAL_CLIP: u32 = 16384;
-    /// Procedural Aurora portal surface; uses the ordinary sorted blend/glow.
+    /// Procedural Block portal surface; uses the ordinary sorted blend/glow.
     pub const PORTAL_EFFECT: u32 = 32768;
     /// Bit of flags[3], above texture animation: world and worn object
     /// geometry, excluding HUDs and the system avatar's masked body.
@@ -1234,7 +1234,7 @@ pub struct RenderSettings {
     /// with the sun shadows only.
     pub contact_shadows: bool,
     /// Geometric specular anti-aliasing of the objects' highlights
-    /// (common.wgsl `specular_aa_roughness`, AURORA_SPECULAR_AA).
+    /// (common.wgsl `specular_aa_roughness`, BLOCK_SPECULAR_AA).
     pub specular_aa: bool,
     /// Planar water reflections: fraction of the screen resolution (0 = off).
     pub water_reflection_scale: f32,
@@ -1515,7 +1515,7 @@ pub struct RainLook {
     /// Deep snow's reach around my avatar at High weather quality (m, 10 to
     /// 40); Low and Medium keep their share of it (two thirds, 13/15).
     pub deep_reach: f32,
-    /// How deep snow lies in the open at least (0..1): `AURORA_SNOW_LYING`'s
+    /// How deep snow lies in the open at least (0..1): `BLOCK_SNOW_LYING`'s
     /// floor for demo captures, else 0.
     pub snow_lying: f32,
     /// Snow lying on the ground is drawn ("Snow settles"), whatever falls
@@ -1632,7 +1632,7 @@ pub struct FrameParams {
     /// IMG_FACE_SELECT) once it is loaded; 0 while it loads and offline,
     /// where the shader draws its procedural stand-in.
     pub face_select_texture: u32,
-    /// The poser's hovered part (Aurora's own): bit j for the skeleton's
+    /// The poser's hovered part (Block's own): bit j for the skeleton's
     /// palette joint j, drawn on `part_faces` in `part_color` (linear RGBA)
     /// as a selection's halo with a light tint inside.
     pub part_joints: [u32; 8],
@@ -1695,7 +1695,7 @@ pub struct FrameParams {
     pub sharpen: f32,
     /// Screen-space glow of faces with a glow value (RenderGlow).
     pub glow: bool,
-    /// Aurora's bloom (bloom.rs): the share of the light over the
+    /// Block's bloom (bloom.rs): the share of the light over the
     /// threshold spread around the bright parts, 0 = off.
     pub bloom: f32,
     pub water_height: f32,
@@ -1820,20 +1820,20 @@ pub struct DepthOfField {
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
 pub struct DebugRender {
     /// The shadow cascade each pixel reads, darkened by its shadow
-    /// (AURORA_DEBUG_SHADOWS).
+    /// (BLOCK_DEBUG_SHADOWS).
     pub shadows: bool,
     /// The ambient occlusion of the screen alone.
     pub ambient_occlusion: bool,
     /// Magenta where a local light reaches a fragment without being in
-    /// its sets (AURORA_LIGHT_TILES=check).
+    /// its sets (BLOCK_LIGHT_TILES=check).
     pub check_light_sets: bool,
     /// Magenta where a reflection probe covers a fragment without being
-    /// in its sets (AURORA_PROBE_WALK=check).
+    /// in its sets (BLOCK_PROBE_WALK=check).
     pub check_probe_sets: bool,
 }
 
 /// Where the blended faces drop their invisible fragments (`fs_blend` in
-/// object.wgsl; AURORA_BLEND_EARLY_DISCARD). The image is the same.
+/// object.wgsl; BLOCK_BLEND_EARLY_DISCARD). The image is the same.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum BlendDiscard {
     /// Before the lighting (the default).
@@ -1848,7 +1848,7 @@ pub enum BlendDiscard {
 impl BlendDiscard {
     pub fn from_env() -> BlendDiscard {
         static MODE: std::sync::OnceLock<BlendDiscard> = std::sync::OnceLock::new();
-        *MODE.get_or_init(|| match std::env::var("AURORA_BLEND_EARLY_DISCARD").as_deref().map(str::trim) {
+        *MODE.get_or_init(|| match std::env::var("BLOCK_BLEND_EARLY_DISCARD").as_deref().map(str::trim) {
             Ok("0") => BlendDiscard::Late,
             Ok("alt") => BlendDiscard::Alternate,
             _ => BlendDiscard::Early,
@@ -1909,7 +1909,7 @@ pub struct ShadowStats {
     pub draws: [u32; 3],
     /// Of which those of the CPU lists (with the GPU lists: the terrain).
     pub cpu_draws: [u32; 3],
-    /// With AURORA_PROFILE and the GPU lists: triangles of the GPU casters,
+    /// With BLOCK_PROFILE and the GPU lists: triangles of the GPU casters,
     /// then the rigged ones (avatars, rigged meshes) and their triangles.
     pub triangles: [u32; 3],
     pub rigged_draws: [u32; 3],
@@ -2018,7 +2018,7 @@ pub struct RenderStats {
     /// of the frame before: its result comes back with the next hand-over).
     pub cpu_phases: [f32; RENDER_PHASES.len()],
     /// Part of each step above its thread spent off the processor (ms):
-    /// waiting for a lock, or for a core. Measured with AURORA_PROFILE,
+    /// waiting for a lock, or for a core. Measured with BLOCK_PROFILE,
     /// where the thread's CPU time is known (thread_cpu.rs); 0 otherwise.
     pub cpu_waits: [f32; RENDER_PHASES.len()],
     /// Interface: egui shapes of the frame, the meshes tessellated from
@@ -2036,7 +2036,7 @@ pub struct RenderStats {
     pub cull_uploaded: u64,
     pub vertices_uploaded: u64,
     /// The frame was drawn by the render thread (render_thread.rs); false
-    /// with AURORA_RENDER_THREAD=0.
+    /// with BLOCK_RENDER_THREAD=0.
     pub render_thread: bool,
     /// Main thread: time to build the frame packet and hand it over (ms),
     /// without the wait below.
@@ -2065,7 +2065,7 @@ pub struct RenderStats {
 }
 
 /// Steps of the renderer's frame (`Backend::render`), in frame order
-/// (AURORA_PROFILE).
+/// (BLOCK_PROFILE).
 pub const RENDER_PHASES: [&str; 17] = [
     "acquire",
     "tessellate",

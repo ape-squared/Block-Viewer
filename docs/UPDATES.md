@@ -29,7 +29,7 @@ cut. The Legacy Viewer blocks at once, as a release with `grace_hours: 0`
 does.
 
 The modes take up the choices of the Legacy Viewer's `UpdaterServiceSetting`:
-required only, ask, download automatically. Aurora chooses "Ask before
+required only, ask, download automatically. Block chooses "Ask before
 downloading" by default, to meet the request for an offer at launch;
 The Legacy Viewer chooses 0. The automatic mode prepares the files and waits for
 the user's agreement before quitting and restarting their session.
@@ -58,7 +58,7 @@ main a few days before a stable version, to catch crashes before everyone.
   below the stable version of its number, so a beta tester moves on to
   v0.7.7 (or any later stable) once it is out, then to the next betas.
   The beta's update policy takes over the thresholds of the newest stable
-  tag (`Aurora-Update-Policy` line), under its own version, raised to those
+  tag (`Block-Update-Policy` line), under its own version, raised to those
   of `update-policy.json` at the tagged commit, as a release does; a
   minimum the beta itself does not reach is left out.
 - **Retention.** `scripts/nightly-prune.ps1` keeps the ten newest betas and
@@ -92,16 +92,16 @@ tried locally with `scripts/test-update.ps1 -Beta` (`--beta` for
 
 The Release workflow publishes together:
 
-- `Aurora-Viewer-vX.Y.Z-windows-x64.zip`, with a single root folder of that name;
+- `Block-Viewer-vX.Y.Z-windows-x64.zip`, with a single root folder of that name;
 - its `.zip.sha256` file, in the format `hash  zip-name`;
-- `aurora-update-policy.json`: `schema: 1`, `version: X.Y.Z`,
+- `block-update-policy.json`: `schema: 1`, `version: X.Y.Z`,
   `minimum_supported_version`, `cache_invalidation_before` and
   `settings_reset_before`: `null` or a stable SemVer version ≤ X.Y.Z;
   optionally `grace_hours`, 0 to 72 (absent: 12, above);
-- `Aurora-Viewer-vX.Y.Z-windows-x64-symbols.zip` and its `.zip.sha256`: the
+- `Block-Viewer-vX.Y.Z-windows-x64-symbols.zip` and its `.zip.sha256`: the
   exe's crash symbols ([crash reports](BUG_REPORTING.md#crash-symbols)),
   never downloaded by the viewer, which looks for the package's exact name;
-- then `Aurora-Viewer-vX.Y.Z-linux-x64.tar.gz` and its `.tar.gz.sha256`,
+- then `Block-Viewer-vX.Y.Z-linux-x64.tar.gz` and its `.tar.gz.sha256`,
   built on Ubuntu 24.04 by a second job and added once the release exists:
   a failed Linux build leaves the Windows release published. The tarball's
   single root folder, of that name, holds the viewer (`block-viewer`), its
@@ -113,7 +113,7 @@ name, and each one names its own root folder and executable. macOS installs
 its signed application by hand: the offer links the release page
 ([Installing on macOS](MACOS.md#updates)).
 
-`scripts/package.ps1` adds `aurora-install.json` (`schema: 1`, version read
+`scripts/package.ps1` adds `block-install.json` (`schema: 1`, version read
 by `--version`). The exe, the assets and the licence are mandatory in the
 package. The default thresholds come from `update-policy.json` at the root.
 `null` makes every update optional. Below a minimum version, the update is
@@ -122,7 +122,7 @@ update. The preferences and the skipped tag do not remove this check.
 Changing this policy is a release decision reviewed in a PR; it takes
 effect at the next release.
 
-In **aurora-tools.cmd → Manage releases → Create a release**, the Minimum
+In **block-tools.cmd → Manage releases → Create a release**, the Minimum
 version, Cache and Settings choices come before the confirmation. The
 minimum keeps the current one by default (the higher of `update-policy.json`
 and the last stable tag), can require the release's own version (every
@@ -141,18 +141,18 @@ threshold: every earlier installation will have to apply it. The previous
 thresholds are taken over from the last annotated stable tag, including for
 a user who skips releases. They no longer apply once this version is
 installed.
-The tag contains an `Aurora-Update-Policy: {…}` line; the workflow validates
+The tag contains an `Block-Update-Policy: {…}` line; the workflow validates
 it with `scripts/write-update-policy.ps1` before publishing the policy file.
 A tag created by hand without this line uses the thresholds of the versioned
 file. To also keep the choices made earlier in the tools, use an annotated
 tag with this line (or copy the thresholds into the versioned file).
 The interface announces separately what happens to the cache and to the
-settings, both before the download and before "Install and restart Aurora".
+settings, both before the download and before "Install and restart Block".
 
 Old releases without a hash or a manifest go through their page for a manual
 installation. macOS remains out of scope: its application bundle is signed
 and replaced as a whole. The current ZIP is kept: Velopack was studied, but
-its chain of packages and installers is not that of the Aurora releases.
+its chain of packages and installers is not that of the Block releases.
 
 ## Code signing
 
@@ -165,7 +165,7 @@ policy page is <https://block-viewer.org/code-signing/> (website
 repository, `code-signing/`).
 
 Two workflows sign, both through the composite action
-`.github/actions/signpath-sign` (the SignPath project `Aurora-Viewer`, the
+`.github/actions/signpath-sign` (the SignPath project `Block-Viewer`, the
 artifact configuration `initial` of
 [`.signpath/artifact-configuration.xml`](../.signpath/artifact-configuration.xml)):
 
@@ -208,7 +208,7 @@ SignPath leaves to their own maintainers.
 What only a maintainer can do, never an agent (accounts, tokens):
 
 1. In SignPath (the open source subscription is granted): the project
-   `Aurora-Viewer` linked to the trusted build system **GitHub.com**, the
+   `Block-Viewer` linked to the trusted build system **GitHub.com**, the
    artifact configuration `initial` replaced by the content of
    `.signpath/artifact-configuration.xml` (a zip with the exe at its root:
    GitHub hands its artifacts over as zips), and the CI user as a
@@ -240,8 +240,8 @@ only regular files and folders, never a link, a device node or a sparse
 file, and keeps the permission bits of the archive without setuid. The
 staging is done next to the installation, on the same volume. Only the
 package's own entries are replaced (the viewer, `assets`, the notices,
-`aurora-install.json`): whatever else the folder holds, a shortcut or the
-user's notes, stays where it is. A folder without `aurora-install.json`
+`block-install.json`): whatever else the folder holds, a shortcut or the
+user's notes, stays where it is. A folder without `block-install.json`
 (the viewer copied alone, onto the Desktop for example) has only the
 viewer's executable replaced. Links among those entries, and a folder at the
 root of a drive, are refused, as is a viewer without its executable bit.
@@ -290,5 +290,5 @@ bits), lock, backup and rollback of the package and of the data.
 `scripts/test-update-policy.ps1` checks the release choices (minimum
 version included, typed or refused), their carry-over into an annotated tag and the refusal of an invalid threshold,
 without touching the current repository. The visual demo downloads nothing
-(`AURORA_DEMO_UPDATE`). The human test with two real packages is
+(`BLOCK_DEMO_UPDATE`). The human test with two real packages is
 described in [TESTING.md](TESTING.md#interface).

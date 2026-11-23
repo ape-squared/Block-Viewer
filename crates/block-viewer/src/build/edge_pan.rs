@@ -1,6 +1,6 @@
 //! Keep a dragged object visible at the viewport edges. LLManipTranslate::
 //! handleHover (indra/newview/llmaniptranslate.cpp) rotates at the outer 5%.
-//! Aurora deliberately translates along the active drag axis/plane with
+//! Block deliberately translates along the active drag axis/plane with
 //! eased velocity, keeping the camera/object offset while continuing the drag.
 
 use super::geom::Cam;

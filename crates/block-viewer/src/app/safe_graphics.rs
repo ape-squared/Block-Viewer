@@ -34,7 +34,7 @@ fn read_backup(path: &std::path::Path) -> Option<Values> {
 }
 
 /// The card to show at start: an offer after GPU trouble, else the way
-/// back while settings are kept aside. `AURORA_DEMO_SAFE_GRAPHICS=offer|active`
+/// back while settings are kept aside. `BLOCK_DEMO_SAFE_GRAPHICS=offer|active`
 /// shows either in demo.
 pub(super) fn at_start(trouble: bool, kept: bool, demo: Option<&str>) -> Option<SafeGraphics> {
     match demo {
@@ -71,7 +71,7 @@ impl App {
             }
             kept = false;
         }
-        let demo = std::env::var_os("AURORA_DEMO").and_then(|_| std::env::var("AURORA_DEMO_SAFE_GRAPHICS").ok());
+        let demo = std::env::var_os("BLOCK_DEMO").and_then(|_| std::env::var("BLOCK_DEMO_SAFE_GRAPHICS").ok());
         self.login_form.safe_graphics = at_start(trouble, kept, demo.as_deref());
     }
 
@@ -174,7 +174,7 @@ mod tests {
         let mut settings = crate::settings::Settings::default();
         Preset::Deluxe.apply(&mut settings);
         let before = Values::read(&settings);
-        let dir = std::env::temp_dir().join(format!("aurora-safe-graphics-{}", uuid::Uuid::new_v4()));
+        let dir = std::env::temp_dir().join(format!("block-safe-graphics-{}", uuid::Uuid::new_v4()));
         std::fs::create_dir(&dir).unwrap();
         let path = dir.join(FILE);
         std::fs::write(&path, serde_json::to_vec(&before).unwrap()).unwrap();

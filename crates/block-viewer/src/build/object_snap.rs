@@ -3,7 +3,7 @@
 //! shows, below), with guides on what it snapped to, like the smart guides
 //! of design tools.
 //!
-//! An Aurora feature, with no Legacy Viewer equivalent; the move still goes
+//! A Block feature, with no Legacy Viewer equivalent; the move still goes
 //! out as any other (`TransformUpdate` on release), so it needs only the
 //! move right on the selection, none on the prims it snaps to.
 //!

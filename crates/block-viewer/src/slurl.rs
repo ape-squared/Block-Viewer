@@ -352,9 +352,9 @@ mod tests {
     #[test]
     fn hypergrid_links_keep_the_grid_in_every_target() {
         for scheme in ["hop", "x-grid-location-info"] {
-            let url = format!("{scheme}://grid.example:8002/Aurora%20D%C3%A9mo/12/34/56");
+            let url = format!("{scheme}://grid.example:8002/Block%20D%C3%A9mo/12/34/56");
             let location = parse(&url).expect("Hypergrid location");
-            assert_eq!(location.region, "Aurora Démo");
+            assert_eq!(location.region, "Block Démo");
             assert_eq!(location.grid.as_deref(), Some("grid.example:8002"));
             assert_eq!(location.pos, Vec3::new(12.0, 34.0, 56.0));
             let target = parse_hypergrid(&location.target()).expect("context target");
@@ -380,8 +380,8 @@ mod tests {
 
     #[test]
     fn place_links() {
-        let l = place_link("http://maps.secondlife.com/secondlife/Aurora%20D%C3%A9mo/12/34/56").expect("slurl");
-        assert_eq!(l.label, "Aurora Démo (12,34,56)");
+        let l = place_link("http://maps.secondlife.com/secondlife/Block%20D%C3%A9mo/12/34/56").expect("slurl");
+        assert_eq!(l.label, "Block Démo (12,34,56)");
         assert_eq!(l.location.pos, Vec3::new(12.0, 34.0, 56.0));
         assert!(!l.teleport);
         let l = place_link("https://maps.secondlife.com/secondlife/Ahern/50/60/?title=Hi").expect("slurl");
@@ -415,22 +415,22 @@ mod tests {
 
     #[test]
     fn formats() {
-        let want = ("Aurora Démo".to_owned(), [12, 34, 56]);
-        assert_eq!(p("http://maps.secondlife.com/secondlife/Aurora%20D%C3%A9mo/12/34/56"), want);
+        let want = ("Block Démo".to_owned(), [12, 34, 56]);
+        assert_eq!(p("http://maps.secondlife.com/secondlife/Block%20D%C3%A9mo/12/34/56"), want);
         assert_eq!(
-            p("https://maps.secondlife.com/secondlife/Aurora%20D%C3%A9mo/12/34/56/?title=x"),
+            p("https://maps.secondlife.com/secondlife/Block%20D%C3%A9mo/12/34/56/?title=x"),
             want
         );
-        assert_eq!(p("secondlife://Aurora Démo/12/34/56"), want);
-        assert_eq!(p("secondlife:///app/teleport/Aurora%20D%C3%A9mo/12/34/56"), want);
-        assert_eq!(p("Aurora Démo/12/34/56"), want);
-        assert_eq!(p("Aurora Démo (12, 34, 56)"), want);
+        assert_eq!(p("secondlife://Block Démo/12/34/56"), want);
+        assert_eq!(p("secondlife:///app/teleport/Block%20D%C3%A9mo/12/34/56"), want);
+        assert_eq!(p("Block Démo/12/34/56"), want);
+        assert_eq!(p("Block Démo (12, 34, 56)"), want);
         assert_eq!(
-            p("Place d'Aurora, Aurora Démo (12, 34, 56) - Général"),
-            ("Aurora Démo".to_owned(), [12, 34, 56])
+            p("Place d'Block, Block Démo (12, 34, 56) - Général"),
+            ("Block Démo".to_owned(), [12, 34, 56])
         );
-        assert_eq!(p("Aurora Démo, 12, 34, 56"), want);
-        assert_eq!(p("Aurora Démo"), ("Aurora Démo".to_owned(), [128, 128, 0]));
+        assert_eq!(p("Block Démo, 12, 34, 56"), want);
+        assert_eq!(p("Block Démo"), ("Block Démo".to_owned(), [128, 128, 0]));
         assert_eq!(
             p("http://maps.secondlife.com/secondlife/Ahern"),
             ("Ahern".to_owned(), [128, 128, 0])
@@ -440,8 +440,8 @@ mod tests {
 
     #[test]
     fn make_round_trips() {
-        let s = make("Aurora Démo", Vec3::new(12.4, 34.6, 56.0));
-        assert_eq!(s, "http://maps.secondlife.com/secondlife/Aurora%20D%C3%A9mo/12/35/56");
-        assert_eq!(p(&s), ("Aurora Démo".to_owned(), [12, 35, 56]));
+        let s = make("Block Démo", Vec3::new(12.4, 34.6, 56.0));
+        assert_eq!(s, "http://maps.secondlife.com/secondlife/Block%20D%C3%A9mo/12/35/56");
+        assert_eq!(p(&s), ("Block Démo".to_owned(), [12, 35, 56]));
     }
 }

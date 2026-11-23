@@ -75,10 +75,10 @@ pub struct ContactsSettings {
     /// FSFriendListFullNameFormat: "Display Name (Username)"
     /// (else the other way round).
     pub full_name_display_first: bool,
-    /// Legacy table only: FSContactSetsColorizeFriends. Aurora uses each
+    /// Legacy table only: FSContactSetsColorizeFriends. Block uses each
     /// contact set's explicit UI-name appearance and priority instead.
     pub colorize_friends: bool,
-    /// Legacy list only: FSContactSetsListShowIcons. Aurora always shows pictures.
+    /// Legacy list only: FSContactSetsListShowIcons. Block always shows pictures.
     pub set_list_icons: bool,
     /// Tab shown: 0 friends, 1 groups, 2 contact sets.
     pub tab: u8,
@@ -192,7 +192,7 @@ enum Dialog {
     },
 }
 
-/// `AURORA_DEMO_CONTACTS=conference|map|invite`: the friends, or the group,
+/// `BLOCK_DEMO_CONTACTS=conference|map|invite`: the friends, or the group,
 /// selected to show the buttons they enable.
 pub fn demo_selection(world: &World, mode: &str) -> (Vec<Uuid>, Option<Uuid>) {
     let friends = &world.social.friends;
@@ -255,7 +255,7 @@ pub struct ContactsUi {
     /// A name typed in the editor for a set left before it was applied:
     /// (that set, the name).
     pending_rename: Option<(String, String)>,
-    /// AURORA_DEMO_SET_NOTICES=config-responses|config-bottom: the window
+    /// BLOCK_DEMO_SET_NOTICES=config-responses|config-bottom: the window
     /// scrolled down to the set's responses, or to its end.
     pub demo_scroll: Option<DemoScroll>,
     /// The set editor's tab, badge grid and preview distance.
@@ -789,7 +789,7 @@ pub fn panel(
 
 /// The torn-off Contacts window (floater_fs_contacts.xml, 396 Ã— 390); its
 /// title bar button docks it back into Conversations. It shows what the
-/// docked tab shows (#961): People's friends tab in Aurora's look
+/// docked tab shows (#961): People's friends tab in Block's look
 /// (`friends`, the same pane state as the docked tab, so the filter,
 /// selection and sheet carry over), the contact list otherwise.
 #[allow(clippy::too_many_arguments)]
@@ -1305,7 +1305,7 @@ fn friend_menu(
 
 /// "Options..." of the friend list menu: columns, sort, name format,
 /// and Legacy list presentation (onColumnDisplayModeChanged keeps one name
-/// column). These options never affect Aurora's rich rows.
+/// column). These options never affect Block's rich rows.
 fn options_menu(ui: &mut egui::Ui, p: &Palette, s: &mut ContactsSettings) {
     let before = (s.column_username, s.column_display_name, s.column_full_name);
     menu::toggle(
@@ -1567,7 +1567,7 @@ fn group_list(
                     let plan = crate::world::groups::plan_group_list(groups, &st.group_filter, |g| &g.name);
                     // "None (no group tag)" row on top.
                     // Differs from LLGroupList::refresh (indra/newview/llgrouplist.cpp):
-                    // 1) LLGroupList only adds "none" when !have_filter; Aurora deliberately keeps
+                    // 1) LLGroupList only adds "none" when !have_filter; Block deliberately keeps
                     //    it visible while filtering so residents can always clear their active group tag (#2788).
                     // 2) The label uses "None (no group tag)" rather than Legacy Viewer's "none" (GroupsNone)
                     //    for clarity.
@@ -2187,6 +2187,32 @@ pub(super) fn set_color_button(ui: &mut egui::Ui, p: &Palette, id: &str, color: 
 }
 
 /// The pending confirmation or prompt, as a modal window.
+/// How long after a dialog of the contacts opens its buttons, Enter and a
+/// click beside it are ignored.
+const DIALOG_SETTLE: f64 = 0.35;
+
+/// Whether the contacts' dialog opened less than [`DIALOG_SETTLE`] ago (it
+/// was not shown on the previous pass, or since).
+fn dialog_opening(ctx: &egui::Context) -> bool {
+    let id = egui::Id::unique("contacts_dialog_opened");
+    let now = ctx.input(|i| i.time);
+    let pass = ctx.cumulative_pass_nr();
+    let since = ctx.data_mut(|d| {
+        let kept: Option<(f64, u64)> = d.get_temp(id);
+        let since = match kept {
+            Some((since, last)) if last + 1 >= pass => since,
+            _ => now,
+        };
+        d.insert_temp(id, (since, pass));
+        since
+    });
+    let opening = now - since < DIALOG_SETTLE;
+    if opening {
+        ctx.request_repaint_after(std::time::Duration::from_secs_f64(DIALOG_SETTLE));
+    }
+    opening
+}
+
 fn dialogs(ctx: &egui::Context, p: &Palette, world: &mut World, st: &mut ContactsUi, actions: &mut Vec<ContactsAction>) {
     let Some(d) = st.dialog.as_mut() else {
         return;
@@ -2393,8 +2419,16 @@ fn dialogs(ctx: &egui::Context, p: &Palette, world: &mut World, st: &mut Contact
             }
         });
     });
+    // Escape still cancels at once; a click (or Enter) in the first moment
+    // is the one that opened the dialog, or a second click of it: it must
+    // neither send the offer or request unread nor close the dialog
+    // (the "message box skipped" of a double-clicked Offer Teleport).
+    let escape = modal.should_close() && !modal.backdrop_response.clicked();
     if modal.should_close() && done.is_none() {
         done = Some(false);
+    }
+    if dialog_opening(ctx) && !escape {
+        done = None;
     }
     let Some(confirmed) = done else {
         return;

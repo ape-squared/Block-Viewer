@@ -1,4 +1,4 @@
-//! Preferences › Language and updates › "Remove Aurora from this computer",
+//! Preferences › Language and updates › "Remove Block from this computer",
 //! and the `--uninstall` command line: removes what the viewer registered
 //! outside its own folders, then lists those folders for the user to delete
 //! with the viewer.
@@ -7,7 +7,7 @@
 //! un.UserSettingsFiles, indra/newview/installers/windows/
 //! installer_template.nsi) deletes the link classes `secondlife`, `hop` and
 //! `x-grid-location-info` whoever wrote them, and asks whether to delete the
-//! settings folders. Aurora has no installer, so the viewer does it itself,
+//! settings folders. Block has no installer, so the viewer does it itself,
 //! and only for what is its own: a link class that opens another program
 //! stays. What it removes:
 //!
@@ -17,7 +17,7 @@
 //!   key (`cache_key.rs`), each saved login's password hash and
 //!   second-factor authorization (`credentials.rs`), the crash reports'
 //!   GitHub authorization (`crash/github.rs`);
-//! - Aurora's add-on in each Blender that has it (`blender_live/installer.rs`).
+//! - Block's add-on in each Blender that has it (`blender_live/installer.rs`).
 //!
 //! The folders stay: the running viewer uses them, and deleting a folder
 //! after the exit would need a process outliving the viewer, deleting
@@ -46,7 +46,7 @@ pub trait System {
     /// Deletes one credential store entry, never reading it: false when
     /// there was none.
     fn delete_secret(&mut self, service: &str, account: &str) -> Result<bool, String>;
-    /// Removes Aurora's add-on from each Blender found that has it.
+    /// Removes Block's add-on from each Blender found that has it.
     fn remove_blender_addon(&mut self) -> Vec<AddonRemoval>;
     /// Nothing is really removed (the demo).
     fn dry_run(&self) -> bool {
@@ -105,7 +105,7 @@ pub enum Part {
     /// Windows' notification identity, at this registry key.
     NotificationId(String),
     Secret(Secret),
-    /// Aurora's add-on in the Blenders found.
+    /// Block's add-on in the Blenders found.
     BlenderAddon,
 }
 

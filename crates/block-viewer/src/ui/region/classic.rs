@@ -1,10 +1,10 @@
-//! The classic "Region / Estate" window, chosen in Preferences › Aurora: the
+//! The classic "Region / Estate" window, chosen in Preferences › Block: the
 //! Legacy Viewer's eight tabs in their order (floater_region_info.xml:
 //! Region, Debug, Terrain, Estate, Covenant, Experiences, Access,
 //! Environment; LLFloaterRegionInfo in newview/llfloaterregioninfo.cpp,
 //! originally LGPL 2.1), plus "Region settings" after Region where the
 //! region offers DispatchOpenRegionSettings, each showing the settings of its panel with the
-//! controls, rules and messages Aurora's window uses: one data model, one
+//! controls, rules and messages Block's window uses: one data model, one
 //! set of requests, two layouts.
 
 use super::{RegionUi, View, estate_wide, interventions, manage, opensim, overview, people};
@@ -25,7 +25,7 @@ pub(super) const MIN_SIZE: Vec2 = Vec2::new(640.0, 470.0);
 pub enum Tab {
     #[default]
     Region,
-    /// Aurora-Sim based grids only (LLPanelRegionOpenSettingsInfo).
+    /// Block-Sim based grids only (LLPanelRegionOpenSettingsInfo).
     OpenSettings,
     Debug,
     Terrain,

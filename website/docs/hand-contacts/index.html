@@ -91,7 +91,7 @@ viewers continue displaying the underlying animation.</p>
 <p>The starting motorcycle declaration contains <code>drive</code> (both wrists) and
 <code>gas_only</code> (right wrist). Both reuse the same binding data; changing profile
 does not duplicate offsets or restart a contact that is common to both.</p>
-<p>The viewer automatically installs a separate <strong>#Aurora Bridge IK</strong> script.
+<p>The viewer automatically installs a separate <strong>#Block Bridge IK</strong> script.
 On region arrival it asks, once, the objects avatars sit on and your own
 attachments, each one directly, never the whole region; other avatars&rsquo; worn
 publishers show at their next announcement. The motorcycle announces as soon as somebody sits and returns
@@ -132,7 +132,7 @@ absolute local rotation from a saved rest pose, pulses for 0.46 seconds,
 and restores the rest pose on stop or reset. <code>THROTTLE_DEGREES</code> controls the
 angle; zero <code>THROTTLE_AXIS</code> selects the longest local prim axis. A helper
 prim may need an explicit axis. The rest rotation is stored per prim UUID
-in linkset data; remove its <code>aurora.throttle.rest.&lt;UUID&gt;</code> entry before a
+in linkset data; remove its <code>block.throttle.rest.&lt;UUID&gt;</code> entry before a
 reset if intentionally recalibrating the grip&rsquo;s neutral rotation.</p>
 <p>Offsets are metric in the target prim&rsquo;s axes; prim scale does not resize
 them. The optional contact point is bone-local before avatar hand scaling.
@@ -152,7 +152,7 @@ The <a href="../ik-edit/#compatible-observers-and-lifecycle">shared protocol con
 describes event discovery, nonce/revision validation and the limits of detecting
 a silent stopped script without polling. There is one supported wire protocol,
 <code>auroraIK/5</code>.</p>
-<p>Offline checks use <code>AURORA_DEMO_HAND_IK=1|moving|release|observer|observer-release</code>.
+<p>Offline checks use <code>BLOCK_DEMO_HAND_IK=1|moving|release|observer|observer-release</code>.
 Real LSL compilation and two-viewer motorcycle behaviour require human
 validation; agents never connect to a grid.</p>
       </article>

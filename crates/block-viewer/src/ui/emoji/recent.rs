@@ -5,11 +5,11 @@
 //! the account. A click adds one at the caret and leaves the keyboard in the
 //! field (LLTextEditor::insertEmoji).
 //!
-//! Aurora differences: the row is a Preferences › Chat switch, on, in place
+//! Block differences: the row is a Preferences › Chat switch, on, in place
 //! of a small arrow beside the field that starts closed at each session, and
 //! it takes no room until there is an emoji to show.
 //!
-//! Aurora addition: favourite emojis, kept for the account, marked from the
+//! Block addition: favourite emojis, kept for the account, marked from the
 //! right-click menu of an emoji. They come first in the row, with a small
 //! star, and have their tab in the picker.
 
@@ -127,7 +127,7 @@ pub struct Recent {
     /// frame by the app: while off, no star, menu nor tab, and the row shows
     /// the recent emojis alone (the file stays for when they come back).
     pub favorites_enabled: bool,
-    /// `AURORA_DEMO_FAVORITE_EMOJIS`: on for the run, whatever the switch.
+    /// `BLOCK_DEMO_FAVORITE_EMOJIS`: on for the run, whatever the switch.
     demo_favorites: bool,
     /// The row's place, given every frame by the app: above the chat
     /// fields, nearer the lines read (the human's choice, 2026-11-09);
@@ -149,7 +149,7 @@ impl Recent {
         let favorites = read(&folder.join(FAVORITES_FILE), MAX_FAVORITES);
         let (writer, writes) = crossbeam_channel::unbounded::<(&'static str, Vec<char>)>();
         let id = WRITER.fetch_add(1, Ordering::Relaxed);
-        let spawned = std::thread::Builder::new().name("aurora-recent-emojis".into()).spawn(move || {
+        let spawned = std::thread::Builder::new().name("block-recent-emojis".into()).spawn(move || {
             for (file, list) in writes {
                 if let Err(error) = write(&folder.join(file), &list, id) {
                     log::warn!("Cannot save the recent emojis: {error}");
@@ -193,14 +193,14 @@ impl Recent {
         let _ = thread.join();
     }
 
-    /// `AURORA_DEMO_RECENT_EMOJIS`: `text`'s emojis, for the run.
+    /// `BLOCK_DEMO_RECENT_EMOJIS`: `text`'s emojis, for the run.
     pub fn demo(text: &str) -> Recent {
         let mut recent = Recent::default();
         remember(&mut recent.list, text);
         recent
     }
 
-    /// `AURORA_DEMO_FAVORITE_EMOJIS`: `text`'s emojis as the favourites.
+    /// `BLOCK_DEMO_FAVORITE_EMOJIS`: `text`'s emojis as the favourites.
     pub fn demo_favorites(&mut self, text: &str) {
         remember(&mut self.favorites, text);
         self.demo_favorites = true;
@@ -414,7 +414,7 @@ mod tests {
 
     #[test]
     fn the_list_comes_back_from_its_file() {
-        let folder = std::env::temp_dir().join(format!("aurora-recent-emojis-{}", std::process::id()));
+        let folder = std::env::temp_dir().join(format!("block-recent-emojis-{}", std::process::id()));
         let path = folder.join(FILE);
         write(&path, &['😂', '👍'], 0).expect("written");
         assert_eq!(read(&path, MAX), ['😂', '👍']);
@@ -426,7 +426,7 @@ mod tests {
     /// files once `finish` returns, written by the thread.
     #[test]
     fn the_last_list_is_written_before_the_viewer_ends() {
-        let folder = std::env::temp_dir().join(format!("aurora-recent-emojis-finish-{}", std::process::id()));
+        let folder = std::env::temp_dir().join(format!("block-recent-emojis-finish-{}", std::process::id()));
         let path = folder.join(FILE);
         let mut recent = Recent::load(folder.clone());
         recent.note("bye 👋");
@@ -519,7 +519,7 @@ mod tests {
         }
         assert_eq!(recent.favorites.len(), MAX_FAVORITES);
         assert_eq!(recent.favorites.first(), chars.last());
-        let folder = std::env::temp_dir().join(format!("aurora-favorite-emojis-{}", std::process::id()));
+        let folder = std::env::temp_dir().join(format!("block-favorite-emojis-{}", std::process::id()));
         write(&folder.join(FAVORITES_FILE), &['⏱', '😂'], 0).expect("written");
         assert_eq!(Recent::load(folder.clone()).favorites, ['⏱', '😂']);
         let _ = std::fs::remove_dir_all(&folder);

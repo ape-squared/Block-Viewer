@@ -1,4 +1,4 @@
-//! The classifieds of the demo residents and ours (AURORA_DEMO_PROFILE):
+//! The classifieds of the demo residents and ours (BLOCK_DEMO_PROFILE):
 //! the simulator's side of avatarclassifiedsrequest, ClassifiedInfoRequest,
 //! ClassifiedInfoUpdate, ClassifiedDelete and the click statistics. Ours are
 //! kept for the run; a new one is published as on the grid, its price taken
@@ -25,8 +25,8 @@ fn seed() -> Vec<ClassifiedInfo> {
             category: 2,
             name: block_i18n::tr!("demo-wolf-s-workshop-mesh-furniture").into(),
             desc: block_i18n::tr!("demo-lightweight-mesh-furniture-copyable-and-modifiable-come-visit-the").into(),
-            sim_name: block_i18n::tr!("common-aurora-demo").into(),
-            parcel_name: block_i18n::tr!("common-aurora-plaza").into(),
+            sim_name: block_i18n::tr!("common-block-demo").into(),
+            parcel_name: block_i18n::tr!("common-block-plaza").into(),
             pos_global: at(128.0, 128.0, 30.0),
             flags: classified_flags::AUTO_RENEW,
             price: 50,
@@ -55,8 +55,8 @@ fn seed() -> Vec<ClassifiedInfo> {
             category: 3,
             name: block_i18n::tr!("demo-chalets-for-rent").into(),
             desc: block_i18n::tr!("demo-chalets-for-rent-desc").into(),
-            sim_name: block_i18n::tr!("common-aurora-demo").into(),
-            parcel_name: block_i18n::tr!("common-aurora-plaza").into(),
+            sim_name: block_i18n::tr!("common-block-demo").into(),
+            parcel_name: block_i18n::tr!("common-block-plaza").into(),
             pos_global: at(40.0, 210.0, 58.0),
             flags: 0,
             price: 50,

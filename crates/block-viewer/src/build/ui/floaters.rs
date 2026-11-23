@@ -102,7 +102,7 @@ pub(super) fn ruler_controls(ui: &mut egui::Ui, p: &Palette, s: &mut BuildSettin
     });
 }
 
-/// Aurora: the size of the edit handles, in percent of the Legacy Viewer's
+/// Block: the size of the edit handles, in percent of the Legacy Viewer's
 /// fixed screen sizes (#1328).
 pub(super) fn handle_controls(ui: &mut egui::Ui, p: &Palette, s: &mut BuildSettings) {
     ui.spacing_mut().slider_width = (ui.available_width() - 80.0).clamp(40.0, 170.0);

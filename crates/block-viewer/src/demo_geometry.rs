@@ -1,9 +1,9 @@
-//! AURORA_DEMO_GEOMETRY=<mb>[,<mb per second>]: geometry load test. As when
+//! BLOCK_DEMO_GEOMETRY=<mb>[,<mb per second>]: geometry load test. As when
 //! a crowded region arrives, meshes keep entering the geometry arena until
 //! it holds `mb` megabytes of them (vertices and indices), at 25 MB a
 //! second unless told otherwise (KB: about 22 MB a second for 35
 //! s). The arena outgrows its buffers several times on the way: read the
-//! `vertex arena grown to` lines of the log and, with AURORA_PROFILE=1,
+//! `vertex arena grown to` lines of the log and, with BLOCK_PROFILE=1,
 //! `frame_max`, `r_acquire` and `r_resources` in `max:` around them. The
 //! meshes are not drawn: only the arena's growth is measured, in the frames
 //! of the ordinary demo.
@@ -44,7 +44,7 @@ fn parse(value: &str) -> (f64, f64) {
 
 impl GeometryDemo {
     pub fn from_env() -> Option<Self> {
-        let (total, rate) = parse(&std::env::var("AURORA_DEMO_GEOMETRY").ok()?);
+        let (total, rate) = parse(&std::env::var("BLOCK_DEMO_GEOMETRY").ok()?);
         Some(GeometryDemo {
             total: (total * MB) as u64,
             rate: rate * MB,

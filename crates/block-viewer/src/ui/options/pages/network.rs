@@ -39,7 +39,7 @@ pub fn page(cx: &mut Cx) {
                 .changed()
             },
         );
-        // Aurora's own: the adaptive pace by default, the Legacy Viewer's
+        // Block's own: the adaptive pace by default, the Legacy Viewer's
         // bounded connections when asked, and always for an adapter known to
         // drop under the adaptive pace (net_adapters.rs, #1545)
         let detected = crate::net_adapters::detected();
@@ -199,7 +199,7 @@ pub fn page(cx: &mut Cx) {
     cx.group(tr!("ui-options-logs-and-tools"), |cx| {
         cx.row(
             tr!("ui-options-session-log"),
-            tr!("ui-options-aurora-log-previous-session-aurora-previous-log"),
+            tr!("ui-options-block-log-previous-session-block-previous-log"),
             &Nothing,
             |ui, _| {
                 if action_button(

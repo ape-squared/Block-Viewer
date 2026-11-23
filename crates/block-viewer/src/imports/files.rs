@@ -943,7 +943,7 @@ mod tests {
 
     #[test]
     fn material_file_and_folder_imports_keep_more_than_256_files_and_512_entries() {
-        let root = std::env::temp_dir().join(format!("aurora-material-batch-{}", Uuid::new_v4()));
+        let root = std::env::temp_dir().join(format!("block-material-batch-{}", Uuid::new_v4()));
         std::fs::create_dir_all(&root).unwrap();
         let paths: Vec<_> = (0..257)
             .map(|index| {
@@ -977,7 +977,7 @@ mod tests {
 
     #[test]
     fn oversized_external_resource_is_rejected_before_reading_with_measured_size() {
-        let path = std::env::temp_dir().join(format!("aurora-gltf-external-{}.bin", Uuid::new_v4()));
+        let path = std::env::temp_dir().join(format!("block-gltf-external-{}.bin", Uuid::new_v4()));
         let bytes = block_assets::import_gltf::MAX_EXTERNAL_BYTES + 1;
         // A sparse file exercises the metadata guard without a multi-GiB allocation.
         let file = File::create(&path).unwrap();
@@ -1003,9 +1003,9 @@ mod tests {
     }
 
     #[test]
-    #[ignore = "loads the large local material fixture named by AURORA_DEMO_IMPORT_FILE"]
+    #[ignore = "loads the large local material fixture named by BLOCK_DEMO_IMPORT_FILE"]
     fn large_material_fixture_passes_the_ordinary_file_import() {
-        let path = PathBuf::from(std::env::var_os("AURORA_DEMO_IMPORT_FILE").expect("local material fixture"));
+        let path = PathBuf::from(std::env::var_os("BLOCK_DEMO_IMPORT_FILE").expect("local material fixture"));
         let prefs = Preferences::default();
         let started = std::time::Instant::now();
         let entries = load_paths(vec![path], Choice::Material, prefs.texture(), 30, &prefs, false, [true; 5]);
@@ -1030,10 +1030,10 @@ mod tests {
 
     #[test]
     fn add_files_gltf_respects_material_and_mesh_choices_and_explicit_windows() {
-        let root = std::env::temp_dir().join(format!("aurora-file-types-{}", Uuid::new_v4()));
+        let root = std::env::temp_dir().join(format!("block-file-types-{}", Uuid::new_v4()));
         std::fs::create_dir_all(&root).unwrap();
         let path = root.join("preview.glb");
-        std::fs::write(&path, include_bytes!("../../../../assets/models/aurora-3d.glb")).unwrap();
+        std::fs::write(&path, include_bytes!("../../../../assets/models/block-3d.glb")).unwrap();
         let prefs = Preferences::default();
         for (material, mesh) in [(true, false), (false, true), (true, true), (false, false)] {
             let mut filters = [true; 5];
@@ -1057,10 +1057,10 @@ mod tests {
 
     #[test]
     fn batch_loads_collada_and_detects_glb_meshes_without_changing_material_extraction() {
-        let root = std::env::temp_dir().join(format!("aurora-batch-{}", Uuid::new_v4()));
+        let root = std::env::temp_dir().join(format!("block-batch-{}", Uuid::new_v4()));
         super::super::demo::fixtures(&root).expect("fixtures");
-        let model = root.join("aurora-3d.glb");
-        std::fs::write(&model, include_bytes!("../../../../assets/models/aurora-3d.glb")).expect("GLB fixture");
+        let model = root.join("block-3d.glb");
+        std::fs::write(&model, include_bytes!("../../../../assets/models/block-3d.glb")).expect("GLB fixture");
         let prefs = Preferences::default();
         for (path, kind) in [
             (root.join("mesh-demo.dae"), Kind::Mesh),
@@ -1080,9 +1080,9 @@ mod tests {
     }
 
     #[test]
-    #[ignore = "requires AURORA_IMPORT_TEST_DIR local asset fixtures"]
+    #[ignore = "requires BLOCK_IMPORT_TEST_DIR local asset fixtures"]
     fn local_asset_directory_loads_and_prepares_supported_files() {
-        let root = PathBuf::from(std::env::var_os("AURORA_IMPORT_TEST_DIR").expect("fixture directory"));
+        let root = PathBuf::from(std::env::var_os("BLOCK_IMPORT_TEST_DIR").expect("fixture directory"));
         let prefs = Preferences {
             mesh_suffixes: ["lowest".into(), "low".into(), "medium".into(), "high".into(), "physics".into()],
             ..Default::default()
@@ -1194,7 +1194,7 @@ mod tests {
     struct Files(PathBuf);
     impl Files {
         fn new() -> Self {
-            let root = std::env::temp_dir().join(format!("aurora-import-files-{}", Uuid::new_v4()));
+            let root = std::env::temp_dir().join(format!("block-import-files-{}", Uuid::new_v4()));
             super::super::demo::fixtures(&root).expect("fixtures");
             Self(root)
         }

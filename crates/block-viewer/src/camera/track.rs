@@ -2,7 +2,7 @@
 //! how it is turned, its lens) laid on a timeline, and the path the camera
 //! flies between them when the track plays.
 //!
-//! Aurora's own: the Legacy Viewer has no camera path tool. A keyframe keeps
+//! Block's own: the Legacy Viewer has no camera path tool. A keyframe keeps
 //! the pose of its flycam as it is (LLViewerJoystick::moveFlycam,
 //! indra/newview/llviewerjoystick.cpp: a position, a full rotation and a
 //! view angle), so a view taken from any camera (alt-camera, free camera,

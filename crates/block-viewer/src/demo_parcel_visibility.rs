@@ -30,7 +30,7 @@ pub fn parcel_at(x: f32, y: f32) -> Arc<ParcelInfo> {
         bitmap,
         ..Default::default()
     };
-    if let Ok(mode) = std::env::var("AURORA_DEMO_PARCEL_VISIBILITY")
+    if let Ok(mode) = std::env::var("BLOCK_DEMO_PARCEL_VISIBILITY")
         && matches!(mode.as_str(), "same-group" | "group-owned-current")
         && north
     {
@@ -60,7 +60,7 @@ pub fn install(world: &mut World, settings: &mut crate::settings::Settings, mode
     {
         Arc::make_mut(info).region_id = Uuid::from_u128(0x946);
     }
-    let (x, y) = std::env::var("AURORA_DEMO_POS")
+    let (x, y) = std::env::var("BLOCK_DEMO_POS")
         .ok()
         .and_then(|value| {
             let (x, y) = value.split_once(',')?;

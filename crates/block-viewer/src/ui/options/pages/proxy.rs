@@ -206,7 +206,7 @@ pub fn group(cx: &mut Cx) {
                 changed
             },
         );
-        // Aurora's own: voice and media do not go through the proxy
+        // Block's own: voice and media do not go through the proxy
         cx.greyed(!cx.s.proxy.any_proxy());
         cx.keywords("proxy voice webrtc");
         direct_row(

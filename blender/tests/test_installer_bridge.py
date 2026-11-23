@@ -22,7 +22,7 @@ args = parser.parse_args()
 root = args.work.resolve()
 root.mkdir(parents=True, exist_ok=False)
 bridge = Path(__file__).resolve().parents[1] / "install_bridge.py"
-version = re.search(r'^version = "([^"]+)"', (bridge.parent / "aurora_live/blender_manifest.toml").read_text(), re.MULTILINE).group(1)
+version = re.search(r'^version = "([^"]+)"', (bridge.parent / "block_live/blender_manifest.toml").read_text(), re.MULTILINE).group(1)
 major, minor, patch = map(int, version.split("."))
 previous = ".".join(map(str, (major, minor, patch - 1) if patch else
                         (major, minor - 1, 0) if minor else (major - 1, 0, 0)))
@@ -84,9 +84,9 @@ from pathlib import Path
 assert Path(bpy.utils.user_resource('CONFIG')).resolve() == Path(os.environ['BLENDER_USER_CONFIG']).resolve()
 addons = Path(bpy.utils.user_resource('SCRIPTS', create=True)) / 'addons'
 addons.mkdir(parents=True, exist_ok=True)
-(addons / 'aurora_installer_test_guard.py').write_text('bl_info={"name":"Installer test guard","blender":(2,93,0)}\\ndef register(): pass\\ndef unregister(): pass\\n')
+(addons / 'block_installer_test_guard.py').write_text('bl_info={"name":"Installer test guard","blender":(2,93,0)}\\ndef register(): pass\\ndef unregister(): pass\\n')
 bpy.utils.refresh_script_paths()
-assert bpy.ops.preferences.addon_enable(module='aurora_installer_test_guard') == {'FINISHED'}
+assert bpy.ops.preferences.addon_enable(module='block_installer_test_guard') == {'FINISHED'}
 bpy.context.preferences.inputs.use_emulate_numpad = True
 assert bpy.ops.wm.save_userpref() == {'FINISHED'}
 ''')
@@ -96,17 +96,17 @@ older_zip(args.legacy_zip, old_legacy)
 old = invoke("install", previous, old_extension, old_legacy)
 assert old["enabled"] and old["plugin_version"] == previous
 marker = Path(old["target"]) / "previous-marker.txt"
-marker.write_text("previous Aurora package", encoding="utf-8")
+marker.write_text("previous Block package", encoding="utf-8")
 updated = invoke("install")
 assert updated["enabled"] and updated["plugin_version"] == version
 backup = Path(updated["backup"])
-assert (backup / "package/previous-marker.txt").read_text() == "previous Aurora package"
+assert (backup / "package/previous-marker.txt").read_text() == "previous Block package"
 assert (backup / "userpref.blend").is_file()
 assert invoke("probe")["enabled"], "activation persists across Blender restarts"
 
 script('''
 import bpy
-module = 'aurora_live' if bpy.app.version < (4, 2, 0) else 'bl_ext.user_default.aurora_live_mesh'
+module = 'block_live' if bpy.app.version < (4, 2, 0) else 'bl_ext.user_default.block_live_mesh'
 assert bpy.ops.preferences.addon_disable(module=module) == {'FINISHED'}
 assert bpy.ops.wm.save_userpref() == {'FINISHED'}
 ''')
@@ -146,21 +146,21 @@ if initial["version"] >= [4, 2, 0]:
 import bpy
 import shutil
 from pathlib import Path
-assert bpy.ops.preferences.addon_disable(module='bl_ext.user_default.aurora_live_mesh') == {'FINISHED'}
+assert bpy.ops.preferences.addon_disable(module='bl_ext.user_default.block_live_mesh') == {'FINISHED'}
 repo = next(r for r in bpy.context.preferences.extensions.repos if r.module == 'user_default')
-shutil.rmtree(Path(repo.directory) / 'aurora_live_mesh')
+shutil.rmtree(Path(repo.directory) / 'block_live_mesh')
 assert bpy.ops.preferences.addon_install(filepath=LEGACY_ZIP, overwrite=True) == {'FINISHED'}
-assert bpy.ops.preferences.addon_enable(module='aurora_live') == {'FINISHED'}
+assert bpy.ops.preferences.addon_enable(module='block_live') == {'FINISHED'}
 assert bpy.ops.wm.save_userpref() == {'FINISHED'}
 '''.replace('LEGACY_ZIP', repr(str(old_legacy))))
     assert invoke("probe")["plugin_version"] == previous
     assert invoke("install")["enabled"]
 script('''
 import bpy
-assert 'aurora_installer_test_guard' in bpy.context.preferences.addons
+assert 'block_installer_test_guard' in bpy.context.preferences.addons
 assert bpy.context.preferences.inputs.use_emulate_numpad
-assert 'aurora_live' in bpy.context.preferences.addons or any(k.endswith('.aurora_live_mesh') for k in bpy.context.preferences.addons.keys())
+assert 'block_live' in bpy.context.preferences.addons or any(k.endswith('.block_live_mesh') for k in bpy.context.preferences.addons.keys())
 if bpy.app.version >= (4, 2, 0):
-    assert 'aurora_live' not in bpy.context.preferences.addons, 'classic and extension must not be enabled together'
+    assert 'block_live' not in bpy.context.preferences.addons, 'classic and extension must not be enabled together'
 ''')
 print("PASS native installer", initial["version"], "fresh install, upgrade, enable, backup, rollback, downgrade refusal, unrelated preferences, classic migration")

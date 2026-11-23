@@ -1,4 +1,4 @@
-//! Login sidebar: start destinations (Legacy-style), without Aurora news.
+//! Login sidebar: start destinations (Legacy-style), without Block news.
 
 use crate::login_favorites::Favorite;
 use crate::theme::Palette;
@@ -12,7 +12,7 @@ const DESTINATIONS: &[(&str, &str, &str)] = &[
     ("region", "map-pin-filled", "ui-login-region"),
 ];
 
-/// Right-hand login card: start destinations (replaces Aurora news).
+/// Right-hand login card: start destinations (replaces Block news).
 pub fn panel(
     ui: &mut egui::Ui,
     p: &Palette,

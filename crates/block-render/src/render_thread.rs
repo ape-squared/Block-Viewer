@@ -18,7 +18,7 @@
 //! owner ends with [`WorkerGone`]; when the owner closes or is dropped, the
 //! worker's wait ends and it leaves its loop.
 //!
-//! AURORA_RENDER_THREAD=0 keeps the renderer on the main thread
+//! BLOCK_RENDER_THREAD=0 keeps the renderer on the main thread
 //! ([`Host::Inline`]): the same packet, executed in place.
 
 use crate::packet::{FramePacket, FrameResult};
@@ -270,7 +270,7 @@ pub(crate) type KeepAlive = Arc<dyn std::any::Any + Send + Sync>;
 /// Where the backend runs. The backend drops before its keep-alive
 /// (field order).
 pub(crate) enum Host {
-    /// On the calling thread (AURORA_RENDER_THREAD=0).
+    /// On the calling thread (BLOCK_RENDER_THREAD=0).
     Inline(
         Box<Backend>,
         // only held, to drop after the backend
@@ -283,7 +283,7 @@ pub(crate) enum Host {
     },
 }
 
-/// AURORA_RENDER_THREAD=0 turns the render thread off (comparison,
+/// BLOCK_RENDER_THREAD=0 turns the render thread off (comparison,
 /// debugging); anything else, or nothing, leaves it on.
 pub(crate) fn thread_wanted(var: Option<&str>) -> bool {
     !matches!(var.map(str::trim), Some("0" | "off" | "false" | "no"))
@@ -360,7 +360,7 @@ impl Drop for Host {
     }
 }
 
-/// `AURORA_DEMO_GPU_STALL=<frame>[:<seconds>]`, with `AURORA_DEMO` only: the
+/// `BLOCK_DEMO_GPU_STALL=<frame>[:<seconds>]`, with `BLOCK_DEMO` only: the
 /// render thread holds that frame as a GPU that stopped answering would
 /// (30 s by default), to show what the window does meanwhile.
 fn demo_stall(demo: bool, var: Option<&str>) -> Option<(u64, Duration)> {
@@ -377,8 +377,8 @@ fn demo_stall(demo: bool, var: Option<&str>) -> Option<(u64, Duration)> {
 /// The render thread's loop; returns the backend when the owner closes.
 fn run(mut backend: Backend, worker: Worker<Job, Done>) -> Backend {
     let stall = demo_stall(
-        std::env::var_os("AURORA_DEMO").is_some(),
-        std::env::var("AURORA_DEMO_GPU_STALL").ok().as_deref(),
+        std::env::var_os("BLOCK_DEMO").is_some(),
+        std::env::var("BLOCK_DEMO_GPU_STALL").ok().as_deref(),
     );
     while let Some((job, idle)) = worker.next() {
         crate::frame_priority::apply();
@@ -391,7 +391,7 @@ fn run(mut backend: Backend, worker: Worker<Job, Done>) -> Backend {
                 if let Some((frame, hold)) = stall
                     && packet.index == frame
                 {
-                    log::warn!("AURORA_DEMO_GPU_STALL: frame {frame} held {hold:?}");
+                    log::warn!("BLOCK_DEMO_GPU_STALL: frame {frame} held {hold:?}");
                     std::thread::sleep(hold);
                 }
                 let t = Instant::now();

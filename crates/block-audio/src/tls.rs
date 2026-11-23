@@ -4,7 +4,7 @@
 //! The Legacy Viewer hands the stream URL to FMOD::System::createStream
 //! (LLStreamingAudio_FMODSTUDIO::startInternetStream,
 //! indra/llaudio/llstreamingaudio_fmodstudio.cpp) and makes no certificate
-//! check of its own. Aurora checks the certificate with the platform verifier
+//! check of its own. Block checks the certificate with the platform verifier
 //! (#1628) and, instead of refusing a station whose certificate is expired,
 //! self-signed or for another name, plays it and reports the problem
 //! (`CertificateIssue`), so the resident knows the connection is not secure.

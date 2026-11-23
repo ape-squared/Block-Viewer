@@ -12,7 +12,7 @@
 //! some (`ObjGpu::special`).
 //!
 //! The CPU path (all lists built by `Scene::build_lists`) remains when the
-//! device lacks `MULTI_DRAW_INDIRECT_COUNT`, and with AURORA_CPU_CULL=1.
+//! device lacks `MULTI_DRAW_INDIRECT_COUNT`, and with BLOCK_CPU_CULL=1.
 //!
 //! Two owners: the tables are the scene's, kept by the main thread
 //! ([`GpuTable`], [`CullTables`]) and written through the frame's journal;
@@ -171,10 +171,10 @@ pub mod frame_flags {
     pub const PROBE: u32 = 16;
     pub const OCCLUSION: u32 = 32;
     /// Count the casters' triangles and the rigged casters of each cascade
-    /// (AURORA_PROFILE).
+    /// (BLOCK_PROFILE).
     pub const SHADOW_STATS: u32 = 64;
     /// Every caster drawn with the alpha test, none depth only
-    /// (AURORA_SHADOW_LEGACY).
+    /// (BLOCK_SHADOW_LEGACY).
     pub const SHADOW_ALPHA_ALL: u32 = 128;
     /// The shadow map of the probe being captured is drawn this frame.
     pub const PROBE_SHADOW: u32 = 256;
@@ -665,7 +665,7 @@ pub fn workgroup_ranks(masks: &[u32]) -> Vec<[u32; BINS]> {
 /// ranges along; neighbouring chunks are still uploaded in one write.
 pub(crate) const CHUNK: usize = 64;
 
-/// AURORA_SYNC_SLICE: whole chunks are uploaded, as before the uploads
+/// BLOCK_SYNC_SLICE: whole chunks are uploaded, as before the uploads
 /// were cut to the changed elements (comparison).
 static WHOLE_CHUNKS: std::sync::atomic::AtomicBool = std::sync::atomic::AtomicBool::new(false);
 
@@ -1007,10 +1007,10 @@ pub struct GpuCull {
 
 impl GpuCull {
     /// The GPU lists need indirect draw counts and enough storage buffers;
-    /// AURORA_CPU_CULL=1 keeps the CPU lists (comparison).
+    /// BLOCK_CPU_CULL=1 keeps the CPU lists (comparison).
     pub fn supported(device: &wgpu::Device) -> bool {
         static FORCE_CPU: std::sync::OnceLock<bool> = std::sync::OnceLock::new();
-        let force_cpu = *FORCE_CPU.get_or_init(|| std::env::var_os("AURORA_CPU_CULL").is_some_and(|v| v != "0"));
+        let force_cpu = *FORCE_CPU.get_or_init(|| std::env::var_os("BLOCK_CPU_CULL").is_some_and(|v| v != "0"));
         !force_cpu
             && device.features().contains(wgpu::Features::MULTI_DRAW_INDIRECT_COUNT)
             && device.limits().max_storage_buffers_per_shader_stage >= 8
@@ -1981,7 +1981,7 @@ mod tests {
             (1 | shadows | 1 << BIN_REFL_WATER, true)
         );
         // blended: the CPU draws it; a caster with the alpha test, rigged or
-        // not (renderAlphaObjects), unless AURORA_BLEND_SHADOWS=0
+        // not (renderAlphaObjects), unless BLOCK_BLEND_SHADOWS=0
         let mut blend = frame;
         blend.sizes[3] |= frame_flags::BLEND_CASTS;
         assert_eq!(face_bins(&blend, &faces, &objects, &spheres, 1), (0b111 << BIN_SHADOW_ALPHA, true));
@@ -2200,12 +2200,12 @@ mod tests {
         assert!(cull.args().size() <= device.limits().max_storage_buffer_binding_size);
     }
 
-    /// Run in its own process with AURORA_GPU_OOM=0: only our fallible
+    /// Run in its own process with BLOCK_GPU_OOM=0: only our fallible
     /// growth allocations are refused, after the working buffers exist.
     #[test]
     #[ignore]
     fn gpu_cull_growth_keeps_working_buffers_after_oom() {
-        assert_eq!(std::env::var("AURORA_GPU_OOM").as_deref(), Ok("0"), "run with AURORA_GPU_OOM=0");
+        assert_eq!(std::env::var("BLOCK_GPU_OOM").as_deref(), Ok("0"), "run with BLOCK_GPU_OOM=0");
         let _gpu = crate::test_gpu::lock();
         let mut desc = wgpu::InstanceDescriptor::new_without_display_handle();
         desc.backends = wgpu::Backends::VULKAN;

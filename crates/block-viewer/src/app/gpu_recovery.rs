@@ -41,20 +41,20 @@ impl App {
     /// caller has settled them.
     pub(super) fn open_renderer(&mut self, window: &Arc<Window>) -> Result<Renderer, block_render::RenderError> {
         let size = window.inner_size();
-        if std::env::var_os("AURORA_NOVSYNC").is_some() {
+        if std::env::var_os("BLOCK_NOVSYNC").is_some() {
             self.settings.vsync = false;
         }
-        // the GPU of Preferences › Graphics; AURORA_GPU=<number|name|auto>
+        // the GPU of Preferences › Graphics; BLOCK_GPU=<number|name|auto>
         // overrides it for this launch (adapter_choice.rs)
-        let gpu = std::env::var("AURORA_GPU").unwrap_or_else(|_| self.settings.gpu_adapter.clone());
+        let gpu = std::env::var("BLOCK_GPU").unwrap_or_else(|_| self.settings.gpu_adapter.clone());
         // the pipelines the driver compiled at the earlier starts, kept in
         // the cache folder (block-render's pipeline_cache.rs)
         block_render::pipeline_cache::configure(crate::settings::cache_dir().join("pipelines"), block_version::version());
-        // AURORA_GPU_START_FAIL=1: as if no card could draw, to see the
+        // BLOCK_GPU_START_FAIL=1: as if no card could draw, to see the
         // message the user gets then (graphics_start.rs); `lost` is read by
         // the renderer, which gets as far as a real device loss does
-        if std::env::var("AURORA_GPU_START_FAIL").is_ok_and(|mode| mode != "lost") {
-            return Err(block_render::RenderError::NoAdapter("AURORA_GPU_START_FAIL".into()));
+        if std::env::var("BLOCK_GPU_START_FAIL").is_ok_and(|mode| mode != "lost") {
+            return Err(block_render::RenderError::NoAdapter("BLOCK_GPU_START_FAIL".into()));
         }
         // the VR runtime only when VR is wanted from the start: `--vr` (the
         // restart the VR button offers) or Preferences › Camera › VR (#2309);
@@ -126,7 +126,7 @@ pub(super) fn loss_step(history: &mut std::collections::VecDeque<Instant>, now: 
 }
 
 /// Whether a device loss recovers instead of closing: Preferences › Graphics
-/// (`gpu_recovery`, on by default), unless `AURORA_GPU_RECOVERY` forces it
+/// (`gpu_recovery`, on by default), unless `BLOCK_GPU_RECOVERY` forces it
 /// for the launch. Most losses of a card shared with another program are a
 /// driver reset of the whole card, which the other programs survive by
 /// making their device again (#2237).
@@ -141,11 +141,11 @@ pub(super) fn shadow_kept() -> bool {
     forced() != Some(false)
 }
 
-/// `AURORA_GPU_RECOVERY`: `1` on, `0` off, whatever the setting.
+/// `BLOCK_GPU_RECOVERY`: `1` on, `0` off, whatever the setting.
 fn forced() -> Option<bool> {
     // read every frame: once per run
     static FORCED: std::sync::OnceLock<Option<bool>> = std::sync::OnceLock::new();
-    *FORCED.get_or_init(|| parse_forced(std::env::var("AURORA_GPU_RECOVERY").ok().as_deref()))
+    *FORCED.get_or_init(|| parse_forced(std::env::var("BLOCK_GPU_RECOVERY").ok().as_deref()))
 }
 
 fn parse_forced(value: Option<&str>) -> Option<bool> {
@@ -192,7 +192,7 @@ impl App {
         self.republish_local_imports();
         self.wearable_ui.preview.gpu_reset();
         self.blender_live.gpu_reset(self.scene.textures.staging.as_deref());
-        // AURORA_DEMO_STREAM's textures arrive decoded, with no data the
+        // BLOCK_DEMO_STREAM's textures arrive decoded, with no data the
         // streamer could load them again from
         if let Some(demo) = &mut self.stream_demo {
             demo.gpu_reset();

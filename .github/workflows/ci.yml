@@ -68,7 +68,7 @@ jobs:
         if: steps.changes.outputs.code == 'true'
         with:
           name: lint
-      # Windows PowerShell 5.1, the one the Aurora tools run with
+      # Windows PowerShell 5.1, the one the Block tools run with
       - name: PowerShell scripts parse
         if: steps.changes.outputs.code == 'true' && github.event_name != 'push'
         shell: powershell
@@ -174,7 +174,7 @@ jobs:
 
   windows-runner:
     # The runner of the interface part below, in the merge queue only: the
-    # team's self-hosted runner (label aurora-mini, 10 cores, its build
+    # team's self-hosted runner (label block-mini, 10 cores, its build
     # folder kept between runs) when it is online and idle, GitHub's
     # otherwise, so that the queue never waits for a machine that is off.
     # Never on pull requests: they could run anyone's code on it. Listing
@@ -193,9 +193,9 @@ jobs:
         run: |
           runner='"windows-latest"'
           if [ -n "$GH_TOKEN" ] &&
-             free=$(gh api "repos/${{ github.repository }}/actions/runners" --jq '[.runners[] | select(.status == "online" and (.busy | not) and any(.labels[]; .name == "aurora-mini"))] | length') &&
+             free=$(gh api "repos/${{ github.repository }}/actions/runners" --jq '[.runners[] | select(.status == "online" and (.busy | not) and any(.labels[]; .name == "block-mini"))] | length') &&
              [ "$free" -gt 0 ]; then
-            runner='["self-hosted", "aurora-mini"]'
+            runner='["self-hosted", "block-mini"]'
           fi
           echo "interface: $runner"
           echo "interface=$runner" >> "$GITHUB_OUTPUT"
@@ -263,7 +263,7 @@ jobs:
         if: runner.environment == 'self-hosted'
         shell: pwsh
         run: |
-          "RUSTUP_HOME=$(Join-Path (Split-Path $env:RUNNER_WORKSPACE) 'aurora-rustup')" >> $env:GITHUB_ENV
+          "RUSTUP_HOME=$(Join-Path (Split-Path $env:RUNNER_WORKSPACE) 'block-rustup')" >> $env:GITHUB_ENV
       - name: Rust stable
         if: steps.changes.outputs.code == 'true' && (github.event_name != 'push' || matrix.part == 'interface')
         run: |
@@ -277,7 +277,7 @@ jobs:
         # GITHUB_ENV does not read
         shell: pwsh
         run: |
-          $target = Join-Path (Split-Path $env:RUNNER_WORKSPACE) 'aurora-target'
+          $target = Join-Path (Split-Path $env:RUNNER_WORKSPACE) 'block-target'
           $drive = Get-PSDrive (Split-Path $target -Qualifier).TrimEnd(':')
           if ($drive.Free -lt 40GB) {
             Write-Host "Less than 40 GB free: emptying $target"

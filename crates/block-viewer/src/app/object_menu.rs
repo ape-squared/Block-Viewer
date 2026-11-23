@@ -555,7 +555,7 @@ impl App {
         // MIN_STOP_DISTANCE 1 m, ARM_LENGTH 0.5 m, SCALE_FUDGE 1.5
         let stop = (1.5 * o.scale.max_element() + 0.5).max(1.0);
         let agent = &self.world.agent;
-        // in front of the object, at the avatar's height (Aurora's walk
+        // in front of the object, at the avatar's height (Block's walk
         // does not fly: flying or seated, it attaches from here)
         let mut spot = pos - (pos - agent.position).normalize_or_zero() * 0.5;
         spot.z = agent.position.z;

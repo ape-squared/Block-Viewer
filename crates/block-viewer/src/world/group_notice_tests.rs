@@ -210,7 +210,7 @@ fn turned_off_or_not_our_group_writes_no_line() {
 #[test]
 fn without_an_open_group_chat_the_line_goes_to_the_transcript_only() {
     use std::time::Duration;
-    let root = std::env::temp_dir().join(format!("aurora-group-notice-{}", Uuid::new_v4()));
+    let root = std::env::temp_dir().join(format!("block-group-notice-{}", Uuid::new_v4()));
     std::fs::create_dir_all(&root).expect("temp folder");
     let mut world = world();
     world.chat_log = chat_log::ChatLog::in_folder(root.clone());

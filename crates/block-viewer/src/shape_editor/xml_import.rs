@@ -121,7 +121,7 @@ impl Import {
         self.spawn(ctx, draft, None);
     }
 
-    /// Read `path` without the dialog (`AURORA_DEMO_SHAPE_XML`).
+    /// Read `path` without the dialog (`BLOCK_DEMO_SHAPE_XML`).
     pub fn start_file(&mut self, ctx: &egui::Context, draft: &Draft, path: std::path::PathBuf) {
         self.spawn(ctx, draft, Some(path));
     }
@@ -132,7 +132,7 @@ impl Import {
         }
         let (sender, receiver) = std::sync::mpsc::channel();
         let ctx = ctx.clone();
-        let spawned = std::thread::Builder::new().name("aurora-appearance-xml".into()).spawn(move || {
+        let spawned = std::thread::Builder::new().name("block-appearance-xml".into()).spawn(move || {
             let path = path.or_else(|| {
                 rfd::FileDialog::new()
                     .set_title(block_i18n::tr!("appearance-xml-import"))

@@ -2,7 +2,7 @@
 //! animation of our own avatar it starts or stops, and its own lens and time
 //! of day, each unset by default (the track's or the live value then).
 //!
-//! Aurora's own: the Legacy Viewer has no camera path tool. The animation is
+//! Block's own: the Legacy Viewer has no camera path tool. The animation is
 //! named by its inventory item, never by its asset: a track's file may be
 //! shared, and an animation's asset id is not shown nor written outside its
 //! item (AGENTS.md, creators' permissions). The lens and the time of day are

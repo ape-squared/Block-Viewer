@@ -1,4 +1,4 @@
-//! Directory of the demo (`AURORA_DEMO_SEARCH`): the answers of a simulator
+//! Directory of the demo (`BLOCK_DEMO_SEARCH`): the answers of a simulator
 //! to the queries of the search window, so each tab can be tried offline.
 //! People, groups, places, land for sale, events and classifieds are a few
 //! rows around the demo's residents, groups and parcels; a text containing
@@ -26,13 +26,13 @@ const EVENT: u32 = 5001;
 const EVENT_TIME: u32 = 1_791_475_200;
 
 /// When the demo events start: `EVENT_TIME`, or with
-/// `AURORA_DEMO_EVENT_TIMES=1` the next whole hour, so that they fall today
+/// `BLOCK_DEMO_EVENT_TIMES=1` the next whole hour, so that they fall today
 /// and tomorrow and cross midnight in SLT and in local time (#1754: a click
 /// on the clock switches every event time between the two).
 fn event_base() -> u32 {
     static BASE: std::sync::OnceLock<u32> = std::sync::OnceLock::new();
     *BASE.get_or_init(|| {
-        if std::env::var_os("AURORA_DEMO_EVENT_TIMES").is_none() {
+        if std::env::var_os("BLOCK_DEMO_EVENT_TIMES").is_none() {
             return EVENT_TIME;
         }
         let now = crate::ui::bars::clock::now_unix();
@@ -70,7 +70,7 @@ pub fn group_named(name: &str) -> bool {
 /// (name, members) of the demo groups; the first two are the demo's own.
 fn groups() -> Vec<(Uuid, String, i32)> {
     vec![
-        (DEMO_GROUP1, "Aurora Builders".to_owned(), 1248),
+        (DEMO_GROUP1, "Block Builders".to_owned(), 1248),
         (DEMO_GROUP2, block_i18n::tr!("demo-northern-wolves").to_owned(), 86),
         (id(GROUP, 3), "Nordheim Sailing Club".to_owned(), 412),
         (id(GROUP, 4), "Boreal Photographers".to_owned(), 2731),
@@ -81,7 +81,7 @@ fn groups() -> Vec<(Uuid, String, i32)> {
 
 /// (name, hour offset, flags) of the demo events.
 const EVENTS: [(&str, u32, u32); 6] = [
-    ("Aurora Jazz Night", 0, event_flags::NONE),
+    ("Block Jazz Night", 0, event_flags::NONE),
     ("Nordheim Regatta", 2, event_flags::NONE),
     ("Boreal Photo Walk", 5, event_flags::NONE),
     ("Pixel Boutique Fashion Show", 8, event_flags::MATURE),
@@ -96,7 +96,7 @@ fn classifieds() -> Vec<(String, i32)> {
         ("Pixel Boutique".to_owned(), 1200),
         ("Nordheim Rentals".to_owned(), 300),
         ("Boreal Lagoon Club".to_owned(), 75),
-        ("Aurora Skyboxes".to_owned(), 150),
+        ("Block Skyboxes".to_owned(), 150),
     ]
 }
 
@@ -267,7 +267,7 @@ pub fn reply(cmd: &NetCommand) -> Option<Vec<NetEvent>> {
                 date_utc: unix,
                 duration: 60 + 30 * i as u32,
                 cover: (i % 3 == 1).then_some(50),
-                sim_name: block_i18n::tr!("common-aurora-demo").to_owned(),
+                sim_name: block_i18n::tr!("common-block-demo").to_owned(),
                 global: position + DVec3::new(12.0 * i as f64, -8.0 * i as f64, 0.0),
                 flags,
             }))]
@@ -303,8 +303,8 @@ pub fn reply(cmd: &NetCommand) -> Option<Vec<NetEvent>> {
                 name,
                 desc: block_i18n::tr!("demo-lightweight-mesh-furniture-copyable-and-modifiable-come-visit-the").to_owned(),
                 snapshot: TEX_SNAPSHOT,
-                sim_name: block_i18n::tr!("common-aurora-demo").to_owned(),
-                parcel_name: block_i18n::tr!("common-aurora-plaza").to_owned(),
+                sim_name: block_i18n::tr!("common-block-demo").to_owned(),
+                parcel_name: block_i18n::tr!("common-block-plaza").to_owned(),
                 pos_global: position,
                 flags: 0,
                 price,
@@ -366,11 +366,11 @@ mod tests {
         let requests = [
             Request::People { text: "nova".into() },
             Request::Groups {
-                text: "aurora".into(),
+                text: "block".into(),
                 maturity: SIM_ACCESS_PG,
             },
             Request::Places {
-                text: "aurora".into(),
+                text: "block".into(),
                 ratings: all,
                 category: -1,
             },
@@ -388,7 +388,7 @@ mod tests {
                 category: 0,
             },
             Request::Classifieds {
-                text: "aurora".into(),
+                text: "block".into(),
                 ratings: all,
                 category: 0,
             },

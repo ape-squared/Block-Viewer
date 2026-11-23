@@ -1,6 +1,6 @@
 //! Live interface and text scaling without feeding the resized control back into its gesture.
 //! The Legacy Viewer defers resolution updates to LLFloaterPreference::apply
-//! (llfloaterpreference.cpp); Aurora keeps a physical reference while dragging.
+//! (llfloaterpreference.cpp); Block keeps a physical reference while dragging.
 
 use egui::{Event, Pos2, RawInput, Vec2};
 

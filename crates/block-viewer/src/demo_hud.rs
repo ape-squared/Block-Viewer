@@ -137,7 +137,7 @@ pub fn events() -> Vec<NetEvent> {
     vec![NetEvent::ObjectUpdates { handle: HANDLE, objects }]
 }
 
-/// AURORA_DEMO_HUDS=slide: one report moves and grows the card linked to the
+/// BLOCK_DEMO_HUDS=slide: one report moves and grows the card linked to the
 /// top-left HUD, as a script's llSetLinkPrimitiveParamsFast does; the viewer
 /// eases it there with the Legacy Viewer's 0.06 s damping (#3369). A linkset's
 /// root prim instead shows a report at once.
@@ -168,7 +168,7 @@ pub fn no_modify_events() -> Vec<NetEvent> {
     events
 }
 
-/// AURORA_DEMO_SOUND=hud: a linked HUD prim loops at the listener,
+/// BLOCK_DEMO_SOUND=hud: a linked HUD prim loops at the listener,
 /// independently of camera distance, as LLAudioSourceVO::update does.
 pub fn sound_events(sound: Uuid) -> Vec<NetEvent> {
     let mut events = events();

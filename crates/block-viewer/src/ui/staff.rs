@@ -1,12 +1,12 @@
 //! The staff's tag after their name in the windows (`world::staff`): the
-//! Aurora team's "Aurora Team" and Linden Lab's "Linden Lab", in the
+//! Block team's "Block Team" and Linden Lab's "Linden Lab", in the
 //! People lists, the chat and the profile, with the light of their mark
 //! over the profile's banner. The plate's tag (`nameplate/mark.rs`) with
 //! the windows' corners: the plates' night tint, the mark's moving border,
 //! its icon and its letters.
 
 use crate::theme::Palette;
-use crate::ui::nameplate::{aurora, mark::Look};
+use crate::ui::nameplate::{block, mark::Look};
 use crate::world::staff::Mark;
 use egui::text::{LayoutJob, LayoutSection};
 use egui::{Galley, Mesh, Pos2, Rect, Shape, Vec2};
@@ -29,7 +29,7 @@ fn time(ui: &egui::Ui) -> f32 {
     if !still {
         ui.ctx().request_repaint_after(std::time::Duration::from_millis(33));
     }
-    aurora::time(ui.input(|i| i.time), still)
+    block::time(ui.input(|i| i.time), still)
 }
 
 /// The light of a staff member's mark over their profile's banner, inside
@@ -98,7 +98,7 @@ impl Tag {
 
 /// Keep each animated letter in its own layout section. `LayoutJob::append`
 /// merges adjacent equal formats, which changes kerning and the measured
-/// width as the Aurora staff mark animates. Keeping the sections separate
+/// width as the Block staff mark animates. Keeping the sections separate
 /// preserves stable geometry for the chat row and nameplate.
 pub(crate) fn label_job(ctx: &egui::Context, p: &Palette, look: &Look, font: f32, t: f32) -> LayoutJob {
     let label = look.label();

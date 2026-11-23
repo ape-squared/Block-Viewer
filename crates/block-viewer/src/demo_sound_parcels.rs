@@ -1,4 +1,4 @@
-//! Offline parcel sound boundaries: AURORA_DEMO_SOUND=parcel-open|parcel-local|parcel-source.
+//! Offline parcel sound boundaries: BLOCK_DEMO_SOUND=parcel-open|parcel-local|parcel-source.
 
 use super::{DEMO_AGENT, HANDLE, prim};
 use block_net::{NetEvent, objects::AttachedSound, parcel_flags};

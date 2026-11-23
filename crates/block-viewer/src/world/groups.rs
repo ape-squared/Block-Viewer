@@ -281,7 +281,7 @@ fn line(from: String, text: String, kind: ChatKind, source: Uuid, time: SystemTi
 /// The presentation layout of a groups list given the member groups and a search filter.
 ///
 /// Shared rule across Contacts › Groups, People › Groups (Legacy look),
-/// and People › Groups (Aurora look):
+/// and People › Groups (Block look):
 /// - "None (no group tag)" stays visible while filtering whenever the resident
 ///   has at least one group (`count > 0`, like LLGroupList::refresh), so they
 ///   can always clear their active tag while searching (#2788).

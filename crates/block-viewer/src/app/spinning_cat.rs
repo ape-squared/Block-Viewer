@@ -26,7 +26,7 @@ pub(super) fn konami_key(code: KeyCode, logical: &winit::keyboard::Key) -> Key {
     }
 }
 
-/// `AURORA_DEMO_OIIA=<seconds>` (demo only): the show starts by itself,
+/// `BLOCK_DEMO_OIIA=<seconds>` (demo only): the show starts by itself,
 /// without its warning, from that second of its music, on the clock and
 /// without the video or its sound: for the screenshots.
 fn demo_start(value: &str) -> Option<f64> {
@@ -95,7 +95,7 @@ impl App {
     pub(super) fn spinning_cat_frame(&mut self, renderer: &mut block_render::Renderer, dt: f32) {
         if self.demo
             && self.frame_count == 300
-            && let Some(from) = std::env::var("AURORA_DEMO_OIIA").ok().as_deref().and_then(demo_start)
+            && let Some(from) = std::env::var("BLOCK_DEMO_OIIA").ok().as_deref().and_then(demo_start)
         {
             self.start_spinning_cat(Some(from));
         }

@@ -3,7 +3,7 @@
 //! The Legacy Viewer takes it as the system's, not a resident's
 //! (CHAT_SOURCE_SYSTEM for `from_id.isNull() || name == SYSTEM_FROM`,
 //! LLIMProcessing::processNewMessage, indra/newview/llimprocessing.cpp,
-//! originally LGPL 2.1). Aurora drew it as the line of a sender named
+//! originally LGPL 2.1). Block drew it as the line of a sender named
 //! "System", with its letter: it is now a notice of the nearby chat, like a
 //! teleport's.
 //!

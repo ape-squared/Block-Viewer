@@ -5,8 +5,8 @@
 //! window, the search results, the People window. One window, on the last
 //! group asked for.
 //!
-//! Two looks, chosen by the "Profiles" row of Preferences › Aurora:
-//! - Aurora: a header with the insignia over its blurred banner, the
+//! Two looks, chosen by the "Profiles" row of Preferences › Block:
+//! - Block: a header with the insignia over its blurred banner, the
 //!   group's identity, badges and actions, then tabs (`group_profile/`):
 //!   Home (charter, latest notices, members online, "Me in this group")
 //!   and Members (the list, read only for now);
@@ -53,21 +53,21 @@ const WINDOW: &str = "group_profile";
 /// Ask for the profile of a group from anywhere in the interface (a link, a
 /// name); the app opens it at the end of the frame.
 pub fn request_open(ctx: &egui::Context, id: Uuid) {
-    ctx.data_mut(|d| d.insert_temp(egui::Id::unique("aurora_open_group_profile"), id));
+    ctx.data_mut(|d| d.insert_temp(egui::Id::unique("block_open_group_profile"), id));
 }
 
 pub fn take_open_request(ctx: &egui::Context) -> Option<Uuid> {
-    ctx.data_mut(|d| d.remove_temp::<Uuid>(egui::Id::unique("aurora_open_group_profile")))
+    ctx.data_mut(|d| d.remove_temp::<Uuid>(egui::Id::unique("block_open_group_profile")))
 }
 
 /// Ask for the "Create a group" window (LLGroupActions::createGroup) from
 /// anywhere in the interface; the app opens it at the end of the frame.
 pub fn request_create(ctx: &egui::Context) {
-    ctx.data_mut(|d| d.insert_temp(egui::Id::unique("aurora_create_group"), true));
+    ctx.data_mut(|d| d.insert_temp(egui::Id::unique("block_create_group"), true));
 }
 
 pub fn take_create_request(ctx: &egui::Context) -> bool {
-    ctx.data_mut(|d| d.remove_temp::<bool>(egui::Id::unique("aurora_create_group")))
+    ctx.data_mut(|d| d.remove_temp::<bool>(egui::Id::unique("block_create_group")))
         .unwrap_or(false)
 }
 
@@ -170,7 +170,7 @@ pub enum GroupAction {
     ExperienceProfile(Uuid),
 }
 
-/// The tabs of the Aurora look.
+/// The tabs of the Block look.
 #[derive(Clone, Copy, PartialEq, Eq, Debug, Default)]
 pub enum Tab {
     #[default]
@@ -199,7 +199,7 @@ pub struct GroupProfileUi {
     open: bool,
     raise: bool,
     /// Frames left to scroll the classic window to the section of the tab a
-    /// `show_*` asked for (while the section unfolds; the Aurora window
+    /// `show_*` asked for (while the section unfolds; the Block window
     /// ignores it).
     reveal: u8,
     pub(super) tab: Tab,
@@ -225,7 +225,7 @@ pub struct GroupProfileUi {
 /// What the window draws with, besides the world.
 pub struct Env<'a> {
     pub avatar_pics: &'a HashMap<Uuid, egui::TextureHandle>,
-    /// "Profiles" of Preferences › Aurora set to the classic window.
+    /// "Profiles" of Preferences › Block set to the classic window.
     pub classic: bool,
     /// Seconds, for the pace of the picture requests.
     pub now: f64,
@@ -408,7 +408,7 @@ impl GroupProfileUi {
         self.invite.open(group, Vec::new());
     }
 
-    /// The Aurora look: the header, the tabs, the tab.
+    /// The Block look: the header, the tabs, the tab.
     fn aurora(&mut self, ui: &mut egui::Ui, c: &mut Ctx, env: &Env, v: &view::View, actions: &mut Vec<GroupAction>) {
         match view::header(ui, c, v, env, &mut self.tab, actions) {
             Some(view::Header::Join) => self.join(c.world, v.id),
@@ -623,7 +623,7 @@ impl GroupProfileUi {
 const REVEAL_FRAMES: u8 = 30;
 
 /// A part of the classic window's sections: the full width, `height` high,
-/// for a tab of the Aurora window drawn in a section.
+/// for a tab of the Block window drawn in a section.
 fn part(ui: &mut egui::Ui, height: f32) -> egui::Ui {
     let (rect, _) = ui.allocate_exact_size(Vec2::new(ui.available_width(), height), egui::Sense::hover());
     ui.new_child(

@@ -5,7 +5,7 @@ fn folder_glb_extracts_mesh_and_materials_with_independent_filters() {
     let fixture = Fixture::new();
     std::fs::write(
         fixture.0.join("preview.glb"),
-        include_bytes!("../../../../../../assets/models/aurora-3d.glb"),
+        include_bytes!("../../../../../../assets/models/block-3d.glb"),
     )
     .unwrap();
     let entries = fixture.load(&Preferences::default());
@@ -38,7 +38,7 @@ fn folder_glb_extracts_mesh_and_materials_with_independent_filters() {
 struct Fixture(PathBuf);
 impl Fixture {
     fn new() -> Self {
-        let root = std::env::temp_dir().join(format!("aurora-folder-lods-{}", Uuid::new_v4()));
+        let root = std::env::temp_dir().join(format!("block-folder-lods-{}", Uuid::new_v4()));
         std::fs::create_dir_all(&root).unwrap();
         Self(root)
     }

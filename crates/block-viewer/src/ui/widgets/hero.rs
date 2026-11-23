@@ -1,4 +1,4 @@
-//! The head of the Aurora profiles, avatars' and groups' alike (#1089): a
+//! The head of the Block profiles, avatars' and groups' alike (#1089): a
 //! banner as tall as what it holds, the picture on its left, who it is
 //! beside it and the actions on its right, centred on one line, the tabs
 //! along its bottom. Who it is is measured once laid out; the banner,

@@ -1,12 +1,12 @@
 //! Demo simulator for the small simulator features of #660, without a grid:
 //!
-//! - `AURORA_DEMO_FREEZE=<seconds>` (`1`: 30 s): at frame 660 Nova freezes
+//! - `BLOCK_DEMO_FREEZE=<seconds>` (`1`: 30 s): at frame 660 Nova freezes
 //!   the avatar (ViewerFrozenMessage and its AvatarFrozenDuration alert),
 //!   and releases it after that many seconds at 60 fps.
-//! - `AURORA_DEMO_SIM_CONSOLE=1`: the region gives the console
+//! - `BLOCK_DEMO_SIM_CONSOLE=1`: the region gives the console
 //!   (SimConsoleAsync) and answers `help`, `stats` and the rest; `open`
 //!   also opens it at frame 600 with `help` and `stats` typed.
-//! - `AURORA_DEMO_VOICE_MODERATION=1`: the avatar manages the estate, whose
+//! - `BLOCK_DEMO_VOICE_MODERATION=1`: the avatar manages the estate, whose
 //!   voice channel the parcel uses, so the voice row of a resident's menu
 //!   offers the moderator's entries; the demo applies them. `self`: a
 //!   moderator mutes us at frame 700 and lets us speak again at 1300.
@@ -21,10 +21,10 @@ use uuid::Uuid;
 /// The frame the demo freezes the avatar.
 const FREEZE_FRAME: u64 = 660;
 
-/// AURORA_DEMO_FREEZE: how long the freeze lasts, in seconds.
+/// BLOCK_DEMO_FREEZE: how long the freeze lasts, in seconds.
 fn freeze_seconds() -> Option<i32> {
     static SECONDS: OnceLock<Option<i32>> = OnceLock::new();
-    *SECONDS.get_or_init(|| match std::env::var("AURORA_DEMO_FREEZE").ok()?.trim() {
+    *SECONDS.get_or_init(|| match std::env::var("BLOCK_DEMO_FREEZE").ok()?.trim() {
         "" | "0" => None,
         "1" => Some(30),
         n => n.parse().ok().filter(|s: &i32| *s > 0),
@@ -53,13 +53,13 @@ pub fn freeze_events(frame: u64) -> Vec<NetEvent> {
 }
 
 fn console() -> bool {
-    std::env::var("AURORA_DEMO_SIM_CONSOLE").is_ok_and(|v| matches!(v.trim(), "1" | "open"))
+    std::env::var("BLOCK_DEMO_SIM_CONSOLE").is_ok_and(|v| matches!(v.trim(), "1" | "open"))
 }
 
-/// AURORA_DEMO_SIM_CONSOLE=open: the console opened at frame 600, `help`
+/// BLOCK_DEMO_SIM_CONSOLE=open: the console opened at frame 600, `help`
 /// and `stats` typed.
 pub fn console_open() -> bool {
-    std::env::var("AURORA_DEMO_SIM_CONSOLE").is_ok_and(|v| v.trim() == "open")
+    std::env::var("BLOCK_DEMO_SIM_CONSOLE").is_ok_and(|v| v.trim() == "open")
 }
 
 #[derive(Clone, Copy, PartialEq, Eq)]
@@ -71,7 +71,7 @@ enum Moderation {
 }
 
 fn moderation() -> Option<Moderation> {
-    match std::env::var("AURORA_DEMO_VOICE_MODERATION").ok()?.trim() {
+    match std::env::var("BLOCK_DEMO_VOICE_MODERATION").ok()?.trim() {
         "1" => Some(Moderation::Moderator),
         "self" => Some(Moderation::MutedByModerator),
         _ => None,

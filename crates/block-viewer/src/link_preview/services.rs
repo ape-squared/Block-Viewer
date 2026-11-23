@@ -1,7 +1,7 @@
 //! The pages of image services whose links get the picture they show
 //! (#923): a link to a Gyazo, Flickr, Imgur, Lightshot or Reddit page, or to
 //! a Bluesky or X post (#1051), not to the picture's file, still gets a
-//! picture card. An Aurora feature, like the rest of the previews.
+//! picture card. A Block feature, like the rest of the previews.
 //!
 //! Each page leads to its picture by the cleanest way its service offers:
 //! * Gyazo and Flickr: their oEmbed endpoints (documented, no key); a Gyazo

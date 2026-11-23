@@ -1,5 +1,5 @@
 //! Demo of Face nearest avatar and the Compass, without a grid:
-//! `AURORA_DEMO_AVATAR_ALIGN=<mode>`. Every turn logs its bearing before
+//! `BLOCK_DEMO_AVATAR_ALIGN=<mode>`. Every turn logs its bearing before
 //! and after (`avatar align: bearing …° -> …°`).
 //!
 //! The steps come after the loading fade (frame 620).
@@ -32,7 +32,7 @@ pub enum Step {
 pub fn mode() -> Option<String> {
     static MODE: OnceLock<Option<String>> = OnceLock::new();
     MODE.get_or_init(|| {
-        let mode = std::env::var("AURORA_DEMO_AVATAR_ALIGN").ok()?;
+        let mode = std::env::var("BLOCK_DEMO_AVATAR_ALIGN").ok()?;
         match mode.trim() {
             "" | "0" => None,
             "1" => Some("full".into()),

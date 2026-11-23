@@ -1,7 +1,7 @@
-//! AURORA_DEMO_OBJECT_MENU: the object menu entries on offline objects
+//! BLOCK_DEMO_OBJECT_MENU: the object menu entries on offline objects
 //! (demo_object_menu.rs): the bell's menu, a script action and its window,
 //! Return, Put on, owner particle filtering, Link and Take multiple on a kept
-//! selection, Drop of the worn backpack (with AURORA_DEMO_WORN=1).
+//! selection, Drop of the worn backpack (with BLOCK_DEMO_WORN=1).
 use super::*;
 use crate::demo::object_menu::{self as fixture, BELL, CRATE, SPARKLES};
 use crate::ui::context::CtxAction;

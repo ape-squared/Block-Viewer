@@ -149,7 +149,7 @@ fn file_picker_native_windows_close_after_the_dialog_is_visible() {
                     1 => Kind::Folder,
                     _ => Kind::File,
                 },
-                "Aurora import-picker-cancel [AUTOMATION - DO NOT TOUCH]",
+                "Block import-picker-cancel [AUTOMATION - DO NOT TOUCH]",
                 "Images",
                 &["png"],
             );

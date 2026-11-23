@@ -43,7 +43,7 @@ impl Default for Theme {
         Theme {
             violet: "#D4FF3F".into(),
             // Softer secondary accents — keep a hint of data cyan without
-            // washing UI labels in aqua (less Aurora-default look).
+            // washing UI labels in aqua (less Block-default look).
             indigo: "#6A9AA0".into(),
             teal: "#7A8A90".into(),
             navy: "#0B0C0E".into(),
@@ -65,7 +65,7 @@ impl Default for Theme {
             indigo_light: "#A8C4C8".into(),
             on_accent: "#0B0C0E".into(),
             panel_alpha: 235,
-            // Boxed chrome: almost-square corners, not Aurora pills.
+            // Boxed chrome: almost-square corners, not round pills.
             button_radius: 2,
             window_radius: 1,
             font_scale: 1.0,
@@ -130,7 +130,7 @@ impl Palette {
     }
 
     /// A northern light, from the green of its foot to the violet of its
-    /// top: the Aurora team's marks (`world::staff`) run along it.
+    /// top: the Block team's marks (`world::staff`) run along it.
     pub fn borealis(&self) -> [Color32; 4] {
         [self.success, self.teal, self.indigo_light, self.violet]
     }
@@ -207,7 +207,7 @@ impl Theme {
         let br = CornerRadius::same(self.button_radius);
         let panel = Color32::from_rgba_unmultiplied(p.panel.r(), p.panel.g(), p.panel.b(), p.panel_alpha);
         v.override_text_color = Some(p.ink);
-        // Prefer signal lime over aqua for links — less "Aurora cyan" wash.
+        // Prefer signal lime over aqua for links — less "Block cyan" wash.
         v.hyperlink_color = p.violet_light;
         v.faint_bg_color = p.field;
         v.extreme_bg_color = p.field;

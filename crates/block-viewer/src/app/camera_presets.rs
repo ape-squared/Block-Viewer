@@ -283,8 +283,8 @@ impl App {
 }
 
 impl App {
-    /// AURORA_DEMO_CAMERA_PRESETS=<steps> with the viewfinder open
-    /// (AURORA_DEMO_SNAPSHOT=viewfinder), steps joined by `-`: at frame 600
+    /// BLOCK_DEMO_CAMERA_PRESETS=<steps> with the viewfinder open
+    /// (BLOCK_DEMO_SNAPSHOT=viewfinder), steps joined by `-`: at frame 600
     /// the presets panel opens; `save` saves "Close up" (on the avatar, the
     /// position only), "Plaza" (the place, the lens and the light) and
     /// "Bench" (the nearest object) at 610; `apply` turns the camera away at
@@ -297,7 +297,7 @@ impl App {
         if !self.demo || !(600..=700).contains(&self.frame_count) {
             return;
         }
-        let Ok(steps) = std::env::var("AURORA_DEMO_CAMERA_PRESETS") else {
+        let Ok(steps) = std::env::var("BLOCK_DEMO_CAMERA_PRESETS") else {
             return;
         };
         let steps: Vec<&str> = steps.split('-').collect();

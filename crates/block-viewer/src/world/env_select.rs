@@ -6,7 +6,7 @@
 //! stepComboBox / isValidPreset (newview/quickprefs.cpp, Firestorm,
 //! originally LGPL 2.1) and LLSettingsType::fromInventoryFlags
 //! (llinventory/llinventorysettings.cpp). Firestorm lists what its background
-//! inventory fetch has loaded; Aurora fetches on demand, when the selector is
+//! inventory fetch has loaded; Block fetches on demand, when the selector is
 //! first opened: the library's "Environments" folders first, then the user's
 //! Settings folder, then the rest of the inventory (Trash and Marketplace
 //! listings excluded, as the collector excludes their items).
@@ -251,7 +251,7 @@ pub enum Shown {
     /// the day list: "Nothing" (PRESET_NAME_NONE).
     DayBased,
     Item(Uuid),
-    /// Aurora's local time of day preset (World > Environment).
+    /// Block's local time of day preset (World > Environment).
     Preset(u8),
     /// Edited in "Personal lighting".
     Personal,
@@ -291,7 +291,7 @@ pub fn step(list: &[SettingsChoice], current: usize, forward: bool) -> Option<Uu
 /// A–Z within the user's items then within the library's, `rank` breaking
 /// equal names. The Legacy Viewer's lists are always by name (a
 /// `std::multimap` keyed on the name in loadPresets: case-sensitive, the
-/// library mixed in); Aurora keeps the inventory's order by default since
+/// library mixed in); Block keeps the inventory's order by default since
 /// #812 and compares names as its inventory does (any case, numbers by value).
 pub fn ranks(inv: &Inventory, by_name: bool, rank: impl Fn(Uuid) -> usize) -> HashMap<Uuid, usize> {
     let places = places(inv);
@@ -320,7 +320,7 @@ pub fn ranks(inv: &Inventory, by_name: bool, rank: impl Fn(Uuid) -> usize) -> Ha
 }
 
 /// The entries whose name contains `query`, ignoring case and the spaces
-/// around it (the lists' search field, an Aurora addition); all of them for
+/// around it (the lists' search field, a Block addition); all of them for
 /// an empty query.
 pub fn matching<'a>(list: &'a [SettingsChoice], query: &str) -> Vec<&'a SettingsChoice> {
     let query = query.trim().to_lowercase();

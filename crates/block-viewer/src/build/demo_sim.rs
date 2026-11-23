@@ -22,7 +22,7 @@ pub struct DemoSim {
     pending_running: HashMap<(Uuid, Uuid), bool>,
     physics: HashMap<Uuid, PhysicsParams>,
     /// The reports of transform edits held for a round trip
-    /// (`AURORA_DEMO_BUILD_ECHO`), with when they arrive.
+    /// (`BLOCK_DEMO_BUILD_ECHO`), with when they arrive.
     late_echoes: VecDeque<(Instant, NetEvent)>,
     /// The simulator's undo history of the edited objects (Ctrl+Z /
     /// Ctrl+Y): their placements before each edit, and those undone.
@@ -35,7 +35,7 @@ pub struct DemoSim {
     rezzed_from_task: HashMap<Uuid, Uuid>,
     /// Groups supplied by creation requests, including an explicitly empty group.
     rezzed_groups: HashMap<Uuid, Uuid>,
-    /// What an object item holds (`AURORA_DEMO_DEEP_PERMS`), by item id: a
+    /// What an object item holds (`BLOCK_DEMO_DEEP_PERMS`), by item id: a
     /// rez from contents gets it, a save back keeps the copy's contents.
     stored: HashMap<Uuid, Vec<TaskItem>>,
     /// What the child prims of a stored object item hold, in link order.
@@ -49,7 +49,7 @@ pub struct DemoSim {
     /// What each part of a stored coalesced item holds (several objects
     /// saved as one), in order.
     stored_group: HashMap<Uuid, Vec<Vec<TaskItem>>>,
-    /// `AURORA_DEMO_DEEP_PERMS=run-replace` / `run-refuse`, or set by a test.
+    /// `BLOCK_DEMO_DEEP_PERMS=run-replace` / `run-refuse`, or set by a test.
     pub(crate) deep_in_place: bool,
     pub(crate) deep_refuse: bool,
     /// A coalesced item saved back as a single object (its first part).
@@ -70,12 +70,12 @@ struct History {
     last: Option<Instant>,
 }
 
-/// `AURORA_DEMO_BUILD_ECHO=<ms>`: the demo answers a transform edit that
+/// `BLOCK_DEMO_BUILD_ECHO=<ms>`: the demo answers a transform edit that
 /// long after it was sent, like a simulator a round trip away (issue #1193).
 fn echo_delay() -> Option<Duration> {
     static DELAY: std::sync::OnceLock<Option<Duration>> = std::sync::OnceLock::new();
     *DELAY.get_or_init(|| {
-        std::env::var("AURORA_DEMO_BUILD_ECHO")
+        std::env::var("BLOCK_DEMO_BUILD_ECHO")
             .ok()
             .and_then(|ms| ms.trim().parse::<u64>().ok())
             .filter(|&ms| ms > 0)
@@ -114,10 +114,10 @@ fn demo_item(object: Uuid, n: u128, name: &str, asset_type: i8, inv_type: i8) ->
 }
 
 /// The demo region makes new contents items like a Second Life region
-/// (CreateTaskInventoryItem); `AURORA_DEMO_CONTENTS_CAP=0` withdraws the
+/// (CreateTaskInventoryItem); `BLOCK_DEMO_CONTENTS_CAP=0` withdraws the
 /// capability, for the RezScript fallback and a disabled "New notecard".
 pub fn caps() -> Vec<(String, String)> {
-    if std::env::var("AURORA_DEMO_CONTENTS_CAP").is_ok_and(|v| v.trim() == "0") {
+    if std::env::var("BLOCK_DEMO_CONTENTS_CAP").is_ok_and(|v| v.trim() == "0") {
         return Vec::new();
     }
     vec![(
@@ -127,7 +127,7 @@ pub fn caps() -> Vec<(String, String)> {
 }
 
 fn script_copy_demo() -> bool {
-    std::env::var("AURORA_DEMO_REPLACE_PRIM").is_ok_and(|mode| mode == "script")
+    std::env::var("BLOCK_DEMO_REPLACE_PRIM").is_ok_and(|mode| mode == "script")
 }
 
 impl DemoSim {
@@ -176,7 +176,7 @@ impl DemoSim {
                 .map(|o| o.owner_id)
                 .filter(|owner| !owner.is_nil())
                 .unwrap_or(crate::demo::DEMO_AGENT);
-            // the lamp of AURORA_DEMO_OBJECT_EXPORT: mostly our own work
+            // the lamp of BLOCK_DEMO_OBJECT_EXPORT: mostly our own work
             let creator_id = local_id.and_then(crate::demo::object_export::creator).unwrap_or(DEMO_CREATOR);
             ObjectProps {
                 object_id: id,
@@ -249,11 +249,11 @@ impl DemoSim {
                 // an object to drag out onto the land (rez from contents)
                 demo_item(id, 4, block_i18n::tr!("build-demo-sim-chair"), 6, 6),
             ];
-            if std::env::var("AURORA_DEMO_BUILD").is_ok_and(|v| v.starts_with("contents-move-plain,")) {
+            if std::env::var("BLOCK_DEMO_BUILD").is_ok_and(|v| v.starts_with("contents-move-plain,")) {
                 items.retain(|i| i.asset_type != 10);
             }
             // a second no-copy item, for the shared move warning
-            if std::env::var("AURORA_DEMO_BUILD").is_ok_and(|v| v.starts_with("contents-move-many,")) {
+            if std::env::var("BLOCK_DEMO_BUILD").is_ok_and(|v| v.starts_with("contents-move-many,")) {
                 items[1].owner_mask &= !perm::COPY;
             }
             (1, items)
@@ -535,7 +535,7 @@ impl DemoSim {
                 };
                 // Offline copy-feedback fixture: retain the no-copy cube so
                 // the real observer sees a partial result and times out.
-                if task.asset_type == 6 && std::env::var("AURORA_DEMO_ACTIONS").as_deref() == Ok("open-copy-timeout-yes") {
+                if task.asset_type == 6 && std::env::var("BLOCK_DEMO_ACTIONS").as_deref() == Ok("open-copy-timeout-yes") {
                     return Vec::new();
                 }
                 let Ok(kind) = super::task_inventory::kind(world, id, &task, true) else {
@@ -852,7 +852,7 @@ impl DemoSim {
                 west,
                 south,
                 ..
-            } if *sequence >= 1_000_000 && std::env::var_os("AURORA_DEMO_PARCEL_VISIBILITY").is_some() => {
+            } if *sequence >= 1_000_000 && std::env::var_os("BLOCK_DEMO_PARCEL_VISIBILITY").is_some() => {
                 vec![NetEvent::SelectedParcel {
                     handle: *handle,
                     sequence: *sequence,
@@ -863,7 +863,7 @@ impl DemoSim {
                 handle,
                 sequence,
                 local_id,
-            } if std::env::var_os("AURORA_DEMO_PARCEL_VISIBILITY").is_some() => crate::demo::parcel_visibility::parcel_by_id(*local_id)
+            } if std::env::var_os("BLOCK_DEMO_PARCEL_VISIBILITY").is_some() => crate::demo::parcel_visibility::parcel_by_id(*local_id)
                 .map(|parcel| NetEvent::SelectedParcel {
                     handle: *handle,
                     sequence: *sequence,
@@ -884,7 +884,7 @@ impl DemoSim {
                     // Explicit offline aggregate fixture: no unique owner, and
                     // an area matching the rectangle must not disable Join.
                     if *sequence >= block_net::build::BUILD_PARCEL_SEQ + 1000
-                        && std::env::var("AURORA_DEMO_BUILD").is_ok_and(|v| v.starts_with("select-join,"))
+                        && std::env::var("BLOCK_DEMO_BUILD").is_ok_and(|v| v.starts_with("select-join,"))
                         && (east - west) * (north - south) > 16.0
                     {
                         let p = std::sync::Arc::make_mut(&mut p);
@@ -908,7 +908,7 @@ impl DemoSim {
         }
     }
 
-    /// RezObject of a stored object item (`AURORA_DEMO_DEEP_PERMS`): a copy
+    /// RezObject of a stored object item (`BLOCK_DEMO_DEEP_PERMS`): a copy
     /// holding what the item holds, under new item ids, with the item's
     /// name and masks, and its child prims with theirs; `run-refuse`
     /// answers with an alert instead.

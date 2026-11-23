@@ -13,7 +13,7 @@
 //! - Banned residents: the list (GroupAPIv1), unban, ban by name;
 //! - Invitations: the invitation window.
 //!
-//! The tab of the Aurora window and the "Administration" section of the
+//! The tab of the Block window and the "Administration" section of the
 //! classic one: in a narrow window the sections are pills above the body
 //! and the Roles and Abilities lists go above what they edit.
 

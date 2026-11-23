@@ -119,7 +119,7 @@ enum Pick {
 #[derive(Default)]
 pub(super) struct InterventionsState {
     pub dialog: Option<Dialog>,
-    /// AURORA_DEMO_REGION's dialog, shown once the simulator answered.
+    /// BLOCK_DEMO_REGION's dialog, shown once the simulator answered.
     pub demo: Option<Dialog>,
     picker: AvatarPicker,
     picking: Option<Pick>,

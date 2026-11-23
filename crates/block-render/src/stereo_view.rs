@@ -1,6 +1,6 @@
 //! Camera anchoring and asymmetric infinite reverse-Z projection for stereo output.
 //! Runtime poses use OpenXR's right-handed, Y-up camera coordinates. The captured
-//! desktop inverse-view matrix maps these into Aurora's world coordinates.
+//! desktop inverse-view matrix maps these into Block's world coordinates.
 use glam::{Mat4, Quat, Vec3, Vec4};
 
 #[derive(Debug, Clone, Copy)]

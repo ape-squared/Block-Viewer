@@ -63,7 +63,7 @@ impl<'a> Btn<'a> {
         self
     }
 
-    /// A Firestorm action Aurora does not do yet: greyed, with the tooltip
+    /// A Firestorm action Block does not do yet: greyed, with the tooltip
     /// of the menus.
     pub(super) fn not_yet(mut self) -> Self {
         self.enabled = false;

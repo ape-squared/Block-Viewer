@@ -1,4 +1,4 @@
-//! AURORA_DEMO_CONV_BUTTON: the Conversations button's flash, the
+//! BLOCK_DEMO_CONV_BUTTON: the Conversations button's flash, the
 //! Conversations window closed. Tess says something in nearby chat at frame
 //! 700, Nova writes an IM at 900. `1`: both flash the button; `mute`: nearby
 //! chat left out for the run (never saved), only the IM flashes; `still`:
@@ -11,7 +11,7 @@ use uuid::Uuid;
 
 /// The scenario, if asked: `1`, `mute`, `still` or `menu`.
 pub fn mode() -> Option<String> {
-    std::env::var("AURORA_DEMO_CONV_BUTTON").ok()
+    std::env::var("BLOCK_DEMO_CONV_BUTTON").ok()
 }
 
 /// Nearby chat left out of the flash for the run (`mute`).

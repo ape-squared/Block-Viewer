@@ -607,7 +607,7 @@ pub struct RecordStore {
     live: u32,
     /// Set when the buffer was reallocated (bind group must be rebuilt).
     pub generation: u64,
-    /// Bytes sent by the last `flush` (AURORA_PROFILE summary).
+    /// Bytes sent by the last `flush` (BLOCK_PROFILE summary).
     pub uploaded: u64,
     /// The buffer could not grow (video memory full): when to try again.
     backoff: Backoff,

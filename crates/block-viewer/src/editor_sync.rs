@@ -166,7 +166,7 @@ pub struct EditorSync {
     offered: HashMap<ScriptTarget, String>,
     aggregator: Aggregator,
     hello: Option<Hello>,
-    /// AURORA_DEMO_EDITOR_SYNC's editor (`block_editor_sync::demo_client`).
+    /// BLOCK_DEMO_EDITOR_SYNC's editor (`block_editor_sync::demo_client`).
     pub demo: Option<std::sync::mpsc::Receiver<block_editor_sync::demo_client::Seen>>,
 }
 
@@ -547,7 +547,7 @@ impl SyntaxFile {
 
     /// The file of the keywords in use: the region's, from the cache;
     /// SLua's bundled one when the region gave none. The bundled LSL
-    /// keywords have no file (Aurora keeps them as JSON).
+    /// keywords have no file (Block keeps them as JSON).
     fn source(self) -> Option<Source> {
         let dir = crate::settings::cache_dir().join("lsl");
         match self {

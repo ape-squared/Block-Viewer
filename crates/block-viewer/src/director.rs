@@ -1,7 +1,7 @@
 //! The Director: a camera track laid out in the world, then played with the
 //! interface out of sight, for those who film in Second Life.
 //!
-//! Aurora's own: the Legacy Viewer has no camera path tool. The track and
+//! Block's own: the Legacy Viewer has no camera path tool. The track and
 //! its curve are in `camera/track.rs`; this is the timeline around it: the
 //! playhead, the keyframe being edited, what "Add keyframe" does, and the
 //! playback with its start delay and its hold on the last view. The window,

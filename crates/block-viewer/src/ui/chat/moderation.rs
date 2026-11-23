@@ -5,7 +5,7 @@
 //! canBanSelectedMember, menu_participant_list.xml) and
 //! LLGroupActions::canEjectFromGroup (indra/newview/llgroupactions.cpp).
 //!
-//! The voice items of the Legacy Viewer's submenu are not here: Aurora's
+//! The voice items of the Legacy Viewer's submenu are not here: Block's
 //! group calls have no moderator controls yet.
 
 use crate::theme::Palette;
@@ -23,7 +23,7 @@ use uuid::Uuid;
 pub enum Confirm {
     /// EjectGroupMemberWarning.
     Eject { group: Uuid, agent: Uuid },
-    /// Aurora asks before a ban too, as its group profile does; the Legacy
+    /// Block asks before a ban too, as its group profile does; the Legacy
     /// Viewer's chat menu bans at once.
     Ban { group: Uuid, agent: Uuid },
     /// FSBanFromAllGroups / FSUnbanFromAllGroups: every group where we may
@@ -174,20 +174,20 @@ pub fn ban_all_entries(ui: &mut egui::Ui, p: &Palette, world: &World, id: Uuid, 
     }
 }
 
-/// `AURORA_DEMO_CONV_MODERATE=menu|eject|ban|banned|error|ban-all|
-/// unban-all|ban-all-run|profile` (with `AURORA_DEMO_CONV=aurora:group`):
-/// we moderate Aurora Builders' chat with every ability, and may manage
+/// `BLOCK_DEMO_CONV_MODERATE=menu|eject|ban|banned|error|ban-all|
+/// unban-all|ban-all-run|profile` (with `BLOCK_DEMO_CONV=block:group`):
+/// we moderate Block Builders' chat with every ability, and may manage
 /// bans in the Northern Wolves too; `menu` right-clicks the builder shown
 /// as "Tess" in its members and opens "Moderator options", `eject` and
 /// `ban` ask about her, `banned` bans her at once (the group's members and
 /// roles are asked first, then the ban goes out), `error` forbids her text
 /// and the demo refuses it; `ban-all` and `unban-all` ask about a ban (or
 /// its lifting) in both groups, `ban-all-run` sends it (the Northern Wolves
-/// refuse) and reports; `profile` (with `AURORA_DEMO_PROFILE=nova`) opens
+/// refuse) and reports; `profile` (with `BLOCK_DEMO_PROFILE=nova`) opens
 /// the profile's menu.
 pub fn demo_mode() -> Option<&'static str> {
     static MODE: std::sync::LazyLock<Option<String>> =
-        std::sync::LazyLock::new(|| std::env::var("AURORA_DEMO_CONV_MODERATE").ok().map(|v| v.trim().to_owned()));
+        std::sync::LazyLock::new(|| std::env::var("BLOCK_DEMO_CONV_MODERATE").ok().map(|v| v.trim().to_owned()));
     MODE.as_deref()
 }
 
@@ -214,7 +214,7 @@ pub(crate) fn demo_mark(ctx: &egui::Context, mark: DemoMark, rect: egui::Rect) {
 
 /// `menu` mode: the right click on the member at frames 700 to 702, then
 /// the pointer on "Moderator options" from frame 730 (capture at 800 with
-/// `AURORA_FPS_LIMIT=60`); `profile` mode: a click on the profile's menu
+/// `BLOCK_FPS_LIMIT=60`); `profile` mode: a click on the profile's menu
 /// button at frames 700 to 702 (capture at 760).
 pub(super) fn demo_events(ctx: &egui::Context, frame: u64) -> Vec<egui::Event> {
     let at = |mark| ctx.data(|d| d.get_temp::<egui::Rect>(demo_id(mark)));

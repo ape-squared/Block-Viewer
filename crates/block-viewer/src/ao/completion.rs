@@ -1,4 +1,4 @@
-//! Approved Aurora extensions to the Legacy Viewer's four swim slots.
+//! Approved Block extensions to the Legacy Viewer's four swim slots.
 //! Reuse inventory animation configurations only while planning a new native
 //! migration. The normal inventory writer creates fresh folders and links.
 use super::{Set, State, StateConfig};

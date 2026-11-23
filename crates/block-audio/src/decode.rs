@@ -798,7 +798,7 @@ pub(crate) mod tests {
     #[test]
     fn a_sound_asset_plays_whatever_rate_it_declares() {
         // The Legacy Viewer never reads the rate: a sound asset declaring
-        // 256 kHz plays like any other, where Aurora used to stay silent (#4110).
+        // 256 kHz plays like any other, where Block used to stay silent (#4110).
         let fast = with_declared_rate(MONO_44K, 256_000);
         // A local file keeps the supported rates.
         let local = SoundClip::decode(&fast).map(|_| ()).unwrap_err();

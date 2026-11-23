@@ -1,6 +1,6 @@
 //! The reverberation of the surroundings: one shared send bus that the
 //! world voices feed, so that a small room, a large hall and the open air
-//! sound different. Aurora's own (Preferences › Sound, "Reverb from the
+//! sound different. Block's own (Preferences › Sound, "Reverb from the
 //! surroundings", off by default); the Legacy Viewer plays every world sound
 //! dry, which the switch turned off keeps, bit for bit.
 //!

@@ -156,8 +156,8 @@ fn status(classic: bool) -> StatusInfo<'static> {
         show_bug_report: true,
         show_huds: true,
         hud_zoom: 1.0,
-        region: "Aurora Demo",
-        parcel: "Aurora Plaza",
+        region: "Block Demo",
+        parcel: "Block Plaza",
         tp_back: None,
         tp_forward: None,
         tp_session: Default::default(),
@@ -184,6 +184,7 @@ fn status(classic: bool) -> StatusInfo<'static> {
         double_click: Default::default(),
         quickjump: false,
         friends_only: false,
+        streamer_mode: false,
         show_name_tags: true,
         fly_override: false,
         quiet_snapshots: false,
@@ -210,7 +211,7 @@ fn status(classic: bool) -> StatusInfo<'static> {
             stretch: true,
             rights_text: false,
         },
-        own_name: "Aurora Demo",
+        own_name: "Block Demo",
         own_pic: None,
         recent: Vec::new(),
         favorites: Box::leak(Box::default()),
@@ -450,7 +451,7 @@ fn the_toasts_never_cross_a_bar_nor_the_chat_lines() {
     }
 }
 
-/// Frames of Aurora's center alone over a 1280 × 720 room, to click on the
+/// Frames of Block's center alone over a 1280 × 720 room, to click on the
 /// friends' toasts.
 struct Clicks {
     ctx: egui::Context,

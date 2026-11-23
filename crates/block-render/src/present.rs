@@ -23,7 +23,7 @@ use wgpu::PresentMode;
 /// - vsync off: `Mailbox` (never waits for the screen, no tearing), else
 ///   `Immediate` (never waits, tears), else `Fifo`.
 ///
-/// `forced` (AURORA_PRESENT_MODE) wins when the surface supports it.
+/// `forced` (BLOCK_PRESENT_MODE) wins when the surface supports it.
 pub(crate) fn choose(supported: &[PresentMode], vsync: bool, forced: Option<PresentMode>) -> PresentMode {
     let has = |m: PresentMode| supported.contains(&m);
     if let Some(mode) = forced.filter(|m| has(*m)) {
@@ -37,7 +37,7 @@ pub(crate) fn choose(supported: &[PresentMode], vsync: bool, forced: Option<Pres
     wanted.iter().copied().find(|m| has(*m)).unwrap_or(PresentMode::Fifo)
 }
 
-/// AURORA_PRESENT_MODE value (diagnostics): `immediate`, `mailbox`, `fifo`
+/// BLOCK_PRESENT_MODE value (diagnostics): `immediate`, `mailbox`, `fifo`
 /// or `fifo-relaxed`, whatever the case.
 pub(crate) fn parse(value: &str) -> Option<PresentMode> {
     match value.trim().to_ascii_lowercase().replace('_', "-").as_str() {
@@ -53,10 +53,10 @@ pub(crate) fn parse(value: &str) -> Option<PresentMode> {
 pub(crate) fn forced() -> Option<PresentMode> {
     static FORCED: std::sync::OnceLock<Option<PresentMode>> = std::sync::OnceLock::new();
     *FORCED.get_or_init(|| {
-        let value = std::env::var("AURORA_PRESENT_MODE").ok()?;
+        let value = std::env::var("BLOCK_PRESENT_MODE").ok()?;
         let mode = parse(&value);
         if mode.is_none() {
-            log::warn!("AURORA_PRESENT_MODE={value}: unknown mode (immediate, mailbox, fifo, fifo-relaxed)");
+            log::warn!("BLOCK_PRESENT_MODE={value}: unknown mode (immediate, mailbox, fifo, fifo-relaxed)");
         }
         mode
     })

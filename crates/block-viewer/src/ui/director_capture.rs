@@ -5,7 +5,7 @@
 //! Cancel drops it. The detail slider sets how closely the keyframes follow
 //! the take. Its tab, once the window has tabs: Camera.
 //!
-//! Aurora's own: the Legacy Viewer has no camera path tool.
+//! Block's own: the Legacy Viewer has no camera path tool.
 
 use super::director::{SLIDER_W, clock, row};
 use super::widgets::{self, ActionKind};

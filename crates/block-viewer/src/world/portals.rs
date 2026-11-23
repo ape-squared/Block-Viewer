@@ -1,6 +1,6 @@
 //! Walk-through portals of this viewer alone: our own portal and the returns
 //! of our own journeys, drawn and crossed for us only. Nothing is sent to the
-//! region or read from it. Portals were once announced to other Aurora
+//! region or read from it. Portals were once announced to other Block
 //! viewers over region chat; that was taken out under Second Life's shared
 //! experience policy (AGENTS.md, "No data of our own in shared places").
 //! A portal is immutable for its lifetime: nothing moves it or resets its

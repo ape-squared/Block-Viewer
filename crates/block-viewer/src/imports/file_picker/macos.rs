@@ -42,7 +42,7 @@ pub(super) fn select(request: Request, cancellation: Cancellation) -> Vec<PathBu
             };
             let _ = tx.send(paths);
         });
-        // Unlike runModal(), this leaves Aurora's event loop and other windows
+        // Unlike runModal(), this leaves Block's event loop and other windows
         // usable, so the user can close the import window that owns this panel.
         panel.beginWithCompletionHandler(&completion);
         Some(MainThreadBound::new((panel, finished), mtm))

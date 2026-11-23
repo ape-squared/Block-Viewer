@@ -4,7 +4,7 @@
 //! at once, with no linger nor wait: the kicks add up, so the faster one
 //! fidgets the more it shakes, up to a bound. A plate that grows (a pill
 //! expanding into a full plate) overshoots its size and settles, and a
-//! click presses it in (the click combo, `combo.rs`). Aurora's own: the
+//! click presses it in (the click combo, `combo.rs`). Block's own: the
 //! Legacy Viewer's tags do not move.
 //!
 //! Two damped springs make the wobble: the size (both sides out, then in)

@@ -47,6 +47,8 @@ pub struct VoiceInputs<'a> {
     pub parcel: Option<&'a block_net::ParcelInfo>,
     pub input_device: &'a str,
     pub mic_gain: f32,
+    /// Preferences › Sound › Voice morphing (empty = none): a mic pitch.
+    pub voice_morph: &'a str,
     pub processing: block_audio::MicProcessing,
     pub ear: crate::settings::VoiceEar,
     pub transmit: bool,
@@ -57,6 +59,18 @@ pub struct VoiceInputs<'a> {
     pub listener: (DVec3, Quat),
     /// The channel of the call in progress, joined instead of the spatial one.
     pub call: Option<&'a CallChannel>,
+}
+
+/// Pitch ratio for Preferences › Sound › Voice morphing (WebRTC voice has
+/// no Vivox voice fonts).
+fn voice_morph_pitch(id: &str) -> f32 {
+    match id {
+        "Warm" => 1.08,
+        "Breathy" => 1.18,
+        "Robot" => 0.88,
+        "Deep" => 0.72,
+        _ => 1.0,
+    }
 }
 
 /// Connection light shown in the top bar.
@@ -247,6 +261,7 @@ impl Voice {
             }
             // one gain only (they multiply): on the capture, so the meter shows it
             m.set_gain(v.mic_gain);
+            m.set_pitch(voice_morph_pitch(v.voice_morph));
             m.set_processing(v.processing, v.engine.map(AudioEngine::echo_reference));
             self.mic_level = m.level();
             self.mic_meter = (m.level() / OVERDRIVEN_POWER_LEVEL).clamp(0.0, 1.0);
@@ -600,6 +615,7 @@ mod tests {
             parcel: None,
             input_device: "",
             mic_gain: 1.0,
+            voice_morph: "",
             processing: Default::default(),
             ear: crate::settings::VoiceEar::Avatar,
             transmit: true,

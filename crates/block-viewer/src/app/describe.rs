@@ -26,12 +26,12 @@ pub(super) struct Pending {
     tool: &'static str,
 }
 
-/// `AURORA_DEMO_DESCRIBE=<frame>[,clipboard]`: the demo opens the Dev
+/// `BLOCK_DEMO_DESCRIBE=<frame>[,clipboard]`: the demo opens the Dev
 /// Toolbox and presses J1 (J2 with `clipboard`) at that frame.
 fn demo_press() -> Option<(u64, &'static str)> {
     static PRESS: std::sync::OnceLock<Option<(u64, &'static str)>> = std::sync::OnceLock::new();
     *PRESS.get_or_init(|| {
-        let value = std::env::var("AURORA_DEMO_DESCRIBE").ok()?;
+        let value = std::env::var("BLOCK_DEMO_DESCRIBE").ok()?;
         let (frame, output) = value.split_once(',').unwrap_or((&value, ""));
         let tool = if output.trim() == "clipboard" { "J2" } else { "J1" };
         Some((frame.trim().parse().ok()?, tool))

@@ -332,7 +332,7 @@ fn sized_buttons_and_a_scroll_edge_have_a_real_visible_indicator() {
 }
 
 /// A visual check without opening/activating a native window or injecting
-/// input into the human's desktop. Uses Aurora's real fonts, widgets and
+/// input into the human's desktop. Uses Block's real fonts, widgets and
 /// software painter (the splash/recovery window), and ordinary Tab events.
 #[test]
 #[ignore = "writes local focus captures to .scratch/keyboard-focus-captures"]

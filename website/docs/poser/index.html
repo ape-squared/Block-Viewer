@@ -145,7 +145,7 @@ stops posing by default; disable that setting to keep poses with the window
 closed. Switching to IK editing, teleporting or logging out releases the
 poser. Poses affect only this viewer, including poses of other residents.</p>
 <h2 id="library-and-files">Library and files</h2>
-<p>Save writes a named <code>*.block-pose.json</code> under the current account&rsquo;s local
+<p>Save writes a named <code>*.aurora-pose.json</code> under the current account&rsquo;s local
 <code>poses/</code> directory. It retains rotation, relative translation, scale and
 world-lock flags, without subject IDs, avatar names or world coordinates.
 The book in the title bar shows the library in the joints column&rsquo;s place
@@ -233,7 +233,7 @@ projected axes; pointer tests cover axis/uniform scale drags and tab-exclusive
 marker sets. Seventeen native poser scenarios and a
 separate IK bindings regression were inspected, with zero runtime errors.
 This does not validate real two-client LSL delivery.</p>
-<p>Offline demos use <code>AURORA_DEMO=1</code> and <code>AURORA_DEMO_POSER=</code> with <code>self</code>,
+<p>Offline demos use <code>BLOCK_DEMO=1</code> and <code>BLOCK_DEMO_POSER=</code> with <code>self</code>,
 <code>connected</code>, <code>camera</code>, <code>scale</code>, <code>hands</code>, <code>face</code>, <code>misc</code>, <code>physics</code>, <code>library</code>, <code>settings</code>, <code>animesh</code>,
 <code>consent-accept</code>, <code>consent-refuse</code>, <code>consent-timeout</code>, <code>consent-withdraw</code>,
 <code>consent-request</code> or <code>consent-reminder</code>. Capture frame 620. The synthetic

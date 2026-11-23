@@ -1,4 +1,4 @@
-//! AURORA_DEMO_WORN: the scripted right click, "Edit", arrow drag and
+//! BLOCK_DEMO_WORN: the scripted right click, "Edit", arrow drag and
 //! "Inspect" on the object our demo avatar wears (demo_worn.rs).
 use super::*;
 use crate::ui::context::CtxAction;
@@ -10,7 +10,7 @@ impl App {
         if !self.demo {
             return;
         }
-        let Ok(mode) = std::env::var("AURORA_DEMO_WORN") else {
+        let Ok(mode) = std::env::var("BLOCK_DEMO_WORN") else {
             return;
         };
         if mode == "animated" {
@@ -111,7 +111,7 @@ impl App {
         }
     }
 
-    /// AURORA_DEMO_WORN=derender-part (#3384): Edit on the backpack, "Edit
+    /// BLOCK_DEMO_WORN=derender-part (#3384): Edit on the backpack, "Edit
     /// linked parts", its child prim selected and right-clicked, then
     /// "Derender": only that prim goes; "Clear temporary" brings it back.
     fn demo_worn_derender_part_steps(&mut self) {
@@ -174,7 +174,7 @@ impl App {
 
     /// A temporary attachment's linked script starts a dance, then removes
     /// the attachment without sending an animation stop of its own.
-    /// AURORA_DEMO_WORN=temporary: at frame 600 an experience attaches a
+    /// BLOCK_DEMO_WORN=temporary: at frame 600 an experience attaches a
     /// temporary object to the left hand, and Appearance opens on Worn, its
     /// "Temporary attachments" section named by AttachmentResources.
     fn demo_temporary_steps(&mut self) {
@@ -289,7 +289,7 @@ impl App {
         }
     }
 
-    /// AURORA_DEMO_WORN=freeze: our avatar dances, the worn object is
+    /// BLOCK_DEMO_WORN=freeze: our avatar dances, the worn object is
     /// right-clicked (700) and edited (740), and the build window closes at
     /// 1100: the dance stands still in between (anim_pause.rs).
     fn demo_worn_freeze_steps(&mut self) {

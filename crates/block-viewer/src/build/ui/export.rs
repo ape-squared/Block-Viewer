@@ -1,7 +1,7 @@
 //! Object › Save as › Collada / OBJ: the export window
 //! (ColladaExportFloater, floater_export_collada.xml,
 //! indra/newview/daeexport.cpp, Latif Khalifa and Cinder Biscuits, LGPL
-//! 2.1) in the Aurora skin. The object's name and how many of its prims and
+//! 2.1) in the Block skin. The object's name and how many of its prims and
 //! textures may be written, the options, the textures that will be saved,
 //! then Save as. The format (Collada or OBJ) is chosen here too: the Legacy
 //! Viewer has Collada only. The work is `app/object_export.rs`.

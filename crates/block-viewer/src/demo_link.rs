@@ -1,5 +1,5 @@
-//! AURORA_DEMO_LINK: a simulated link between the offline demo and a
-//! stand-in simulator for our avatar, to try Aurora's movement (own_motion.rs)
+//! BLOCK_DEMO_LINK: a simulated link between the offline demo and a
+//! stand-in simulator for our avatar, to try Block's movement (own_motion.rs)
 //! against Firestorm's without a grid.
 //!
 //! Without it, the demo moves our avatar at once (`AgentState::simulate_locally`
@@ -8,9 +8,9 @@
 //! reports (ImprovedTerseObjectUpdate of our avatar, its AvatarAnimation)
 //! come back after the other half and go through `World::apply_received`,
 //! like the network's. The viewer then runs the grid's path: extrapolation,
-//! smoothing and, with Aurora's movement, the prediction.
+//! smoothing and, with Block's movement, the prediction.
 //!
-//! `AURORA_DEMO_LINK=<ping ms>[,jitter=<ms>][,aurora|firestorm][,vehicle]`:
+//! `BLOCK_DEMO_LINK=<ping ms>[,jitter=<ms>][,aurora|firestorm][,vehicle]`:
 //! `jitter` delays each message by up to that much more (order kept);
 //! `aurora` / `firestorm` force the movement for the session without
 //! touching the saved choice; `vehicle` seats our avatar on a vehicle that
@@ -34,7 +34,7 @@ pub struct Config {
     pub ping: f32,
     /// Most extra delay of a message (s).
     pub jitter: f32,
-    /// Aurora's movement forced on or off for the session.
+    /// Block's movement forced on or off for the session.
     pub prediction: Option<bool>,
     pub vehicle: bool,
     /// The vehicle scenario with a scripted camera and two collisions.
@@ -50,7 +50,7 @@ pub struct Config {
 
 impl Config {
     pub fn from_env() -> Option<Config> {
-        Config::parse(&std::env::var("AURORA_DEMO_LINK").ok()?)
+        Config::parse(&std::env::var("BLOCK_DEMO_LINK").ok()?)
     }
 
     fn parse(value: &str) -> Option<Config> {
@@ -68,7 +68,7 @@ impl Config {
         };
         for part in parts {
             match part {
-                "aurora" => cfg.prediction = Some(true),
+                "block" => cfg.prediction = Some(true),
                 "firestorm" => cfg.prediction = Some(false),
                 "vehicle" => cfg.vehicle = true,
                 "crash" => (cfg.vehicle, cfg.crash) = (true, true),
@@ -85,7 +85,7 @@ impl Config {
                     } else if let Some(ms) = ms("stoplag=") {
                         cfg.stop_lag = (ms / 1000.0).min(5.0);
                     } else {
-                        log::warn!("AURORA_DEMO_LINK: unknown part {part:?}");
+                        log::warn!("BLOCK_DEMO_LINK: unknown part {part:?}");
                     }
                 }
             }
@@ -157,7 +157,7 @@ pub struct DemoLink {
 
 /// What the log tells of each press and release of a walking key: how
 /// long the drawn avatar took to start and to stop, the number to compare
-/// between Aurora's movement and Firestorm's.
+/// between Block's movement and Firestorm's.
 #[derive(Default)]
 struct Probe {
     keys: bool,
@@ -178,7 +178,7 @@ impl DemoLink {
             "demo link: ping {:.0} ms, jitter {:.0} ms, movement {}, vehicle {}",
             cfg.ping * 1000.0,
             cfg.jitter * 1000.0,
-            cfg.prediction.map_or("as saved", |on| if on { "aurora" } else { "firestorm" }),
+            cfg.prediction.map_or("as saved", |on| if on { "block" } else { "firestorm" }),
             cfg.vehicle
         );
         DemoLink {
@@ -564,7 +564,7 @@ fn seated_agent(parent: u32, position: Vec3) -> ObjectUpdate {
     o.pcode = LL_PCODE_LEGACY_AVATAR;
     o.full_id = super::DEMO_AGENT;
     o.parent_id = parent;
-    o.name_values = "FirstName STRING RW SV Aurora\nLastName STRING RW SV Demo\nTitle STRING RW SV Aurora".into();
+    o.name_values = "FirstName STRING RW SV Block\nLastName STRING RW SV Demo\nTitle STRING RW SV Block".into();
     o
 }
 
@@ -740,8 +740,8 @@ mod tests {
         assert_eq!(Config::parse("100,stoplag=800").map(|c| c.stop_lag), Some(0.8));
         let c = Config::parse("150, jitter=30, firestorm, vehicle").expect("all");
         assert_eq!((c.ping, c.jitter, c.prediction, c.vehicle), (0.15, 0.03, Some(false), true));
-        assert_eq!(Config::parse("aurora"), None);
-        assert_eq!(Config::parse("100,aurora").and_then(|c| c.prediction), Some(true));
+        assert_eq!(Config::parse("block"), None);
+        assert_eq!(Config::parse("100,block").and_then(|c| c.prediction), Some(true));
         assert!(!c.native_flight);
         assert!(Config::parse("100,native-flight").unwrap().native_flight);
         let c = Config::parse("100,crash").expect("crash");

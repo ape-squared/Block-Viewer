@@ -1,6 +1,6 @@
-//! AURORA_DEMO_REZ_EFFECT=1|loop|styles: the rez effect (scene/rez.rs) in front of the
-//! camera (with AURORA_DEMO_POS=129,134, looking east). Frame-numbered
-//! steps, for captures at AURORA_FPS_LIMIT=60:
+//! BLOCK_DEMO_REZ_EFFECT=1|loop|styles: the rez effect (scene/rez.rs) in front of the
+//! camera (with BLOCK_DEMO_POS=129,134, looking east). Frame-numbered
+//! steps, for captures at BLOCK_FPS_LIMIT=60:
 //!
 //! - when the loading screen lifts: our avatar, the line from its feet;
 //! - frame 300: four prims arrive whose textures take 2.5 s to come, as on
@@ -13,7 +13,7 @@
 //! - frame 1020: we copy it (Shift-drag in the build tools): a quick line
 //!   on the copy;
 //! - frame 1080: an avatar comes into view: the grid while it loads (with
-//!   AURORA_DEMO_CLOUD=1, instead of the cloud), 3 s later the line;
+//!   BLOCK_DEMO_CLOUD=1, instead of the cloud), 3 s later the line;
 //! - frame 1380: someone rezzes thirty boxes at once: `MAX_SWEEPS` lines,
 //!   the others just show;
 //! - frame 1560: someone rezzes a small building (six prims, 3.6 m high)
@@ -29,7 +29,7 @@
 //!
 //! `loop`: at frame 2160 everything the scenario put there goes at once (a
 //! burst: no derez) and it starts again from frame 300, for watching it in
-//! one window. With `AURORA_DEMO_TOD=4`, the same at midnight.
+//! one window. With `BLOCK_DEMO_TOD=4`, the same at midnight.
 //!
 //! `cold`: a cold arrival, again and again: from frame 300 and every
 //! 10 s, 400 objects of all sizes arrive in front of the camera, near and
@@ -50,7 +50,7 @@
 //! their textures take 3 s, as the avatars' loading does), the line
 //! reveals them, they stay, they leave (the derez) and stay away 2 s.
 //!
-//! The textures are the checkers of AURORA_DEMO_STREAM under ids of their
+//! The textures are the checkers of BLOCK_DEMO_STREAM under ids of their
 //! own (new ones at each round), decoded on the background pool when the
 //! step says.
 
@@ -94,7 +94,7 @@ const STORM_COUNT: u32 = 30;
 const FIRST_LOCAL_ID: u32 = 140_000;
 const AVATAR_LOCAL_ID: u32 = 139_000;
 const ROUND_IDS: u32 = 200;
-/// Texture ids of the scenario (apart from AURORA_DEMO_STREAM's).
+/// Texture ids of the scenario (apart from BLOCK_DEMO_STREAM's).
 const TEXTURE_IDS: u128 = 0xDE57_4E2E_0000_0000_0000_0000_0000_0000;
 
 /// Attachment point in an object's `state` (`Object::attachment_point`).
@@ -102,7 +102,7 @@ fn attach_state(point: u8) -> u8 {
     point.rotate_left(4)
 }
 
-/// `styles`: the columns' looks (`AURORA_REZ_STYLE`'s numbers).
+/// `styles`: the columns' looks (`BLOCK_REZ_STYLE`'s numbers).
 const STYLES: [u32; 3] = [1, 2, 3];
 /// `styles`: one round's length, when its textures come and when it leaves.
 const STYLES_ROUND: u64 = 540;
@@ -143,7 +143,7 @@ pub struct RezDemo {
 
 impl RezDemo {
     pub fn from_env() -> Option<Self> {
-        let value = std::env::var("AURORA_DEMO_REZ_EFFECT").ok()?;
+        let value = std::env::var("BLOCK_DEMO_REZ_EFFECT").ok()?;
         log::info!("demo rez: scenario armed");
         Some(RezDemo {
             styles: value.trim() == "styles",

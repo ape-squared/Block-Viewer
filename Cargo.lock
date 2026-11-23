@@ -26,7 +26,7 @@ checksum = "ad442f58ee04714aaa0ba0a2768c1ea1935b29507bb22ddece8cbbc76db02932"
 dependencies = [
  "enumn",
  "serde",
- "uuid",
+ "uuid 1.29.2",
 ]
 
 [[package]]
@@ -634,7 +634,7 @@ dependencies = [
  "ring",
  "serde_json",
  "thiserror 2.0.21",
- "uuid",
+ "uuid 1.29.2",
  "vorbis_rs",
  "zopfli",
 ]
@@ -694,7 +694,7 @@ dependencies = [
  "serde_json",
  "tokio",
  "tokio-tungstenite",
- "uuid",
+ "uuid 1.29.2",
  "windows-sys 0.61.2",
 ]
 
@@ -715,7 +715,7 @@ dependencies = [
  "base64 0.23.1",
  "chrono",
  "thiserror 2.0.21",
- "uuid",
+ "uuid 1.29.2",
 ]
 
 [[package]]
@@ -738,7 +738,7 @@ version = "0.1.0"
 dependencies = [
  "glam 0.34.3",
  "thiserror 2.0.21",
- "uuid",
+ "uuid 1.29.2",
 ]
 
 [[package]]
@@ -767,7 +767,7 @@ dependencies = [
  "socket2",
  "thiserror 2.0.21",
  "tokio",
- "uuid",
+ "uuid 1.29.2",
  "webpki-root-certs",
 ]
 
@@ -785,7 +785,7 @@ name = "block-prim"
 version = "0.1.0"
 dependencies = [
  "glam 0.34.3",
- "uuid",
+ "uuid 1.29.2",
 ]
 
 [[package]]
@@ -845,7 +845,7 @@ dependencies = [
  "sha2",
  "tar",
  "tokio",
- "uuid",
+ "uuid 1.29.2",
  "windows-sys 0.61.2",
  "zip",
 ]
@@ -884,6 +884,7 @@ dependencies = [
  "chrono-tz",
  "crossbeam-channel",
  "directories",
+ "discord-rich-presence",
  "dispatch2",
  "egui",
  "egui-winit",
@@ -933,7 +934,7 @@ dependencies = [
  "ttf-parser",
  "unicode-bidi",
  "unicode-bidi-mirroring",
- "uuid",
+ "uuid 1.29.2",
  "wayland-client",
  "windows",
  "windows-sys 0.61.2",
@@ -964,7 +965,7 @@ dependencies = [
  "serde_json",
  "thiserror 2.0.21",
  "tokio",
- "uuid",
+ "uuid 1.29.2",
  "webrtc",
 ]
 
@@ -1724,6 +1725,21 @@ dependencies = [
  "option-ext",
  "redox_users",
  "windows-sys 0.61.2",
+]
+
+[[package]]
+name = "discord-rich-presence"
+version = "1.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "90c55d69cab17c19677ce3a5f8face993a9e6eaf847fecac3547f3a3ff4a2494"
+dependencies = [
+ "log",
+ "serde",
+ "serde_derive",
+ "serde_json",
+ "serde_repr",
+ "thiserror 2.0.21",
+ "uuid 0.8.2",
 ]
 
 [[package]]
@@ -2518,7 +2534,7 @@ dependencies = [
  "nix",
  "objc2-core-foundation",
  "objc2-io-kit",
- "uuid",
+ "uuid 1.29.2",
  "vec_map",
  "wasm-bindgen",
  "web-sys",
@@ -5151,7 +5167,7 @@ dependencies = [
  "rend",
  "rkyv_derive",
  "tinyvec",
- "uuid",
+ "uuid 1.29.2",
 ]
 
 [[package]]
@@ -5314,7 +5330,7 @@ dependencies = [
  "sansio",
  "serde",
  "url",
- "uuid",
+ "uuid 1.29.2",
 ]
 
 [[package]]
@@ -7011,6 +7027,15 @@ checksum = "06abde3611657adf66d383f00b093d7faecc7fa57071cce2578660c9f1010821"
 
 [[package]]
 name = "uuid"
+version = "0.8.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "bc5cf98d8186244414c848017f0e2676b3fcb46807f6668a97dfe67359a3c4b7"
+dependencies = [
+ "getrandom 0.2.17",
+]
+
+[[package]]
+name = "uuid"
 version = "1.29.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "bed99139f7dac9b5cfe5f17be4d66dc7079a34dee1d74bcc77217119240e267c"
@@ -8061,7 +8086,7 @@ dependencies = [
  "serde_repr",
  "tracing",
  "uds_windows",
- "uuid",
+ "uuid 1.29.2",
  "windows-sys 0.61.2",
  "winnow",
  "zbus_macros",

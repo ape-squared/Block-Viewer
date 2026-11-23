@@ -2,7 +2,7 @@
 //! and the photo window's Filters section: the stack of looks (each
 //! switched on or off, moved, taken out, chosen), whether a click in the
 //! list replaces the chosen look or adds one, the list in three tabs
-//! (Legacy, Aurora by section, the user's tables) with a search, and the
+//! (Legacy, Block by section, the user's tables) with a search, and the
 //! chosen look's strength and settings. The look pointed at in the list is
 //! tried on the live view (`snapshot::looks::tried`). The World look window
 //! (`ui/world_look.rs`) edits the world's own stack with it.
@@ -16,7 +16,7 @@ use crate::theme::Palette;
 use block_i18n::UiUpper;
 use egui::{RichText, Vec2};
 
-/// The stack the editor changes, with the settings of its Aurora looks:
+/// The stack the editor changes, with the settings of its Block looks:
 /// the photos' and films' (`photo`) or the world's (`world`).
 pub struct Stack<'a> {
     pub looks: &'a mut Vec<Layer>,
@@ -54,7 +54,7 @@ pub struct LooksUi {
     /// photo's width left as it is.
     pub compare: Option<f32>,
     /// The photo window's settings scroll to the filters once
-    /// (AURORA_DEMO_PHOTO_LOOK).
+    /// (BLOCK_DEMO_PHOTO_LOOK).
     pub reveal: bool,
     /// The photo window is in its 360° format (`Options::pano`).
     pano: bool,
@@ -232,8 +232,8 @@ impl LooksUi {
         }
         match self.tab {
             Tab::Legacy => self.chips(ui, p, &looks::legacy_list(), s),
-            Tab::Aurora => {
-                for (section, entries) in looks::aurora_list() {
+            Tab::Block => {
+                for (section, entries) in looks::block_list() {
                     heading(ui, p, looks::section_name(section));
                     self.chips(ui, p, &entries, s);
                 }
@@ -359,7 +359,7 @@ impl LooksUi {
         slider_row(ui, p, block_i18n::tr!("photo-look-strength"), |ui| {
             ui.add(egui::Slider::new(&mut layer.strength, 0..=100).suffix(" %"))
         });
-        let Some(aurora) = id.strip_prefix(looks::AURORA) else {
+        let Some(aurora) = id.strip_prefix(looks::BLOCK) else {
             let note = if id.starts_with(looks::LUT) || id.starts_with(looks::PACK) {
                 block_i18n::tr!("photo-looks-lut-note")
             } else {
@@ -411,7 +411,7 @@ fn slider_row(ui: &mut egui::Ui, p: &Palette, label: &str, control: impl FnOnce(
     });
 }
 
-/// One setting of an Aurora look.
+/// One setting of a Block look.
 fn knob_row(ui: &mut egui::Ui, p: &Palette, knob: &Knob, values: &mut [f32], id: &str) {
     let label = block_i18n::text(knob.label);
     match knob.kind {

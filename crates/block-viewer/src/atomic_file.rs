@@ -56,7 +56,7 @@ fn publish_with(path: &Path, bytes: &[u8], durable: bool) -> std::io::Result<()>
 
 fn publish_if(path: &Path, bytes: &[u8], durable: bool, still: impl FnOnce() -> bool) -> std::io::Result<bool> {
     let parent = path.parent().unwrap_or_else(|| Path::new("."));
-    let temporary = parent.join(format!(".aurora-{}-{}.tmp", std::process::id(), uuid::Uuid::new_v4()));
+    let temporary = parent.join(format!(".block-{}-{}.tmp", std::process::id(), uuid::Uuid::new_v4()));
     let result = (|| {
         let mut file = std::fs::OpenOptions::new().write(true).create_new(true).open(&temporary)?;
         file.write_all(bytes)?;
@@ -133,7 +133,7 @@ mod tests {
 
     #[test]
     fn write_if_replaces_nothing_when_told_not_to() {
-        let dir = std::env::temp_dir().join(format!("aurora-write-if-{}", uuid::Uuid::new_v4()));
+        let dir = std::env::temp_dir().join(format!("block-write-if-{}", uuid::Uuid::new_v4()));
         std::fs::create_dir_all(&dir).unwrap();
         let path = dir.join("file");
         std::fs::write(&path, "old").unwrap();
@@ -163,7 +163,7 @@ mod tests {
 
     #[test]
     fn concurrent_writers_publish_whole_files() {
-        let root = std::env::temp_dir().join(format!("aurora-atomic-{}", uuid::Uuid::new_v4()));
+        let root = std::env::temp_dir().join(format!("block-atomic-{}", uuid::Uuid::new_v4()));
         std::fs::create_dir_all(&root).expect("directory");
         let target = root.join("asset");
         super::write(&target, &[0; 4096]).expect("initial file");
@@ -205,7 +205,7 @@ mod tests {
     #[cfg(windows)]
     #[test]
     fn a_held_file_is_published_once_released() {
-        let dir = std::env::temp_dir().join(format!("aurora-held-{}", uuid::Uuid::new_v4()));
+        let dir = std::env::temp_dir().join(format!("block-held-{}", uuid::Uuid::new_v4()));
         std::fs::create_dir_all(&dir).unwrap();
         let path = dir.join("file");
         std::fs::write(&path, "old").unwrap();
@@ -227,7 +227,7 @@ mod tests {
     #[cfg(windows)]
     #[test]
     fn a_rename_refused_past_the_patience_keeps_the_old_file() {
-        let dir = std::env::temp_dir().join(format!("aurora-refused-{}", uuid::Uuid::new_v4()));
+        let dir = std::env::temp_dir().join(format!("block-refused-{}", uuid::Uuid::new_v4()));
         std::fs::create_dir_all(&dir).unwrap();
         let (path, temporary) = (dir.join("file"), dir.join("temporary"));
         std::fs::write(&path, "old").unwrap();

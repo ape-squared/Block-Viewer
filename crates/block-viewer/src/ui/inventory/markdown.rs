@@ -1,6 +1,6 @@
 //! An optional CommonMark view of the source draft. Never used for uploads.
 //! Classic follows LLPreviewNotecard / LLViewerTextEditor (Firestorm, LGPL 2.1);
-//! Markdown and the source editor with live preview are Aurora additions.
+//! Markdown and the source editor with live preview are Block additions.
 
 use std::{ops::Range, sync::Arc};
 

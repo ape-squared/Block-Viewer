@@ -1,7 +1,7 @@
 //! The photo reel on screen (`snapshot::reel`): the stack of the session's
 //! photos beside the viewfinder's shutter and in the photo window, and the
 //! quick view that opens from it, to scroll them, send one again or delete
-//! it. Aurora's own: the Legacy Viewer only shows the last photo.
+//! it. Block's own: the Legacy Viewer only shows the last photo.
 
 use crate::snapshot::reel::{self, Photo, Place};
 use crate::theme::Palette;

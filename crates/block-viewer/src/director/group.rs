@@ -7,7 +7,7 @@
 //! timeline), is deleted together, and a setting changed on the shown
 //! keyframe is given to every keyframe of the group (`Director::spread`).
 //!
-//! Aurora's own: the Legacy Viewer has no camera path tool.
+//! Block's own: the Legacy Viewer has no camera path tool.
 
 use super::Director;
 use crate::camera::track::{Keyframe, Pose};

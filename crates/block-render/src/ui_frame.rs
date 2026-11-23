@@ -86,7 +86,7 @@ pub struct EguiFrame {
 pub(crate) struct UiFrame {
     pub primitives: Vec<ClippedPrimitive>,
     pub pixels_per_point: f32,
-    /// Shapes the primitives come from, and their vertices (AURORA_PROFILE).
+    /// Shapes the primitives come from, and their vertices (BLOCK_PROFILE).
     pub shapes: usize,
     pub vertices: usize,
 }
@@ -237,7 +237,7 @@ mod tests {
             );
             egui::Window::new("Window").show(ui.ctx(), |ui| {
                 if rows >= 12 {
-                    ui.label(egui::RichText::new("Aurora").size(rows as f32 * 3.0));
+                    ui.label(egui::RichText::new("Block").size(rows as f32 * 3.0));
                 }
                 egui::ScrollArea::vertical().max_height(120.0).show(ui, |ui| {
                     for row in 0..rows {

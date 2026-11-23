@@ -72,7 +72,7 @@ pub struct BuyCurrencyUi {
     confirm: Option<String>,
     error: Option<CurrencyError>,
     focus: bool,
-    /// AURORA_DEMO_BUY_CURRENCY: open the confirmation once the estimate is in.
+    /// BLOCK_DEMO_BUY_CURRENCY: open the confirmation once the estimate is in.
     demo_confirm: bool,
     /// OpenSim: the helper's host is shown, so the resident sees who sells
     /// (a region may name its own).
@@ -579,7 +579,7 @@ impl BuyCurrencyUi {
         }
     }
 
-    /// AURORA_DEMO_BUY_CURRENCY: the window as its mode shows it, without
+    /// BLOCK_DEMO_BUY_CURRENCY: the window as its mode shows it, without
     /// waiting for a click (see docs/TESTING.md).
     pub fn demo(&mut self, world: &mut World, helper: Option<String>, mode: &str) {
         self.open(world, helper.filter(|_| mode != "grid"), mode != "opensim");

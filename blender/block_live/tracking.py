@@ -22,7 +22,7 @@ def valid(scene, obj):
 
 
 def prune(scene):
-    prefs = scene.aurora_live
+    prefs = scene.block_live
     missing = [index for index, entry in enumerate(prefs.objects) if not valid(scene, entry.object)]
     for index in reversed(missing):
         prefs.objects.remove(index)
@@ -33,14 +33,14 @@ def prune(scene):
 
 
 def active(scene):
-    return [entry.object for entry in scene.aurora_live.objects if entry.enabled and valid(scene, entry.object)]
+    return [entry.object for entry in scene.block_live.objects if entry.enabled and valid(scene, entry.object)]
 
 
 def source_ids(scene):
     """Persistent entry identities survive renaming, saving and list reordering."""
     result = {}
     seen = set()
-    for entry in scene.aurora_live.objects:
+    for entry in scene.block_live.objects:
         if not valid(scene, entry.object):
             continue
         try:
@@ -61,7 +61,7 @@ def is_static(scene, obj):
 
 def normalize_groups(scene):
     groups, repaired = {}, False
-    for entry in scene.aurora_live.objects:
+    for entry in scene.block_live.objects:
         if entry.group_id:
             if is_static(scene, entry.object):
                 groups.setdefault(entry.group_id, []).append(entry)
@@ -82,12 +82,12 @@ def normalize_groups(scene):
 
 def link_roots(scene):
     groups = {}
-    for entry in scene.aurora_live.objects:
+    for entry in scene.block_live.objects:
         if entry.group_id and is_static(scene, entry.object):
             if entry.group_id not in groups or entry.group_root:
                 groups[entry.group_id] = entry.object
     result = {}
-    for entry in scene.aurora_live.objects:
+    for entry in scene.block_live.objects:
         if not is_static(scene, entry.object):
             continue
         root = groups.get(entry.group_id)
@@ -99,11 +99,11 @@ def link_roots(scene):
 def signature(scene):
     # RNA update callbacks are not replayed by Undo/Redo.
     return tuple((entry.object.as_pointer(), entry.group_id, entry.group_root, entry.independent)
-                 for entry in scene.aurora_live.objects if valid(scene, entry.object))
+                 for entry in scene.block_live.objects if valid(scene, entry.object))
 
 
 def rows(scene):
-    entries = scene.aurora_live.objects
+    entries = scene.block_live.objects
     objects = [entry.object for entry in entries if valid(scene, entry.object)]
     roots = exporter.static_roots(objects, link_roots(scene))
     indices = {entry.object.as_pointer(): index for index, entry in enumerate(entries) if valid(scene, entry.object)}
@@ -122,18 +122,18 @@ def rows(scene):
 def families(scene):
     result = {}
     for index, root, _number, _count in rows(scene):
-        entry = scene.aurora_live.objects[index]
+        entry = scene.block_live.objects[index]
         if is_static(scene, entry.object):
             result.setdefault(root, []).append(entry)
     return list(result.values())
 
 
 def marked(scene):
-    return [entry for entry in scene.aurora_live.objects if entry.marked and is_static(scene, entry.object)]
+    return [entry for entry in scene.block_live.objects if entry.marked and is_static(scene, entry.object)]
 
 
 def select_entry(scene, index, extend=False, range_select=False):
-    prefs = scene.aurora_live
+    prefs = scene.block_live
     if not 0 <= index < len(prefs.objects) or not valid(scene, prefs.objects[index].object):
         return False
     source_ids(scene)
@@ -185,7 +185,7 @@ def ungroup(scene, entries, whole_roots=False):
         for family in current:
             if family[0].object.as_pointer() in selected:
                 selected.update(entry.object.as_pointer() for entry in family)
-        entries = [entry for entry in scene.aurora_live.objects if is_static(scene, entry.object)
+        entries = [entry for entry in scene.block_live.objects if is_static(scene, entry.object)
                    and entry.object.as_pointer() in selected]
     for family in current:
         remaining = [entry for entry in family if entry.object.as_pointer() not in selected]
@@ -198,7 +198,7 @@ def ungroup(scene, entries, whole_roots=False):
 
 def add(scene, objects, root=None):
     prune(scene)
-    prefs = scene.aurora_live
+    prefs = scene.block_live
     objects = [obj for obj in objects if valid(scene, obj)]
     seen = {entry.object.as_pointer() for entry in prefs.objects}
     added = 0
@@ -227,11 +227,11 @@ def add(scene, objects, root=None):
     return added
 
 
-class AURORA_PG_sync_object(bpy.types.PropertyGroup):
+class BLOCK_PG_sync_object(bpy.types.PropertyGroup):
     error: StringProperty(options={"SKIP_SAVE"})
-    medium: PointerProperty(type=lods.AURORA_PG_lod)
-    low: PointerProperty(type=lods.AURORA_PG_lod)
-    lowest: PointerProperty(type=lods.AURORA_PG_lod)
+    medium: PointerProperty(type=lods.BLOCK_PG_lod)
+    low: PointerProperty(type=lods.BLOCK_PG_lod)
+    lowest: PointerProperty(type=lods.BLOCK_PG_lod)
     lod_initialized: BoolProperty(default=False, options={"HIDDEN"})
     object: PointerProperty(type=bpy.types.Object)
     source_id: StringProperty(options={"HIDDEN"})
@@ -244,8 +244,8 @@ class AURORA_PG_sync_object(bpy.types.PropertyGroup):
                           description="Include this object in Block Viewer's live preview")
 
 
-class AURORA_OT_selection(bpy.types.Operator):
-    bl_idname = "aurora.live_selection"
+class BLOCK_OT_selection(bpy.types.Operator):
+    bl_idname = "block.live_selection"
     bl_label = "Add selected meshes"
     bl_description = "Add the current selection without replacing listed objects or enabling paused entries"
     bl_options = {"REGISTER", "UNDO"}
@@ -260,7 +260,7 @@ class AURORA_OT_selection(bpy.types.Operator):
 
 
 def focused(context):
-    prefs = context.scene.aurora_live
+    prefs = context.scene.block_live
     if 0 <= prefs.object_index < len(prefs.objects):
         entry = prefs.objects[prefs.object_index]
         if is_static(context.scene, entry.object):
@@ -268,8 +268,8 @@ def focused(context):
     return None
 
 
-class AURORA_OT_pick(bpy.types.Operator):
-    bl_idname = "aurora.live_pick"
+class BLOCK_OT_pick(bpy.types.Operator):
+    bl_idname = "block.live_pick"
     bl_label = "Select synchronized object"
     bl_description = "Click to select; Ctrl-click to toggle; Shift-click to select a range"
     bl_options = {"INTERNAL"}
@@ -286,8 +286,8 @@ class AURORA_OT_pick(bpy.types.Operator):
         return {"FINISHED"} if select_entry(context.scene, self.index, self.extend, self.range_select) else {"CANCELLED"}
 
 
-class AURORA_OT_group(bpy.types.Operator):
-    bl_idname = "aurora.live_group"
+class BLOCK_OT_group(bpy.types.Operator):
+    bl_idname = "block.live_group"
     bl_label = "Group"
     bl_description = "Group selected entries; the active selected entry becomes the root"
     bl_options = {"REGISTER", "UNDO"}
@@ -300,8 +300,8 @@ class AURORA_OT_group(bpy.types.Operator):
         return {"FINISHED"} if regroup(context.scene, marked(context.scene), focused(context)) else {"CANCELLED"}
 
 
-class AURORA_OT_ungroup(bpy.types.Operator):
-    bl_idname = "aurora.live_ungroup"
+class BLOCK_OT_ungroup(bpy.types.Operator):
+    bl_idname = "block.live_ungroup"
     bl_label = "Ungroup"
     bl_description = "Ungroup selected children, or the whole linkset when its root is selected"
     bl_options = {"REGISTER", "UNDO"}
@@ -315,8 +315,8 @@ class AURORA_OT_ungroup(bpy.types.Operator):
         return {"FINISHED"}
 
 
-class AURORA_OT_root(bpy.types.Operator):
-    bl_idname = "aurora.live_root"
+class BLOCK_OT_root(bpy.types.Operator):
+    bl_idname = "block.live_root"
     bl_label = "Make root"
     bl_description = "Use the highlighted entry as the root of its linkset"
     bl_options = {"REGISTER", "UNDO"}
@@ -332,15 +332,15 @@ class AURORA_OT_root(bpy.types.Operator):
         return {"FINISHED"} if regroup(context.scene, family, entry) else {"CANCELLED"}
 
 
-class AURORA_OT_remove(bpy.types.Operator):
-    bl_idname = "aurora.live_remove"
+class BLOCK_OT_remove(bpy.types.Operator):
+    bl_idname = "block.live_remove"
     bl_label = "Remove from synchronization"
     bl_description = "Remove this entry from Block Viewer's preview list; keep the Blender object"
     bl_options = {"REGISTER", "UNDO"}
     index: IntProperty(default=0, min=0)
 
     def execute(self, context):
-        prefs = context.scene.aurora_live
+        prefs = context.scene.block_live
         if self.index >= len(prefs.objects):
             return {"CANCELLED"}
         entry = prefs.objects[self.index]
@@ -353,8 +353,8 @@ class AURORA_OT_remove(bpy.types.Operator):
         return {"FINISHED"}
 
 
-class AURORA_OT_copy_error(bpy.types.Operator):
-    bl_idname = "aurora.live_copy_error"
+class BLOCK_OT_copy_error(bpy.types.Operator):
+    bl_idname = "block.live_copy_error"
     bl_label = "Copy error"
     bl_description = "Copy the complete object name and synchronization error"
     bl_options = {"INTERNAL"}
@@ -366,8 +366,8 @@ class AURORA_OT_copy_error(bpy.types.Operator):
         return {"FINISHED"}
 
 
-class AURORA_OT_sync_error(bpy.types.Operator):
-    bl_idname = "aurora.live_error"
+class BLOCK_OT_sync_error(bpy.types.Operator):
+    bl_idname = "block.live_error"
     bl_label = "Synchronization error"
     bl_description = "Show this object's synchronization error and copy its details"
     bl_options = {"INTERNAL"}
@@ -376,7 +376,7 @@ class AURORA_OT_sync_error(bpy.types.Operator):
 
     def invoke(self, context, _event):
         if self.index >= 0:
-            entries = context.scene.aurora_live.objects
+            entries = context.scene.block_live.objects
             if self.index >= len(entries) or not entries[self.index].error:
                 return {"CANCELLED"}
             entry = entries[self.index]
@@ -393,13 +393,13 @@ class AURORA_OT_sync_error(bpy.types.Operator):
                 self.layout.separator()
             for line in textwrap.wrap(paragraph, width=70):
                 self.layout.label(text=line, translate=False)
-        self.layout.operator("aurora.live_copy_error", icon="COPYDOWN").message = self.message
+        self.layout.operator("block.live_copy_error", icon="COPYDOWN").message = self.message
 
     def execute(self, _context):
         return {"FINISHED"}
 
 
-class AURORA_UL_sync_objects(bpy.types.UIList):
+class BLOCK_UL_sync_objects(bpy.types.UIList):
     def filter_items(self, context, data, propname):
         ordered = rows(context.scene)
         positions = {index: position for position, (index, _root, _number, _count) in enumerate(ordered)}
@@ -419,7 +419,7 @@ class AURORA_UL_sync_objects(bpy.types.UIList):
                 else:
                     label.label(text="", icon="BLANK1")
                     name = pgettext_iface("#{number} · {name}").format(number=number, name=name)
-            button = label.operator("aurora.live_pick", text=name,
+            button = label.operator("block.live_pick", text=name,
                                     icon="OBJECT_ORIGIN" if count > 1 and number == 1 else "MESH_DATA",
                                     depress=item.marked, translate=False)
             button.index = index
@@ -429,9 +429,9 @@ class AURORA_UL_sync_objects(bpy.types.UIList):
             warning = row.row(align=True)
             warning.alert = True
             warning.operator_context = "INVOKE_DEFAULT"
-            warning.operator("aurora.live_error", text="", icon="ERROR", emboss=False).index = index
-        row.operator("aurora.live_remove", text="", icon="X", emboss=False).index = index
+            warning.operator("block.live_error", text="", icon="ERROR", emboss=False).index = index
+        row.operator("block.live_remove", text="", icon="X", emboss=False).index = index
 
 
-CLASSES = (AURORA_PG_sync_object, AURORA_OT_selection, AURORA_OT_pick, AURORA_OT_group, AURORA_OT_ungroup, AURORA_OT_root,
-           AURORA_OT_remove, AURORA_OT_copy_error, AURORA_OT_sync_error, AURORA_UL_sync_objects)
+CLASSES = (BLOCK_PG_sync_object, BLOCK_OT_selection, BLOCK_OT_pick, BLOCK_OT_group, BLOCK_OT_ungroup, BLOCK_OT_root,
+           BLOCK_OT_remove, BLOCK_OT_copy_error, BLOCK_OT_sync_error, BLOCK_UL_sync_objects)

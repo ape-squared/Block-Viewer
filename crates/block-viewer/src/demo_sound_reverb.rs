@@ -1,4 +1,4 @@
-//! The reverb of the surroundings (AURORA_DEMO_SOUND_REVERB=1|room|hall,
+//! The reverb of the surroundings (BLOCK_DEMO_SOUND_REVERB=1|room|hall,
 //! docs/TESTING.md): our avatar moved to the open air south-east of the
 //! plaza (`room`, `hall`: inside those), with a small closed room ahead on
 //! the left and a large hall further ahead, both with a doorway towards the
@@ -27,7 +27,7 @@ pub enum Place {
 
 pub fn place() -> Option<Place> {
     static PLACE: OnceLock<Option<Place>> = OnceLock::new();
-    *PLACE.get_or_init(|| match std::env::var("AURORA_DEMO_SOUND_REVERB").ok()?.as_str() {
+    *PLACE.get_or_init(|| match std::env::var("BLOCK_DEMO_SOUND_REVERB").ok()?.as_str() {
         "" | "0" => None,
         "room" => Some(Place::Room),
         "hall" => Some(Place::Hall),

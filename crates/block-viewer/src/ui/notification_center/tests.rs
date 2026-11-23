@@ -355,7 +355,7 @@ fn mark_all_read_clears_the_count_and_keeps_what_waits() {
     );
     let offer = list.push(
         Kind::Group,
-        "Join Aurora Builders?",
+        "Join Block Builders?",
         "",
         Data::Group {
             group: Uuid::from_u128(7),

@@ -13,14 +13,14 @@ pub(super) fn prepare(ctx: &egui::Context, demo: bool, s: &mut crate::build::Bui
         return;
     }
     ctx.data_mut(|d| d.insert_temp(id, true));
-    if let Ok(style) = std::env::var("AURORA_DEMO_BUILD_STYLE") {
+    if let Ok(style) = std::env::var("BLOCK_DEMO_BUILD_STYLE") {
         match style.as_str() {
             "legacy" => s.legacy_window = true,
-            "aurora" => s.legacy_window = false,
+            "block" => s.legacy_window = false,
             _ => {}
         }
     }
-    if let Ok(value) = std::env::var("AURORA_DEMO_BUILD_SIZE")
+    if let Ok(value) = std::env::var("BLOCK_DEMO_BUILD_SIZE")
         && let Some((width, height)) = value.split_once(',')
         && let (Ok(width), Ok(height)) = (width.trim().parse::<f32>(), height.trim().parse::<f32>())
         && width.is_finite()
@@ -38,7 +38,7 @@ pub(super) fn prepare(ctx: &egui::Context, demo: bool, s: &mut crate::build::Bui
                 .min(work.size()),
         );
     }
-    if let Ok(tab) = std::env::var("AURORA_DEMO_BUILD_TAB") {
+    if let Ok(tab) = std::env::var("BLOCK_DEMO_BUILD_TAB") {
         for extra in tab.split('+').skip(1) {
             let column = match extra.trim() {
                 "notice" => {

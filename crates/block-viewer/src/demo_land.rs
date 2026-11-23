@@ -1,4 +1,4 @@
-//! About Land in the offline demo (`AURORA_DEMO_LAND=<tab>[:role][:classic]`):
+//! About Land in the offline demo (`BLOCK_DEMO_LAND=<tab>[:role][:classic]`):
 //! the simulator's answers to the floater's requests, for the plaza
 //! parcel (north-east quarter of the demo region). The role says who the
 //! avatar is to the parcel: without one it belongs to a group the avatar
@@ -6,11 +6,11 @@
 //! `officer` gives the avatar the land powers of the owning group but those
 //! of sale, deed and terraforming, `visitor` gives the parcel to another
 //! resident and a group the avatar is not in. `classic` shows Firestorm's
-//! nine tabs for the session, whatever Preferences › Aurora says.
-//! `AURORA_DEMO_LAND_PRIMS=<used>[,<step>]` sets the objects on the owner's
+//! nine tabs for the session, whatever Preferences › Block says.
+//! `BLOCK_DEMO_LAND_PRIMS=<used>[,<step>]` sets the objects on the owner's
 //! land and makes them grow at each answer (the floater's refresh).
-//! `AURORA_DEMO_BUY_LAND` puts the parcel up for sale, and a ParcelBuy
-//! hands it to the avatar. `AURORA_DEMO_BUY_PASS` gives it to Loup, with or
+//! `BLOCK_DEMO_BUY_LAND` puts the parcel up for sale, and a ParcelBuy
+//! hands it to the avatar. `BLOCK_DEMO_BUY_PASS` gives it to Loup, with or
 //! without passes, or to the avatar.
 
 use super::{DEMO_AGENT, DEMO_GROUP1, DEMO_LOUP, DEMO_NOVA, DEMO_TESS, TEX_GRADIENT};
@@ -26,13 +26,13 @@ use uuid::Uuid;
 
 const COVENANT: Uuid = Uuid::from_u128(0xC0E0_0000_0000_0000_0000_0000_0000_0001);
 pub(super) const PARCEL_UUID: Uuid = Uuid::from_u128(0x1214_B5B2_7C42_D6C4_8741_B182_4390_8089);
-const XP_AURORA: Uuid = Uuid::from_u128(0xE7E0_0000_0000_0000_0000_0000_0000_0001);
+const XP_BLOCK: Uuid = Uuid::from_u128(0xE7E0_0000_0000_0000_0000_0000_0000_0001);
 const XP_SITTER: Uuid = Uuid::from_u128(0xE7E0_0000_0000_0000_0000_0000_0000_0002);
 const XP_INTERACT: Uuid = Uuid::from_u128(0xE7E0_0000_0000_0000_0000_0000_0000_0003);
 const XP_BEACH: Uuid = Uuid::from_u128(0xE7E0_0000_0000_0000_0000_0000_0000_0004);
 const XP_CLUB: Uuid = Uuid::from_u128(0xE7E0_0000_0000_0000_0000_0000_0000_0005);
 const XP_GRID: Uuid = Uuid::from_u128(0xE7E0_0000_0000_0000_0000_0000_0000_0006);
-/// Placeholder parcel music (also `AURORA_DEMO_MUSIC=1`).
+/// Placeholder parcel music (also `BLOCK_DEMO_MUSIC=1`).
 pub const MUSIC_URL: &str = "http://flux.exemple.org:8000/";
 
 /// The demo parcel as the "simulator" keeps it (updates are applied).
@@ -53,7 +53,7 @@ pub enum Role {
     Visitor,
 }
 
-/// What AURORA_DEMO_LAND asks for.
+/// What BLOCK_DEMO_LAND asks for.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Scenario {
     pub tab: String,
@@ -84,9 +84,9 @@ fn parse(v: &str) -> Scenario {
 }
 
 pub fn scenario() -> Option<Scenario> {
-    match std::env::var("AURORA_DEMO_LAND") {
+    match std::env::var("BLOCK_DEMO_LAND") {
         Ok(v) => Some(parse(&v)),
-        // AURORA_DEMO_ENV_EDITOR=custom: About Land's environment, as the
+        // BLOCK_DEMO_ENV_EDITOR=custom: About Land's environment, as the
         // plaza's owner
         Err(_) => super::env::editor()
             .filter(|s| s.starts_with("custom"))
@@ -127,19 +127,19 @@ pub fn group_powers(group: Uuid) -> u64 {
     }
 }
 
-/// AURORA_DEMO_BUY_LAND=<mode>[:confirm]: the plaza parcel for sale by
+/// BLOCK_DEMO_BUY_LAND=<mode>[:confirm]: the plaza parcel for sale by
 /// a demo resident (rich, short, upgrade, other, error; see docs/TESTING.md).
 pub fn buy_scenario() -> Option<String> {
-    let v = std::env::var("AURORA_DEMO_BUY_LAND").ok()?.trim().to_lowercase();
+    let v = std::env::var("BLOCK_DEMO_BUY_LAND").ok()?.trim().to_lowercase();
     Some(v.split(':').next().unwrap_or_default().to_owned())
 }
 
-/// AURORA_DEMO_BUY_LAND=<mode>:confirm: the confirmation opens by itself.
+/// BLOCK_DEMO_BUY_LAND=<mode>:confirm: the confirmation opens by itself.
 pub fn buy_confirms() -> bool {
-    std::env::var("AURORA_DEMO_BUY_LAND").is_ok_and(|v| v.trim().to_lowercase().ends_with(":confirm"))
+    std::env::var("BLOCK_DEMO_BUY_LAND").is_ok_and(|v| v.trim().to_lowercase().ends_with(":confirm"))
 }
 
-/// Price of the plaza parcel in AURORA_DEMO_BUY_LAND.
+/// Price of the plaza parcel in BLOCK_DEMO_BUY_LAND.
 const SALE_PRICE: i32 = 4500;
 
 fn now() -> i32 {
@@ -158,7 +158,7 @@ fn initial(role: Role) -> ParcelInfo {
     ParcelInfo {
         local_id: 1,
         sequence_id: block_net::land::SELECTED_PARCEL_SEQ_ID,
-        name: block_i18n::tr!("demo-land-aurora-plaza-offline-demo").into(),
+        name: block_i18n::tr!("demo-land-block-plaza-offline-demo").into(),
         desc: block_i18n::tr!("demo-land-block-viewer-s-offline-demo-parcel-visit-the-fountain").into(),
         owner_id,
         group_id,
@@ -229,10 +229,10 @@ fn for_sale(mut p: ParcelInfo, mode: &str) -> ParcelInfo {
     p
 }
 
-/// AURORA_DEMO_BUY_PASS=<mode>: the plaza parcel as the ground menu's
+/// BLOCK_DEMO_BUY_PASS=<mode>: the plaza parcel as the ground menu's
 /// "Buy access" finds it (sell, none, own; see docs/TESTING.md).
 pub fn pass_scenario() -> Option<String> {
-    std::env::var("AURORA_DEMO_BUY_PASS").ok().map(|v| v.trim().to_lowercase())
+    std::env::var("BLOCK_DEMO_BUY_PASS").ok().map(|v| v.trim().to_lowercase())
 }
 
 /// Loup's parcel selling passes of an hour for L$ 88 to whoever is not on
@@ -264,10 +264,10 @@ pub(super) fn parcel() -> ParcelInfo {
     .clone()
 }
 
-/// AURORA_DEMO_LAND_PRIMS=<used>[,<step>]: objects on the owner's land in
+/// BLOCK_DEMO_LAND_PRIMS=<used>[,<step>]: objects on the owner's land in
 /// the region, and how many more each answer finds.
 fn prims_scenario() -> Option<(i32, i32)> {
-    let v = std::env::var("AURORA_DEMO_LAND_PRIMS").ok()?;
+    let v = std::env::var("BLOCK_DEMO_LAND_PRIMS").ok()?;
     let (used, step) = v.split_once(',').unwrap_or((v.as_str(), "0"));
     Some((used.trim().parse().ok()?, step.trim().parse().unwrap_or(0)))
 }
@@ -304,7 +304,7 @@ struct DemoDay {
 
 static DAY: Mutex<Option<DemoDay>> = Mutex::new(None);
 
-/// `AURORA_DEMO_ENV_EDITOR=custom`: the parcel starts with the user's day
+/// `BLOCK_DEMO_ENV_EDITOR=custom`: the parcel starts with the user's day
 /// cycle applied, for "Custom" to edit (once: a reset then leaves it).
 fn custom_day_once() {
     static ONCE: std::sync::Once = std::sync::Once::new();
@@ -439,7 +439,7 @@ fn found_experiences() -> Vec<block_net::land::FoundExperience> {
         properties,
     };
     vec![
-        e(XP_AURORA, block_i18n::tr!("demo-land-aurora-experience"), 13, 0),
+        e(XP_BLOCK, block_i18n::tr!("demo-land-block-experience"), 13, 0),
         e(XP_SITTER, "AVSitter", 13, 0),
         e(XP_INTERACT, block_i18n::tr!("demo-land-interactions-general"), 21, 0),
         e(XP_BEACH, block_i18n::tr!("demo-land-beach-games"), 13, 0),
@@ -517,7 +517,7 @@ pub fn reply(c: &LandCommand) -> Vec<NetEvent> {
                 out.push(ev(LandEvent::AccessList {
                     local_id: 1,
                     flags: AL_ALLOW_EXPERIENCE,
-                    entries: [XP_AURORA, XP_SITTER, XP_INTERACT].into_iter().map(|id| e(id, 0)).collect(),
+                    entries: [XP_BLOCK, XP_SITTER, XP_INTERACT].into_iter().map(|id| e(id, 0)).collect(),
                 }));
             }
             out
@@ -560,12 +560,12 @@ pub fn reply(c: &LandCommand) -> Vec<NetEvent> {
                 handle: super::HANDLE,
                 covenant_id,
                 timestamp,
-                estate_name: block_i18n::tr!("common-aurora-demo").into(),
+                estate_name: block_i18n::tr!("common-block-demo").into(),
                 estate_owner: super::region::estate_owner(),
             })];
             if !covenant_id.is_nil() {
                 let text = super::region::covenant_text(covenant_id)
-                    .unwrap_or(block_i18n::tr!("demo-land-welcome-to-the-aurora-demo-estate-by-buying-land"));
+                    .unwrap_or(block_i18n::tr!("demo-land-welcome-to-the-block-demo-estate-by-buying-land"));
                 out.push(ev(LandEvent::CovenantText {
                     covenant_id,
                     text: Some(text.into()),
@@ -636,7 +636,7 @@ pub fn reply(c: &LandCommand) -> Vec<NetEvent> {
             day_offset,
             ..
         } => {
-            // AURORA_DEMO_ENV_EDITOR=…-refused: the simulator refuses it
+            // BLOCK_DEMO_ENV_EDITOR=…-refused: the simulator refuses it
             if super::env::editor().is_some_and(|s| s.ends_with("-refused")) {
                 return vec![ev(LandEvent::Environment {
                     local_id: *local_id,
@@ -722,7 +722,7 @@ pub fn reply(c: &LandCommand) -> Vec<NetEvent> {
                     urls: Some((urls, 750)),
                 }))),
                 ev(LandEvent::ScriptDetails(Ok(vec![block_net::land::ScriptParcel {
-                    name: block_i18n::tr!("demo-land-aurora-plaza-offline-demo").into(),
+                    name: block_i18n::tr!("demo-land-block-plaza-offline-demo").into(),
                     local_id: Some(1),
                     objects,
                 }]))),
@@ -807,7 +807,7 @@ pub fn reply(c: &LandCommand) -> Vec<NetEvent> {
             ids.iter()
                 .map(|id| {
                     let name = match *id {
-                        XP_AURORA => block_i18n::tr!("demo-land-aurora-experience"),
+                        XP_BLOCK => block_i18n::tr!("demo-land-block-experience"),
                         XP_SITTER => "AVSitter",
                         XP_INTERACT => block_i18n::tr!("demo-land-interactions-general"),
                         XP_BEACH => block_i18n::tr!("demo-land-beach-games"),
@@ -825,7 +825,7 @@ pub fn reply(c: &LandCommand) -> Vec<NetEvent> {
                 .collect(),
         ))],
         LandCommand::AvatarSearch { query } => {
-            // AURORA_DEMO_SHARE=multi: dozens of Orion-like hits for multi-select
+            // BLOCK_DEMO_SHARE=multi: dozens of Orion-like hits for multi-select
             let results = crate::demo::share::avatar_search(query).unwrap_or_else(|| {
                 vec![
                     FoundAvatar {
@@ -880,7 +880,7 @@ mod tests {
     fn each_role_gets_its_rights() {
         let member = |powers: u64| GroupMembership {
             id: DEMO_GROUP1,
-            name: "Aurora Builders".into(),
+            name: "Block Builders".into(),
             insignia: Uuid::nil(),
             powers: (1 << 16) | powers,
             accept_notices: true,

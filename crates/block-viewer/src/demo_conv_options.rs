@@ -1,4 +1,4 @@
-//! AURORA_DEMO_CONV_OPTIONS=aurora|compact|bubbles|legacy[:on]: the
+//! BLOCK_DEMO_CONV_OPTIONS=aurora|compact|bubbles|legacy[:on]: the
 //! conversation options of Preferences › Chat
 //! (`ui/chat/conversation_options.rs`) without a grid, the Conversations
 //! window closed and placed at a known size, in that chat style.
@@ -8,9 +8,9 @@
 //!   system line ("Teleport offer sent to …").
 //! - The offline messages asked once logged in: two of Orion's and one for
 //!   the Plaza Market group, kept while we were away.
-//! - Frame 640: Aurora Builders' chat, where Tess Touch moderates; frame
+//! - Frame 640: Block Builders' chat, where Tess Touch moderates; frame
 //!   660: a conference; frame 700: Tess Touch writes privately; frame 760:
-//!   the moderator and we write in Aurora Builders.
+//!   the moderator and we write in Block Builders.
 //!
 //! `on`: every option on for the run, nothing saved: tabs ordered by kind,
 //! names as "username (display name)", moderators' names bold and their text
@@ -35,7 +35,7 @@ pub const CONFERENCE: Uuid = Uuid::from_u128(0xC0_0000_0000_0000_0000_0000_0000_
 pub const SHOW_AT: u64 = 780;
 
 /// The scenario: its chat style, whether every option is on, and the
-/// conversation selected at `SHOW_AT` (`group`: Aurora Builders, `nova`:
+/// conversation selected at `SHOW_AT` (`group`: Block Builders, `nova`:
 /// Nova's).
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct Scene {
@@ -45,7 +45,7 @@ pub struct Scene {
 }
 
 pub fn scene() -> Option<Scene> {
-    parse(&std::env::var("AURORA_DEMO_CONV_OPTIONS").ok()?)
+    parse(&std::env::var("BLOCK_DEMO_CONV_OPTIONS").ok()?)
 }
 
 fn parse(v: &str) -> Option<Scene> {
@@ -55,7 +55,7 @@ fn parse(v: &str) -> Option<Scene> {
         "compact" => ChatStyle::Compact,
         "bubbles" => ChatStyle::Bubbles,
         "legacy" => ChatStyle::Legacy,
-        _ => ChatStyle::Aurora,
+        _ => ChatStyle::Block,
     };
     let mut scene = Scene {
         style,
@@ -177,7 +177,7 @@ fn im(agent: Uuid, from: Uuid, name: &str, dialog: u8, session: Uuid, text: &str
         message: text.into(),
         offline,
         from_group: false,
-        binary_bucket: if dialog == 17 { b"Aurora Builders\0".to_vec() } else { Vec::new() },
+        binary_bucket: if dialog == 17 { b"Block Builders\0".to_vec() } else { Vec::new() },
         timestamp,
     })
 }
@@ -213,7 +213,7 @@ pub fn events(frame: u64, agent: Uuid) -> Vec<NetEvent> {
     match frame {
         640 => vec![invite(
             DEMO_GROUP1,
-            "Aurora Builders",
+            "Block Builders",
             tr!("demo-has-anyone-seen-the-new-eep-sky"),
             false,
         )],
@@ -227,7 +227,7 @@ pub fn events(frame: u64, agent: Uuid) -> Vec<NetEvent> {
             tr!("demo-arriving-with-textures"),
             false,
         )],
-        // Tess Touch moderates Aurora Builders (the demo's session reply)
+        // Tess Touch moderates Block Builders (the demo's session reply)
         760 => vec![im(
             agent,
             DEMO_NOVA,
@@ -241,7 +241,7 @@ pub fn events(frame: u64, agent: Uuid) -> Vec<NetEvent> {
     }
 }
 
-/// Our line in Aurora Builders, after the moderator's.
+/// Our line in Block Builders, after the moderator's.
 pub fn own_lines(world: &mut World, frame: u64) {
     if frame != 761 {
         return;
@@ -278,13 +278,13 @@ mod tests {
         assert_eq!(
             parse("1"),
             Some(Scene {
-                style: ChatStyle::Aurora,
+                style: ChatStyle::Block,
                 on: false,
                 show: None
             })
         );
         assert_eq!(parse("legacy:group:on").map(|s| (s.on, s.show)), Some((true, Some(DEMO_GROUP1))));
-        assert_eq!(parse("aurora:nova").and_then(|s| s.show), Some(DEMO_FRIEND));
+        assert_eq!(parse("block:nova").and_then(|s| s.show), Some(DEMO_FRIEND));
         assert_eq!(parse("compact").map(|s| s.style), Some(ChatStyle::Compact));
         assert_eq!(parse("bubbles:on").map(|s| (s.style, s.on)), Some((ChatStyle::Bubbles, true)));
     }

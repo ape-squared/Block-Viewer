@@ -372,7 +372,7 @@ impl BuildTool {
         self.contents_changed(object_id);
     }
 
-    /// Aurora's selected-items menu uses the Open window's folder copy
+    /// Block's selected-items menu uses the Open window's folder copy
     /// (LLFloaterOpenObject::moveToInventory), rather than sorting by type.
     pub fn copy_contents_to_inventory(&mut self, world: &World, idx: usize, items: &[TaskItem]) {
         let Some(o) = world.objects.get(idx) else { return };

@@ -6,11 +6,11 @@ pub fn peer() -> ObjectUpdate {
     object.full_id = PEER;
     object.local_id = 9727;
     object.position += Vec3::new(1.5, 0.5, 0.0);
-    object.name_values = "FirstName STRING RW SV Nova\nLastName STRING RW SV Aurora".into();
+    object.name_values = "FirstName STRING RW SV Nova\nLastName STRING RW SV Block".into();
     object
 }
 
-/// AURORA_DEMO_POSER=compact-crowd: five more residents around you, each
+/// BLOCK_DEMO_POSER=compact-crowd: five more residents around you, each
 /// with a display name and an account (short to long), who all accept.
 pub const CROWD: [(&str, &str, &str); 5] = [
     ("Lumi", "lumi.starling", "Starling"),

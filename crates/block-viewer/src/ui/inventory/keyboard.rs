@@ -7,7 +7,7 @@
 use super::*;
 
 /// Run after rebuilding the displayed order and before laying out its viewport,
-/// including while Aurora's explorer has swapped its flat tree into `plain`.
+/// including while Block's explorer has swapped its flat tree into `plain`.
 pub(super) fn navigate(ui: &egui::Ui, inv: &Inventory, st: &mut InventoryUi, filtered: bool) -> bool {
     // The explorer lists one folder flat (the Legacy Viewer's single folder
     // mode): its folders never open in place, so Left and Right stay unused.
@@ -60,7 +60,7 @@ pub(super) fn navigate(ui: &egui::Ui, inv: &Inventory, st: &mut InventoryUi, fil
     navigated || selected_after_delete
 }
 
-/// The rows the list drew last: the plain tree, Aurora's explorer folder or
+/// The rows the list drew last: the plain tree, Block's explorer folder or
 /// the result tree of a search, a filter or another tab.
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 pub(super) enum ShownOrder {

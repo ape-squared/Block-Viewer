@@ -135,10 +135,10 @@ mod tests {
         let log = concat!(
             "[time WARN block_net] timeout https://sim.example/cap/secret?q=credential Alice Resident C:\\Users\\Private Name\\log\n",
             "[time ERROR wgpu_core] Validation Error: object `Élodie` /home/secret/file mail@private.example 123.45.67.89\n",
-            "[time ERROR aurora_viewer] panic: secret multiword name 01234567-89ab-cdef-0123-456789abcdef\n",
+            "[time ERROR block_viewer] panic: secret multiword name 01234567-89ab-cdef-0123-456789abcdef\n",
             "[time WARN block_net] chat Alice Resident: confidential conversation\n",
             "[time ERROR block_net] Authorization: Bearer private_token\n",
-            "[time INFO aurora_viewer] nothing\n",
+            "[time INFO block_viewer] nothing\n",
             "[time WARN Alice_Resident] a target that is no module path\n"
         );
         let output = excerpt(log);
@@ -167,15 +167,15 @@ mod tests {
     #[test]
     fn lines_say_how_long_before_the_end_and_repeats_fold() {
         let log = concat!(
-            "[2026-10-25T23:59:50.100Z WARN  aurora_viewer::scene::textures] texture memory: pressure 1 -> 2\n",
+            "[2026-10-25T23:59:50.100Z WARN  block_viewer::scene::textures] texture memory: pressure 1 -> 2\n",
             "[2026-10-25T23:59:58.000Z WARN  block_render::main_thread] wgpu error: Validation Error: x\n",
             "[2026-10-25T23:59:59.000Z WARN  block_render::main_thread] wgpu error: Validation Error: y\n",
             "[2026-10-26T00:00:04.000Z ERROR block_render::main_thread] GPU device lost (Unknown): reset\n",
-            "[2026-10-26T00:00:05.000Z INFO  aurora_viewer] last line\n",
+            "[2026-10-26T00:00:05.000Z INFO  block_viewer] last line\n",
         );
         assert_eq!(
             excerpt(log),
-            "-15 s | WARN | aurora_viewer::scene::textures | texture memory pressure\n\
+            "-15 s | WARN | block_viewer::scene::textures | texture memory pressure\n\
              -6 s | WARN | block_render::main_thread | GPU validation error (x2)\n\
              -1 s | ERROR | block_render::main_thread | GPU device lost"
         );

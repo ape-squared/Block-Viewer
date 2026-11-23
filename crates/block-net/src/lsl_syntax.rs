@@ -336,7 +336,7 @@ mod tests {
             socket.write_all(&body).await.expect("reply body");
             crate::test_http::finish(socket);
         });
-        let dir = std::env::temp_dir().join(format!("aurora-defs-{}", Uuid::new_v4()));
+        let dir = std::env::temp_dir().join(format!("block-defs-{}", Uuid::new_v4()));
         let id = Uuid::from_u128(0xdef);
         let http = crate::test_http_client();
         let defs = load_definitions(&http, &url, &dir, id).await.expect("definitions");
@@ -354,7 +354,7 @@ mod tests {
     async fn an_lsl_file_cached_alone_is_kept_when_the_definitions_cannot_be_fetched() {
         // LSLSyntax caches LSL alone: ScriptDefinitions is asked for SLua,
         // and when it fails the cached LSL still serves
-        let dir = std::env::temp_dir().join(format!("aurora-defs-{}", Uuid::new_v4()));
+        let dir = std::env::temp_dir().join(format!("block-defs-{}", Uuid::new_v4()));
         let id = Uuid::from_u128(0xdee);
         std::fs::create_dir_all(&dir).expect("test folder");
         std::fs::write(cache_file(&dir, id), block_llsd::to_xml(&doc())).expect("cached LSL");

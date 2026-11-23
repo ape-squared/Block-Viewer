@@ -1,12 +1,12 @@
-//! `AURORA_DEMO_DEEP_PERMS`: a chest near the avatar whose contents hold
+//! `BLOCK_DEMO_DEEP_PERMS`: a chest near the avatar whose contents hold
 //! objects inside objects, for "Include objects inside objects"
 //! (`build/deep_perms.rs`). The demo simulator (`demo_sim.rs`) keeps what
 //! each object item holds, rezzes it with those contents and saves a copy
 //! back with what it holds then.
 //!
 //! - `1`: the chest only;
-//! - `run`: with `AURORA_DEMO_BUILD=contents-ready,object:99760` and
-//!   `AURORA_DEMO_BUILD_TAB=contents+permissions`, the option is ticked and
+//! - `run`: with `BLOCK_DEMO_BUILD=contents-ready,object:99760` and
+//!   `BLOCK_DEMO_BUILD_TAB=contents+permissions`, the option is ticked and
 //!   Apply pressed once the chest is selected; the log ends with the report;
 //! - `run-replace`: the same, the simulator replacing a saved item in place;
 //! - `run-refuse`: the simulator refuses every rez with an alert.
@@ -27,7 +27,7 @@ pub fn id(local: u32) -> Uuid {
 }
 
 pub fn mode() -> Option<String> {
-    std::env::var("AURORA_DEMO_DEEP_PERMS")
+    std::env::var("BLOCK_DEMO_DEEP_PERMS")
         .ok()
         .map(|v| v.trim().to_owned())
         .filter(|v| !v.is_empty())

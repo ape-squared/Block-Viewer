@@ -1,4 +1,4 @@
-//! AURORA_DEMO_TEXTURE_MISSING: boxes whose texture the asset server does
+//! BLOCK_DEMO_TEXTURE_MISSING: boxes whose texture the asset server does
 //! not have.
 
 use super::{HANDLE, floor_at, prim, shape};
@@ -15,7 +15,7 @@ const FIRST_LOCAL_ID: u32 = 81_120;
 /// The boxes arrive once the loading screen is gone.
 const ARRIVE_FRAME: u64 = 300;
 
-/// AURORA_DEMO_TEXTURE_MISSING=1: two boxes east of the start position
+/// BLOCK_DEMO_TEXTURE_MISSING=1: two boxes east of the start position
 /// whose texture the asset server does not have (a 403 from the asset CDN):
 /// a white one and a dark, mostly transparent one, as the layers of a pool
 /// edge that showed it. With the rez effect on, they are the grid while the
@@ -27,7 +27,7 @@ pub struct MissingTextureDemo {
 
 impl MissingTextureDemo {
     pub fn from_env() -> Option<Self> {
-        (std::env::var("AURORA_DEMO_TEXTURE_MISSING").ok()?.trim() == "1").then_some(MissingTextureDemo { sent: false })
+        (std::env::var("BLOCK_DEMO_TEXTURE_MISSING").ok()?.trim() == "1").then_some(MissingTextureDemo { sent: false })
     }
 
     pub fn tick(&mut self, frame: u64, world: &mut crate::world::World, textures: &mut crate::scene::textures::TextureStreamer) {

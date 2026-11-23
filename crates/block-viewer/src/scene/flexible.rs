@@ -13,8 +13,8 @@
 //! from a simulation that never stopped. The Legacy Viewer skips the
 //! flexies that are not visible too (LLVolumeImplFlexible::doIdleUpdate,
 //! `isVisible`), simulation included, and spaces the updates of the small
-//! ones out over up to 32 frames, which Aurora does not.
-//! `AURORA_FLEXI_CULL=0` sweeps every one each frame, as before.
+//! ones out over up to 32 frames, which Block does not.
+//! `BLOCK_FLEXI_CULL=0` sweeps every one each frame, as before.
 
 use super::*;
 use crate::build::silhouette::{self, Topology};
@@ -25,7 +25,7 @@ use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
 /// it, a flexie outside every view is taken as casting nothing seen.
 const SHADOW_REACH: f32 = 64.0;
 
-/// AURORA_FLEXI_CULL: `0` sweeps every flexie's mesh each frame, as before;
+/// BLOCK_FLEXI_CULL: `0` sweeps every flexie's mesh each frame, as before;
 /// `alt` does so one second in three.
 #[derive(Clone, Copy, PartialEq, Eq)]
 enum CullMode {
@@ -36,17 +36,17 @@ enum CullMode {
 
 fn cull_mode() -> CullMode {
     static MODE: std::sync::OnceLock<CullMode> = std::sync::OnceLock::new();
-    *MODE.get_or_init(|| match std::env::var("AURORA_FLEXI_CULL").as_deref() {
+    *MODE.get_or_init(|| match std::env::var("BLOCK_FLEXI_CULL").as_deref() {
         Ok("0") => CullMode::Off,
         Ok("alt") => CullMode::Alternate,
         _ => CullMode::On,
     })
 }
 
-/// The old way this second, with `AURORA_FLEXI_CULL=alt`.
+/// The old way this second, with `BLOCK_FLEXI_CULL=alt`.
 static OLD_NOW: AtomicBool = AtomicBool::new(false);
 
-/// `AURORA_FLEXI_CULL=alt`: the way of second `n` (true: the old way).
+/// `BLOCK_FLEXI_CULL=alt`: the way of second `n` (true: the old way).
 /// None without `alt`.
 pub fn alternate(n: u64) -> Option<bool> {
     (cull_mode() == CullMode::Alternate).then(|| {

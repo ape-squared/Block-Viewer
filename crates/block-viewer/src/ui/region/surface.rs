@@ -1,6 +1,6 @@
 //! Local terrain editing: swatches, live picker choices and reversible previews.
 //! Unlike LLPanelRegionTerrainInfo's Apply-only cover, this preview is local
-//! until Apply (requested Aurora behaviour); closing/cancelling sends nothing.
+//! until Apply (requested Block behaviour); closing/cancelling sends nothing.
 
 use super::{RegionUi, View, advanced, manage};
 use crate::scene::Scene;

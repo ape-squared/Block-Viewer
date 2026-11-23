@@ -12,7 +12,7 @@
 //!
 //! Deliberate difference: the Legacy Viewer writes a fresh texture entry on
 //! every face, with its default object texture (FSDefaultObjectTexture);
-//! Aurora keeps each face's texture and mapping as the region made them and
+//! Block keeps each face's texture and mapping as the region made them and
 //! sets only the values above. A new prim's faces are the defaults already,
 //! and no asset id is taken from a setting. The default texture, the item
 //! put inside new objects (FSBuildPrefs_EmbedItem) and the next owner

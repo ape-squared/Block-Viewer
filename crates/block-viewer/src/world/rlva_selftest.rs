@@ -6,7 +6,7 @@
 //! What it may touch is narrow, and enforced here rather than left to the
 //! cases:
 //! - it starts from `request` (the tool) then `confirm` (the dialog) only;
-//! - in the inventory: one folder, `#RLV/~AuroraSelfTest`, and what it
+//! - in the inventory: one folder, `#RLV/~BlockSelfTest`, and what it
 //!   creates inside; nothing is ever renamed, moved, trashed or deleted, and
 //!   a later run reuses what it finds there (exact name, place and owner);
 //! - every command of a case goes through `guard`, which only lets through
@@ -38,14 +38,14 @@ mod tests;
 use report::{Line, Report, Verdict};
 
 /// The test's folder, under the avatar's `#RLV`.
-pub const FOLDER: &str = "~AuroraSelfTest";
+pub const FOLDER: &str = "~BlockSelfTest";
 /// The name of the prims phase 2 rezzes.
-pub const SEAT_NAME: &str = "~AuroraSelfTest seat";
-pub const RELAY_NAME: &str = "~AuroraSelfTest relay";
+pub const SEAT_NAME: &str = "~BlockSelfTest seat";
+pub const RELAY_NAME: &str = "~BlockSelfTest relay";
 pub const RELAY_SOURCE: &str = include_str!("bridge/selftest_relay.lsl");
 /// The handshake of a relay; anything a test object says that starts with
 /// it is kept out of the chat.
-const HELLO: &str = "<aurora-selftest>";
+const HELLO: &str = "<block-selftest>";
 /// The attachment points the test wears its objects on: rarely used ones.
 /// Hind Right Foot (controller), Hind Left Foot (object A), Tail Tip
 /// (object B and the forced-wear cases).
@@ -66,7 +66,7 @@ const LEASH: f32 = 12.0;
 /// Development builds only (`dev`, `ci`, `debugging`): a published build has
 /// neither the tool nor a way to start the runner.
 pub fn available() -> bool {
-    available_in(env!("AURORA_BUILD_PROFILE"))
+    available_in(env!("BLOCK_BUILD_PROFILE"))
 }
 
 fn available_in(profile: &str) -> bool {
@@ -102,12 +102,12 @@ impl It {
 
     pub(crate) fn name(self) -> &'static str {
         match self {
-            It::Controller => "~AuroraSelfTest controller",
-            It::A => "~AuroraSelfTest a",
-            It::B => "~AuroraSelfTest b",
-            It::Tagged => "~AuroraSelfTest tagged (tail tip)",
-            It::Probe => "~AuroraSelfTest probe",
-            It::Plain => "~AuroraSelfTest plain",
+            It::Controller => "~BlockSelfTest controller",
+            It::A => "~BlockSelfTest a",
+            It::B => "~BlockSelfTest b",
+            It::Tagged => "~BlockSelfTest tagged (tail tip)",
+            It::Probe => "~BlockSelfTest probe",
+            It::Plain => "~BlockSelfTest plain",
         }
     }
 

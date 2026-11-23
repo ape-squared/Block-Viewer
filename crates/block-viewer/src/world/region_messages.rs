@@ -5,7 +5,7 @@
 //! and a line of nearby chat, before any rule of conversations: no mute,
 //! no friends-only filter, no automatic response (LLIMProcessing::
 //! processNewMessage, `to_id.isNull()`, and god_message_name_cb,
-//! indra/newview/llimprocessing.cpp, originally LGPL 2.1). Aurora opened a
+//! indra/newview/llimprocessing.cpp, originally LGPL 2.1). Block opened a
 //! conversation with the sender instead. Shown in the middle of the screen
 //! by `ui::region_message_prompt` (#1404).
 

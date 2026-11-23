@@ -1,4 +1,4 @@
-//! AURORA_SYNC_SLOW=<ms>: one log line for each frame whose scene sync
+//! BLOCK_SYNC_SLOW=<ms>: one log line for each frame whose scene sync
 //! took longer than `ms` (8 if not a number), with the time of each of its
 //! steps and what the full syncs of the frame were. The `perf summary`
 //! line only gives the slowest frame of each second by part (`s_sync_apply`
@@ -37,9 +37,9 @@ pub struct SlowSync {
 }
 
 impl SlowSync {
-    /// The limit, when AURORA_SYNC_SLOW asks for the line.
+    /// The limit, when BLOCK_SYNC_SLOW asks for the line.
     pub fn limit_from_env() -> Option<f32> {
-        let v = std::env::var("AURORA_SYNC_SLOW").ok()?;
+        let v = std::env::var("BLOCK_SYNC_SLOW").ok()?;
         if v == "0" {
             return None;
         }

@@ -25,6 +25,19 @@ const ACK_ENV: &str = "AURORA_UPDATE_ACK";
 /// transaction folder, whose `failure.txt` says why ([`failed_update`]).
 /// Older helpers set it to `1`.
 pub const ROLLBACK_ENV: &str = "AURORA_UPDATE_ROLLBACK";
+/// The update folder next to the installation: `.aurora-update-<token>`,
+/// as this viewer makes it, or `.block-update-<token>` as Block 0.2.x made
+/// it. The helper is the old viewer's own program, so a 0.2.x viewer
+/// updating to this one makes the second: refused, the new viewer never
+/// acknowledged its first frame and the helper put 0.2.x back.
+const WORK_PREFIXES: [&str; 2] = [".aurora-update-", ".block-update-"];
+/// The helper's command-line flag, likewise (`--block-update-helper` in 0.2.x).
+const HELPER_FLAGS: [&str; 2] = ["--aurora-update-helper", "--block-update-helper"];
+
+/// The token of an update folder's name, under either prefix.
+fn work_token(name: &str) -> Option<&str> {
+    WORK_PREFIXES.iter().find_map(|prefix| name.strip_prefix(prefix))
+}
 /// Why the update failed, written by the helper before the rollback.
 const FAILURE: &str = "failure.txt";
 /// Written by the helper just before it starts the new viewer: a failure
@@ -74,7 +87,7 @@ fn progress_step<'a>(text: &'a str, expected: &str) -> Option<&'a str> {
 
 /// What the helper is doing, for the window the viewer's `main` shows over
 /// the whole switch (`splash/`): between the old window's close and the new
-/// one's first frame nothing of Aurora was on screen for several seconds
+/// one's first frame nothing of Block was on screen for several seconds
 /// (the old process's shutdown, the swap, a cache set aside, the antivirus
 /// scan of the new executable).
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -167,8 +180,8 @@ pub(crate) fn plain_dir(path: &Path) -> Result<()> {
     Ok(())
 }
 
-/// The installation sits directly at the root of a drive (`E:\Aurora
-/// Viewer`, `/aurora`): its parent has no parent, which `validate_install`
+/// The installation sits directly at the root of a drive (`E:\Block
+/// Viewer`, `/block`): its parent has no parent, which `validate_install`
 /// refuses, so the update's folder, backup and lock are never written at a
 /// drive's root.
 pub fn at_drive_root(install: &Path) -> bool {
@@ -455,7 +468,9 @@ fn validate_work(work: &Path, plan: &Plan) -> Result<()> {
             && work.parent() == plan.install.parent()
             && work
                 .file_name()
-                .is_some_and(|n| n == format!(".aurora-update-{}", plan.token).as_str()),
+                .and_then(|n| n.to_str())
+                .and_then(work_token)
+                .is_some_and(|token| token == plan.token),
         "unsafe transaction directory"
     );
     plain_dir(work)?;
@@ -497,7 +512,7 @@ fn sweep_finished(install: &Path) {
     };
     for entry in entries.flatten() {
         let name = entry.file_name();
-        let Some(token) = name.to_str().and_then(|n| n.strip_prefix(".aurora-update-")) else {
+        let Some(token) = name.to_str().and_then(work_token) else {
             continue;
         };
         let work = entry.path();
@@ -577,7 +592,7 @@ fn hidden(command: &mut Command) {
 /// `stage` hears each step of the switch, with the new version.
 pub fn run_helper(stage: &mut dyn FnMut(&str, HelperStage)) -> Result<bool> {
     let mut args = std::env::args_os().skip(1);
-    if args.next().is_none_or(|a| a != "--aurora-update-helper") {
+    if args.next().is_none_or(|a| !HELPER_FLAGS.iter().any(|flag| a == *flag)) {
         return Ok(false);
     }
     let work = PathBuf::from(args.next().context("missing update transaction")?);
@@ -659,7 +674,7 @@ pub fn apply(install: &Path, work: &Path, launch: impl FnOnce() -> Result<()>) -
     let token = work
         .file_name()
         .and_then(|n| n.to_str())
-        .and_then(|n| n.strip_prefix(".aurora-update-"))
+        .and_then(work_token)
         .context("invalid staging name")?;
     validate_work(
         work,
@@ -761,7 +776,7 @@ pub fn started_by_update() -> bool {
 /// on; the helper only compares it with the last one.
 pub fn report_start(step: impl Fn() -> Option<u64> + Send + 'static) {
     let Some(path) = std::env::var_os(ACK_ENV) else { return };
-    let spawned = std::thread::Builder::new().name("aurora-update-progress".into()).spawn(move || {
+    let spawned = std::thread::Builder::new().name("block-update-progress".into()).spawn(move || {
         let opened = (|| -> Result<(PathBuf, Plan)> {
             let work = PathBuf::from(path);
             let plan: Plan = serde_json::from_slice(&fs::read(work.join("plan.json"))?)?;
@@ -946,6 +961,16 @@ impl Parent {
 
 #[cfg(test)]
 mod tests {
+    #[test]
+    fn update_folders_of_block_0_2_are_accepted() {
+        // a 0.2.x viewer's helper makes `.block-update-<token>`, 0.3 and later
+        // `.aurora-update-<token>`: the new viewer acknowledges either
+        assert_eq!(work_token(".aurora-update-1234"), Some("1234"));
+        assert_eq!(work_token(".block-update-1234"), Some("1234"));
+        assert_eq!(work_token(".other-update-1234"), None);
+        assert!(HELPER_FLAGS.contains(&"--block-update-helper"));
+    }
+
     use super::*;
 
     #[test]
@@ -992,7 +1017,7 @@ mod tests {
 
     #[test]
     fn only_finished_updates_without_a_backup_are_swept() {
-        let root = std::env::temp_dir().join(format!("aurora-sweep-test-{}", uuid::Uuid::new_v4()));
+        let root = std::env::temp_dir().join(format!("block-sweep-test-{}", uuid::Uuid::new_v4()));
         let install = root.join("Block Viewer");
         fs::create_dir_all(&install).expect("install");
         let work = |marker: &[&str]| {

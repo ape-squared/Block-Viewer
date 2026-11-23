@@ -1,4 +1,4 @@
-//! The calls of a conversation in Aurora's workspace, between its head and
+//! The calls of a conversation in Block's workspace, between its head and
 //! its messages:
 //!
 //! - an invitation: a banner with the caller, decline and answer

@@ -11,7 +11,7 @@
       - task folders: work\<task>\target, only with -Tasks (the task will
         have to rebuild everything), or only their incremental\ folders
         with -Incremental (three quarters of the space; the task's next
-        build recompiles Aurora's own crates, not the dependencies);
+        build recompiles Block's own crates, not the dependencies);
       - RELEASE\src\target (build-release.ps1), only with -IncludeRelease
         (the next release build will start from scratch).
     Refuses to work during a build or while a viewer is running.
@@ -30,7 +30,7 @@ param(
 )
 . "$PSScriptRoot\common.ps1"
 
-$p = Get-AuroraPaths
+$p = Get-BlockPaths
 
 function Get-SizeGB([string]$Path) {
     $sum = (Get-ChildItem -LiteralPath $Path -Recurse -File -Force -ErrorAction SilentlyContinue | Measure-Object Length -Sum).Sum

@@ -99,7 +99,7 @@ pub fn page(cx: &mut Cx) {
             });
     });
     // The web links of chat and profiles (link_trust.rs): the warning, and
-    // the trusted sites (Aurora choice, the Legacy Viewer's list is fixed).
+    // the trusted sites (Block choice, the Legacy Viewer's list is fixed).
     cx.group(tr!("ui-options-web-links"), |cx| {
         cx.toggle(
             tr!("ui-options-warn-before-external-links"),

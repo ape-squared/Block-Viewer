@@ -149,7 +149,7 @@ pub fn posed_bounds(bounds: &[JointBounds], mut matrix: impl FnMut(u8) -> Option
     any.then(|| ((min + max) * 0.5, ((max - min) * 0.5).length().max(0.05)))
 }
 
-/// AURORA_DEMO_HAIR_CARDS: one face of `n` strand cards hanging around the
+/// BLOCK_DEMO_HAIR_CARDS: one face of `n` strand cards hanging around the
 /// back of the head (`head`, the rest position of mHead, joint `joint`), at
 /// several distances from it, in a shuffled order rather than back to front,
 /// both sides of each card, as the strand cards of a mesh hair (#935).
@@ -232,7 +232,7 @@ impl super::Scene {
                 .map(|p| Mat4::from_cols_array_2d(p).to_scale_rotation_translation().1);
             // faces that cast (the GPU lists keep the casters on the GPU):
             // blended ones too (LLPipeline::renderShadow), unless
-            // AURORA_BLEND_SHADOWS=0 leaves out those that are not rigged
+            // BLOCK_BLEND_SHADOWS=0 leaves out those that are not rigged
             let blend_casts = block_render::shadow_cull::blend_casts();
             let casters = g
                 .faces
@@ -246,7 +246,7 @@ impl super::Scene {
                 g.center,
                 g.radius
             );
-            if std::env::var("AURORA_DEMO_ANIMESH").is_ok_and(|v| matches!(v.as_str(), "alpha" | "alpha-cycle")) {
+            if std::env::var("BLOCK_DEMO_ANIMESH").is_ok_and(|v| matches!(v.as_str(), "alpha" | "alpha-cycle")) {
                 let red = g
                     .faces
                     .iter()
@@ -260,7 +260,7 @@ impl super::Scene {
                 );
             }
         }
-        // AURORA_DEMO_ANIMESH=far: the fixups of the animesh (ground: an
+        // BLOCK_DEMO_ANIMESH=far: the fixups of the animesh (ground: an
         // offset of about 4.3 m back west; worn: none) and how far from its
         // point the worn root is drawn (3.5 m, sent at 5 m)
         if crate::demo::animesh_far() {
@@ -286,18 +286,18 @@ impl super::Scene {
                 );
             }
         }
-        // (AURORA_DEMO_ANIMESH=churn: stops growing once meshes are freed)
+        // (BLOCK_DEMO_ANIMESH=churn: stops growing once meshes are freed)
         let (used, len) = self.skin_binds.counts();
         log::info!("demo animesh: skin bindings {used} used of {len}");
     }
     /// Skin and geometry of the synthetic quadruped as mesh asset `id` (the
-    /// demo's own, or the next one of AURORA_DEMO_ANIMESH=churn).
+    /// demo's own, or the next one of BLOCK_DEMO_ANIMESH=churn).
     pub fn install_demo_animesh_mesh(&mut self, renderer: &mut block_render::Renderer, id: Uuid) {
         self.install_demo_rigged_mesh(renderer, id, None);
     }
 
     /// The same skin with, for `dense`, that many triangles in spheres around
-    /// the chest, a few centimeters apart (AURORA_DEMO_CROWD=<n>,<worn>: the
+    /// the chest, a few centimeters apart (BLOCK_DEMO_CROWD=<n>,<worn>: the
     /// triangle count of a worn mesh body, for the picking tests).
     pub fn install_demo_rigged_mesh(&mut self, renderer: &mut block_render::Renderer, id: Uuid, dense: Option<u32>) {
         use super::jobs::FaceGeom;
@@ -421,7 +421,7 @@ impl super::Scene {
                 face.indices.extend(f.indices.iter().map(|i| base + *i));
             }
         }
-        // AURORA_DEMO_ANIMESH_TRIS=<n>: about n more triangles, as faces of
+        // BLOCK_DEMO_ANIMESH_TRIS=<n>: about n more triangles, as faces of
         // their own (a fine tube around the chest each), so that what wears
         // the mesh weighs what an avatar of the grid does
         let mut dense = Vec::new();
@@ -480,10 +480,10 @@ impl super::Scene {
         }
     }
 
-    /// AURORA_DEMO_HAIR: one rigged mesh per layer, a shell around the head
+    /// BLOCK_DEMO_HAIR: one rigged mesh per layer, a shell around the head
     /// (bound to mHead) and one around the torso (mChest), each its own
     /// face, slightly larger from one layer to the next. With
-    /// AURORA_DEMO_LASHES, a small ball inside the head shell too.
+    /// BLOCK_DEMO_LASHES, a small ball inside the head shell too.
     pub fn install_demo_hair(&mut self, renderer: &mut block_render::Renderer, demo: crate::demo::HairDemo) {
         use super::jobs::FaceGeom;
         use block_render::SkinVertex;
@@ -610,7 +610,7 @@ impl super::Scene {
         }
     }
 
-    /// AURORA_DEMO_PHYSICS: the balls of `crate::demo::physics::BALLS`, each
+    /// BLOCK_DEMO_PHYSICS: the balls of `crate::demo::physics::BALLS`, each
     /// a face skinned to its collision volume only, as the breasts, belly
     /// and butt of a mesh body.
     pub fn install_demo_physics_body(&mut self, renderer: &mut block_render::Renderer) {
@@ -691,7 +691,7 @@ impl super::Scene {
     }
 
     /// Synthetic quadruped with a custom rest skeleton and smooth alpha fur.
-    /// AURORA_DEMO_ANIMESH=points: a bar rigged to the attachment point
+    /// BLOCK_DEMO_ANIMESH=points: a bar rigged to the attachment point
     /// "Groin" alone (#1492): the point is a joint of the skeleton, which
     /// the animation turns (LLVOAvatar::getJoint finds attachment points,
     /// indra/newview/llvoavatar.cpp).
@@ -751,7 +751,7 @@ impl super::Scene {
         }
     }
 
-    /// AURORA_DEMO_ANIMESH=points: a stem from the root ("Avatar Center")
+    /// BLOCK_DEMO_ANIMESH=points: a stem from the root ("Avatar Center")
     /// ahead to the pelvis's rest, its back end rigged to the root and its
     /// front end to mPelvis (#1492).
     fn install_demo_stem_mesh(&mut self, renderer: &mut block_render::Renderer) {
@@ -815,7 +815,7 @@ impl super::Scene {
             self.install_demo_point_mesh(renderer);
             self.install_demo_stem_mesh(renderer);
         }
-        if std::env::var("AURORA_DEMO_ANIMESH").is_ok_and(|v| matches!(v.as_str(), "alpha" | "alpha-cycle")) {
+        if std::env::var("BLOCK_DEMO_ANIMESH").is_ok_and(|v| matches!(v.as_str(), "alpha" | "alpha-cycle")) {
             // No skin metadata or skin vertex stream: sharing an animated
             // parent must not make these mesh children rigged.
             let cube = block_prim::generate_volume(&block_prim::VolumeParams::default(), 1.0);

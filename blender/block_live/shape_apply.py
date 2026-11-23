@@ -23,13 +23,13 @@ def _matrix(values):
 
 
 def _remember(rig, payload, mapping):
-    rig["aurora_shape_id"] = payload["id"]
-    rig["aurora_shape_parameters"] = json.dumps(payload["params"], sort_keys=True)
+    rig["block_shape_id"] = payload["id"]
+    rig["block_shape_parameters"] = json.dumps(payload["params"], sort_keys=True)
     for joint in payload["joints"]:
         bone = mapping.get(joint["name"])
         if bone is not None:
-            bone["aurora_shape_bind"] = joint["inverse_bind"]
-            bone["aurora_shape_head"] = joint["head"]
+            bone["block_shape_bind"] = joint["inverse_bind"]
+            bone["block_shape_head"] = joint["head"]
 
 
 def _avastar(context, rig, payload, mapping):
@@ -113,18 +113,18 @@ def apply(context, payload):
     mapping = {}
     names = set(payload["names"])
     for bone in rig.data.bones:
-        name = str(bone.get("aurora_joint", bone.name))
-        if name in names and not bone.get("aurora_control"):
+        name = str(bone.get("block_joint", bone.name))
+        if name in names and not bone.get("block_control"):
             if name in mapping:
                 raise ValueError("Multiple bones map to the same SL joint: " + name)
             mapping[name] = bone
     if not {"mPelvis", "mTorso", "mChest", "mHead"}.issubset(mapping):
         raise ValueError("The selected skeleton is not a compatible Second Life rig")
-    if rig.get("aurora_shape_id") == payload["id"]:
+    if rig.get("block_shape_id") == payload["id"]:
         return rig
     if "avastar" in rig:
         _avastar(context, rig, payload, mapping)
-        context.scene.aurora_live.rig = rig
+        context.scene.block_live.rig = rig
         return rig
 
     basis = exporter.coordinate_basis(rig) @ Matrix.Scale(context.scene.unit_settings.scale_length, 4)
@@ -133,7 +133,7 @@ def apply(context, payload):
     for joint in payload["joints"]:
         bone = mapping.get(joint["name"])
         if bone is not None:
-            previous = bone.get("aurora_shape_bind") if rig.get("aurora_shape_id") else joint["reference_bind"]
+            previous = bone.get("block_shape_bind") if rig.get("block_shape_id") else joint["reference_bind"]
             deltas[bone.name] = inverse @ _matrix(joint["inverse_bind"]).inverted() @ _matrix(previous) @ basis
     # Keep Block Viewer's existing control offsets, hierarchy and constraints. The
     # ground root stays anchored; targets follow the corresponding end joint.
@@ -162,7 +162,7 @@ def apply(context, payload):
             if obj.type == "MESH" and any(mod.type == "ARMATURE" and mod.object == rig for mod in obj.modifiers):
                 staged[obj] = _geometry(obj, rig, deltas)
         clone = original.copy()
-        temporary = bpy.data.objects.new("_AuroraShapeRest", clone)
+        temporary = bpy.data.objects.new("_BlockShapeRest", clone)
         context.scene.collection.objects.link(temporary)
         for obj in selected:
             obj.select_set(False)
@@ -190,7 +190,7 @@ def apply(context, payload):
                 if con and con.type == "CHILD_OF" and con.target == rig and con.subtarget == "auroraPose.COG":
                     con.inverse_matrix = con.inverse_matrix @ correction
         _remember(rig, payload, {name: rig.data.bones[bone.name] for name, bone in mapping.items()})
-        context.scene.aurora_live.rig = rig
+        context.scene.block_live.rig = rig
         context.view_layer.update()
         return rig
     except Exception:

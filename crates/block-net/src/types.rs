@@ -461,7 +461,7 @@ pub enum NetEvent {
         max_children: Option<u32>,
     },
     /// OpenRegionInfo, whole: the Region / Estate window's "Region
-    /// settings" tab (Aurora-Sim based grids).
+    /// settings" tab (Block-Sim based grids).
     OpenRegionSettings {
         handle: RegionHandle,
         settings: Box<crate::open_region::OpenRegionSettings>,

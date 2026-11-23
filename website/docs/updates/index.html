@@ -114,7 +114,7 @@ main a few days before a stable version, to catch crashes before everyone.</p>
   below the stable version of its number, so a beta tester moves on to
   v0.7.7 (or any later stable) once it is out, then to the next betas.
   The beta&rsquo;s update policy takes over the thresholds of the newest stable
-  tag (<code>Aurora-Update-Policy</code> line), under its own version, raised to those
+  tag (<code>Block-Update-Policy</code> line), under its own version, raised to those
   of <code>update-policy.json</code> at the tagged commit, as a release does; a
   minimum the beta itself does not reach is left out.</li>
 <li><strong>Retention.</strong> <code>scripts/nightly-prune.ps1</code> keeps the ten newest betas and
@@ -167,7 +167,7 @@ required: neither &ldquo;Skip this version&rdquo; nor Later, login blocked until
 update. The preferences and the skipped tag do not remove this check.
 Changing this policy is a release decision reviewed in a PR; it takes
 effect at the next release.</p>
-<p>In <strong>aurora-tools.cmd → Manage releases → Create a release</strong>, the Minimum
+<p>In <strong>block-tools.cmd → Manage releases → Create a release</strong>, the Minimum
 version, Cache and Settings choices come before the confirmation. The
 minimum keeps the current one by default (the higher of <code>update-policy.json</code>
 and the last stable tag), can require the release&rsquo;s own version (every
@@ -182,7 +182,7 @@ threshold: every earlier installation will have to apply it. The previous
 thresholds are taken over from the last annotated stable tag, including for
 a user who skips releases. They no longer apply once this version is
 installed.
-The tag contains an <code>Aurora-Update-Policy: {…}</code> line; the workflow validates
+The tag contains an <code>Block-Update-Policy: {…}</code> line; the workflow validates
 it with <code>scripts/write-update-policy.ps1</code> before publishing the policy file.
 A tag created by hand without this line uses the thresholds of the versioned
 file. To also keep the choices made earlier in the tools, use an annotated
@@ -226,7 +226,7 @@ cancellation, dangerous ZIP, lock, backup and rollback of the package and of
 the data. <code>scripts/test-update-policy.ps1</code> checks the release choices (minimum
 version included, typed or refused), their carry-over into an annotated tag and the refusal of an invalid threshold,
 without touching the current repository. The visual demo downloads nothing
-(<code>AURORA_DEMO_UPDATE</code>). For a human check, run two real executables and
+(<code>BLOCK_DEMO_UPDATE</code>). For a human check, run two real executables and
 confirm the update prompt, download, and restart behave as expected.</p>
       </article>
     </div>

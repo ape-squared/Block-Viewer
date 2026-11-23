@@ -1,4 +1,4 @@
-//! The full-frame world map (Preferences › Aurora › World map, the
+//! The full-frame world map (Preferences › Block › World map, the
 //! default): the map fills the window and everything else floats over it,
 //! in the panels of the theme (`widgets::overlay_frame`: the map is behind
 //! them, not the world, so no glass). Top left, one search for the regions,
@@ -2123,7 +2123,7 @@ mod tests {
         let mut w = World::new(Arc::new(AvatarLibrary::load()));
         inventory(&mut w.inventory);
         w.map.apply_blocks(vec![
-            block(1000, 1000, "Aurora Demo", 13),
+            block(1000, 1000, "Block Demo", 13),
             block(1001, 1000, "Lagune Boréale", 21),
             block(1002, 1000, "Lagoon Nights", 42),
             block(1003, 1000, "Faille lagunaire", 254),

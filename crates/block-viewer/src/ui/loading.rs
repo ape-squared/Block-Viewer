@@ -3,7 +3,7 @@
 //! the place is written large at the bottom left with what is known of it
 //! (classification, arrival point, residents), its world map tile and the
 //! progress in figures sit at the bottom right, and the progress itself is a
-//! line of light along the bottom edge. An Aurora presentation, requested by
+//! line of light along the bottom edge. A Block presentation, requested by
 //! the human; Firestorm shows a progress bar over a snapshot.
 
 use crate::theme::Palette;

@@ -1,4 +1,4 @@
-//! A friendship offer in the middle of the screen (#465): an Aurora
+//! A friendship offer in the middle of the screen (#465): a Block
 //! addition, on by default (Preferences › Chat › Toasts), where the Legacy
 //! Viewer only has the toast of OfferFriendship (notifications.xml). The
 //! offer stays the notification center's: answering here answers it there,
@@ -78,7 +78,7 @@ impl FriendPromptUi {
         first
     }
 
-    /// "Later" on the offer shown (AURORA_DEMO_FRIEND_PROMPT=later).
+    /// "Later" on the offer shown (BLOCK_DEMO_FRIEND_PROMPT=later).
     pub fn put_off(&mut self) {
         if let Some((id, _)) = self.shown.take() {
             self.later.insert(id);

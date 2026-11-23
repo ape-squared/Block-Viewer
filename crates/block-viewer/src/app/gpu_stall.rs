@@ -154,7 +154,7 @@ impl App {
     /// thread may never give the GPU back, and whatever waits for it at
     /// exit would keep the process alive: it ends at the latest 10 s later.
     pub(super) fn close_while_gpu_stalled(&mut self, event_loop: &ActiveEventLoop) {
-        let _ = std::thread::Builder::new().name("aurora-exit-guard".into()).spawn(|| {
+        let _ = std::thread::Builder::new().name("block-exit-guard".into()).spawn(|| {
             std::thread::sleep(Duration::from_secs(10));
             log::warn!("the graphics card kept the viewer from closing: ended");
             withdraw_all(Duration::from_secs(1));
@@ -199,7 +199,7 @@ fn show(title: String, body: String, ask: bool) -> Option<Notice> {
     };
     // counted before the thread runs: a viewer ending meanwhile waits for it
     SHOWN.fetch_add(1, Ordering::AcqRel);
-    let spawned = std::thread::Builder::new().name("aurora-gpu-notice".into()).spawn(move || {
+    let spawned = std::thread::Builder::new().name("block-gpu-notice".into()).spawn(move || {
         thread.store(platform::thread_id(), Ordering::Release);
         let gone = || withdrawn.load(Ordering::Acquire) || CLOSING.load(Ordering::Acquire);
         let wait = if ask {

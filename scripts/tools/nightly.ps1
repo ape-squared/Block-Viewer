@@ -95,9 +95,9 @@ function Get-BetasToPrune([string[]]$Tags, [int]$Keep) {
 # A minimum the beta itself does not reach (0.9.2 for 0.9.2-beta…) is left
 # out: the updater refuses a floor above the version it offers.
 function Get-PolicyLine([string[]]$StableTagMessage, [string]$Version, $Defaults = $null) {
-    $line = @($StableTagMessage | Where-Object { $_ -like 'Aurora-Update-Policy: *' })
+    $line = @($StableTagMessage | Where-Object { $_ -like 'Block-Update-Policy: *' })
     if ($line.Count -gt 1) { throw 'Several policies in the tag.' }
-    $previous = if ($line.Count -eq 1) { $line[0].Substring('Aurora-Update-Policy: '.Length) | ConvertFrom-Json }
+    $previous = if ($line.Count -eq 1) { $line[0].Substring('Block-Update-Policy: '.Length) | ConvertFrom-Json }
     $fields = 'minimum_supported_version', 'cache_invalidation_before', 'settings_reset_before'
     $set = @($fields | Where-Object { $Defaults -and $Defaults.$_ })
     if (-not $previous -and $set.Count -eq 0) { return $null }
@@ -115,5 +115,5 @@ function Get-PolicyLine([string[]]$StableTagMessage, [string]$Version, $Defaults
     # a beta keeping the stable's minimum keeps its grace period (an urgent
     # release stays at once); absent, the viewer gives 12 h
     if ($previous -and $null -ne $previous.grace_hours -and $policy.minimum_supported_version -eq $previous.minimum_supported_version) { $policy.grace_hours = $previous.grace_hours }
-    'Aurora-Update-Policy: ' + ([pscustomobject]$policy | ConvertTo-Json -Compress)
+    'Block-Update-Policy: ' + ([pscustomobject]$policy | ConvertTo-Json -Compress)
 }

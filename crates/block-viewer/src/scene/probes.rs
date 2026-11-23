@@ -175,7 +175,7 @@ pub struct ProbeManager {
     /// How far from the camera automatic probes are placed (m): the
     /// Legacy Viewer keeps every probe of the objects within the draw
     /// distance (LLReflectionMapManager::update sorts them by distance and
-    /// keeps the closest RenderReflectionProbeCount); Aurora's probe range
+    /// keeps the closest RenderReflectionProbeCount); Block's probe range
     /// setting, within the draw distance.
     pub range: f32,
 }

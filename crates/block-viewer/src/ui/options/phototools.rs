@@ -6,10 +6,10 @@
 //! drawn inside a collapsing section of the window, its rows in the Legacy
 //! order.
 //!
-//! Left out, with the reason (TASKS.md lists them too). A Legacy row Aurora
+//! Left out, with the reason (TASKS.md lists them too). A Legacy row Block
 //! has no setting for is not invented here:
 //!
-//! - Obsolete in Aurora's renderer:
+//! - Obsolete in Block's renderer:
 //!   - RenderTransparentWater: the water always refracts a copy of the
 //!     scene (block-render/src/renderer.rs), there is no opaque path;
 //!   - RenderReflectionProbeDetail (static / dynamic / realtime): one probe

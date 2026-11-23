@@ -1,6 +1,6 @@
 //! The second camera's framing: where it stands to keep our avatar in view
 //! (the face, the whole body, the back), turned by the user around the
-//! avatar and following it smoothly. Aurora's own: the Legacy Viewer has no
+//! avatar and following it smoothly. Block's own: the Legacy Viewer has no
 //! second view. The idea comes from SnowPastel's multi-view-viewer (an
 //! experimental viewer built on the Second Life viewer, LGPL 2.1); none of
 //! its code is used here. The view is drawn by `block_render::second_view`.

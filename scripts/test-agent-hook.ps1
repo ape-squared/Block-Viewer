@@ -42,8 +42,8 @@ function ConvertTo-JsonText([string]$Text) {
 }
 
 function New-HookInput([string]$Tool, [string]$Command) {
-    '{"session_id":"test","transcript_path":"C:\\Users\\someone\\.claude\\projects\\aurora\\test.jsonl",' +
-    '"cwd":"C:\\Aurora-Viewer\\work\\some-task","permission_mode":"default","hook_event_name":"PreToolUse",' +
+    '{"session_id":"test","transcript_path":"C:\\Users\\someone\\.claude\\projects\\block\\test.jsonl",' +
+    '"cwd":"C:\\Block-Viewer\\work\\some-task","permission_mode":"default","hook_event_name":"PreToolUse",' +
     '"tool_name":"' + $Tool + '","tool_input":{"command":' + (ConvertTo-JsonText $Command) +
     ',"description":"What the command does"},"tool_use_id":"toolu_test"}'
 }
@@ -173,7 +173,7 @@ $cases = @(
     @{ Tool = 'PowerShell'; Command = 'Get-Content .\ngrep -r foo'; Expect = $pass }
     # --- tests: the whole workspace
     @{ Tool = 'Bash'; Command = 'cargo test -p block-render staging_round_trip -- --ignored'; Expect = $tests }
-    @{ Tool = 'PowerShell'; Command = 'Set-Location C:\Aurora-Viewer\work\some-task; cargo test --package block-i18n'; Expect = $tests }
+    @{ Tool = 'PowerShell'; Command = 'Set-Location C:\Block-Viewer\work\some-task; cargo test --package block-i18n'; Expect = $tests }
     @{ Tool = 'Bash'; Command = 'cargo test -pblock-net'; Expect = $tests }
     @{ Tool = 'PowerShell'; Command = "`$env:RUST_BACKTRACE = '1'; cargo t -p block-viewer chat 2>&1 | Select-Object -Last 20"; Expect = $tests }
     @{ Tool = 'PowerShell'; Command = 'Measure-Command { cargo test -p block-prim }'; Expect = $tests }
@@ -228,7 +228,7 @@ $cases = @(
     @{ Tool = 'Bash'; Command = 'cargo test -p block-net'; Project = 'broken'; Expect = $pass }
 )
 
-$temp = Join-Path ([IO.Path]::GetTempPath()) "aurora-hook-test-$([Guid]::NewGuid().ToString('N'))"
+$temp = Join-Path ([IO.Path]::GetTempPath()) "block-hook-test-$([Guid]::NewGuid().ToString('N'))"
 $withRg = Join-Path $temp 'with-rg'
 $withoutRg = Join-Path $temp 'without-rg'
 $projects = @{ missing = (Join-Path $temp 'missing'); broken = (Join-Path $temp 'broken') }

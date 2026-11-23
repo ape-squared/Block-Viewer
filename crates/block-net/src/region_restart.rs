@@ -117,9 +117,9 @@ mod tests {
 
     #[test]
     fn second_life_names_the_notice_and_its_region() {
-        let n = from_alert_info("RegionRestartMinutes", b"{'MINUTES':i5,'NAME':'Aurora Demo'}\0").expect("a notice");
+        let n = from_alert_info("RegionRestartMinutes", b"{'MINUTES':i5,'NAME':'Block Demo'}\0").expect("a notice");
         assert_eq!(n.seconds, 300);
-        assert_eq!(n.region.as_deref(), Some("Aurora Demo"));
+        assert_eq!(n.region.as_deref(), Some("Block Demo"));
         assert!(!n.opensim);
         let n = from_alert_info(
             "RegionRestartSeconds",

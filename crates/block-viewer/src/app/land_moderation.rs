@@ -273,7 +273,7 @@ impl App {
         self.world.estate.intervene(cmd);
     }
 
-    /// AURORA_DEMO_LAND_MODERATION=menu|none|freeze|eject|eject-ban: the
+    /// BLOCK_DEMO_LAND_MODERATION=menu|none|freeze|eject|eject-ban: the
     /// wolf stands on our land (the overlay cell under it becomes ours),
     /// then at frame 600 its world menu, or the question of "Freeze" or
     /// "Eject" (`eject-ban` with "Eject and ban", as on a parcel whose ban
@@ -285,7 +285,7 @@ impl App {
         if !self.demo || self.frame_count != 600 {
             return;
         }
-        let Ok(mode) = std::env::var("AURORA_DEMO_LAND_MODERATION") else {
+        let Ok(mode) = std::env::var("BLOCK_DEMO_LAND_MODERATION") else {
             return;
         };
         let wolf = crate::demo::DEMO_LOUP;
@@ -318,7 +318,7 @@ impl App {
                     *ban = mode == "eject-ban";
                 }
             }
-            _ => log::warn!("AURORA_DEMO_LAND_MODERATION: unknown mode {mode}"),
+            _ => log::warn!("BLOCK_DEMO_LAND_MODERATION: unknown mode {mode}"),
         }
     }
 }

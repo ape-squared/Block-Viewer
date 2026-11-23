@@ -1,4 +1,4 @@
-"""Exercise a running offline Aurora bridge from real Blender.
+"""Exercise a running offline Block bridge from real Blender.
 
 Run Blender --background --factory-startup --python-exit-code 1
 --python blender/tests/bridge_smoke.py -- --port 17655
@@ -15,8 +15,8 @@ import time
 import bpy
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-from aurora_live import exporter, starter, materials, weights
-from aurora_live.client import Client, MAGIC
+from block_live import exporter, starter, materials, weights
+from block_live.client import Client, MAGIC
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--port", type=int, default=17655)
@@ -28,7 +28,7 @@ bpy.ops.object.select_all(action="SELECT")
 bpy.ops.object.delete(use_global=False)
 if args.starter:
     rig, mesh = starter.create(bpy.context)
-    print("AURORA_STARTER_RIG_BONES={} VERTICES={} QUADS={}".format(
+    print("BLOCK_STARTER_RIG_BONES={} VERTICES={} QUADS={}".format(
         len(rig.data.bones), len(mesh.data.vertices), len(mesh.data.polygons)), flush=True)
 else:
     data = bpy.data.armatures.new("Live smoke rig")
@@ -118,7 +118,7 @@ with connection:
         reply = Client._line(reader)
         assert reply["ok"] is expected, reply
         milliseconds = (time.perf_counter() - started) * 1000
-        print("AURORA_BRIDGE_REVISION={} OK={} BYTES={} ACK_MS={:.1f}".format(value["revision"], expected, len(payload), milliseconds), flush=True)
+        print("BLOCK_BRIDGE_REVISION={} OK={} BYTES={} ACK_MS={:.1f}".format(value["revision"], expected, len(payload), milliseconds), flush=True)
         time.sleep(0.4)
 
     first = exporter.snapshot([mesh], supported, 1, rest_axes=hello.get("rest_axes"))
@@ -150,4 +150,4 @@ with connection:
             assert all(index is not None for index in value["meshes"][0]["faces"][0]["material"]["textures"])
             send(value)
     reader.close()
-print("AURORA_BLENDER_BRIDGE_SMOKE_OK", flush=True)
+print("BLOCK_BLENDER_BRIDGE_SMOKE_OK", flush=True)

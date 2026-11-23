@@ -217,7 +217,7 @@ pub fn seed(inv: &mut Inventory, agent: Uuid) {
         .collect(),
     );
     let original = Uuid::from_u128(8100);
-    if std::env::var("AURORA_DEMO_INVENTORY").is_ok_and(|mode| mode.contains("hover-photo"))
+    if std::env::var("BLOCK_DEMO_INVENTORY").is_ok_and(|mode| mode.contains("hover-photo"))
         && let Some(object) = inv.items.get_mut(&original)
     {
         object.thumbnail = crate::demo::TEX_SNAPSHOT;
@@ -251,7 +251,7 @@ pub fn seed(inv: &mut Inventory, agent: Uuid) {
         owner_mask: actions::MOVE | actions::TRANSFER,
         ..Default::default()
     }]);
-    if std::env::var("AURORA_DEMO_INVENTORY").is_ok_and(|mode| matches!(mode.as_str(), "link-icons" | "aurora-link-icons")) {
+    if std::env::var("BLOCK_DEMO_INVENTORY").is_ok_and(|mode| matches!(mode.as_str(), "link-icons" | "block-link-icons")) {
         for (kind, &name) in super::super::appearance::wearables().iter().enumerate() {
             inv.add_items(vec![InvItem {
                 id: Uuid::from_u128(82_000 + kind as u128),
@@ -309,7 +309,7 @@ pub fn seed(inv: &mut Inventory, agent: Uuid) {
     inv.sort_all();
 }
 
-/// Enough top-level folders to scroll Aurora's expanded inventory sidebar.
+/// Enough top-level folders to scroll Block's expanded inventory sidebar.
 pub fn seed_sidebar(inv: &mut Inventory) {
     inv.created_folders(
         (0..80)
@@ -436,7 +436,7 @@ pub fn seed_received_sort(inv: &mut Inventory, agent: Uuid) {
     }
 }
 
-/// `AURORA_DEMO_INVENTORY=received-big`: a long-time buyer's Received Items,
+/// `BLOCK_DEMO_INVENTORY=received-big`: a long-time buyer's Received Items,
 /// `folders` purchases of `items` items each, to measure the tab's cost.
 pub fn seed_received_big(inv: &mut Inventory, agent: Uuid, folders: u128, items: u128) {
     seed_received(inv, agent);
@@ -489,7 +489,7 @@ pub fn seed_received_big(inv: &mut Inventory, agent: Uuid, folders: u128, items:
 pub fn target(view: &str, inv: &Inventory) -> Option<Uuid> {
     // Clipboard feedback scenarios reuse the same source tree in either layout.
     let view = view
-        .strip_prefix("aurora-")
+        .strip_prefix("block-")
         .filter(|mode| mode.starts_with("clipboard"))
         .unwrap_or(view);
     let view = if view.starts_with("clipboard-cut-folder") {
@@ -499,7 +499,7 @@ pub fn target(view: &str, inv: &Inventory) -> Option<Uuid> {
     } else {
         view
     };
-    if let Some(mode) = view.strip_prefix("aurora-menu-") {
+    if let Some(mode) = view.strip_prefix("block-menu-") {
         return target(
             match mode {
                 "folder" | "all-folder" | "folder-uuid" | "folder-uuid-restored" => "folder",
@@ -534,16 +534,16 @@ pub fn target(view: &str, inv: &Inventory) -> Option<Uuid> {
         | "image-layout-folder-wide" => 8000,
         "move-item" | "move-multi" | "move-filter" | "move-window" | "move-menu" => 8100,
         "uuid" | "uuid-restricted" | "uuid-missing" | "uuid-multi" => 8104,
-        "landmark" | "aurora-landmark" => 8120,
+        "landmark" | "block-landmark" => 8120,
         "object"
         | "properties"
         | "properties-no-mod"
         | "properties-no-creator"
         | "rename"
         | "rename-focus"
-        | "aurora-rename-focus"
+        | "block-rename-focus"
         | "rename-window"
-        | "aurora-rename-window"
+        | "block-rename-window"
         | "multi-add"
         | "multi-detach"
         | "delete"
@@ -556,20 +556,20 @@ pub fn target(view: &str, inv: &Inventory) -> Option<Uuid> {
         | "clipboard-cut"
         | "clipboard-folder"
         | "delete-confirm"
-        | "aurora-delete-confirm"
-        | "aurora-delete-confirm-medium"
-        | "aurora-delete-confirm-wide"
+        | "block-delete-confirm"
+        | "block-delete-confirm-medium"
+        | "block-delete-confirm-wide"
         | "clipboard-cut-folder"
         | "clipboard-progress"
         | "clipboard-window"
         | "keyboard"
         | "keyboard-fold"
         | "keyboard-down"
-        | "aurora-keyboard"
-        | "aurora-keyboard-fold"
-        | "aurora-keyboard-down"
-        | "aurora-keyboard-wide" => 8100,
-        "keyboard-click-top" | "keyboard-click-bottom" | "aurora-keyboard-click-top" | "aurora-keyboard-click-bottom" => 11000,
+        | "block-keyboard"
+        | "block-keyboard-fold"
+        | "block-keyboard-down"
+        | "block-keyboard-wide" => 8100,
+        "keyboard-click-top" | "keyboard-click-bottom" | "block-keyboard-click-top" | "block-keyboard-click-bottom" => 11000,
         "animation"
         | "animation-open"
         | "animation-play-local"
@@ -589,7 +589,7 @@ pub fn target(view: &str, inv: &Inventory) -> Option<Uuid> {
         "nocopy" | "offer-unsent" | "offer-sent" | "offer-uncertain" => 8109,
         "notransfer" => 8110,
         "link" => 8113,
-        "link-icons" | "aurora-link-icons" => 83_000,
+        "link-icons" | "block-link-icons" => 83_000,
         _ => return None,
     }))
 }
@@ -642,7 +642,7 @@ pub fn seed_clipboard_tree(inv: &mut Inventory) {
     inv.add_items(items);
 }
 
-/// The pose notecard of `AURORA_DEMO_INVENTORY=note-find` and `note-replace`:
+/// The pose notecard of `BLOCK_DEMO_INVENTORY=note-find` and `note-replace`:
 /// data lines, not interface text.
 const POSE_NOTE: &str = "SITTER 0\n\
     POSE Sit1|sit_female_01|<0.0,0.0,0.6>|<0,0,0>\n\
@@ -654,16 +654,16 @@ const POSE_NOTE: &str = "SITTER 0\n\
     POSE Lean|lean_male_01|<0.0,0.8,0.6>|<0,0,270>";
 
 pub fn note_asset(embedded: bool) -> Vec<u8> {
-    let markdown = std::env::var("AURORA_DEMO_INVENTORY").is_ok_and(|mode| {
+    let markdown = std::env::var("BLOCK_DEMO_INVENTORY").is_ok_and(|mode| {
         matches!(
             mode.as_str(),
             "note-markdown" | "note-source" | "note-classic" | "note-format" | "note-remember" | "note-lsl" | "note-lsl-markdown"
         )
     });
-    let lsl = std::env::var("AURORA_DEMO_INVENTORY").is_ok_and(|mode| matches!(mode.as_str(), "note-lsl" | "note-lsl-markdown"));
+    let lsl = std::env::var("BLOCK_DEMO_INVENTORY").is_ok_and(|mode| matches!(mode.as_str(), "note-lsl" | "note-lsl-markdown"));
     // the find scenarios: a pose notecard, the kind creators clean with
     // Replace all (#4153), with items to show that they stay
-    let poses = std::env::var("AURORA_DEMO_INVENTORY").is_ok_and(|mode| matches!(mode.as_str(), "note-find" | "note-replace"));
+    let poses = std::env::var("BLOCK_DEMO_INVENTORY").is_ok_and(|mode| matches!(mode.as_str(), "note-find" | "note-replace"));
     let text = if poses {
         POSE_NOTE
     } else if lsl {
@@ -809,8 +809,8 @@ pub fn seed_view(inv: &mut Inventory, agent: Uuid, large: bool) {
     inv.sort_all();
 }
 
-/// The pictures of the gallery scenarios (`AURORA_DEMO_INVENTORY=aurora-
-/// gallery…`, `aurora-combination`): the demo's own textures on some of the
+/// The pictures of the gallery scenarios (`BLOCK_DEMO_INVENTORY=block-
+/// gallery…`, `block-combination`): the demo's own textures on some of the
 /// right-click tests' entries, a folder among them, and on every item of the
 /// large folder; the others keep their type's icon.
 pub fn seed_gallery(inv: &mut Inventory) {
@@ -899,7 +899,7 @@ pub fn seed_long_names(inv: &mut Inventory) {
     inv.sort_all();
 }
 
-/// `AURORA_DEMO_INVENTORY=big[:<items>][,recent][,search=<text>][,toggle=<s>][,churn=<ms>][,replace][,fetch]`:
+/// `BLOCK_DEMO_INVENTORY=big[:<items>][,recent][,search=<text>][,toggle=<s>][,churn=<ms>][,replace][,fetch]`:
 /// a big inventory (`seed_big`) to measure what the Inventory window costs.
 /// `recent` opens the Recent tab, `search` filters the list, `toggle` opens
 /// and closes the window every `s` seconds (closed and open alternate in one
@@ -907,7 +907,7 @@ pub fn seed_long_names(inv: &mut Inventory) {
 /// inventory updates do, `replace` opens Replace links on the first object
 /// (`BIG_LINKED`), which a link of every fifty items points to. `fetch` loads
 /// the inventory through a simulated AIS server instead of seeding it ready:
-/// `AURORA_DEMO_INVENTORY_FAULT` then injects its failures.
+/// `BLOCK_DEMO_INVENTORY_FAULT` then injects its failures.
 #[derive(Debug, Clone, PartialEq)]
 pub struct Big {
     pub items: usize,
@@ -948,7 +948,7 @@ pub fn parse_big(mode: &str) -> Option<Big> {
             Some(("search", text)) => big.search = text.into(),
             Some(("toggle", s)) => big.toggle = s.parse().unwrap_or(0.0),
             Some(("churn", ms)) => big.churn_ms = ms.parse().unwrap_or(0),
-            _ => log::warn!("AURORA_DEMO_INVENTORY: unknown option {part}"),
+            _ => log::warn!("BLOCK_DEMO_INVENTORY: unknown option {part}"),
         }
     }
     Some(big)
@@ -956,11 +956,11 @@ pub fn parse_big(mode: &str) -> Option<Big> {
 
 pub fn big() -> Option<&'static Big> {
     static BIG: std::sync::OnceLock<Option<Big>> = std::sync::OnceLock::new();
-    BIG.get_or_init(|| std::env::var("AURORA_DEMO_INVENTORY").ok().and_then(|mode| parse_big(&mode)))
+    BIG.get_or_init(|| std::env::var("BLOCK_DEMO_INVENTORY").ok().and_then(|mode| parse_big(&mode)))
         .as_ref()
 }
 
-/// `AURORA_DEMO_INVENTORY=big[:<items>]`: the inventory of a long-time
+/// `BLOCK_DEMO_INVENTORY=big[:<items>]`: the inventory of a long-time
 /// resident, `items` items (30,000 by default) in about a tenth as many
 /// folders, up to five levels deep: store brands, their products, extras and
 /// fit packs, and one flat folder of 2,000 loose objects. Mixed types,
@@ -1137,7 +1137,7 @@ pub fn seed_big(inv: &mut Inventory, agent: Uuid, items: usize) -> Vec<Uuid> {
     open
 }
 
-/// `AURORA_DEMO_INVENTORY=big:...,fetch`: what the simulated AIS server
+/// `BLOCK_DEMO_INVENTORY=big:...,fetch`: what the simulated AIS server
 /// answers from, while the live inventory starts empty.
 pub struct FetchSource {
     by_parent: HashMap<Uuid, Vec<InvItem>>,
@@ -1176,7 +1176,7 @@ impl FetchSource {
     }
 }
 
-/// `AURORA_DEMO_INVENTORY_FAULT=transient[=<n>][,too-big][,limit=<n>]`: the
+/// `BLOCK_DEMO_INVENTORY_FAULT=transient[=<n>][,too-big][,limit=<n>]`: the
 /// intended failures of the `fetch` demo. Ignored without a `fetch` mode.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct Faults {
@@ -1203,7 +1203,7 @@ impl Faults {
     pub const DEFAULT_LIMIT: usize = 20_000;
 
     pub fn from_env() -> Self {
-        std::env::var("AURORA_DEMO_INVENTORY_FAULT")
+        std::env::var("BLOCK_DEMO_INVENTORY_FAULT")
             .ok()
             .map(|mode| Self::parse(&mode))
             .unwrap_or_default()
@@ -1217,7 +1217,7 @@ impl Faults {
                 None if part == "too-big" => faults.too_big = true,
                 Some(("transient", n)) => faults.transient_left = n.parse().unwrap_or(1),
                 Some(("limit", n)) => faults.limit = n.parse().unwrap_or(Self::DEFAULT_LIMIT).max(1),
-                _ => log::warn!("AURORA_DEMO_INVENTORY_FAULT: unknown option {part}"),
+                _ => log::warn!("BLOCK_DEMO_INVENTORY_FAULT: unknown option {part}"),
             }
         }
         faults

@@ -55,7 +55,7 @@ const PARCEL_RECENTER_M: f64 = 3.0;
 /// Coarse locations at this height or above are unknown (COARSEUPDATE_MAX_Z).
 const COARSE_MAX_Z: f32 = 1020.0;
 
-// object colors (colors.xml, Firestorm Aurora theme; unset ones use the
+// object colors (colors.xml, Firestorm Block theme; unset ones use the
 // code defaults of renderObjectsForMap)
 const OTHER_ABOVE: Color32 = Color32::from_rgb(61, 61, 61);
 const OTHER_BELOW: Color32 = Color32::from_rgb(31, 31, 31);
@@ -1316,7 +1316,7 @@ impl MiniMap {
                     actions.push(MiniMapAction::Colors(k));
                 }
             });
-            // Aurora: what a double click does
+            // Block: what a double click does
             menu::submenu(ui, p, "mouse-filled", block_i18n::tr!("ui-minimap-double-click"), true, |ui| {
                 for (v, icon, label) in [
                     (0u8, "circle-x-filled", block_i18n::tr!("ui-minimap-do-nothing")),
@@ -1659,7 +1659,7 @@ impl BeaconHit {
 
 /// LLTracker::renderBeacon / drawMarker (indra/newview/lltracker.cpp): a
 /// column and a clickable marker, including a direction arrow off screen.
-/// Aurora adds a contrasted pin and a glass label with a dismissal hint.
+/// Block adds a contrasted pin and a glass label with a dismissal hint.
 pub fn draw_beacon(ctx: &egui::Context, p: &Palette, world: &World, proj: &super::hud::Projector, hovered: bool) -> Option<BeaconHit> {
     let t = world.map.track.as_ref().filter(|t| !t.pending && !t.invalid)?;
     let (ox, oy) = world.main_origin()?;

@@ -408,7 +408,7 @@ impl App {
             Action::Delete(ids) => {
                 // LLFloaterGesture::onDeleteSelected moves the gestures to the
                 // Trash without a question (indra/newview/llfloatergesture.cpp).
-                // Aurora asks as for any inventory Delete, until "Do not
+                // Block asks as for any inventory Delete, until "Do not
                 // show again" is ticked (#3507).
                 let worn = crate::ui::appearance::items::worn_labels(&self.world).into_keys().collect();
                 let mut actions = Vec::new();
@@ -473,7 +473,7 @@ impl App {
         if self.demo
             && !self.gesture_state.demo_played
             && self.frame_count >= 650
-            && std::env::var("AURORA_DEMO_GESTURES").is_ok_and(|v| v == "play")
+            && std::env::var("BLOCK_DEMO_GESTURES").is_ok_and(|v| v == "play")
         {
             self.gesture_state.demo_played = true;
             self.gesture_action(Action::Play(Uuid::from_u128(8106)));
@@ -565,11 +565,11 @@ impl App {
     /// wait lasted up to half a second more and a quick gesture played
     /// again before its steps had run (#915).
     pub(super) fn step_gestures(&mut self) {
-        if self.demo && std::env::var("AURORA_DEMO_GESTURES").is_ok_and(|v| v == "replay") {
+        if self.demo && std::env::var("BLOCK_DEMO_GESTURES").is_ok_and(|v| v == "replay") {
             self.demo_replay_keys();
         }
         // `channel`: its trigger sent from the chat bar, as a resident types it
-        if self.demo && self.frame_count == 650 && std::env::var("AURORA_DEMO_GESTURES").is_ok_and(|v| v == "channel") {
+        if self.demo && self.frame_count == 650 && std::env::var("BLOCK_DEMO_GESTURES").is_ok_and(|v| v == "channel") {
             self.send_local_chat(crate::ui::chat::OutgoingChat {
                 message: "/hudping".into(),
                 channel: 0,
@@ -577,14 +577,14 @@ impl App {
             });
         }
         // `channel-replace`: the replacement itself says "/5capture" (#1916)
-        if self.demo && self.frame_count == 650 && std::env::var("AURORA_DEMO_GESTURES").is_ok_and(|v| v == "channel-replace") {
+        if self.demo && self.frame_count == 650 && std::env::var("BLOCK_DEMO_GESTURES").is_ok_and(|v| v == "channel-replace") {
             self.send_local_chat(crate::ui::chat::OutgoingChat {
                 message: "/hudreplace".into(),
                 channel: 0,
                 chat_type: ChatType::Normal,
             });
         }
-        if self.demo && matches!(self.frame_count, 650 | 1010) && std::env::var("AURORA_DEMO_GESTURES").is_ok_and(|v| v == "once") {
+        if self.demo && matches!(self.frame_count, 650 | 1010) && std::env::var("BLOCK_DEMO_GESTURES").is_ok_and(|v| v == "once") {
             log::info!("demo gesture one-shot: play at frame {}", self.frame_count);
             self.gesture_play(Uuid::from_u128(DEMO_ONCE), None);
         }
@@ -837,7 +837,7 @@ impl App {
     }
 
     pub(super) fn gesture_demo_input(&mut self, raw: &mut egui::RawInput) {
-        let mode = std::env::var("AURORA_DEMO_GESTURES").unwrap_or_default();
+        let mode = std::env::var("BLOCK_DEMO_GESTURES").unwrap_or_default();
         if mode == "chat-keys" {
             raw.focused = true;
             if self.frame_count == 540 {
@@ -901,20 +901,20 @@ impl App {
     }
 
     fn seed_gesture_demo(&mut self) {
-        if !self.demo || self.gesture_state.demo_seeded || std::env::var_os("AURORA_DEMO_GESTURES").is_none() {
+        if !self.demo || self.gesture_state.demo_seeded || std::env::var_os("BLOCK_DEMO_GESTURES").is_none() {
             return;
         }
         self.gesture_state.demo_seeded = true;
         crate::world::inventory::demo::seed(&mut self.world.inventory, self.world.agent_id);
         let definition = Gesture {
-            trigger: if std::env::var("AURORA_DEMO_GESTURES").is_ok_and(|v| v.starts_with("completion")) {
+            trigger: if std::env::var("BLOCK_DEMO_GESTURES").is_ok_and(|v| v.starts_with("completion")) {
                 "/eject"
             } else {
                 "/hello"
             }
             .into(),
             replacement: block_i18n::tr!("gesture-demo-replacement").into(),
-            key: if std::env::var("AURORA_DEMO_GESTURES").is_ok_and(|v| v == "numpad") {
+            key: if std::env::var("BLOCK_DEMO_GESTURES").is_ok_and(|v| v == "numpad") {
                 b'6'
             } else {
                 0xa8
@@ -940,8 +940,8 @@ impl App {
             self.demo_documents.insert(item, data);
         }
         self.gesture_request(item, false, false, Some(true), false);
-        let replay = std::env::var("AURORA_DEMO_GESTURES").is_ok_and(|v| v == "replay");
-        if std::env::var("AURORA_DEMO_GESTURES").is_ok_and(|v| v == "once") {
+        let replay = std::env::var("BLOCK_DEMO_GESTURES").is_ok_and(|v| v == "replay");
+        if std::env::var("BLOCK_DEMO_GESTURES").is_ok_and(|v| v == "once") {
             let mut animation = crate::demo::loop_animation();
             animation.looping = false;
             let bound = crate::scene::anim::BoundAnim::bind(animation, &self.scene.avatar_lib.rig);
@@ -954,7 +954,7 @@ impl App {
             self.world.inventory.add_items(vec![sound_item]);
         }
         if let Some(template) = self.world.inventory.items.get(&item).cloned() {
-            if std::env::var("AURORA_DEMO_GESTURES").is_ok_and(|v| v == "chat-keys") {
+            if std::env::var("BLOCK_DEMO_GESTURES").is_ok_and(|v| v == "chat-keys") {
                 for mask in [0, 1, 4, 5] {
                     let shortcut = crate::gestures::keys::shortcut(0xa6, mask);
                     let name = format!("{} ({shortcut})", template.name);
@@ -1028,7 +1028,7 @@ impl App {
                 };
                 self.seed_demo_gesture(&template, id, name, definition, active);
             }
-            if std::env::var("AURORA_DEMO_GESTURES").is_ok_and(|v| v == "once") {
+            if std::env::var("BLOCK_DEMO_GESTURES").is_ok_and(|v| v == "once") {
                 self.seed_demo_gesture(
                     &template,
                     DEMO_ONCE,
@@ -1061,7 +1061,7 @@ impl App {
                     self.seed_demo_gesture(&template, id, name, definition, true);
                 }
             }
-            if std::env::var("AURORA_DEMO_GESTURES").is_ok_and(|v| v == "channel") {
+            if std::env::var("BLOCK_DEMO_GESTURES").is_ok_and(|v| v == "channel") {
                 self.seed_demo_gesture(
                     &template,
                     951006,
@@ -1070,7 +1070,7 @@ impl App {
                     true,
                 );
             }
-            if std::env::var("AURORA_DEMO_GESTURES").is_ok_and(|v| v == "channel-replace") {
+            if std::env::var("BLOCK_DEMO_GESTURES").is_ok_and(|v| v == "channel-replace") {
                 self.seed_demo_gesture(
                     &template,
                     951008,
@@ -1079,7 +1079,7 @@ impl App {
                     true,
                 );
             }
-            if std::env::var("AURORA_DEMO_GESTURES").is_ok_and(|v| v == "list") {
+            if std::env::var("BLOCK_DEMO_GESTURES").is_ok_and(|v| v == "list") {
                 let hug = Gesture {
                     trigger: "/hug".into(),
                     steps: vec![Step::Chat {
@@ -1093,8 +1093,8 @@ impl App {
         }
         // the list of the chat bar is shown alone
         self.panels.gestures =
-            !std::env::var("AURORA_DEMO_GESTURES").is_ok_and(|v| v.starts_with("communicate") || v == "list" || v == "chat-keys");
-        if std::env::var("AURORA_DEMO_GESTURES").is_ok_and(|v| matches!(v.as_str(), "editor" | "numpad")) {
+            !std::env::var("BLOCK_DEMO_GESTURES").is_ok_and(|v| v.starts_with("communicate") || v == "list" || v == "chat-keys");
+        if std::env::var("BLOCK_DEMO_GESTURES").is_ok_and(|v| matches!(v.as_str(), "editor" | "numpad")) {
             self.gesture_action(Action::Open(item));
         }
         if replay {
@@ -1115,7 +1115,7 @@ impl App {
         self.gesture_request(item, false, false, active.then_some(true), false);
     }
 
-    /// `AURORA_DEMO_GESTURES=replay`: the clap gesture's key pressed three
+    /// `BLOCK_DEMO_GESTURES=replay`: the clap gesture's key pressed three
     /// times a quarter of a second apart, then Ctrl+Z and Ctrl+B, through the
     /// same rules as a real key press (the build shortcuts first).
     fn demo_replay_keys(&mut self) {

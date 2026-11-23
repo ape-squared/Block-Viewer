@@ -2,7 +2,7 @@
 //! message get a picture under them, the download of that picture and its
 //! decoding, off the frame. The cards are drawn by `ui/chat/previews.rs`.
 //!
-//! An Aurora feature: the Legacy Viewer shows links as text only, and the
+//! A Block feature: the Legacy Viewer shows links as text only, and the
 //! Legacy style of the Conversations window keeps it that way.
 //!
 //! What keeps it safe, in order:
@@ -1221,8 +1221,8 @@ pub fn demo(target: &Target, url: &str) -> Result<Content, Failure> {
     match target {
         // a short is upright; the zoo clip is 4:3, as on YouTube
         Target::Video(_) if url.contains("/shorts/") => Ok(Content::Video(VideoInfo {
-            title: "Aurora short".into(),
-            channel: "Aurora".into(),
+            title: "Block short".into(),
+            channel: "Block".into(),
             thumbnail: Some(demo_still(480, 360, 1)),
             aspect: Some(9.0 / 16.0),
         })),
@@ -1442,11 +1442,11 @@ mod tests {
             ("https://redd.it/demo01", Service::Reddit),
             ("https://www.reddit.com/media?url=https%3A%2F%2Fi.redd.it%2Fa.jpeg", Service::Reddit),
             (
-                "https://bsky.app/profile/aurora-demo.bsky.social/post/3demopost2abc",
+                "https://bsky.app/profile/block-demo.bsky.social/post/3demopost2abc",
                 Service::Bluesky,
             ),
-            ("https://x.com/AuroraDemo/status/1850000000000000001", Service::X),
-            ("https://twitter.com/AuroraDemo/status/1850000000000000001", Service::X),
+            ("https://x.com/BlockDemo/status/1850000000000000001", Service::X),
+            ("https://twitter.com/BlockDemo/status/1850000000000000001", Service::X),
         ] {
             assert_eq!(target(url), Some(Target::Page(service)), "{url}");
             assert_eq!(

@@ -631,7 +631,7 @@ mod tests {
     }
 
     fn cache_dir(tag: &str) -> PathBuf {
-        let dir = std::env::temp_dir().join(format!("aurora-mutes-{tag}-{}", Uuid::new_v4()));
+        let dir = std::env::temp_dir().join(format!("block-mutes-{tag}-{}", Uuid::new_v4()));
         std::fs::create_dir_all(&dir).expect("test cache dir");
         dir
     }

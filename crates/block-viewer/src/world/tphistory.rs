@@ -503,7 +503,7 @@ impl Writers {
         let writers = self.clone();
         let target = path.clone();
         let first = bytes.clone();
-        if let Err(e) = std::thread::Builder::new().name("aurora-tp-history".into()).spawn(move || {
+        if let Err(e) = std::thread::Builder::new().name("block-tp-history".into()).spawn(move || {
             writers.publish(&target, first, publish);
         }) {
             log::warn!("teleport history: no writer thread ({e}); saved on the caller's thread");
@@ -898,13 +898,13 @@ mod tests {
 
     #[test]
     fn storage_merges_close_places_and_saves() {
-        let dir = std::env::temp_dir().join(format!("aurora-tphist-{}", std::process::id()));
+        let dir = std::env::temp_dir().join(format!("block-tphist-{}", std::process::id()));
         let path = dir.join(TELEPORT_HISTORY_FILE);
         let _ = std::fs::remove_file(&path);
         let mut s = HistoryStorage::load(path.clone());
         assert!(s.items.is_empty());
         s.add(
-            "Place d'Aurora, Aurora Démo",
+            "Place d'Block, Block Démo",
             DVec3::new(256_140.0, 256_120.0, 25.0),
             1000.0,
             String::new(),
@@ -917,13 +917,13 @@ mod tests {
         );
         // back to the first place, a meter higher: same entry, original position
         s.add(
-            "Place d'Aurora, Aurora Démo",
+            "Place d'Block, Block Démo",
             DVec3::new(256_140.0, 256_120.0, 26.0),
             3000.0,
             String::new(),
         );
         assert_eq!(s.items.len(), 2);
-        assert_eq!(s.items[1].title, "Place d'Aurora, Aurora Démo");
+        assert_eq!(s.items[1].title, "Place d'Block, Block Démo");
         assert_eq!(s.items[1].global.z, 25.0);
         assert_eq!(s.items[1].date, 3000.0);
         // an older date is sorted in
@@ -941,7 +941,7 @@ mod tests {
 
     #[test]
     fn reads_firestorm_lines() {
-        let dir = std::env::temp_dir().join(format!("aurora-tphist-fs-{}", std::process::id()));
+        let dir = std::env::temp_dir().join(format!("block-tphist-fs-{}", std::process::id()));
         let _ = std::fs::create_dir_all(&dir);
         let path = dir.join(TELEPORT_HISTORY_FILE);
         let text = "{'date':d\"2024-04-02T14:42:28Z\",'global_pos':[r256148,r256195,r24],'slurl':'','title':'Tordangle, Tordangle'}\n\
@@ -959,7 +959,7 @@ mod tests {
     /// written back at the next save instead of being lost.
     #[test]
     fn unreadable_lines_survive_a_save() {
-        let dir = std::env::temp_dir().join(format!("aurora-tphist-kept-{}", std::process::id()));
+        let dir = std::env::temp_dir().join(format!("block-tphist-kept-{}", std::process::id()));
         let _ = std::fs::create_dir_all(&dir);
         let path = dir.join(TELEPORT_HISTORY_FILE);
         let mut text = b"{'date':d\"2024-03-01T10:00:00.00Z\",'global_pos':[r1,r2,r3],'title':'Ahern'}\r\n".to_vec();
@@ -996,7 +996,7 @@ mod tests {
     /// the session's places stay in memory only.
     #[test]
     fn unreadable_file_is_never_saved_over() {
-        let dir = std::env::temp_dir().join(format!("aurora-tphist-locked-{}", std::process::id()));
+        let dir = std::env::temp_dir().join(format!("block-tphist-locked-{}", std::process::id()));
         // a folder where the file should be: reading it fails, as a locked
         // or damaged file does
         let path = dir.join(TELEPORT_HISTORY_FILE);
@@ -1014,7 +1014,7 @@ mod tests {
     /// A missing file is an empty history that is saved at the first place.
     #[test]
     fn missing_file_starts_empty_and_saves() {
-        let dir = std::env::temp_dir().join(format!("aurora-tphist-new-{}", std::process::id()));
+        let dir = std::env::temp_dir().join(format!("block-tphist-new-{}", std::process::id()));
         let _ = std::fs::remove_dir_all(&dir);
         let path = dir.join(TELEPORT_HISTORY_FILE);
         let mut s = HistoryStorage::load(path.clone());
@@ -1037,7 +1037,7 @@ mod tests {
     fn a_slow_save_survives_logout_relogin_and_orderly_shutdown() {
         use std::sync::mpsc;
         use std::time::Duration;
-        let dir = std::env::temp_dir().join(format!("aurora-tphist-relogin-{}", uuid::Uuid::new_v4()));
+        let dir = std::env::temp_dir().join(format!("block-tphist-relogin-{}", uuid::Uuid::new_v4()));
         let path = dir.join(TELEPORT_HISTORY_FILE);
         let pos = DVec3::new(10.0, 20.0, 30.0);
         let (started, writing) = mpsc::channel();
@@ -1091,7 +1091,7 @@ mod tests {
     #[test]
     fn a_refused_save_stays_pending_and_is_tried_again_at_exit() {
         use std::sync::atomic::{AtomicUsize, Ordering};
-        let dir = std::env::temp_dir().join(format!("aurora-tphist-refused-{}", uuid::Uuid::new_v4()));
+        let dir = std::env::temp_dir().join(format!("block-tphist-refused-{}", uuid::Uuid::new_v4()));
         let path = dir.join(TELEPORT_HISTORY_FILE);
         let writers = Arc::new(Writers::default());
         let tries = Arc::new(AtomicUsize::new(0));
@@ -1116,8 +1116,8 @@ mod tests {
 
     #[test]
     fn filter_ignores_case() {
-        assert!(history_matches("Place d'Aurora, Aurora Démo", ""));
-        assert!(history_matches("Place d'Aurora, Aurora Démo", "aurora dé"));
+        assert!(history_matches("Place d'Block, Block Démo", ""));
+        assert!(history_matches("Place d'Block, Block Démo", "block dé"));
         assert!(!history_matches("Nordheim", "lagune"));
     }
 }

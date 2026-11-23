@@ -1,7 +1,7 @@
 //! "Near you" tab of the People window: Firestorm's radar (columns,
 //! sorting, options and names of panel_fs_radar.xml, fspanelradar.cpp,
 //! fsradarlistctrl.cpp, fsradarentry.cpp and menu_fs_radar_options.xml,
-//! originally LGPL 2.1), drawn the Aurora way.
+//! originally LGPL 2.1), drawn the Block way.
 
 use super::{PeopleAction, PeopleUi};
 use crate::theme::Palette;
@@ -156,7 +156,7 @@ pub struct RadarSettings {
     pub region_leave: bool,
     /// The seven UISndRadar* sounds all play: a mirror of the preferences
     /// (set by the app each frame, written back when the menu changes it),
-    /// not a setting of its own. An Aurora entry: the Legacy Viewer sets
+    /// not a setting of its own. A Block entry: the Legacy Viewer sets
     /// them one by one in Preferences â€º Chat â€º Radar only.
     #[serde(skip)]
     pub alert_sounds: bool,
@@ -175,7 +175,7 @@ pub struct RadarSettings {
     /// direction.
     pub sort: u8,
     pub sort_descending: bool,
-    /// The Aurora rows in their compact density (one line each, for a
+    /// The Block rows in their compact density (one line each, for a
     /// crowd) instead of the rich ones grouped by range.
     pub compact: bool,
 }
@@ -680,7 +680,7 @@ fn paint_row(
                     widgets::embolden(ui, &mut format);
                 }
                 let mut job = egui::text::LayoutJob::single_section(row.name.clone(), format);
-                // a member of the Aurora team's tag after the name, cut before it
+                // a member of the Block team's tag after the name, cut before it
                 // (none on an anonymous row: FSRadarEntry::onAvatarNameCache
                 // clears `mIsLinden` under RLVa's `@shownames`)
                 let mark = crate::world::staff::mark(world, &row.id).filter(|_| !row.anonymous);

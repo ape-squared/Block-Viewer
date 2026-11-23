@@ -11,7 +11,7 @@ pub(super) struct ChatImport {
     /// The searches under way: a folder chosen does not stop the first one.
     /// Their folders, and whether to tick them.
     looking: Vec<Receiver<(Vec<Found>, bool)>>,
-    /// AURORA_DEMO_CHATLOG=import:again: its second run started.
+    /// BLOCK_DEMO_CHATLOG=import:again: its second run started.
     again: bool,
 }
 
@@ -34,7 +34,7 @@ impl App {
         let apps = self.world.chat_log.legacy_apps();
         let (tx, rx) = channel();
         self.chat_import.looking.push(rx);
-        let _ = std::thread::Builder::new().name("aurora-chatlog-find".into()).spawn(move || {
+        let _ = std::thread::Builder::new().name("block-chatlog-find".into()).spawn(move || {
             let found = match chosen {
                 Some(dir) => (vec![import::inspect_chosen(&dir, &account, &target)], true),
                 None => (import::find(&apps, &account, &target), account.grid_known()),
@@ -120,7 +120,7 @@ impl App {
         self.demo_chat_import_done();
     }
 
-    /// AURORA_DEMO_CHATLOG=import:<stage>: the window's Import button.
+    /// BLOCK_DEMO_CHATLOG=import:<stage>: the window's Import button.
     fn demo_chat_import_found(&mut self) {
         use crate::demo::chatlog::{ImportStage, Mode, mode};
         if self.demo
@@ -131,7 +131,7 @@ impl App {
         }
     }
 
-    /// AURORA_DEMO_CHATLOG=import:<stage>: a second run, then the History
+    /// BLOCK_DEMO_CHATLOG=import:<stage>: a second run, then the History
     /// window on the merged file.
     fn demo_chat_import_done(&mut self) {
         use crate::demo::chatlog::{ImportStage, Mode, mode, peer_name};

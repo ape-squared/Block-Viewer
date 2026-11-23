@@ -450,19 +450,19 @@ pub(super) fn shortcuts(
 fn demo_mode() -> Option<&'static str> {
     static MODE: std::sync::OnceLock<Option<String>> = std::sync::OnceLock::new();
     MODE.get_or_init(|| {
-        std::env::var("AURORA_DEMO_INVENTORY").ok().filter(|mode| {
+        std::env::var("BLOCK_DEMO_INVENTORY").ok().filter(|mode| {
             mode.starts_with("clipboard")
-                || mode.starts_with("aurora-clipboard")
+                || mode.starts_with("block-clipboard")
                 || mode.starts_with("search-selection")
                 || mode.starts_with("keyboard")
-                || mode.starts_with("aurora-keyboard")
+                || mode.starts_with("block-keyboard")
                 || mode.starts_with("enter")
                 || mode.contains("rename-focus")
                 || mode.contains("rename-window")
         })
     })
     .as_deref()
-    .map(|mode| mode.strip_prefix("aurora-").unwrap_or(mode))
+    .map(|mode| mode.strip_prefix("block-").unwrap_or(mode))
 }
 
 pub(super) fn demo_row(response: &egui::Response, st: &InventoryUi, item: Uuid) {
@@ -640,7 +640,7 @@ pub fn demo_events(ctx: &egui::Context, frame: u64, st: &mut InventoryUi) -> Vec
         }
         return Vec::new();
     }
-    if mode.starts_with("keyboard") || mode.starts_with("aurora-keyboard") {
+    if mode.starts_with("keyboard") || mode.starts_with("block-keyboard") {
         if matches!(frame, 650 | 651)
             && let Some(pos) =
                 ctx.data(|data| data.get_temp::<egui::Pos2>(egui::Id::unique(("clipboard_demo_row", st.ui_id, Uuid::from_u128(8100)))))
@@ -1765,7 +1765,7 @@ mod tests {
                 let label = if classic {
                     block_i18n::tr!("ui-inventory-objects-loaded", value0 = total)
                 } else {
-                    aurora::item_count(&h.world.inventory, aurora::Layout::of_window(&h.ctx, "inventory"))
+                    block::item_count(&h.world.inventory, block::Layout::of_window(&h.ctx, "inventory"))
                 };
                 let position = h.text(&label).center();
                 h.frame(vec![Event::PointerMoved(position)]);
@@ -2327,7 +2327,7 @@ mod tests {
                                 h.st.shown_order,
                                 if filtered {
                                     keyboard::ShownOrder::Results
-                                } else if h.st.aurora.is_some_and(|frame| frame.layout != aurora::Layout::Compact) {
+                                } else if h.st.aurora.is_some_and(|frame| frame.layout != block::Layout::Compact) {
                                     keyboard::ShownOrder::Flat
                                 } else {
                                     keyboard::ShownOrder::Plain

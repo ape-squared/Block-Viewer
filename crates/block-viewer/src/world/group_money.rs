@@ -241,7 +241,7 @@ mod tests {
             global_x: 0.0,
             global_y: 0.0,
             global_z: 0.0,
-            sim_name: "Aurora Démo".into(),
+            sim_name: "Block Démo".into(),
             sku: String::new(),
         }
     }

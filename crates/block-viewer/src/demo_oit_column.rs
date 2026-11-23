@@ -1,4 +1,4 @@
-//! AURORA_DEMO_OIT_COLUMN=<tubes>[,<alpha>]: a tall translucent column with a
+//! BLOCK_DEMO_OIT_COLUMN=<tubes>[,<alpha>]: a tall translucent column with a
 //! fine repeating texture beside the start position, for the anti-aliasing
 //! modes of the order-independent transparency (oit_stochastic.rs): nested
 //! hollow tubes (each one an outer and an inner wall, both sides seen
@@ -26,11 +26,11 @@ fn spec(value: &str) -> (u32, f32) {
 }
 
 pub fn events() -> Vec<NetEvent> {
-    let Ok(value) = std::env::var("AURORA_DEMO_OIT_COLUMN") else {
+    let Ok(value) = std::env::var("BLOCK_DEMO_OIT_COLUMN") else {
         return Vec::new();
     };
     let (tubes, alpha) = spec(&value);
-    let (sx, sy) = std::env::var("AURORA_DEMO_POS")
+    let (sx, sy) = std::env::var("BLOCK_DEMO_POS")
         .ok()
         .and_then(|v| {
             let p: Vec<f32> = v.split(',').filter_map(|s| s.trim().parse().ok()).collect();

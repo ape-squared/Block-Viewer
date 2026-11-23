@@ -5,7 +5,7 @@
 //! resident's picture in the People lists, and the custom colour window.
 //! The Legacy Viewer offers its five colours only and shows the mark on the
 //! maps and the name tags, not in the radar list: the custom colour and the
-//! ring are Aurora additions, asked for by the human.
+//! ring are Block additions, asked for by the human.
 
 use super::context::{self, AvatarList, CtxAction};
 use super::menu;
@@ -79,7 +79,7 @@ pub fn submenu(ui: &mut egui::Ui, p: &Palette, world: &World, ids: &[Uuid], sour
 }
 
 /// The ring of a marked resident around their picture in a People list:
-/// `round` for Aurora's discs, the theme's corners for the Legacy table's
+/// `round` for Block's discs, the theme's corners for the Legacy table's
 /// squares. Nothing for a resident without a mark, nor for one whose name
 /// RLVa hides (`World::rlva_shown_mark`).
 pub fn ring(ui: &egui::Ui, world: &World, id: &Uuid, picture: Rect, round: bool) {
@@ -177,12 +177,12 @@ pub fn show(ctx: &egui::Context, p: &Palette, world: &mut World, picker: &mut Op
     }
 }
 
-/// `AURORA_DEMO_RADAR_MARKS=1|legacy`: whether the scenario runs, and in
-/// the Legacy look of People (its radar table) rather than Aurora's.
+/// `BLOCK_DEMO_RADAR_MARKS=1|legacy`: whether the scenario runs, and in
+/// the Legacy look of People (its radar table) rather than Block's.
 pub fn demo_mode() -> Option<bool> {
     static MODE: std::sync::OnceLock<Option<bool>> = std::sync::OnceLock::new();
     *MODE.get_or_init(|| {
-        let v = std::env::var("AURORA_DEMO_RADAR_MARKS").ok()?;
+        let v = std::env::var("BLOCK_DEMO_RADAR_MARKS").ok()?;
         Some(v.trim() == "legacy")
     })
 }
@@ -192,7 +192,7 @@ pub fn demo_legacy() -> bool {
     demo_mode() == Some(true)
 }
 
-/// `AURORA_DEMO_RADAR_MARKS`: the demo crowd's first residents marked, one
+/// `BLOCK_DEMO_RADAR_MARKS`: the demo crowd's first residents marked, one
 /// of each Legacy colour and a custom one, so that the lists and the
 /// mini-maps show every kind at once.
 pub fn demo(world: &mut World, crowd: &[Uuid]) {

@@ -1,4 +1,4 @@
-//! The user's answer to the download of Aurora's media plugins pack
+//! The user's answer to the download of Block's media plugins pack
 //! (`media/pack.rs`): the consent card (`ui::media_pack`) and the Download
 //! buttons, kept in the settings at once.
 

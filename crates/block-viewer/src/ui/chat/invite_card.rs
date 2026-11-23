@@ -131,15 +131,45 @@ pub(super) fn icon(ui: &mut egui::Ui, env: &LineEnv, name: &str, color: egui::Co
     }
 }
 
+/// How long a card's buttons must hold still before a click answers it.
+const SETTLE: f64 = 0.4;
+
+/// Whether the card's buttons, now at `at`, have held still for [`SETTLE`]:
+/// an invitation arriving under the pointer (or the chat scrolling it there)
+/// must not take a click meant for what was there a moment before, which
+/// teleported or declined an offer without it ever being read.
+fn settled(ui: &egui::Ui, invite: u64, at: egui::Pos2) -> bool {
+    let id = egui::Id::unique(("invite_card_settle", invite, ui.layer_id()));
+    let now = ui.input(|i| i.time);
+    let pass = ui.ctx().cumulative_pass_nr();
+    let since = ui.ctx().data_mut(|d| {
+        let kept: Option<(egui::Pos2, f64, u64)> = d.get_temp(id);
+        let since = match kept {
+            // drawn on the previous pass (or this one) at the same place
+            Some((pos, since, last)) if last + 1 >= pass && pos.distance(at) <= 1.0 => since,
+            _ => now,
+        };
+        d.insert_temp(id, (at, since, pass));
+        since
+    });
+    let still = now - since >= SETTLE;
+    if !still {
+        ui.ctx().request_repaint_after(std::time::Duration::from_secs_f64(SETTLE));
+    }
+    still
+}
+
 /// The two buttons of a pending invitation, sent as a request of the
 /// interface (the app answers it).
 fn buttons(ui: &mut egui::Ui, p: &Palette, invite: u64, (yes, no): &(String, String), size: Vec2) {
     // "Change and Continue" is longer than the other answers
     let wide = Vec2::new(size.x.max(yes.chars().count() as f32 * 7.0 + 20.0), size.y);
-    if widgets::primary_button_sized(ui, p, yes, wide).clicked() {
+    let accept = widgets::primary_button_sized(ui, p, yes, wide);
+    let still = settled(ui, invite, accept.rect.min);
+    if accept.clicked() && still {
         request(ui.ctx(), CtxAction::AnswerTeleport { invite, accept: true });
     }
-    if widgets::flat_button_sized(ui, p, no, size).clicked() {
+    if widgets::flat_button_sized(ui, p, no, size).clicked() && still {
         request(ui.ctx(), CtxAction::AnswerTeleport { invite, accept: false });
     }
 }
@@ -361,15 +391,15 @@ mod tests {
 
     #[test]
     fn teleport_invitation_removes_the_nearby_sender_slurl() {
-        let destination = place(Some("Aurora Demo"));
+        let destination = place(Some("Block Demo"));
         // The report's links differ by 2 m horizontally and 1 m vertically.
-        let message = "Join me\r\nhttp://maps.secondlife.com/secondlife/Aurora%20Demo/130/130/24";
+        let message = "Join me\r\nhttp://maps.secondlife.com/secondlife/Block%20Demo/130/130/24";
         assert_eq!(without_own_place(message, Some(&destination)), "Join me");
         assert_eq!(without_own_place(message, Some(&place(None))), message);
         assert_eq!(without_own_place(message, None), message);
         for other in [
-            "Join me\nhttp://maps.secondlife.com/secondlife/Aurora%20Demo/160/130/25",
-            "Join me\nhttp://maps.secondlife.com/secondlife/Aurora%20Demo/128/130/1000",
+            "Join me\nhttp://maps.secondlife.com/secondlife/Block%20Demo/160/130/25",
+            "Join me\nhttp://maps.secondlife.com/secondlife/Block%20Demo/128/130/1000",
             "Join me\nhttp://maps.secondlife.com/secondlife/Other%20Region/130/130/24",
         ] {
             assert_eq!(without_own_place(other, Some(&destination)), other);

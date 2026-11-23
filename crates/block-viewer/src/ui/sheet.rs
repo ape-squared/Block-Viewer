@@ -1,4 +1,4 @@
-//! The pieces of Aurora's redesigned windows ("About Land", and the windows
+//! The pieces of Block's redesigned windows ("About Land", and the windows
 //! drawn after it): a header framed on the field's face, page tabs with
 //! "View as", pills, cards with a title and a link, lines of facts, settings
 //! rows with their explanation, the amber lock banner and line, folded

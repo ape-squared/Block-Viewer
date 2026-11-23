@@ -3427,7 +3427,7 @@ fn native_values_outside_the_editor_ranges_import_as_editable_ones() {
 
 #[test]
 fn saving_replaces_the_file_whole_and_leaves_no_temporary_file() {
-    let folder = std::env::temp_dir().join(format!("aurora-anim-save-{}", Uuid::new_v4()));
+    let folder = std::env::temp_dir().join(format!("block-anim-save-{}", Uuid::new_v4()));
     std::fs::create_dir_all(&folder).unwrap();
     let path = folder.join("wave.auroraanim");
     std::fs::write(&path, b"previous project").unwrap();

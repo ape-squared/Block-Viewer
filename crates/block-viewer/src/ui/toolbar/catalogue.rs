@@ -1,10 +1,10 @@
 //! The commands of the "Toolbar buttons" window: Firestorm's toybox
 //! (indra/newview/app_settings/commands.xml, the commands with
-//! `available_in_toybox`, originally LGPL 2.1) and Aurora's own (friends,
-//! home, favourites, immersive mode). Aurora keeps its command names where it had one
+//! `available_in_toybox`, originally LGPL 2.1) and Block's own (friends,
+//! home, favourites, immersive mode). Block keeps its command names where it had one
 //! (`conversations` for Firestorm's `chat`, `worldmap` for `map`…), so that
-//! saved toolbars stay valid; the others take Firestorm's. A command Aurora
-//! cannot run yet stays in the list, dimmed, with "Not available in Aurora
+//! saved toolbars stay valid; the others take Firestorm's. A command Block
+//! cannot run yet stays in the list, dimmed, with "Not available in Block
 //! yet" (the human's decision of 2026-10-15).
 
 /// One command of the catalogue.
@@ -14,7 +14,7 @@ pub struct Command {
     pub icon: &'static str,
     /// The i18n key of its label.
     pub key: &'static str,
-    /// Aurora runs it (`bars::run_command`).
+    /// Block runs it (`bars::run_command`).
     pub ready: bool,
 }
 
@@ -27,7 +27,7 @@ macro_rules! commands {
 /// Every command, in no particular order (the window sorts them by their
 /// label in the interface's language, like LLFloaterToybox::postBuild).
 pub const COMMANDS: &[Command] = commands![
-    // Aurora's toolbar before PR 6
+    // Block's toolbar before PR 6
     "conversations", "Command_Chat_Icon", "common-conversations", true;
     "speak", "Command_Speak_Icon", "ui-skin-speak", true;
     "move", "Command_Move_Icon", "controls-movement-title", true;
@@ -55,7 +55,7 @@ pub const COMMANDS: &[Command] = commands![
     "fly", "plane-tilt-filled", "extra-fly-land-f", true;
     "home", "home-filled", "common-go-home", true;
     "favorites", "bookmarks-filled", "common-favorites", true;
-    // Firestorm's, on what Aurora already does
+    // Firestorm's, on what Block already does
     "aboutland", "info-circle-filled", "common-about-land", true;
     "build", "Command_Build_Icon", "common-build", true;
     "profile", "user-filled", "toolbar-command-profile", true;
@@ -74,24 +74,24 @@ pub const COMMANDS: &[Command] = commands![
     // the Legacy Viewer's Compass and its Face nearest avatar (FSAvatarAlignBase)
     "avatar_align", "user-scan", "toolbar-command-avatar-align", true;
     "face_nearest_avatar", "user-search", "toolbar-command-face-nearest", true;
-    // Aurora's own: the interface hidden but the chat (#859)
+    // Block's own: the interface hidden but the chat (#859)
     "immersive", "maximize", "ui-bars-immersive", true;
     "name_tags", "label-filled", "ui-bars-immersive-hide-tags", true;
-    // Aurora's own: Show User Interface and Show HUDs as buttons (the Legacy
+    // Block's own: Show User Interface and Show HUDs as buttons (the Legacy
     // Viewer has them in its menus only)
     "hide_interface", "eye-off", "ui-bars-hide-interface", true;
     "huds", "device-desktop-filled", "ui-bars-immersive-hide-huds", true;
-    // Aurora's own: the photo reel's quick view, the session's photos
+    // Block's own: the photo reel's quick view, the session's photos
     "photo_roll", "carousel-horizontal-filled", "toolbar-command-photo-roll", true;
-    // Aurora's own: the Director, a camera track to film with
+    // Block's own: the Director, a camera track to film with
     "director", "movie", "toolbar-command-director", true;
-    // Aurora's own: our avatar seen by a camera of its own
+    // Block's own: our avatar seen by a camera of its own
     "second_camera", "device-cctv-filled", "second-camera-title", true;
-    // Aurora's own: the viewer steps back for a game (app/gaming_mode.rs)
+    // Block's own: the viewer steps back for a game (app/gaming_mode.rs)
     "gaming_mode", "device-gamepad-2-filled", "toolbar-command-gaming-mode", true;
     // Block: immersive + fullscreen capture for streamers / creators
     "streamer_mode", "broadcast", "toolbar-command-streamer-mode", true;
-    // Firestorm's, not in Aurora yet
+    // Firestorm's, not in Block yet
     "avatar", "user-circle", "toolbar-command-avatar", true;
     "destinations", "map-2", "toolbar-command-destinations", true;
     "picks", "heart-filled", "toolbar-command-picks", true;
@@ -135,7 +135,7 @@ impl Command {
 }
 
 /// Commands the Legacy Viewer dropped: only stale entries of its skins'
-/// toolbars.xml name them, and it skips them. A saved layout (older Aurora,
+/// toolbars.xml name them, and it skips them. A saved layout (older Block,
 /// imported) that still has one drops it, with no empty button.
 const RETIRED: &[&str] = &["howto"];
 
@@ -151,7 +151,7 @@ pub fn find(id: &str) -> Option<&'static Command> {
     COMMANDS.iter().find(|c| c.id == id)
 }
 
-/// Whether Aurora runs `id`: every command a skin brings is taken as one.
+/// Whether Block runs `id`: every command a skin brings is taken as one.
 pub fn ready(id: &str) -> bool {
     find(id).is_none_or(|c| c.ready)
 }

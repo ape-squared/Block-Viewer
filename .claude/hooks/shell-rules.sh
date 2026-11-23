@@ -107,7 +107,7 @@ refuse() {
     exit 3
 }
 
-# The search rules only hold where ripgrep is installed (aurora-tools,
+# The search rules only hold where ripgrep is installed (block-tools,
 # "Repair / update"); without it the old commands are all there is.
 have_rg=
 rg_installed() {

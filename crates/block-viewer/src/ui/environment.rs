@@ -3,7 +3,7 @@
 //! The selector is Firestorm's quick preferences environment block
 //! (FloaterQuickPrefs, newview/quickprefs.cpp, floater_quickprefs.xml:
 //! "Sky environment", "Water environment", "Day/Night" lists with < > arrows,
-//! "Personal lighting…" and the reset button), plus Aurora's time of day
+//! "Personal lighting…" and the reset button), plus Block's time of day
 //! presets. "Personal lighting" follows LLFloaterEnvironmentAdjust
 //! (newview/llfloaterenvironmentadjust.cpp, floater_adjust_environment.xml):
 //! the same controls, ranges and scales, on the local sky. Both originally
@@ -30,6 +30,8 @@ pub enum EnvAction {
     Shared,
     /// A time of day preset (1..=4).
     Preset(u8),
+    /// Open the Fixed Environment editor on a sky or water snapshot.
+    Edit(SettingsKind),
 }
 
 /// LLFloaterEnvironmentAdjust slider scales.
@@ -134,7 +136,7 @@ pub struct EnvironmentUi {
     /// (indra/newview/quickprefs.cpp). The Environment window has them
     /// greyed too, where the Legacy Viewer has no such window.
     pub rlva_locked: bool,
-    /// `AURORA_DEMO_WEATHER_WINDOW` was looked at (once, at the start).
+    /// `BLOCK_DEMO_WEATHER_WINDOW` was looked at (once, at the start).
     demo_weather_done: bool,
 }
 
@@ -215,7 +217,7 @@ impl EnvironmentUi {
     }
 
     /// "Weather": the weather drawn for this viewer, beside the
-    /// Environment window (Aurora's own: the Legacy Viewer has none).
+    /// Environment window (Block's own: the Legacy Viewer has none).
     fn show_weather(&mut self, ctx: &egui::Context, p: &Palette, weather: &mut WeatherSettings, open: &mut bool) {
         if !*open {
             return;
@@ -226,7 +228,7 @@ impl EnvironmentUi {
         let pos = egui::pos2(left.max(screen.left() + 10.0), screen.top() + 90.0);
         let actions = Floater::new(
             "aurora_weather",
-            block_i18n::tr!("ui-weather-aurora"),
+            block_i18n::tr!("ui-weather-block"),
             pos,
             Vec2::new(super::weather_window::WINDOW_W, 300.0),
         )
@@ -302,6 +304,18 @@ impl EnvironmentUi {
                 {
                     *lighting = !*lighting;
                 }
+                if widgets::flat_button(ui, p, block_i18n::tr!("ui-env-editor-edit-sky"))
+                    .on_hover_text(block_i18n::tr!("ui-environment-edit-sky-hint"))
+                    .clicked()
+                {
+                    out.push(EnvAction::Edit(SettingsKind::Sky));
+                }
+                if widgets::flat_button(ui, p, block_i18n::tr!("ui-env-editor-edit-water"))
+                    .on_hover_text(block_i18n::tr!("ui-environment-edit-water-hint"))
+                    .clicked()
+                {
+                    out.push(EnvAction::Edit(SettingsKind::Water));
+                }
             });
             // each arrow right after its own button: this one the sky's,
             // water's and day cycle's (it leaves my own weather alone)
@@ -314,7 +328,7 @@ impl EnvironmentUi {
             ) {
                 out.push(EnvAction::Shared);
             }
-            // Weather after them ("Aurora" in the aurora gradient):
+            // Weather after them ("Block" in the aurora gradient):
             // this viewer's own weather, nothing for a region to set
             let Some(open) = weather_open else {
                 return;
@@ -322,7 +336,7 @@ impl EnvironmentUi {
             ui.add_space(12.0);
             {
                 let font = widgets::control_font(ui, 12.0);
-                let label = crate::ui::options::aurora_word(p, block_i18n::tr!("ui-weather-aurora"), font, p.ink);
+                let label = crate::ui::options::block_word(p, block_i18n::tr!("ui-weather-block"), font, p.ink);
                 if ui
                     .add(egui::Button::new(label).min_size(Vec2::new(0.0, 20.0)))
                     .on_hover_text(block_i18n::tr!("ui-weather-window-tip"))
@@ -831,11 +845,11 @@ pub fn settings_list(
                 let gutter = ui.spacing().scroll.allocated_width();
                 ui.set_width((width - egui::Frame::popup(ui.style()).total_margin().sum().x - gutter).max(1.0));
                 ui.style_mut().wrap_mode = Some(egui::TextWrapMode::Truncate);
-                // Aurora addition: the Legacy Viewer's lists only jump to
+                // Block addition: the Legacy Viewer's lists only jump to
                 // the first name starting with the letters typed
                 // (LLScrollListCtrl::handleUnicodeCharHere). `search_field`
                 // with ↑ ↓ left to the list, so ↓ reaches the names, and
-                // the A–Z switch at its end (also an Aurora addition).
+                // the A–Z switch at its end (also a Block addition).
                 let search = ui
                     .horizontal(|ui| {
                         let width = ui.available_width() - 20.0 - ui.spacing().item_spacing.x;

@@ -1,6 +1,6 @@
 //! The Director's interface (`crate::director`): its window, the timeline
 //! strip above the bottom bar, the track drawn in the world and what shows
-//! while it plays. Aurora's own: the Legacy Viewer has no camera path tool.
+//! while it plays. Block's own: the Legacy Viewer has no camera path tool.
 //!
 //! - The window: the live camera (view angle, roll, free camera), the
 //!   keyframe selected, the path's options, the playback's, and the

@@ -1,4 +1,4 @@
-//! AURORA_DEMO_AVATAR_CACHE=1: avatars drawn from the cache while the
+//! BLOCK_DEMO_AVATAR_CACHE=1: avatars drawn from the cache while the
 //! region sends them (world/avatar_cache).
 //!
 //! The cache holds how Violet Wolf looked the last time it was seen (the
@@ -7,7 +7,7 @@
 //! the loading fade: until then the kept look is drawn (no cloud), then
 //! the region's, whose pigtails grow. That appearance lists both objects,
 //! but the region only sends them 6 s after the fade: until then their
-//! copies are drawn, then the region's own, the hat violet now. With AURORA_DEMO_OUTFIT_RESTORE=warm, the cache also holds our demo
+//! copies are drawn, then the region's own, the hat violet now. With BLOCK_DEMO_OUTFIT_RESTORE=warm, the cache also holds our demo
 //! outfit's hair, earrings and boots (drawn visible for this scenario):
 //! they show from the start instead of when the restore puts them back.
 //! The hair's script played `WORN_MOTION` on us (the wrists tapping, as a
@@ -41,7 +41,7 @@ const WORN_MOTION_ITEM: u128 = 717;
 /// The scenario is on (read once).
 pub fn enabled() -> bool {
     static ON: std::sync::OnceLock<bool> = std::sync::OnceLock::new();
-    *ON.get_or_init(|| std::env::var_os("AURORA_DEMO_AVATAR_CACHE").is_some())
+    *ON.get_or_init(|| std::env::var_os("BLOCK_DEMO_AVATAR_CACHE").is_some())
 }
 
 pub struct AvatarCacheDemo {

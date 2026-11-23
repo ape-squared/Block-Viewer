@@ -9,8 +9,8 @@ pub(crate) mod cx;
 mod pages;
 /// The rows of the Phototools window, borrowed from the pages.
 mod phototools;
-/// Aurora's own marked in its gradient, outside Preferences too.
-pub(crate) use pages::aurora::aurora_word;
+/// Block's own marked in its gradient, outside Preferences too.
+pub(crate) use pages::block::block_word;
 pub use phototools::Section as PhotoSection;
 mod saved_graphics;
 mod scale;
@@ -50,7 +50,7 @@ pub enum AudioSection {
 /// The pages of the window, in the order of the sidebar.
 #[derive(Clone, Copy, PartialEq, Eq, Hash, Debug, Default)]
 pub enum Page {
-    Aurora,
+    Block,
     #[default]
     Graphics,
     Camera,
@@ -80,7 +80,7 @@ pub enum Page {
 
 impl Page {
     pub const ALL: [Page; 25] = [
-        Page::Aurora,
+        Page::Block,
         Page::Graphics,
         Page::Camera,
         Page::Vr,
@@ -107,10 +107,10 @@ impl Page {
         Page::Fun,
     ];
 
-    /// Its name in `AURORA_DEMO_OPTIONS`.
+    /// Its name in `BLOCK_DEMO_OPTIONS`.
     pub fn key(self) -> &'static str {
         match self {
-            Page::Aurora => "aurora",
+            Page::Block => "block",
             Page::Graphics => "graphics",
             Page::Camera => "camera",
             Page::Vr => "vr",
@@ -140,7 +140,7 @@ impl Page {
 
     pub fn name(self) -> &'static str {
         match self {
-            Page::Aurora => block_i18n::tr!("ui-options-aurora"),
+            Page::Block => block_i18n::tr!("ui-options-block"),
             Page::Graphics => block_i18n::tr!("ui-options-graphics"),
             Page::Camera => block_i18n::tr!("common-camera"),
             Page::Vr => block_i18n::tr!("vr-preferences-title"),
@@ -171,7 +171,7 @@ impl Page {
     /// The line under the page's title.
     pub fn about(self) -> &'static str {
         match self {
-            Page::Aurora => block_i18n::tr!("ui-options-aurora-intro"),
+            Page::Block => block_i18n::tr!("ui-options-block-intro"),
             Page::Graphics => block_i18n::tr!("ui-options-about-graphics"),
             Page::Camera => block_i18n::tr!("ui-options-about-camera"),
             Page::Vr => block_i18n::tr!("vr-preferences-about"),
@@ -201,7 +201,7 @@ impl Page {
 
     pub fn icon(self) -> &'static str {
         match self {
-            Page::Aurora => "sparkles-filled",
+            Page::Block => "sparkles-filled",
             Page::Graphics => "device-desktop-filled",
             Page::Camera => "camera-filled",
             Page::Vr => "device-vision-pro-filled",
@@ -239,7 +239,7 @@ impl Page {
     }
 
     /// The title of the sidebar section the page opens (the first page of
-    /// each section; Aurora sits above them).
+    /// each section; Block sits above them).
     fn section(self) -> Option<&'static str> {
         match self {
             Page::Graphics => Some(block_i18n::tr!("ui-options-section-world")),
@@ -258,7 +258,7 @@ impl Page {
     }
 
     /// A page by its demo name, or by its number in the window before the
-    /// pages were reorganized (the docs' `AURORA_DEMO_OPTIONS=0:tonemap`).
+    /// pages were reorganized (the docs' `BLOCK_DEMO_OPTIONS=0:tonemap`).
     pub fn parse(text: &str) -> Option<(Page, usize)> {
         if let Some(page) = Page::ALL.iter().find(|p| p.key() == text) {
             return Some((*page, 0));
@@ -276,7 +276,7 @@ impl Page {
             10 => (Page::Camera, 0),
             11 => (Page::Commands, 0),
             12 => (Page::Privacy, 0),
-            13 => (Page::Aurora, 0),
+            13 => (Page::Block, 0),
             14 => (Page::Accessibility, 0),
             15 => (Page::Protections, 0),
             _ => return None,
@@ -284,7 +284,7 @@ impl Page {
     }
 }
 
-/// `AURORA_DEMO_OPTIONS=<page>[/<tab>][:<what>]`: the page by its name
+/// `BLOCK_DEMO_OPTIONS=<page>[/<tab>][:<what>]`: the page by its name
 /// (`graphics`, `chat`…) or its number before the reorganisation, then a
 /// search (`search=<text>`), the modified settings (`modified`), the reset
 /// of the page and its undo (`reset`), or one of the rows the docs' former
@@ -311,7 +311,7 @@ pub fn demo(st: &mut OptionsUi, value: &str) {
         "spelling" => row(Page::Chat, 6, tr!("ui-options-spelling-on")),
         "auto-replace" => row(Page::Chat, 6, tr!("ui-options-auto-replace-on")),
         "gifs" => row(Page::Chat, 0, tr!("ui-options-gifs-show")),
-        // the conversation options (AURORA_DEMO_CONV_OPTIONS)
+        // the conversation options (BLOCK_DEMO_CONV_OPTIONS)
         "conversation-options" => row(Page::Chat, 0, tr!("ui-options-im-tab-order")),
         "history-fade" => row(Page::Chat, 3, tr!("ui-options-history-fade")),
         "script-errors" => row(Page::Chat, 0, tr!("ui-options-script-errors-in-chat")),
@@ -319,8 +319,8 @@ pub fn demo(st: &mut OptionsUi, value: &str) {
         "joystick-zoom" => row(Page::Controls, 1, tr!("joystick-zoom-mode")),
         "recent" | "recent-period" => row(Page::Inventory, 0, tr!("ui-inventory-recent-period")),
         "auto-accept" => row(Page::Inventory, 0, tr!("received-auto-accept")),
-        "animations" | "animations-sync" => row(Page::Aurora, 2, tr!("ui-options-aurora-animation-clock")),
-        "remove-aurora" => row(Page::System, 0, tr!("ui-options-remove-aurora")),
+        "animations" | "animations-sync" => row(Page::Block, 2, tr!("ui-options-block-animation-clock")),
+        "remove-block" => row(Page::System, 0, tr!("ui-options-remove-block")),
         "alerts" => row(Page::Confirmations, 0, tr!("ui-options-driver-warning")),
         "proxy" => row(Page::Network, 0, tr!("ui-options-proxy-direct-voice")),
         _ => None,
@@ -464,12 +464,12 @@ pub struct OptionsUi {
     /// The defaults the rows compare with.
     defaults: Option<Box<Settings>>,
     undo: Option<Undo>,
-    /// Reset the page shown at the next frame (`AURORA_DEMO_OPTIONS=…:reset`).
+    /// Reset the page shown at the next frame (`BLOCK_DEMO_OPTIONS=…:reset`).
     pub demo_reset: bool,
-    /// Open every cog once counted (`AURORA_DEMO_OPTIONS=…:cogs`, captures).
+    /// Open every cog once counted (`BLOCK_DEMO_OPTIONS=…:cogs`, captures).
     pub demo_open_cogs: bool,
     /// Keep the system font list open, scrolling it when true
-    /// (`AURORA_DEMO_OPTIONS=appearance:system-fonts`, `…:system-fonts-scroll`).
+    /// (`BLOCK_DEMO_OPTIONS=appearance:system-fonts`, `…:system-fonts-scroll`).
     pub demo_font_list: Option<bool>,
     interface_scale: scale::ScaleSlider,
     text_scale: scale::ScaleSlider,
@@ -516,7 +516,7 @@ pub struct OptionsUi {
     /// Media plugins folder found (empty: none) and plugins running.
     pub media_plugins: String,
     pub media_running: usize,
-    /// Aurora's media plugins pack (set by the app), and its "Download" or
+    /// Block's media plugins pack (set by the app), and its "Download" or
     /// "Retry" button (cleared by the app).
     pub media_pack: crate::media::pack::PackState,
     pub media_pack_download: bool,
@@ -775,7 +775,7 @@ pub struct OptionsResult {
     pub friends_only_keep: Option<bool>,
     /// Open the Dev Toolbox (Network and cache › Logs and tools).
     pub open_dev_toolbox: bool,
-    /// "Remove Aurora from this computer" (Language and updates): the app
+    /// "Remove Block from this computer" (Language and updates): the app
     /// asks for the confirmation.
     pub uninstall: bool,
     /// Back up the settings to a file the user chooses.
@@ -834,7 +834,7 @@ fn path_label(ui: &mut egui::Ui, p: &Palette, dir: &std::path::Path, width: f32)
     .on_hover_text(&path);
 }
 
-/// Why Aurora's media plugins pack is not there yet.
+/// Why Block's media plugins pack is not there yet.
 fn media_pack_error(failure: block_updater::Failure) -> &'static str {
     use block_updater::Failure;
     match failure {
@@ -959,7 +959,7 @@ fn combo_blocked<T: PartialEq + Copy>(ui: &mut egui::Ui, value: &mut T, choices:
 }
 
 /// A choice among a few options side by side: `widgets::segmented` over a
-/// setting of any type; the options marked are lit in Aurora's accent.
+/// setting of any type; the options marked are lit in Block's accent.
 fn segmented<T: PartialEq + Copy>(ui: &mut egui::Ui, p: &Palette, value: &mut T, choices: &[(T, &str, bool)]) -> bool {
     let options: Vec<(&str, bool)> = choices.iter().map(|(_, l, accent)| (*l, *accent)).collect();
     let mut i = choices.iter().position(|(v, _, _)| v == value).unwrap_or(usize::MAX);
@@ -1752,21 +1752,21 @@ fn sidebar(
         .min_scrolled_height(list_h)
         .show(&mut ui, |ui| {
             ui.spacing_mut().item_spacing.y = 2.0;
-            // Aurora, then the modified settings, above the sections
-            let on = !searching && !st.modified_view && st.page == Page::Aurora;
-            let dim = searching && st.counts.hits(Page::Aurora) == 0;
+            // Block, then the modified settings, above the sections
+            let on = !searching && !st.modified_view && st.page == Page::Block;
+            let dim = searching && st.counts.hits(Page::Block) == 0;
             let entry = ui
                 .scope(|ui| {
                     if dim {
                         ui.multiply_opacity(0.4);
                     }
-                    let entry = pages::aurora::nav_entry(ui, p, Page::Aurora.name(), Page::Aurora.icon(), on);
-                    paint_chip(ui, p, entry.rect, nav_chip(st, Page::Aurora, searching), searching);
+                    let entry = pages::block::nav_entry(ui, p, Page::Block.name(), Page::Block.icon(), on);
+                    paint_chip(ui, p, entry.rect, nav_chip(st, Page::Block, searching), searching);
                     entry
                 })
                 .inner;
             if entry.clicked() {
-                st.open(Page::Aurora, 0);
+                st.open(Page::Block, 0);
             }
             let total = st.counts.total_modified();
             let on = !searching && st.modified_view;
@@ -1934,7 +1934,7 @@ fn page_area(
     let head_w = ui.available_width();
     ui.horizontal_top(|ui| {
         ui.set_width(head_w);
-        let buttons_w = if !searching && !modified_view && page == Page::Aurora {
+        let buttons_w = if !searching && !modified_view && page == Page::Block {
             380.0
         } else if modified_view && st.counts.total_modified() > 0 {
             200.0
@@ -1972,7 +1972,7 @@ fn page_area(
                         ui,
                         p,
                         "history",
-                        block_i18n::tr!("ui-options-aurora-all-firestorm"),
+                        block_i18n::tr!("ui-options-block-all-firestorm"),
                         ActionKind::Flat,
                         size,
                     );
@@ -1980,16 +1980,16 @@ fn page_area(
                         ui,
                         p,
                         "sparkles-filled",
-                        block_i18n::tr!("ui-options-aurora-all-aurora"),
+                        block_i18n::tr!("ui-options-block-all-block"),
                         ActionKind::Primary,
                         size,
                     );
                     if aurora.clicked() {
-                        pages::aurora::set_all(s, pages::aurora::Look::Aurora);
+                        pages::block::set_all(s, pages::block::Look::Block);
                         r.changed = true;
                     }
                     if legacy.clicked() {
-                        pages::aurora::set_all(s, pages::aurora::Look::Legacy);
+                        pages::block::set_all(s, pages::block::Look::Legacy);
                         r.changed = true;
                     }
                 }

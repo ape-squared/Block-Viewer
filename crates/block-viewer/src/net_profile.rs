@@ -2,7 +2,7 @@
 //!
 //! Counted every second whether or not anything reads it: the Performance
 //! window shows the last second ([`NetPeriod`]) and the totals of the session
-//! ([`NetTotals`]). With `AURORA_PROFILE=1` each second of a grid session is
+//! ([`NetTotals`]). With `BLOCK_PROFILE=1` each second of a grid session is
 //! also one "net summary" line in the log, next to "perf summary"
 //! (frame_profile.rs); docs/TESTING.md lists its fields.
 
@@ -50,7 +50,7 @@ pub struct NetPeriod {
     pub input_delay_ms: Option<f32>,
     pub corrections: Corrections,
     /// Largest lead of our avatar over the simulator's position with
-    /// Aurora's movement (own_motion.rs), 0 without it (m).
+    /// Block's movement (own_motion.rs), 0 without it (m).
     pub lead_max: f32,
     pub http_active: u32,
     pub http_queued: u32,
@@ -99,7 +99,7 @@ pub fn loss_percent(period: &NetPeriod) -> f32 {
 
 impl Default for NetProfile {
     fn default() -> Self {
-        NetProfile::new(std::env::var_os("AURORA_PROFILE").is_some())
+        NetProfile::new(std::env::var_os("BLOCK_PROFILE").is_some())
     }
 }
 

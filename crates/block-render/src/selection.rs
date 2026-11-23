@@ -49,7 +49,7 @@ impl Overlay {
         Self::build(device, format, size, wgpu::TextureFormat::R8Unorm, "fs_composite")
     }
 
-    /// The poser's hovered part (Aurora's own): its mask holds the part's
+    /// The poser's hovered part (Block's own): its mask holds the part's
     /// share in red, graded where the weights pass to another part (a
     /// knuckle, the neck), and the subject's coverage in green. The tint
     /// fades with the share on the subject; the halo is drawn only off it,

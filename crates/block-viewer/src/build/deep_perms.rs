@@ -3,7 +3,7 @@
 //! owner change, applied inside the object items of the selected prims'
 //! contents, at every level down to [`MAX_DEPTH`].
 //!
-//! An Aurora addition: LLFloaterBulkPermission (indra/newview/
+//! A Block addition: LLFloaterBulkPermission (indra/newview/
 //! llfloaterbulkpermission.cpp) changes one level only, its recursion into
 //! objects is a commented-out TODO (doApply). An object item's contents can
 //! only be changed in world, so each object is rezzed a few metres above the

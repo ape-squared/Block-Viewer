@@ -7,7 +7,7 @@ use std::time::Duration;
 fn name() -> String {
     static NEXT: AtomicU64 = AtomicU64::new(0);
     format!(
-        r"\\.\pipe\aurora-slurl-unit-{}-{}",
+        r"\\.\pipe\block-slurl-unit-{}-{}",
         std::process::id(),
         NEXT.fetch_add(1, Ordering::Relaxed)
     )

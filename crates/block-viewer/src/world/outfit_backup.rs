@@ -1,4 +1,4 @@
-//! Portable outfit recipes, not asset copies. This Aurora addition preserves
+//! Portable outfit recipes, not asset copies. This Block addition preserves
 //! the links/order used by LLAppearanceMgr::updateCOF / makeNewOutfitLinks
 //! (indra/newview/llappearancemgr.cpp); imports use the ordinary outfit mutation.
 use super::{appearance, inventory::Inventory};
@@ -96,7 +96,7 @@ impl Backup {
         // in each link description, just as it is in the saved outfit.
         items.sort_by_key(|item| item.item_id);
         let backup = Self {
-            format: "aurora-outfit".into(),
+            format: "block-outfit".into(),
             version: 1,
             name,
             items,
@@ -127,7 +127,7 @@ impl Backup {
 
     fn validate(&self) -> Result<(), String> {
         let mut ids = HashSet::new();
-        if self.format != "aurora-outfit"
+        if self.format != "block-outfit"
             || self.version != 1
             || !valid_name(&self.name)
             || self.items.len() > MAX_ITEMS

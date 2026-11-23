@@ -352,7 +352,7 @@ mod tests {
     fn appearance_xml_failed_validation_preserves_the_existing_file_and_a_valid_save_replaces_it() {
         let world = world();
         let mut snapshot = Snapshot::own(&world).unwrap();
-        let path = std::env::temp_dir().join(format!("aurora-appearance-{}.xml", Uuid::new_v4()));
+        let path = std::env::temp_dir().join(format!("block-appearance-{}.xml", Uuid::new_v4()));
         std::fs::write(&path, b"old appearance").unwrap();
         snapshot.posed = vec![Mat4::NAN; snapshot.library.rig.len()];
         assert!(snapshot.write(&path).is_err());

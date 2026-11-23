@@ -42,7 +42,7 @@ impl Sound {
 }
 
 pub fn decode_wav(data: &[u8], max_seconds: u32) -> Result<Sound, AssetError> {
-    // Aurora's editor can split a bounded long source into valid upload assets.
+    // Block's editor can split a bounded long source into valid upload assets.
     if data.len() > 16 * 1024 * 1024 || !(1..=600).contains(&max_seconds) {
         return Err(AssetError::TooLarge("sound file"));
     }

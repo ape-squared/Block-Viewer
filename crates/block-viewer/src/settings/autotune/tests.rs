@@ -415,7 +415,7 @@ fn the_hold_never_writes_above_the_users_values_nor_outside_the_bounds() {
         assert!((DD_FLOOR..=200.0).contains(&s.draw_distance), "{dd} -> {}", s.draw_distance);
         assert!((1..=10).contains(&s.max_avatars), "{n} -> {}", s.max_avatars);
     }
-    // a user distance under Aurora's floor is not raised either
+    // a user distance under Block's floor is not raised either
     let mut s = Settings {
         draw_distance: 20.0,
         ..Settings::default()

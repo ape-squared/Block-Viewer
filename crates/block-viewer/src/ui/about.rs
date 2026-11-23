@@ -2,22 +2,22 @@
 //! (indra/newview/llfloaterabout.cpp, floater_about.xml, the About* strings
 //! of strings.xml, originally LGPL 2.1): the version, then the system
 //! information with "Copy to clipboard", and the licences. Redrawn in the
-//! Aurora look: a banner with the logo and the version, the information in
+//! Block look: a banner with the logo and the version, the information in
 //! cards (a click on a value copies it alone), the licences read from
 //! NOTICE.md (`about/notice.rs`), and the Rust libraries' licences read
 //! from THIRD-PARTY-LICENSES.md (`about/libraries.rs`). The copy stays in English whatever the
 //! interface language, as the Legacy Viewer's (strings.xml: "this info
 //! sometimes gets sent to support"). The Legacy Viewer's credits tabs name
-//! its own teams: Aurora names the authors of the code it follows in the
+//! its own teams: Block names the authors of the code it follows in the
 //! licences, as NOTICE.md does.
 
 pub mod libraries;
 pub mod notice;
 
-use super::sheet::{self, Tone};
+use super::sheet;
 use super::widgets::{self, ActionKind, Floater};
 use crate::theme::Palette;
-use egui::{Rect, RichText, Sense, Shape, Vec2};
+use egui::{RichText, Sense, Vec2};
 use notice::Block;
 use std::time::{Duration, Instant};
 
@@ -106,7 +106,7 @@ pub struct AboutUi {
     copied_at: Option<Instant>,
     /// The value copied alone last (its section and row).
     value_copied: Option<(usize, usize, Instant)>,
-    /// Scroll the tab to its end at the next frame (AURORA_DEMO_ABOUT's
+    /// Scroll the tab to its end at the next frame (BLOCK_DEMO_ABOUT's
     /// `:end`, to capture the last cards).
     pub scroll_to_end: bool,
 }
@@ -241,7 +241,7 @@ impl AboutUi {
     }
 }
 
-/// Flat banner: logo, name, version, links (Block chrome, not Aurora glow).
+/// Flat banner: logo, name, version, links (Block chrome, not Block glow).
 fn hero(ui: &mut egui::Ui, p: &Palette, logo: Option<&egui::TextureHandle>) {
     widgets::surface(ui, p, |ui| {
         ui.set_min_width(ui.available_width());
@@ -281,7 +281,7 @@ fn hero(ui: &mut egui::Ui, p: &Palette, logo: Option<&egui::TextureHandle>) {
 /// The build's profile as the window title names it ("Dev"), else its
 /// target folder.
 pub fn build_label() -> &'static str {
-    let dir = env!("AURORA_BUILD_PROFILE");
+    let dir = env!("BLOCK_BUILD_PROFILE");
     crate::cli::profile_label(dir).unwrap_or(dir)
 }
 
@@ -326,7 +326,7 @@ fn value_row(ui: &mut egui::Ui, p: &Palette, key: &str, value: &str, copied: boo
     .inner
 }
 
-/// The Licences tab: Aurora's own licence and its links, then NOTICE.md, a
+/// The Licences tab: Block's own licence and its links, then NOTICE.md, a
 /// card per heading.
 fn licences(ui: &mut egui::Ui, p: &Palette, to_end: bool) {
     egui::ScrollArea::vertical()
@@ -423,7 +423,7 @@ fn library_licences(ui: &mut egui::Ui, p: &Palette, to_end: bool) {
     });
 }
 
-/// The GNU GPL version 3, Aurora's licence.
+/// The GNU GPL version 3, Block's licence.
 const GPL: &str = "https://www.gnu.org/licenses/gpl-3.0.html";
 
 /// The icon of a NOTICE.md heading's card.

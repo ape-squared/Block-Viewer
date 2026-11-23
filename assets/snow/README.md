@@ -1,6 +1,6 @@
 # Snow textures
 
-The detail of the snow lying on the ground (Aurora Weather).
+The detail of the snow lying on the ground (Block Weather).
 
 | File | Source | Licence |
 |---|---|---|

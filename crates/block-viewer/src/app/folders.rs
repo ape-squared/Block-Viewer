@@ -48,7 +48,7 @@ impl App {
                         current.parent().map(std::path::Path::to_path_buf),
                     )
                 });
-                let _ = std::thread::Builder::new().name("aurora-folder-dialog".into()).spawn(move || {
+                let _ = std::thread::Builder::new().name("block-folder-dialog".into()).spawn(move || {
                     let dialog = rfd::FileDialog::new().set_title(title);
                     let picked = match file {
                         Some((filter, folder)) => {

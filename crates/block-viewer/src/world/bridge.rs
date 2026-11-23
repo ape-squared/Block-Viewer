@@ -1,4 +1,4 @@
-//! Aurora's private attachment factory and confirmed Movelock state.
+//! Block's private attachment factory and confirmed Movelock state.
 //! The library-copy/attach/script-upload sequence follows FSLSLBridge
 //! (indra/newview/fslslbridge.cpp, originally LGPL 2.1).
 use super::{World, inventory::FetchState};
@@ -14,10 +14,17 @@ use std::collections::HashSet;
 use std::time::{Duration, Instant};
 use uuid::Uuid;
 
-pub const FOLDER: &str = "#Aurora";
-pub const SUBFOLDER: &str = "Aurora Bridge";
+pub const FOLDER: &str = "#Block";
+/// The folder's name before the rename to Block: renamed in place, so the
+/// bridge, the AO and the favourites inside it are kept.
+const OLD_FOLDER: &str = "#Aurora";
+pub const SUBFOLDER: &str = "Block Bridge";
 const OLD_SUBFOLDER: &str = "Bridge";
-pub const NAME: &str = "#Aurora Bridge v1.0";
+pub const NAME: &str = "#Block Bridge v1.0";
+/// The bridge object's and controller script's name before the rename to
+/// Block: the object is still recognised (and renamed in place), the script
+/// is replaced by one named [`NAME`].
+const OLD_NAME: &str = "#Aurora Bridge v1.0";
 /// Center 2, where both viewers wear their bridge (FS_BRIDGE_POINT,
 /// fslslbridge.h).
 pub(crate) const POINT: u8 = 31;
@@ -54,10 +61,12 @@ const ROCK: &str = factory::ROCK;
 const SOURCE: &str = include_str!("bridge/bridge.lsl");
 // Read-only services (radar heights, script and object information) run in a
 // second script: Mono gives each script 64 KB, and the controller has little left.
-pub const QUERY_NAME: &str = "#Aurora Bridge Query";
+pub const QUERY_NAME: &str = "#Block Bridge Query";
+/// The query script's name before the rename to Block: replaced.
+const OLD_QUERY_NAME: &str = "#Aurora Bridge Query";
 const QUERY_SOURCE: &str = include_str!("bridge/query.lsl");
 /// The third script older bridges carried: a relay that listened on a fixed
-/// region channel for hand contacts that objects published to Aurora viewers.
+/// region channel for hand contacts that objects published to Block viewers.
 /// It was removed (Second Life's shared experience policy; AGENTS.md, "No
 /// data of our own in shared places"), and the listing deletes it from a
 /// bridge that still has it.
@@ -100,6 +109,12 @@ fn root_folder(inv: &super::inventory::Inventory, name: &str) -> Option<Uuid> {
     })
 }
 
+/// The viewer's own folder under the inventory root: `#Block`, or `#Aurora`
+/// until the bridge has renamed it (or while the bridge is turned off).
+pub fn brand_folder(inv: &super::inventory::Inventory) -> Option<Uuid> {
+    root_folder(inv, FOLDER).or_else(|| root_folder(inv, OLD_FOLDER))
+}
+
 /// FS_BRIDGE_NAME (fslslbridge.h) with its exact version syntax: a chat tag
 /// or a similarly named ordinary HUD is not the Legacy Viewer's bridge.
 fn legacy_bridge_name(name: &str) -> bool {
@@ -113,7 +128,7 @@ fn legacy_bridge_name(name: &str) -> bool {
 }
 
 /// Whether the inventory item is a viewer's scripting bridge: ours in
-/// `#Aurora`, or the one the Legacy Viewer left worn, in `#Firestorm`. The
+/// `#Block`, or the one the Legacy Viewer left worn, in `#Firestorm`. The
 /// name alone is not enough: the agent owns it and it lies under the
 /// viewer's own folder. RLVa leaves such an object out of what the avatar
 /// wears on `point` (FSLSLBridge::isBridgeValid and getAttachedID, used by
@@ -122,16 +137,16 @@ pub(crate) fn viewer_bridge(world: &World, item: Uuid, point: u8) -> bool {
     let inv = &world.inventory;
     point == POINT
         && inv.items.get(&item).is_some_and(|entry| {
-            let folder = if entry.name == NAME {
-                FOLDER
+            let folder = if entry.name == NAME || entry.name == OLD_NAME {
+                brand_folder(inv)
             } else if legacy_bridge_name(&entry.name) {
-                "#Firestorm"
+                root_folder(inv, "#Firestorm")
             } else {
                 return false;
             };
             entry.owner == world.agent_id
                 && entry.asset_type == 6
-                && root_folder(inv, folder).is_some_and(|folder| super::inventory::actions::under(inv, item, folder))
+                && folder.is_some_and(|folder| super::inventory::actions::under(inv, item, folder))
         })
 }
 
@@ -186,7 +201,7 @@ pub enum QueryState {
     Failed,
     /// The wearer took the bridge off.
     Detached,
-    /// Turned off in Preferences › Aurora.
+    /// Turned off in Preferences › Block.
     Off,
 }
 
@@ -311,7 +326,7 @@ pub struct Bridge {
     capture_sent: Option<Instant>,
     firestorm_poll: Option<Instant>,
     firestorm_detached: HashSet<Uuid>,
-    /// Preferences › Aurora "Use the Aurora bridge" is off.
+    /// Preferences › Block "Use the Block bridge" is off.
     disabled: bool,
     own_poll: Option<Instant>,
     own_detached: HashSet<Uuid>,
@@ -341,11 +356,11 @@ impl Bridge {
     pub fn folder(&self) -> Uuid {
         self.folder
     }
-    /// Whether the bridge makes `#Aurora` when it is missing: it runs for
+    /// Whether the bridge makes `#Block` when it is missing: it runs for
     /// this account, on, worn, still looking for its folder, and the grid
     /// lets it write (`inventory_writable_with_ais`). What else keeps its
-    /// folders under `#Aurora` at login waits for it instead of asking for
-    /// a second `#Aurora` in the same seconds (the Favorite Wearables; the
+    /// folders under `#Block` at login waits for it instead of asking for
+    /// a second `#Block` in the same seconds (the Favorite Wearables; the
     /// AO's bootstrap waits the same way).
     pub fn makes_brand_folder(&self, world: &World) -> bool {
         !self.agent.is_nil()
@@ -409,7 +424,7 @@ impl Bridge {
         if let Some(since) = self.watch.silent_since
             && now.duration_since(since) >= SILENCE_LIMIT
         {
-            log::warn!("Aurora bridge: no reply for {} s", now.duration_since(since).as_secs());
+            log::warn!("Block bridge: no reply for {} s", now.duration_since(since).as_secs());
             self.reinstall(world, true, now);
             return true;
         }
@@ -439,7 +454,7 @@ impl Bridge {
             }
             return;
         }
-        log::warn!("Aurora bridge: reinstalling a bridge that stopped responding");
+        log::warn!("Block bridge: reinstalling a bridge that stopped responding");
         self.reinstalls.push(now);
         world.system_message(block_i18n::tr!("bridge-reinstalling"));
         self.retry(now);
@@ -471,7 +486,7 @@ impl Bridge {
         if let Some(free) = ack.free_memory
             && self.memory_low.is_none_or(|low| free + 1024 <= low)
         {
-            log::info!("Aurora bridge: script memory low mark {free} bytes free");
+            log::info!("Block bridge: script memory low mark {free} bytes free");
             self.memory_low = Some(free);
         }
         self.ack = ack;
@@ -512,7 +527,7 @@ impl Bridge {
             && self.capture_sent.is_some_and(|at| now.duration_since(at) < Duration::from_secs(1))
     }
     fn enter(&mut self, phase: Phase, now: Instant) {
-        log::info!("Aurora bridge: {:?} -> {:?}", self.phase, phase);
+        log::info!("Block bridge: {:?} -> {:?}", self.phase, phase);
         self.phase = phase;
         self.since = Some(now);
         self.poll = None;
@@ -537,7 +552,7 @@ impl Bridge {
     }
     fn fail(&mut self, reason: String) {
         // Never log protocol messages, endpoints, source or identities.
-        log::warn!("Aurora bridge: timeout or failure in {:?}", self.phase);
+        log::warn!("Block bridge: timeout or failure in {:?}", self.phase);
         self.phase = Phase::Failed;
         self.error = Some(reason);
         self.ack.locked = false;
@@ -603,7 +618,7 @@ impl Bridge {
             _ => false,
         }
     }
-    /// Preferences › Aurora "Use the Aurora bridge", the Legacy Viewer's
+    /// Preferences › Block "Use the Block bridge", the Legacy Viewer's
     /// UseLSLBridge (fslslbridge.cpp: initBridge and processDetach do
     /// nothing while it is off). Off, nothing is made, worn or checked; unlike
     /// the Legacy Viewer, which leaves a worn bridge running and ignores its
@@ -635,7 +650,7 @@ impl Bridge {
             self.error = Some(reason.into());
         }
     }
-    /// Detach our own worn bridge, found by its exact name in `#Aurora`,
+    /// Detach our own worn bridge, found by its exact name in `#Block`,
     /// each worn object once: wearing it again while off detaches it again.
     fn detach_own(&mut self, world: &World, now: Instant) {
         if self.own_poll.is_some_and(|at| now.duration_since(at) < Duration::from_secs(1)) {
@@ -643,14 +658,14 @@ impl Bridge {
         }
         self.own_poll = Some(now);
         let inv = &world.inventory;
-        let folder = root_folder(inv, FOLDER);
+        let folder = brand_folder(inv);
         let mut detach = Vec::new();
         for item in world.worn_attachment_items() {
             let ours = item == self.item
                 || inv.items.get(&item).is_some_and(|entry| {
                     entry.owner == world.agent_id
                         && entry.asset_type == 6
-                        && entry.name == NAME
+                        && (entry.name == NAME || entry.name == OLD_NAME)
                         && folder.is_some_and(|folder| super::inventory::actions::under(inv, item, folder))
                 });
             if ours
@@ -662,7 +677,7 @@ impl Bridge {
             }
         }
         if !detach.is_empty() {
-            log::info!("Aurora bridge: turned off in Preferences, detaching the worn bridge");
+            log::info!("Block bridge: turned off in Preferences, detaching the worn bridge");
             self.commands.push(NetCommand::DetachAttachments(detach));
         }
     }
@@ -803,7 +818,7 @@ impl Bridge {
             && folder == self.folder
         {
             if self.query.as_ref().is_none_or(|current| current.token != endpoint.token) {
-                log::info!("Aurora bridge: query service ready");
+                log::info!("Block bridge: query service ready");
             }
             self.query = Some(endpoint);
             self.query_watch = Watch::default();
@@ -1070,7 +1085,7 @@ impl Bridge {
             return;
         }
         if self.relocated && self.since.is_some_and(|since| now.duration_since(since) > RELOCATION_TIMEOUT) {
-            log::warn!("Aurora bridge: no hello since its URL changed");
+            log::warn!("Block bridge: no hello since its URL changed");
             self.reinstall(world, true, now);
             return;
         }
@@ -1103,6 +1118,34 @@ impl Bridge {
                     .filter(|f| !f.library && f.info.name == FOLDER)
                     .map(|f| f.info.id)
                     .min();
+                let old_folder = root
+                    .children
+                    .iter()
+                    .filter_map(|id| inv.folders.get(id))
+                    .filter(|f| !f.library && f.info.parent == inv.root && f.info.name == OLD_FOLDER)
+                    .map(|f| f.info.id)
+                    .min();
+                if folder.is_none()
+                    && let Some(old) = old_folder
+                {
+                    if self.phase != Phase::Folder {
+                        // Rename in place: its UUID, contents and worn bridge stay.
+                        self.mutate(
+                            Mutation {
+                                operations: vec![Operation::Patch {
+                                    id: old,
+                                    folder: true,
+                                    body: block_llsd::llsd_map! { "name" => FOLDER },
+                                }],
+                                refresh: vec![inv.root, old],
+                                ..Default::default()
+                            },
+                            Phase::Folder,
+                            now,
+                        );
+                    }
+                    return;
+                }
                 let Some(folder) = folder else {
                     if self.phase == Phase::Inventory {
                         self.mutate(
@@ -1194,7 +1237,7 @@ impl Bridge {
                     .filter_map(|id| inv.items.get(id))
                     .filter(|item| {
                         item.owner == world.agent_id
-                            && ((item.asset_type == 6 && item.name == NAME)
+                            && ((item.asset_type == 6 && (item.name == NAME || item.name == OLD_NAME))
                                 || (item.asset_type == 20
                                     && (crate::movement::Style::ALL.iter().any(|style| item.name == style.name())
                                         || crate::movement::strokes::WATER_CLIPS.iter().any(|(_, name)| item.name == *name))))
@@ -1214,6 +1257,35 @@ impl Bridge {
                                     })
                                     .collect(),
                                 refresh: vec![self.container, folder],
+                                ..Default::default()
+                            },
+                            Phase::Move,
+                            now,
+                        );
+                    }
+                    return;
+                }
+                let renamed: Vec<_> = contents
+                    .items
+                    .iter()
+                    .filter_map(|id| inv.items.get(id))
+                    .filter(|i| i.asset_type == 6 && i.name == OLD_NAME && i.owner == world.agent_id)
+                    .map(|i| i.id)
+                    .collect();
+                if !renamed.is_empty() {
+                    if self.phase != Phase::Move {
+                        // Rename in place: a worn bridge stays worn.
+                        self.mutate(
+                            Mutation {
+                                operations: renamed
+                                    .into_iter()
+                                    .map(|id| Operation::Patch {
+                                        id,
+                                        folder: false,
+                                        body: block_llsd::llsd_map! { "name" => NAME },
+                                    })
+                                    .collect(),
+                                refresh: vec![folder],
                                 ..Default::default()
                             },
                             Phase::Move,
@@ -1314,7 +1386,7 @@ impl Bridge {
             }
             Phase::Store if world.worn_attachment(&self.item).is_none() => {
                 let detached = *self.detached.get_or_insert_with(|| {
-                    log::info!("Aurora bridge: detachment observed; waiting for simulator save delay");
+                    log::info!("Block bridge: detachment observed; waiting for simulator save delay");
                     now
                 });
                 if now.duration_since(detached) >= STORE_DELAY {
@@ -1398,7 +1470,7 @@ impl Bridge {
         });
     }
     /// Return true only for events consumed by this bridge. Never show an
-    /// Aurora handshake, token, endpoint or script's raw protocol in chat.
+    /// Block handshake, token, endpoint or script's raw protocol in chat.
     pub fn event(&mut self, world: &mut World, event: &NetEvent, now: Instant) -> bool {
         if self.disabled {
             // Hide a still-worn bridge's messages until its detach lands, as
@@ -1431,7 +1503,7 @@ impl Bridge {
                             Err(rejection) if chat.source_id == self.object && self.rejection != Some(rejection) => {
                                 // A rejected URL is not a stopped script. Only
                                 // record the reason, never the private reply.
-                                log::warn!("Aurora bridge: rejected response ({rejection:?})");
+                                log::warn!("Block bridge: rejected response ({rejection:?})");
                                 self.rejection = Some(rejection);
                             }
                             Err(_) => {}
@@ -1471,7 +1543,7 @@ impl Bridge {
                                 .is_some_and(|object| object.full_id == chat.source_id && Some(object.key.region) == world.main_region)
                         {
                             if self.boot != Some(boot) {
-                                log::info!("Aurora bridge: script status permissions={} url={}", boot.0, boot.1);
+                                log::info!("Block bridge: script status permissions={} url={}", boot.0, boot.1);
                             }
                             self.boot = Some(boot);
                         }
@@ -1524,7 +1596,9 @@ impl Bridge {
                     return true;
                 };
                 let find = |name: &str| items.iter().find(|i| i.asset_type == 10 && i.name == name).map(|i| i.item_id);
-                if let Some(retired) = find(RETIRED_IK_NAME) {
+                // the retired IK relay, and the scripts named before the
+                // rename to Block (new ones are rezzed below in their place)
+                for retired in [RETIRED_IK_NAME, OLD_NAME, OLD_QUERY_NAME].into_iter().filter_map(find) {
                     self.commands.push(NetCommand::Build(BuildCmd::RemoveTaskInventory {
                         handle: root.key.region,
                         local_id: root.key.local_id,
@@ -1574,7 +1648,7 @@ impl Bridge {
                                 world.agent_id,
                                 world.groups.active,
                                 name,
-                                "Aurora's private bridge",
+                                "Block's private bridge",
                             ));
                         }
                     }
@@ -1641,7 +1715,7 @@ impl Bridge {
                 // A run-time error halts the script; only a recompile resets it.
                 let controller = *item_id == self.script;
                 log::warn!(
-                    "Aurora bridge: the {} script is not running",
+                    "Block bridge: the {} script is not running",
                     if controller { "controller" } else { "query" }
                 );
                 self.reinstall(world, controller, now);

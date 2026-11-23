@@ -410,7 +410,7 @@ mod tests {
     fn writes_what_it_reads() {
         // a teleport history line (LLTeleportHistoryPersistentItem::toLLSD)
         let mut m = Map::new();
-        m.insert("title".into(), Llsd::String("Place d'Aurora, Aurora \\ Démo\n".into()));
+        m.insert("title".into(), Llsd::String("Place d'Block, Block \\ Démo\n".into()));
         m.insert(
             "global_pos".into(),
             Llsd::Array(vec![Llsd::Real(256140.5), Llsd::Real(256120.0), Llsd::Real(25.0)]),

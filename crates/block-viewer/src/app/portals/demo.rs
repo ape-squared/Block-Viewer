@@ -4,7 +4,7 @@ use super::*;
 
 fn drop_mode() -> Option<&'static str> {
     static MODE: std::sync::OnceLock<Option<String>> = std::sync::OnceLock::new();
-    MODE.get_or_init(|| std::env::var("AURORA_DEMO_PORTALS").ok().filter(|mode| mode.starts_with("drop-")))
+    MODE.get_or_init(|| std::env::var("BLOCK_DEMO_PORTALS").ok().filter(|mode| mode.starts_with("drop-")))
         .as_deref()
 }
 
@@ -24,11 +24,11 @@ impl App {
             if self.panels.search {
                 let tab = crate::world::search::Tab::Places;
                 self.search_ui.open_tab(tab);
-                self.search_ui.set_text(tab, "aurora");
+                self.search_ui.set_text(tab, "block");
                 let requests = if self.settings.classic_search {
                     self.search_ui.request(tab, &self.settings.search).into_iter().collect()
                 } else {
-                    self.search_ui.aurora_requests(&self.settings.search)
+                    self.search_ui.block_requests(&self.settings.search)
                 };
                 let access = self.world.agent_access();
                 for request in requests {
@@ -87,7 +87,7 @@ impl App {
 
     pub(in crate::app) fn portal_demo_input(&mut self, raw: &mut egui::RawInput) {
         if self.demo
-            && let Ok(mode) = std::env::var("AURORA_DEMO_PORTALS")
+            && let Ok(mode) = std::env::var("BLOCK_DEMO_PORTALS")
             && mode.starts_with("walk")
         {
             self.portal_keyboard_demo_input(raw, mode == "walk-chat");

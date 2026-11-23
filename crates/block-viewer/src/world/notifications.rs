@@ -296,7 +296,7 @@ pub enum Data {
         invite: Box<block_net::VoiceInvite>,
     },
     /// What Direct Delivery put in the Marketplace inbox (Received items):
-    /// the item or folder, or the inbox itself for several at once. Aurora
+    /// the item or folder, or the inbox itself for several at once. Block
     /// only: the Legacy Viewer just marks the inbox new, and a gift bought
     /// for us on the Marketplace arrived unnoticed (#752).
     Delivery {
@@ -312,10 +312,10 @@ pub enum Data {
     /// RegionRestartSeconds, show_toast="false"): pinned at the top of "To
     /// do" with the live count while the alert counts (`region_restart.rs`).
     RegionRestart,
-    /// A new version of Aurora, found by a periodic check (`updater.rs`):
-    /// its button opens the update window, `ready` once downloaded. Aurora
+    /// A new version of Block, found by a periodic check (`updater.rs`):
+    /// its button opens the update window, `ready` once downloaded. Block
     /// only (the Legacy Viewer checks at launch); its card wears the
-    /// aurora's colours in Aurora's notification center.
+    /// aurora's colours in Block's notification center.
     Update {
         ready: bool,
     },
@@ -623,7 +623,7 @@ pub struct Notifications {
     /// toast: Firestorm's tip channel drops them until handleLoginComplete
     /// (LLScreenChannel::addToast, mWasStartUpToastShown).
     pub started: bool,
-    /// Aurora's notification center (Preferences › Aurora): in do not
+    /// Block's notification center (Preferences › Block): in do not
     /// disturb its bell is paused but everything still arrives in "To do";
     /// Firestorm's style drops the messages' entries then.
     pub aurora: bool,
@@ -925,7 +925,7 @@ impl Notifications {
         }
     }
 
-    /// "Mark all read" of Aurora's center: the information leaves for the
+    /// "Mark all read" of Block's center: the information leaves for the
     /// history, what waits for an answer stays in "To do" but read, so that
     /// the bell's count goes back to zero.
     pub fn read_all(&mut self) {
@@ -1510,7 +1510,7 @@ mod tests {
     #[test]
     fn offline_offers_are_answered_by_capability() {
         let mut n = Notifications {
-            own_name: "Aurora Demo".into(),
+            own_name: "Block Demo".into(),
             ..Default::default()
         };
         let (from, cards) = (Uuid::from_u128(7), Uuid::from_u128(8));
@@ -1521,7 +1521,7 @@ mod tests {
         assert!(matches!(
             &cmds[..],
             [NetCommand::AnswerOfflineFriendship { from: f, transaction, folder, accept: true, agent_name }]
-                if *f == from && transaction.is_nil() && *folder == cards && agent_name == "Aurora Demo"
+                if *f == from && transaction.is_nil() && *folder == cards && agent_name == "Block Demo"
         ));
         // closing it declines it, the same way
         let id = offer(&mut n, Uuid::nil(), true);
@@ -1602,7 +1602,7 @@ mod tests {
         let lure = n.push(
             Kind::Teleport,
             "Tess offers a teleport",
-            "Lagoon secondlife:///app/teleport/Aurora/128/130/25",
+            "Lagoon secondlife:///app/teleport/Block/128/130/25",
             Data::Lure {
                 from,
                 invite: 9,
@@ -1614,7 +1614,7 @@ mod tests {
         n.list.retain(|x| x.id != lure);
         let gone = n.take_departures();
         assert_eq!(gone[0].outcome, Outcome::Declined);
-        assert_eq!(gone[0].follow, Follow::Place("secondlife:///app/teleport/Aurora/128/130/25".into()));
+        assert_eq!(gone[0].follow, Follow::Place("secondlife:///app/teleport/Block/128/130/25".into()));
     }
 
     /// A Marketplace delivery is information with a way to the inventory:

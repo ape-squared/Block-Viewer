@@ -35,7 +35,7 @@ fn child(inv: &Inventory, parent: Uuid, name: &str) -> Option<Uuid> {
 }
 
 pub fn root(inv: &Inventory) -> Option<Uuid> {
-    child(inv, child(inv, inv.root, super::bridge::FOLDER)?, FOLDER)
+    child(inv, super::bridge::brand_folder(inv)?, FOLDER)
 }
 
 /// The independent server trees presented together by the Received tab.

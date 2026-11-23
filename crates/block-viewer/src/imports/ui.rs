@@ -1,4 +1,4 @@
-//! Aurora import windows: stable layout, short labels, scoped advanced
+//! Block import windows: stable layout, short labels, scoped advanced
 //! controls and a persistent footer showing the exact confirmed price.
 
 use super::*;
@@ -417,7 +417,7 @@ fn lod_label(level: usize) -> &'static str {
     }
 }
 
-// LLFloaterModelPreview color swatches; Aurora's palette supplies defaults
+// LLFloaterModelPreview color swatches; Block's palette supplies defaults
 // so previews follow the active theme until a color is explicitly saved.
 fn preview_colors(ui: &mut egui::Ui, p: &Palette, prefs: &mut Preferences) {
     fold(ui, p, block_i18n::tr!("import-preview-colors"), false, |ui| {

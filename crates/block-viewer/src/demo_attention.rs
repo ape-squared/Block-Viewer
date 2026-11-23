@@ -1,9 +1,9 @@
-//! AURORA_DEMO_ATTENTION: the window goes to the taskbar, then a message, a
+//! BLOCK_DEMO_ATTENTION: the window goes to the taskbar, then a message, a
 //! mention in nearby chat, a mention in a group chat, an object's message,
 //! a teleport offer and a script dialog arrive one second apart: each
 //! flashes the taskbar button and, with the system notifications (turned on
 //! for the scenario), shows a Windows notification. `front` keeps the window
-//! in front (no flash, no notification unless "Even when Aurora is in front");
+//! in front (no flash, no notification unless "Even when Block is in front");
 //! `capture` brings the window back at frame 1150, for a screenshot.
 
 use block_net::{ChatMessage, ChatSourceType, ChatType, InstantMessage, NetEvent};
@@ -11,7 +11,7 @@ use uuid::Uuid;
 
 /// The scenario, if asked: `1`, `front` or `capture`.
 pub fn mode() -> Option<String> {
-    std::env::var("AURORA_DEMO_ATTENTION").ok()
+    std::env::var("BLOCK_DEMO_ATTENTION").ok()
 }
 
 /// Frame at which the window goes to the taskbar (`1`).
@@ -71,10 +71,10 @@ pub fn events(frame: u64, agent: Uuid) -> Vec<NetEvent> {
             17,
             DEMO_GROUP1,
             &mention(agent, block_i18n::tr!("demo-attention-group")),
-            b"Aurora Builders\0",
+            b"Block Builders\0",
         ),
         940 => {
-            let location = format!("{}/128/128/25\0", block_i18n::tr!("common-aurora-demo"));
+            let location = format!("{}/128/128/25\0", block_i18n::tr!("common-block-demo"));
             im(
                 agent,
                 agent,

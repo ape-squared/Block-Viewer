@@ -1,7 +1,7 @@
 //! Depth of field (LLPipeline::renderDoF, newview/pipeline.cpp, and its
 //! shaders cofF.glsl / postDeferredF.glsl / dofCombineF.glsl, originally
 //! LGPL 2.1): the circle of confusion of Firestorm's thin lens, the blur
-//! Aurora's (`shaders/dof.wgsl`): half-resolution far and near fields, the
+//! Block's (`shaders/dof.wgsl`): half-resolution far and near fields, the
 //! near one spread from a dilated tile map, laid over the sharp image.
 //! Its targets exist only while the effect is on: off, it costs nothing.
 

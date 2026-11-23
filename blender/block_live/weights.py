@@ -10,7 +10,7 @@ BODY = {"mPelvis", "mTorso", "mChest", "mNeck", "mHead"} | {
 def _deforms(bone, scope):
     if not bone.use_deform:
         return False
-    name = str(bone.get("aurora_joint", bone.name))
+    name = str(bone.get("block_joint", bone.name))
     return (name in BODY if scope == "BODY" else bone.use_deform and not bone.get("sl_collision_volume", False)
             and name not in {"mSpine1", "mSpine2", "mSpine3", "mSpine4"})
 

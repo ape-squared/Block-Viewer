@@ -1,7 +1,7 @@
 //! Interface colours (Preferences › Appearance › Skin): the user picks the
 //! accent, the windows' background and the text, and every other colour of
 //! the skin's palette follows from them, so that a theme of one's own (a
-//! pink interface, say) needs no hand-edited `theme.json`. Aurora's own;
+//! pink interface, say) needs no hand-edited `theme.json`. Block's own;
 //! the Legacy Viewer has no such option.
 //!
 //! The other colours keep the relations the skin gives them with their
@@ -82,10 +82,10 @@ pub fn skin() -> Option<Palette> {
     SKIN.lock().ok().and_then(|s| *s)
 }
 
-/// `AURORA_DEMO_COLORS=accent:#14B8A6,surface:#3A2433,text:#FCE7F3`
+/// `BLOCK_DEMO_COLORS=accent:#14B8A6,surface:#3A2433,text:#FCE7F3`
 /// (demo mode only, any of the three): this run's choice, never saved.
 pub fn demo_override() -> Option<InterfaceColors> {
-    std::env::var("AURORA_DEMO_COLORS").ok().map(|raw| parse(&raw))
+    std::env::var("BLOCK_DEMO_COLORS").ok().map(|raw| parse(&raw))
 }
 
 fn parse(raw: &str) -> InterfaceColors {

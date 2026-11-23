@@ -8,7 +8,7 @@ use std::time::{Duration, Instant};
 fn main() {
     env_logger::Builder::from_env(env_logger::Env::default().default_filter_or("info")).init();
     let args: Vec<String> = std::env::args().collect();
-    let url = args.get(1).cloned().filter(|s| !s.is_empty()).unwrap_or_else(|| "data:text/html,<body style='background:%23302040;color:white;font:64px sans-serif'><h1>Aurora media</h1><p>CEF via SLPlugin</p></body>".into());
+    let url = args.get(1).cloned().filter(|s| !s.is_empty()).unwrap_or_else(|| "data:text/html,<body style='background:%23302040;color:white;font:64px sans-serif'><h1>Block media</h1><p>CEF via SLPlugin</p></body>".into());
     let out = args.get(2).cloned().unwrap_or_else(|| "media_snapshot.png".into());
     let secs: u64 = args.get(3).and_then(|s| s.parse().ok()).unwrap_or(8);
     let folder = args.get(4).map(std::path::Path::new);

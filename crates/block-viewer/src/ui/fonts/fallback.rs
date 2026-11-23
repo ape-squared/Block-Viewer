@@ -163,7 +163,7 @@ static FACES: OnceLock<Vec<SystemFace>> = OnceLock::new();
 pub fn start() {
     static STARTED: Once = Once::new();
     STARTED.call_once(|| {
-        let spawned = std::thread::Builder::new().name("aurora-fonts".into()).spawn(|| {
+        let spawned = std::thread::Builder::new().name("block-fonts".into()).spawn(|| {
             FACES.get_or_init(scan);
         });
         if let Err(e) = spawned {
@@ -185,14 +185,14 @@ pub fn wait() -> &'static [SystemFace] {
     FACES.get_or_init(scan)
 }
 
-/// `AURORA_FONT_FALLBACK=0`: embedded fonts only (comparisons, diagnostics).
+/// `BLOCK_FONT_FALLBACK=0`: embedded fonts only (comparisons, diagnostics).
 fn enabled() -> bool {
-    std::env::var("AURORA_FONT_FALLBACK").map_or(true, |v| v.trim() != "0")
+    std::env::var("BLOCK_FONT_FALLBACK").map_or(true, |v| v.trim() != "0")
 }
 
 fn scan() -> Vec<SystemFace> {
     if !enabled() {
-        log::info!("system fallback fonts: off (AURORA_FONT_FALLBACK=0)");
+        log::info!("system fallback fonts: off (BLOCK_FONT_FALLBACK=0)");
         return Vec::new();
     }
     let start = std::time::Instant::now();
@@ -441,7 +441,7 @@ mod tests {
 
     #[test]
     fn files_are_indexed_by_lowercase_name_first_directory_first() {
-        let root = std::env::temp_dir().join(format!("aurora-font-index-{}", std::process::id()));
+        let root = std::env::temp_dir().join(format!("block-font-index-{}", std::process::id()));
         let (a, b) = (root.join("a"), root.join("b").join("nested"));
         std::fs::create_dir_all(&a).expect("temp dir");
         std::fs::create_dir_all(&b).expect("temp dir");
@@ -458,7 +458,7 @@ mod tests {
     #[cfg(unix)]
     #[test]
     fn linked_directories_are_indexed() {
-        let root = std::env::temp_dir().join(format!("aurora-font-links-{}", std::process::id()));
+        let root = std::env::temp_dir().join(format!("block-font-links-{}", std::process::id()));
         let (store, profile) = (root.join("store").join("noto"), root.join("profile"));
         std::fs::create_dir_all(&store).expect("temp dir");
         std::fs::create_dir_all(&profile).expect("temp dir");

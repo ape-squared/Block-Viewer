@@ -396,7 +396,7 @@ impl Session {
         }
         if !self.requested_stop
             && (self.stop_wanted
-                || (std::env::var_os("AURORA_DEMO_XR_WORLD").is_some() && self.started.is_some_and(|s| s.elapsed().as_secs() >= 15)))
+                || (std::env::var_os("BLOCK_DEMO_XR_WORLD").is_some() && self.started.is_some_and(|s| s.elapsed().as_secs() >= 15)))
         {
             self.session.request_exit()?;
             self.requested_stop = true;

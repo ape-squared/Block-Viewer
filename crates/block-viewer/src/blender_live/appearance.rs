@@ -6,7 +6,7 @@ use serde::Deserialize;
 use sha2::{Digest, Sha256};
 use std::{collections::HashMap, sync::Arc};
 use uuid::Uuid;
-pub const STAGING_BUSY: &str = "AURORA_BLENDER_STAGING_BUSY";
+pub const STAGING_BUSY: &str = "BLOCK_BLENDER_STAGING_BUSY";
 
 #[derive(Clone, Deserialize)]
 #[serde(deny_unknown_fields)]
@@ -67,7 +67,7 @@ pub fn images(images: Vec<Image>, pool: Option<&StagingPool>, cache: &HashMap<Uu
                 return Err(invalid());
             }
             let mut hash = Sha256::new();
-            hash.update(b"Aurora Blender Live image v1");
+            hash.update(b"Block Blender Live image v1");
             hash.update(image.width.to_le_bytes());
             hash.update(image.height.to_le_bytes());
             hash.update(&rgba);

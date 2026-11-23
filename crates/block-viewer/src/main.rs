@@ -14,6 +14,7 @@ mod avatar_align;
 mod avatar_studio;
 mod blender_live;
 mod block_env;
+mod lovense;
 // Bug report form, disabled for now: "Report a bug" (login screen, top bar,
 // crash window) opens GitHub's issue chooser in the browser instead
 // (`links::NEW_ISSUE`). Its code stays in the tree, out of the build
@@ -48,6 +49,7 @@ mod director_render;
 mod director_thumbs;
 mod director_titles;
 mod disable_glass;
+mod discord_presence;
 mod disk_io;
 mod dof;
 mod editor_sync;
@@ -157,12 +159,10 @@ mod gpu_hints {
 }
 
 fn main() -> anyhow::Result<()> {
-    // Preferences › Graphics › Overlays, read from the file alone: nothing
-    // else of the viewer has started yet
-    let allow_overlays = settings::Settings::allow_overlays_at_start();
-    // SAFETY: the first lines of main, before any other thread starts (the
-    // read above starts none).
-    let vulkan_layers_off = unsafe { block_render::vulkan_layers::disable(allow_overlays) };
+    // Other programs' overlays (OBS game capture, Steam, RivaTuner…) are
+    // always kept out: there is no setting to let them in.
+    // SAFETY: the first lines of main, before any other thread starts.
+    let vulkan_layers_off = unsafe { block_render::vulkan_layers::disable(false) };
     // SAFETY: as above, no other thread yet.
     let dozen_off = unsafe { block_render::vulkan_drivers::disable() };
     // the switch to a new version shows the startup splash's window
@@ -179,15 +179,15 @@ fn main() -> anyhow::Result<()> {
     }
     cli::get();
     // the stochastic transparency's measurement switches that weaken it
-    // (AURORA_ST_GUARDS) are read by development builds alone
-    block_render::oit_stochastic::set_development_build(env!("AURORA_BUILD_PROFILE") != "release");
+    // (BLOCK_ST_GUARDS) are read by development builds alone
+    block_render::oit_stochastic::set_development_build(env!("BLOCK_BUILD_PROFILE") != "release");
     // without a window: before the crash watcher, the logs and the link
     // hand-off
     if cli::get().uninstall {
         std::process::exit(uninstall::command_line());
     }
     anyhow::ensure!(
-        std::env::var_os("AURORA_UPDATE_TEST_ROOT").is_none() || block_updater::test_environment().is_some(),
+        std::env::var_os("BLOCK_UPDATE_TEST_ROOT").is_none() || block_updater::test_environment().is_some(),
         "invalid isolated update test installation"
     );
     anyhow::ensure!(
@@ -222,7 +222,7 @@ fn main() -> anyhow::Result<()> {
     // The loader scans the layer manifests (and may call their pre-instance
     // hooks): on a thread of its own, like the crash report's list of layers
     // (crash/mod.rs), so the window never waits for this log line
-    let spawned = std::thread::Builder::new().name("aurora-vulkan-facts".into()).spawn(|| {
+    let spawned = std::thread::Builder::new().name("block-vulkan-facts".into()).spawn(|| {
         let vulkan_layers = block_render::vulkan_layers::offered_descriptions();
         let variables = block_render::vulkan_layers::loader_environment();
         log::info!(
@@ -247,14 +247,13 @@ fn main() -> anyhow::Result<()> {
     if !vulkan_layers_off.is_empty() {
         let names: Vec<_> = vulkan_layers_off.iter().map(|l| format!("{} ({})", l.name, l.program)).collect();
         log::info!(
-            "Vulkan layers kept out of the viewer (overlays: crashes and lost images, #901): {}; overlays {} in Preferences › Graphics, AURORA_VULKAN_LAYERS=keep loads them all",
-            names.join(", "),
-            if allow_overlays { "allowed" } else { "not allowed" }
+            "Vulkan layers kept out of the viewer (overlays: crashes and lost images, #901): {}; BLOCK_VULKAN_LAYERS=keep loads them all",
+            names.join(", ")
         );
     }
     if dozen_off {
         log::info!(
-            "Vulkan driver kept out of the viewer: Dozen (Vulkan on Direct3D 12, from Microsoft's compatibility pack; crashed an old Direct3D 12 driver at start), {}={}; AURORA_VULKAN_DRIVERS=keep loads it",
+            "Vulkan driver kept out of the viewer: Dozen (Vulkan on Direct3D 12, from Microsoft's compatibility pack; crashed an old Direct3D 12 driver at start), {}={}; BLOCK_VULKAN_DRIVERS=keep loads it",
             block_render::vulkan_drivers::DISABLE_VARIABLE,
             block_render::vulkan_drivers::DOZEN_GLOB
         );
@@ -332,7 +331,7 @@ fn run_viewer() -> anyhow::Result<()> {
     set_raised(PriorityMode::from_env() != PriorityMode::Normal);
     let _ = rayon::ThreadPoolBuilder::new()
         .num_threads(threads.saturating_sub(1).max(2))
-        .thread_name(|i| format!("aurora-worker-{i}"))
+        .thread_name(|i| format!("block-worker-{i}"))
         .build_global();
 
     let mut event_loop = winit::event_loop::EventLoop::builder();
@@ -350,21 +349,21 @@ fn run_viewer() -> anyhow::Result<()> {
     // private browser profiles a crash left behind (search web tab)
     let private_profiles = settings::cache_dir().join(media::private_profile::ROOT);
     let _ = std::thread::Builder::new()
-        .name("aurora-web-profile".into())
+        .name("block-web-profile".into())
         .spawn(move || media::private_profile::sweep(&private_profiles));
     // the browser profiles of the earlier runs: set aside before the first
     // browser starts, deleted in the background (cef_cache.rs)
     let browser_cache = media::browser_cache(&settings::cache_dir());
     media::cef_cache::set_aside(&browser_cache);
     let _ = std::thread::Builder::new()
-        .name("aurora-web-cache".into())
+        .name("block-web-cache".into())
         .spawn(move || media::cef_cache::purge(&browser_cache));
     // the browser profiles of the earlier builds, kept in the wrong folder
     #[cfg(unix)]
     {
         let cache = settings::cache_dir();
         let _ = std::thread::Builder::new()
-            .name("aurora-web-misplaced".into())
+            .name("block-web-misplaced".into())
             .spawn(move || media::remove_misplaced_cache(&cache));
     }
     let mut app = app::App::new()?;

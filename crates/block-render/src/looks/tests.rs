@@ -1,5 +1,5 @@
 use super::*;
-use crate::looks::parse::AuroraSection;
+use crate::looks::parse::BlockSection;
 
 /// LLImageFilter as it is (indra/llimage/llimagefilter.cpp), on an RGBA
 /// image whose rows go up like LLImageRaw's: the reference the shader is
@@ -699,15 +699,15 @@ fn looks_shader_is_valid() {
 }
 
 #[test]
-fn every_aurora_look_reads_into_its_section() {
-    let looks = aurora_looks();
+fn every_block_look_reads_into_its_section() {
+    let looks = block_looks();
     assert_eq!(looks.len(), 36);
     for look in looks {
         assert!(!look.ops.is_empty(), "{}", look.id);
         assert!(plan(&look.ops).passes.len() < MAX_PASSES, "{}", look.id);
     }
     let instant = aurora_look("instant").expect("instant");
-    assert_eq!(instant.section, AuroraSection::Film);
+    assert_eq!(instant.section, BlockSection::Film);
     assert!(matches!(instant.ops.last(), Some(LookOp::Frame { .. })));
     assert!(plan(&aurora_look("subject").expect("subject").ops).focus);
 }
@@ -783,14 +783,14 @@ fn an_identity_table_changes_nothing() {
 }
 
 #[test]
-fn every_aurora_look_draws() {
+fn every_block_look_draws() {
     let _gpu = crate::test_gpu::lock();
     let Some((device, queue)) = gpu() else {
         return;
     };
     let (w, h) = (96u32, 64u32);
     let image = test_image(w as usize, h as usize);
-    for look in aurora_looks() {
+    for look in block_looks() {
         eprintln!("drawing {}", look.id);
         let out = draw(
             &device,
@@ -893,7 +893,7 @@ fn only_pointwise_operations_are_applied_to_the_faces_of_a_360_snapshot() {
     let mut kept = Vec::new();
     let mut dropped = Vec::new();
     let legacy = parse::legacy_looks().iter().map(|(name, ops)| (name.to_string(), ops.clone()));
-    let aurora = parse::aurora_looks().iter().map(|look| (look.id.to_string(), look.ops.clone()));
+    let aurora = parse::block_looks().iter().map(|look| (look.id.to_string(), look.ops.clone()));
     for (name, ops) in legacy.chain(aurora) {
         let layer = LookLayer {
             ops: ops.clone(),

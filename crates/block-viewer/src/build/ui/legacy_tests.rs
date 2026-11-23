@@ -22,7 +22,7 @@ fn legacy() -> Inspector {
 }
 
 #[test]
-fn legacy_build_tabs_reuse_native_panels_and_ignore_hidden_aurora_sections() {
+fn legacy_build_tabs_reuse_native_panels_and_ignore_hidden_block_sections() {
     use crate::build::layout::{Item, Panel};
     let mut inspector = legacy();
     inspector.settings.layout.place(Item::Shape, Panel::Hidden, None, false);
@@ -272,7 +272,7 @@ fn legacy_selection_shows_the_link_or_the_faces_of_one_prim() {
 }
 
 #[test]
-fn legacy_build_setting_roundtrips_without_replacing_the_aurora_arrangement() {
+fn legacy_build_setting_roundtrips_without_replacing_the_block_arrangement() {
     let mut settings = BuildSettings::default();
     assert!(!settings.legacy_window);
     settings.legacy_window = true;

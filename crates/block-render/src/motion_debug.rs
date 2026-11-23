@@ -1,4 +1,4 @@
-//! The motion vectors shown instead of the image (AURORA_DEBUG_MOTION=1):
+//! The motion vectors shown instead of the image (BLOCK_DEBUG_MOTION=1):
 //! the direction of each pixel's motion as its hue, its length as its
 //! brightness. Where the depth prepass wrote none (the sky, or a frame
 //! where neither GTAO's mesh normals nor TAA ask for them), the camera's
@@ -24,9 +24,9 @@ pub(crate) struct MotionDebug {
     empty: wgpu::TextureView,
 }
 
-/// Whether AURORA_DEBUG_MOTION asks for the view.
+/// Whether BLOCK_DEBUG_MOTION asks for the view.
 pub(crate) fn asked() -> bool {
-    std::env::var_os("AURORA_DEBUG_MOTION").is_some_and(|v| v != "0")
+    std::env::var_os("BLOCK_DEBUG_MOTION").is_some_and(|v| v != "0")
 }
 
 impl MotionDebug {

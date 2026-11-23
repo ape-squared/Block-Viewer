@@ -166,7 +166,7 @@ fn modifier_rows(world: &World, now: std::time::Instant) -> Vec<Row> {
             Row::new(vec![modifier.name.to_owned(), value], modifier.source, muted)
         })
         .collect();
-    // Aurora's additions: a forced view, and the effects' own modifiers, which
+    // Block's additions: a forced view, and the effects' own modifiers, which
     // the Legacy Viewer keeps on each object and does not list.
     if let Some(fov) = world.rlva.camera_values.get("setcam_fov") {
         rows.push(Row::new(vec!["setcam_fov".to_owned(), fov.clone()], None, false));

@@ -1,4 +1,4 @@
-//! AURORA_DEMO_ARRIVAL=<folder>[,net=<ms>][,bw=<Mb/s>][,n=<objects>][,turn=<s>][,avatars=<n>][,worn=<m>][,pbr=1][,meshfail=<s>]:
+//! BLOCK_DEMO_ARRIVAL=<folder>[,net=<ms>][,bw=<Mb/s>][,n=<objects>][,turn=<s>][,avatars=<n>][,worn=<m>][,pbr=1][,meshfail=<s>]:
 //! an arrival in a busy region, to measure what the loading shows first.
 //! With `meshfail`, the server refuses mesh requests (403) for that many
 //! seconds, to see the meshes come back after their downloads failed.
@@ -187,7 +187,7 @@ fn option<T: std::str::FromStr>(value: &str, name: &str) -> Option<T> {
 
 impl ArrivalDemo {
     pub fn from_env() -> Option<Self> {
-        let value = std::env::var("AURORA_DEMO_ARRIVAL").ok()?;
+        let value = std::env::var("BLOCK_DEMO_ARRIVAL").ok()?;
         let folder = PathBuf::from(value.split(',').next()?.trim());
         let n = option::<u32>(&value, "n").unwrap_or(1200).clamp(10, 20_000);
         let nanos = std::time::UNIX_EPOCH.elapsed().map_or(1, |t| t.subsec_nanos());

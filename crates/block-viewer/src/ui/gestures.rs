@@ -1,4 +1,4 @@
-//! LLFloaterGesture / LLPreviewGesture behaviour with Aurora's shared widgets.
+//! LLFloaterGesture / LLPreviewGesture behaviour with Block's shared widgets.
 //! Firestorm indra/newview, originally LGPL 2.1.
 mod editor;
 #[cfg(test)]

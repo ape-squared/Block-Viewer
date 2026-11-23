@@ -896,7 +896,7 @@ pub enum EstateCommand {
     /// The Estate panel's "Apply" (LLEstateInfoModel::sendEstateInfo):
     /// EstateChangeInfo, else `estatechangeinfo` with a new invoice.
     SetEstateInfo { handle: RegionHandle, info: EstateInfo },
-    /// The "Region settings" tab's "Apply" (Aurora-Sim based grids):
+    /// The "Region settings" tab's "Apply" (Block-Sim based grids):
     /// DispatchOpenRegionSettings, nothing without it.
     SetOpenRegionSettings {
         handle: RegionHandle,
@@ -1055,7 +1055,7 @@ mod tests {
     #[test]
     fn estate_update_info_reads_its_first_five_strings() {
         let s: Vec<String> = [
-            "Aurora Demo",
+            "Block Demo",
             "a0e0a6e1-0000-0000-0000-000000000001",
             "104123",
             "2415951904",
@@ -1069,7 +1069,7 @@ mod tests {
         .map(String::from)
         .to_vec();
         let e = parse_estate_update_info(&s).expect("ten strings");
-        assert_eq!(e.name, "Aurora Demo");
+        assert_eq!(e.name, "Block Demo");
         assert_eq!(e.owner, Uuid::from_u128(0xA0E0_A6E1_0000_0000_0000_0000_0000_0001));
         assert_eq!(e.id, 104_123);
         assert_eq!(e.flags, 2_415_951_904);
@@ -1177,7 +1177,7 @@ mod tests {
     #[test]
     fn the_estate_change_as_firestorm_sends_it() {
         let e = EstateInfo {
-            name: "Aurora Demo".into(),
+            name: "Block Demo".into(),
             owner: Uuid::from_u128(1),
             id: 104_123,
             flags: estate_flags::EXTERNALLY_VISIBLE | estate_flags::DENY_BOTS | estate_flags::ALLOW_VOICE,
@@ -1185,14 +1185,14 @@ mod tests {
         };
         assert_eq!(
             estate_change_strings(&e),
-            ["Aurora Demo", "2415951872", "6144"].map(String::from).to_vec()
+            ["Block Demo", "2415951872", "6144"].map(String::from).to_vec()
         );
         let invoice = Uuid::from_u128(9);
         let body = estate_change_body(&e, invoice);
         assert!(body["is_externally_visible"].as_bool() && body["block_bots"].as_bool() && body["allow_voice_chat"].as_bool());
         assert!(!body["deny_anonymous"].as_bool() && !body["is_sun_fixed"].as_bool());
         assert_eq!(body["invoice"].as_uuid(), invoice);
-        assert_eq!(body["estate_name"].as_str(), "Aurora Demo");
+        assert_eq!(body["estate_name"].as_str(), "Block Demo");
     }
 
     #[test]
@@ -1229,14 +1229,14 @@ mod tests {
     fn the_interventions_as_the_panels_send_them() {
         let me = Uuid::from_u128(1);
         assert_eq!(
-            region_message_strings(me, "Aurora Demo", "Back in 5"),
-            ["-1", "-1", "00000000-0000-0000-0000-000000000001", "Aurora Demo", "Back in 5"]
+            region_message_strings(me, "Block Demo", "Back in 5"),
+            ["-1", "-1", "00000000-0000-0000-0000-000000000001", "Block Demo", "Back in 5"]
                 .map(String::from)
                 .to_vec()
         );
         assert_eq!(
-            estate_message_strings("Aurora Demo", "Hi"),
-            ["Aurora Demo", "Hi"].map(String::from).to_vec()
+            estate_message_strings("Block Demo", "Hi"),
+            ["Block Demo", "Hi"].map(String::from).to_vec()
         );
         assert_eq!(return_flags(false, false), swd::ALWAYS_RETURN_OBJECTS);
         assert_eq!(return_flags(true, true), 7);

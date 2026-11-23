@@ -72,7 +72,7 @@ impl Writer {
         let (tx, rx) = crossbeam_channel::unbounded::<(PathBuf, Vec<u8>)>();
         let queued = Arc::new(AtomicU64::new(0));
         let left = queued.clone();
-        let spawned = std::thread::Builder::new().name("aurora-texcache".into()).spawn(move || {
+        let spawned = std::thread::Builder::new().name("block-texcache".into()).spawn(move || {
             for (path, file) in rx {
                 // (written apart then renamed: a reader never sees a part of it)
                 let _ = crate::cache::write(&path, &file);
@@ -404,7 +404,7 @@ mod tests {
     }
 
     fn file(name: &str, bytes: &[u8]) -> std::path::PathBuf {
-        let dir = std::env::temp_dir().join(format!("aurora-texture-cache-test-{}", std::process::id()));
+        let dir = std::env::temp_dir().join(format!("block-texture-cache-test-{}", std::process::id()));
         std::fs::create_dir_all(&dir).expect("test folder");
         let path = dir.join(name);
         std::fs::write(&path, bytes).expect("test file");

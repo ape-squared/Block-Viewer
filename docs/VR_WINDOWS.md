@@ -10,7 +10,7 @@ For shared controls, limits and other platforms, see [VR setup](VR.md).
 
 ## Requirements
 
-- Windows x64 and a GPU/driver supporting Vulkan 1.3 and Aurora's normal rendering
+- Windows x64 and a GPU/driver supporting Vulkan 1.3 and Block's normal rendering
   features, including bindless resources. OpenXR and the desktop must use a GPU
   compatible with both headset rendering and window presentation.
 - A configured active Windows OpenXR runtime supporting the intended headset and
@@ -29,11 +29,11 @@ For shared controls, limits and other platforms, see [VR setup](VR.md).
   connected later makes the headset button offer "Restart in VR": the viewer
   restarts with `--vr` and enters VR once the world shows.
   WiVRn is the Linux test route, not a Windows requirement. No OpenVR bridge,
-  VR framework or streaming client is bundled with Aurora.
+  VR framework or streaming client is bundled with Block.
 
 Tested by a maintainer on 2026-11-01: RTX 4090, Virtual Desktop's OpenXR
 runtime (VDXR). Other runtimes are expected to work but are untested. The
-runtime selects the Vulkan GPU; a conflicting explicit Aurora GPU preference or
+runtime selects the Vulkan GPU; a conflicting explicit Block GPU preference or
 hybrid-GPU configuration may prevent initialization. Attaching a headset
 without a restart, headset reconnection and runtime-loss recovery remain
 unfinished.
@@ -61,7 +61,7 @@ Windows path. Headset tests use a local dev build.
 2. Run the offline viewer first:
 
    ```powershell
-   $env:AURORA_DEMO = "1"
+   $env:BLOCK_DEMO = "1"
    cargo run -p block-viewer -- --title "Test vr-scene-view Windows"
    ```
 
@@ -72,13 +72,13 @@ Windows path. Headset tests use a local dev build.
    scene materials/lighting/transparency and no interface/HUD/nameplate overlays.
    Repeat with the headset tilted at activation, then worn level.
 4. Check the desktop left-eye mirror, letterboxing and desktop-only Esc hint.
-   Press Esc with Aurora focused; confirm original desktop camera/UI restoration.
+   Press Esc with Block focused; confirm original desktop camera/UI restoration.
    Repeat several cycles without restarting.
 5. Test focus changes, resizing, minimization and clean shutdown. Check startup
    with no loader/runtime/headset: normal desktop operation should remain
    available; VR is unavailable. Disconnect/runtime restart are separate tests,
    not supported recovery promises.
-6. Only after offline tests pass, the human may clear `AURORA_DEMO`, launch
+6. Only after offline tests pass, the human may clear `BLOCK_DEMO`, launch
    normally and perform login/live-grid validation. Agents do not log in or
    operate on a grid. Record runtime/headset/GPU/driver versions, results and
    frame-time/memory observations without credentials or personal location data.

@@ -43,10 +43,10 @@ fn description(now: chrono::DateTime<chrono::Local>) -> String {
     format!("{} lsl2 script", now.format("%Y-%m-%d %H:%M:%S"))
 }
 
-/// `AURORA_DEMO_SCRIPT_RECOVERY`: the demo keeps no copies otherwise, so
+/// `BLOCK_DEMO_SCRIPT_RECOVERY`: the demo keeps no copies otherwise, so
 /// that a demo run never offers another one's scripts.
 fn demo_mode() -> Option<String> {
-    std::env::var("AURORA_DEMO_SCRIPT_RECOVERY").ok()
+    std::env::var("BLOCK_DEMO_SCRIPT_RECOVERY").ok()
 }
 
 impl App {
@@ -247,7 +247,7 @@ impl App {
         });
     }
 
-    /// AURORA_DEMO_SCRIPT_RECOVERY: `recover` answers the offer; `edit`
+    /// BLOCK_DEMO_SCRIPT_RECOVERY: `recover` answers the offer; `edit`
     /// types in the demo script without saving, so that its copy is
     /// written.
     pub(super) fn demo_script_recovery_steps(&mut self) {

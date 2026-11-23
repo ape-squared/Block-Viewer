@@ -9,7 +9,7 @@ use windows_sys::Win32::UI::WindowsAndMessaging::{EnumWindows, GetPropW, GetWind
 use winit::raw_window_handle::{HasWindowHandle, RawWindowHandle};
 use winit::window::Window;
 
-const FOCUS: *const u16 = windows_sys::w!("Aurora.SLurl.Focus.2");
+const FOCUS: *const u16 = windows_sys::w!("Block.SLurl.Focus.2");
 
 static PUBLISHED: Mutex<Option<Published>> = Mutex::new(None);
 
@@ -28,13 +28,13 @@ pub(super) struct Scope {
 impl Scope {
     pub fn current() -> Self {
         Self {
-            demo: std::env::var_os("AURORA_DEMO").is_some(),
+            demo: std::env::var_os("BLOCK_DEMO").is_some(),
             title: crate::cli::title_slug(),
         }
     }
 
     pub fn property(&self) -> Vec<u16> {
-        let mut name = format!("Aurora.SLurl.Receiver.2.{}", if self.demo { "Demo" } else { "Online" });
+        let mut name = format!("Block.SLurl.Receiver.2.{}", if self.demo { "Demo" } else { "Online" });
         if let Some(title) = &self.title {
             name.push('.');
             name.push_str(title);
@@ -75,7 +75,7 @@ impl Registration {
     pub fn focused(&self) {
         use windows_sys::Win32::System::Performance::QueryPerformanceCounter;
         // Performance-counter ticks are shared by all processes and are not
-        // affected by changes of the wall clock. Aurora's Windows targets
+        // affected by changes of the wall clock. Block's Windows targets
         // are 64-bit, so the entire timestamp fits in a property value.
         let mut stamp = 0;
         // SAFETY: a valid output pointer for a monotonic clock reading.

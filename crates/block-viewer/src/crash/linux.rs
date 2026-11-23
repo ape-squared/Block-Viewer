@@ -17,7 +17,7 @@
 //!
 //! Legacy Viewer reference: setupBreakpad (indra/newview/llappviewerlinux.cpp),
 //! which writes a minidump on the same signals through Breakpad's
-//! ExceptionHandler; Aurora writes the module + offset text its Windows
+//! ExceptionHandler; Block writes the module + offset text its Windows
 //! reports already use instead (no minidump, nothing sent by itself).
 
 use std::ffi::{CStr, c_int, c_void};
@@ -800,7 +800,7 @@ mod tests {
 
     #[test]
     fn stacks_are_written_as_module_offsets_with_build_ids() {
-        let _ = EXE.set(Name::new(b"aurora_viewer-test"));
+        let _ = EXE.set(Name::new(b"block_viewer-test"));
         let mut out = Vec::new();
         write_stack(&mut out);
         let text = String::from_utf8(out).unwrap();
@@ -815,7 +815,7 @@ mod tests {
         // the C library, each with its build ID.
         let own = modules
             .iter()
-            .find(|line| line.starts_with("aurora_viewer-test "))
+            .find(|line| line.starts_with("block_viewer-test "))
             .expect("own module");
         assert!(own.contains(" id=") && own.contains(" code="), "{own}");
         assert!(modules.iter().any(|line| line.starts_with("libc.so")), "{text}");
@@ -839,11 +839,11 @@ mod tests {
     #[test]
     fn a_blocked_thread_s_stack_is_read_from_another_thread() {
         install_snapshot().unwrap();
-        let _ = EXE.set(Name::new(b"aurora_viewer-test"));
+        let _ = EXE.set(Name::new(b"block_viewer-test"));
         let (ids, id) = std::sync::mpsc::channel();
         let (release, wait) = std::sync::mpsc::channel::<()>();
         let blocked = std::thread::Builder::new()
-            .name("aurora-test-blk".into())
+            .name("block-test-blk".into())
             .spawn(move || {
                 // SAFETY: no argument.
                 ids.send(unsafe { libc::gettid() }).unwrap();
@@ -854,7 +854,7 @@ mod tests {
         std::thread::sleep(std::time::Duration::from_millis(50));
         let mut out = Vec::new();
         assert!(Thread(id).write_stack(&mut out));
-        assert!(named_threads().contains(&(id as u32, "aurora-test-blk".into())));
+        assert!(named_threads().contains(&(id as u32, "block-test-blk".into())));
         // The thread goes on after it: its wait was only interrupted.
         release.send(()).unwrap();
         blocked.join().unwrap();
@@ -864,7 +864,7 @@ mod tests {
         // this test binary's own code, without the handler's frames.
         assert!(frames.len() > 4, "{text}");
         assert!(frames[0].contains("libc.so"), "{text}");
-        assert!(frames.iter().any(|f| f.contains("aurora_viewer-test")), "{text}");
+        assert!(frames.iter().any(|f| f.contains("block_viewer-test")), "{text}");
         // A thread that does not exist answers nothing.
         assert!(!Thread(i32::MAX).write_stack(&mut Vec::new()));
     }
@@ -872,11 +872,11 @@ mod tests {
     #[test]
     fn a_thread_with_the_smallest_alternate_stack_still_answers() {
         install_snapshot().unwrap();
-        let _ = EXE.set(Name::new(b"aurora_viewer-test"));
+        let _ = EXE.set(Name::new(b"block_viewer-test"));
         let (ids, id) = std::sync::mpsc::channel();
         let (release, wait) = std::sync::mpsc::channel::<()>();
         let blocked = std::thread::Builder::new()
-            .name("aurora-test-alt".into())
+            .name("block-test-alt".into())
             .spawn(move || {
                 // The smallest alternate stack the kernel takes, above a
                 // guard page: a handler run on it would fault in the guard.

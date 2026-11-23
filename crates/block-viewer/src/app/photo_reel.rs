@@ -68,7 +68,7 @@ pub(super) struct ReelState {
     pub in_photo_mode: bool,
     /// The photo the last photo's card shows.
     pub card: Option<u64>,
-    /// AURORA_DEMO_PHOTO_ROLL (`demo`).
+    /// BLOCK_DEMO_PHOTO_ROLL (`demo`).
     demo: Option<demo::Demo>,
 }
 
@@ -124,7 +124,7 @@ fn unix_now() -> i64 {
 /// Run `work` on a worker of the reel, its result sent back.
 fn spawn(tx: &crossbeam_channel::Sender<Done>, work: impl FnOnce() -> Done + Send + 'static) {
     let tx = tx.clone();
-    let spawned = std::thread::Builder::new().name("aurora-photo-reel".into()).spawn(move || {
+    let spawned = std::thread::Builder::new().name("block-photo-reel".into()).spawn(move || {
         let _ = tx.send(work());
     });
     if let Err(e) = spawned {

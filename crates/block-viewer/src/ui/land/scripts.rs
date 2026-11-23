@@ -53,7 +53,7 @@ impl ScriptsUi {
         match mode {
             "scripts-descending" => self.parcel_table.sort.descending = true,
             "scripts-name" => self.parcel_table.filter = block_i18n::tr!("demo-fountain").into(),
-            "scripts-owner" => self.parcel_table.filter = "Aurora".into(),
+            "scripts-owner" => self.parcel_table.filter = "Block".into(),
             "scripts-empty" => self.parcel_table.filter = block_i18n::tr!("common-no-results").into(),
             "scripts-attachments" => self.tab = 1,
             _ => {}
@@ -124,7 +124,7 @@ fn head(ui: &mut egui::Ui, p: &Palette, cols: &[(Column, &str, f32, bool)], sort
             let sorted = sort.column == *column;
             let caret_w = if sorted { widgets::caret_room(9.0) } else { 0.0 };
             let color = if sorted { p.violet_light } else { p.muted_dim };
-            let mut job = super::aurora::semibold(ui, title, 11.0, color);
+            let mut job = super::block::semibold(ui, title, 11.0, color);
             job.wrap = egui::text::TextWrapping::truncate_at_width((w - 14.0 - caret_w).max(0.0));
             let g = ui.painter().layout_job(job);
             let x = if *right {

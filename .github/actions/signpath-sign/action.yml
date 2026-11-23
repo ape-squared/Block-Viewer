@@ -4,7 +4,7 @@ description: >
   exe is uploaded alone as an artifact of the run, which makes it a zip with
   the exe at its root (the artifact configuration of
   .signpath/artifact-configuration.xml, slug initial), submitted to the
-  SignPath project Aurora-Viewer under the given signing policy, and the
+  SignPath project Block-Viewer under the given signing policy, and the
   signed exe SignPath returns replaces the original. Signing only adds a
   certificate to the file: its code and debug id do not change. The job
   needs the actions: read permission: SignPath reads the job and downloads
@@ -47,7 +47,7 @@ runs:
       with:
         api-token: ${{ inputs.api-token }}
         organization-id: ${{ inputs.organization-id }}
-        project-slug: Aurora-Viewer
+        project-slug: Block-Viewer
         signing-policy-slug: ${{ inputs.signing-policy }}
         artifact-configuration-slug: initial
         github-artifact-id: ${{ steps.unsigned.outputs.artifact-id }}

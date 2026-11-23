@@ -1,5 +1,5 @@
 //! The creators' LUT packs built into the viewer: 3D look-up tables that
-//! their makers agreed to share with every Aurora user, shown in the photo
+//! their makers agreed to share with every Block user, shown in the photo
 //! mode's LUT tab under their name. Each pack is made from the creator's
 //! .cube files by `scripts/generate-photo-luts.py` (format in the script);
 //! its origin and credit are in `assets/photo-luts/README.md` and NOTICE.md.

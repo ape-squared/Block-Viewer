@@ -377,7 +377,7 @@ struct FetchQueue {
     /// key -> the request and the generation of its live heap node
     waiting: HashMap<u64, (FetchRequest, u64)>,
     generation: u64,
-    /// When each waiting request was first queued (AURORA_PROFILE only:
+    /// When each waiting request was first queued (BLOCK_PROFILE only:
     /// the wait for a slot, `http summary`).
     queued_at: HashMap<u64, Instant>,
 }
@@ -433,7 +433,7 @@ impl FetchQueue {
         self.waiting.remove(&key).is_some()
     }
 
-    /// How long a request just popped waited (AURORA_PROFILE only).
+    /// How long a request just popped waited (BLOCK_PROFILE only).
     fn waited(&mut self, key: u64) -> Option<Duration> {
         self.queued_at.remove(&key).map(|at| at.elapsed())
     }
@@ -491,7 +491,7 @@ impl Fetcher {
     }
 
     /// Requests under way at once follow the link (`fetch_pace.rs`), or
-    /// stay at `fixed` when given (`AURORA_FETCH_SLOTS`).
+    /// stay at `fixed` when given (`BLOCK_FETCH_SLOTS`).
     pub fn paced(
         rt: &tokio::runtime::Handle,
         http: reqwest::Client,
@@ -626,7 +626,7 @@ async fn dispatcher(
             drop(permit);
             continue;
         };
-        // (AURORA_PROFILE: the kind of the request, its wait and its time)
+        // (BLOCK_PROFILE: the kind of the request, its wait and its time)
         let asset_kind = HttpKind::of_asset(&req.url, req.accept);
         let kind = probe::enabled().then_some(asset_kind);
         if let (Some(kind), Some(waited)) = (kind, queue.waited(req.key)) {

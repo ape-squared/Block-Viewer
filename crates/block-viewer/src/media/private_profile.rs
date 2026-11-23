@@ -7,7 +7,7 @@
 //! in indra/media_plugins/cef/media_plugin_cef.cpp), where Chromium keeps its
 //! HTTP cache, history, local storage and cookies, and it writes its log to
 //! the `cef_log_file` it is given. So such a browser gets a directory of its
-//! own under Aurora's cache, holding both, and the directory is **deleted
+//! own under Block's cache, holding both, and the directory is **deleted
 //! after use**: when the browser is dropped (window closed, logout), again
 //! at exit while the plugin lets go of its files, and at the next start for
 //! whatever a crash left. While the browser runs its files are on disk.
@@ -23,7 +23,7 @@ use std::sync::Mutex;
 use std::sync::atomic::{AtomicU32, Ordering};
 use std::time::{Duration, Instant};
 
-/// The folder of the private profiles in Aurora's cache.
+/// The folder of the private profiles in Block's cache.
 pub const ROOT: &str = "web-private";
 const LOCK_FILE: &str = "in-use.lock";
 /// How long the plugin may take to let go of its files once dropped (it has
@@ -78,7 +78,7 @@ impl Drop for PrivateProfile {
         }
         // the plugin still holds its files for a moment: off the frame
         let _ = std::thread::Builder::new()
-            .name("aurora-web-profile".into())
+            .name("block-web-profile".into())
             .spawn(|| finish(RELEASE_TIMEOUT));
     }
 }
@@ -149,7 +149,7 @@ mod tests {
     use super::*;
 
     fn root(name: &str) -> PathBuf {
-        let dir = std::env::temp_dir().join(format!("aurora-private-profile-{}-{name}", std::process::id()));
+        let dir = std::env::temp_dir().join(format!("block-private-profile-{}-{name}", std::process::id()));
         let _ = std::fs::remove_dir_all(&dir);
         dir
     }

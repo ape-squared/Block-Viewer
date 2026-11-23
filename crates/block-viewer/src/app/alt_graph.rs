@@ -86,9 +86,9 @@ impl App {
     }
 
     /// Exercise capture and the real command dispatcher without a grid or
-    /// changing the demo's saved bindings: AURORA_DEMO_OPTIONS=shortcuts:altgr.
+    /// changing the demo's saved bindings: BLOCK_DEMO_OPTIONS=shortcuts:altgr.
     pub(super) fn demo_altgr_shortcuts(&mut self) {
-        if !self.demo || self.frame_count != 600 || std::env::var("AURORA_DEMO_OPTIONS").as_deref() != Ok("shortcuts:altgr") {
+        if !self.demo || self.frame_count != 600 || std::env::var("BLOCK_DEMO_OPTIONS").as_deref() != Ok("shortcuts:altgr") {
             return;
         }
         use crate::keybinds::{Action, Binding, Input};

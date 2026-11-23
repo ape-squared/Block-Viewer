@@ -1,7 +1,7 @@
 //! The 360° snapshot's panorama (LLFloater360Capture, indra/newview/
 //! llfloater360capture.cpp, originally LGPL 2.1): the Legacy Viewer draws
 //! six square faces from the camera's position and hands them to a web
-//! page that stitches them with three.js. Aurora draws the same six faces
+//! page that stitches them with three.js. Block draws the same six faces
 //! through its photo frames, then projects them to an equirectangular image
 //! on the GPU (`shaders/equirect.wgsl`): each face's photo frame is copied
 //! into a layer of a cube texture that stays on the GPU (`CubeTarget`), the
@@ -274,7 +274,7 @@ impl Readbacks {
                     return Some((id, None));
                 };
                 let (tx, rx) = mpsc::channel();
-                match std::thread::Builder::new().name("aurora-360-readback".into()).spawn(move || {
+                match std::thread::Builder::new().name("block-360-readback".into()).spawn(move || {
                     let _ = tx.send(copy());
                 }) {
                     Ok(_) => front.running = Some(rx),

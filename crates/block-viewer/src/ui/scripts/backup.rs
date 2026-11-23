@@ -100,7 +100,7 @@ fn worker() -> Option<&'static crossbeam_channel::Sender<Message>> {
     WORKER
         .get_or_init(|| {
             let (tx, rx) = crossbeam_channel::unbounded::<Message>();
-            let spawned = std::thread::Builder::new().name("aurora-script-backups".into()).spawn(move || {
+            let spawned = std::thread::Builder::new().name("block-script-backups".into()).spawn(move || {
                 for message in rx {
                     match message {
                         Message::Job(job) => apply(job),
@@ -406,7 +406,7 @@ mod tests {
     /// the folder takes writes.
     #[test]
     fn a_refused_copy_is_written_again_at_the_next_interval() {
-        let root = std::env::temp_dir().join(format!("aurora-script-backup-refused-{}", Uuid::new_v4()));
+        let root = std::env::temp_dir().join(format!("block-script-backup-refused-{}", Uuid::new_v4()));
         std::fs::create_dir_all(&root).unwrap();
         let dir = root.join(FOLDER);
         std::fs::write(&dir, b"in the way").unwrap();

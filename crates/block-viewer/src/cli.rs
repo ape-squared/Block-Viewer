@@ -1,5 +1,5 @@
 //! Command-line arguments. Most test switches are environment variables
-//! (`AURORA_DEMO`, `AURORA_CAPTURE`...: see the README); the command line
+//! (`BLOCK_DEMO`, `BLOCK_CAPTURE`...: see the README); the command line
 //! carries what identifies one running instance, and where and as whom it
 //! starts (the Legacy Viewer's `--grid`, `--loginuri`, `--login` and the
 //! startup SLURL of app_settings/cmd_line.xml).
@@ -206,7 +206,7 @@ fn parse_fps_limit(value: &str) -> Option<u32> {
 /// The window title, ending with the build profile ("(Dev)", "(Release)",
 /// "(Debug)"): test windows of different builds can be told apart.
 pub fn window_title() -> String {
-    title_with(get().title.as_deref(), env!("AURORA_BUILD_PROFILE"), block_version::version())
+    title_with(get().title.as_deref(), env!("BLOCK_BUILD_PROFILE"), block_version::version())
 }
 
 /// The viewer's identity on the Linux desktop: Wayland app_id, X11
@@ -215,7 +215,7 @@ pub fn window_title() -> String {
 /// that file (name, icon, pinning) only when the two agree. The executable's
 /// name, which X11 used by default: X11 desktops see no change. The Legacy
 /// Viewer's `com.secondlife.indra.viewer` is shared by every viewer of its
-/// family, so Aurora does not take it.
+/// family, so Block does not take it.
 #[cfg_attr(not(target_os = "linux"), allow(dead_code))]
 pub const DESKTOP_ID: &str = "block-viewer";
 
@@ -244,7 +244,7 @@ fn title_with(title: Option<&str>, profile_dir: &str, version: &str) -> String {
 }
 
 /// Label of a cargo profile from its target directory (`dev` builds into
-/// `debug`; `debugging` is aurora-tools' debug viewer).
+/// `debug`; `debugging` is block-tools' debug viewer).
 pub fn profile_label(dir: &str) -> Option<&'static str> {
     match dir {
         "release" => Some("Release"),
@@ -338,7 +338,7 @@ mod tests {
 
     #[test]
     fn startup_slurl_ends_the_arguments() {
-        let url = "secondlife://Aurora%20D%C3%A9mo/12/34/56";
+        let url = "secondlife://Block%20D%C3%A9mo/12/34/56";
         for list in [vec!["-url", url], vec!["--url", url], vec![url]] {
             assert_eq!(args(&list).url.as_deref(), Some(url));
         }

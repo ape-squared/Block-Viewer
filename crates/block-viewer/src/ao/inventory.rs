@@ -1,5 +1,5 @@
 //! AOEngine::{tick, update, reloadStateAnimations, parseNotecard, saveSet,
-//! saveState, addAnimation}: Aurora-owned AO folders using the legacy format.
+//! saveState, addAnimation}: Block-owned AO folders using the legacy format.
 
 use super::*;
 
@@ -10,9 +10,9 @@ use block_net::inventory::operations::{Mutation, Operation};
 use block_net::outfits::OutfitLink;
 use std::collections::HashSet;
 
-pub const FOLDER: &str = "Aurora AO";
+pub const FOLDER: &str = "Block AO";
 pub(super) const OLD_FOLDER: &str = "AO";
-const STAGING: &str = "Aurora AO (Legacy Viewer import)";
+const STAGING: &str = "Block AO (Legacy Viewer import)";
 // Existing interrupted imports must still prevent an automatic second copy.
 const OLD_STAGING: &str = "AO (Firestorm import)";
 /// ROOT_AO_FOLDER (Alchemy indra/newview/aoengine.h): the same set format as
@@ -32,7 +32,7 @@ impl Source {
     /// Inventory path shown to the user; folder names are not translated.
     pub fn path(self) -> &'static str {
         match self {
-            Self::Native => "#Aurora/Aurora AO",
+            Self::Native => "#Block/Block AO",
             Self::Legacy => "#Firestorm/#AO",
             Self::Alchemy => ALCHEMY_FOLDER,
         }
@@ -40,7 +40,7 @@ impl Source {
 
     fn root(self, inv: &Inventory) -> Option<Uuid> {
         match self {
-            Self::Native => child(inv, inv.root, "#Aurora").and_then(|brand| native_root(inv, brand)),
+            Self::Native => crate::world::bridge::brand_folder(inv).and_then(|brand| native_root(inv, brand)),
             Self::Legacy => child(inv, inv.root, "#Firestorm").and_then(|fs| child(inv, fs, "#AO")),
             Self::Alchemy => child(inv, inv.root, ALCHEMY_FOLDER),
         }
@@ -173,7 +173,7 @@ impl Catalog {
         self.loading = !fetch(inv, inv.root, &mut self.waiting, &mut self.failed);
         // The brand folder must be fetched before its AO child can be found.
         let brand = match source {
-            Source::Native => Some("#Aurora"),
+            Source::Native => Some("#Block"),
             Source::Legacy => Some("#Firestorm"),
             Source::Alchemy => None,
         };
@@ -221,7 +221,7 @@ impl Catalog {
                     continue;
                 };
                 // Read actual legacy swim slots, including their cycles and
-                // originals. Aurora-only water slots are not source mappings.
+                // originals. Block-only water slots are not source mappings.
                 if source != Source::Native && state.swimming() && !State::LEGACY_VIEWER_SWIMMING.contains(&state) {
                     continue;
                 }
@@ -325,7 +325,7 @@ impl Catalog {
                 f.state = FetchState::Unknown;
             }
         }
-        for name in ["#Aurora", FOLDER, OLD_FOLDER, "#Firestorm", "#AO", ALCHEMY_FOLDER] {
+        for name in ["#Block", "#Aurora", FOLDER, OLD_FOLDER, "#Firestorm", "#AO", ALCHEMY_FOLDER] {
             let ids: Vec<_> = inv
                 .folders
                 .values()
@@ -430,7 +430,7 @@ pub fn create(inv: &Inventory, catalog: &Catalog, set: &Set) -> Result<(Mutation
         return Err(block_i18n::tr!("ao-name-or-loading").into());
     }
     let mut change = Mutation::default();
-    let fs = child(inv, inv.root, "#Aurora").unwrap_or_else(|| folder(&mut change, inv.root, "#Aurora".into()));
+    let fs = crate::world::bridge::brand_folder(inv).unwrap_or_else(|| folder(&mut change, inv.root, "#Block".into()));
     let root = catalog.root.unwrap_or_else(|| folder(&mut change, fs, FOLDER.into()));
     let id = append_set(&mut change, root, set)?;
     Ok((finish(change), id))
@@ -479,7 +479,7 @@ fn append_set(change: &mut Mutation, root: Uuid, set: &Set) -> Result<Uuid, Stri
 /// Publish only after every set/link was acknowledged. A partially failed
 /// import stays separate and is never blindly replayed over user AO data.
 pub(super) fn reconstruct(inv: &Inventory, source: &Catalog, selected: Uuid) -> Result<(Mutation, Option<Uuid>), String> {
-    let brand = child(inv, inv.root, "#Aurora").ok_or(block_i18n::tr!("ao-name-or-loading"))?;
+    let brand = crate::world::bridge::brand_folder(inv).ok_or(block_i18n::tr!("ao-name-or-loading"))?;
     if native_root(inv, brand).is_some() || [STAGING, OLD_STAGING].iter().any(|name| child(inv, brand, name).is_some()) {
         return Err(block_i18n::tr!("ao-bootstrap-interrupted").into());
     }
@@ -528,7 +528,7 @@ pub fn add(inv: &Inventory, set: &Set, state: State, item: Uuid, container: Opti
 /// animations with ACCEPT_YES_MULTI, indra/newview/ao.cpp). As
 /// LLToolDragAndDrop::dragOrDrop does, the whole batch is refused when one
 /// entry is not an animation (a folder, a notecard…). The Legacy Viewer adds
-/// them in its selection order; Aurora's selection keeps none, so they come
+/// them in its selection order; Block's selection keeps none, so they come
 /// in name order, as the inventory lists them. One request links them all,
 /// numbered after the entries already there, and creates a missing state
 /// folder once (AOEngine::addAnimation queues the drops for that).

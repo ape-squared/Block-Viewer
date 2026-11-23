@@ -533,7 +533,7 @@ fn gradient_noise(p: vec3<f32>) -> f32 {
     return clamp(0.5 + 0.75 * n, 0.0, 1.0);
 }
 
-// Aurora Weather: the aurora (northern lights), at night. Curtains of light
+// Block Weather: the aurora (northern lights), at night. Curtains of light
 // stand in a layer high over a flat sky, from their foot (height 1) to their
 // top (3.5), along a line that folds and drifts, `dist` away toward their
 // heading so that their foot is seen at the height chosen (5° to 80° up).
@@ -624,7 +624,7 @@ fn sky_pixel(in: SkyOut) -> vec4<f32> {
     // Under the rim of the dome a probe's capture has no sky: LLVOWLSky::calcPhi
     // ends the dome at pi/8 from its apex, and LLDrawPoolWLSky::renderDome
     // lowers it by the dome offset (about 5.4 degrees under the horizon by
-    // default). The Legacy Viewer's captures draw the water there; Aurora's have
+    // default). The Legacy Viewer's captures draw the water there; Block's have
     // no water pass, so this stands in for the open sea around the terrain: the
     // sky in the mirror, by a Fresnel term. Haze here lit the sides of everything
     // outdoors; black left a band the Legacy Viewer does not have.
@@ -1584,7 +1584,7 @@ fn water_pixel(in: WaterOut) -> vec4<f32> {
     // reflection: planar texture, screen-space rays, or the sky
     var r = reflect(view_vec, normalize(mix(vec3<f32>(0.0, 0.0, 1.0), n, 0.6)));
     // the direction the sky and the probes are read along: kept above the
-    // horizon for Aurora's softened normal; along wave_ibl's ray as it is,
+    // horizon for Block's softened normal; along wave_ibl's ray as it is,
     // as doProbeSample reads it. A steep facet then reflects the probe's
     // lower half, not the sky flipped up, which put a second sun on the
     // water beside the glint (the Legacy Viewer shows one)
@@ -1688,7 +1688,7 @@ fn water_pixel(in: WaterOut) -> vec4<f32> {
         // The Legacy air haze, enhanced water or not: waterF.glsl has none of
         // its own, but the water writes depth and doAtmospherics runs after
         // it (renderGeomPostDeferred: "just before post water alpha"), so
-        // hazeF.glsl blends over the surface, on every sky. Aurora's classic
+        // hazeF.glsl blends over the surface, on every sky. Block's classic
         // air fog (a mix to a fog colour) made that colour near white under
         // a hazy, bright classic sky. Through ll_haze, as the objects beside
         // it (hazeF.glsl's blend uses atten.r, ll_haze the whole atten:
@@ -1948,7 +1948,7 @@ const RAIN_EXPOSURE: f32 = 0.05;
 // Drops are never drawn thinner than this many pixels (they fade instead).
 const RAIN_MIN_PX: f32 = 1.3;
 
-// AURORA_RAIN_DEBUG=1: the wet pass shows the wetness memory instead
+// BLOCK_RAIN_DEBUG=1: the wet pass shows the wetness memory instead
 override rain_debug: f32 = 0.0;
 
 // What falls is snow (`RainLook::snow`): the drops pass draws flakes, and
@@ -2610,7 +2610,7 @@ fn fs_rain_wet_update(in: RainWetOut) -> @location(0) vec4<f32> {
 
 // How wet the surface at `world` is from the memory (0..1, blended between
 // cells); -1 outside it.
-// The memory's cell at `world`, for AURORA_RAIN_DEBUG: yellow, outside the
+// The memory's cell at `world`, for BLOCK_RAIN_DEBUG: yellow, outside the
 // memory; red, only assumed open (seen beyond the shelter map); green, wet
 // by the memory, blue, dry (under cover); brighter, the wetter.
 fn rain_debug_color(world: vec3<f32>) -> vec4<f32> {
@@ -2626,7 +2626,7 @@ fn rain_debug_color(world: vec3<f32>) -> vec4<f32> {
     return vec4<f32>(vec3<f32>(0.0, open, 1.0 - open) * (0.3 + 0.7 * s.y) * 0.6, 0.6);
 }
 
-// Why the snow lies or not at `world` (facing `n`), for AURORA_RAIN_DEBUG=snow:
+// Why the snow lies or not at `world` (facing `n`), for BLOCK_RAIN_DEBUG=snow:
 // white, deep snow's own surface; red, none in the memory there (beyond it,
 // or none has built up); yellow, too steep by the surface's facing; blue,
 // off the surface the shelter map has there (under cover, or above it: what

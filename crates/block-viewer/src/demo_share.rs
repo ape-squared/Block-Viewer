@@ -1,7 +1,7 @@
 //! Multi-resident inventory share (#3074): seed many Orion-like friends
 //! so the Share picker can exercise multi-select (Ctrl+click / Ctrl+A).
 //!
-//! `AURORA_DEMO_SHARE=multi` — 80 friends named like Orion Example, nearby
+//! `BLOCK_DEMO_SHARE=multi` — 80 friends named like Orion Example, nearby
 //! and in Search. `multi:n=200` (capped at 2_000) changes the count.
 //! Opens the inventory with a giveable item selected; use Give / Share and
 //! the Friends or Nearby tab (or search "ori").
@@ -23,7 +23,7 @@ const MAX_COUNT: usize = 2_000;
 const START: Vec2 = Vec2::new(132.0, 126.0);
 const BODY: f32 = 0.84;
 
-/// Parse `AURORA_DEMO_SHARE` (`multi`, `multi:n=200`).
+/// Parse `BLOCK_DEMO_SHARE` (`multi`, `multi:n=200`).
 pub fn parse_count(raw: &str) -> Option<usize> {
     let mut parts = raw.split(':');
     let head = parts.next()?.trim();
@@ -43,10 +43,10 @@ pub fn parse_count(raw: &str) -> Option<usize> {
     Some(n)
 }
 
-/// `AURORA_DEMO_SHARE=multi` or `multi:n=200`.
+/// `BLOCK_DEMO_SHARE=multi` or `multi:n=200`.
 pub fn count() -> Option<usize> {
     static COUNT: std::sync::OnceLock<Option<usize>> = std::sync::OnceLock::new();
-    *COUNT.get_or_init(|| std::env::var("AURORA_DEMO_SHARE").ok().as_deref().and_then(parse_count))
+    *COUNT.get_or_init(|| std::env::var("BLOCK_DEMO_SHARE").ok().as_deref().and_then(parse_count))
 }
 
 pub fn enabled() -> bool {

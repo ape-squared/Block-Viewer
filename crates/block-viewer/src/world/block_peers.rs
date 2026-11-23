@@ -74,7 +74,7 @@ fn save_cache(raw: &str) {
     let _ = std::fs::write(cache_path(), raw.as_bytes());
 }
 
-/// Refresh the peers list once per process from GitHub (or `AURORA_PEERS_URL`).
+/// Refresh the peers list once per process from GitHub (or `BLOCK_PEERS_URL`).
 pub fn ensure_fresh() {
     if crate::block_env::demo_mode() || block_updater::test_environment().is_some() {
         return;
@@ -87,7 +87,7 @@ pub fn ensure_fresh() {
     }
     guard.started = true;
     drop(guard);
-    let url = if let Ok(override_url) = std::env::var("AURORA_PEERS_URL") {
+    let url = if let Ok(override_url) = std::env::var("BLOCK_PEERS_URL") {
         let trimmed = override_url.trim().to_owned();
         if trimmed.is_empty() {
             return;

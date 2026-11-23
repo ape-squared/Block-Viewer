@@ -38,7 +38,7 @@ pub struct AreaSearchUi {
     menu_locks: MenuLocks,
     /// The result list the selection was last checked against.
     checked: u64,
-    /// AURORA_DEMO_AREA_SEARCH=menu: right click the second row once shown.
+    /// BLOCK_DEMO_AREA_SEARCH=menu: right click the second row once shown.
     pub(crate) demo_menu: bool,
 }
 

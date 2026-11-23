@@ -263,8 +263,8 @@ impl PlaceDetailsUi {
         self.raise.insert(serial);
     }
 
-    /// `aurora`: Aurora's Places look (`!Settings::classic_places`), which
-    /// gives the bottom bar Aurora's buttons.
+    /// `aurora`: Block's Places look (`!Settings::classic_places`), which
+    /// gives the bottom bar Block's buttons.
     pub fn show(&mut self, ctx: &egui::Context, c: &mut Ctx, aurora: bool) -> Vec<PlaceAction> {
         let mut actions = Vec::new();
         let screen = ctx.content_rect();
@@ -376,16 +376,16 @@ pub fn button(ui: &mut egui::Ui, p: &Palette, label: &str, tip: &str, enabled: b
 /// style (`Settings::classic_places`).
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub enum ButtonLook {
-    /// Aurora's Places window: action buttons 26 px tall, as wide as their
+    /// Block's Places window: action buttons 26 px tall, as wide as their
     /// label, Teleport in the highlight colour.
-    Aurora,
+    Block,
     /// The Legacy style: the plain `button` of this width, like the lists'.
     Legacy(f32),
 }
 
 impl ButtonLook {
     pub fn of(aurora: bool, legacy_width: f32) -> Self {
-        if aurora { Self::Aurora } else { Self::Legacy(legacy_width) }
+        if aurora { Self::Block } else { Self::Legacy(legacy_width) }
     }
 
     /// The space between the buttons of the bar.
@@ -395,7 +395,7 @@ impl ButtonLook {
 }
 
 /// A button of a place profile's bottom bar, in its look (the icon and kind
-/// are Aurora's only).
+/// are Block's only).
 #[allow(clippy::too_many_arguments)]
 fn profile_button(
     ui: &mut egui::Ui,
@@ -409,7 +409,7 @@ fn profile_button(
 ) -> bool {
     match look {
         ButtonLook::Legacy(width) => button(ui, p, label, tip, enabled, width).clicked(),
-        ButtonLook::Aurora => {
+        ButtonLook::Block => {
             let size = egui::vec2(widgets::action_button_fit(ui, icon, label), 26.0);
             widgets::action_button_if(ui, p, icon, label, kind, size, enabled)
                 .on_hover_text(tip)
@@ -418,8 +418,8 @@ fn profile_button(
     }
 }
 
-/// The Teleport button of a place profile. In Aurora's look it takes the
-/// highlight colour and the icon of Aurora's Places window (deliberate
+/// The Teleport button of a place profile. In Block's look it takes the
+/// highlight colour and the icon of Block's Places window (deliberate
 /// difference: the Legacy Viewer's is plain, and so is the Legacy style's).
 pub fn teleport_button(ui: &mut egui::Ui, p: &Palette, look: ButtonLook, label: &str, tip: &str, enabled: bool) -> bool {
     profile_button(ui, p, look, "location-filled", widgets::ActionKind::Primary, label, tip, enabled)
@@ -771,7 +771,7 @@ mod tests {
     use glam::Vec3;
 
     /// The standalone window's bar in each Places style: the Legacy style
-    /// keeps its plain Teleport and Map (108 and 85 wide, 3 apart), Aurora's
+    /// keeps its plain Teleport and Map (108 and 85 wide, 3 apart), Block's
     /// look sizes its 26 px action buttons to their labels.
     #[test]
     fn window_buttons_follow_the_places_style() {
@@ -844,13 +844,13 @@ mod tests {
     fn region_and_position() {
         let g = DVec3::new(256_140.4, 256_119.6, 24.5);
         assert_eq!(
-            region_name_pos("Aurora Démo", Vec3::new(140.4, 119.6, 24.6), g, &WorldMap::default()),
-            "Aurora Démo (140, 120, 25)"
+            region_name_pos("Block Démo", Vec3::new(140.4, 119.6, 24.6), g, &WorldMap::default()),
+            "Block Démo (140, 120, 25)"
         );
         // no position of our own: the parcel's, modulo the region width
         assert_eq!(
-            region_name_pos("Aurora Démo", Vec3::ZERO, g, &WorldMap::default()),
-            "Aurora Démo (140, 120, 25)"
+            region_name_pos("Block Démo", Vec3::ZERO, g, &WorldMap::default()),
+            "Block Démo (140, 120, 25)"
         );
     }
 

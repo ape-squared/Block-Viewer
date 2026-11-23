@@ -12,7 +12,7 @@
 //!   draws as that name ([`Shared::expand`]).
 //! - `/` and a letter in the nearby chat list the active gestures whose
 //!   trigger starts so, under the inline completion of `completion.rs`. The
-//!   Legacy Viewer completes inline only; the list is Aurora's (#980), so
+//!   Legacy Viewer completes inline only; the list is Block's (#980), so
 //!   that the gestures can be found: the arrows write the chosen trigger in
 //!   the field (Enter sends it, as the inline completion), Tab keeps it,
 //!   Escape closes the list.

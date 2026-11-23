@@ -253,7 +253,7 @@ fn notice(text: impl Into<String>) -> PeopleAsk {
     }
 }
 
-/// What AURORA_DEMO_REGION opens on People (`demo_region.rs`).
+/// What BLOCK_DEMO_REGION opens on People (`demo_region.rs`).
 #[derive(Debug, Clone, PartialEq, Default)]
 pub struct PeopleDemo {
     /// A row ticked, in the allowed residents.
@@ -295,7 +295,7 @@ fn linden(world: &World) -> bool {
     world.estate.estate.as_ref().is_some_and(|e| e.id <= ESTATE_LAST_LINDEN)
 }
 
-/// AURORA_DEMO_REGION on People, once the demo simulator sent the lists.
+/// BLOCK_DEMO_REGION on People, once the demo simulator sent the lists.
 fn demo(s: &mut RegionUi, world: &World) {
     if !matches!(world.estate.access, Some(Some(_))) {
         return;

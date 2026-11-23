@@ -175,9 +175,9 @@ pub(super) fn button(
 fn demo_mode() -> Option<&'static str> {
     static MODE: std::sync::OnceLock<Option<String>> = std::sync::OnceLock::new();
     MODE.get_or_init(|| {
-        std::env::var("AURORA_DEMO_INVENTORY")
+        std::env::var("BLOCK_DEMO_INVENTORY")
             .ok()
-            .filter(|mode| mode.starts_with("delete-") || mode.starts_with("aurora-delete-"))
+            .filter(|mode| mode.starts_with("delete-") || mode.starts_with("block-delete-"))
     })
     .as_deref()
 }
@@ -189,7 +189,7 @@ pub(super) fn demo_enabled() -> bool {
 /// Actual list selection, followed by a native Delete event or footer click.
 pub fn demo_events(ctx: &egui::Context, frame: u64, st: &InventoryUi) -> Vec<egui::Event> {
     let Some(mode) = demo_mode() else { return Vec::new() };
-    let aurora = mode.starts_with("aurora-");
+    let aurora = mode.starts_with("block-");
     let width = if mode.ends_with("-wide") {
         1180.0
     } else if mode.ends_with("-medium") {
@@ -199,7 +199,7 @@ pub fn demo_events(ctx: &egui::Context, frame: u64, st: &InventoryUi) -> Vec<egu
     } else {
         680.0
     };
-    let mode = mode.strip_prefix("aurora-").unwrap_or(mode);
+    let mode = mode.strip_prefix("block-").unwrap_or(mode);
     let mode = mode.strip_suffix("-wide").or_else(|| mode.strip_suffix("-medium")).unwrap_or(mode);
     if frame == 640 {
         super::super::widgets::place_floater(

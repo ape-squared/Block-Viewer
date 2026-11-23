@@ -194,7 +194,7 @@ fn write_live(file_name: &str, source: &str) -> std::io::Result<(PathBuf, u64)> 
         let directory = match live.as_ref() {
             Some(directory) => directory.clone(),
             None => {
-                let directory = std::env::temp_dir().join(format!("AuroraScripts-{}", uuid::Uuid::new_v4()));
+                let directory = std::env::temp_dir().join(format!("BlockScripts-{}", uuid::Uuid::new_v4()));
                 create_private_dir(&directory)?;
                 *live = Some(directory.clone());
                 directory
@@ -362,7 +362,7 @@ mod tests {
     }
     #[test]
     fn file_import_is_bounded_utf8_with_optional_tab_conversion() {
-        let directory = std::env::temp_dir().join(format!("aurora-script-file-test-{}", uuid::Uuid::new_v4()));
+        let directory = std::env::temp_dir().join(format!("block-script-file-test-{}", uuid::Uuid::new_v4()));
         fs::create_dir(&directory).unwrap();
         let path = directory.join("source.lsl");
         fs::write(&path, b"\xef\xbb\xbf\tcode\r\n").unwrap();
@@ -377,7 +377,7 @@ mod tests {
     }
     #[test]
     fn external_export_is_private_and_its_folder_never_reused() {
-        let directory = std::env::temp_dir().join(format!("aurora-script-export-test-{}", uuid::Uuid::new_v4()));
+        let directory = std::env::temp_dir().join(format!("block-script-export-test-{}", uuid::Uuid::new_v4()));
         create_private_dir(&directory).unwrap();
         let path = directory.join("source.lsl");
         write_owner_only(&path, "default {}").unwrap();
@@ -397,7 +397,7 @@ mod tests {
     }
     #[test]
     fn a_script_sent_again_keeps_its_file_from_the_watch_it_replaces() {
-        let path = std::env::temp_dir().join(format!("aurora-owner-test-{}", uuid::Uuid::new_v4()));
+        let path = std::env::temp_dir().join(format!("block-owner-test-{}", uuid::Uuid::new_v4()));
         let first = claim(&path);
         fs::write(&path, "first").unwrap();
         let second = claim(&path);

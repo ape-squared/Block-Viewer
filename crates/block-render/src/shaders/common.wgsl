@@ -1,6 +1,6 @@
 enable wgpu_binding_array;
 
-// Shared declarations for Aurora Viewer shaders.
+// Shared declarations for Block Viewer shaders.
 //
 // The atmospheric sky and water fog functions are ports of the Second Life
 // viewer shaders (skyV.glsl, cloudsV/F.glsl, waterFogF.glsl), Copyright (C)
@@ -394,7 +394,7 @@ fn next_light(walk: ptr<function, LightWalk>) -> i32 {
     return -1;
 }
 
-// AURORA_LIGHT_TILES=check: `col`, or magenta where a light of the frame's
+// BLOCK_LIGHT_TILES=check: `col`, or magenta where a light of the frame's
 // list reaches the fragment without being in its set. That never happens:
 // the image is the one the whole list gives.
 fn light_tiles_checked(col: vec3<f32>, world_pos: vec3<f32>, frag: vec2<f32>) -> vec3<f32> {
@@ -547,7 +547,7 @@ fn probe_word(k: u32, count: u32, tiles: bool, cell: vec3<u32>) -> u32 {
     return held;
 }
 
-// AURORA_PROBE_WALK=check: whether a probe of the list covers `pos` without
+// BLOCK_PROBE_WALK=check: whether a probe of the list covers `pos` without
 // being in the fragment's sets. That never happens: the image is the one
 // the whole list gives.
 fn probe_tiles_miss(pos: vec3<f32>, frag: vec2<f32>) -> bool {
@@ -750,7 +750,7 @@ fn probe_mix(col0_in: vec3<f32>, col1_in: vec3<f32>, w0: f32, w1: f32, dw1: f32,
 //
 // `automatic`: false for water, which only samples the default probe and
 // the manual ones. Same sums, in the same order, as sample_probes_ex, which
-// AURORA_PROBE_WALK=0 brings back to compare.
+// BLOCK_PROBE_WALK=0 brings back to compare.
 fn sample_probes_pair(pos: vec3<f32>, frag: vec2<f32>, a: ProbeLookup, b: ProbeLookup, want_b: bool, automatic: bool, amblit: vec3<f32>) -> ProbePair {
     var out: ProbePair;
     out.b = vec4<f32>(0.0);
@@ -1278,7 +1278,7 @@ fn apply_air_fog(col:vec3<f32>,world_pos:vec3<f32>)->vec3<f32> {
 // water haze just before pre water alpha"; doWaterHaze,
 // indra/newview/pipeline.cpp), and those faces fog themselves
 // (applySkyAndWaterFog, class2/deferred/alphaF.glsl): each layer by its own
-// depth, and the surface adds none (class3/environment/waterF.glsl). Aurora's
+// depth, and the surface adds none (class3/environment/waterF.glsl). Block's
 // surface used to fog its whole copy of the scene by the first depth under
 // it: where a faint blended face lay just under the surface, the bed behind
 // it lost its fog, and a sheet crossing the water plane showed its triangles.
@@ -1311,35 +1311,35 @@ fn apply_fog(col: vec3<f32>, world_pos: vec3<f32>) -> vec3<f32> {
 const SHADOW_PENUMBRA: f32 = 0.03;
 
 // frame.light_mode.z: the shadow filter of before, with its gaps
-// (AURORA_SHADOW_FILTER=gaps, to compare).
+// (BLOCK_SHADOW_FILTER=gaps, to compare).
 const SHADOW_FILTER_GAPS: u32 = 0x100u;
 // frame.light_mode.z: the shadow lookup of an object offset along its
-// normal-mapped normal, as before (AURORA_SHADOW_FILTER=mapped; object.wgsl
+// normal-mapped normal, as before (BLOCK_SHADOW_FILTER=mapped; object.wgsl
 // shadow_normal).
 const SHADOW_OFFSET_MAPPED: u32 = 0x200u;
 // frame.light_mode.z: il_tex holds GTAO's indirect light of this frame
 const SCREEN_INDIRECT: u32 = 0x400u;
 // frame.light_mode.z: normal maps on a unit, orthogonal tangent frame as the
-// Legacy Viewer's per-vertex tangents (AURORA_TANGENTS, perturb_normal)
+// Legacy Viewer's per-vertex tangents (BLOCK_TANGENTS, perturb_normal)
 const TANGENT_UNIT: u32 = 0x800u;
 // frame.light_mode.z: normal maps on the tangents of the vertices where
-// they have some (object.wgsl vertex_tangent; AURORA_TANGENTS)
+// they have some (object.wgsl vertex_tangent; BLOCK_TANGENTS)
 const TANGENT_VERTEX: u32 = 0x1000u;
 // frame.light_mode.z: the receiver bias of before, a fixed 0.0005 of the
-// cascade's depth range (AURORA_SHADOW_BIAS=legacy; cascade_shadow)
+// cascade's depth range (BLOCK_SHADOW_BIAS=legacy; cascade_shadow)
 const SHADOW_BIAS_LEGACY: u32 = 0x2000u;
 // frame.light_mode.z: blended faces take the screen-space occlusion and
-// indirect light of what lies behind them, as before (AURORA_BLEND_AO=old;
+// indirect light of what lies behind them, as before (BLOCK_BLEND_AO=old;
 // screen_ao)
 const BLEND_SCREEN_TERMS: u32 = 0x4000u;
 // frame.light_mode.z: the occlusion's depth holds the blended faces opaque
 // to the eye (renderer.rs, "occlusion depth"), which then take the
 // screen-space terms, as the fainter ones lying on a solid surface do
-// (screen_share; AURORA_BLEND_AO)
+// (screen_share; BLOCK_BLEND_AO)
 const BLEND_SCREEN_DEPTH: u32 = 0x10000u;
 
 // frame.light_mode.z: geometric specular anti-aliasing of the objects
-// (AURORA_SPECULAR_AA, specular_aa_roughness)
+// (BLOCK_SPECULAR_AA, specular_aa_roughness)
 const SPECULAR_AA: u32 = 0x8000u;
 
 // Geometric specular anti-aliasing (Kaplanyan & Hoffman 2016, "Stable
@@ -1449,7 +1449,7 @@ fn cascade_shadow(world_pos: vec3<f32>, n: vec3<f32>, cascade: u32) -> f32 {
     // shadow pipelines keep the acne away. The Legacy Viewer biases by a
     // fixed 0.004 of a shadow range fitted to the scene (RenderShadowBias,
     // shadowUtil.glsl pcfShadow). (frame.light_mode.z SHADOW_BIAS_LEGACY:
-    // the bias of before, AURORA_SHADOW_BIAS.)
+    // the bias of before, BLOCK_SHADOW_BIAS.)
     let depth_per_metre = length(vec3<f32>(m[0].z, m[1].z, m[2].z));
     var receiver_bias = 2.0 * texel * radius * 2.0 * depth_per_metre;
     if ((frame.light_mode.z & SHADOW_BIAS_LEGACY) != 0u) {
@@ -1482,7 +1482,7 @@ fn screen_motion(cur: vec4<f32>, prev: vec4<f32>) -> vec2<f32> {
 
 // The view shown instead of the image (frame.light_mode.z, Preferences ›
 // Debug), or `col`.
-// 1 (also AURORA_DEBUG_SHADOWS): the cascade each pixel reads — red, green,
+// 1 (also BLOCK_DEBUG_SHADOWS): the cascade each pixel reads — red, green,
 // blue from the finest, mixed where two are blended, black beyond the
 // shadow distance — darkened where the pixel is in shadow. The choice
 // mirrors shadow_factor.
@@ -1566,7 +1566,7 @@ fn shadow_factor(world_pos: vec3<f32>, n: vec3<f32>, vertex_depth: f32) -> f32 {
     // that spans a range of distances: on a large floor, the pixels near
     // the camera read a far cascade, and no caster could be left out of a
     // far cascade for being near (shadow_cull.rs). splits.w == 0 keeps that
-    // distance, to compare (AURORA_SHADOW_LEGACY).
+    // distance, to compare (BLOCK_SHADOW_LEGACY).
     // A planar reflection (the mirror) reads the main view's cascades, fitted
     // around the real camera: the pixel's distance to that camera, its own
     // camera mirrored back through the clip plane, picks the cascade
@@ -1784,7 +1784,7 @@ fn spherical_caps_intersection(cos_a: f32, cos_b: f32, cos_d: f32) -> f32 {
 // Measured against the open hemisphere (visibility 1) around the same bent
 // normal: the part of a lobe below the horizon is already the probes' and
 // the environment BRDF's business, and counting it here darkened the rims
-// of convex shapes, whose grazing reflections nothing hides (Aurora's
+// of convex shapes, whose grazing reflections nothing hides (Block's
 // choice; an open surface keeps exactly its reflection). And a reflection
 // is never darkened more than the ambient light (the visibility): what
 // hides the sky is itself lit, which the cones take for black — a polished
@@ -2557,7 +2557,7 @@ fn ll_classic_sun_ambient(base: vec3<f32>, n: vec3<f32>, shadow: f32, frag: vec2
         let sunlit = a.sunlit * 1.35;
         let irr = ll_ssao(a.amblit * ll_ambient_lighting(n), frag);
         let sun_contrib = vec3<f32>(min(pow(nl_sun, 1.2), shadow));
-        // GTAO's indirect light (Aurora's own: the Legacy Viewer has none)
+        // GTAO's indirect light (Block's own: the Legacy Viewer has none)
         return (srgb_to_linear(irr * 0.9 + ll_linear_to_srgb(sun_contrib) * sunlit * 0.7) + screen_indirect(frag)) * base;
     }
     // linear mode: grey sky ambient, linear sunlight, plain lambert
@@ -2628,7 +2628,7 @@ fn ll_classic_pbr(base: vec3<f32>, metallic: f32, roughness_in: f32, mat_ao: f32
         final_sun = clamp(sun_contrib * (diff + spec) * shadow, vec3<f32>(0.0), vec3<f32>(10.0));
     }
     var col = srgb_to_linear(ll_linear_to_srgb(irr * diffuse_color) + ll_linear_to_srgb(final_sun) * 1.1);
-    // GTAO's indirect light (Aurora's own: the Legacy Viewer has none)
+    // GTAO's indirect light (Block's own: the Legacy Viewer has none)
     col += diffuse_color * screen_indirect(frag) * mat_ao;
     // pbrBaseLight adds the image based specular (pbrIbl: radiance x
     // (F0 x brdf.x + brdf.y) x ao) on classic skies too. LL samples its
@@ -2644,7 +2644,7 @@ fn ll_classic_pbr(base: vec3<f32>, metallic: f32, roughness_in: f32, mat_ao: f32
     // pbrIbl scales the specular by the material's occlusion only (ORM red);
     // SSAO darkens the irradiance alone (adjustIrradiance). The classic
     // ambient (finalAmbient) does not take that occlusion. GTAO adds its
-    // specular occlusion (Aurora's own: the Legacy Viewer has no bent
+    // specular occlusion (Block's own: the Legacy Viewer has no bent
     // normal), 1 otherwise.
     col += env * env_brdf(f0, roughness, nv) * mat_ao * specular_occlusion(frag, r, roughness, 1.0);
     return col;

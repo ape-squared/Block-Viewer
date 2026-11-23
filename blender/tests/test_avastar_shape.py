@@ -1,7 +1,7 @@
 """Optional offline integration: Blender 3.1 --factory-startup --python this.py
 -- <synthetic-shape.json> <directory-containing-the-enabled-version-of-avastar>.
 Use disposable, pre-created BLENDER_USER_* directories; never an account profile.
-No vendor implementation or licensed assets are distributed by Aurora.
+No vendor implementation or licensed assets are distributed by Block.
 """
 import json
 from pathlib import Path
@@ -21,13 +21,13 @@ def offline(*_args, **_kwargs):
 
 socket.socket.connect = offline
 import avastar
-import aurora_live
-from aurora_live import exporter, shape_transfer
+import block_live
+from block_live import exporter, shape_transfer
 
 bpy.context.preferences.use_preferences_save = False
 bpy.context.preferences.addons.new().module = "avastar"
 avastar.register()
-aurora_live.register()
+block_live.register()
 bpy.ops.object.select_all(action="SELECT")
 bpy.ops.object.delete(use_global=False)
 assert bpy.ops.avastar.add_avatar(rigType="EXTENDED", jointType="PIVOT", skeletonType="AVASTAR", no_mesh=False) == {"FINISHED"}
@@ -47,7 +47,7 @@ except ValueError as error:
     assert "appearance sliders" in str(error)
 else:
     raise AssertionError("Disabled Avastar deformation must not report success")
-assert "aurora_shape_id" not in rig
+assert "block_shape_id" not in rig
 bpy.context.scene.SceneProp.panel_appearance_enabled = True
 assert shape_transfer.apply(bpy.context, payload) is rig
 assert rig.ShapeDrivers.male_80
@@ -58,8 +58,8 @@ assert rig.mode == "POSE"
 assert (rig.data.bones["mHead"].head_local - head).length > 0.01
 assert before == {bone.name: [(con.name, con.type) for con in bone.constraints] for bone in rig.pose.bones}
 assert len([obj for obj in bpy.context.scene.objects if obj.type == "ARMATURE" and "avastar" in obj]) == 1
-assert rig["aurora_shape_id"] == payload["id"]
+assert rig["block_shape_id"] == payload["id"]
 bpy.ops.object.mode_set(mode="OBJECT")
 meshes = [obj for obj in bpy.context.scene.objects if obj.type == "MESH" and obj.find_armature() == rig]
 assert exporter.snapshot(meshes, set(payload["names"]), 1)["meshes"]
-print("AURORA_NATIVE_AVASTAR_SHAPE_APPLY_OK", flush=True)
+print("BLOCK_NATIVE_AVASTAR_SHAPE_APPLY_OK", flush=True)

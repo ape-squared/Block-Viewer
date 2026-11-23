@@ -17,11 +17,11 @@ const AUDIO_LEVEL_WIND: f32 = 0.5;
 /// WIND_SOUND_TRANSITION_TIME (s).
 const TRANSITION_SECS: f32 = 2.0;
 
-/// AURORA_DEMO_WIND=<x>,<y>[,fly]: a uniform region wind in the demo (m/s,
+/// BLOCK_DEMO_WIND=<x>,<y>[,fly]: a uniform region wind in the demo (m/s,
 /// before the ×2 of LLWind::getVelocity), and with `fly` the avatar arrives
 /// flying.
 pub fn demo_spec() -> Option<(Vec3, bool)> {
-    std::env::var("AURORA_DEMO_WIND").ok().map(|spec| parse_demo_spec(&spec))
+    std::env::var("BLOCK_DEMO_WIND").ok().map(|spec| parse_demo_spec(&spec))
 }
 
 fn parse_demo_spec(spec: &str) -> (Vec3, bool) {

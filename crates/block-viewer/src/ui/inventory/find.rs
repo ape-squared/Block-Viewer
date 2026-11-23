@@ -9,7 +9,7 @@
 //! while it is open (LLTextEditor::setHighlightWord). The matching and the
 //! one-step undo are the script editor's (`scripts::editing`).
 //!
-//! Aurora draws it as a bar at the top of the notecard window, not as a
+//! Block draws it as a bar at the top of the notecard window, not as a
 //! separate floater: it belongs to the text it searches and never covers it.
 //! An embedded inventory item is one marker character of the text: it is
 //! never part of a search or a replacement, so a replacement never removes

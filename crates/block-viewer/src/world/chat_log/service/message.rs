@@ -35,7 +35,7 @@ pub enum TimeSource {
     /// `Sent`, but a later capture does not replace it.
     #[cfg_attr(
         not(test),
-        expect(dead_code, reason = "Aurora's callers always name a clock; the parity tests use it")
+        expect(dead_code, reason = "Block's callers always name a clock; the parity tests use it")
     )]
     Unmarked,
 }

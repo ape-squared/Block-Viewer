@@ -1,4 +1,4 @@
-//! Preferences › Confirmations: what Aurora asks before acting (the
+//! Preferences › Confirmations: what Block asks before acting (the
 //! "ignore" boxes of the Legacy Viewer's alerts: TeleportFromLandmark,
 //! DeleteItems, ReturnToOwner, AttachmentDrop, ConfirmScriptModify,
 //! FSConfirmPayments, ChangeObjectBonusFactor, ConfirmTextureHeights, and

@@ -1,8 +1,8 @@
 //! Firestorm-like chrome: menu/status bar and navigation bar at the top,
 //! chat input + feature buttons at the bottom. Flat, skinnable via
-//! `skin::Layout` and the theme palette. Aurora's top bar, glass islands
+//! `skin::Layout` and the theme palette. Block's top bar, glass islands
 //! over the world, is in `islands.rs` and `place.rs`; these full-width bars
-//! are its Firestorm look (Preferences › Aurora).
+//! are its Firestorm look (Preferences › Block).
 
 pub(crate) mod clock;
 pub(crate) mod demo;
@@ -178,7 +178,7 @@ pub enum BarAction {
     NewEnvironment(crate::world::env_select::SettingsKind),
     /// World › Environment › Weather: its window (testers looked
     /// for the weather there, beside Personal lighting).
-    AuroraWeather,
+    BlockWeather,
     /// World › Teleport history (ToggleTeleportHistory, Alt+H).
     TeleportHistory,
     /// The balance, or Me › Buy L$ (LLStatusBar::onClickBuyCurrency).
@@ -246,7 +246,7 @@ pub enum BarAction {
     LindenHome,
 }
 
-/// How the islands of Aurora's top bar are set (Preferences › Interface).
+/// How the islands of Block's top bar are set (Preferences › Interface).
 #[derive(Debug, Clone, Copy, Default, PartialEq)]
 pub struct IslandsLook {
     /// The place island reaches the account island.
@@ -372,7 +372,7 @@ pub struct StatusInfo<'a> {
     /// The help page of the grid info (OpenSim), with the grid's name:
     /// Help › Knowledge base shows only with one.
     pub grid_help: Option<GridHelp>,
-    /// Firestorm's full-width bars (Preferences › Aurora) instead of the
+    /// Firestorm's full-width bars (Preferences › Block) instead of the
     /// islands.
     pub classic_bars: bool,
     pub islands: IslandsLook,
@@ -448,6 +448,9 @@ pub struct HealthMenu {
     pub rebake_keys: String,
     pub refresh_keys: String,
     pub resync_keys: String,
+    /// Something worn (attachments, HUDs, temporary attachments) that
+    /// RLVa lets go: Detach all is greyed otherwise.
+    pub can_detach_all: bool,
 }
 
 /// The navigation bar's star (LLLocationInputCtrl's add landmark button).
@@ -714,7 +717,7 @@ pub const RENDER_TYPE_ICONS: [&str; 12] = [
 /// Viewer's Develop › Rendering Types (render_type_from_string,
 /// indra/newview/llviewermenu.cpp); the menu stays open, to turn several
 /// off in a row. The Legacy Viewer's material passes (Simple, Alpha,
-/// Bump…) are not listed: Aurora does not split its draws that way.
+/// Bump…) are not listed: Block does not split its draws that way.
 fn render_types_menu(ui: &mut egui::Ui, p: &Palette, st: &StatusInfo, action: &mut BarAction) {
     use block_i18n::tr;
     let mut h = st.hidden_types;
@@ -814,10 +817,10 @@ fn status_dot(ui: &mut egui::Ui, p: &Palette, status: crate::world::status::Stat
         ui.painter().circle_stroke(rect.center(), 7.5, egui::Stroke::new(1.0, p.muted));
     }
     let resp = resp.on_hover_text(status_tip(&status));
-    // demo captures: AURORA_DEMO_STATUSMENU=1 opens it (=invisible: with
+    // demo captures: BLOCK_DEMO_STATUSMENU=1 opens it (=invisible: with
     // that status, set by the viewer)
     static DEMO_OPEN: std::sync::OnceLock<bool> = std::sync::OnceLock::new();
-    if *DEMO_OPEN.get_or_init(|| std::env::var_os("AURORA_DEMO_STATUSMENU").is_some()) && ui.ctx().cumulative_frame_nr() == 300 {
+    if *DEMO_OPEN.get_or_init(|| std::env::var_os("BLOCK_DEMO_STATUSMENU").is_some()) && ui.ctx().cumulative_frame_nr() == 300 {
         egui::Popup::open_id(ui.ctx(), egui::Popup::default_response_id(&resp));
     }
     menu::dropdown(&resp, p, egui::PopupCloseBehavior::CloseOnClickOutside, |ui| {
@@ -1411,9 +1414,9 @@ fn main_menus(ui: &mut egui::Ui, p: &Palette, panels: &mut Panels, st: &StatusIn
             if menu::item_if(ui, p, "adjustments-filled", block_i18n::tr!("common-personal-lighting"), free) {
                 panels.personal_lighting = true;
             }
-            // Aurora's own: the weather beside the lighting it rides on
-            if menu::item(ui, p, "umbrella-filled", block_i18n::tr!("ui-bars-aurora-weather")) {
-                *action = BarAction::AuroraWeather;
+            // Block's own: the weather beside the lighting it rides on
+            if menu::item(ui, p, "umbrella-filled", block_i18n::tr!("ui-bars-block-weather")) {
+                *action = BarAction::BlockWeather;
             }
             // Firestorm's Phototools "New preset" buttons (World.EnvPreset)
             menu::separator(ui, p);
@@ -1513,12 +1516,12 @@ fn main_menus(ui: &mut egui::Ui, p: &Palette, panels: &mut Panels, st: &StatusIn
         if menu::item_keys(ui, p, "camera-cog", block_i18n::tr!("toolbar-command-phototools"), &phototools) {
             super::widgets::toggle_floater(ui.ctx(), super::phototools::WINDOW, &mut panels.phototools);
         }
-        // the Director (camera tracks and films), Aurora's own, beside the
+        // the Director (camera tracks and films), Block's own, beside the
         // photo: it was only on the toolbar
         if menu::item(ui, p, "movie", block_i18n::tr!("toolbar-command-director")) {
             super::widgets::toggle_floater(ui.ctx(), super::director::WINDOW, &mut panels.director);
         }
-        // Aurora's own: our avatar seen by a camera of its own
+        // Block's own: our avatar seen by a camera of its own
         if menu::check(
             ui,
             p,
@@ -1722,8 +1725,10 @@ fn main_menus(ui: &mut egui::Ui, p: &Palette, panels: &mut Panels, st: &StatusIn
 }
 
 /// Me › Avatar health (menu_viewer.xml "avhealth"): the usual fixes of a
-/// broken avatar, in the Legacy Viewer's order. Its default avatar resets
-/// ("Character Test") and complexity information are left out.
+/// broken avatar, in Firestorm's order. Its default avatar resets
+/// ("Character Test") and complexity information are left out. Detach all
+/// sits last, under a separator, so it is only ever a click: Firestorm's
+/// Detach All (LLAgentWearables::userRemoveAllAttachments).
 fn health_menu(ui: &mut egui::Ui, p: &Palette, h: &HealthMenu) {
     use super::context::{CtxAction, request};
     menu::submenu(ui, p, "medical-cross-filled", block_i18n::tr!("avatar-health-menu"), true, |ui| {
@@ -1771,6 +1776,12 @@ fn health_menu(ui: &mut egui::Ui, p: &Palette, h: &HealthMenu) {
             &h.refresh_keys,
         ) {
             request(ui.ctx(), CtxAction::RefreshAttachments);
+        }
+        // Firestorm's Detach All: everything worn, HUDs and temporary
+        // attachments too, except what RLVa locks. Only on this click.
+        menu::separator(ui, p);
+        if menu::item_if(ui, p, "circle-x-filled", block_i18n::tr!("ui-context-detach-all"), h.can_detach_all) {
+            request(ui.ctx(), CtxAction::DetachAll);
         }
     });
 }
@@ -1924,12 +1935,12 @@ const LINDEX_MARKET: &str = "https://secondlife.com/my/lindex/market.php";
 const SCRIPT_LIBRARY: &str = "https://wiki.secondlife.com/wiki/LSL_Library";
 
 /// Inventory and gestures, then the entries of the Legacy Viewer's Content
-/// menu that Aurora's World menu does not hold already (Search and SL
+/// menu that Block's World menu does not hold already (Search and SL
 /// Marketplace are there). L$ Market Data shows on the Second Life grids
 /// only (GridCheck "secondlife"), as the Marketplace.
 ///
 /// The pages go through the links' usual path (`CtxAction::OpenUrl`): the
-/// Legacy Viewer's WebLaunchExternalTarget question is Aurora's link check,
+/// Legacy Viewer's WebLaunchExternalTarget question is Block's link check,
 /// which lets the well-known sites through and asks for the others.
 /// Message of the day is greyed out when the grid sent none, instead of
 /// writing an empty line.
@@ -2265,7 +2276,7 @@ fn location_field(ui: &mut egui::Ui, p: &Palette, panels: &mut Panels, st: &Stat
             panels.nav_edit = Some(slurl.to_owned());
             panels.nav_edit_new = true;
         }
-        // AURORA_DEMO_BARS=legacy,locations: a place being typed
+        // BLOCK_DEMO_BARS=legacy,locations: a place being typed
         if demo::get().locations && ui.ctx().cumulative_frame_nr() == location_suggest::DEMO_FRAME {
             panels.nav_edit = Some(location_suggest::DEMO_TYPED.to_owned());
             panels.nav_edit_new = true;
@@ -2357,7 +2368,7 @@ fn steady_label(ui: &mut egui::Ui, id: &str, text: String, color: Color32, sense
 }
 
 /// The bell of the navigation bar: its count, its style (Preferences ›
-/// Aurora › Notifications) and do not disturb (the paused bell, which a
+/// Block › Notifications) and do not disturb (the paused bell, which a
 /// right click turns on and off, #491).
 #[derive(Debug, Clone, Copy, Default)]
 pub struct BellState {
@@ -2366,10 +2377,10 @@ pub struct BellState {
     pub dnd: bool,
 }
 
-/// Top chrome: a single navigation bar (Aurora menu, notifications,
+/// Top chrome: a single navigation bar (Block menu, notifications,
 /// teleport history, location) with the status on its right (balance,
-/// time, ping, media and volumes, frame rate). Aurora's notification center
-/// puts its bell at the right end (`bell.aurora`), Firestorm's next to the
+/// time, ping, media and volumes, frame rate). Block's notification center
+/// puts its bell at the right end (`bell.block`), Firestorm's next to the
 /// wolf.
 #[allow(clippy::too_many_arguments)]
 pub fn top_bars(
@@ -2402,13 +2413,13 @@ pub fn top_bars(
                 ui.set_min_width(ui.available_width());
                 ui.spacing_mut().item_spacing.x = 4.0;
                 ui.style_mut().visuals.button_frame = false;
-                // Aurora menu (white wolf): Me, Communicate, World, Build, Contents, Advanced, Help
+                // Block menu (white wolf): Me, Communicate, World, Build, Contents, Advanced, Help
                 if let Some(t) = icons.get("wolf") {
                     let img = egui::Image::new(t).fit_to_exact_size(Vec2::new(18.0, 18.0)).tint(p.ink);
                     menu::button(ui, p, egui::Button::image(img), |ui| {
                         menu::searchable(ui, p, |ui| main_menus(ui, p, panels, st, &mut action, true));
                     })
-                    .on_hover_text(block_i18n::tr!("ui-bars-aurora-menu"));
+                    .on_hover_text(block_i18n::tr!("ui-bars-block-menu"));
                 }
                 // Firestorm's notification well: the bell next to the wolf
                 if !bell.aurora {
@@ -2468,7 +2479,7 @@ pub fn top_bars(
                 ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
                     ui.spacing_mut().item_spacing.x = 10.0;
                     ui.add_space(2.0);
-                    // Aurora's center: the bell at the right end, after the
+                    // Block's center: the bell at the right end, after the
                     // frame rate, its cards unroll under it
                     if bell.aurora {
                         // room for the count at the window's edge
@@ -2722,7 +2733,7 @@ pub fn run_command(ctx: &egui::Context, cmd: &str, panels: &mut Panels) -> BarAc
         // Floater.Toggle conversation
         "conversation_log" => toggle(super::conversation_log::WINDOW, &mut panels.conversation_log),
         // the Legacy Viewer's Statistics (Floater.Toggle stats) opens
-        // Aurora's Performance window
+        // Block's Performance window
         "performance" | "statistics" => toggle("perf", &mut panels.perf),
         "snapshot" => toggle(super::snapshot::WINDOW, &mut panels.snapshot),
         // Floater.ToggleOrBringToFront 360capture
@@ -2736,9 +2747,9 @@ pub fn run_command(ctx: &egui::Context, cmd: &str, panels: &mut Panels) -> BarAc
         "phototools" => toggle(super::phototools::WINDOW, &mut panels.phototools),
         // Floater.Toggle quickprefs
         "quickprefs" => toggle(super::quick_prefs::WINDOW, &mut panels.quick_prefs),
-        // Aurora's own: the Director's window and its timeline
+        // Block's own: the Director's window and its timeline
         "director" => toggle(super::director::WINDOW, &mut panels.director),
-        // Aurora's own: the second camera's window
+        // Block's own: the second camera's window
         "second_camera" => toggle(super::second_camera::WINDOW, &mut panels.second_camera),
         // Floater.ToggleOrBringToFront settings_debug
         "settings_debug" => toggle(super::debug_settings::WINDOW, &mut panels.debug_settings),
@@ -2773,7 +2784,7 @@ pub fn run_command(ctx: &egui::Context, cmd: &str, panels: &mut Panels) -> BarAc
         "mouselook" => return BarAction::ToggleMouselook,
         "sit" => return BarAction::SitGround,
         "home" => return BarAction::TeleportHome,
-        // Firestorm's commands on what Aurora already does (commands.xml)
+        // Firestorm's commands on what Block already does (commands.xml)
         "aboutland" => panels.about_land = !panels.about_land,
         "regioninfo" => panels.region_estate = !panels.region_estate,
         "myenvironments" => panels.environment = !panels.environment,
@@ -3018,7 +3029,7 @@ fn tool_button(
     let icon_size = look.icon;
     let radius = ui.visuals().window_corner_radius;
     let painter = ui.painter();
-    // a saved Legacy Viewer command Aurora does not run yet, or one with
+    // a saved Legacy Viewer command Block does not run yet, or one with
     // nothing to do now: very dimmed, with neither face nor pill under the
     // pointer, as in the window
     let ready = super::toolbar::ready(command) && usable;
@@ -3322,9 +3333,9 @@ fn mic_button(
         }
     });
 
-    // demo captures: AURORA_DEMO_MICMENU=1 opens the panel
+    // demo captures: BLOCK_DEMO_MICMENU=1 opens the panel
     static DEMO_OPEN: std::sync::OnceLock<bool> = std::sync::OnceLock::new();
-    let demo = *DEMO_OPEN.get_or_init(|| std::env::var_os("AURORA_DEMO_MICMENU").is_some()) && ui.ctx().cumulative_frame_nr() == 300;
+    let demo = *DEMO_OPEN.get_or_init(|| std::env::var_os("BLOCK_DEMO_MICMENU").is_some()) && ui.ctx().cumulative_frame_nr() == 300;
     let toggle = match &arrow {
         Some(arrow) => arrow.clicked(),
         None => !toolbar_menu && resp.secondary_clicked(),
@@ -3707,7 +3718,7 @@ pub(crate) fn toolbar_row(
         rects.push(response.rect);
         toolbar.button(&response, row.bar, row.style, b, p, row.locked);
         if !super::toolbar::ready(&b.command) || !usable {
-            // a saved Legacy Viewer command Aurora does not have yet, or one
+            // a saved Legacy Viewer command Block does not have yet, or one
             // with nothing to do now
             continue;
         }
@@ -4588,7 +4599,7 @@ mod tests {
         for cmd in ["statistics", "picks", "defaultchatbar", "webbrowser"] {
             assert!(super::super::toolbar::ready(cmd), "{cmd}");
         }
-        // Statistics is Aurora's Performance window: both buttons light
+        // Statistics is Block's Performance window: both buttons light
         panels.perf = false;
         run_command(&ctx, "statistics", &mut panels);
         assert!(panels.perf);

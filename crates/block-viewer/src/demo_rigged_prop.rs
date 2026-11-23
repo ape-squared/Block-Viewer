@@ -1,4 +1,4 @@
-//! AURORA_DEMO_RIGGED_PROP: a chain made as a rigged mesh, uploaded the
+//! BLOCK_DEMO_RIGGED_PROP: a chain made as a rigged mesh, uploaded the
 //! usual way (its vertices normalized, the bind shape putting them back on
 //! the skeleton), rezzed on a cube in front of the start position, and the
 //! same mesh worn by our avatar. The rezzed one is a static mesh filling its
@@ -21,7 +21,7 @@ const AROUND: usize = 16;
 const TUBE: usize = 6;
 
 pub fn enabled() -> bool {
-    std::env::var_os("AURORA_DEMO_RIGGED_PROP").is_some()
+    std::env::var_os("BLOCK_DEMO_RIGGED_PROP").is_some()
 }
 
 /// The chain where the uploader had it: hanging down the back of the

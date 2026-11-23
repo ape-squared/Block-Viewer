@@ -1,9 +1,9 @@
 """Blender editing to Block Viewer's animated avatar, without uploading assets."""
 
 bl_info = {
-    "name": "Aurora LiveMesh", "author": "Block Viewer contributors",
+    "name": "Block LiveMesh", "author": "Block Viewer contributors",
     "version": (0, 14, 10), "blender": (2, 93, 0),
-    "location": "View3D > Sidebar > Aurora", "category": "3D View",
+    "location": "View3D > Sidebar > Block", "category": "3D View",
     "description": "Preview rigged and static mesh edits live in Block Viewer",
 }
 
@@ -92,9 +92,9 @@ def _load_pre(_unused):
 @persistent
 def _refresh_handles(_unused=None):
     for scene in bpy.data.scenes:
-        if not any(entry.marked for entry in scene.aurora_live.objects):
-            scene.aurora_live.object_index = -1
-        for entry in scene.aurora_live.objects:
+        if not any(entry.marked for entry in scene.block_live.objects):
+            scene.block_live.object_index = -1
+        for entry in scene.block_live.objects:
             lods.initialize(entry)
     for obj in list(bpy.data.objects):
         if obj.type == "ARMATURE":
@@ -151,7 +151,7 @@ def _redraw_status(context=None):
         status = _client.state()[0] if _client else ""
     except Exception:
         status = ""
-    prefs = getattr(context.scene, "aurora_live", None)
+    prefs = getattr(context.scene, "block_live", None)
     signature = (status, _error, _revision,
                  tuple((entry.source_id, entry.name, entry.enabled, entry.error) for entry in prefs.objects) if prefs else ())
     if signature == _display_signature:
@@ -200,7 +200,7 @@ def _update():
     if _incoming_shape is not None:
         identity = _incoming_shape.get("id", "") if isinstance(_incoming_shape, dict) else ""
         try:
-            if bpy.ops.aurora.receive_shape("EXEC_DEFAULT", True) != {"FINISHED"}:
+            if bpy.ops.block.receive_shape("EXEC_DEFAULT", True) != {"FINISHED"}:
                 raise ValueError("Shape import was cancelled")
             _client.shape_result(identity)
             _request_capture()
@@ -210,7 +210,7 @@ def _update():
             _incoming_shape = None
     tracking.prune(scene)
     objects = tracking.active(scene)
-    prefs = scene.aurora_live
+    prefs = scene.block_live
     # Polling also sees Undo/Redo, scene switches and names changed while idle.
     membership = (scene.as_pointer(), scene.unit_settings.scale_length, prefs.forward,
                   tuple((obj.as_pointer(), obj.name) for obj in objects), tracking.signature(scene))
@@ -318,8 +318,8 @@ def _weights_changed(context, objects):
         _request_capture()
 
 
-class AURORA_OT_receive_shape(bpy.types.Operator):
-    bl_idname = "aurora.receive_shape"
+class BLOCK_OT_receive_shape(bpy.types.Operator):
+    bl_idname = "block.receive_shape"
     bl_label = "Receive avatar shape"
     bl_options = {"REGISTER", "UNDO", "INTERNAL"}
 
@@ -334,9 +334,9 @@ class AURORA_OT_receive_shape(bpy.types.Operator):
         return {"FINISHED"}
 
 
-class AURORA_PG_live(bpy.types.PropertyGroup):
+class BLOCK_PG_live(bpy.types.PropertyGroup):
     show_lods: BoolProperty(name="Import / LOD", default=False)
-    objects: CollectionProperty(type=tracking.AURORA_PG_sync_object)
+    objects: CollectionProperty(type=tracking.BLOCK_PG_sync_object)
     object_index: IntProperty(default=-1, min=-1, options={"SKIP_SAVE"})
     selection_anchor: StringProperty(default="", options={"SKIP_SAVE"})
     rig: PointerProperty(name="Avatar rig", type=bpy.types.Object, poll=lambda _self, obj: obj.type == "ARMATURE")
@@ -364,8 +364,8 @@ class AURORA_PG_live(bpy.types.PropertyGroup):
     ], default="AUTO", update=_settings_changed)
 
 
-class AURORA_OT_starter(bpy.types.Operator):
-    bl_idname = "aurora.create_sl_rig"
+class BLOCK_OT_starter(bpy.types.Operator):
+    bl_idname = "block.create_sl_rig"
     bl_label = "Create SL avatar rig"
     bl_description = "Create the complete Bento and Fitted Mesh skeleton at the 3D cursor"
     bl_options = {"REGISTER", "UNDO"}
@@ -378,8 +378,8 @@ class AURORA_OT_starter(bpy.types.Operator):
 
     def execute(self, context):
         try:
-            _rig, shirt = starter.create(context, self.with_tshirt, context.scene.aurora_live.forward)
-            context.scene.aurora_live.rig = _rig
+            _rig, shirt = starter.create(context, self.with_tshirt, context.scene.block_live.forward)
+            context.scene.block_live.rig = _rig
         except (ValueError, RuntimeError, OSError) as error:
             self.report({"ERROR"}, str(error))
             return {"CANCELLED"}
@@ -389,25 +389,25 @@ class AURORA_OT_starter(bpy.types.Operator):
         return {"FINISHED"}
 
 
-class AURORA_OT_connect(bpy.types.Operator):
-    bl_idname = "aurora.live_connect"
+class BLOCK_OT_connect(bpy.types.Operator):
+    bl_idname = "block.live_connect"
     bl_label = "Connect to Block Viewer"
 
     def execute(self, context):
         global _client, _force_capture
         tracking.prune(context.scene)
-        if not context.scene.aurora_live.objects:
+        if not context.scene.block_live.objects:
             tracking.add(context.scene, _selected(), context.view_layer.objects.active)
         _stop()
         _request_capture()
         _force_capture = True
-        _client = Client(context.scene.aurora_live.port)
+        _client = Client(context.scene.block_live.port)
         bpy.app.timers.register(_tick, first_interval=0.1)
         return {"FINISHED"}
 
 
-class AURORA_OT_weights(bpy.types.Operator):
-    bl_idname = "aurora.auto_weights"
+class BLOCK_OT_weights(bpy.types.Operator):
+    bl_idname = "block.auto_weights"
     bl_label = "Recalculate automatic weights"
     bl_description = "Replace bone weights using Blender's automatic heat solver; Undo restores the previous rig"
     bl_options = {"REGISTER", "UNDO"}
@@ -418,7 +418,7 @@ class AURORA_OT_weights(bpy.types.Operator):
 
     def execute(self, context):
         selected = _selected()
-        prefs = context.scene.aurora_live
+        prefs = context.scene.block_live
         try:
             weights.rebind(context, selected, prefs.rig, prefs.weight_scope)
         except (ValueError, RuntimeError) as error:
@@ -431,8 +431,8 @@ class AURORA_OT_weights(bpy.types.Operator):
         return {"FINISHED"}
 
 
-class AURORA_OT_disconnect(bpy.types.Operator):
-    bl_idname = "aurora.live_disconnect"
+class BLOCK_OT_disconnect(bpy.types.Operator):
+    bl_idname = "block.live_disconnect"
     bl_label = "Disconnect"
 
     def execute(self, _context):
@@ -440,8 +440,8 @@ class AURORA_OT_disconnect(bpy.types.Operator):
         return {"FINISHED"}
 
 
-class AURORA_OT_refresh(bpy.types.Operator):
-    bl_idname = "aurora.live_refresh"
+class BLOCK_OT_refresh(bpy.types.Operator):
+    bl_idname = "block.live_refresh"
     bl_label = "Update now"
     bl_description = "Send the latest enabled objects and materials immediately, even in manual mode"
 
@@ -458,9 +458,9 @@ class AURORA_OT_refresh(bpy.types.Operator):
         return {"FINISHED"}
 
 
-class AURORA_PT_live(bpy.types.Panel):
+class BLOCK_PT_live(bpy.types.Panel):
     bl_label = "Block"
-    bl_idname = "AURORA_PT_live"
+    bl_idname = "BLOCK_PT_live"
     bl_space_type = "VIEW_3D"
     bl_region_type = "UI"
     bl_category = "Block"
@@ -471,20 +471,20 @@ class AURORA_PT_live(bpy.types.Panel):
             row = layout.row(align=True)
             row.scale_y = 1.15
             for value in values:
-                row.prop_enum(context.window_manager, "aurora_live_tab", value)
+                row.prop_enum(context.window_manager, "block_live_tab", value)
         if tools_ui.tab(context) != "LIVE":
             layout.label(text="Avatar rig", icon="ARMATURE_DATA")
-            layout.prop(context.scene.aurora_live, "rig", text="")
+            layout.prop(context.scene.block_live, "rig", text="")
         layout.separator(factor=0.5)
         current = tools_ui.tab(context)
         if current == "LIVE":
             _draw_live(layout, context)
-            settings = tools_ui.foldout(layout, context.window_manager, "aurora_live_show_connection", "Connection settings")
+            settings = tools_ui.foldout(layout, context.window_manager, "block_live_show_connection", "Connection settings")
             if settings:
                 _draw_connection(settings, context)
         elif current == "RIG":
             tools_ui.draw_rig(layout, context)
-            starter_box = tools_ui.foldout(layout, context.window_manager, "aurora_live_show_starter", "Create an SL avatar")
+            starter_box = tools_ui.foldout(layout, context.window_manager, "block_live_show_starter", "Create an SL avatar")
             if starter_box:
                 _draw_starter(starter_box, context)
         elif current == "IK":
@@ -498,32 +498,32 @@ class AURORA_PT_live(bpy.types.Panel):
 
 
 def _draw_live(layout, context):
-    prefs = context.scene.aurora_live
+    prefs = context.scene.block_live
     if _client:
         status, _supported = _client.state()
         row = layout.row(align=True)
         row.label(text=pgettext_iface(status), translate=False)
         if _error and not any(entry.error for entry in prefs.objects):
             row.operator_context = "INVOKE_DEFAULT"
-            row.operator("aurora.live_error", text="", icon="ERROR").message = _error
-        layout.operator("aurora.live_disconnect", icon="UNLINKED")
+            row.operator("block.live_error", text="", icon="ERROR").message = _error
+        layout.operator("block.live_disconnect", icon="UNLINKED")
     else:
-        layout.operator("aurora.live_connect", icon="LINKED")
+        layout.operator("block.live_connect", icon="LINKED")
     box = layout.box()
     box.prop(prefs, "auto_update")
     row = box.row()
     row.enabled = prefs.auto_update
     row.prop(prefs, "interval")
     box.label(text="Only changed content is sent." if prefs.auto_update else "Manual updates only.", icon="INFO")
-    box.operator("aurora.live_refresh", icon="FILE_REFRESH")
+    box.operator("block.live_refresh", icon="FILE_REFRESH")
     layout.label(text="Synchronized objects", icon="OUTLINER_OB_MESH")
-    layout.operator("aurora.live_selection", icon="ADD")
+    layout.operator("block.live_selection", icon="ADD")
     if prefs.objects:
-        layout.template_list("AURORA_UL_sync_objects", "", prefs, "objects", prefs, "object_index", rows=4, maxrows=8)
+        layout.template_list("BLOCK_UL_sync_objects", "", prefs, "objects", prefs, "object_index", rows=4, maxrows=8)
         row = layout.row(align=True)
-        row.operator("aurora.live_group", icon="LINKED")
-        row.operator("aurora.live_ungroup", icon="UNLINKED")
-        layout.operator("aurora.live_root", icon="OBJECT_ORIGIN")
+        row.operator("block.live_group", icon="LINKED")
+        row.operator("block.live_ungroup", icon="UNLINKED")
+        layout.operator("block.live_root", icon="OBJECT_ORIGIN")
         layout.label(text=pgettext_iface("{selected} selected · {enabled}/{total} enabled").format(
             selected=sum(entry.marked for entry in prefs.objects),
             enabled=len(tracking.active(context.scene)), total=len(prefs.objects)), translate=False)
@@ -535,7 +535,7 @@ def _draw_live(layout, context):
 
 
 def _draw_connection(layout, context):
-    prefs = context.scene.aurora_live
+    prefs = context.scene.block_live
     row = layout.row()
     row.enabled = _client is None
     row.prop(prefs, "port")
@@ -543,15 +543,15 @@ def _draw_connection(layout, context):
 
 
 def _draw_starter(layout, context):
-    prefs = context.scene.aurora_live
+    prefs = context.scene.block_live
     layout.prop(prefs, "starter_tshirt")
     layout.prop(prefs, "forward")
-    layout.operator("aurora.create_sl_rig", icon="ADD").with_tshirt = prefs.starter_tshirt
+    layout.operator("block.create_sl_rig", icon="ADD").with_tshirt = prefs.starter_tshirt
     if context.mode != "OBJECT":
         layout.label(text="Switch to Object Mode to create a rig.", icon="INFO")
 
-_classes = lods.CLASSES + tracking.CLASSES + (AURORA_PG_live, AURORA_OT_receive_shape, AURORA_OT_starter, AURORA_OT_weights, AURORA_OT_connect,
-                             AURORA_OT_disconnect, AURORA_OT_refresh, AURORA_PT_live) + tools_ui.CLASSES
+_classes = lods.CLASSES + tracking.CLASSES + (BLOCK_PG_live, BLOCK_OT_receive_shape, BLOCK_OT_starter, BLOCK_OT_weights, BLOCK_OT_connect,
+                             BLOCK_OT_disconnect, BLOCK_OT_refresh, BLOCK_PT_live) + tools_ui.CLASSES
 
 _translations = {"fr_FR": {(context, key): value for context in ("*", "Operator") for key, value in {
     "Synchronization error": "Erreur de synchronisation",
@@ -797,13 +797,13 @@ def register():
     bpy.app.translations.register(__name__, _translations)
     for cls in _classes:
         bpy.utils.register_class(cls)
-    bpy.types.Scene.aurora_live = PointerProperty(type=AURORA_PG_live)
-    bpy.types.Object.aurora_live_ik_handle_size = FloatProperty(name="Handle size", default=1, min=0.4, max=3,
+    bpy.types.Scene.block_live = PointerProperty(type=BLOCK_PG_live)
+    bpy.types.Object.block_live_ik_handle_size = FloatProperty(name="Handle size", default=1, min=0.4, max=3,
                                                               update=_handle_size_changed)
-    bpy.types.WindowManager.aurora_live_tab = EnumProperty(name="Section", items=tools_ui.TABS, default="LIVE", options={"SKIP_SAVE"})
-    bpy.types.WindowManager.aurora_live_show_connection = BoolProperty(default=False, options={"SKIP_SAVE"})
-    bpy.types.WindowManager.aurora_live_show_starter = BoolProperty(default=False, options={"SKIP_SAVE"})
-    bpy.types.WindowManager.aurora_live_show_advanced_bones = BoolProperty(default=False, options={"SKIP_SAVE"})
+    bpy.types.WindowManager.block_live_tab = EnumProperty(name="Section", items=tools_ui.TABS, default="LIVE", options={"SKIP_SAVE"})
+    bpy.types.WindowManager.block_live_show_connection = BoolProperty(default=False, options={"SKIP_SAVE"})
+    bpy.types.WindowManager.block_live_show_starter = BoolProperty(default=False, options={"SKIP_SAVE"})
+    bpy.types.WindowManager.block_live_show_advanced_bones = BoolProperty(default=False, options={"SKIP_SAVE"})
     bpy.app.handlers.depsgraph_update_post.append(_changed)
     bpy.app.handlers.load_pre.append(_load_pre)
     bpy.app.handlers.load_post.append(_refresh_handles)
@@ -821,11 +821,11 @@ def unregister():
                                (bpy.app.handlers.load_post, _refresh_handles)):
         if callback in handlers:
             handlers.remove(callback)
-    if hasattr(bpy.types.Scene, "aurora_live"):
-        del bpy.types.Scene.aurora_live
-    if hasattr(bpy.types.Object, "aurora_live_ik_handle_size"):
-        del bpy.types.Object.aurora_live_ik_handle_size
-    for name in ("aurora_live_tab", "aurora_live_show_connection", "aurora_live_show_starter", "aurora_live_show_advanced_bones"):
+    if hasattr(bpy.types.Scene, "block_live"):
+        del bpy.types.Scene.block_live
+    if hasattr(bpy.types.Object, "block_live_ik_handle_size"):
+        del bpy.types.Object.block_live_ik_handle_size
+    for name in ("block_live_tab", "block_live_show_connection", "block_live_show_starter", "block_live_show_advanced_bones"):
         if hasattr(bpy.types.WindowManager, name):
             delattr(bpy.types.WindowManager, name)
     for cls in reversed(_classes):

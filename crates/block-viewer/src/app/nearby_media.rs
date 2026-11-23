@@ -3,7 +3,7 @@
 //! to the media, the camera zoom on a media face, and the button's click
 //! that starts or stops all media (LLStatusBar::onClickMediaToggle).
 //!
-//! `AURORA_DEMO_NEARBY_MEDIA` (docs/TESTING.md): three media screens, two
+//! `BLOCK_DEMO_NEARBY_MEDIA` (docs/TESTING.md): three media screens, two
 //! in the plaza's parcel and one outside it, and the panel pinned open.
 
 use super::*;
@@ -21,13 +21,13 @@ pub(super) struct State {
     demo_frames: u32,
 }
 
-/// `AURORA_DEMO_NEARBY_MEDIA`: `open` (the panel pinned open), `select` (a
+/// `BLOCK_DEMO_NEARBY_MEDIA`: `open` (the panel pinned open), `select` (a
 /// media selected), `outside` (Show: outside this parcel), `zoom` (Zoom on
 /// the nearest screen) and `stop-all` (Stop all), 300 frames after the
 /// panel first showed.
 pub(super) fn demo_mode() -> Option<&'static str> {
     static MODE: std::sync::OnceLock<Option<String>> = std::sync::OnceLock::new();
-    MODE.get_or_init(|| std::env::var("AURORA_DEMO_NEARBY_MEDIA").ok()).as_deref()
+    MODE.get_or_init(|| std::env::var("BLOCK_DEMO_NEARBY_MEDIA").ok()).as_deref()
 }
 
 /// The demo's zoom or Stop all, once the panel has shown that many frames

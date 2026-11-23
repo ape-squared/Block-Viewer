@@ -32,7 +32,7 @@ impl Default for State {
 impl State {
     /// Synthetic input only: no OS pointer movement or user account access.
     pub fn demo_events(&self, frame: u64) -> Vec<egui::Event> {
-        let mode = std::env::var("AURORA_DEMO_LOGIN").unwrap_or_default();
+        let mode = std::env::var("BLOCK_DEMO_LOGIN").unwrap_or_default();
         if self.viewport.is_positive() {
             if mode == "hover" && frame >= 20 {
                 return vec![egui::Event::PointerMoved(self.viewport.left_top() + egui::vec2(120.0, 45.0))];

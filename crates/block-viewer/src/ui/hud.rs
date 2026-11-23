@@ -183,7 +183,7 @@ impl NameTagVisibility {
 
 /// LLVOAvatar::idleUpdateNameTag (indra/newview/llvoavatar.cpp) draws our own
 /// tag on `RenderNameShowSelf && AvatarNameTagMode`: Avatar Name Tags on Off
-/// hides every tag, ours included (#3855). Aurora's mode is Off when neither
+/// hides every tag, ours included (#3855). Block's mode is Off when neither
 /// the friends' nor the other residents' tags show
 /// (`quick_prefs::NameTags::of`); the own tag's switch keeps its value and
 /// applies again once one of them is back on.
@@ -359,7 +359,7 @@ fn plate_content(
     // RLVa @shownames: what tells who stands behind a hidden name goes with
     // it, as in LLVOAvatar::idleUpdateNameTagText (no group title, never a
     // friend) and LGGContactSets::colorize (no relation colour, no set).
-    // Aurora's own picture, staff mark and set appearance follow the rule;
+    // Block's own picture, staff mark and set appearance follow the rule;
     // "Blocked" stays a status, as "(Muted)" does on the Legacy Viewer's tag.
     let named = world.rlva_can_name(id);
     let friend = !own && world.rlva_shown_friend(&id);

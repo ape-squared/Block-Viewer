@@ -493,7 +493,7 @@ fn trace(@builtin(global_invocation_id) id: vec3u) {
         return;
     }
     if u.layer.w > 1.5 {
-        // AURORA_CLOUDS_DEBUG=slice: vertical slices of the density, three
+        // BLOCK_CLOUDS_DEBUG=slice: vertical slices of the density, three
         // bands of the picture (100 px a km, the horizontal axis too, so the
         // aspect of a heap can be measured on the capture); red: density
         // above 0.02, green: above 0.15.
@@ -513,7 +513,7 @@ fn trace(@builtin(global_invocation_id) id: vec3u) {
         return;
     }
     if u.layer.w > 0.5 {
-        // AURORA_CLOUDS_DEBUG=weather: the coverage under the ray's entry
+        // BLOCK_CLOUDS_DEBUG=weather: the coverage under the ray's entry
         // into the layer, as light on the sky
         let d = yup(view_dir(fpx));
         let p = d * (u.layer.x / max(d.y, 0.02));

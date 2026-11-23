@@ -74,14 +74,14 @@ pub struct Look {
 }
 
 /// How the rows of a conversation are drawn, for their grouping and their
-/// heights: the window of tabs (bubbles, Firestorm's lines), or Aurora's
+/// heights: the window of tabs (bubbles, Firestorm's lines), or Block's
 /// workspace with its messages grouped by author (`ui/chat/thread.rs`),
 /// roomy or compact.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
 pub enum Layout {
     #[default]
     Classic,
-    Aurora,
+    Block,
     Compact,
 }
 
@@ -158,7 +158,7 @@ impl Default for Blocked<'_> {
 /// The lines a conversation shows, with the size of the folded run each
 /// one stands for (0: drawn as itself). FSFloaterNearbyChat keeps a
 /// blocked resident's lines in a history of their own, shown in place of
-/// the other with FSShowMutedChatHistory; Aurora keeps them in the one
+/// the other with FSShowMutedChatHistory; Block keeps them in the one
 /// history: left out (hidden), greyed, or folded by runs of consecutive
 /// blocked lines into one row until it is opened. A search never finds
 /// what a fold hides.
@@ -287,7 +287,7 @@ pub fn matches(line: &ChatLine, needle: &str) -> bool {
 
 /// Messages from the same sender within this many seconds share one header.
 const GROUP_SECONDS: u64 = 300;
-/// The same in Aurora's workspace, where an author's messages group over
+/// The same in Block's workspace, where an author's messages group over
 /// seven minutes.
 const WORKSPACE_GROUP_SECONDS: u64 = 420;
 
@@ -299,7 +299,7 @@ pub struct Grouping<'a> {
     layout: Layout,
 }
 
-/// An emote ("/me waves") is said by its sender's name: in Aurora's
+/// An emote ("/me waves") is said by its sender's name: in Block's
 /// workspace it stands alone, with its own head.
 fn is_emote(line: &ChatLine) -> bool {
     line.text.starts_with("/me ") || line.text.starts_with("/me'")
@@ -336,7 +336,7 @@ impl<'a> Grouping<'a> {
         }
         let (gap, emotes_alone) = match self.layout {
             Layout::Classic => (GROUP_SECONDS, false),
-            Layout::Aurora | Layout::Compact => (WORKSPACE_GROUP_SECONDS, true),
+            Layout::Block | Layout::Compact => (WORKSPACE_GROUP_SECONDS, true),
         };
         let emote = emotes_alone && is_emote(line);
         look.header = emote
@@ -718,7 +718,7 @@ impl View {
         // The menu and selection must keep the same owner on every frame.
         let (_, rect) = ui.allocate_space(egui::vec2(width, height));
         let content = ui.interact(rect, ui.scope_id().with("conv_content"), egui::Sense::click_and_drag());
-        // Aurora's workspace keeps a short conversation against the field,
+        // Block's workspace keeps a short conversation against the field,
         // as a chat does: its lines start from the bottom
         let lift = self.paused.as_ref().map_or_else(
             || {
@@ -929,7 +929,7 @@ mod tests {
                 clock,
                 filter: "",
                 find: "line 2",
-                layout: Layout::Aurora,
+                layout: Layout::Block,
                 first_unread: None,
                 blocked: Blocked {
                     mode: crate::settings::BlockedChat::Collapsed,
@@ -1007,7 +1007,7 @@ mod tests {
         assert_eq!(headers, [true, true, false, true]);
     }
 
-    /// Aurora's workspace groups an author's messages within seven
+    /// Block's workspace groups an author's messages within seven
     /// minutes, and an emote stands alone.
     #[test]
     fn the_workspace_groups_by_author_within_seven_minutes() {
@@ -1020,7 +1020,7 @@ mod tests {
         ];
         let today = Slt::of(lines[0].time);
         let looks: Vec<bool> = {
-            let mut g = Grouping::with(today, Layout::Aurora);
+            let mut g = Grouping::with(today, Layout::Block);
             lines.iter().map(|l| g.look(l).header).collect()
         };
         assert_eq!(looks, [true, false, true, true, true]);
@@ -1044,7 +1044,7 @@ mod tests {
         lines[1].kind = ChatKind::Own(ChatType::Shout);
         lines[2].kind = ChatKind::OWN;
         lines[3].kind = ChatKind::OWN;
-        let mut g = Grouping::with(Slt::of(lines[0].time), Layout::Aurora);
+        let mut g = Grouping::with(Slt::of(lines[0].time), Layout::Block);
         let looks: Vec<bool> = lines.iter().map(|l| g.look(l).header).collect();
         assert_eq!(looks, [true, true, true, false]);
     }
@@ -1063,7 +1063,7 @@ mod tests {
                     clock,
                     filter: "",
                     find: "",
-                    layout: Layout::Aurora,
+                    layout: Layout::Block,
                     first_unread,
                     blocked: Blocked::default(),
                 },
@@ -1193,7 +1193,7 @@ mod tests {
                             clock,
                             filter: "",
                             find: "",
-                            layout: Layout::Aurora,
+                            layout: Layout::Block,
                             first_unread: None,
                             blocked: Blocked::default(),
                         };
@@ -1239,7 +1239,7 @@ mod tests {
                             clock,
                             filter: "",
                             find: "",
-                            layout: Layout::Aurora,
+                            layout: Layout::Block,
                             first_unread: None,
                             blocked: Blocked::default(),
                         };

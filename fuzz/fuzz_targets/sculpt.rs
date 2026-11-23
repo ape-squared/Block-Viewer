@@ -1,3 +1,3 @@
 #![no_main]
 
-libfuzzer_sys::fuzz_target!(|data: &[u8]| aurora_fuzz::run("sculpt", data));
+libfuzzer_sys::fuzz_target!(|data: &[u8]| block_fuzz::run("sculpt", data));

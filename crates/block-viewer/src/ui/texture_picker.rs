@@ -690,7 +690,7 @@ impl TexturePicker {
                 &[
                     (block_i18n::tr!("picker-inventory-tab"), true),
                     (block_i18n::tr!("picker-local-tab"), self.allow_local),
-                    (block_i18n::tr!("picker-aurora-tab"), true),
+                    (block_i18n::tr!("picker-block-tab"), true),
                 ],
             );
             if self.source != before_source {
@@ -1178,8 +1178,8 @@ impl TexturePicker {
 fn wearable_demo_input() -> bool {
     static ON: std::sync::OnceLock<bool> = std::sync::OnceLock::new();
     *ON.get_or_init(|| {
-        std::env::var("AURORA_DEMO").as_deref() == Ok("1")
-            && std::env::var("AURORA_DEMO_WEARABLE").is_ok_and(|mode| mode.contains(":picker-"))
+        std::env::var("BLOCK_DEMO").as_deref() == Ok("1")
+            && std::env::var("BLOCK_DEMO_WEARABLE").is_ok_and(|mode| mode.contains(":picker-"))
     })
 }
 
@@ -2453,7 +2453,7 @@ pub(crate) mod tests {
                 let mut world = World::new(std::sync::Arc::new(crate::scene::avatar::AvatarLibrary::load()));
                 world.inventory.root = Uuid::from_u128(1);
                 world.inventory.created_folders(
-                    [(1, 0, "Inventory"), (2, 1, "#Aurora"), (3, 2, "Aurora Library")]
+                    [(1, 0, "Inventory"), (2, 1, "#Block"), (3, 2, "Block Library")]
                         .into_iter()
                         .map(|(id, parent, name)| block_net::inventory::InvFolder {
                             id: Uuid::from_u128(id),
@@ -2521,8 +2521,8 @@ pub(crate) mod tests {
                     world.inventory.created_folders(
                         [
                             (1, 0, "Inventory"),
-                            (2, 1, "#Aurora"),
-                            (3, 2, "Aurora Library"),
+                            (2, 1, "#Block"),
+                            (3, 2, "Block Library"),
                             (4, parent, "Resources"),
                             (5, parent, "Unrelated"),
                             (6, 4, "Nested"),
@@ -2663,7 +2663,7 @@ pub(crate) mod tests {
     }
 
     #[test]
-    fn open_texture_and_material_selectors_follow_live_inventory_sort_in_search_and_aurora() {
+    fn open_texture_and_material_selectors_follow_live_inventory_sort_in_search_and_block() {
         use super::super::inventory::view::{Sort, set_picker_sort};
         for (materials, source) in [false, true]
             .into_iter()
@@ -2676,7 +2676,7 @@ pub(crate) mod tests {
             world.inventory.root = root;
             let parent = if source == 0 { root } else { Uuid::from_u128(3) };
             world.inventory.created_folders(
-                [(1, 0, "Inventory"), (2, 1, "#Aurora"), (3, 2, "Aurora Library")]
+                [(1, 0, "Inventory"), (2, 1, "#Block"), (3, 2, "Block Library")]
                     .into_iter()
                     .map(|(id, parent, name)| block_net::inventory::InvFolder {
                         id: Uuid::from_u128(id),

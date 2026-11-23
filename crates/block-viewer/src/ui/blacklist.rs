@@ -1,7 +1,7 @@
 //! "Asset blacklist": the derendered objects and residents, temporary and
 //! permanent, and the way back for them. Port of FSFloaterAssetBlacklist
 //! (indra/newview/fsfloaterassetblacklist.cpp, floater_fs_asset_blacklist.xml,
-//! menu_fs_asset_blacklist.xml) for the entries Aurora acts on: a filter,
+//! menu_fs_asset_blacklist.xml) for the entries Block acts on: a filter,
 //! the list with its name, region, type, date and permanent columns,
 //! sortable, several rows selected with Ctrl / Shift, "Remove selected"
 //! (also in the rows' right-click menu) and "Clear temporary". Sound Explorer

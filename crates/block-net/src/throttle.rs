@@ -75,20 +75,20 @@ fn total(group: &Group) -> f32 {
 }
 
 /// The most a group is built for: `GROUP_KBPS`'s end, unless
-/// `AURORA_THROTTLE_MAX_KBPS=<n>` (6,000 to 50,000) raises it for a launch,
+/// `BLOCK_THROTTLE_MAX_KBPS=<n>` (6,000 to 50,000) raises it for a launch,
 /// to measure what a simulator sends when asked for more than the Legacy
-/// Viewer ever asks (with `AURORA_BANDWIDTH_KBPS` for the setting).
+/// Viewer ever asks (with `BLOCK_BANDWIDTH_KBPS` for the setting).
 fn group_max() -> f32 {
     static MAX: std::sync::OnceLock<f32> = std::sync::OnceLock::new();
     *MAX.get_or_init(|| {
         let end = *GROUP_KBPS.end();
-        match std::env::var("AURORA_THROTTLE_MAX_KBPS")
+        match std::env::var("BLOCK_THROTTLE_MAX_KBPS")
             .ok()
             .and_then(|v| v.trim().parse::<f32>().ok())
         {
             Some(n) if n.is_finite() => {
                 let n = n.clamp(end, 50_000.0);
-                log::info!("simulator bandwidth: up to {n:.0} kb/s asked (AURORA_THROTTLE_MAX_KBPS)");
+                log::info!("simulator bandwidth: up to {n:.0} kb/s asked (BLOCK_THROTTLE_MAX_KBPS)");
                 n
             }
             _ => end,

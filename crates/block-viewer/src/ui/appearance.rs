@@ -46,8 +46,8 @@ pub struct AppearanceUi {
     pub(crate) json: json::State,
     pub tab: usize,
     pub fill_previews: bool,
-    /// The gallery tab as Aurora's showcase (`showcase.rs`) rather than the
-    /// Legacy Viewer's tiles: the app sets it from Preferences › Aurora.
+    /// The gallery tab as Block's showcase (`showcase.rs`) rather than the
+    /// Legacy Viewer's tiles: the app sets it from Preferences › Block.
     pub showcase: bool,
     pub editing: bool,
     edit_tab: usize,
@@ -264,7 +264,7 @@ impl AppearanceUi {
 
     /// Scrolls the gallery or the list to the current outfit and selects
     /// it, after clearing a filter that hides it; from the worn tab, in the
-    /// gallery. An Aurora addition (#971): the Legacy Viewer only marks the
+    /// gallery. A Block addition (#971): the Legacy Viewer only marks the
     /// current outfit in bold (LLOutfitsList::onHighlightBaseOutfit), which a
     /// wardrobe of thousands of outfits leaves to be scrolled to by hand.
     pub fn locate_current(&mut self, inv: &crate::world::inventory::Inventory) {
@@ -422,7 +422,7 @@ impl AppearanceUi {
         self.outfit_selection.click(outfits[1], &outfits, egui::Modifiers::CTRL, false);
     }
 
-    /// `AURORA_DEMO_APPEARANCE=multi-items|multi-worn`: two items of the
+    /// `BLOCK_DEMO_APPEARANCE=multi-items|multi-worn`: two items of the
     /// second outfit, or two worn items, selected together.
     pub fn demo_item_selection(&mut self, inv: &crate::world::inventory::Inventory, worn: bool) {
         let scope = if worn { WORN_SCOPE } else { Uuid::from_u128(704) };
@@ -783,7 +783,7 @@ fn sensed_row(
     sense: egui::Sense,
     hint: Option<&str>,
 ) -> egui::Response {
-    let (rect, response) = ui.allocate_exact_size(Vec2::new(ui.available_width(), super::inventory::AURORA_ROW_HEIGHT), sense);
+    let (rect, response) = ui.allocate_exact_size(Vec2::new(ui.available_width(), super::inventory::BLOCK_ROW_HEIGHT), sense);
     if selected || response.hovered() {
         ui.painter().rect_filled(
             rect,
@@ -844,7 +844,7 @@ fn sensed_row(
 /// `row` (the dummy items of LLCOFWearables::addClothingTypesDummies).
 fn not_worn_row(ui: &mut egui::Ui, p: &Palette, icon_name: &str, text: &str) {
     let (rect, _) = ui.allocate_exact_size(
-        Vec2::new(ui.available_width(), super::inventory::AURORA_ROW_HEIGHT),
+        Vec2::new(ui.available_width(), super::inventory::BLOCK_ROW_HEIGHT),
         egui::Sense::hover(),
     );
     if let Some(t) = icons::global(icon_name) {
@@ -1086,7 +1086,7 @@ fn gallery(
 
 /// Fit keeps the whole image; Fill crops its UVs around the centre, keeping
 /// its aspect ratio and all geometry inside the frame. This optional crop
-/// is an Aurora extension to LLOutfitGalleryItem::draw (lloutfitgallery.cpp).
+/// is a Block extension to LLOutfitGalleryItem::draw (lloutfitgallery.cpp).
 fn preview_rects(frame: egui::Rect, size: Vec2, fill: bool) -> (egui::Rect, egui::Rect) {
     let scale = frame.size() / size;
     if fill {
@@ -1234,7 +1234,7 @@ fn outfit_list(
                 // The headers take the inventory's row height; their body keeps the
                 // window's own sizes (buttons, labels).
                 let interact = ui.spacing().interact_size.y;
-                ui.spacing_mut().interact_size.y = super::inventory::AURORA_ROW_HEIGHT;
+                ui.spacing_mut().interact_size.y = super::inventory::BLOCK_ROW_HEIGHT;
                 let response = widgets::collapsing_forced(ui, p, ("outfit", id), galley.clone(), default_open, forced, |ui| {
                     ui.spacing_mut().interact_size.y = interact;
                     // The header selects, like the Legacy Viewer's accordion tab
@@ -2242,7 +2242,7 @@ pub fn show(
 }
 
 /// "Save in": the folder of My Outfits that takes the new outfit, offered
-/// once My Outfits has groups. An Aurora addition: the Legacy Viewer saves
+/// once My Outfits has groups. A Block addition: the Legacy Viewer saves
 /// every new outfit at the top of My Outfits (LLAppearanceMgr::makeNewOutfitLinks).
 fn save_in(ui: &mut egui::Ui, inv: &crate::world::inventory::Inventory, st: &mut AppearanceUi) {
     let targets = crate::world::outfit_folders::targets(inv);
@@ -2274,7 +2274,7 @@ fn save_in(ui: &mut egui::Ui, inv: &crate::world::inventory::Inventory, st: &mut
     });
 }
 
-/// `AURORA_DEMO_OUTFITS=<count>,scroll`: from frame 700 the wheel scrolls
+/// `BLOCK_DEMO_OUTFITS=<count>,scroll`: from frame 700 the wheel scrolls
 /// the outfit list or gallery of the default window, down then up every 300
 /// frames, to measure the frames of a scrolled wardrobe.
 pub fn demo_events(frame: u64) -> Vec<egui::Event> {
@@ -2294,7 +2294,7 @@ pub fn demo_events(frame: u64) -> Vec<egui::Event> {
     ]
 }
 
-/// The synthetic drag of `AURORA_DEMO_APPEARANCE=layers-drag|layers-hold`.
+/// The synthetic drag of `BLOCK_DEMO_APPEARANCE=layers-drag|layers-hold`.
 pub fn layer_demo_events(ctx: &egui::Context, frame: u64) -> Vec<egui::Event> {
     layers::demo_events(ctx, frame)
 }
@@ -2331,7 +2331,7 @@ pub fn demo_previews(ctx: &egui::Context, inv: &mut crate::world::inventory::Inv
     }
 }
 
-/// `AURORA_DEMO_APPEARANCE=showcase`: two favorites, and the Cop outfit
+/// `BLOCK_DEMO_APPEARANCE=showcase`: two favorites, and the Cop outfit
 /// picked for the preview.
 pub fn demo_showcase(inv: &mut crate::world::inventory::Inventory, st: &mut AppearanceUi) {
     for id in [703, 744] {

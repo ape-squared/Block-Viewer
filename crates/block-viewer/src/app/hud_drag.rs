@@ -67,7 +67,7 @@ impl App {
     }
 
     /// Projection follows the Legacy Viewer's world view rectangle,
-    /// independently of Aurora's floater movement limits. Mouselook, a
+    /// independently of Block's floater movement limits. Mouselook, a
     /// hidden interface and full-frame photos use the whole window
     /// (LLViewerWindow::updateWorldViewRect, indra/newview/llviewerwindow.cpp).
     pub(super) fn hud_area(&self, size: [u32; 2]) -> Option<[f32; 4]> {
@@ -191,7 +191,7 @@ impl App {
 
     fn demo_hud_drag_binding(&self) -> Option<crate::keybinds::Binding> {
         let slot =
-            usize::from(std::env::var("AURORA_DEMO_HUDS").is_ok_and(|mode| matches!(mode.as_str(), "drag-secondary" | "scale-secondary")));
+            usize::from(std::env::var("BLOCK_DEMO_HUDS").is_ok_and(|mode| matches!(mode.as_str(), "drag-secondary" | "scale-secondary")));
         self.settings.keybinds.get(Action::HudDrag)[slot].clone()
     }
 
@@ -232,10 +232,10 @@ impl App {
     pub(super) fn demo_hud_drag_steps(&mut self) {
         self.demo_hud_view_zoom_steps();
         self.demo_hud_scale_steps();
-        if !self.demo || !std::env::var("AURORA_DEMO_HUDS").is_ok_and(|mode| mode.starts_with("drag")) {
+        if !self.demo || !std::env::var("BLOCK_DEMO_HUDS").is_ok_and(|mode| mode.starts_with("drag")) {
             return;
         }
-        let mode = std::env::var("AURORA_DEMO_HUDS").unwrap_or_default();
+        let mode = std::env::var("BLOCK_DEMO_HUDS").unwrap_or_default();
         if (self.frame_count == 680 && mode.starts_with("drag-lock")) || (self.frame_count == 700 && mode == "drag-lock-unlock") {
             self.on_ctx_action(ui::context::CtxAction::SetHudMoveLock(
                 crate::world::objects::ObjKey {
@@ -314,7 +314,7 @@ impl App {
     }
 
     fn demo_hud_view_zoom_steps(&mut self) {
-        if !self.demo || !std::env::var("AURORA_DEMO_HUDS").is_ok_and(|mode| mode == "edit-scroll") {
+        if !self.demo || !std::env::var("BLOCK_DEMO_HUDS").is_ok_and(|mode| mode == "edit-scroll") {
             return;
         }
         let Some(root) = self.world.objects.index_of_uuid(&crate::demo::hud::object(31, false).full_id) else {
@@ -411,10 +411,10 @@ impl App {
     }
 
     fn demo_hud_scale_steps(&mut self) {
-        if !self.demo || !std::env::var("AURORA_DEMO_HUDS").is_ok_and(|mode| mode.starts_with("scale")) {
+        if !self.demo || !std::env::var("BLOCK_DEMO_HUDS").is_ok_and(|mode| mode.starts_with("scale")) {
             return;
         }
-        let mode = std::env::var("AURORA_DEMO_HUDS").unwrap_or_default();
+        let mode = std::env::var("BLOCK_DEMO_HUDS").unwrap_or_default();
         let root = self.world.objects.index_of_uuid(&crate::demo::hud::object(31, false).full_id);
         if self.frame_count == 720
             && let (Some(root), Some(view)) = (root, self.scene.lists.hud_view)
@@ -583,7 +583,7 @@ fn hud_metadata_commands(world: &mut World, selected: &[usize], now: Instant) ->
 
 /// The standard world_view_rect starts below the 19-unit status/menu strip
 /// (indra/newview/skins/default/xui/en/main_view.xml). Match its physical
-/// pixel rounding in LLViewerWindow::updateWorldViewRect. Aurora's floating
+/// pixel rounding in LLViewerWindow::updateWorldViewRect. Block's floating
 /// bars and floater work area do not change this projection reference.
 fn legacy_hud_view_area(size: [u32; 2], pixels_per_point: f32) -> [f32; 4] {
     let width = size[0].max(1) as f32;
@@ -598,7 +598,7 @@ fn legacy_hud_view_area(size: [u32; 2], pixels_per_point: f32) -> [f32; 4] {
 }
 
 /// Legacy Viewer's wheel factor with winit's opposite scroll sign; same bounds
-/// as Aurora's World > HUDs view zoom controls (never a per-object resize).
+/// as Block's World > HUDs view zoom controls (never a per-object resize).
 fn hud_view_zoom(zoom: f32, steps: f32) -> f32 {
     if !steps.is_finite() {
         return zoom;
@@ -631,7 +631,7 @@ mod tests {
         assert_eq!(view.area, [0.0, 19.0, 2560.0, 1369.0]);
         assert_eq!(view.unit(), 1350.0);
         // The reported HUD's 0.35 x 0.03 base spans 472.5 x 40.5 px,
-        // regardless of Aurora's 1259-pixel floater work-area height.
+        // regardless of Block's 1259-pixel floater work-area height.
         let first = view.pixel(Vec3::new(0.0, 0.175, 0.015));
         let last = view.pixel(Vec3::new(0.0, -0.175, -0.015));
         assert!((last[0] - first[0] - 472.5).abs() < 0.001);

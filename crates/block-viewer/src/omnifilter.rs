@@ -639,7 +639,7 @@ impl Engine {
         let (tx, rx) = std::sync::mpsc::channel();
         self.path = Some(path.clone());
         self.loading = Some(parking_lot::Mutex::new(rx));
-        let spawned = std::thread::Builder::new().name("aurora-omnifilter".into()).spawn(move || {
+        let spawned = std::thread::Builder::new().name("block-omnifilter".into()).spawn(move || {
             // the last session's exit save may still be on its way (saves.rs)
             crate::saves::wait_for(&path, crate::saves::BEFORE_READ);
             let sets = match std::fs::read(&path) {
@@ -806,7 +806,7 @@ impl Saver {
         let (jobs, queue) = crossbeam_channel::unbounded::<(std::path::PathBuf, String)>();
         let (done, answers) = crossbeam_channel::unbounded();
         std::thread::Builder::new()
-            .name("aurora-omnifilter-save".into())
+            .name("block-omnifilter-save".into())
             .spawn(move || {
                 for (path, xml) in queue {
                     let _ = done.send(write(&path, &xml));

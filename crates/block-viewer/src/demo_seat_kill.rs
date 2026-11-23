@@ -1,4 +1,4 @@
-//! AURORA_DEMO_SEAT_KILL=1: a seat deleted under the resident sitting on it
+//! BLOCK_DEMO_SEAT_KILL=1: a seat deleted under the resident sitting on it
 //! (#746, a carry or pose object that dies before the simulator stands its
 //! sitter up). Violet Wolf sits on a cushion at frame 700; the cushion is
 //! killed at 800 and the simulator stands Wolf up at 900. Wolf must stay
@@ -11,7 +11,7 @@ use block_net::objects::ObjectUpdate;
 use glam::{Quat, Vec3};
 
 pub fn on() -> bool {
-    std::env::var("AURORA_DEMO_SEAT_KILL").is_ok_and(|v| v.trim() == "1")
+    std::env::var("BLOCK_DEMO_SEAT_KILL").is_ok_and(|v| v.trim() == "1")
 }
 
 pub const SIT_AT: u64 = 700;

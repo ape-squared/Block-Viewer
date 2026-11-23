@@ -255,7 +255,7 @@ mod tests {
         }
         // Optional fixture for native Blender interoperability tests; synthetic
         // data only, never an account's shape or inventory metadata.
-        if let Some(path) = std::env::var_os("AURORA_TEST_SHAPE_OUTPUT") {
+        if let Some(path) = std::env::var_os("BLOCK_TEST_SHAPE_OUTPUT") {
             std::fs::write(path, serde_json::to_vec(&payload).expect("JSON")).expect("fixture");
         }
         assert!(build(&lib, b"invalid asset", Uuid::nil(), "Test").is_err());

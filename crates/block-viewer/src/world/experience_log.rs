@@ -93,7 +93,7 @@ impl std::fmt::Debug for Writer {
 impl Writer {
     fn start(path: PathBuf) -> Option<Writer> {
         let (sender, changes) = mpsc::unbounded::<Stored>();
-        let worker = std::thread::Builder::new().name("aurora-experience-log".into()).spawn(move || {
+        let worker = std::thread::Builder::new().name("block-experience-log".into()).spawn(move || {
             while let Ok(mut stored) = changes.recv() {
                 // only the latest state matters: wait for a quiet moment
                 let first = Instant::now();
@@ -369,7 +369,7 @@ mod tests {
     }
 
     fn temp() -> (PathBuf, PathBuf) {
-        let dir = std::env::temp_dir().join(format!("aurora-xp-log-{}", Uuid::new_v4()));
+        let dir = std::env::temp_dir().join(format!("block-xp-log-{}", Uuid::new_v4()));
         let path = dir.join(FILE);
         (dir, path)
     }

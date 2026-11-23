@@ -1,7 +1,7 @@
 //! The World filters window (Preferences › Graphics › Image › World
 //! filters): the world's own stack of looks (`snapshot::looks::WorldLook`),
 //! edited with the photo's looks editor and drawn on the 3D view, under the
-//! interface, outside the photo mode and the Director. Aurora's own: the
+//! interface, outside the photo mode and the Director. Block's own: the
 //! Legacy Viewer has filters only in its snapshot window.
 
 use super::looks_editor::{LooksUi, Options, Stack};

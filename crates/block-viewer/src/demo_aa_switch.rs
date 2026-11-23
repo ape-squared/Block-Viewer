@@ -1,14 +1,14 @@
-//! AURORA_DEMO_AA_SWITCH=<frame>:<mode>[,<frame>:<mode>…]: the
+//! BLOCK_DEMO_AA_SWITCH=<frame>:<mode>[,<frame>:<mode>…]: the
 //! anti-aliasing changed at those frames, as Preferences › Graphics would
-//! (modes of `AURORA_AA`: 0 none, 1 FXAA, 2 to 4 MSAA 2x / 4x / 8x, 5 TAA,
+//! (modes of `BLOCK_AA`: 0 none, 1 FXAA, 2 to 4 MSAA 2x / 4x / 8x, 5 TAA,
 //! 6 SMAA, 7 FSR). A change of MSAA samples compiles the scene's pipelines on a
-//! worker (#1746): the frames go on meanwhile, `AURORA_PROFILE` shows no
+//! worker (#1746): the frames go on meanwhile, `BLOCK_PROFILE` shows no
 //! long frame and the log gives `pipelines for <n> sample(s) ready in … ms`.
 
 /// The switches, sorted by frame; empty when the variable is unset or
 /// unreadable (a bad entry is skipped and logged).
 pub fn from_env() -> Vec<(u64, u8)> {
-    std::env::var("AURORA_DEMO_AA_SWITCH").map(|v| parse(&v)).unwrap_or_default()
+    std::env::var("BLOCK_DEMO_AA_SWITCH").map(|v| parse(&v)).unwrap_or_default()
 }
 
 fn parse(v: &str) -> Vec<(u64, u8)> {
@@ -21,7 +21,7 @@ fn parse(v: &str) -> Vec<(u64, u8)> {
                 .split_once(':')
                 .and_then(|(f, m)| Some((f.trim().parse().ok()?, m.trim().parse().ok().filter(|m: &u8| *m <= 7)?)));
             if parsed.is_none() {
-                log::warn!("AURORA_DEMO_AA_SWITCH: `{e}` skipped (expected <frame>:<mode 0-7>)");
+                log::warn!("BLOCK_DEMO_AA_SWITCH: `{e}` skipped (expected <frame>:<mode 0-7>)");
             }
             parsed
         })

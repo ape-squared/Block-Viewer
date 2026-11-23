@@ -1,4 +1,4 @@
-//! "People and objects" of the Aurora About Land (`aurora.rs`): the
+//! "People and objects" of the Block About Land (`block.rs`): the
 //! allowed and banned residents of LLPanelLandAccess and the object owners
 //! of LLPanelLandObjects as rows with a round picture, a status, the time
 //! left and a box to select several. The lists go out as the panels send
@@ -6,7 +6,7 @@
 //! CSV export / import of FS:PP and LLFloaterBanDuration are the classic
 //! window's.
 
-use super::aurora::{Pictures, cards, semibold};
+use super::block::{Pictures, cards, semibold};
 use super::dialogs::Confirm;
 use super::manage::{card_begin, card_end, missing_power};
 use super::{Dialog, LandUi, PickFor, View};
@@ -632,14 +632,14 @@ mod tests {
             most_recent: recent,
         };
         let mut rows = vec![
-            (o(1, 47, 30, false), "Aurora Demo".to_owned()),
-            (o(2, 12, 20, true), "Aurora Builders".to_owned()),
+            (o(1, 47, 30, false), "Block Demo".to_owned()),
+            (o(2, 12, 20, true), "Block Builders".to_owned()),
             (o(3, 2, 10, false), "Orion".to_owned()),
         ];
         sort_owners(&mut rows, DEFAULT_SORT);
         assert_eq!(rows.iter().map(|r| r.0.count).collect::<Vec<_>>(), [47, 12, 2]);
         sort_owners(&mut rows, (1, true));
-        assert_eq!(rows[0].1, "Aurora Builders");
+        assert_eq!(rows[0].1, "Block Builders");
         sort_owners(&mut rows, (3, true));
         assert_eq!(rows[0].1, "Orion");
         assert!(return_selection(Vec::new()).is_none());

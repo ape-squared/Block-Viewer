@@ -2,12 +2,12 @@
 //! region is silent, and "Reconnect" to the same place after a lost link
 //! (ui/link_health.rs). The Legacy Viewer only ever shows "connection lost"
 //! and sends the user back to the login screen with their usual start
-//! location: going back where they were is Aurora's own.
+//! location: going back where they were is Block's own.
 
 use super::{App, Screen};
 use crate::ui::link_health;
 
-/// AURORA_DEMO_LINK: `stall:<frame>:<seconds>` makes the region silent from
+/// BLOCK_DEMO_LINK: `stall:<frame>:<seconds>` makes the region silent from
 /// that frame for that long (the pill and its count), `lost:<frame>` ends the
 /// session on a lost link at that frame (the login screen and "Reconnect").
 #[derive(Debug, Clone, Copy, Default, PartialEq)]
@@ -18,7 +18,7 @@ pub(super) struct LinkHealthDemo {
 
 impl LinkHealthDemo {
     pub(super) fn from_env() -> Option<LinkHealthDemo> {
-        std::env::var("AURORA_DEMO_LINK").ok().and_then(|v| LinkHealthDemo::parse(&v))
+        std::env::var("BLOCK_DEMO_LINK").ok().and_then(|v| LinkHealthDemo::parse(&v))
     }
 
     fn parse(value: &str) -> Option<LinkHealthDemo> {
@@ -83,7 +83,7 @@ impl App {
         self.login_form.reconnect = reconnect;
     }
 
-    /// AURORA_DEMO_LINK's lost link at its frame, at the top of the frame as
+    /// BLOCK_DEMO_LINK's lost link at its frame, at the top of the frame as
     /// a network event is (never from the interface: the frame holds the
     /// window, and the login screen needs it to give the cursor back).
     pub(super) fn demo_link_lost(&mut self) {

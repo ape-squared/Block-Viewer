@@ -89,7 +89,7 @@ fn uri_destinations_restore_on_explicit_open_and_stay_minimized_otherwise() {
                     }
                     Destination::Experience => world.experiences.open_profile(crate::demo::experience::EXPERIENCE),
                     Destination::Pay => pay.open(DEMO_LOUP, false),
-                    Destination::Report => report.begin("Aurora Demo".into(), glam::Vec3::ZERO, String::new()),
+                    Destination::Report => report.begin("Block Demo".into(), glam::Vec3::ZERO, String::new()),
                     Destination::Marketplace => marketplace.open(Some("https://marketplace.secondlife.com/p/example".into())),
                 }
                 let mut draw = || {

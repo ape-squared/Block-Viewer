@@ -7,13 +7,13 @@
 //! follows its own slider alone, not the lower of it and the inactive one,
 //! and the Camera and Movement windows follow the other windows' sliders
 //! (no CameraOpacity). A window's background and control faces fade while
-//! its text and pictures stay solid. The bars' slider is Aurora's own: the
+//! its text and pictures stay solid. The bars' slider is Block's own: the
 //! Legacy Viewer's bars are not translucent. Inactive defaults to 1, against
-//! the Legacy Viewer's 0.95: Aurora's windows are glass already.
+//! the Legacy Viewer's 0.95: Block's windows are glass already.
 //!
 //! The other surfaces over the world have their own: FSMenuBackgroundAlpha
 //! (LLMenuGL::draw), ConsoleBackgroundOpacity (LLConsole::draw, 0.5 there;
-//! here 0.75, what Aurora's chat cards always had), ChatBubbleOpacity
+//! here 0.75, what Block's chat cards always had), ChatBubbleOpacity
 //! (LLHUDNameTag: the name tags too), FSMiniMapOpacity
 //! (LLFloaterMap::getCurrentTransparency), OverridePieColors and
 //! PieMenuOpacity (PieMenu::draw).
@@ -83,10 +83,10 @@ pub fn set(opacity: Opacity) {
     }
 }
 
-/// `AURORA_DEMO_OPACITY=active:1,inactive:0.3,conversations:0.6,bars:0.5,menus:0.8,console:0.3,tags:0.2,minimap:0.4`
+/// `BLOCK_DEMO_OPACITY=active:1,inactive:0.3,conversations:0.6,bars:0.5,menus:0.8,console:0.3,tags:0.2,minimap:0.4`
 /// (demo mode only, any of them over `base`): this run's choice, never saved.
 pub fn demo_override(base: Opacity) -> Opacity {
-    std::env::var("AURORA_DEMO_OPACITY").map_or(base, |raw| parse(&raw, base))
+    std::env::var("BLOCK_DEMO_OPACITY").map_or(base, |raw| parse(&raw, base))
 }
 
 fn parse(raw: &str, mut out: Opacity) -> Opacity {

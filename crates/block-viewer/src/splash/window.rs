@@ -35,15 +35,15 @@ enum Input {
 pub fn run() -> anyhow::Result<()> {
     let event_loop = EventLoop::<Input>::with_user_event().build()?;
     let proxy = event_loop.create_proxy();
-    let demo = std::env::var_os("AURORA_DEMO").is_some();
-    // `AURORA_DEMO_SPLASH=<step>`: that step shown whatever the viewer says
+    let demo = std::env::var_os("BLOCK_DEMO").is_some();
+    // `BLOCK_DEMO_SPLASH=<step>`: that step shown whatever the viewer says
     let forced = demo
-        .then(|| std::env::var("AURORA_DEMO_SPLASH").ok())
+        .then(|| std::env::var("BLOCK_DEMO_SPLASH").ok())
         .flatten()
         .and_then(|s| Step::parse(&s));
-    // `AURORA_DEMO_SPLASH_HOLD=<seconds>`: open at least that long
+    // `BLOCK_DEMO_SPLASH_HOLD=<seconds>`: open at least that long
     let hold = demo
-        .then(|| std::env::var("AURORA_DEMO_SPLASH_HOLD").ok())
+        .then(|| std::env::var("BLOCK_DEMO_SPLASH_HOLD").ok())
         .flatten()
         .and_then(|s| s.trim().parse::<f32>().ok())
         .filter(|s| s.is_finite() && *s > 0.0)
@@ -86,7 +86,7 @@ pub fn run() -> anyhow::Result<()> {
 
 /// Reads the viewer's lines; its end (the viewer gone) closes the splash.
 fn spawn_reader(proxy: EventLoopProxy<Input>) -> std::io::Result<()> {
-    std::thread::Builder::new().name("aurora-splash-input".into()).spawn(move || {
+    std::thread::Builder::new().name("block-splash-input".into()).spawn(move || {
         let stdin = std::io::stdin();
         for line in stdin.lock().lines() {
             let Ok(line) = line else { break };
@@ -110,7 +110,7 @@ struct Splash {
     input: Option<egui_winit::State>,
     /// The card under the content, painted once for a size.
     background: Option<([usize; 2], Vec<u32>)>,
-    /// The last frame, for `AURORA_SPLASH_CAPTURE`.
+    /// The last frame, for `BLOCK_SPLASH_CAPTURE`.
     last_pixels: Vec<u32>,
     logo: Option<egui::TextureHandle>,
     step: Step,
@@ -127,7 +127,7 @@ struct Splash {
 }
 
 impl Splash {
-    /// Closes now, or once `AURORA_DEMO_SPLASH_HOLD` has passed (a held
+    /// Closes now, or once `BLOCK_DEMO_SPLASH_HOLD` has passed (a held
     /// splash shows first, for its capture).
     fn close(&mut self, event_loop: &ActiveEventLoop) {
         self.closing = true;
@@ -138,7 +138,7 @@ impl Splash {
     }
 
     fn capture(&self) {
-        let Some(path) = std::env::var_os("AURORA_SPLASH_CAPTURE") else {
+        let Some(path) = std::env::var_os("BLOCK_SPLASH_CAPTURE") else {
             return;
         };
         let (Some(window), false) = (&self.window, self.last_pixels.is_empty()) else {
@@ -226,7 +226,7 @@ impl Splash {
         }
         self.painter.draw(&mut buffer, dims, &primitives, ppp);
         self.painter.free_textures(&output.textures_delta);
-        if std::env::var_os("AURORA_SPLASH_CAPTURE").is_some() {
+        if std::env::var_os("BLOCK_SPLASH_CAPTURE").is_some() {
             self.last_pixels.clear();
             self.last_pixels.extend_from_slice(&buffer);
         }
@@ -389,7 +389,7 @@ impl ApplicationHandler<Input> for Splash {
     }
 
     fn about_to_wait(&mut self, event_loop: &ActiveEventLoop) {
-        // asked to close and held long enough (`AURORA_DEMO_SPLASH_HOLD`)
+        // asked to close and held long enough (`BLOCK_DEMO_SPLASH_HOLD`)
         let leave = self.closing.then(|| self.opened + self.hold.unwrap_or_default());
         if leave.is_some_and(|t| Instant::now() >= t) && self.shown {
             self.capture();

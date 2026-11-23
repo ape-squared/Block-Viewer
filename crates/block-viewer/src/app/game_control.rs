@@ -9,7 +9,7 @@
 //! originally LGPL 2.1.
 //!
 //! The data goes to the region whatever drives the avatar. The local control
-//! applies only while the Aurora gamepad profile is off: both read the same
+//! applies only while the Block gamepad profile is off: both read the same
 //! gamepads and would move the avatar twice (LL keeps 3D mice and gamepads
 //! apart for the same reason, LLViewerJoystick::is3DConnexionDevice).
 
@@ -64,7 +64,7 @@ pub struct State {
     /// A binding popup of the preferences waits for an input: nothing is
     /// sent and the controller drives nothing (isWaitingForInputChannel).
     pub capturing: bool,
-    /// AURORA_DEMO_GAME_CONTROL has started: its synthetic gamepad reads as
+    /// BLOCK_DEMO_GAME_CONTROL has started: its synthetic gamepad reads as
     /// focused, like the joystick demo's.
     demo_started: bool,
 }
@@ -158,9 +158,9 @@ impl App {
         }
     }
 
-    /// AURORA_DEMO_GAME_CONTROL=<scenario>: from frame 600, a synthetic
+    /// BLOCK_DEMO_GAME_CONTROL=<scenario>: from frame 600, a synthetic
     /// gamepad through the production path (the joystick worker's snapshot),
-    /// the Aurora gamepad profile off and the demo region taking
+    /// the Block gamepad profile off and the demo region taking
     /// GameControlData. `actions`, `device-mappings`, `device-options` and
     /// `server-data` open that tab of Preferences › Game Controls while the
     /// left stick walks; `walk` walks, runs and turns with the sticks;
@@ -170,7 +170,7 @@ impl App {
         if !self.demo || self.frame_count < 600 {
             return;
         }
-        let Ok(scenario) = std::env::var("AURORA_DEMO_GAME_CONTROL") else {
+        let Ok(scenario) = std::env::var("BLOCK_DEMO_GAME_CONTROL") else {
             return;
         };
         if !self.game_control.demo_started {

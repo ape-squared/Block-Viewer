@@ -13,7 +13,7 @@
 //! * [`media::MediaPlugin`]: LLPluginClassMedia (size negotiation, frames,
 //!   events, input, navigation, transport, volume).
 //! * [`process::PluginPaths`]: where SLPlugin and the plugins are found
-//!   (a folder chosen by the user, the viewer's own, else Aurora's pack).
+//!   (a folder chosen by the user, the viewer's own, else Block's pack).
 //! * `stream_volume` (Linux): a web page's volume, on the sound server.
 //!
 //! Derived from indra/llplugin of the Second Life / Firestorm viewer source,

@@ -101,10 +101,10 @@ pub fn built_in(id: &Uuid) -> bool {
         || crate::gestures::builtins::ANIMATIONS.iter().any(|(_, a)| a == id)
 }
 
-/// Demo mode (`AURORA_DEMO`, offline: no grid behind it).
+/// Demo mode (`BLOCK_DEMO`, offline: no grid behind it).
 fn demo_mode() -> bool {
     static DEMO: OnceLock<bool> = OnceLock::new();
-    *DEMO.get_or_init(|| std::env::var_os("AURORA_DEMO").is_some())
+    *DEMO.get_or_init(|| std::env::var_os("BLOCK_DEMO").is_some())
 }
 
 /// The tag of a hidden id: a keyed hash whose key is drawn at each launch.

@@ -13,11 +13,11 @@
 //! (`place_details.rs` draws it). Double-click teleports, after the
 //! TeleportFromLandmark / TeleportToHistoryEntry confirmations.
 //!
-//! Aurora's own look of the window (the default) is `places/aurora.rs`, on
-//! the data of `places/model.rs`; Preferences › Aurora › Places brings these
+//! Block's own look of the window (the default) is `places/block.rs`, on
+//! the data of `places/model.rs`; Preferences › Block › Places brings these
 //! tabs back.
 
-pub mod aurora;
+pub mod block;
 pub(crate) mod drag;
 pub mod model;
 
@@ -42,7 +42,7 @@ pub const TAB_HISTORY: usize = 2;
 /// FT_FAVORITE / FT_LANDMARK folder types.
 const FOLDER_FAVORITES: i32 = 23;
 pub(crate) const FOLDER_LANDMARKS: i32 = 3;
-/// AURORA_DEMO_PLACES and the like: a tab by its name or index (the former
+/// BLOCK_DEMO_PLACES and the like: a tab by its name or index (the former
 /// French names are still accepted).
 pub fn tab_from_name(name: &str) -> Option<usize> {
     match name.trim().to_lowercase().as_str() {
@@ -93,7 +93,7 @@ pub enum PlacesAction {
     /// "Add landmark" (LLLandmarksPanel::onAddAction "add_landmark"): the
     /// Create Landmark window, saving in the selected folder if any.
     CreateLandmark(Option<Uuid>),
-    /// Aurora's look: an inventory change (a star, a folder, notes, a name,
+    /// Block's look: an inventory change (a star, a folder, notes, a name,
     /// a deletion), sent as the inventory window sends its own.
     Edit(block_net::inventory::operations::Mutation),
     /// A favourite was starred: its row is marked as just added.
@@ -102,7 +102,7 @@ pub enum PlacesAction {
     MoveFavorite(Uuid, usize),
     /// "Place profile": the standalone window of FSFloaterPlaceDetails.
     OpenWindow(Source),
-    /// The order of Aurora's lists.
+    /// The order of Block's lists.
     Sort(model::PlacesSort),
     /// The history's time zone (FSTPHistoryTZ).
     HistoryZone(HistoryZone),
@@ -306,13 +306,13 @@ pub struct PlacesUi {
     pub want_landmarks: HashSet<Uuid>,
     /// Inventory folders to fetch.
     pub want_folders: HashSet<Uuid>,
-    /// Map cells (region grid x, y) whose region names Aurora's rows wait for.
+    /// Map cells (region grid x, y) whose region names Block's rows wait for.
     pub want_cells: Vec<(i64, i64)>,
-    /// Parcel snapshots of Aurora's rows on screen without a thumbnail
+    /// Parcel snapshots of Block's rows on screen without a thumbnail
     /// (spot, global point, region id or nil), for `World::place_snapshots`.
     pub want_snapshots: Vec<(crate::world::place_snapshots::Spot, glam::DVec3, Uuid)>,
-    /// Aurora's look.
-    pub aurora: aurora::AuroraState,
+    /// Block's look.
+    pub aurora: block::BlockState,
     /// Inventory changes asked from a menu, sent with the window's actions.
     pending_edits: Vec<block_net::inventory::operations::Mutation>,
     raise: bool,
@@ -323,11 +323,11 @@ pub struct PlacesUi {
     /// The history's time zone, `Settings::tp_history_zone`, set by the app
     /// before each frame.
     pub history_zone: HistoryZone,
-    /// AURORA_DEMO_PLACES=…:utc / :local: that zone for the run, until one
+    /// BLOCK_DEMO_PLACES=…:utc / :local: that zone for the run, until one
     /// is chosen in the menu (not saved).
     pub demo_zone: Option<HistoryZone>,
-    /// AURORA_DEMO_PLACES=…:classic: the Legacy Viewer's tabs for this run,
-    /// whatever Preferences › Aurora › Places says (not saved).
+    /// BLOCK_DEMO_PLACES=…:classic: the Legacy Viewer's tabs for this run,
+    /// whatever Preferences › Block › Places says (not saved).
     pub demo_classic: bool,
 }
 
@@ -347,12 +347,12 @@ impl PlacesUi {
     }
 
     /// The window, when open, shows the teleport history: the History tab
-    /// of the classic look (`classic`) or of Aurora's.
+    /// of the classic look (`classic`) or of Block's.
     pub fn history_shown(&self, classic: bool) -> bool {
         if classic {
             self.tab == TAB_HISTORY
         } else {
-            self.aurora.source == aurora::Source::History
+            self.aurora.source == block::Source::History
         }
     }
 
@@ -362,7 +362,7 @@ impl PlacesUi {
     }
 
     /// A place profile opened from outside the lists (a notecard's landmark,
-    /// the inventory, the map): the window comes to the front and Aurora's
+    /// the inventory, the map): the window comes to the front and Block's
     /// shows that profile (LLFloaterSidePanelContainer::showPanel "places",
     /// indra/newview/fsfloaterplacedetails.cpp). The Legacy tabs show any
     /// open profile on their own and clear the flag.
@@ -378,7 +378,7 @@ impl PlacesUi {
 
     /// `confirm_teleports`: `Settings::confirm_teleports`, off once the box
     /// "Do not show again" of a teleport confirmation was ticked.
-    /// `aurora`: Aurora's look and what it needs, None for the Legacy
+    /// `aurora`: Block's look and what it needs, None for the Legacy
     /// Viewer's tabs.
     pub fn show(
         &mut self,
@@ -387,7 +387,7 @@ impl PlacesUi {
         open: &mut bool,
         by_date: bool,
         confirm_teleports: bool,
-        aurora: Option<&aurora::Env>,
+        aurora: Option<&block::Env>,
     ) -> Vec<PlacesAction> {
         let mut actions = Vec::new();
         self.show_confirm(ctx, c.p, confirm_teleports, &mut actions);
@@ -416,13 +416,13 @@ impl PlacesUi {
                         .layout(egui::Layout::top_down(egui::Align::Min)),
                 );
                 child.set_clip_rect(body.intersect(ui.clip_rect()));
-                self.aurora_body(&mut child, c, env, &mut actions);
+                self.block_body(&mut child, c, env, &mut actions);
                 ui.allocate_rect(body, Sense::hover());
             });
             return actions;
         }
         self.aurora.pending_click = None;
-        // a profile shown here is the Legacy tabs' own: Aurora's must not
+        // a profile shown here is the Legacy tabs' own: Block's must not
         // take it over after a switch of look
         self.aurora.opened = false;
         // panel_places.xml keeps Teleport / Map / Profile side by side, each
@@ -1154,8 +1154,8 @@ impl PlacesUi {
 
     // -------------------------------------------------------------- profile
 
-    /// `aurora`: drawn in Aurora's look (a profile opened from outside its
-    /// lists), which gives the bottom bar Aurora's buttons.
+    /// `aurora`: drawn in Block's look (a profile opened from outside its
+    /// lists), which gives the bottom bar Block's buttons.
     fn profile_view(
         &mut self,
         ui: &mut egui::Ui,
@@ -1433,7 +1433,7 @@ mod tests {
     }
 
     /// A profile opened from outside while the Legacy tabs are shown is
-    /// theirs: switching to Aurora's look later does not open on it.
+    /// theirs: switching to Block's look later does not open on it.
     #[test]
     fn the_legacy_tabs_clear_an_opened_profile() {
         let ctx = egui::Context::default();

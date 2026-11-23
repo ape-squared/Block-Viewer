@@ -62,7 +62,7 @@ pub fn page(cx: &mut Cx, tab: usize) {
                         &field!(show_recent_emojis_legacy),
                     );
                 });
-                // an Aurora addition: favourites first in that row and a
+                // a Block addition: favourites first in that row and a
                 // star tab in the picker, off
                 cx.toggle(
                     tr!("ui-options-favorite-emojis"),
@@ -86,7 +86,7 @@ pub fn page(cx: &mut Cx, tab: usize) {
                         &field!(compact_im_system_lines),
                     );
                 });
-                // FSShowMutedChatHistory (off: Hidden); Folded is Aurora's
+                // FSShowMutedChatHistory (off: Hidden); Folded is Block's
                 // middle way
                 use crate::settings::BlockedChat;
                 cx.combo(
@@ -152,7 +152,7 @@ pub fn page(cx: &mut Cx, tab: usize) {
                     &field!(chat_mention_autocomplete),
                 );
                 // AutohideChatBar (Chat › Typing), off (#1009), and
-                // Aurora's Conversations window only (#2696)
+                // Block's Conversations window only (#2696)
                 use crate::settings::ChatBar;
                 cx.combo(
                     tr!("ui-options-chat-bar"),
@@ -257,7 +257,7 @@ pub fn page(cx: &mut Cx, tab: usize) {
                     tr!("ui-options-flash-unread-hint"),
                     &field!(flash_unread_conversations),
                 );
-                // Aurora's button back to the latest messages (#558); the
+                // Block's button back to the latest messages (#558); the
                 // Legacy Viewer has none
                 cx.toggle(
                     tr!("ui-options-chat-latest-button"),
@@ -490,7 +490,7 @@ fn conversation_rows(cx: &mut Cx) {
 }
 
 /// Our objects' script errors (#1263): in the nearby chat
-/// (ShowScriptErrorsLocation 0, on in Aurora) rather than the Script debug
+/// (ShowScriptErrorsLocation 0, on in Block) rather than the Script debug
 /// window, and also said on a channel of the user's choice (off, not in the
 /// Legacy Viewer; any channel, 0 being the public chat, but DEBUG_CHANNEL).
 fn script_errors(cx: &mut Cx) {
@@ -862,9 +862,9 @@ fn notifications(cx: &mut Cx) {
             tr!("ui-options-toast-friends-online-hint"),
             &field!(toast_friends_online),
         );
-        // where they stand with Aurora's center; the Legacy toasts keep
+        // where they stand with Block's center; the Legacy toasts keep
         // them in their own stack (top right, like its notification channel)
-        let center = cx.s.notifications_style == crate::settings::NotificationsStyle::Aurora;
+        let center = cx.s.notifications_style == crate::settings::NotificationsStyle::Block;
         let off = !cx.s.toast_friends_online;
         cx.subs(off, |cx| {
             let hint = if center {
@@ -894,7 +894,7 @@ fn notifications(cx: &mut Cx) {
             // NotificationTipToastLifeTime (User Interface › 2D Overlay,
             // "Tip Toast life"): the Legacy toasts only
             let hint = if center {
-                tr!("ui-options-toast-friends-seconds-aurora")
+                tr!("ui-options-toast-friends-seconds-block")
             } else {
                 tr!("ui-options-toast-friends-seconds-hint")
             };
@@ -911,7 +911,7 @@ fn notifications(cx: &mut Cx) {
             );
         });
         // ToastGap (User Interface › 2D Overlay, "Gap between Toasts"):
-        // every stack, the Legacy toasts and Aurora's cards and friends'
+        // every stack, the Legacy toasts and Block's cards and friends'
         // toasts alike
         cx.slider_whole(
             tr!("ui-options-toast-gap"),
@@ -1298,7 +1298,7 @@ fn history(cx: &mut Cx) {
                 false
             },
         );
-        // an Aurora addition: the folder of the Legacy Viewer's own layout,
+        // a Block addition: the folder of the Legacy Viewer's own layout,
         // shared with it (`world::chat_log`, `shared`)
         cx.toggle(
             tr!("ui-options-chat-logs-legacy-layout"),

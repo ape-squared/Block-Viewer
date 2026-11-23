@@ -29,7 +29,7 @@ Closes #
 ## Tests
 
 - [ ] `scripts/check.ps1` green (fmt, clippy, tests)
-- [ ] Demo scenarios: <!-- AURORA_DEMO_* variables used -->
+- [ ] Demo scenarios: <!-- BLOCK_DEMO_* variables used -->
 - [ ] Validated by the human before the PR: <!-- date, what was tested, demo or grid; "not applicable" for a PR with no effect on the viewer (docs, CI, scripts) -->
 
 ## Limits and follow-up

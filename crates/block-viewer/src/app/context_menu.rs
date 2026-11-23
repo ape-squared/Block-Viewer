@@ -228,7 +228,7 @@ impl App {
             self.moderation_menu_opened(id);
         }
         self.request_particle_source_names();
-        if self.clicks.scripted() || self.demo && std::env::var_os("AURORA_DEMO_ACTIONS").is_some() {
+        if self.clicks.scripted() || self.demo && std::env::var_os("BLOCK_DEMO_ACTIONS").is_some() {
             log::info!("demo menu: {target:?}");
         }
         let ppp = self.egui_ctx.pixels_per_point().max(0.1);
@@ -569,14 +569,25 @@ impl App {
             }
             CtxAction::DetachAt(_) | CtxAction::DetachAll => {
                 let point = if let CtxAction::DetachAt(point) = act { Some(point) } else { None };
-                let items = self
+                let mut items: Vec<_> = self
                     .world
                     .worn_attachment_points()
                     .into_iter()
                     .filter(|(id, p)| point.is_none_or(|point| point == *p) && self.world.rlva_can_remove(*id, Uuid::nil()))
                     .map(|(id, _)| id)
                     .collect();
-                self.apply_appearance_action(crate::world::appearance::Action::RemoveItems(items));
+                // Temporary attachments have no COF link: as Firestorm's
+                // Detach All, they go too (recover_attachment_removal
+                // ObjectDetaches them), or they stay until relog.
+                for t in self.world.temp_attachments() {
+                    if point.is_none_or(|point| point == t.point) && !items.contains(&t.id) && self.world.rlva_can_remove(t.id, Uuid::nil())
+                    {
+                        items.push(t.id);
+                    }
+                }
+                if !items.is_empty() {
+                    self.apply_appearance_action(crate::world::appearance::Action::RemoveItems(items));
+                }
             }
             CtxAction::CustomizeMenu(menu) => {
                 self.context_menu = Some(*menu.clone());

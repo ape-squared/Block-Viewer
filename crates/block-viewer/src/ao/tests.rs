@@ -593,7 +593,7 @@ fn enhanced_run_keeps_the_selected_ao_course_across_brief_fall_signals() {
 }
 
 #[test]
-fn enhanced_run_without_aurora_ao_broadcasts_the_standard_course_then_releases_it() {
+fn enhanced_run_without_block_ao_broadcasts_the_standard_course_then_releases_it() {
     let now = Instant::now();
     let run = signal(State::Running, now);
     let fall = signal(State::Falling, now);
@@ -692,8 +692,7 @@ fn inventory_round_trip_preserves_firestorm_options_and_originals() {
 #[test]
 fn import_aliases_groups_and_invalid_lines_without_losing_valid_entries() {
     let (inv, _) = fixture();
-    let note =
-        "# comment\n[Stand.1]Aurora Stand A, Aurora Type|Aurora Stand B\n[Walk.N]Aurora Walk\n[Bad]Nope\n[Running]Missing|Aurora Run\n";
+    let note = "# comment\n[Stand.1]Block Stand A, Block Type|Block Stand B\n[Walk.N]Block Walk\n[Bad]Nope\n[Running]Missing|Block Run\n";
     let (set, warnings) = inventory::import(&inv, demo::NOTECARD, note).expect("import");
     assert_eq!(warnings.len(), 2);
     assert!(set.states[&State::Standing].steps[0].group);
@@ -1060,7 +1059,7 @@ fn swim_motor_uses_ao_selection_and_broadcasts_it_without_changing_raw_signals()
 }
 
 #[test]
-fn swimming_requires_all_eight_resolved_lists_in_the_selected_aurora_set() {
+fn swimming_requires_all_eight_resolved_lists_in_the_selected_block_set() {
     let (mut inv, set) = fixture();
     let mut catalog = inventory::Catalog::default();
     catalog.refresh(&mut inv);

@@ -278,22 +278,22 @@ fn volumes(cx: &mut Cx) {
             0.0..=2.0,
             "",
         );
-        // The immersive sound (occlusion, 3D sound, reverb): Aurora's own and
+        // The immersive sound (occlusion, 3D sound, reverb): Block's own and
         // experimental, marked as such.
-        // Aurora's own (scene/sound_occlusion.rs): off, as in the Legacy Viewer
+        // Block's own (scene/sound_occlusion.rs): off, as in the Legacy Viewer
         cx.experimental().toggle(
             tr!("ui-options-sound-occlusion"),
             tr!("ui-options-sound-occlusion-help"),
             &field!(audio.sound_occlusion),
         );
-        // Aurora's own (block-audio/src/hrtf.rs): off pans the sounds
+        // Block's own (block-audio/src/hrtf.rs): off pans the sounds
         // between the ears, as in the Legacy Viewer
         cx.experimental().toggle(
             tr!("ui-options-sound-hrtf"),
             tr!("ui-options-sound-hrtf-help"),
             &field!(audio.sound_hrtf),
         );
-        // Aurora's own (scene/sound_reverb.rs): off plays every world sound
+        // Block's own (scene/sound_reverb.rs): off plays every world sound
         // dry, as the Legacy Viewer
         cx.experimental().toggle(
             tr!("ui-options-sound-reverb"),
@@ -598,5 +598,34 @@ fn voice(cx: &mut Cx) {
         cx.toggle(tr!("voice-show-dot"), "", &field!(audio.voice_visualizer_dot));
         cx.toggle(tr!("voice-show-in-calls"), "", &field!(audio.voice_visualizers_in_calls));
         cx.toggle(tr!("voice-show-conversation"), "", &field!(audio.conversation_voice_indicator));
+    });
+    // Legacy Voice Morphing menu: the chosen effect (empty = none), applied
+    // as a pitch of the microphone (WebRTC voice has no Vivox voice fonts).
+    cx.group(tr!("voice-morphing"), |cx| {
+        cx.row(
+            tr!("voice-morphing-effect"),
+            tr!("voice-morphing-effect-hint"),
+            &field!(audio.voice_morph),
+            |ui, s| {
+                let label = if s.audio.voice_morph.is_empty() {
+                    tr!("voice-morphing-none")
+                } else {
+                    s.audio.voice_morph.as_str()
+                };
+                let mut changed = false;
+                egui::ComboBox::from_id_salt(ui.scope_id().with("voice-morph"))
+                    .width(SLIDER_W + 90.0)
+                    .selected_text(label)
+                    .show_ui(ui, |ui| {
+                        changed |= ui
+                            .selectable_value(&mut s.audio.voice_morph, String::new(), tr!("voice-morphing-none"))
+                            .changed();
+                        for id in ["Warm", "Breathy", "Robot", "Deep"] {
+                            changed |= ui.selectable_value(&mut s.audio.voice_morph, id.to_owned(), id).changed();
+                        }
+                    });
+                changed
+            },
+        );
     });
 }

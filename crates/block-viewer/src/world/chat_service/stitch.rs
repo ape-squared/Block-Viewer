@@ -354,7 +354,7 @@ mod tests {
 
     #[test]
     fn the_family_is_the_undated_file_then_the_months() {
-        let dir = std::env::temp_dir().join(format!("aurora-stitch-{}", Uuid::new_v4()));
+        let dir = std::env::temp_dir().join(format!("block-stitch-{}", Uuid::new_v4()));
         std::fs::create_dir_all(&dir).unwrap();
         for f in [
             "Some One-2026-02.txt",

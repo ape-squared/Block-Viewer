@@ -1,11 +1,11 @@
-//! "People" floater. In Aurora's look (the People mock-up v2) it holds every
+//! "People" floater. In Block's look (the People mock-up v2) it holds every
 //! person: Near you (`nearby.rs`), Friends, Groups, Contact sets, Recent and
 //! Blocked (`friends.rs`, `groups.rs`, `sets.rs`, `recent.rs`,
 //! `blocked.rs`: the tabs of Conversations › Contacts with all their
 //! rights and actions, `ui/contacts.rs` reused), each with the sheet of the
 //! person held or group clicked (`sheet.rs`); `rows.rs` holds what their rows
 //! share. The friends tab is also the Contacts tab of the Conversations
-//! workspace (`friends_pane`). In the Legacy look (Preferences › Aurora,
+//! workspace (`friends_pane`). In the Legacy look (Preferences › Block,
 //! `Settings::classic_people`) Near you is the radar table (`radar.rs`) and
 //! the other tabs keep their simple lists below.
 
@@ -37,7 +37,7 @@ mod sheet;
 pub(crate) mod type_ahead;
 pub use radar::{RadarData, RadarSettings, age_days, radar_name};
 
-/// The tabs (`Panels::people_tab`), in Aurora's order: Near you, Friends,
+/// The tabs (`Panels::people_tab`), in Block's order: Near you, Friends,
 /// Groups, Contact sets, Recent, Blocked. The numbers of the first five are
 /// the ones the rest of the viewer opens People on.
 pub(crate) const TAB_NEARBY: u8 = 0;
@@ -46,7 +46,7 @@ pub(crate) const TAB_GROUPS: u8 = 2;
 pub(crate) const TAB_RECENT: u8 = 3;
 pub(crate) const TAB_BLOCKED: u8 = 4;
 pub(crate) const TAB_SETS: u8 = 5;
-const AURORA_TABS: [u8; 6] = [TAB_NEARBY, TAB_FRIENDS, TAB_GROUPS, TAB_SETS, TAB_RECENT, TAB_BLOCKED];
+const BLOCK_TABS: [u8; 6] = [TAB_NEARBY, TAB_FRIENDS, TAB_GROUPS, TAB_SETS, TAB_RECENT, TAB_BLOCKED];
 
 /// Search every name with a trimmed, lowercase filter, independently of the
 /// row's display preferences. Unlike
@@ -153,7 +153,7 @@ pub(super) enum Ask {
     NewSet,
 }
 
-/// What the tabs of Aurora's look use, gathered.
+/// What the tabs of Block's look use, gathered.
 pub(super) struct Ctx<'a> {
     pub p: &'a Palette,
     pub world: &'a World,
@@ -291,8 +291,8 @@ pub(crate) fn default_pos(work: egui::Rect) -> egui::Pos2 {
 /// picture, a name of some eighteen characters, the height a dozen avatars.
 pub(crate) const DEFAULT_SIZE: Vec2 = Vec2::new(462.0, 420.0);
 
-/// Its size in Aurora's look, the mock-up's: a dozen rich rows.
-pub(crate) const AURORA_SIZE: Vec2 = Vec2::new(520.0, 560.0);
+/// Its size in Block's look, the mock-up's: a dozen rich rows.
+pub(crate) const BLOCK_SIZE: Vec2 = Vec2::new(520.0, 560.0);
 
 #[derive(Default)]
 pub struct PeopleUi {
@@ -310,7 +310,7 @@ pub struct PeopleUi {
     /// The ones already asked for, and the pace of the new ones.
     pics_asked: HashSet<Uuid>,
     pic_budget: super::nameplate::PictureBudget,
-    /// The person whose sheet is open (Aurora's look).
+    /// The person whose sheet is open (Block's look).
     pub sheet: Option<Uuid>,
     /// Leaving the permanent inline detail panel returns to the friend list.
     inline_friends_wide: bool,
@@ -320,7 +320,7 @@ pub struct PeopleUi {
     sheet_grown: f32,
     /// The row whose "…" menu is open: its quick actions stay shown.
     row_menu: Option<Uuid>,
-    /// AURORA_DEMO_PEOPLE=rows: the row shown as under the pointer, its
+    /// BLOCK_DEMO_PEOPLE=rows: the row shown as under the pointer, its
     /// quick actions out (a capture has no pointer).
     pub demo_hover: Option<Uuid>,
     /// The open sheet is a group's (the groups tab).
@@ -349,7 +349,7 @@ pub struct PeopleUi {
 }
 
 impl PeopleUi {
-    /// Open the sheet of `id` in Near you (Aurora's look).
+    /// Open the sheet of `id` in Near you (Block's look).
     pub fn open_sheet(&mut self, id: Uuid) {
         nearby::open_sheet(self, id);
     }
@@ -365,7 +365,7 @@ impl PeopleUi {
         self.sheet_group = true;
     }
 
-    /// Choose rows of a list as with Ctrl (AURORA_DEMO_PEOPLE).
+    /// Choose rows of a list as with Ctrl (BLOCK_DEMO_PEOPLE).
     pub fn select(&mut self, ids: Vec<Uuid>) {
         self.anchor = ids.last().copied();
         self.sel = ids;
@@ -429,7 +429,7 @@ pub fn nearby(world: &World) -> Vec<(Uuid, String, Vec3, f32)> {
     out
 }
 
-/// The contact list's shared dialogs and the group insignias. Aurora's
+/// The contact list's shared dialogs and the group insignias. Block's
 /// rows do not depend on the Legacy table's presentation settings.
 pub struct ContactsParts<'a> {
     pub ui: &'a mut ContactsUi,
@@ -448,7 +448,7 @@ pub fn people_window(
     contacts: ContactsParts,
     // the mini-map renderer (LLNetMap in the Nearby tab)
     map: &mut dyn FnMut(&mut egui::Ui, Vec2),
-    // Aurora's look (`Settings::classic_people` off)
+    // Block's look (`Settings::classic_people` off)
     aurora: bool,
 ) -> Vec<PeopleAction> {
     let mut actions = Vec::new();
@@ -460,7 +460,7 @@ pub fn people_window(
     let mut open = panels.people;
     let help = block_i18n::tr!("ui-people-nearby-avatars-and-friends-list");
     let pos = default_pos(super::layout::work_area(ctx));
-    let size = if aurora { AURORA_SIZE } else { DEFAULT_SIZE };
+    let size = if aurora { BLOCK_SIZE } else { DEFAULT_SIZE };
     // the table has no sheet: back to Firestorm's look, the window gives
     // back the width it took for one
     if !aurora && st.sheet.is_some() {
@@ -474,7 +474,7 @@ pub fn people_window(
     }
     nearby::fit_window(ctx, st);
     // Hold the body in the floater's exact rect so the Legacy radar table
-    // (and Aurora nearby) cannot ratchet the window wider while an edge is
+    // (and Block nearby) cannot ratchet the window wider while an edge is
     // dragged, then refuse to shrink (#3033). Same pattern as Imports.
     let mut floater = Floater::new(WINDOW, block_i18n::tr!("common-people"), pos, size)
         .help(help)
@@ -485,7 +485,7 @@ pub fn people_window(
     }
     floater.show(ctx, p, &mut open, |ui| {
         if aurora {
-            panels.people_tab = aurora_tabs(ui, p, world, radar, panels.people_tab);
+            panels.people_tab = block_tabs(ui, p, world, radar, panels.people_tab);
             let mut c = Ctx {
                 p,
                 world,
@@ -556,7 +556,7 @@ pub fn people_window(
     actions
 }
 
-/// What Conversations › Contacts shows in Aurora's look: the friends tab of
+/// What Conversations › Contacts shows in Block's look: the friends tab of
 /// this window (its list, and the sheet of the friend held), with a
 /// state of its own so that each window keeps its filter, selection and
 /// sheet.
@@ -609,7 +609,7 @@ pub fn friends_pane(ui: &mut egui::Ui, p: &Palette, world: &World, pane: Friends
 /// The six tabs in pills, the open one's count in the accent; a window too
 /// narrow for them all shows those around the open one, the others behind
 /// "…". Returns the tab chosen.
-fn aurora_tabs(ui: &mut egui::Ui, p: &Palette, world: &World, radar: &RadarData, mut tab: u8) -> u8 {
+fn block_tabs(ui: &mut egui::Ui, p: &Palette, world: &World, radar: &RadarData, mut tab: u8) -> u8 {
     let label = |t: u8| match t {
         TAB_NEARBY => block_i18n::tr!("ui-people-near-you"),
         TAB_FRIENDS => block_i18n::tr!("common-friends"),
@@ -639,17 +639,17 @@ fn aurora_tabs(ui: &mut egui::Ui, p: &Palette, world: &World, radar: &RadarData,
     };
     let open = tab;
     let counted = |t: u8| (t == open).then(|| count(t).map(|n| block_i18n::integer(n as i64))).flatten();
-    let widths: Vec<f32> = AURORA_TABS
+    let widths: Vec<f32> = BLOCK_TABS
         .iter()
         .map(|t| pill_tab_width(ui, label(*t), counted(*t).as_deref()))
         .collect();
     let shown = tabs_shown(
         &widths,
-        AURORA_TABS.iter().position(|t| *t == tab).unwrap_or(0),
+        BLOCK_TABS.iter().position(|t| *t == tab).unwrap_or(0),
         ui.available_width(),
         pill_tab_width(ui, "…", None),
     );
-    let hidden: Vec<u8> = AURORA_TABS
+    let hidden: Vec<u8> = BLOCK_TABS
         .iter()
         .enumerate()
         .filter(|(i, _)| !shown.contains(i))
@@ -672,12 +672,12 @@ fn aurora_tabs(ui: &mut egui::Ui, p: &Palette, world: &World, radar: &RadarData,
             more(ui, &mut tab);
         }
         for i in shown.clone() {
-            let t = AURORA_TABS[i];
+            let t = BLOCK_TABS[i];
             if widgets::pill_tab(ui, p, "", label(t), counted(t), true, t == open, true).clicked() {
                 tab = t;
             }
         }
-        if !before && shown.end < AURORA_TABS.len() {
+        if !before && shown.end < BLOCK_TABS.len() {
             more(ui, &mut tab);
         }
     });
@@ -995,7 +995,7 @@ fn groups_tab(ui: &mut egui::Ui, p: &Palette, world: &World, filter: &str, actio
 
 /// A group's name in the Legacy look's groups list, `width` wide: the
 /// active group in semi-bold (LLGroupListItem::setBold) with the "active"
-/// tag of People's Aurora look after it; the name is cut before the tag.
+/// tag of People's Block look after it; the name is cut before the tag.
 fn legacy_group_name(
     ui: &mut egui::Ui,
     p: &Palette,

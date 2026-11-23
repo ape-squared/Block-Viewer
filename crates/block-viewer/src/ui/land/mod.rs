@@ -6,11 +6,11 @@
 //! (isParcelModifiableByAgent with the matching group power). Changes are
 //! sent at once like the panels' onCommitAny (sendParcelPropertiesUpdate,
 //! access list updates...). By default the same panes are laid out by
-//! Aurora (`aurora.rs`): an overview first, then the settings and the lists;
-//! the nine tabs stay in Preferences › Aurora.
+//! Block (`block.rs`): an overview first, then the settings and the lists;
+//! the nine tabs stay in Preferences › Block.
 
 mod access;
-mod aurora;
+mod block;
 mod covenant;
 mod dialogs;
 mod environment;
@@ -30,7 +30,7 @@ mod people;
 mod scripts;
 mod sound;
 
-use aurora::Page;
+use block::Page;
 pub(crate) use dialogs::{pick_row, settings_flags};
 pub(crate) use environment::day_hours;
 pub(crate) use overview::day;
@@ -88,7 +88,7 @@ impl Tab {
         }
     }
 
-    /// Name of the tab for AURORA_DEMO_LAND, whatever the interface language.
+    /// Name of the tab for BLOCK_DEMO_LAND, whatever the interface language.
     fn key(self) -> &'static str {
         match self {
             Tab::General => "general",
@@ -272,7 +272,7 @@ enum PickFor {
 pub struct LandUi {
     /// The classic window's tab.
     tab: Tab,
-    /// The Aurora window's page; on "Manage" the section in view, the one
+    /// The Block window's page; on "Manage" the section in view, the one
     /// to scroll to and the folded parts that are open.
     page: Page,
     manage_nav: crate::ui::sheet::SectionScroll<manage::Section>,
@@ -475,7 +475,7 @@ impl LandUi {
     }
 
     /// Show a tab by its key (`Tab::key`), its label in the interface language
-    /// or its index (demo captures). The Aurora window opens the page that
+    /// or its index (demo captures). The Block window opens the page that
     /// holds it, or a page by its key (`Page::key`).
     pub fn set_tab(&mut self, name: &str) {
         let key = name.trim().to_lowercase();
@@ -563,7 +563,7 @@ impl LandUi {
     /// Show the floater; `open` is the panel flag (the top bar ⓘ, menus),
     /// `region_map` the mini-map's image of the selection's region (the
     /// classic header), `avatars` the profile pictures, `streams` the saved
-    /// music streams. `classic`: Firestorm's nine tabs rather than Aurora's
+    /// music streams. `classic`: Firestorm's nine tabs rather than Block's
     /// pages. True when the streams changed.
     #[allow(clippy::too_many_arguments)]
     pub fn show(
@@ -639,7 +639,7 @@ impl LandUi {
         let (id, size, min_size) = if classic {
             ("about_land", Vec2::new(790.0, 620.0), Vec2::new(740.0, 470.0))
         } else {
-            ("about_land_aurora", aurora::SIZE, aurora::MIN_SIZE)
+            ("about_land_block", block::SIZE, block::MIN_SIZE)
         };
         let mut floater = Floater::new(
             id,
@@ -651,8 +651,8 @@ impl LandUi {
         floater.min_size = min_size;
         floater.show(ctx, p, open, |ui| {
             if !classic {
-                let pics = aurora::Pictures { images, avatars };
-                streams_changed = aurora::show(ui, p, self, &view, world, &pics, streams, has_xp);
+                let pics = block::Pictures { images, avatars };
+                streams_changed = block::show(ui, p, self, &view, world, &pics, streams, has_xp);
                 return;
             }
             let tabs: Vec<Tab> = Tab::ALL.into_iter().filter(|t| *t != Tab::Experiences || has_xp).collect();
@@ -1016,9 +1016,9 @@ fn check(ui: &mut egui::Ui, p: &Palette, enabled: bool, mut value: bool, label: 
     (r, value)
 }
 
-/// "Not available in Aurora yet" for the few Firestorm floaters not ported yet.
+/// "Not available in Block yet" for the few Firestorm floaters not ported yet.
 fn not_yet() -> &'static str {
-    block_i18n::tr!("common-not-available-in-aurora-yet")
+    block_i18n::tr!("common-not-available-in-block-yet")
 }
 
 /// Region type in French (LLViewerRegion::getLocalizedSimProductName).

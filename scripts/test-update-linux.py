@@ -33,7 +33,7 @@ def run(*command, env=None, cwd=None):
 
 def build(version):
     """The viewer at `version`, as a disposable fixture build."""
-    env = os.environ | {"AURORA_UPDATE_TEST_VERSION": f"v{version}"}
+    env = os.environ | {"BLOCK_UPDATE_TEST_VERSION": f"v{version}"}
     run("cargo", "build", "--locked", "-p", "block-viewer", env=env)
 
 
@@ -54,8 +54,8 @@ def package(repo, exe, out, version):
     for name in ("LICENSE", "NOTICE.md", "README.md"):
         shutil.copy2(repo / name, out)
     shutil.copy2(repo / "packaging/linux/block-viewer.desktop", out)
-    shutil.copy2(repo / "assets/branding/aurora-logo.svg", out / "block-viewer.svg")
-    (out / "aurora-install.json").write_text(
+    shutil.copy2(repo / "assets/branding/block-logo.svg", out / "block-viewer.svg")
+    (out / "block-install.json").write_text(
         json.dumps({"schema": 1, "version": version}), encoding="utf-8"
     )
 
@@ -157,9 +157,9 @@ def main():
     feed = root / "feed"
     feed.mkdir(parents=True)
     install = root / "install"
-    folder = f"Aurora-Viewer-v{next_version}-linux-x64"
+    folder = f"Block-Viewer-v{next_version}-linux-x64"
 
-    previous = os.environ.pop("AURORA_UPDATE_TEST_VERSION", None)
+    previous = os.environ.pop("BLOCK_UPDATE_TEST_VERSION", None)
     try:
         build(FIRST)
         package(repo, repo / "target/debug/block-viewer", install, FIRST)
@@ -167,7 +167,7 @@ def main():
         package(repo, repo / "target/debug/block-viewer", feed / folder, next_version)
     finally:
         if previous is not None:
-            os.environ["AURORA_UPDATE_TEST_VERSION"] = previous
+            os.environ["BLOCK_UPDATE_TEST_VERSION"] = previous
     # the ordinary build back at its Git version
     run("cargo", "build", "--locked", "-p", "block-viewer")
 
@@ -184,11 +184,11 @@ def main():
         "cache_invalidation_before": next_version if options.clear_cache else None,
         "settings_reset_before": next_version if options.reset_settings else None,
     }
-    (feed / "aurora-update-policy.json").write_text(json.dumps(policy), encoding="utf-8")
+    (feed / "block-update-policy.json").write_text(json.dumps(policy), encoding="utf-8")
 
     server = serve(str(feed))
     base = f"http://127.0.0.1:{server.server_port}"
-    (root / "aurora-update-test.json").write_text(
+    (root / "block-update-test.json").write_text(
         json.dumps({"schema": 1, "feed": f"{base}/releases.json"}), encoding="utf-8"
     )
     (root / "profile").mkdir()
@@ -229,19 +229,19 @@ def main():
             "assets": [
                 asset(name, archive),
                 asset(f"{name}.sha256", feed / f"{name}.sha256"),
-                asset("aurora-update-policy.json", feed / "aurora-update-policy.json"),
+                asset("block-update-policy.json", feed / "block-update-policy.json"),
             ],
         }
     ]
     (feed / "releases.json").write_text(json.dumps(releases), encoding="utf-8")
     (feed / "release.html").write_text(
         "<!doctype html><meta charset=\"utf-8\"><title>Test release</title>"
-        f"<p>Local test release of Aurora {next_version}.</p>",
+        f"<p>Local test release of Block {next_version}.</p>",
         encoding="utf-8",
     )
 
-    environment = os.environ | {"AURORA_UPDATE_TEST_ROOT": str(root)}
-    environment.pop("AURORA_DEMO", None)
+    environment = os.environ | {"BLOCK_UPDATE_TEST_ROOT": str(root)}
+    environment.pop("BLOCK_DEMO", None)
     arguments = [str(install / EXE), "--title", options.title, "--language", options.language]
     if options.fps_limit is not None:
         arguments += ["--fps-limit", str(options.fps_limit)]

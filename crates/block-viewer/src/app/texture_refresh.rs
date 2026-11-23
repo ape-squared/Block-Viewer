@@ -46,7 +46,7 @@ impl App {
 
     /// Advanced.RebakeTextures (handle_rebake_textures): the server bakes
     /// our outfit again (`World::rebake`) and our bakes are downloaded again
-    /// (FIRE-11800). Its local parts have no counterpart here: Aurora only
+    /// (FIRE-11800). Its local parts have no counterpart here: Block only
     /// knows server bakes (forceBakeAllTextures), and the mesh LOD reset
     /// and the region-crossing flag are not ported.
     pub(super) fn rebake(&mut self) {

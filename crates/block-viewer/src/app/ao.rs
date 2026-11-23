@@ -51,7 +51,7 @@ impl App {
                 Some("folder-names" | "folder-names-wait") => {
                     self.panels.inventory = true;
                     let inv = &self.world.inventory;
-                    let brand = inventory::child(inv, inv.root, "#Aurora");
+                    let brand = crate::world::bridge::brand_folder(inv);
                     let bridge = brand.and_then(|brand| {
                         inventory::child(inv, brand, crate::world::bridge::SUBFOLDER).or_else(|| inventory::child(inv, brand, "Bridge"))
                     });
@@ -279,7 +279,7 @@ impl App {
             .accounts
             .get(&self.world.agent_id)
             .map_or((false, Uuid::nil()), |a| (a.enabled, a.selected));
-        // (with Aurora's movement, the walk or the stop of the keys first)
+        // (with Block's movement, the walk or the stop of the keys first)
         let raw = self.world.own_signals();
         let preview = self
             .demo

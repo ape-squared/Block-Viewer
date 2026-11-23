@@ -132,7 +132,7 @@ pub fn page(cx: &mut Cx) {
             cx,
             tr!("ui-options-commands-maximum-bandwidth"),
             tr!("ui-options-commands-cmd-kbps"),
-            tr!("common-not-available-in-aurora-yet"),
+            tr!("common-not-available-in-block-yet"),
             &field!(chat_commands.bandwidth),
         );
         command(

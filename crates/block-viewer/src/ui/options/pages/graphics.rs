@@ -1,6 +1,6 @@
 //! Preferences › Graphics (panel_preferences_graphics1.xml and its
 //! advanced floater): the level of the whole, then quality, light, the sky,
-//! reflections and Aurora's water, the image (anti-aliasing, tone mapping,
+//! reflections and Block's water, the image (anti-aliasing, tone mapping,
 //! depth of field), smoothness and parcel visibility.
 
 use super::super::cx::{Custom, Cx, Nothing, field};
@@ -18,7 +18,6 @@ pub fn page(cx: &mut Cx, tab: usize) {
         5 => {
             frames_per_second(cx);
             graphics_card(cx);
-            overlays(cx);
         }
         6 => parcels(cx),
         _ => {}
@@ -77,7 +76,7 @@ fn environment(cx: &mut Cx) {
             let legacy = cx.s.night_sky != NightSky::Real;
             cx.subs(legacy, night_sky_rows);
         }
-        // an Aurora difference, also listed in Preferences › Aurora
+        // a Block difference, also listed in Preferences › Block
         cx.experimental().toggle(
             tr!("ui-options-colored-sky-ambient"),
             tr!("ui-options-colored-sky-ambient-help"),
@@ -100,7 +99,7 @@ fn environment(cx: &mut Cx) {
 
 /// The GPU the viewer draws with (#894): automatic (discrete first) or one
 /// by name; the renderer opens it at startup, so the choice applies at the
-/// next start. `AURORA_GPU` overrides it.
+/// next start. `BLOCK_GPU` overrides it.
 /// The real sky's rows (world/night_sky.rs): what sets its hour (first: it
 /// decides whether the longitude below counts), where it is seen from, its
 /// latitude and longitude (set by a preset, typed for Custom; moving one
@@ -195,21 +194,6 @@ fn graphics_card(cx: &mut Cx) {
                 )
                 .0
             },
-        );
-    });
-}
-
-/// Other programs' overlays (OBS's game capture, Steam, RivaTuner, Epic…): their Vulkan layers
-/// are kept out at startup unless allowed (`block_render::vulkan_layers`),
-/// so the choice applies at the next start. `AURORA_VULKAN_LAYERS=keep`
-/// loads them all.
-fn overlays(cx: &mut Cx) {
-    use block_i18n::tr;
-    cx.group(tr!("ui-options-overlays"), |cx| {
-        cx.toggle(
-            tr!("ui-options-allow-overlays"),
-            tr!("ui-options-allow-overlays-help"),
-            &field!(allow_overlays),
         );
     });
 }
@@ -863,8 +847,8 @@ fn reflections_and_water(cx: &mut Cx) {
             },
         );
     });
-    // Aurora's own water effects, experimental and off by default
-    cx.group(tr!("ui-options-aurora-water"), |cx| {
+    // Block's own water effects, experimental and off by default
+    cx.group(tr!("ui-options-block-water"), |cx| {
         cx.experimental().toggle(
             tr!("water-effects-enabled"),
             tr!("water-effects-help"),
@@ -1048,7 +1032,7 @@ fn image(cx: &mut Cx) {
 }
 
 /// The world's own filters (`snapshot::looks::WorldLook`): switched on here,
-/// chosen in their window (`ui/world_look.rs`). Aurora's own.
+/// chosen in their window (`ui/world_look.rs`). Block's own.
 fn world_look(cx: &mut Cx) {
     use block_i18n::tr;
     cx.group(tr!("ui-options-world-look"), |cx| {

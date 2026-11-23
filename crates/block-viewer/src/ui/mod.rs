@@ -6,7 +6,6 @@ pub mod ao;
 pub mod appearance;
 pub mod area_search;
 pub mod audio;
-pub mod aurora_bg;
 pub mod avatar_align;
 pub mod avatar_marks;
 pub mod avatar_picker;
@@ -284,7 +283,7 @@ pub struct Panels {
     pub stream_title: bool,
     pub stream_title_history: bool,
     /// The Controls window on its Camera tab (Firestorm's camera window
-    /// with Preferences › Aurora), and on its Movement tab (the movement
+    /// with Preferences › Block), and on its Movement tab (the movement
     /// window).
     pub camera_controls: bool,
     pub movement_controls: bool,

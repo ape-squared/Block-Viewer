@@ -1,6 +1,6 @@
 //! The Director's offline render: the track filmed not in real time, one
 //! frame after another, each drawn whole at the film's own size, whatever
-//! the window's. Aurora's own (the Legacy Viewer records no film).
+//! the window's. Block's own (the Legacy Viewer records no film).
 //!
 //! A live film (`recorder.rs`) keeps the clock: a frame the viewer drew late
 //! is written twice. A render keeps the track: frame `n` shows the track at
@@ -132,10 +132,10 @@ pub fn free_folder(parent: &Path, stamp: &str) -> PathBuf {
     (0u32..)
         .map(|n| {
             let suffix = if n == 0 { String::new() } else { format!("_{n}") };
-            parent.join(format!("Aurora_{stamp}{suffix}"))
+            parent.join(format!("Block_{stamp}{suffix}"))
         })
         .find(|path| !path.exists())
-        .unwrap_or_else(|| parent.join(format!("Aurora_{stamp}")))
+        .unwrap_or_else(|| parent.join(format!("Block_{stamp}")))
 }
 
 /// Seconds left to render `count - done` frames, at the pace of the `done`
@@ -533,12 +533,12 @@ mod tests {
 
     #[test]
     fn the_images_sort_in_order_in_a_folder_of_their_own() {
-        assert_eq!(png_name("Aurora", 7, 61), "Aurora_00007.png");
-        assert_eq!(png_name("Aurora", 123_456, 200_000), "Aurora_123456.png");
+        assert_eq!(png_name("Block", 7, 61), "Block_00007.png");
+        assert_eq!(png_name("Block", 123_456, 200_000), "Block_123456.png");
         let root = std::env::temp_dir().join(format!("block-render-folder-{}", std::process::id()));
-        let _ = std::fs::create_dir_all(root.join("Aurora_x"));
-        assert_eq!(free_folder(&root, "x"), root.join("Aurora_x_1"));
-        assert_eq!(free_folder(&root, "y"), root.join("Aurora_y"));
+        let _ = std::fs::create_dir_all(root.join("Block_x"));
+        assert_eq!(free_folder(&root, "x"), root.join("Block_x_1"));
+        assert_eq!(free_folder(&root, "y"), root.join("Block_y"));
         let _ = std::fs::remove_dir_all(&root);
         assert_eq!(time_left(0, 100, Duration::from_secs(5)), None);
         assert_eq!(time_left(10, 100, Duration::from_secs(5)), Some(45.0));

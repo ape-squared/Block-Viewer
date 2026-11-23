@@ -137,7 +137,7 @@ pub fn show(ctx: &egui::Context, p: &Palette, world: &World, shown: &mut Option<
                 close = true;
             }
             if !o.owner.is_nil() && o.owner != world.agent_id {
-                // Aurora's own button: greyed for an owner whose name is
+                // Block's own button: greyed for an owner whose name is
                 // hidden, as the avatar menu's Block is (enable_object_mute,
                 // llviewermenu.cpp)
                 let enabled = world.object_owner_block(o.owner, o.group_owned).is_some() && hidden_owner(world, &o).is_none();

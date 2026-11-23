@@ -22,7 +22,7 @@
 //! waits instead, between two requests, and it spaces the frames out while
 //! the cursor moves ([`pause`]).
 //!
-//! `AURORA_WINDOW_HOLD=0` turns it off, to compare.
+//! `BLOCK_WINDOW_HOLD=0` turns it off, to compare.
 
 use std::time::Duration;
 
@@ -70,7 +70,7 @@ pub fn paces(period: Option<Duration>) -> bool {
 /// the thread that created it.
 pub fn install(window: &Window) {
     #[cfg(windows)]
-    if std::env::var("AURORA_WINDOW_HOLD").as_deref() != Ok("0") {
+    if std::env::var("BLOCK_WINDOW_HOLD").as_deref() != Ok("0") {
         imp::install(window);
     }
     #[cfg(not(windows))]

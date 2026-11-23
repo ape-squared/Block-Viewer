@@ -34,7 +34,7 @@ pub struct TestEnvironment {
 pub fn test_environment() -> Option<&'static TestEnvironment> {
     static TEST: std::sync::OnceLock<Option<TestEnvironment>> = std::sync::OnceLock::new();
     TEST.get_or_init(|| {
-        let root = std::path::PathBuf::from(std::env::var_os("AURORA_UPDATE_TEST_ROOT")?);
+        let root = std::path::PathBuf::from(std::env::var_os("BLOCK_UPDATE_TEST_ROOT")?);
         if !root.is_absolute() {
             return None;
         }
@@ -43,7 +43,7 @@ pub fn test_environment() -> Option<&'static TestEnvironment> {
         if exe.parent()? != root.join("install") {
             return None;
         }
-        let config: serde_json::Value = serde_json::from_slice(&std::fs::read(root.join("aurora-update-test.json")).ok()?).ok()?;
+        let config: serde_json::Value = serde_json::from_slice(&std::fs::read(root.join("block-update-test.json")).ok()?).ok()?;
         if config["schema"].as_u64()? != 1 {
             return None;
         }

@@ -6,7 +6,7 @@ use super::*;
 use std::collections::HashSet;
 use std::sync::atomic::{AtomicBool, Ordering};
 
-/// The Dev Toolbox's M1 "Media debug", besides AURORA_MEDIA_DEBUG.
+/// The Dev Toolbox's M1 "Media debug", besides BLOCK_MEDIA_DEBUG.
 static DEBUG: AtomicBool = AtomicBool::new(false);
 
 /// Turn the `media objects:` lines on or off while the viewer runs.
@@ -14,9 +14,9 @@ pub fn set_debug(on: bool) {
     DEBUG.store(on, Ordering::Relaxed);
 }
 
-/// Whether the media lines are written (AURORA_MEDIA_DEBUG or M1).
+/// Whether the media lines are written (BLOCK_MEDIA_DEBUG or M1).
 pub fn debug_on() -> bool {
-    DEBUG.load(Ordering::Relaxed) || std::env::var_os("AURORA_MEDIA_DEBUG").is_some()
+    DEBUG.load(Ordering::Relaxed) || std::env::var_os("BLOCK_MEDIA_DEBUG").is_some()
 }
 
 /// Upload budget per frame (bytes): a 1024² media is 4 MB.

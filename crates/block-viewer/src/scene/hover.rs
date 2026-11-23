@@ -39,12 +39,12 @@
 //! Clicks never read the cache: they search their geometry again, with
 //! their own depth read (`app/click_pick.rs`).
 //!
-//! `AURORA_HOVER_CHECK=1` compares every answer with the full search and
+//! `BLOCK_HOVER_CHECK=1` compares every answer with the full search and
 //! logs the differences (`hover check`), with a count of searches and
 //! reused answers every ten seconds; it also compares the index and the
-//! classes with the scene. `AURORA_HOVER_LEGACY=1` searches as before the
+//! classes with the scene. `BLOCK_HOVER_LEGACY=1` searches as before the
 //! classes and the hierarchies, `ab` both ways in turn. With
-//! `AURORA_PROFILE`, a `hover summary` line a second tells what the
+//! `BLOCK_PROFILE`, a `hover summary` line a second tells what the
 //! searches did and why they were needed.
 
 use super::ObjGpu;
@@ -567,12 +567,12 @@ impl Asked {
     }
 }
 
-/// What the hover search did over a second (AURORA_PROFILE: one
+/// What the hover search did over a second (BLOCK_PROFILE: one
 /// `hover summary` line a second while the cursor is over the world).
 struct Stats {
     since: Option<Instant>,
     /// The searches of this second use the classes and the triangle
-    /// hierarchies (not those of AURORA_HOVER_LEGACY).
+    /// hierarchies (not those of BLOCK_HOVER_LEGACY).
     classes: bool,
     /// Frames that asked, and searches among them.
     asked: u32,
@@ -632,7 +632,7 @@ impl Stats {
     }
 }
 
-/// AURORA_HOVER_LEGACY: `1` searches as before the classes and the triangle
+/// BLOCK_HOVER_LEGACY: `1` searches as before the classes and the triangle
 /// hierarchies (every object tested whatever the ray is a candidate of every
 /// step, every triangle of an object is tested, and the HUD pick looks at
 /// every object of the scene), `ab` both ways in turn, a second each, to
@@ -646,7 +646,7 @@ enum ClassMode {
 
 fn class_mode() -> ClassMode {
     static MODE: std::sync::OnceLock<ClassMode> = std::sync::OnceLock::new();
-    *MODE.get_or_init(|| match std::env::var("AURORA_HOVER_LEGACY").as_deref() {
+    *MODE.get_or_init(|| match std::env::var("BLOCK_HOVER_LEGACY").as_deref() {
         Ok("ab") => ClassMode::Alternate,
         Ok(v) if !v.is_empty() && v != "0" => ClassMode::Off,
         _ => ClassMode::On,
@@ -696,7 +696,7 @@ pub struct HoverCache {
     pub reused: u64,
     /// Known classes the sweep found out of date.
     repaired: u64,
-    /// AURORA_HOVER_CHECK: answers that differed from the full search (a
+    /// BLOCK_HOVER_CHECK: answers that differed from the full search (a
     /// new search / a kept answer), index entries and classes that differed
     /// from their object, and when the counts were last logged.
     wrong: u64,
@@ -712,7 +712,7 @@ impl HoverCache {
         self.kept = None;
     }
 
-    /// AURORA_HOVER_LEGACY, this second: what the cursor is over is
+    /// BLOCK_HOVER_LEGACY, this second: what the cursor is over is
     /// searched as before (no class, no triangle hierarchy, every object
     /// of the scene looked at for the HUD pick).
     pub(super) fn legacy(&self) -> bool {
@@ -747,17 +747,17 @@ impl HoverCache {
     }
 }
 
-/// AURORA_HOVER_CHECK=1: every answer is compared with the full search
+/// BLOCK_HOVER_CHECK=1: every answer is compared with the full search
 /// (the clicks' too, picking.rs).
 pub(super) fn check_enabled() -> bool {
     static ON: std::sync::OnceLock<bool> = std::sync::OnceLock::new();
-    *ON.get_or_init(|| std::env::var_os("AURORA_HOVER_CHECK").is_some())
+    *ON.get_or_init(|| std::env::var_os("BLOCK_HOVER_CHECK").is_some())
 }
 
-/// AURORA_PROFILE: the `hover summary` line.
+/// BLOCK_PROFILE: the `hover summary` line.
 fn profile_enabled() -> bool {
     static ON: std::sync::OnceLock<bool> = std::sync::OnceLock::new();
-    *ON.get_or_init(|| std::env::var_os("AURORA_PROFILE").is_some())
+    *ON.get_or_init(|| std::env::var_os("BLOCK_PROFILE").is_some())
 }
 
 impl super::Scene {
@@ -899,7 +899,7 @@ impl super::Scene {
         answer
     }
 
-    /// Reference search for AURORA_HOVER_CHECK, without the spatial index,
+    /// Reference search for BLOCK_HOVER_CHECK, without the spatial index,
     /// classes or triangle hierarchies.
     fn full_hover_pick(&self, world: &crate::world::World, ray: (Vec3, Vec3), depth: Option<Vec3>, far: f32) -> HoverHit {
         let point = self.action_point_among(world, ray, depth, far, None);
@@ -1000,7 +1000,7 @@ impl super::Scene {
         }
     }
 
-    /// AURORA_HOVER_CHECK: the index against the scene. Every entry is
+    /// BLOCK_HOVER_CHECK: the index against the scene. Every entry is
     /// what `PickEntry::of` gives for its object now, and (`with_classes`)
     /// every known class what `hover_class` gives now.
     fn check_hover_index(&mut self, world: &crate::world::World, with_classes: bool) {
@@ -1029,10 +1029,10 @@ impl super::Scene {
         self.hover.classes_wrong += classes as u64;
     }
 
-    /// Once a second: with AURORA_PROFILE, the `hover summary` line (what
+    /// Once a second: with BLOCK_PROFILE, the `hover summary` line (what
     /// the searches of the second did and why they were needed; per
     /// search: candidates of each step, times in ms, exact tests); with
-    /// AURORA_HOVER_LEGACY=ab, the next second searches the other way.
+    /// BLOCK_HOVER_LEGACY=ab, the next second searches the other way.
     fn roll_hover_stats(&mut self, now: Instant, log: bool) {
         let since = *self.hover.stats.since.get_or_insert(now);
         if now.duration_since(since) < Duration::from_secs(1) {
@@ -1086,7 +1086,7 @@ impl super::Scene {
         );
     }
 
-    /// AURORA_HOVER_CHECK: the counts, every ten seconds.
+    /// BLOCK_HOVER_CHECK: the counts, every ten seconds.
     fn log_hover_check(&mut self, now: Instant) {
         let h = &mut self.hover;
         let last = *h.logged.get_or_insert(now);

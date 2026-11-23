@@ -1,6 +1,6 @@
 //! Render-only dressing-room camera. The live agent, its heading and its
 //! camera sent to the simulator are never changed by studio inspection.
-//! Aurora addition; the existing wearable editors retain their normal saves.
+//! Block addition; the existing wearable editors retain their normal saves.
 
 use glam::{Mat4, Quat, Vec2, Vec3};
 

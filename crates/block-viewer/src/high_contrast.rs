@@ -1,7 +1,7 @@
 //! High contrast (Preferences › Accessibility › Vision, #906): for poor
 //! vision, the interface's palette is replaced by a sober one of opaque
 //! black surfaces, white text and one light violet accent, whatever the
-//! skin's colours. The Legacy Viewer has no such option; this is Aurora's
+//! skin's colours. The Legacy Viewer has no such option; this is Block's
 //! own.
 //!
 //! - Text meets WCAG 2 AAA (7:1) against every surface it sits on, borders
@@ -33,10 +33,10 @@ pub fn current() -> bool {
     ON.load(Ordering::Relaxed)
 }
 
-/// `AURORA_DEMO_CONTRAST=1|0` (demo mode only): this run's choice, never
+/// `BLOCK_DEMO_CONTRAST=1|0` (demo mode only): this run's choice, never
 /// saved in the settings.
 pub fn demo_override() -> Option<bool> {
-    match std::env::var("AURORA_DEMO_CONTRAST").ok()?.trim() {
+    match std::env::var("BLOCK_DEMO_CONTRAST").ok()?.trim() {
         "1" | "on" | "high" => Some(true),
         "0" | "off" => Some(false),
         _ => None,

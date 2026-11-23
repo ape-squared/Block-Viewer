@@ -1,4 +1,4 @@
-//! AURORA_DEMO_BLEND_AO=layer: the soft-edged layers worn over mesh bodies
+//! BLOCK_DEMO_BLEND_AO=layer: the soft-edged layers worn over mesh bodies
 //! (a tattoo, a blush, a second skin). Two skin-coloured spheres ahead of
 //! the start position, left of the avatar, each in a niche that occludes
 //! it (a wall behind, one on each side, a floor and a brim):
@@ -28,8 +28,8 @@ const SKIN_RGB: [u8; 3] = [224, 172, 140];
 
 pub fn enabled() -> bool {
     static ENABLED: std::sync::LazyLock<bool> = std::sync::LazyLock::new(|| {
-        std::env::var("AURORA_DEMO").is_ok_and(|v| v.trim() == "1")
-            && std::env::var("AURORA_DEMO_BLEND_AO").is_ok_and(|v| v.trim() == "layer")
+        std::env::var("BLOCK_DEMO").is_ok_and(|v| v.trim() == "1")
+            && std::env::var("BLOCK_DEMO_BLEND_AO").is_ok_and(|v| v.trim() == "layer")
     });
     *ENABLED
 }

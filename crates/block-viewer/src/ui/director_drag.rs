@@ -19,7 +19,7 @@
 //! indra/newview/llmanip{translate,rotate}.cpp, through the IK editor's
 //! handles, `ik_edit::gizmo`).
 //!
-//! Aurora's own: the Legacy Viewer has no camera path tool.
+//! Block's own: the Legacy Viewer has no camera path tool.
 
 use super::director::Action;
 use super::hud::Projector;

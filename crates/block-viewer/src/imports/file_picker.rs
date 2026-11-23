@@ -133,7 +133,7 @@ impl Imports {
 /// event loop, and waiting for a selection never occupies a scene worker.
 pub(super) fn spawn(request: Uuid, tx: Sender<Worker>, wake: egui::Context, work: impl FnOnce() -> Vec<Entry> + Send + 'static) {
     let (reply, repaint) = (tx.clone(), wake.clone());
-    if let Err(error) = std::thread::Builder::new().name("aurora-import-picker".into()).spawn(move || {
+    if let Err(error) = std::thread::Builder::new().name("block-import-picker".into()).spawn(move || {
         crate::scene::jobs::below_normal_priority();
         complete(request, reply, repaint, work);
     }) {

@@ -219,7 +219,7 @@ class BridgeScripts(unittest.IsolatedAsyncioTestCase):
             self.assertEqual(parameters[28], [""])
             await sim.event("attach", NULL)
 
-    async def test_cold_start_and_url_grants_are_silent_without_aurora(self):
+    async def test_cold_start_and_url_grants_are_silent_without_block(self):
         for filename in SCRIPTS:
             with self.subTest(script=filename):
                 sim = Simulator(filename)
@@ -228,7 +228,7 @@ class BridgeScripts(unittest.IsolatedAsyncioTestCase):
                 await sim.event("timer")
                 self.assertEqual(sim.messages, [])
 
-    async def test_url_denials_and_retries_are_silent_without_aurora(self):
+    async def test_url_denials_and_retries_are_silent_without_block(self):
         for filename in SCRIPTS[:2]:
             with self.subTest(script=filename):
                 sim = Simulator(filename)
@@ -283,7 +283,7 @@ class BridgeScripts(unittest.IsolatedAsyncioTestCase):
                     await sim.grant()
                     self.assertEqual(sim.messages, [])
 
-    async def test_confirmed_aurora_survives_duplicate_region_events_without_a_probe(self):
+    async def test_confirmed_block_survives_duplicate_region_events_without_a_probe(self):
         for filename in SCRIPTS:
             with self.subTest(script=filename):
                 sim = Simulator(filename)
@@ -294,7 +294,7 @@ class BridgeScripts(unittest.IsolatedAsyncioTestCase):
                     sim.messages.clear()
                     await sim.event("changed", change)
                     await sim.grant()
-                    self.assertEqual(len(sim.messages), 1, "the current Aurora login must be reconnected immediately")
+                    self.assertEqual(len(sim.messages), 1, "the current Block login must be reconnected immediately")
 
     async def test_discovery_still_works_after_unpaired_crossings(self):
         for filename in SCRIPTS:
@@ -401,7 +401,7 @@ class BridgeScripts(unittest.IsolatedAsyncioTestCase):
                 self.assertEqual(sim.messages, [])
                 self.assertEqual(sim.broadcasts, [])
 
-    async def test_current_aurora_commands_still_work_after_discovery(self):
+    async def test_current_block_commands_still_work_after_discovery(self):
         sim = Simulator("bridge.lsl")
         await sim.start()
         await sim.grant()

@@ -1,5 +1,5 @@
 //! The torn-off Contacts window shows what the docked tab shows (#961):
-//! People's friends tab in Aurora's look, the contact list otherwise.
+//! People's friends tab in Block's look, the contact list otherwise.
 
 use super::{ContactsAction, ContactsSettings, ContactsUi, Pics, window};
 use crate::ui::people::{FriendsPane, FriendsSettings, PeopleAction, PeopleUi, RadarData, RadarSettings};
@@ -15,7 +15,7 @@ struct State {
     settings: ContactsSettings,
     people: PeopleUi,
     friends: FriendsSettings,
-    /// Aurora's look of People (the friends pane), else the contact list.
+    /// Block's look of People (the friends pane), else the contact list.
     aurora: bool,
     open: bool,
     actions: Vec<ContactsAction>,
@@ -104,10 +104,10 @@ fn drawn(texts: &[Text], source: &str) -> bool {
     texts.iter().any(|t| t.source == source)
 }
 
-/// In Aurora's look the torn-off window is People's friends tab (its
+/// In Block's look the torn-off window is People's friends tab (its
 /// filter field), not the contact list and its three tabs.
 #[test]
-fn the_torn_off_window_keeps_aurora_s_look() {
+fn the_torn_off_window_keeps_block_s_look() {
     let mut frames = Frames::new();
     let mut state = State::new(true);
     let texts = settle(&mut frames, &mut state);
@@ -151,7 +151,7 @@ fn contacts_search_ignores_the_saved_hidden_setting_in_both_looks() {
 }
 
 /// A username-only Legacy table and hidden permission columns do not
-/// change Aurora's displayed name or take its rights controls away.
+/// change Block's displayed name or take its rights controls away.
 #[test]
 fn contacts_modern_rows_ignore_saved_legacy_columns() {
     let mut frames = Frames::new();

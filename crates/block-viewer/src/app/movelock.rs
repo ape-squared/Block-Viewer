@@ -18,14 +18,14 @@ impl App {
             return;
         }
         if self.demo
-            && let Ok(mode) = std::env::var("AURORA_DEMO_MOVELOCK")
+            && let Ok(mode) = std::env::var("BLOCK_DEMO_MOVELOCK")
             && matches!(mode.as_str(), "native-cycle" | "native-rearm")
         {
             crate::ao::demo::native_anchor_cycle(&mut self.world, &mut self.input, self.frame_count, mode == "native-rearm");
         }
         if self.demo
             && self.frame_count > 300
-            && std::env::var("AURORA_DEMO_MOVELOCK").is_ok_and(|mode| mode == "native-fallback")
+            && std::env::var("BLOCK_DEMO_MOVELOCK").is_ok_and(|mode| mode == "native-fallback")
             && let Some(account) = self.settings.ao.accounts.get_mut(&self.world.agent_id)
         {
             account.enabled = !(700..1000).contains(&self.frame_count);
@@ -51,7 +51,7 @@ impl App {
             self.anchor_pose = set.cloned().map(|set| (revision, set));
         }
         let input = &self.input;
-        let voluntary = (self.demo && std::env::var("AURORA_DEMO_MOVELOCK").is_ok_and(|m| m == "native-moving"))
+        let voluntary = (self.demo && std::env::var("BLOCK_DEMO_MOVELOCK").is_ok_and(|m| m == "native-moving"))
             || input.forward
             || input.back
             || input.strafe_left

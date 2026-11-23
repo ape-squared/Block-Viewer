@@ -1,4 +1,4 @@
-//! AURORA_DEMO_KEYWORDS: keyword alerts on for the run (never saved), with
+//! BLOCK_DEMO_KEYWORDS: keyword alerts on for the run (never saved), with
 //! two keywords, their colour and their sound; then a line of nearby chat,
 //! a private message, a group chat line and an object's message holding a
 //! keyword arrive one second apart, and a line without one. Each keyword
@@ -15,7 +15,7 @@ use uuid::Uuid;
 const PERIOD: u64 = 1200;
 
 fn mode() -> Option<String> {
-    std::env::var("AURORA_DEMO_KEYWORDS").ok()
+    std::env::var("BLOCK_DEMO_KEYWORDS").ok()
 }
 
 /// The scenario is asked.
@@ -92,10 +92,10 @@ pub fn events(frame: u64, agent: Uuid) -> Vec<NetEvent> {
             17,
             DEMO_GROUP1,
             block_i18n::tr!("demo-keywords-group"),
-            b"Aurora Builders\0",
+            b"Block Builders\0",
         ),
         880 => {
-            let location = format!("{}/128/128/25\0", block_i18n::tr!("common-aurora-demo"));
+            let location = format!("{}/128/128/25\0", block_i18n::tr!("common-block-demo"));
             im(
                 agent,
                 agent,

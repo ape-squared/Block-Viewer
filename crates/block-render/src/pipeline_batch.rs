@@ -112,7 +112,7 @@ impl<'a> Batch<'a> {
             for n in 0..workers {
                 let (jobs, made, next, parent) = (&jobs, &made, &next, parent.as_deref());
                 let spawned = std::thread::Builder::new()
-                    .name(format!("aurora-pipelines-{n}"))
+                    .name(format!("block-pipelines-{n}"))
                     .spawn_scoped(s, move || {
                         crate::gpu_alloc::on_worker(device, parent, || {
                             loop {

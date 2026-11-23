@@ -1,4 +1,4 @@
-//! Sounds behind walls (AURORA_DEMO_SOUND_OCCLUSION=1, docs/TESTING.md):
+//! Sounds behind walls (BLOCK_DEMO_SOUND_OCCLUSION=1, docs/TESTING.md):
 //! our avatar moved to an open spot west of the plaza, three looping
 //! sources ahead of it, each with its own pitch. Left, one in the open; straight ahead, one behind a wall; right,
 //! one shut in a closed box. Walk around them to hear the wall and the box
@@ -15,7 +15,7 @@ use uuid::Uuid;
 /// The scenario is on for this run.
 pub fn active() -> bool {
     static ACTIVE: std::sync::OnceLock<bool> = std::sync::OnceLock::new();
-    *ACTIVE.get_or_init(|| std::env::var("AURORA_DEMO_SOUND_OCCLUSION").is_ok_and(|v| !v.is_empty() && v != "0"))
+    *ACTIVE.get_or_init(|| std::env::var("BLOCK_DEMO_SOUND_OCCLUSION").is_ok_and(|v| !v.is_empty() && v != "0"))
 }
 
 /// The three sounds: open, behind the wall, in the box.

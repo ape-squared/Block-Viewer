@@ -46,7 +46,7 @@ pub(in crate::ui::inventory) enum Command {
 
 /// "Find similar" for the one selected item: the submenu offers what the
 /// item has in common with others, each as the rules of an advanced search
-/// (Aurora's own; the Legacy Viewer has none). The creator goes by key, so
+/// (Block's own; the Legacy Viewer has none). The creator goes by key, so
 /// it needs no known name.
 pub(super) fn similar(c: &mut Catalog, zone: &str, inv: &Inventory, id: Uuid, single: bool, all: bool) {
     use super::super::smart::{Field, Op, Rule, SmartQuery, name_stem};
@@ -267,7 +267,7 @@ pub(super) fn build(c: &mut Catalog, inv: &Inventory, id: Uuid, st: &InventoryUi
     if inv
         .folders
         .get(&id)
-        .is_some_and(|folder| matches!(folder.info.name.as_str(), "Aurora AO" | "#AO"))
+        .is_some_and(|folder| matches!(folder.info.name.as_str(), "Block AO" | "#AO"))
         || all
     {
         c.add(

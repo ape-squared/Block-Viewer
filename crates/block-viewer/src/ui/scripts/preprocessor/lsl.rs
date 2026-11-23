@@ -112,7 +112,7 @@ pub(super) fn lazy_lists(source: &str) -> Result<String, String> {
 
 pub(super) fn switches(source: &str) -> Result<String, String> {
     let mut serial = 0;
-    let mut prefix = "__aurora_switch_".to_owned();
+    let mut prefix = "__block_switch_".to_owned();
     while source.contains(&prefix) {
         prefix.push('_');
     }
@@ -290,8 +290,8 @@ mod tests {
                 .any(|t| matches!(t.text.as_str(), "switch" | "case" | "break"))
         );
         assert!(result.contains("\"break;\""));
-        assert!(result.contains("jump __aurora_switch_0_end;"));
-        assert!(result.contains("jump __aurora_switch_1_end;"));
+        assert!(result.contains("jump __block_switch_0_end;"));
+        assert!(result.contains("jump __block_switch_1_end;"));
         assert!(switches("switch(x) { default: ; default: ; }").is_err());
     }
     #[test]

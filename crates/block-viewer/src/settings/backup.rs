@@ -5,7 +5,7 @@
 //! A backup holds the preferences (`settings.json`, with the colours, the
 //! shortcuts and the bars), the windows' layout (`ui_layout.ron`), the
 //! skin's `theme.json` and `layout.json`, and the preference files of each
-//! account (the Legacy Viewer's per-account list, the ones Aurora has).
+//! account (the Legacy Viewer's per-account list, the ones Block has).
 //! Deliberate differences: one file instead of a folder, to carry to another
 //! PC as it is; a restore applies at once instead of quitting the viewer;
 //! nothing of the login goes in it (the Legacy Viewer copies bin_conf.dat,
@@ -21,7 +21,7 @@ use std::path::Path;
 use uuid::Uuid;
 
 /// What the file says it is: any other JSON file is refused.
-const FORMAT: &str = "aurora-settings-backup";
+const FORMAT: &str = "block-settings-backup";
 const VERSION: u32 = 1;
 
 /// Settings of the login and of this PC, left out of a backup and kept by
@@ -83,7 +83,7 @@ const ACCOUNT_FILES: &[&str] = &[
 
 /// The skin whose files are kept (`ui/skin.rs`), and those files; its icons
 /// are pictures and stay out.
-const SKIN: &str = "aurora";
+const SKIN: &str = "block";
 const SKIN_FILES: &[&str] = &["theme.json", "layout.json"];
 
 /// A backup file.
@@ -179,13 +179,13 @@ impl Backup {
             }
         };
         if backup.format != FORMAT {
-            log::warn!("settings backup: not a backup of Aurora's settings");
+            log::warn!("settings backup: not a backup of Block's settings");
             return None;
         }
         if backup.version > VERSION {
             // read what this build knows of it, as the settings themselves
             log::info!(
-                "settings backup: written by a newer Aurora ({}), read as version {VERSION}",
+                "settings backup: written by a newer Block ({}), read as version {VERSION}",
                 backup.viewer
             );
         }
@@ -315,7 +315,7 @@ mod tests {
     use super::*;
 
     fn scratch() -> std::path::PathBuf {
-        let dir = std::env::temp_dir().join(format!("aurora-settings-backup-{}", Uuid::new_v4()));
+        let dir = std::env::temp_dir().join(format!("block-settings-backup-{}", Uuid::new_v4()));
         std::fs::create_dir_all(&dir).unwrap();
         dir
     }
@@ -457,8 +457,8 @@ mod tests {
     fn files_go_back_where_they_came_from_and_nowhere_else() {
         let (from, to) = (scratch(), scratch());
         let (first, second) = (Uuid::from_u128(1), Uuid::from_u128(2));
-        std::fs::create_dir_all(from.join("skins/aurora")).unwrap();
-        std::fs::write(from.join("skins/aurora/theme.json"), "{\"violet\":\"#123456\"}").unwrap();
+        std::fs::create_dir_all(from.join("skins/block")).unwrap();
+        std::fs::write(from.join("skins/block/theme.json"), "{\"violet\":\"#123456\"}").unwrap();
         for id in [first, second] {
             let dir = from.join("accounts").join(id.to_string());
             std::fs::create_dir_all(&dir).unwrap();
@@ -482,7 +482,7 @@ mod tests {
         // the account logged in keeps its own files
         assert_eq!(backup.write_accounts(&to, Some(second)).unwrap(), 1);
         assert_eq!(
-            std::fs::read_to_string(to.join("skins/aurora/theme.json")).unwrap(),
+            std::fs::read_to_string(to.join("skins/block/theme.json")).unwrap(),
             "{\"violet\":\"#123456\"}"
         );
         let first_dir = to.join("accounts").join(first.to_string());

@@ -21,13 +21,13 @@ tests, simulator rendering and physical headset streaming are separate gates.
 
 ## Common requirements
 
-- A GPU/driver meeting Aurora's existing renderer feature/resource requirements.
+- A GPU/driver meeting Block's existing renderer feature/resource requirements.
   The runtime-selected GPU must also be suitable for the desktop window.
 - A configured headset runtime. The published Windows viewer has the Khronos OpenXR
   loader built in (`xr-static-loader`, CMake needed to build it; a local build
   without it loads the runtime's loader); Linux uses the distribution's loader package (WiVRn and Monado
   install it), macOS the installed loader. VR is set up when
-  Aurora starts, and only once VR has been used (Preferences › Camera › VR ›
+  Block starts, and only once VR has been used (Preferences › Camera › VR ›
   "Set up VR at startup", off by default: loading a runtime at every start
   crashed PCs that never use VR, #2309). Until then, or with the headset
   connected later, the headset button offers "Restart in VR" (the viewer
@@ -42,7 +42,7 @@ Attaching a headset without a restart, runtime restart/disconnect recovery, broa
 visual validation and performance/memory benchmarks remain unfinished. A restart
 may be needed after runtime loss. Esc is not a global shortcut and controllers
 cannot exit VR. Two eye backends add GPU time and memory; no frame-rate guarantee
-is made. No standalone Android/visionOS Aurora application is included.
+is made. No standalone Android/visionOS Block application is included.
 
 ## Linux
 
@@ -62,7 +62,7 @@ existing Windows CI covers compilation. Headset tests use a local dev build.
 
 ## macOS: runtime investigation and native Metal path
 
-Aurora retains its Metal renderer. It does not switch to Vulkan/MoltenVK. The
+Block retains its Metal renderer. It does not switch to Vulkan/MoltenVK. The
 OpenXR binding queries the runtime's Metal device, checks adapter identity, binds
 the exact wgpu command queue, and imports retained runtime-owned `MTLTexture`
 images. Session teardown keeps the queue/images alive until rendering completes.
@@ -74,37 +74,37 @@ Sources checked on 2026-11-02:
 | Source | What it establishes | What it does not establish |
 |---|---|---|
 | [Khronos Metal binding](https://registry.khronos.org/OpenXR/specs/1.1/man/html/XR_KHR_metal_enable.html) | Ratified native Metal device/queue/swapchain interface | Availability or quality of a particular headset runtime |
-| [Khronos runtime inventory](https://github.khronos.org/OpenXR-Inventory/runtime_extension_support.html) | Meta XR Simulator on macOS advertises Metal; a simulator route exists | Physical headset streaming or Aurora compatibility |
-| [OXRSys](https://github.com/demonixis/oxrsys/tree/82ee9ff58f26dcbe3d75f94de4357a2df1906b3e) and its [support matrix](https://github.com/demonixis/oxrsys/blob/82ee9ff58f26dcbe3d75f94de4357a2df1906b3e/docs/support-matrix.md) | Experimental macOS runtime source with Metal and headset-streaming clients | Aurora launch, stereo correctness or physical-device qualification; its matrix distinguishes these from builds |
-| [WiVRn macOS fork](https://github.com/kzahel/wivrn-macos/tree/0ed2634ad917749b58e23a58b452299d0b27b4ab) | Experimental Apple Silicon host packaging with a native Metal frame probe and Quest route | Upstream WiVRn macOS support or an Aurora headset test |
+| [Khronos runtime inventory](https://github.khronos.org/OpenXR-Inventory/runtime_extension_support.html) | Meta XR Simulator on macOS advertises Metal; a simulator route exists | Physical headset streaming or Block compatibility |
+| [OXRSys](https://github.com/demonixis/oxrsys/tree/82ee9ff58f26dcbe3d75f94de4357a2df1906b3e) and its [support matrix](https://github.com/demonixis/oxrsys/blob/82ee9ff58f26dcbe3d75f94de4357a2df1906b3e/docs/support-matrix.md) | Experimental macOS runtime source with Metal and headset-streaming clients | Block launch, stereo correctness or physical-device qualification; its matrix distinguishes these from builds |
+| [WiVRn macOS fork](https://github.com/kzahel/wivrn-macos/tree/0ed2634ad917749b58e23a58b452299d0b27b4ab) | Experimental Apple Silicon host packaging with a native Metal frame probe and Quest route | Upstream WiVRn macOS support or a Block headset test |
 | [Upstream Monado](https://monado.freedesktop.org/) | Published platform coverage differs from these experimental forks | An upstream production-ready macOS installation |
 
-These are candidate development runtimes, not Aurora-certified products. It
+These are candidate development runtimes, not Block-certified products. It
 would be inaccurate to say no macOS OpenXR runtime exists; it would also be
 inaccurate to infer physical headset compatibility from these repositories.
 Windows runtime names are not macOS installation instructions.
 
 ### Mac setup and validation
 
-1. Use Aurora's normal Apple Silicon/Xcode environment. Install a candidate
+1. Use Block's normal Apple Silicon/Xcode environment. Install a candidate
    runtime, its matching headset client if needed, and an arm64 Khronos OpenXR
    loader. Runtime registration remains the runtime provider's responsibility.
    Meta's [simulator setup](https://developers.meta.com/vr/documentation/native/xrsim-getting-started/)
    provides a separate desktop-simulator route; record simulator results as such.
 2. If the loader is not discoverable as `libopenxr_loader.dylib`, set
-   `AURORA_OPENXR_LOADER` to its absolute installed path. For a development
+   `BLOCK_OPENXR_LOADER` to its absolute installed path. For a development
    runtime, `XR_RUNTIME_JSON` may select its manifest. No loader/runtime is bundled.
-3. Validate the runtime independently with Khronos `hello_xr -g Metal`. Aurora's
+3. Validate the runtime independently with Khronos `hello_xr -g Metal`. Block's
    `xr_spike` example remains a Vulkan-only Linux/Windows interoperability test.
 4. Start/connect the runtime and headset, then run the timed full-scene offline
    test (environment values below are examples of controls, not installed paths):
 
    ```sh
-   AURORA_DEMO=1 AURORA_DEMO_XR_WORLD=1 cargo run -p block-viewer -- --title "Test vr-scene-view macOS"
+   BLOCK_DEMO=1 BLOCK_DEMO_XR_WORLD=1 cargo run -p block-viewer -- --title "Test vr-scene-view macOS"
    ```
 
    This enters after frame 600 and submits for about 15 seconds. Then test manual
-   toolbar entry/Esc exit with `AURORA_DEMO=1` and no `AURORA_DEMO_XR_WORLD`.
+   toolbar entry/Esc exit with `BLOCK_DEMO=1` and no `BLOCK_DEMO_XR_WORLD`.
 5. Record Mac/GPU, OS, runtime commit/version, loader, simulator/headset/client,
    stereo/depth/tracking, horizon leveling from tilted desktop/headset entry,
    repeated entry/Esc exit, desktop restoration, mirror/hint, focus, resizing and
@@ -133,7 +133,7 @@ GPU-memory and frame-time differences have not been quantified.
 
 The desktop mirror samples the submitted left eye at up to 30 FPS, with
 letterboxing, rather than drawing a third world view or reading it back to the
-CPU. Capture the Aurora window with OBS (PipeWire on Linux/Wayland; the native
+CPU. Capture the Block window with OBS (PipeWire on Linux/Wayland; the native
 window source on other systems), using hardware encoding where available. The
 exit instruction is included. Capture/encoding adds overhead and the mirror
 cannot show headset streaming/compositor-only artifacts.
@@ -176,7 +176,7 @@ gaze and uses forward, backward and sideways walk controls to catch up.
 The body/origin separation follows the head-projected body model described by
 [Unity XR Body Transformer](https://docs.unity3d.com/Packages/com.unity.xr.interaction.toolkit@3.2/manual/xr-body-transformer.html)
 and its [locomotion architecture](https://docs.unity3d.com/Packages/com.unity.xr.interaction.toolkit@3.2/manual/locomotion.html).
-Walking-speed catch-up and the 0.18/0.05 m hysteresis are Aurora-specific comfort
+Walking-speed catch-up and the 0.18/0.05 m hysteresis are Block-specific comfort
 choices, not claimed toolkit defaults.
 
 Keyboard controls use the existing movement bindings. In First person and

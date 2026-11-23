@@ -17,9 +17,9 @@
 //! (Firestorm's CreateGroupCost notification, which its code no longer
 //! raises: its button carries the fee); the request is sent once, the
 //! button greyed until the reply (Firestorm sends it again at each click);
-//! the Aurora look adds "Show in search" (Firestorm always sends it on).
+//! the Block look adds "Show in search" (Firestorm always sends it on).
 //!
-//! Two looks, as the profile: the Aurora one is the profile's header (the
+//! Two looks, as the profile: the Block one is the profile's header (the
 //! banner, the insignia, the name being typed, the badges) over the cards of
 //! Administration › Group identity and a fee card; the classic one is
 //! Firestorm's creation panel.
@@ -381,7 +381,7 @@ impl GroupCreateUi {
         }
     }
 
-    // ------------------------------------------------------------ Aurora look
+    // ------------------------------------------------------------ Block look
 
     fn aurora(&mut self, ui: &mut egui::Ui, c: &mut Ctx, actions: &mut Vec<GroupAction>) {
         let p = c.p;
@@ -873,7 +873,7 @@ fn levels_list(ui: &mut egui::Ui, p: &Palette, world: &World, classic: bool) {
             if l.current {
                 name = format!("{name} {}", block_i18n::tr!("ui-group-create-your-membership"));
             }
-            // Firestorm's current row in yellow (DrYellow), Aurora's in the accent
+            // Firestorm's current row in yellow (DrYellow), Block's in the accent
             let ink = match (l.current, classic) {
                 (true, true) => p.amber,
                 (true, false) => p.ink,
@@ -890,7 +890,7 @@ fn levels_list(ui: &mut egui::Ui, p: &Palette, world: &World, classic: bool) {
     }
 }
 
-/// The side card of the Aurora look: what the creation costs by
+/// The side card of the Block look: what the creation costs by
 /// membership, our balance, the link to the memberships and the 48 hours
 /// rule.
 fn fees_card(ui: &mut egui::Ui, c: &mut Ctx) {

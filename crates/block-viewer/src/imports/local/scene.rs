@@ -234,9 +234,9 @@ mod tests {
     }
 
     #[test]
-    #[ignore = "manual local-file diagnostic; set AURORA_DEMO_IMPORT_FILE"]
+    #[ignore = "manual local-file diagnostic; set BLOCK_DEMO_IMPORT_FILE"]
     fn local_assembly_external_dae_keeps_every_piece_through_the_runtime_codec() {
-        let path = std::env::var_os("AURORA_DEMO_IMPORT_FILE").expect("diagnostic file");
+        let path = std::env::var_os("BLOCK_DEMO_IMPORT_FILE").expect("diagnostic file");
         let bytes = std::fs::read(path).expect("read supplied plain DAE");
         let scene = collada::parse(&bytes, &block_assets::Skeleton::default()).expect("parse supplied DAE");
         let draft = mesh::Draft::new(scene, HashMap::new());

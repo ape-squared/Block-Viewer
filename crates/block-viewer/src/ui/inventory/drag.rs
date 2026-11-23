@@ -152,7 +152,7 @@ pub(crate) fn feedback(ctx: &egui::Context, cursor: egui::CursorIcon) {
     ctx.data_mut(|d| d.insert_temp(feedback_id(), Feedback { pass, cursor }));
 }
 
-/// The cargo of `AURORA_DEMO_CONV_GIVE`: one item, or a selection of several.
+/// The cargo of `BLOCK_DEMO_CONV_GIVE`: one item, or a selection of several.
 pub(crate) fn demo_carry(ctx: &egui::Context, ids: Vec<Uuid>) {
     match ids[..] {
         [] => {}

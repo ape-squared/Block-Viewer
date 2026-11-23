@@ -136,14 +136,14 @@ struct Open {
     serial: u64,
 }
 
-/// `AURORA_DEMO_TEXT_MENU`: the chat bar gets a line, selected, then the
+/// `BLOCK_DEMO_TEXT_MENU`: the chat bar gets a line, selected, then the
 /// menu over it.
 fn demo_wanted() -> bool {
     static WANTED: std::sync::OnceLock<bool> = std::sync::OnceLock::new();
-    *WANTED.get_or_init(|| std::env::var_os("AURORA_DEMO_TEXT_MENU").is_some())
+    *WANTED.get_or_init(|| std::env::var_os("BLOCK_DEMO_TEXT_MENU").is_some())
 }
 
-/// `AURORA_DEMO_SPELLING`: the app fills the chat bar and gives it the
+/// `BLOCK_DEMO_SPELLING`: the app fills the chat bar and gives it the
 /// keyboard (frame 700); then the menu opens on its last word, or keywords
 /// are typed for the auto-replace.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -156,7 +156,7 @@ pub(crate) enum SpellingDemo {
 pub(crate) fn spelling_demo() -> Option<SpellingDemo> {
     static MODE: std::sync::OnceLock<Option<SpellingDemo>> = std::sync::OnceLock::new();
     *MODE.get_or_init(|| {
-        std::env::var("AURORA_DEMO_SPELLING").ok().map(|mode| match mode.trim() {
+        std::env::var("BLOCK_DEMO_SPELLING").ok().map(|mode| match mode.trim() {
             "menu" => SpellingDemo::Menu,
             "replace" => SpellingDemo::Replace,
             _ => SpellingDemo::Words,

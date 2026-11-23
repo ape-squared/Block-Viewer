@@ -101,7 +101,7 @@ pub(super) fn relay_item(world: &World, ctx: &Ctx, handle: RegionHandle, local_i
         ctx.agent,
         world.groups.active,
         RELAY_NAME,
-        "Aurora's RLVa self-test relay",
+        "Block's RLVa self-test relay",
     )
 }
 

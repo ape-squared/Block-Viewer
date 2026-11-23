@@ -14,10 +14,10 @@
 pub mod libraries;
 pub mod notice;
 
-use super::sheet::{self, Tone};
+use super::sheet;
 use super::widgets::{self, ActionKind, Floater};
 use crate::theme::Palette;
-use egui::{Rect, RichText, Sense, Shape, Vec2};
+use egui::{RichText, Sense, Vec2};
 use notice::Block;
 use std::time::{Duration, Instant};
 

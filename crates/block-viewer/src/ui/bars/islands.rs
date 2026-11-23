@@ -1157,7 +1157,6 @@ mod tests {
 
     fn status(stretch: bool, bug: bool) -> StatusInfo<'static> {
         StatusInfo {
-            streamer_mode: false,
             location_hidden: false,
             show_bug_report: bug,
             show_huds: true,

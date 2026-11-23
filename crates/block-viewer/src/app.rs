@@ -13760,7 +13760,7 @@ impl App {
             .director
             .recording
             .is_some()
-            .then(|| self.settings.director_record.fps)
+            .then_some(self.settings.director_record.fps)
             .filter(|fps| *fps > 0);
         let timed = self.capture.is_some() || self.frame_profile.enabled() || record_pace.is_some();
         let fps_limit = crate::cli::get().fps_limit;

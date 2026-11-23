@@ -1702,13 +1702,7 @@ impl Viewfinder {
                         block_i18n::tr!("photo-profile-offline")
                     };
                     ui.add_enabled_ui(web_ready, |ui| {
-                        if dock_button(
-                            ui,
-                            p,
-                            Face::Icon("send-filled"),
-                            &web_tip,
-                            panel.destination == Destination::Profile,
-                        ) {
+                        if dock_button(ui, p, Face::Icon("send-filled"), web_tip, panel.destination == Destination::Profile) {
                             out.push(Out::Panel(Action::ShareWeb));
                         }
                     });

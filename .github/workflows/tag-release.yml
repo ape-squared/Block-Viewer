@@ -1,0 +1,51 @@
+name: Tag release
+
+# Push a branch named `release-tag/vX.Y.Z` (at the commit to release) to tag
+# that commit `vX.Y.Z` and run the Release workflow on it, for tools that can
+# push branches but not tags. Delete the branch afterwards.
+on:
+  push:
+    branches: ['release-tag/v*']
+
+permissions:
+  contents: write
+
+concurrency:
+  group: tag-release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  tag:
+    runs-on: ubuntu-latest
+    outputs:
+      tag: ${{ steps.tag.outputs.tag }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 1
+      - name: Create the tag
+        id: tag
+        env:
+          BRANCH: ${{ github.ref_name }}
+        run: |
+          tag="${BRANCH#release-tag/}"
+          if ! [[ "$tag" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.]+)?$ ]]; then
+            echo "::error::not a version tag: $tag"; exit 1
+          fi
+          if git ls-remote --exit-code --tags origin "refs/tags/$tag" >/dev/null; then
+            echo "::error::$tag already exists"; exit 1
+          fi
+          git tag "$tag" "$GITHUB_SHA"
+          git push origin "refs/tags/$tag"
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+
+  release:
+    needs: tag
+    uses: ./.github/workflows/release.yml
+    permissions:
+      contents: write
+      actions: read
+    secrets: inherit
+    with:
+      tag: ${{ needs.tag.outputs.tag }}

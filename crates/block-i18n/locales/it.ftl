@@ -15819,3 +15819,7 @@ world-teleport-access-out-of-sync = We are having technical difficulties with yo
 world-teleport-access-preference-changed = { "You won't receive any more notifications that you're about to visit a region with " }{ $rating }{ " content. You may change your content preferences in the future in Preferences › Privacy." }
 world-teleport-access-preference-changed-title = Content rating changed
 world-teleport-access-rated = { "The location you've chosen is rated " }{ $rating }{ "." }
+
+# English placeholders (synced from en.ftl)
+ui-login-destinations = Destinations
+ui-login-destinations-hint = Where to start when you log in. Favorites are saved for this account.

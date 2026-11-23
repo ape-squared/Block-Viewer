@@ -15867,3 +15867,7 @@ ui-options-streamer-mode = Streamer mode
 ui-options-streamer-mode-help = Capture layout for creators. Turn on the master switch, then choose which elements it changes below. Also on Me › Streamer mode and as a toolbar button. Leaving Immersive turns Streamer mode off when Immersive is one of its knobs.
 ui-options-streamer-suppress-toasts = Suppress notification toasts
 ui-options-streamer-suppress-toasts-help = Hold toast pop-ups (like Do Not Disturb) so they do not appear on stream.
+
+# English placeholders (synced from en.ftl)
+ui-login-destinations = Destinations
+ui-login-destinations-hint = Where to start when you log in. Favorites are saved for this account.

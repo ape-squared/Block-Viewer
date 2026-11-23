@@ -116,7 +116,7 @@ fn animated_staff_plate_lead_width_is_constant() {
                     c.mark = Some(mark);
                     let face = paint::face(&env, Level::Compact, &c, t as f32);
                     let (label, ..) = face.staff.expect("staff label");
-                    width = Some(borealis::tag_width(label.size().x, Metrics::of(Level::Compact, SCALE).scale));
+                    width = Some(block::tag_width(label.size().x, Metrics::of(Level::Compact, SCALE).scale));
                     sections = Some(label.job.sections.len());
                 },
             );

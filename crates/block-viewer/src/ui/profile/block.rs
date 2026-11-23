@@ -808,11 +808,30 @@ fn paint_photo(
     editing: bool,
 ) {
     let painter = ui.painter();
-    let r = rect.width() / 2.0;
-    painter.circle_filled(rect.center(), r, p.panel);
-    widgets::avatar_disc(ui, p, rect.shrink(ring), pic, name, false);
+    // boxed like the rest of Block's chrome, not a disc
+    let radius = ui.visuals().window_corner_radius;
+    painter.rect_filled(rect, radius, p.panel);
+    let inner = rect.shrink(ring);
+    if let Some(tex) = pic {
+        egui::Image::from_texture(egui::load::SizedTexture::new(tex.id(), inner.size()))
+            .corner_radius(radius)
+            .paint_at(ui, inner);
+    } else {
+        widgets::avatar_disc(ui, p, inner, None, name, false);
+    }
+    painter.rect_stroke(
+        rect,
+        radius,
+        egui::Stroke::new(1.0, if editing { p.violet_light } else { p.raised }),
+        egui::StrokeKind::Inside,
+    );
     if editing {
-        painter.circle_stroke(rect.center(), r + 1.0, egui::Stroke::new(2.0, p.violet_light));
+        painter.rect_stroke(
+            rect.expand(1.0),
+            radius,
+            egui::Stroke::new(2.0, p.violet_light),
+            egui::StrokeKind::Outside,
+        );
     }
     // the dot: 24 px with its ring in the large header, 16 in the compact one
     let dot = if rect.width() > 80.0 { 12.0 } else { 8.0 };

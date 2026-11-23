@@ -3,7 +3,7 @@
 //! northern light (`block.rs`) or Linden Lab's stars and shine
 //! (`linden.rs`), their tag's words, icon and colors.
 
-use super::{block, borealis, linden};
+use super::{block, linden};
 use crate::theme::Palette;
 use crate::world::staff::Mark;
 use egui::{Color32, Mesh, Rect};
@@ -89,15 +89,15 @@ impl Look {
     /// A plate's border, `width` points inside its edge, over its halo.
     #[allow(clippy::too_many_arguments)]
     pub fn border(&self, mesh: &mut Mesh, p: &Palette, rect: Rect, ppp: f32, t: f32, alpha: f32, width: f32, scale: f32) {
-        // Pill outline (block.rs): block::border's squarer perimeter can be
-        // empty on a zero-sized tag rect during the first layout frames.
-        borealis::border(mesh, rect, ppp, alpha, width, scale, |s| self.edge(p, s, t));
+        // Block's boxed outline: squarer corners than a pill (its perimeter
+        // is empty, and nothing drawn, for a rectangle with no size)
+        block::border(mesh, rect, ppp, alpha, width, scale, |s| self.edge(p, s, t));
     }
 
     /// The tag's surface at `rect`: `fill` inside the border.
     #[allow(clippy::too_many_arguments)]
     pub fn tag(&self, mesh: &mut Mesh, p: &Palette, rect: Rect, radius: f32, ppp: f32, t: f32, fill: Color32, alpha: f32, width: f32) {
-        borealis::tag(mesh, rect, radius, ppp, fill, alpha, width, |s| self.edge(p, s + 0.25, t));
+        block::tag(mesh, rect, radius, ppp, fill, alpha, width, |s| self.edge(p, s + 0.25, t));
     }
 
     /// The light over a profile's banner: the curtains rising from its

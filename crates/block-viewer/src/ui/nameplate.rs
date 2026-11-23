@@ -17,7 +17,6 @@ use std::collections::{HashMap, HashSet};
 use uuid::Uuid;
 
 pub(crate) mod block;
-pub(crate) mod borealis;
 pub(crate) mod combo;
 mod fidget;
 mod linden;

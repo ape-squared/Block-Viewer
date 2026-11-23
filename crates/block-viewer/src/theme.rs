@@ -65,7 +65,7 @@ impl Default for Theme {
             indigo_light: "#A8C4C8".into(),
             on_accent: "#0B0C0E".into(),
             panel_alpha: 235,
-            // Boxed chrome: almost-square corners, not Block pills.
+            // Boxed chrome: almost-square corners, not round pills.
             button_radius: 2,
             window_radius: 1,
             font_scale: 1.0,

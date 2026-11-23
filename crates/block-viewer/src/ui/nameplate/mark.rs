@@ -89,8 +89,6 @@ impl Look {
     /// A plate's border, `width` points inside its edge, over its halo.
     #[allow(clippy::too_many_arguments)]
     pub fn border(&self, mesh: &mut Mesh, p: &Palette, rect: Rect, ppp: f32, t: f32, alpha: f32, width: f32, scale: f32) {
-        // Pill outline (aurora.rs): block::border's squarer perimeter can be
-        // empty on a zero-sized tag rect during the first layout frames.
         aurora::border(mesh, rect, ppp, alpha, width, scale, |s| self.edge(p, s, t));
     }
 

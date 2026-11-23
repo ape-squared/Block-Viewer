@@ -636,8 +636,8 @@ fn marks(env: &Env<'_>, key: &MarksKey) -> Mesh {
         if key.placeholder {
             let fill = frame.ring(&mut mesh, -0.5, p.raised);
             frame.fill(&mut mesh, fill, p.raised);
-            frame.stroke(&mut mesh, 2.0 * s, p.ink.gamma_multiply(0.22));
         }
+        frame.stroke(&mut mesh, 2.0 * s, p.ink.gamma_multiply(0.22));
     }
     if let (Some(dot), Some(presence)) = (l.dot, key.dot) {
         use crate::ui::presence::Shape as Mark;

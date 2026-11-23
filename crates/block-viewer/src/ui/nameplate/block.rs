@@ -147,12 +147,6 @@ impl Perimeter {
                 }
             }
         }
-        if points.is_empty() {
-            return Perimeter {
-                points: Vec::new(),
-                center: rect.center(),
-            };
-        }
         let total = (2.0 * (w + h) + TAU * r).max(f32::EPSILON);
         let mut along = 0.0;
         let mut last = points[0].0;
@@ -204,10 +198,7 @@ impl Perimeter {
 /// same colors `scale` mockup pixels to points.
 pub(super) fn border(mesh: &mut Mesh, rect: Rect, ppp: f32, alpha: f32, width: f32, scale: f32, edge: impl Fn(f32) -> Color32) {
     let o = Perimeter::of(rect, ppp);
-    if o.points.is_empty() || !rect.is_positive() {
-        return;
-    }
-    let f = 0.5 / ppp.max(f32::EPSILON);
+    let f = 0.5 / ppp;
     let color = |s: f32| edge(s).gamma_multiply(alpha);
     let halo = |s: f32| light(edge(s), HALO_LIGHT * alpha, 0.5);
     let a = o.ring(mesh, -width - f, |_| Color32::TRANSPARENT);
@@ -236,10 +227,7 @@ pub(super) fn tag(
     color: impl Fn(f32) -> Color32,
 ) {
     let o = Perimeter::rounded(rect, radius, ppp);
-    if o.points.is_empty() || !rect.is_positive() {
-        return;
-    }
-    let f = 0.5 / ppp.max(f32::EPSILON);
+    let f = 0.5 / ppp;
     let fill = fill.gamma_multiply(alpha);
     let edge = |s: f32| super::mesh::over(color(s).gamma_multiply(alpha), fill);
     let inner = o.ring(mesh, -width - f, |_| fill);

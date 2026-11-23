@@ -217,7 +217,7 @@ impl BanLines {
                         // segment's place on the region's grid (not its rank
                         // among the visible ones, which changes as you walk)
                         identity: [
-                            block_render::oit_tie(*b"block-ban-line!", ((x + y * stride) * 2 + usize::from(dir == WEST)) as u32),
+                            block_render::oit_tie(*b"aurora-ban-line!", ((x + y * stride) * 2 + usize::from(dir == WEST)) as u32),
                             0,
                             0,
                             0,

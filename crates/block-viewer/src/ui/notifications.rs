@@ -1667,7 +1667,7 @@ mod tests {
                 let (_, answer) = frame(click(false));
                 assert!(
                     matches!(answer, Some(Response::Button(i)) if i == index),
-                    "block={block}, button={index}: {answer:?}"
+                    "block={aurora}, button={index}: {answer:?}"
                 );
             }
         }
@@ -1751,13 +1751,13 @@ mod tests {
                     _ => None,
                 })
                 .expect("body shown");
-            assert!(text_rect(&output, "Texture kit").is_some(), "block={block}: attachment named");
+            assert!(text_rect(&output, "Texture kit").is_some(), "block={aurora}: attachment named");
             let save = text_rect(&output, block_i18n::tr!("ui-group-notices-save")).expect("save button");
             // the toast's own width: nothing past its time and close button
             let right = 320.0 + 16.0;
             assert!(
                 save.right() <= right,
-                "block={block}: button inside the card ({} > {right})",
+                "block={aurora}: button inside the card ({} > {right})",
                 save.right()
             );
             assert!(save.top() > body.bottom(), "under the text");
@@ -1773,7 +1773,7 @@ mod tests {
                     &mut list,
                 );
                 if !pressed {
-                    assert!(matches!(answer, Some(Response::Accept)), "block={block}: {answer:?}");
+                    assert!(matches!(answer, Some(Response::Accept)), "block={aurora}: {answer:?}");
                 }
             }
             let (out, _) = list.respond(list.list[0].id, Response::Accept, |_| Uuid::from_u128(7), Uuid::nil());
@@ -1781,7 +1781,7 @@ mod tests {
             let (output, _) = frame(vec![], &mut list);
             assert!(
                 text_rect(&output, block_i18n::tr!("ui-group-notices-saved")).is_some(),
-                "block={block}: saved"
+                "block={aurora}: saved"
             );
         }
     }

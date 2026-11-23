@@ -293,7 +293,7 @@ impl SpinningCat {
                 block_render::textures::WHITE,
             ],
             flags: [flags::FULLBRIGHT | flags::ALPHA_BLEND | flags::DOUBLE_SIDED, 0, 0, 0],
-            identity: [block_render::oit_tie(*b"block-cat-ring!", 0), 0, 0, 0],
+            identity: [block_render::oit_tie(*b"aurora-cat-ring!", 0), 0, 0, 0],
             ..Default::default()
         };
         let slot = match self.circle_record {

@@ -195,7 +195,7 @@ pub(super) fn import_folder(from: &Path, root: &Path, rig: &Rig) -> Result<Impor
                 continue;
             }
         };
-        let target = root.join(format!("{}.block-pose.json", clip::files::basename(&document.name)));
+        let target = root.join(format!("{}.aurora-pose.json", clip::files::basename(&document.name)));
         if target.exists() {
             imported.kept += 1;
             continue;
@@ -535,11 +535,11 @@ mod tests {
                 unreadable: 1
             }
         );
-        assert!(root.join("Sit.block-pose.json").is_file());
-        assert!(root.join("Stand.block-pose.json").is_file());
-        assert!(!root.join("Fist.block-pose.json").exists());
+        assert!(root.join("Sit.aurora-pose.json").is_file());
+        assert!(root.join("Stand.aurora-pose.json").is_file());
+        assert!(!root.join("Fist.aurora-pose.json").exists());
         // the pose reads back as a library pose
-        let saved: Document = serde_json::from_slice(&std::fs::read(root.join("Sit.block-pose.json")).expect("read")).expect("json");
+        let saved: Document = serde_json::from_slice(&std::fs::read(root.join("Sit.aurora-pose.json")).expect("read")).expect("json");
         assert!(saved.valid(&rig));
         assert_eq!(saved.channels, Channels::LegacyDelta);
         // a second import changes nothing

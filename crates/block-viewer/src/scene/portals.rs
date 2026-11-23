@@ -93,7 +93,7 @@ impl Portals {
                 // as portals come and go)
                 identity: [
                     block_render::oit_tie(
-                        *b"block-portal-fx",
+                        *b"aurora-portal-fx",
                         portal.center[0].to_bits()
                             ^ portal.center[1].to_bits().rotate_left(11)
                             ^ portal.center[2].to_bits().rotate_left(22),

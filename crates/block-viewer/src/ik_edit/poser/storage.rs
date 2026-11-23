@@ -72,7 +72,7 @@ pub(super) struct Save {
     pub pick: bool,
 }
 /// The pose file a Save as… writes: the chosen name, with
-/// `.block-pose.json` added when it does not already end in `.json`, so
+/// `.aurora-pose.json` added when it does not already end in `.json`, so
 /// that the library and Open a file find it.
 fn pose_file(path: PathBuf) -> PathBuf {
     let name = path.file_name().map(|n| n.to_string_lossy().to_lowercase()).unwrap_or_default();
@@ -80,16 +80,16 @@ fn pose_file(path: PathBuf) -> PathBuf {
         path
     } else {
         let mut name = path.file_name().unwrap_or_default().to_os_string();
-        name.push(".block-pose.json");
+        name.push(".aurora-pose.json");
         path.with_file_name(name)
     }
 }
 /// The `.bvh` written next to a pose file: its name without
-/// `.block-pose.json` (or `.json`).
+/// `.aurora-pose.json` (or `.json`).
 fn bvh_file(pose: &Path) -> PathBuf {
     let name = pose.file_name().map(|n| n.to_string_lossy().into_owned()).unwrap_or_default();
     let lower = name.to_lowercase();
-    let stem = [".block-pose.json", ".json"]
+    let stem = [".aurora-pose.json", ".json"]
         .iter()
         .find(|ext| lower.ends_with(*ext))
         .map_or(name.as_str(), |ext| &name[..name.len() - ext.len()]);
@@ -184,7 +184,7 @@ fn list(root: &Path, rig: &Rig) -> Result<Vec<Entry>, String> {
     for entry in std::fs::read_dir(root).map_err(|e| e.to_string())?.take(4096) {
         let path = entry.map_err(|e| e.to_string())?.path();
         if path.is_file()
-            && path.file_name().is_some_and(|n| n.to_string_lossy().ends_with(".block-pose.json"))
+            && path.file_name().is_some_and(|n| n.to_string_lossy().ends_with(".aurora-pose.json"))
             && let Ok(document) = read(&path).and_then(|bytes| serde_json::from_slice::<Document>(&bytes).map_err(|e| e.to_string()))
         {
             if !document.valid(rig) {
@@ -346,7 +346,7 @@ impl Service {
                             let _ = std::fs::create_dir_all(&root);
                             let Some(path) = rfd::FileDialog::new()
                                 .set_directory(&root)
-                                .set_file_name(format!("{name}.block-pose.json"))
+                                .set_file_name(format!("{name}.aurora-pose.json"))
                                 .add_filter(block_i18n::tr!("poser-pose-filter"), &["json"])
                                 .save_file()
                             else {
@@ -354,7 +354,7 @@ impl Service {
                             };
                             pose_file(path)
                         } else {
-                            root.join(format!("{name}.block-pose.json"))
+                            root.join(format!("{name}.aurora-pose.json"))
                         };
                         let bvh_path = bvh_file(&path);
                         if confirm && !pick && (path.exists() || bvh && bvh_path.exists()) {
@@ -408,18 +408,18 @@ mod save_as_tests {
 
     #[test]
     fn pose_file_adds_the_pose_extension_unless_json() {
-        assert_eq!(pose_file(PathBuf::from("/d/Wave")), Path::new("/d/Wave.block-pose.json"));
-        assert_eq!(pose_file(PathBuf::from("/d/Wave.v2")), Path::new("/d/Wave.v2.block-pose.json"));
+        assert_eq!(pose_file(PathBuf::from("/d/Wave")), Path::new("/d/Wave.aurora-pose.json"));
+        assert_eq!(pose_file(PathBuf::from("/d/Wave.v2")), Path::new("/d/Wave.v2.aurora-pose.json"));
         assert_eq!(
-            pose_file(PathBuf::from("/d/Wave.block-pose.json")),
-            Path::new("/d/Wave.block-pose.json")
+            pose_file(PathBuf::from("/d/Wave.aurora-pose.json")),
+            Path::new("/d/Wave.aurora-pose.json")
         );
         assert_eq!(pose_file(PathBuf::from("/d/Wave.JSON")), Path::new("/d/Wave.JSON"));
     }
 
     #[test]
     fn bvh_sits_next_to_the_pose_without_its_extension() {
-        assert_eq!(bvh_file(Path::new("/d/Wave.block-pose.json")), Path::new("/d/Wave.bvh"));
+        assert_eq!(bvh_file(Path::new("/d/Wave.aurora-pose.json")), Path::new("/d/Wave.bvh"));
         assert_eq!(bvh_file(Path::new("/d/Wave.Block-Pose.JSON")), Path::new("/d/Wave.bvh"));
         assert_eq!(bvh_file(Path::new("/d/Wave.json")), Path::new("/d/Wave.bvh"));
     }

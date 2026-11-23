@@ -10781,7 +10781,7 @@ remain present after export/import.
 Open compatible `.anim` and `.bvh` files as editable tracks (BVH import uses
 the avatar's native skeleton and rejects unmapped joints instead of dropping
 them; zero-duration ANIM poses should open as a one-frame clip), then save and
-reopen an `.blockanim` project to verify editor settings and keys survive.
+reopen an `.auroraanim` project to verify editor settings and keys survive.
 Prepare an upload and confirm it opens Block's normal upload inspector for
 explicit review. Dense project round-trip coverage includes a 60-second clip
 with more than 16 MiB of key data. In the Studio toolbar, choose Reset, cancel the

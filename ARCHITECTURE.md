@@ -4742,7 +4742,7 @@ within the native per-joint key limit, and authored key times are preserved in
 the ANIM format on export.
 Optional auto-key records changed joints
 once a pose drag ends. Compatible `.anim` and `.bvh` files become editable
-native joint tracks, while `.blockanim` project files preserve editor-only
+native joint tracks, while `.auroraanim` project files preserve editor-only
 interpolation and timing.
 Final uploads still pass through the ordinary upload inspector for review and
 fee confirmation. The editor suspends around that upload flow and reopens the

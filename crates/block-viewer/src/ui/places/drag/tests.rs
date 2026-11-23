@@ -5,7 +5,7 @@ use crate::{
     ui::{
         bars::favorites,
         place_details::Ctx,
-        places::{PlacesAction, PlacesUi, aurora},
+        places::{PlacesAction, PlacesUi, block},
     },
     world::World,
 };

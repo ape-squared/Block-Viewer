@@ -226,12 +226,12 @@ make room for another. Opening a file needs no draft, so Import and Open
 project also work before the first animation is created. Save `.anim` files to keep exported clips
 before leaving the viewer. Outside trimmed keys and disabled tracks remain
 in the session draft; an exported file contains the selected active clip.
-Editable `.blockanim` projects preserve the full timeline and keys, use a
+Editable `.auroraanim` projects preserve the full timeline and keys, use a
 64 MiB file-size limit, and reject an oversized save rather than writing a
 project that cannot be reopened. Projects and `.anim` files are written to a
 temporary file beside the target and renamed over it, so a failed save leaves
 the previous file whole.
-Opening `.anim`, `.bvh` or `.blockanim` files reads at most 64 MiB before
+Opening `.anim`, `.bvh` or `.auroraanim` files reads at most 64 MiB before
 decoding, matching the parser limits.
 
 ## Save or import

@@ -161,7 +161,7 @@ impl Perimeter {
         }
         if points.is_empty() {
             return Perimeter {
-                points,
+                points: Vec::new(),
                 center: rect.center(),
             };
         }

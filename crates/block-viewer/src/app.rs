@@ -13725,16 +13725,16 @@ impl App {
         // its mode)
         self.screen_rate.poll(&gfx.window, Instant::now());
         let monitor_hz = self.screen_rate.hz();
+        // Director recording may request a higher loop cap (e.g. 120 fps); only
+        // when a capture is actually running and the chosen rate is positive.
         let record_pace = self
             .director
             .recording
             .is_some()
-            .then(|| self.settings.director_record.fps);
+            .then(|| self.settings.director_record.fps)
+            .filter(|fps| *fps > 0);
         let timed = self.capture.is_some() || self.frame_profile.enabled() || record_pace.is_some();
-        let mut fps_limit = crate::cli::get().fps_limit;
-        if let Some(fps) = record_pace {
-            fps_limit = Some(fps_limit.map_or(fps, |l| l.max(fps)));
-        }
+        let fps_limit = crate::cli::get().fps_limit;
         let cap = frame_cap(
             &self.settings,
             self.focused,
@@ -25302,7 +25302,7 @@ fn frame_cap(
     if !in_world {
         cap = cap.min(monitor_hz);
     }
-    if let Some(pace) = pace_fps {
+    if let Some(pace) = pace_fps.filter(|&fps| fps > 0) {
         cap = cap.max(pace as f32);
     }
     if cap.is_finite() { cap } else { 0.0 }

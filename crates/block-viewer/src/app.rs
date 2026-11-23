@@ -882,6 +882,8 @@ pub struct App {
     contacts_people_ui: ui::people::PeopleUi,
     /// Avatars around us, swept once a second on `radar_clock`.
     radar: crate::world::radar::Radar,
+    /// Discord Rich Presence (Legacy Viewer FSDiscordConnect).
+    discord_presence: crate::discord_presence::Presence,
     radar_clock: Instant,
     /// A zoom on a resident not drawn yet: the camera looks at its radar
     /// position (the point) and follows the resident once drawn, unless the
@@ -2112,6 +2114,7 @@ impl App {
             people_ui: Default::default(),
             contacts_people_ui: Default::default(),
             radar: Default::default(),
+            discord_presence: Default::default(),
             radar_clock: Instant::now(),
             zoom_awaited: None,
             contacts_ui: Default::default(),
@@ -3707,6 +3710,7 @@ impl App {
         self.chat_import_closed();
         self.chat_ui = ChatUi::from_settings(&self.settings);
         self.ao_agent = uuid::Uuid::nil();
+        self.discord_presence.clear();
         self.appearance_ui = Default::default();
         self.shape_ui = Default::default();
         self.shape_camera = None;
@@ -7621,7 +7625,34 @@ impl App {
     /// Radar of the People window: one sweep a second (also with the
     /// window closed, for its alerts), the profiles its columns show and
     /// the crossings it reports (FSRadar::updateRadarList, fsradar.cpp).
+    fn update_discord_presence(&mut self) {
+        let in_world = self.in_world();
+        if in_world && self.discord_presence.started_unix == 0 {
+            self.discord_presence.session_start();
+        }
+        let snap = if in_world && self.settings.discord.enabled {
+            let share_loc = !self.world.rlva.has("showloc");
+            let share_name = self.world.rlva_can_name(self.world.agent_id);
+            let party_size = self.radar.entries().filter(|e| !e.left_behind).count() as i32;
+            let grid = crate::world::chat_log::grid_name(&self.settings.grid, &self.settings.custom_login_uri, self.demo);
+            Some(crate::discord_presence::snapshot_from_world(
+                &self.settings.discord,
+                &self.world,
+                self.discord_presence.started_unix,
+                share_loc,
+                share_name,
+                party_size,
+                40,
+                &grid,
+            ))
+        } else {
+            None
+        };
+        self.discord_presence.sync(&self.settings.discord, in_world, snap);
+    }
+
     fn update_radar(&mut self) {
+        self.update_discord_presence();
         use crate::world::radar::Event;
         let now = self.radar_clock.elapsed().as_secs_f64();
         // not during a teleport: our position is still the one we had in

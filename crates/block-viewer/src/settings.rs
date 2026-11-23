@@ -1087,6 +1087,10 @@ pub struct Settings {
     /// Show the Block badge on our own nameplate, and prefer being listed as
     /// a Block Viewer peer when others refresh the GitHub peers file.
     pub advertise_block_viewer: bool,
+    /// Discord Rich Presence (Legacy Viewer Comm › Discord), Preferences ›
+    /// Privacy › Discord.
+    #[serde(default)]
+    pub discord: crate::discord_presence::Settings,
     /// A "> " before "… is typing" in the tab of a conversation with one
     /// resident (FSTypingChevronPrefix, off).
     pub typing_chevron: bool,
@@ -2610,6 +2614,7 @@ impl Default for Settings {
             type_during_emote: false,
             typing_in_name_tags: true,
             advertise_block_viewer: true,
+            discord: Default::default(),
             typing_chevron: false,
             chat_bubbles: false,
             chat_bubbles_hide_console: true,

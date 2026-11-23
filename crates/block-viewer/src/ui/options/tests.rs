@@ -303,6 +303,9 @@ const BEFORE: &[&str] = &[
     "lookat.private_point_at",
     "lookat.limit_distance",
     "lookat.max_distance",
+    "discord.enabled",
+    "discord.share_name",
+    "discord.max_maturity",
     "object_im_filter",
     // Block
     "water_effects",

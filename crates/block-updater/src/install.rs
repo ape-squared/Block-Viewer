@@ -25,6 +25,19 @@ const ACK_ENV: &str = "AURORA_UPDATE_ACK";
 /// transaction folder, whose `failure.txt` says why ([`failed_update`]).
 /// Older helpers set it to `1`.
 pub const ROLLBACK_ENV: &str = "AURORA_UPDATE_ROLLBACK";
+/// The update folder next to the installation: `.aurora-update-<token>`,
+/// as this viewer makes it, or `.block-update-<token>` as Block 0.2.x made
+/// it. The helper is the old viewer's own program, so a 0.2.x viewer
+/// updating to this one makes the second: refused, the new viewer never
+/// acknowledged its first frame and the helper put 0.2.x back.
+const WORK_PREFIXES: [&str; 2] = [".aurora-update-", ".block-update-"];
+/// The helper's command-line flag, likewise (`--block-update-helper` in 0.2.x).
+const HELPER_FLAGS: [&str; 2] = ["--aurora-update-helper", "--block-update-helper"];
+
+/// The token of an update folder's name, under either prefix.
+fn work_token(name: &str) -> Option<&str> {
+    WORK_PREFIXES.iter().find_map(|prefix| name.strip_prefix(prefix))
+}
 /// Why the update failed, written by the helper before the rollback.
 const FAILURE: &str = "failure.txt";
 /// Written by the helper just before it starts the new viewer: a failure
@@ -455,7 +468,9 @@ fn validate_work(work: &Path, plan: &Plan) -> Result<()> {
             && work.parent() == plan.install.parent()
             && work
                 .file_name()
-                .is_some_and(|n| n == format!(".aurora-update-{}", plan.token).as_str()),
+                .and_then(|n| n.to_str())
+                .and_then(work_token)
+                .is_some_and(|token| token == plan.token),
         "unsafe transaction directory"
     );
     plain_dir(work)?;
@@ -497,7 +512,7 @@ fn sweep_finished(install: &Path) {
     };
     for entry in entries.flatten() {
         let name = entry.file_name();
-        let Some(token) = name.to_str().and_then(|n| n.strip_prefix(".aurora-update-")) else {
+        let Some(token) = name.to_str().and_then(work_token) else {
             continue;
         };
         let work = entry.path();
@@ -577,7 +592,7 @@ fn hidden(command: &mut Command) {
 /// `stage` hears each step of the switch, with the new version.
 pub fn run_helper(stage: &mut dyn FnMut(&str, HelperStage)) -> Result<bool> {
     let mut args = std::env::args_os().skip(1);
-    if args.next().is_none_or(|a| a != "--aurora-update-helper") {
+    if args.next().is_none_or(|a| !HELPER_FLAGS.iter().any(|flag| a == *flag)) {
         return Ok(false);
     }
     let work = PathBuf::from(args.next().context("missing update transaction")?);
@@ -659,7 +674,7 @@ pub fn apply(install: &Path, work: &Path, launch: impl FnOnce() -> Result<()>) -
     let token = work
         .file_name()
         .and_then(|n| n.to_str())
-        .and_then(|n| n.strip_prefix(".aurora-update-"))
+        .and_then(work_token)
         .context("invalid staging name")?;
     validate_work(
         work,
@@ -946,6 +961,16 @@ impl Parent {
 
 #[cfg(test)]
 mod tests {
+    #[test]
+    fn update_folders_of_block_0_2_are_accepted() {
+        // a 0.2.x viewer's helper makes `.block-update-<token>`, 0.3 and later
+        // `.aurora-update-<token>`: the new viewer acknowledges either
+        assert_eq!(work_token(".aurora-update-1234"), Some("1234"));
+        assert_eq!(work_token(".block-update-1234"), Some("1234"));
+        assert_eq!(work_token(".other-update-1234"), None);
+        assert!(HELPER_FLAGS.contains(&"--block-update-helper"));
+    }
+
     use super::*;
 
     #[test]

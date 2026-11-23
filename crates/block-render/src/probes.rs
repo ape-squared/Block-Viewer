@@ -165,7 +165,7 @@ pub(crate) mod capture_lighting {
     }
 }
 
-/// How a fragment walks the probes (AURORA_PROBE_WALK; the image is the
+/// How a fragment walks the probes (BLOCK_PROBE_WALK; the image is the
 /// same).
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum ProbeWalk {
@@ -188,7 +188,7 @@ pub enum ProbeWalk {
 impl ProbeWalk {
     pub fn from_env() -> ProbeWalk {
         static MODE: std::sync::OnceLock<ProbeWalk> = std::sync::OnceLock::new();
-        *MODE.get_or_init(|| match std::env::var("AURORA_PROBE_WALK").as_deref().map(str::trim) {
+        *MODE.get_or_init(|| match std::env::var("BLOCK_PROBE_WALK").as_deref().map(str::trim) {
             Ok("0") => ProbeWalk::PerLookup,
             Ok("list") => ProbeWalk::List,
             Ok("alt") => ProbeWalk::Alternate,

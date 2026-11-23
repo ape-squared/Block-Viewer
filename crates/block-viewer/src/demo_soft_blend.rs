@@ -1,4 +1,4 @@
-//! AURORA_DEMO_SOFT_BLEND=1: blended faces whose opacity crosses one half
+//! BLOCK_DEMO_SOFT_BLEND=1: blended faces whose opacity crosses one half
 //! within the face, under things that occlude them.
 //!
 //! A set 2 m along the start view and 3 m to its left, against a wall:
@@ -14,11 +14,11 @@
 //!
 //! The screen-space occlusion and the contact shadows must fade with the
 //! opacity of such a face, never stop along a line where it crosses a
-//! limit: with `AURORA_DEMO_DEBUG=ao`, no ragged border on the desk top, on
+//! limit: with `BLOCK_DEMO_DEBUG=ao`, no ragged border on the desk top, on
 //! the tray nor along the streaks, and what stands behind the glass keeps
 //! its own occlusion.
 //!
-//! From the start position, or AURORA_DEMO_POS="x,y".
+//! From the start position, or BLOCK_DEMO_POS="x,y".
 
 use super::{HANDLE, height, prim, shape, te};
 use block_net::NetEvent;
@@ -38,7 +38,7 @@ const DESK_ALPHA: f32 = 0.72;
 const PANE_ALPHA: f32 = 0.66;
 
 fn enabled() -> bool {
-    std::env::var("AURORA_DEMO_SOFT_BLEND").is_ok_and(|v| v.trim() == "1")
+    std::env::var("BLOCK_DEMO_SOFT_BLEND").is_ok_and(|v| v.trim() == "1")
 }
 
 fn glass(texture: Uuid, alpha: f32) -> Arc<TextureEntry> {
@@ -57,7 +57,7 @@ pub fn events() -> Vec<NetEvent> {
     let look = Vec3::new(0.8, 0.4, 0.0).normalize();
     let across = Vec3::new(-look.y, look.x, 0.0);
     let facing = Quat::from_rotation_z(look.y.atan2(look.x));
-    let eye = std::env::var("AURORA_DEMO_POS")
+    let eye = std::env::var("BLOCK_DEMO_POS")
         .ok()
         .map(|v| v.split(',').filter_map(|s| s.trim().parse::<f32>().ok()).collect::<Vec<_>>())
         .filter(|p| p.len() >= 2)

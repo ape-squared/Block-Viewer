@@ -1,7 +1,7 @@
 //! Toolbar AO controls, reusing the manager's account and movement preferences.
 //! The Legacy Viewer's small AO panel also shares its set selector with the
 //! manager and steps the current state's animations with its previous / next
-//! buttons (indra/newview/ao.cpp, panel_ao.xml `ao_*_small`); Aurora
+//! buttons (indra/newview/ao.cpp, panel_ao.xml `ao_*_small`); Block
 //! adds an auto-cycle button between them and the requested water controls.
 //! The run / flight boosts stay in Settings › Movement only.
 use super::*;

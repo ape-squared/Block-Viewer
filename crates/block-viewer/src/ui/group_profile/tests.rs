@@ -13,7 +13,7 @@ fn world(member: bool, powers: u64) -> World {
     if member {
         world.apply(NetEvent::Groups(vec![block_net::GroupMembership {
             id: DEMO_GROUP1,
-            name: "Aurora Builders".into(),
+            name: "Block Builders".into(),
             insignia: Uuid::nil(),
             powers,
             accept_notices: true,
@@ -23,7 +23,7 @@ fn world(member: bool, powers: u64) -> World {
     }
     world.apply(NetEvent::GroupProfile(Box::new(GroupProfile {
         id: DEMO_GROUP1,
-        name: "Aurora Builders".into(),
+        name: "Block Builders".into(),
         charter: "Hello".into(),
         founder: crate::demo::DEMO_LOUP,
         open_enrollment: true,
@@ -139,7 +139,7 @@ fn a_member_gets_chat_leave_and_their_settings() {
     let mut world = world(true, MEMBER);
     let mut st = opened(&mut world);
     let (texts, actions) = texts(&mut st, &world, false);
-    assert!(texts.iter().any(|t| t == "Aurora Builders"));
+    assert!(texts.iter().any(|t| t == "Block Builders"));
     for key in [
         "common-chat",
         "ui-group-profile-leave",
@@ -238,7 +238,7 @@ fn the_classic_window_keeps_the_general_pane_and_adds_the_members() {
     ] {
         assert!(has(&texts, key), "{key} in {texts:?}");
     }
-    assert!(!has(&texts, "ui-group-profile-me"), "the cards are the Aurora look's");
+    assert!(!has(&texts, "ui-group-profile-me"), "the cards are the Block look's");
 }
 
 #[test]
@@ -586,8 +586,8 @@ fn ejects_bans_and_role_ticks_follow_firestorm() {
     assert!(staged.is_empty());
 
     // the export: a title line, then one line per member
-    let csv = admin_members::export_csv("Aurora Builders", d, &|_| "Name".into());
-    assert!(csv.starts_with("Group membership record for Aurora Builders"));
+    let csv = admin_members::export_csv("Block Builders", d, &|_| "Name".into());
+    assert!(csv.starts_with("Group membership record for Block Builders"));
     assert_eq!(csv.trim_end().lines().count(), 1 + d.members.len());
 }
 

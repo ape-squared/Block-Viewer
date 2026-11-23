@@ -1,7 +1,7 @@
 //! The Director's library (`crate::director_library`): the saved tracks
 //! (load, rename, delete, import, export), the montage that plays several
 //! one after the other, and the help shown in Recording while there is no
-//! ffmpeg. Aurora's own: the Legacy Viewer has no camera path tool.
+//! ffmpeg. Block's own: the Legacy Viewer has no camera path tool.
 //!
 //! Each part is a section of its own, called with one line by
 //! `ui::director::window`:

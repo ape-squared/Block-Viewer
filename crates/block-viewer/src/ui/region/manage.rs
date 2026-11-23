@@ -35,7 +35,7 @@ pub(super) enum Section {
     Experiences,
     Covenant,
     Interventions,
-    /// Aurora-Sim based grids only: "Region settings".
+    /// Block-Sim based grids only: "Region settings".
     OpenSettings,
 }
 
@@ -92,12 +92,12 @@ pub(super) struct ManageState {
     pub open_settings: Draft<block_net::open_region::OpenRegionSettings>,
     /// The terrain texture the texture picker is choosing.
     pub picking: Option<usize>,
-    /// AURORA_DEMO_REGION's section, changes and question, set up once the
+    /// BLOCK_DEMO_REGION's section, changes and question, set up once the
     /// simulator answered.
     pub demo: Option<ManageDemo>,
 }
 
-/// AURORA_DEMO_REGION on Manage: scroll to the section, make the mockup's
+/// BLOCK_DEMO_REGION on Manage: scroll to the section, make the mockup's
 /// changes there and ask the question, once the demo simulator answered.
 pub(super) fn demo(s: &mut RegionUi, v: &View, world: &World) {
     let Some(d) = s.manage.demo else {
@@ -410,7 +410,7 @@ pub(super) fn access(ui: &mut egui::Ui, p: &Palette, s: &mut RegionUi, v: &View,
 }
 
 /// The Estate panel's "Apply": a change that shuts people out is confirmed
-/// first (Aurora's own question: a misclick can send half a region home),
+/// first (Block's own question: a misclick can send half a region home),
 /// then a Linden estate's (LLPanelEstateInfo::sendUpdate, ChangeLindenEstate).
 fn apply_access(s: &mut RegionUi, v: &View, world: &mut World) {
     let Some(server) = server_access(world) else {

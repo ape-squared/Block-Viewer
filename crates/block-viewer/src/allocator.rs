@@ -1,5 +1,5 @@
 //! The process's memory allocator: mimalloc, or the system's with
-//! `AURORA_ALLOCATOR=system`.
+//! `BLOCK_ALLOCATOR=system`.
 //!
 //! The system allocator (on Windows the process heap) serves every thread
 //! from one heap behind one lock. When the background jobs decode and build
@@ -76,7 +76,7 @@ fn use_system() -> bool {
     }
 }
 
-/// `AURORA_ALLOCATOR=system`, read without allocating.
+/// `BLOCK_ALLOCATOR=system`, read without allocating.
 #[cfg(windows)]
 fn system_wanted() -> bool {
     use windows_sys::Win32::System::Environment::GetEnvironmentVariableW;
@@ -88,7 +88,7 @@ fn system_wanted() -> bool {
         }
         out
     }
-    const NAME: [u16; 17] = wide("AURORA_ALLOCATOR");
+    const NAME: [u16; 17] = wide("BLOCK_ALLOCATOR");
     const SYSTEM_VALUE: [u16; 6] = wide("system");
     let mut value = [0u16; 8];
     // SAFETY: NAME ends with a NUL, and the buffer's length in characters
@@ -97,13 +97,13 @@ fn system_wanted() -> bool {
     len as usize == SYSTEM_VALUE.len() && value[..SYSTEM_VALUE.len()] == SYSTEM_VALUE
 }
 
-/// `AURORA_ALLOCATOR=system`, read without allocating.
+/// `BLOCK_ALLOCATOR=system`, read without allocating.
 #[cfg(unix)]
 fn system_wanted() -> bool {
     // SAFETY: the name is a NUL-terminated literal; getenv returns null or
     // a NUL-terminated string that stays valid while nobody sets the
     // environment, which no thread does before the first allocation.
-    let value = unsafe { libc::getenv(c"AURORA_ALLOCATOR".as_ptr()) };
+    let value = unsafe { libc::getenv(c"BLOCK_ALLOCATOR".as_ptr()) };
     // SAFETY: not null, and NUL-terminated (above)
     !value.is_null() && unsafe { std::ffi::CStr::from_ptr(value) } == c"system"
 }

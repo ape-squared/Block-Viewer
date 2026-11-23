@@ -94,7 +94,7 @@ impl App {
         }
         if self.demo
             && self.frame_count == 650
-            && std::env::var("AURORA_DEMO_WEARABLE").is_ok_and(|mode| mode.ends_with(":save") || mode.ends_with(":local-save"))
+            && std::env::var("BLOCK_DEMO_WEARABLE").is_ok_and(|mode| mode.ends_with(":save") || mode.ends_with(":local-save"))
             && let Some(command) = self.wearable_ui.save(&self.world, None)
         {
             self.demo_save_wearable(command);
@@ -130,7 +130,7 @@ impl App {
         if !self.demo {
             return;
         }
-        let Ok(mode) = std::env::var("AURORA_DEMO_WEARABLE") else { return };
+        let Ok(mode) = std::env::var("BLOCK_DEMO_WEARABLE") else { return };
         let (name, variant) = mode.split_once(':').unwrap_or((&mode, ""));
         let names = [
             "shape",
@@ -263,7 +263,7 @@ impl App {
         if !self.demo || !self.wearable_ui.open {
             return;
         }
-        let Ok(mode) = std::env::var("AURORA_DEMO_WEARABLE") else { return };
+        let Ok(mode) = std::env::var("BLOCK_DEMO_WEARABLE") else { return };
         let Some((_, variant)) = mode
             .split_once(':')
             .filter(|(_, variant)| variant.starts_with("local") || variant.starts_with("picker-"))
@@ -328,11 +328,11 @@ impl App {
         }
     }
 
-    /// Native drag/drop and picker clicks for `AURORA_DEMO_WEARABLE`.
+    /// Native drag/drop and picker clicks for `BLOCK_DEMO_WEARABLE`.
     /// The drag starts at 700 and drops at 720. Picker demos click a local
     /// row at 700, then Cancel or the title-bar close button at 1000.
     pub(super) fn wearable_drop_demo_input(&mut self, raw: &mut egui::RawInput) {
-        let Ok(mode) = std::env::var("AURORA_DEMO_WEARABLE") else { return };
+        let Ok(mode) = std::env::var("BLOCK_DEMO_WEARABLE") else { return };
         if mode.contains(":picker-") {
             let selecting = matches!(self.frame_count, 700 | 701);
             let cancel = mode.ends_with(":picker-cancel") && matches!(self.frame_count, 1000 | 1001);

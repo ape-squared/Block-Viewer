@@ -115,7 +115,7 @@ pub fn picker_open(ctx: &egui::Context) -> bool {
 /// installation to lose or to be refused.
 static BUILT_IN: &[u8] = include_bytes!("../../../../assets/emoji/NotoColorEmoji.ttf");
 
-/// Another font to try (`AURORA_EMOJI_FONT`), kept for the session.
+/// Another font to try (`BLOCK_EMOJI_FONT`), kept for the session.
 fn read_font(path: &Path) -> Option<&'static [u8]> {
     std::fs::read(path)
         .map_err(|e| log::warn!("emoji font {}: {e}", path.display()))
@@ -173,7 +173,7 @@ const DECODED: u32 = 64;
 impl Emoji {
     pub fn load() -> Emoji {
         // The font asked for (to compare another one), else the built-in one.
-        let asked = std::env::var_os("AURORA_EMOJI_FONT");
+        let asked = std::env::var_os("BLOCK_EMOJI_FONT");
         let parse = |bytes: &'static [u8], name: &str| match ttf_parser::Face::parse(bytes, 0) {
             Ok(f) => {
                 log::info!("emoji font: {name}");
@@ -287,7 +287,7 @@ impl Emoji {
     }
 
     /// The text size of a message of the conversation (issue #483): larger
-    /// for emoji alone. The Aurora, Compact and Bubbles styles only: the
+    /// for emoji alone. The Block, Compact and Bubbles styles only: the
     /// Legacy lines, the History window and the chat lines at the bottom of
     /// the screen keep one size, as in the Legacy Viewer.
     pub fn message_size(&self, text: &str, size: f32) -> f32 {

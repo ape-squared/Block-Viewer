@@ -1,4 +1,4 @@
-//! AURORA_DEMO_REGION_MESSAGE=1: messages to the whole region in the middle
+//! BLOCK_DEMO_REGION_MESSAGE=1: messages to the whole region in the middle
 //! of the screen (#1404), the card turned on for the run without saving
 //! it. Orion (the estate manager) announces a restart, then Nova a party:
 //! Orion's card shows that one more message waits, Nova's comes once it is
@@ -8,7 +8,7 @@ use block_net::NetEvent;
 use uuid::Uuid;
 
 pub fn enabled() -> bool {
-    std::env::var("AURORA_DEMO_REGION_MESSAGE").is_ok_and(|m| !m.is_empty() && m != "0")
+    std::env::var("BLOCK_DEMO_REGION_MESSAGE").is_ok_and(|m| !m.is_empty() && m != "0")
 }
 
 /// An estate manager's "Send message to region": IM_NOTHING_SPECIAL to

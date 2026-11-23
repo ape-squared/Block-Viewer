@@ -2897,7 +2897,7 @@ fn typed_transparency_reaches_every_selected_face_even_over_a_mixed_value() {
             .count()
     };
     for legacy in [false, true] {
-        let style = if legacy { "Legacy" } else { "Aurora" };
+        let style = if legacy { "Legacy" } else { "Block" };
         for (text, finish, applied) in [
             ("0", egui::Key::Enter, true),
             ("0", egui::Key::Tab, true),

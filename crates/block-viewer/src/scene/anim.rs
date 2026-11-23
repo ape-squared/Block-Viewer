@@ -553,7 +553,7 @@ pub struct Controller {
     pub(super) ground: Option<grounding::Frame>,
     pub(super) legacy_ground: Option<grounding::Frame>,
     /// Ownership is the saved option, never the availability of a support hit.
-    pub(super) aurora_feet: bool,
+    pub(super) block_feet: bool,
     placement: grounding::Placement,
     legacy_rot: Vec<Quat>,
     legacy_held: bool,
@@ -598,7 +598,7 @@ pub struct Controller {
     /// The head, neck and eyes take the look-at over every animation
     /// (`LOOK_OVER_ANIMATIONS`): our avatar under the photo window's "Look
     /// at camera", so that an AO stand that keys the head does not hold it.
-    /// Aurora's own; the torso keeps the animations' pose.
+    /// Block's own; the torso keeps the animations' pose.
     pub look_over_animations: bool,
     /// Under `look_over_animations`, how much of the turn is left to the
     /// eyes: 0 the head faces the target (as far as it reaches), 1 the head
@@ -820,7 +820,7 @@ fn interpolant(dt: f32, half_life: f32) -> f32 {
 
 /// How far a look-at target, as a rotation from the chest (`rel`), is
 /// within a natural turn of the neck: 1 up to `NATURAL_REACH.0` off the
-/// chest's front, 0 from `NATURAL_REACH.1` on, smooth between. Aurora's own,
+/// chest's front, 0 from `NATURAL_REACH.1` on, smooth between. Block's own,
 /// for `look_over_animations`: past it the head goes back to the
 /// animation's instead of staring behind the body.
 fn natural_reach(rel: Quat) -> f32 {
@@ -908,7 +908,7 @@ impl Controller {
         (&self.rot, &self.pos_delta, self.pelvis_offset)
     }
 
-    /// Apply Preferences › Aurora › Animations without restarting live loops.
+    /// Apply Preferences › Block › Animations without restarting live loops.
     /// Enabling catches up to the known phase; disabling keeps the current phase
     /// and uses the Legacy Viewer clock for subsequent starts and pauses.
     pub fn set_synchronized(&mut self, synchronized: bool) {
@@ -932,7 +932,7 @@ impl Controller {
         self.animation_clock.set_factor(factor, now);
     }
 
-    /// Motions playing (`avatar summary`, AURORA_PROFILE).
+    /// Motions playing (`avatar summary`, BLOCK_PROFILE).
     pub fn motion_count(&self) -> usize {
         self.motions.len()
     }
@@ -1540,7 +1540,7 @@ impl Controller {
             }
         }
         let native_frame = self.legacy_ground.filter(|frame| {
-            !self.aurora_feet
+            !self.block_feet
                 && !editing
                 && !self
                     .motions
@@ -1816,11 +1816,11 @@ impl Controller {
             !protected(["mPelvis"; 3]) && !protected(["mHipLeft", "mKneeLeft", "mAnkleLeft"]),
             !protected(["mPelvis"; 3]) && !protected(["mHipRight", "mKneeRight", "mAnkleRight"]),
         ];
-        if editing || !self.aurora_feet {
+        if editing || !self.block_feet {
             self.placement = grounding::Placement::default();
         }
         let frame = self.ground.filter(|frame| {
-            self.aurora_feet
+            self.block_feet
                 && !self.control
                 && !self.ik.edit.active
                 && self.poser.is_none()
@@ -1843,7 +1843,7 @@ impl Controller {
             }
         };
         let corrected = self
-            .aurora_feet
+            .block_feet
             .then(|| {
                 self.placement.apply(
                     rig,
@@ -1862,7 +1862,7 @@ impl Controller {
             })
             .flatten();
         let mut native_rotations;
-        let selected = if self.aurora_feet || editing || !blend_native {
+        let selected = if self.block_feet || editing || !blend_native {
             corrected.as_ref().map_or(source_rotations, |pose| pose.rotations.as_slice())
         } else {
             native_rotations = self.legacy_rot.clone();
@@ -1880,7 +1880,7 @@ impl Controller {
                 source_rotations,
                 selected,
                 corrected.as_ref().map_or(Vec3::ZERO, |pose| pose.pelvis),
-                self.aurora_feet,
+                self.block_feet,
                 allowed,
                 now,
             );
@@ -2212,7 +2212,7 @@ mod tests {
 
     #[test]
     fn gesture_animation_preload_waits_past_a_cache_miss() {
-        let mut streamer = AnimStreamer::new(std::env::temp_dir().join("aurora-gesture-preload-tests"));
+        let mut streamer = AnimStreamer::new(std::env::temp_dir().join("block-gesture-preload-tests"));
         let id = Uuid::from_u128(2931);
         streamer.get(&id);
         assert!(!streamer.asset_settled(&id));

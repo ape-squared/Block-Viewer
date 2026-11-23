@@ -11,28 +11,28 @@ import bmesh
 from mathutils import Vector
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-import aurora_live
-from aurora_live import exporter, starter
+import block_live
+from block_live import exporter, starter
 
 
 class StarterTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        aurora_live.register()
+        block_live.register()
 
     @classmethod
     def tearDownClass(cls):
-        aurora_live.unregister()
+        block_live.unregister()
 
     def setUp(self):
         if bpy.context.object and bpy.context.object.mode != "OBJECT":
             bpy.ops.object.mode_set(mode="OBJECT")
         bpy.ops.object.select_all(action="SELECT")
         bpy.ops.object.delete(use_global=False)
-        bpy.context.scene.aurora_live.objects.clear()
+        bpy.context.scene.block_live.objects.clear()
         bpy.context.scene.unit_settings.scale_length = 1
         bpy.context.scene.cursor.location = (0, 0, 0)
-        bpy.context.scene.aurora_live.forward = "NATIVE"
+        bpy.context.scene.block_live.forward = "NATIVE"
 
     def test_all_bento_and_fitted_bones_keep_the_xml_hierarchy_and_heads(self):
         rig, shirt = starter.create(bpy.context, False)
@@ -44,7 +44,7 @@ class StarterTests(unittest.TestCase):
             self.assertEqual(bone.parent.name if bone.parent else None, definition["parent"])
             self.assertLess((bone.head_local - definition["head"]).length, 0.000001)
             self.assertTrue(bone.use_deform)
-            self.assertEqual(bone["aurora_joint"], bone.name)
+            self.assertEqual(bone["block_joint"], bone.name)
             if bpy.app.version >= (4, 0, 0):
                 self.assertEqual(len(bone.collections), 1)
             else:
@@ -60,7 +60,7 @@ class StarterTests(unittest.TestCase):
         if bpy.app.version >= (4, 0, 0):
             self.assertFalse(rig.data.collections["Fitted Mesh"].is_visible)
         else:
-            layers = rig["aurora_bone_layers"]
+            layers = rig["block_bone_layers"]
             self.assertFalse(rig.data.layers[layers["Fitted Mesh"]])
             self.assertTrue(rig.data.layers[layers["Body"]])
             self.assertTrue(rig.data.layers[layers["Bento Hands"]])
@@ -143,9 +143,9 @@ class StarterTests(unittest.TestCase):
         bpy.ops.mesh.primitive_cube_add(location=(3, 2, 1))
         cube = bpy.context.object
         transform = cube.matrix_world.copy()
-        self.assertEqual(bpy.ops.aurora.create_sl_rig(with_tshirt=False), {"FINISHED"})
+        self.assertEqual(bpy.ops.block.create_sl_rig(with_tshirt=False), {"FINISHED"})
         first = bpy.context.object
-        self.assertEqual(bpy.ops.aurora.create_sl_rig(with_tshirt=True), {"FINISHED"})
+        self.assertEqual(bpy.ops.block.create_sl_rig(with_tshirt=True), {"FINISHED"})
         shirt = bpy.context.object
         self.assertIsNot(first, shirt.parent)
         self.assertIn(cube.name, bpy.data.objects)
@@ -155,7 +155,7 @@ class StarterTests(unittest.TestCase):
         shirt.select_set(False)
         first.select_set(True)
         bpy.ops.object.mode_set(mode="EDIT")
-        self.assertFalse(bpy.ops.aurora.create_sl_rig.poll())
+        self.assertFalse(bpy.ops.block.create_sl_rig.poll())
 
     def test_failed_creation_restores_selection_and_removes_partial_rig(self):
         bpy.ops.mesh.primitive_cube_add()
@@ -186,15 +186,15 @@ class StarterTests(unittest.TestCase):
             view.language, view.use_translate_new_dataname, view.use_translate_interface = before
 
     def test_creating_a_shirt_while_connected_tracks_it_without_opening_another_connection(self):
-        with patch.object(aurora_live, "_client", object()), \
-                patch.object(aurora_live, "Client", side_effect=AssertionError("unexpected connection")):
-            self.assertEqual(bpy.ops.aurora.create_sl_rig(with_tshirt=True), {"FINISHED"})
-            self.assertEqual(aurora_live.tracking.active(bpy.context.scene), [bpy.context.object])
-            self.assertTrue(aurora_live._dirty)
-            self.assertEqual(aurora_live._last_capture, 0)
+        with patch.object(block_live, "_client", object()), \
+                patch.object(block_live, "Client", side_effect=AssertionError("unexpected connection")):
+            self.assertEqual(bpy.ops.block.create_sl_rig(with_tshirt=True), {"FINISHED"})
+            self.assertEqual(block_live.tracking.active(bpy.context.scene), [bpy.context.object])
+            self.assertTrue(block_live._dirty)
+            self.assertEqual(block_live._last_capture, 0)
 
 
 result = unittest.TextTestRunner(verbosity=2).run(unittest.defaultTestLoader.loadTestsFromTestCase(StarterTests))
 if not result.wasSuccessful():
     sys.exit(1)
-print("AURORA_BLENDER_STARTER_TESTS_OK", flush=True)
+print("BLOCK_BLENDER_STARTER_TESTS_OK", flush=True)

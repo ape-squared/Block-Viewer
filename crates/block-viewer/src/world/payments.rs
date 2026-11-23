@@ -31,7 +31,7 @@
 //! so that it is still there when the conversation is opened again, as a
 //! received payment is (#1198).
 //!
-//! Whether a payment also opens a closed conversation is Aurora's own: the
+//! Whether a payment also opens a closed conversation is Block's own: the
 //! Legacy Viewer never opens one for a payment (LLTipHandler only logs it to
 //! a session that exists, LLHandlerUtil::logToIM). Preferences › Chat has one
 //! choice per direction, [`Opens`]: a payment received opens the payer's

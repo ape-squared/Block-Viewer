@@ -1,7 +1,7 @@
 //! Resolve radio playlists before passing bytes to the audio decoder.
 //!
 //! LLAudioStreamManagerFMODSTUDIO delegates stream URLs to FMOD::createStream.
-//! Aurora resolves PLS/M3U itself, and also the playlist exported by an AzuraCast
+//! Block resolves PLS/M3U itself, and also the playlist exported by an AzuraCast
 //! public player. This addition accepts only links on the player's HTTP(S)
 //! origin, so page discovery cannot silently contact another site.
 

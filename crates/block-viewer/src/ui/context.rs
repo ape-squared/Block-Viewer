@@ -5,7 +5,7 @@
 //! group names of lists (menu_people_nearby.xml, menu_fs_contacts_friends.xml,
 //! menu_url_agent.xml, menu_people_groups.xml). ui/menu.rs draws the list;
 //! context/pie.rs draws the radial world menu from their shared entries.
-//! Entries Aurora cannot do yet stay in place, greyed out with a tooltip,
+//! Entries Block cannot do yet stay in place, greyed out with a tooltip,
 //! the way Firestorm greys the ones that do not apply.
 //!
 //! Menus anywhere in the interface hand their choice to the app with
@@ -665,7 +665,7 @@ pub fn contact_set_submenu(ui: &mut egui::Ui, p: &Palette, world: &World, ids: &
 
 /// egui temp data: actions chosen in menus this frame.
 fn requests_id() -> egui::Id {
-    egui::Id::unique("aurora_context_requests")
+    egui::Id::unique("block_context_requests")
 }
 
 /// Hand a menu choice to the app (run after the interface pass).
@@ -780,7 +780,7 @@ pub enum AvatarList {
 /// A resident's voice row, only while they are in our voice channel and are
 /// not us: LLInspectAvatar::updateVolumeSlider hides the slider and the mute
 /// button otherwise, and a greyed row in every menu of everyone out of voice
-/// would only push the entries down. The inspector held them; Aurora puts
+/// would only push the entries down. The inspector held them; Block puts
 /// them at the top of every menu of the resident.
 pub fn voice_volume_of(world: &World, id: Uuid) -> Option<menu::VoiceVolume> {
     if id == world.agent_id || id.is_nil() || !world.calls.hears(&id) {
@@ -1298,7 +1298,7 @@ fn avatar_menu_reporting(
         }
         AvatarList::Search => {
             // menu_fs_avatar_search.xml's entries in its order, then the
-            // ones Aurora's menu of a name had already given the search
+            // ones Block's menu of a name had already given the search
             // (history, zoom, teleport to, go to and follow, report, copy)
             profile(ui);
             add_friend(ui);
@@ -1375,7 +1375,7 @@ pub fn admin_submenu(ui: &mut egui::Ui, p: &Palette, world: &World, id: Uuid, ac
 }
 
 /// Right-click menu of one of our groups (menu_people_groups.xml), plus
-/// Aurora's "Block group chat" (exoGroupMuteList).
+/// Block's "Block group chat" (exoGroupMuteList).
 pub fn group_menu(ui: &mut egui::Ui, p: &Palette, world: &World, id: Uuid) {
     let ctx = ui.ctx().clone();
     let act = |a: CtxAction| request(&ctx, a);
@@ -1760,7 +1760,7 @@ pub fn external_link_confirm(ctx: &egui::Context, p: &Palette, url: &str, dont_w
         }
         let text = match danger {
             Some(_) => {
-                block_i18n::tr!("ui-context-aurora-recommends-against-opening-this-link-if-it-asks")
+                block_i18n::tr!("ui-context-block-recommends-against-opening-this-link-if-it-asks")
             }
             None => {
                 block_i18n::tr!("ui-context-this-link-leads-to-a-site-that-is-not")

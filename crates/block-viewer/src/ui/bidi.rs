@@ -945,11 +945,11 @@ mod tests {
 
     #[test]
     fn latin_letters_in_a_right_to_left_row_are_read_from_the_left() {
-        let rows = visual_rows(&job("שלום Aurora"), Base::Auto, &mut units);
+        let rows = visual_rows(&job("שלום Block"), Base::Auto, &mut units);
         let latin = rows[0]
             .segments
             .iter()
-            .find(|s| s.text.starts_with("Aurora"))
+            .find(|s| s.text.starts_with("Block"))
             .expect("the Latin run");
         // the space after it is read from the right (level 1), the letters
         // from the left (level 2)
@@ -1020,7 +1020,7 @@ mod tests {
     #[test]
     fn the_cursor_before_a_latin_word_in_a_hebrew_line_is_on_its_left() {
         let ctx = fonts_ctx();
-        let visual = ctx.fonts_mut(|f| layout(f, job("שלום Aurora"), Base::Auto));
+        let visual = ctx.fonts_mut(|f| layout(f, job("שלום Block"), Base::Auto));
         let map = visual.map.as_ref().expect("reordered");
         // "A" (5) is read from the left: the cursor before it is on its left
         // edge, the one after "a" (11, the end) on the right edge of "a"
@@ -1036,7 +1036,7 @@ mod tests {
     #[test]
     fn selected_right_to_left_text_takes_the_selected_color() {
         let ctx = fonts_ctx();
-        let visual = ctx.fonts_mut(|f| layout(f, job("שלום Aurora"), Base::Auto));
+        let visual = ctx.fonts_mut(|f| layout(f, job("שלום Block"), Base::Auto));
         let mut galley = visual.galley.clone();
         let red = egui::Color32::RED;
         visual.tint(&mut galley, 5..11, red);
@@ -1048,7 +1048,7 @@ mod tests {
                 .count()
         };
         assert_eq!(colored(&visual.galley), 0, "the shared galley is left alone");
-        // the six letters of "Aurora", four vertices each, nothing more
+        // the six letters of "Block", four vertices each, nothing more
         assert_eq!(colored(&galley), 6 * 4);
     }
 

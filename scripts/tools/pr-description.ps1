@@ -9,9 +9,9 @@
 $PrRequiredSections = @('What it is for', 'Legacy Viewer origin', 'What changes', 'Tests')
 
 # Marker of the check's own comment, at its end: the comment opens with
-# "## Changes requested", which the Aurora Tools PR panel reads as "waiting on
+# "## Changes requested", which the Block Tools PR panel reads as "waiting on
 # the author" (scripts/tools/prs.ps1).
-$PrDescriptionMarker = '<!-- aurora-pr-description -->'
+$PrDescriptionMarker = '<!-- block-pr-description -->'
 $PrDescriptionLabel = 'needs-description'
 # An outside contributor's PR whose description is still incomplete this
 # long after the check's first comment is closed.
@@ -158,7 +158,7 @@ function Format-PrDescriptionComment([string[]]$Problems, [string]$TemplateUrl, 
     if ($Deadline) {
         $lines += @('', "If the description is still incomplete on **$Deadline**, this pull request will be closed automatically, to keep the review queue readable. Nothing is lost: you can reopen it, or open a new one, as soon as the description is complete.")
     }
-    $lines += @('', 'Thanks again for contributing to Aurora!', '', $PrDescriptionMarker)
+    $lines += @('', 'Thanks again for contributing to Block!', '', $PrDescriptionMarker)
     $lines -join "`n"
 }
 

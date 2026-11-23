@@ -1,5 +1,5 @@
-//! Demo simulator for World › Set Home to Here (`AURORA_DEMO_HOME`) and the
-//! account settings of Preferences › Privacy (`AURORA_DEMO_USERINFO`): the
+//! Demo simulator for World › Set Home to Here (`BLOCK_DEMO_HOME`) and the
+//! account settings of Preferences › Privacy (`BLOCK_DEMO_USERINFO`): the
 //! answers a Second Life region gives, without a grid.
 
 use block_net::NetEvent;
@@ -25,9 +25,9 @@ pub enum Outcome {
     Forbidden,
 }
 
-/// `AURORA_DEMO_HOME=<outcome>[:set]`; `:set` asks for it at frame 700.
+/// `BLOCK_DEMO_HOME=<outcome>[:set]`; `:set` asks for it at frame 700.
 pub fn scene() -> (Outcome, bool) {
-    let value = std::env::var("AURORA_DEMO_HOME").unwrap_or_default();
+    let value = std::env::var("BLOCK_DEMO_HOME").unwrap_or_default();
     let (outcome, auto) = match value.split_once(':') {
         Some((o, rest)) => (o.to_owned(), rest == "set"),
         None => (value, false),
@@ -68,9 +68,9 @@ pub fn reply(position: Vec3) -> Vec<NetEvent> {
     }
 }
 
-/// `AURORA_DEMO_USERINFO=hidden|liaison|opensim|fail|savefail`.
+/// `BLOCK_DEMO_USERINFO=hidden|liaison|opensim|fail|savefail`.
 fn user_info_scene() -> String {
-    std::env::var("AURORA_DEMO_USERINFO").unwrap_or_default()
+    std::env::var("BLOCK_DEMO_USERINFO").unwrap_or_default()
 }
 
 /// The account behaves as on another grid (the e-mail checkbox).

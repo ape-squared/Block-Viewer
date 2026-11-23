@@ -5,7 +5,7 @@
 //!
 //! Firestorm opens its box at the first notice of the simulator, resets the
 //! count and shakes the view at each one, counts down one second a second,
-//! closes on a region change or "Region restart cancelled.". Aurora's alert
+//! closes on a region change or "Region restart cancelled.". Block's alert
 //! (`ui/region_restart.rs`, the human's mockup, variant B) keeps those rules
 //! and escalates with the time left: amber from 5 minutes, orange from one,
 //! red from 30 seconds, the final count from 10. It plays its sound once per
@@ -373,7 +373,7 @@ impl Tracker {
 /// quarter of the vertical ones, for 1.8 s (the length of the sound), the
 /// magnitude falling with the square of the time left. A pan key moves the
 /// camera by `magnitude × PAN_RATE / fps` metres for one frame
-/// (LLAgentCamera::updateCamera, PAN_RATE 5 m/s); Aurora takes 60 frames a
+/// (LLAgentCamera::updateCamera, PAN_RATE 5 m/s); Block takes 60 frames a
 /// second for it, so that the shake does not shrink at a high frame rate.
 /// Returns the offset (right, up) in metres `t` seconds after the start.
 pub fn view_shake(t: f64) -> Option<(f32, f32)> {
@@ -408,7 +408,7 @@ mod tests {
     fn notice(seconds: i32) -> Notice {
         Notice {
             seconds,
-            region: Some("Aurora Demo".into()),
+            region: Some("Block Demo".into()),
             opensim: false,
         }
     }
@@ -503,7 +503,7 @@ mod tests {
         assert!(t.alert.is_none());
 
         t.notice(&notice(120), "", Some(1), false);
-        t.region_changed(1, "Aurora Demo");
+        t.region_changed(1, "Block Demo");
         assert_eq!(t.alert.as_ref().map(|a| a.phase.clone()), Some(Phase::Live), "same region");
         t.region_changed(2, "Iris");
         assert_eq!(

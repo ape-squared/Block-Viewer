@@ -160,7 +160,7 @@ impl AgentAccess {
         self.preferred >= SIM_ACCESS_ADULT
     }
 
-    /// wantsPGOnly: prefersPG || isTeen (no god mode in Aurora).
+    /// wantsPGOnly: prefersPG || isTeen (no god mode in Block).
     pub fn wants_pg_only(&self) -> bool {
         !self.prefers_mature() || self.max < SIM_ACCESS_MATURE
     }
@@ -361,7 +361,7 @@ pub enum LandSort {
 }
 
 impl LandKind {
-    /// FindLandType as Aurora saves it: 0 all, 1 auction, 2 mainland,
+    /// FindLandType as Block saves it: 0 all, 1 auction, 2 mainland,
     /// 3 estate.
     pub fn from_setting(value: u8) -> LandKind {
         match value {
@@ -1001,7 +1001,7 @@ mod tests {
 
     #[test]
     fn short_words_are_dropped_like_firestorm() {
-        assert_eq!(filter_short_words("aurora viewer"), ("aurora viewer".to_owned(), false));
+        assert_eq!(filter_short_words("block viewer"), ("block viewer".to_owned(), false));
         assert_eq!(filter_short_words("le club du loup"), ("club loup".to_owned(), true));
         // a dropped last word leaves the space after the previous one
         assert_eq!(filter_short_words("club du"), ("club ".to_owned(), true));

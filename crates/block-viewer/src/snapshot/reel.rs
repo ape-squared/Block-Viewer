@@ -1,5 +1,5 @@
 //! The photo reel: the session's last photos, newest first, whatever their
-//! destination, to look at again, send elsewhere or delete (Aurora's own:
+//! destination, to look at again, send elsewhere or delete (Block's own:
 //! the Legacy Viewer only shows the last photo). Each photo keeps its full
 //! pixels in the reel's own copy, whatever its destination, in a folder of
 //! the session under its account (`Folder`), deleted when the session ends:
@@ -519,7 +519,7 @@ mod tests {
 
     #[test]
     fn sessions_go_under_their_account_and_their_leftovers_go_at_the_start() {
-        let cache = std::env::temp_dir().join(format!("aurora-reel-test-{}", Uuid::new_v4().simple()));
+        let cache = std::env::temp_dir().join(format!("block-reel-test-{}", Uuid::new_v4().simple()));
         let (me, crashed) = (Uuid::from_u128(1), Uuid::from_u128(2));
         let root = account_root(&cache, &me);
         assert_eq!(root, cache.join("accounts").join(me.to_string()).join("photo-roll"));
@@ -551,7 +551,7 @@ mod tests {
 
     #[test]
     fn folder_copies() {
-        let root = std::env::temp_dir().join(format!("aurora-reel-test-{}", Uuid::new_v4().simple()));
+        let root = std::env::temp_dir().join(format!("block-reel-test-{}", Uuid::new_v4().simple()));
         let folder = Folder::open(&root).expect("folder");
         let path = folder.path(3);
         assert_eq!(path, folder.dir.join("photos").join("3.png"));

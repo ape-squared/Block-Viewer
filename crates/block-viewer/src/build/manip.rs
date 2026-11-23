@@ -3,7 +3,7 @@
 //! their grid snapping, snap rulers and the position readout.
 //!
 //! Handles keep a constant size on screen, in interface points: like
-//! LLUI::getScaleFactor(), the display scale grows them. Aurora uses longer
+//! LLUI::getScaleFactor(), the display scale grows them. Block uses longer
 //! 80 pt move arrows and separated plane handles for easier picking, a 100 pt
 //! rotation sphere, thicker strokes and 14 pt stretch boxes. The "Manipulator
 //! size" setting (`gizmo_scale`) scales the whole manipulator, pick areas
@@ -25,13 +25,13 @@ use glam::{EulerRot, Quat, Vec3};
 use std::collections::{HashMap, HashSet};
 use std::time::{Duration, Instant};
 
-/// Aurora: 80 pt move arrows instead of LLManipTranslate's 50 pt, with
+/// Block: 80 pt move arrows instead of LLManipTranslate's 50 pt, with
 /// proportionally larger heads. Stretch boxes keep their existing size.
 const ARROW_PX: f32 = 80.0;
 const SELECTED_ARROW_SCALE: f32 = 1.3;
 const HOTSPOT_START: f32 = 0.2;
 const HOTSPOT_END: f32 = 1.2;
-/// Aurora: paired axis-colored triangles, nominally beyond the arrows
+/// Block: paired axis-colored triangles, nominally beyond the arrows
 /// (center and half side, in arrow lengths). Screen-space clearance also
 /// keeps them outside the arrows at oblique angles. The Legacy Viewer's
 /// LLManipTranslate::renderTranslationHandles uses 1.8 arrow lengths.
@@ -40,7 +40,7 @@ const PLANE_HALF: f32 = 0.14;
 const PLANE_GAP_PX: f32 = 12.0;
 /// Arrow head: height and radius, in arrow lengths.
 const ARROW_HEAD: (f32, f32) = (0.26, 0.12);
-/// Aurora: thicker than LLManipTranslate's 2 px shafts, with its picking
+/// Block: thicker than LLManipTranslate's 2 px shafts, with its picking
 /// tolerance; shared by the rotation rings.
 const STROKE_PX: (f32, f32) = (4.0, 6.0);
 const MIN_PLANE_MANIP_DOT: f32 = 0.25;
@@ -766,7 +766,7 @@ impl Manip {
         block_render::world_label_at(p.painter.ctx(), None);
     }
 
-    /// Aurora look of LLManipTranslate::renderTranslationHandles: pale axes
+    /// Block look of LLManipTranslate::renderTranslationHandles: pale axes
     /// with one positive arrow per axis and two-color plane handles outside
     /// their envelope. Hover keeps both axis colors and accents the outline.
     fn draw_translate(&self, p: &mut Painter3d, s: &BuildSettings, f: &Frame, drag: Option<&Drag>) {
@@ -1026,7 +1026,7 @@ impl Manip {
         }
     }
 
-    /// Aurora look of LLManipScale::render: the box in the accent of the
+    /// Block look of LLManipScale::render: the box in the accent of the
     /// theme, flat square handles (pale corners, faces in the color of their
     /// axis), the accent under the cursor.
     fn draw_scale(&self, p: &mut Painter3d, s: &BuildSettings, f: &Frame, drag: Option<&Drag>) {
@@ -1134,7 +1134,7 @@ fn snap_offset_axis(arrow: usize, at_abs: Vec3) -> usize {
     }
 }
 
-/// Arrow length (m) at `at`: Aurora's 80 pt times the display scale and
+/// Arrow length (m) at `at`: Block's 80 pt times the display scale and
 /// the manipulator size, using LLManipTranslate's screen-size rule.
 pub(super) fn arrow_length(cam: &Cam, f: &Frame, at: Vec3) -> f32 {
     cam.meters_for_points(at, ARROW_PX * f.size)
@@ -1828,7 +1828,7 @@ fn drag_update(
     }
 }
 
-/// Snap to objects (`SnapMode::Objects`, an Aurora addition): where the
+/// Snap to objects (`SnapMode::Objects`, a Block addition): where the
 /// selection goes for the move `want` within `c`, from `prev`, last frame's.
 /// It snaps against a nearby prim (its box, or its visible surface) within
 /// `object_snap::SNAP_PX`, and stops at the first face it would enter. None when it does neither, in

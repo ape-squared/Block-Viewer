@@ -1,10 +1,10 @@
 //! Demo of the Destinations window without a grid or a network:
-//! `AURORA_DEMO_DESTINATIONS=compact|wide|legacy|empty` opens the window at
+//! `BLOCK_DEMO_DESTINATIONS=compact|wide|legacy|empty` opens the window at
 //! start on a guide made up here, in the feed's own shape (read by the same
 //! parser as the real one): invented places, plain pictures drawn here, two
 //! of them visited in the demo's teleport history.
 //!
-//! - `compact`: Aurora's window as it opens, its first place opened.
+//! - `compact`: Block's window as it opens, its first place opened.
 //! - `wide`: the same window widened, the first place previewed.
 //! - `legacy`: the Legacy style for this run (the guide's web page; it needs
 //!   the network, the browser's error page shows without it).
@@ -36,7 +36,7 @@ pub enum Fixture {
 
 pub fn mode() -> Option<Mode> {
     static MODE: OnceLock<Option<Mode>> = OnceLock::new();
-    *MODE.get_or_init(|| match std::env::var("AURORA_DEMO_DESTINATIONS").ok()?.trim() {
+    *MODE.get_or_init(|| match std::env::var("BLOCK_DEMO_DESTINATIONS").ok()?.trim() {
         "compact" => Some(Mode::Compact),
         "wide" => Some(Mode::Wide),
         "legacy" => Some(Mode::Legacy),

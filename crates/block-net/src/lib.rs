@@ -138,7 +138,7 @@ pub(crate) fn simulator_tls() -> Result<rustls::ClientConfig, NetError> {
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum AssetConnections {
     /// Follow the link (`fetch_pace.rs`): from 24 up to 192 while it keeps
-    /// up. Aurora's default.
+    /// up. Block's default.
     Adaptive,
     /// A fixed 24 requests and at most 32 kept connections per host, like
     /// the Legacy Viewer's bounded llcorehttp policy
@@ -153,16 +153,16 @@ pub const LIMITED_FETCH_SLOTS: usize = 24;
 /// Idle connections kept per host in the limited mode.
 const LIMITED_IDLE_PER_HOST: usize = 32;
 
-/// `AURORA_FETCH_SLOTS=<n>` (1 to 256): the requests under way at once
+/// `BLOCK_FETCH_SLOTS=<n>` (1 to 256): the requests under way at once
 /// fixed for one launch, to compare, whatever the mode.
 fn fetch_slots_override() -> Option<usize> {
-    match std::env::var("AURORA_FETCH_SLOTS").ok().map(|v| v.trim().parse::<usize>()) {
+    match std::env::var("BLOCK_FETCH_SLOTS").ok().map(|v| v.trim().parse::<usize>()) {
         Some(Ok(n)) if (1..=256).contains(&n) => {
-            log::info!("asset fetch: {n} requests at once (AURORA_FETCH_SLOTS)");
+            log::info!("asset fetch: {n} requests at once (BLOCK_FETCH_SLOTS)");
             Some(n)
         }
         Some(_) => {
-            log::warn!("AURORA_FETCH_SLOTS: expected 1 to 256, ignored");
+            log::warn!("BLOCK_FETCH_SLOTS: expected 1 to 256, ignored");
             None
         }
         None => None,
@@ -170,7 +170,7 @@ fn fetch_slots_override() -> Option<usize> {
 }
 
 /// The requests under way at once (None: they follow the link) and the
-/// idle connections kept per host, for a mode and an `AURORA_FETCH_SLOTS`
+/// idle connections kept per host, for a mode and an `BLOCK_FETCH_SLOTS`
 /// override.
 fn asset_limits(mode: AssetConnections, fixed: Option<usize>) -> (Option<usize>, usize) {
     match (fixed, mode) {

@@ -3,7 +3,7 @@
 Temporary copies evaluate shape keys and geometry modifiers without armature
 deformation. SL uses joint coordinate axes, not Blender bone roll: default
 inverse binds translate the source rest head to the joint origin. Custom
-bone mapping uses the bone's optional `aurora_joint` string property.
+bone mapping uses the bone's optional `block_joint` string property.
 """
 
 import math
@@ -237,8 +237,8 @@ def coordinate_basis(armature, forward="AUTO"):
     vendor properties. Capture remains independent for each armature.
     """
     if forward == "AUTO":
-        bones = {str(bone.get("aurora_joint", bone.name)): bone for bone in armature.data.bones
-                 if not bone.get("aurora_control", False)}
+        bones = {str(bone.get("block_joint", bone.name)): bone for bone in armature.data.bones
+                 if not bone.get("block_control", False)}
         for stem in ("mShoulder", "mCollar", "mHip", "mEye", "mWrist"):
             left, right = (bones.get(stem + side) for side in ("Left", "Right"))
             if left is None or right is None:
@@ -249,7 +249,7 @@ def coordinate_basis(armature, forward="AUTO"):
             angle = math.pi / 2 - math.atan2(direction.y, direction.x)
             return Matrix.Identity(4) if abs(math.remainder(angle, math.tau)) < 1e-6 else Matrix.Rotation(angle, 4, "Z")
         # Partial older rigs do not always contain a symmetric joint pair.
-        forward = armature.get("aurora_forward", "NATIVE")
+        forward = armature.get("block_forward", "NATIVE")
     return Matrix.Rotation(math.pi / 2, 4, "Z") if forward == "NEGATIVE_Y" else Matrix.Identity(4)
 
 
@@ -264,8 +264,8 @@ def _mesh(source, supported, forward, rest_axes, capture, include_slots=False, p
     transform = basis @ Matrix.Scale(unit, 4) @ root.inverted() @ source.matrix_world
     bone_transform = basis @ Matrix.Scale(unit, 4) @ root.inverted() @ armature.matrix_world if armature else None
     normal_transform = transform.to_3x3().inverted().transposed()
-    bone_names = {bone.name: str(bone.get("aurora_joint", bone.name)) for bone in (armature.data.bones if armature else [])
-                  if bone.use_deform and not bone.get("aurora_control", False)}
+    bone_names = {bone.name: str(bone.get("block_joint", bone.name)) for bone in (armature.data.bones if armature else [])
+                  if bone.use_deform and not bone.get("block_control", False)}
     group_names = {group.index: bone_names[group.name] for group in source.vertex_groups if group.name in bone_names}
     group_bones = {group.index: group.name for group in source.vertex_groups if group.name in bone_names}
     # Base meshes already contain the rest coordinates needed here. Avoid
@@ -280,7 +280,7 @@ def _mesh(source, supported, forward, rest_axes, capture, include_slots=False, p
     if not direct:
         clone = source.copy()
         clone.data = source.data.copy()
-        clone.name = "_AuroraLiveCapture"
+        clone.name = "_BlockLiveCapture"
         clone.parent = None
         clone.matrix_world = source.matrix_world
         bpy.context.scene.collection.objects.link(clone)
@@ -364,9 +364,9 @@ def _mesh(source, supported, forward, rest_axes, capture, include_slots=False, p
             values = rest_axes.get(name)
             axes = Matrix([values[i:i+4] for i in range(0,16,4)]).transposed() if values else Matrix.Identity(4)
             source_bone = next(armature.data.bones[source_name] for source_name in weighted_bones if bone_names[source_name] == name)
-            if armature.get("aurora_shape_id"):
-                values = list(source_bone.get("aurora_shape_bind", ()))
-                reference = list(source_bone.get("aurora_shape_head", ()))
+            if armature.get("block_shape_id"):
+                values = list(source_bone.get("block_shape_bind", ()))
+                reference = list(source_bone.get("block_shape_head", ()))
                 if len(values) != 16 or len(reference) != 3 or not all(math.isfinite(value) for value in values + reference):
                     raise ValueError("Invalid transferred shape bind: " + name)
                 shaped = Matrix([values[i:i+4] for i in range(0, 16, 4)]).transposed()

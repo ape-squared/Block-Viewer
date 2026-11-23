@@ -1,4 +1,4 @@
-//! People › Groups in Aurora's look (the People mock-up v2): our groups as
+//! People › Groups in Block's look (the People mock-up v2): our groups as
 //! the contact list shows them (FSFloaterContacts' groups tab,
 //! panel_fs_contacts_groups.xml: "none" on top, the active group, the
 //! pinned ones first, the count against the account's limit), with a sheet
@@ -443,7 +443,7 @@ fn buttons(ui: &mut egui::Ui, c: &mut Ctx, g: &GroupMembership) {
         {
             c.actions.push(PeopleAction::GroupChat(g.id));
         }
-        let call = block_i18n::tr!("ui-profile-aurora-call");
+        let call = block_i18n::tr!("ui-profile-block-call");
         if widgets::action_button_if(
             ui,
             p,
@@ -599,7 +599,7 @@ mod tests {
         let group = Uuid::from_u128(9);
         world.groups.groups.push(GroupMembership {
             id: group,
-            name: "Aurora Builders".into(),
+            name: "Block Builders".into(),
             insignia: Uuid::nil(),
             powers: GP_SESSION_JOIN,
             accept_notices: true,

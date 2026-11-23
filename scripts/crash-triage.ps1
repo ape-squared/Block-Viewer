@@ -11,7 +11,7 @@
     (the workflow; GH_TOKEN with the issues permission)
 
 .EXAMPLE
-    ./scripts/crash-triage.ps1 -ReportFile public-report.md -SymbolFile aurora_viewer.sym
+    ./scripts/crash-triage.ps1 -ReportFile public-report.md -SymbolFile block_viewer.sym
     Local check of a crash session's public-report.md: prints the section,
     the title and the signature, writes nothing to GitHub.
 #>

@@ -1,4 +1,4 @@
-﻿# Aurora Tools: colours, layout and keyboard (dot-sourced by aurora-tools.ps1).
+﻿# Block Tools: colours, layout and keyboard (dot-sourced by block-tools.ps1).
 
 # True colours when the terminal understands them, the 16 console colours
 # otherwise, plain text when the output is redirected. Interactive: keys are
@@ -7,7 +7,7 @@ $Vt = $Host.UI.SupportsVirtualTerminal -and -not [Console]::IsOutputRedirected
 $Interactive = -not [Console]::IsInputRedirected -and -not [Console]::IsOutputRedirected
 $Esc = [char]27
 
-# Aurora palette (docs/BRANDING.md).
+# Block palette (docs/BRANDING.md).
 $Palette = @{
     violet = '8B5CF6'; indigo = '4F46E5'; teal = '5EEAD4'; violet_light = 'A78BFA'
     ink = 'E8EDFB'; muted = '9AA6C6'; muted_dim = '6F7BA0'; bar = '1C1C1C'; raised = '3A3A3A'
@@ -36,8 +36,8 @@ function Write-Color([string]$Text, [string]$Color = 'ink', [switch]$NoNewline, 
     }
 }
 
-# The aurora of the logo: violet, then indigo, then teal, across the text.
-function Write-Aurora([string]$Text) {
+# The block of the logo: violet, then indigo, then teal, across the text.
+function Write-Block([string]$Text) {
     if (-not $Vt) { Write-Host $Text -ForegroundColor Magenta; return }
     $stops = @(@(139, 92, 246), @(79, 70, 229), @(94, 234, 212))
     $out = ''
@@ -62,8 +62,8 @@ function Clear-Screen { if ($Interactive) { Clear-Host; Set-CursorVisible $false
 function Show-Logo([string]$Subtitle) {
     Clear-Screen
     Write-Host ''
-    Write-Aurora '    ▄▀█ █ █ █▀█ █▀█ █▀█ ▄▀█'
-    Write-Aurora '    █▀█ █▄█ █▀▄ █▄█ █▀▄ █▀█'
+    Write-Block '    ▄▀█ █ █ █▀█ █▀█ █▀█ ▄▀█'
+    Write-Block '    █▀█ █▄█ █▀▄ █▄█ █▀▄ █▀█'
     Write-Color "    V  I  E  W  E  R    ·  $Subtitle" violet_light
     Write-Host ''
 }

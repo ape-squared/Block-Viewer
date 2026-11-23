@@ -35,10 +35,10 @@
 //!
 //! The Legacy Viewer reads the input, draws and swaps on one thread
 //! (`LLAppViewer::mainLoop`, indra/newview/llappviewer.cpp): only the
-//! driver's queue lies between its input and the screen. Aurora's render
+//! driver's queue lies between its input and the screen. Block's render
 //! thread adds a stage, which this wait keeps from adding latency.
 //!
-//! AURORA_FRAME_PACING=0 turns it off (comparison).
+//! BLOCK_FRAME_PACING=0 turns it off (comparison).
 
 use parking_lot::{Condvar, Mutex};
 use std::collections::VecDeque;
@@ -125,7 +125,7 @@ impl<T: Clone> GpuFrames<T> {
     }
 }
 
-/// On unless AURORA_FRAME_PACING says `0`, `off`, `false` or `no`.
+/// On unless BLOCK_FRAME_PACING says `0`, `off`, `false` or `no`.
 pub fn wanted(var: Option<&str>) -> bool {
     !matches!(
         var.map(|v| v.trim().to_ascii_lowercase()).as_deref(),
@@ -133,7 +133,7 @@ pub fn wanted(var: Option<&str>) -> bool {
     )
 }
 
-/// AURORA_FRAME_PACING=always: the wait on every frame, whoever sets the
+/// BLOCK_FRAME_PACING=always: the wait on every frame, whoever sets the
 /// pace (0.8.4, to compare with the [`Gate`]).
 pub fn always(var: Option<&str>) -> bool {
     var.is_some_and(|v| v.trim().eq_ignore_ascii_case("always"))
@@ -148,7 +148,7 @@ pub(crate) struct Gate {
     /// Smoothed main, render and GPU times (ms); None before the first.
     times: Option<[f32; 3]>,
     on: bool,
-    /// AURORA_FRAME_PACING=always: always on.
+    /// BLOCK_FRAME_PACING=always: always on.
     always: bool,
 }
 

@@ -81,7 +81,7 @@ def _rig(context, collection, definitions, basis):
     rig.location = context.scene.cursor.location
     rig.show_in_front = True
     data.display_type = "OCTAHEDRAL"
-    rig["aurora_starter"] = "Second Life Bento / Fitted Mesh"
+    rig["block_starter"] = "Second Life Bento / Fitted Mesh"
     context.view_layer.objects.active = rig
     rig.select_set(True)
     bpy.ops.object.mode_set(mode="EDIT")
@@ -103,7 +103,7 @@ def _rig(context, collection, definitions, basis):
     assignments = []
     for joint in definitions:
         bone = data.bones[joint["name"]]
-        bone["aurora_joint"] = joint["name"]
+        bone["block_joint"] = joint["name"]
         bone["sl_collision_volume"] = joint["collision"]
         bone["sl_rest_scale"] = tuple(joint["scale"])
         assignments.append((bone, _collection_name(joint)))
@@ -209,7 +209,7 @@ def _tshirt(collection, rig, definitions, basis):
     mesh = bpy.data.objects.new("SL Test T-shirt", data)
     collection.objects.link(mesh)
     mesh.parent = rig
-    mesh["aurora_starter"] = "Rigged test T-shirt"
+    mesh["block_starter"] = "Rigged test T-shirt"
     groups = {}
     for index, influences in enumerate(weights):
         for name, weight in influences:
@@ -236,7 +236,7 @@ def _tshirt(collection, rig, definitions, basis):
 def create(context, with_tshirt=True, forward=None, definitions=None, collection_name="SL Avatar Starter"):
     """Create a new collection at the cursor; never reuse or overwrite a rig."""
     definitions = definitions if definitions is not None else joints()
-    forward = forward or context.scene.aurora_live.forward
+    forward = forward or context.scene.block_live.forward
     if forward == "AUTO":
         forward = "NEGATIVE_Y"
     basis = _basis(context, forward)
@@ -248,7 +248,7 @@ def create(context, with_tshirt=True, forward=None, definitions=None, collection
         obj.select_set(False)
     try:
         rig = _rig(context, collection, definitions, basis)
-        rig["aurora_forward"] = forward
+        rig["block_forward"] = forward
         shirt = _tshirt(collection, rig, definitions, basis) if with_tshirt else None
         if shirt:
             shirt.select_set(True)

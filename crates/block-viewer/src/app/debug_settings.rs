@@ -25,14 +25,14 @@ impl App {
         }
     }
 
-    /// AURORA_DEMO_DEBUG_SETTINGS=1: the window opened at the start, past its
+    /// BLOCK_DEMO_DEBUG_SETTINGS=1: the window opened at the start, past its
     /// warning; `warning`: on its warning; any other value is the search typed
     /// in it.
     fn demo_debug_settings(&mut self) {
         if self.debug_settings_demo_done {
             return;
         }
-        let Some(mode) = std::env::var_os("AURORA_DEMO_DEBUG_SETTINGS") else {
+        let Some(mode) = std::env::var_os("BLOCK_DEMO_DEBUG_SETTINGS") else {
             return;
         };
         self.debug_settings_demo_done = true;

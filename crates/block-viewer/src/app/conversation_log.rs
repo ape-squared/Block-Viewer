@@ -64,7 +64,7 @@ impl App {
         }
     }
 
-    /// AURORA_DEMO_CONVERSATION_LOG (`demo_conversation_log.rs`).
+    /// BLOCK_DEMO_CONVERSATION_LOG (`demo_conversation_log.rs`).
     fn demo_conversation_log(&mut self) {
         use crate::demo::conversation_log::{self as demo, Mode};
         let Some(mode) = demo::mode() else { return };

@@ -142,7 +142,7 @@ fn tiles(p: &Palette, m: &Monitor, s: &Snapshot) -> Vec<Tile> {
             )
         }),
         value: cpu.map_or("–".into(), |c| block_i18n::number(f64::from(c), if c < 10.0 { 1 } else { 0 })),
-        unit: tr!("monitor-unit-pct-aurora").to_owned(),
+        unit: tr!("monitor-unit-pct-block").to_owned(),
         sub: tr!(
             "monitor-tile-cpu-sub",
             media = a.get(RowId::Media).get(Column::Cpu).map_or("–".into(), fmt::pct),

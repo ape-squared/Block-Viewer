@@ -126,7 +126,7 @@ pub const MAX_ATTACHMENT_DIST: f32 = 3.5;
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 #[serde(default)]
 pub struct BuildSettings {
-    /// Legacy Viewer tool strip and tabs instead of the Aurora workspace.
+    /// Legacy Viewer tool strip and tabs instead of the Block workspace.
     pub legacy_window: bool,
     /// Personal compact inspector arrangement, independent of edited objects.
     pub layout: layout::Layout,
@@ -145,22 +145,22 @@ pub struct BuildSettings {
     pub grid_mode: u8,
     /// SnapEnabled.
     pub snap: bool,
-    /// Aurora: the move handles snap the selection against nearby prims, and
+    /// Block: the move handles snap the selection against nearby prims, and
     /// stop it at their faces (`object_snap`). Never
     /// with `snap` (`snap_mode`); off by default, so moving behaves as the
     /// Legacy Viewer's until it is chosen.
     pub object_snap: bool,
     /// The inline Snap control remembers its choice while disabled.
     pub snap_objects_preferred: bool,
-    /// "Place on surface" (`place.rs`; Aurora's own): whether it turns the
+    /// "Place on surface" (`place.rs`; Block's own): whether it turns the
     /// selection ("Auto rotate") or keeps its rotation, and the side it then
     /// puts against the surface.
     pub place_rotate: bool,
     pub place_side: place::Side,
     /// Its distance off the surface (metres, into it when negative).
     pub place_offset: f32,
-    /// Aurora: a hologram while the move handles drag the selection (the
-    /// selection itself, or where it began); Preferences › Aurora. Off by
+    /// Block: a hologram while the move handles drag the selection (the
+    /// selection itself, or where it began); Preferences › Block. Off by
     /// default: a move looks as the Legacy Viewer's.
     pub move_hologram: MoveHologram,
     /// RotationStep (degrees) outside the snap ring.
@@ -173,7 +173,7 @@ pub struct BuildSettings {
     pub scale_stretch_textures: bool,
     /// Keep the camera attached to the focused object while editing it.
     pub follow_edit_object: bool,
-    /// Aurora: the wheel steps a number field while the pointer is over it,
+    /// Block: the wheel steps a number field while the pointer is over it,
     /// as LLSpinCtrl::handleScrollWheel does. Off by default: the wheel
     /// steps only the field being typed in, and scrolls the panel over the
     /// others, so scrolling down the window edits nothing by accident.
@@ -279,7 +279,7 @@ pub struct BuildSettings {
     pub limit_drag_distance: bool,
     /// MaxDragDistance (m from the start point of one move).
     pub max_drag_distance: f32,
-    /// Aurora: size of the edit manipulators (arrows, rings, stretch
+    /// Block: size of the edit manipulators (arrows, rings, stretch
     /// handles) and of their pick areas, as a factor of the Legacy Viewer's
     /// fixed screen sizes, which it has no setting for (#1328).
     pub gizmo_scale: f32,
@@ -878,7 +878,7 @@ pub struct Bounds {
 
 /// The prims of an unlinked whole-object selection. The Legacy Viewer keeps
 /// one LLSelectNode per prim, so after LLSelectMgr::sendDelink every former
-/// child is still selected as its own object; Aurora selects roots only, so
+/// child is still selected as its own object; Block selects roots only, so
 /// each prim joins the selection once the simulator makes it a root.
 #[derive(Debug)]
 struct PendingUnlink {
@@ -2823,7 +2823,7 @@ impl BuildTool {
     }
 
     /// LLToolCompCreate uses Shift / Ctrl to select instead of placing.
-    /// The local loading hologram is an Aurora placement aid (#854).
+    /// The local loading hologram is a Block placement aid (#854).
     pub fn creation_preview_enabled(&self, s: &BuildSettings, over_ui: bool, mods: Mods) -> bool {
         self.open
             && self.tool == Tool::Create

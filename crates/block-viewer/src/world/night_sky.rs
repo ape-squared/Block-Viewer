@@ -2,7 +2,7 @@
 //! "Night sky"): the rotation the sky shader turns its star catalogue by
 //! (block-render stars.rs, `StarFrame`).
 //!
-//! - **Real sky** (Aurora's default): the stars and the Milky Way as seen
+//! - **Real sky** (Block's default): the stars and the Milky Way as seen
 //!   from a place on Earth (Paris, 48.9° N 2.4° E, by default), turning
 //!   around the Pole Star, which stands at the place's latitude above the
 //!   region's north. The star hour (`StarHour`) is either the region's sun

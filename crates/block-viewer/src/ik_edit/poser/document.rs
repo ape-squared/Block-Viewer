@@ -52,7 +52,7 @@ impl Joint {
         self.change
     }
 }
-/// What a document's translations and scales are measured from. Aurora's
+/// What a document's translations and scales are measured from. Block's
 /// own: a translation added to and a scale multiplied by the destination's
 /// starting pose. The Legacy Viewer's pose files (`legacy_pose`) add their
 /// scale instead (FSJointState::getTargetScale, `mScale + mBaseScale`), and
@@ -65,13 +65,14 @@ impl Joint {
 #[serde(rename_all = "snake_case")]
 pub(super) enum Channels {
     #[default]
-    Aurora,
+    #[serde(alias = "block")]
+    Block,
     LegacyDelta,
     LegacyAbsolute,
 }
 impl Channels {
-    fn is_aurora(&self) -> bool {
-        *self == Self::Aurora
+    fn is_block(&self) -> bool {
+        *self == Self::Block
     }
 }
 #[derive(Clone, Serialize, Deserialize)]
@@ -81,8 +82,8 @@ pub(super) struct Document {
     pub name: String,
     pub priority: i32,
     pub joints: Vec<Joint>,
-    /// Absent in Aurora's own files.
-    #[serde(default, skip_serializing_if = "Channels::is_aurora")]
+    /// Absent in Block's own files.
+    #[serde(default, skip_serializing_if = "Channels::is_block")]
     pub channels: Channels,
 }
 impl Document {
@@ -124,7 +125,7 @@ impl Document {
                     }
                 })
                 .collect(),
-            channels: Channels::Aurora,
+            channels: Channels::Block,
         }
     }
     pub fn valid(&self, rig: &Rig) -> bool {
@@ -149,7 +150,7 @@ impl Document {
                     && match self.channels {
                         // an added scale is zero where nothing changed
                         Channels::LegacyDelta => s.is_finite() && s.abs().max_element() <= 100.0,
-                        Channels::Aurora | Channels::LegacyAbsolute => data::scale_valid(s),
+                        Channels::Block | Channels::LegacyAbsolute => data::scale_valid(s),
                     }
             })
     }
@@ -177,7 +178,7 @@ impl Document {
                 let (translation, scale) = (Vec3::from_array(joint.translation), Vec3::from_array(joint.scale));
                 let base = (session.base.positions[bone], session.base.scales[bone]);
                 let (position, scale) = match self.channels {
-                    Channels::Aurora => (base.0 + translation, base.1 * scale),
+                    Channels::Block => (base.0 + translation, base.1 * scale),
                     Channels::LegacyDelta => (base.0 + translation, base.1 + scale),
                     Channels::LegacyAbsolute if bone == rig.pelvis => (base.0 + translation, scale),
                     Channels::LegacyAbsolute => (translation, scale),

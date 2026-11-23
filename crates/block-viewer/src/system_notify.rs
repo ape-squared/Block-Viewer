@@ -51,7 +51,7 @@ impl Notifier {
 }
 
 /// The `<toast>` of a notification (ToastGeneric: the title in bold, the
-/// body below), silent: Aurora plays its own sounds.
+/// body below), silent: Block plays its own sounds.
 #[cfg(any(windows, test))]
 pub fn toast_xml(title: &str, body: &str) -> String {
     let mut texts = format!("<text>{}</text>", escape(title));
@@ -243,7 +243,7 @@ mod freedesktop {
         }
     }
 
-    /// Aurora plays its own sounds; the urgency is the Legacy Viewer's
+    /// Block plays its own sounds; the urgency is the Legacy Viewer's
     /// (NOTIFY_URGENCY_NORMAL).
     fn hints() -> HashMap<&'static str, Value<'static>> {
         HashMap::from([
@@ -316,7 +316,7 @@ mod win {
     use windows::core::{HSTRING, IInspectable, PCWSTR, Ref};
 
     /// The application's identity for Windows' notifications.
-    const AUMID: &str = "Aurora.Viewer";
+    const AUMID: &str = "Block.Viewer";
     /// Notifications kept alive for their click handler.
     const KEEP: usize = 32;
 

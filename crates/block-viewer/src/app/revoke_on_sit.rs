@@ -8,7 +8,7 @@
 //! with every bit, so that its scripts lose what they were granted, the
 //! animation permission among them.
 //!
-//! Aurora has no event for "sat down" and "got off": the prim our avatar
+//! Block has no event for "sat down" and "got off": the prim our avatar
 //! is parented to is compared with the last frame's. A change from one seat
 //! to another is a stand from the first and a sit on the second, as the
 //! Legacy Viewer gets off the first object before sitting on the next.

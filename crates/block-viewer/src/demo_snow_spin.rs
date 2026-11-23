@@ -1,6 +1,6 @@
-//! AURORA_DEMO_SNOW_SPIN=1|timer|settles-off: flat boxes turning in front of
-//! the avatar in lying snow (#3642), with `AURORA_SNOW` and
-//! `AURORA_SNOW_LYING`: one turning at 0.005 rad/s (0.3°/s, under the old
+//! BLOCK_DEMO_SNOW_SPIN=1|timer|settles-off: flat boxes turning in front of
+//! the avatar in lying snow (#3642), with `BLOCK_SNOW` and
+//! `BLOCK_SNOW_LYING`: one turning at 0.005 rad/s (0.3°/s, under the old
 //! threshold that left it in the rain's shelter map), one at 0.3 rad/s, and
 //! one a "script" steps by 15° every second with no motion reported
 //! (llSetRot on a timer). None takes the ground's snow: what moves is out of
@@ -20,7 +20,7 @@ const STEPPED: u32 = 3_642_003;
 const TURN_FRAME: u64 = 700;
 
 pub fn mode() -> Option<String> {
-    std::env::var("AURORA_DEMO_SNOW_SPIN").ok()
+    std::env::var("BLOCK_DEMO_SNOW_SPIN").ok()
 }
 
 /// Where the boxes stand: a row 6 m north of the demo's arrival, clear of

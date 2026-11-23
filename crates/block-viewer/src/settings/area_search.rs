@@ -1,6 +1,6 @@
 //! Saved Area Search defaults and column visibility. Filter and link semantics
 //! follow FSAreaSearch::matchObject / applySlappParams / buildSlappLink
-//! (indra/newview/fsareasearch.cpp; originally LGPL 2.1), with Aurora's precise
+//! (indra/newview/fsareasearch.cpp; originally LGPL 2.1), with Block's precise
 //! distances, live quick search and broader default results preserved.
 #[derive(Clone, Debug, PartialEq, serde::Serialize, serde::Deserialize)]
 #[serde(default)]
@@ -166,7 +166,7 @@ const CLICK_NAMES: [&str; 10] = ["blank", "any", "touch", "sit", "buy", "pay", "
 
 impl Filters {
     /// FSAreaSearch::buildSlappLink: Legacy parameter names and percent escaping.
-    /// q / mine preserve Aurora's additional quick query and ownership shortcut.
+    /// q / mine preserve Block's additional quick query and ownership shortcut.
     pub fn link(&self) -> String {
         let mut f = self.clone();
         f.normalize();
@@ -377,12 +377,12 @@ mod tests {
     }
 
     #[test]
-    fn area_search_settings_round_trip_and_old_files_keep_aurora_defaults() {
+    fn area_search_settings_round_trip_and_old_files_keep_block_defaults() {
         let old: AreaSearch = serde_json::from_str("{}").unwrap();
         assert_eq!(old, AreaSearch::default());
         assert!(
             !old.filters.exclude_physical && !old.filters.exclude_temporary,
-            "retain Aurora's broader results"
+            "retain Block's broader results"
         );
         let mut saved = AreaSearch {
             columns: [false; 10],

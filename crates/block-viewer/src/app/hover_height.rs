@@ -4,7 +4,7 @@ use crate::world::hover_height::Posture;
 impl App {
     pub(super) fn update_hover_height(&mut self) {
         if self.demo {
-            if let Ok(mode) = std::env::var("AURORA_DEMO_GROUNDING") {
+            if let Ok(mode) = std::env::var("BLOCK_DEMO_GROUNDING") {
                 crate::demo::grounding::tick(&mut self.world, &mut self.scene, self.frame_count, &mode);
                 if mode.contains("-transition") {
                     match self.frame_count {
@@ -27,7 +27,7 @@ impl App {
                     self.settings.ground_feet_max_height = 1.0;
                 }
             }
-            let mode = std::env::var("AURORA_DEMO_HOVER_HEIGHT").ok();
+            let mode = std::env::var("BLOCK_DEMO_HOVER_HEIGHT").ok();
             if let Some(region) = self.world.main_region.and_then(|handle| self.world.regions.get_mut(&handle)) {
                 region.avatar_hover_height = mode.as_deref() != Some("unsupported");
                 // Demo commands are intercepted by App::send, never HTTP.

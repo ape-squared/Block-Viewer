@@ -21,7 +21,7 @@ use std::time::Instant;
 
 const PLUGINS_STATUS: &str = "media_plugins_pack_state";
 
-/// State of Aurora's media plugins pack, published once per frame by the app
+/// State of Block's media plugins pack, published once per frame by the app
 /// for the pages opened before the pack is installed.
 pub fn set_plugins_status(ctx: &egui::Context, state: PackState) {
     ctx.data_mut(|d| d.insert_temp(egui::Id::unique(PLUGINS_STATUS), state));
@@ -615,14 +615,14 @@ mod tests {
     fn custom_scheme_links_require_a_click_gesture() {
         assert_eq!(
             MediaEvent::clicked_url(&MediaEvent::ClickLinkNoFollow {
-                url: "secondlife:///app/teleport/Aurora/12/34/56".into(),
+                url: "secondlife:///app/teleport/Block/12/34/56".into(),
                 nav_type: "clicked".into(),
             }),
-            Some("secondlife:///app/teleport/Aurora/12/34/56")
+            Some("secondlife:///app/teleport/Block/12/34/56")
         );
         assert_eq!(
             MediaEvent::clicked_url(&MediaEvent::ClickLinkNoFollow {
-                url: "secondlife:///app/teleport/Aurora/12/34/56".into(),
+                url: "secondlife:///app/teleport/Block/12/34/56".into(),
                 nav_type: "navigated".into(),
             }),
             None
@@ -665,7 +665,7 @@ mod tests {
         assert_eq!(trusted_folder_command(&wear("navigated"), trusted, None), None);
         // any other link takes the usual path
         let teleport = MediaEvent::ClickLinkNoFollow {
-            url: "secondlife:///app/teleport/Aurora/12/34/56".into(),
+            url: "secondlife:///app/teleport/Block/12/34/56".into(),
             nav_type: "clicked".into(),
         };
         assert_eq!(trusted_folder_command(&teleport, trusted, doc(page).as_deref()), None);
@@ -674,16 +674,16 @@ mod tests {
 
     #[test]
     fn clicked_teleport_slurl_uses_the_viewers_teleport_flow() {
-        let action = clicked_link_action("secondlife:///app/teleport/Aurora%20Plaza/12/34/56");
+        let action = clicked_link_action("secondlife:///app/teleport/Block%20Plaza/12/34/56");
         assert!(matches!(action, super::super::context::CtxAction::TeleportToPlace(region, pos)
-            if region == "Aurora Plaza" && pos == glam::Vec3::new(12.0, 34.0, 56.0)));
+            if region == "Block Plaza" && pos == glam::Vec3::new(12.0, 34.0, 56.0)));
     }
 
     #[test]
     fn clicked_map_slurl_opens_place_details() {
-        let action = clicked_link_action("https://maps.secondlife.com/secondlife/Aurora%20Plaza/12/34/56");
+        let action = clicked_link_action("https://maps.secondlife.com/secondlife/Block%20Plaza/12/34/56");
         assert!(matches!(action, super::super::context::CtxAction::ShowPlaceInfo(region, pos)
-            if region == "Aurora Plaza" && pos == glam::Vec3::new(12.0, 34.0, 56.0)));
+            if region == "Block Plaza" && pos == glam::Vec3::new(12.0, 34.0, 56.0)));
     }
 
     #[test]

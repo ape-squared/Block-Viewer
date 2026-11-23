@@ -1,4 +1,4 @@
-//! AURORA_DEMO_WET_LAYER=1: the "wet" and "shine" layers worn over mesh
+//! BLOCK_DEMO_WET_LAYER=1: the "wet" and "shine" layers worn over mesh
 //! bodies (#1420). Three skin-coloured spheres ahead of the start position,
 //! left of the avatar, each under a slightly larger shell, from the avatar
 //! outwards:
@@ -30,7 +30,7 @@ pub const COUNT: u32 = 6;
 
 pub fn enabled() -> bool {
     static ENABLED: std::sync::LazyLock<bool> = std::sync::LazyLock::new(|| {
-        std::env::var("AURORA_DEMO").is_ok_and(|v| v.trim() == "1") && std::env::var("AURORA_DEMO_WET_LAYER").is_ok_and(|v| v.trim() == "1")
+        std::env::var("BLOCK_DEMO").is_ok_and(|v| v.trim() == "1") && std::env::var("BLOCK_DEMO_WET_LAYER").is_ok_and(|v| v.trim() == "1")
     });
     *ENABLED
 }
@@ -101,7 +101,7 @@ fn layer(texture: Uuid, material: Option<Uuid>) -> Arc<block_prim::te::TextureEn
 pub fn objects(first: u32, sx: f32, sy: f32) -> Vec<ObjectUpdate> {
     let sphere = shape(LL_PCODE_PATH_CIRCLE, LL_PCODE_PROFILE_CIRCLE_HALF, 100, 0, 0);
     let (dx, dy) = (0.894_427_2, 0.447_213_6);
-    // left of the avatar, as AURORA_DEMO_BLEND_AO: in view of the start
+    // left of the avatar, as BLOCK_DEMO_BLEND_AO: in view of the start
     // camera, clear of the windows on the left of the screen
     let shells = [
         (0.0, layer(CLEAR, Some(MATERIAL))),

@@ -11,7 +11,7 @@ impl TestWindow {
             CreateWindowExW(
                 0,
                 windows_sys::w!("STATIC"),
-                windows_sys::w!("Aurora SLurl unit test"),
+                windows_sys::w!("Block SLurl unit test"),
                 WS_OVERLAPPEDWINDOW,
                 0,
                 0,

@@ -3,7 +3,7 @@
 //! found again. Kept per account between sessions (`notification_history.json`
 //! in the account folder, 30 days and 500 entries at most), read and written
 //! on a worker thread with the forward-compatible reading of `tolerant`, never
-//! sent anywhere. Aurora's own: Firestorm's notification well forgets what was
+//! sent anywhere. Block's own: Firestorm's notification well forgets what was
 //! closed.
 
 use crossbeam_channel::{self as mpsc, Receiver, Sender};
@@ -175,7 +175,7 @@ impl History {
         let (loaded_tx, loaded) = mpsc::bounded(1);
         let (writer, writes) = mpsc::unbounded::<Vec<Entry>>();
         let worker = std::thread::Builder::new()
-            .name("aurora-notification-history".into())
+            .name("block-notification-history".into())
             .spawn(move || {
                 let entries = match std::fs::read(&path) {
                     Ok(bytes) => crate::tolerant::from_slice::<Saved>(&bytes, FILE)
@@ -325,7 +325,7 @@ mod tests {
 
     fn temp(name: &str) -> PathBuf {
         std::env::temp_dir()
-            .join(format!("aurora-notif-history-{}", Uuid::new_v4()))
+            .join(format!("block-notif-history-{}", Uuid::new_v4()))
             .join(name)
     }
 

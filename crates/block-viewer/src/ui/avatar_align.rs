@@ -8,7 +8,7 @@
 //! themselves are the app's (`app/avatar_align.rs`), their maths
 //! `crate::avatar_align`.
 //!
-//! The compact layout keeps Aurora's title bar and its close button, where
+//! The compact layout keeps Block's title bar and its close button, where
 //! the Legacy mini window has neither: every window here is a `Floater`.
 
 use super::widgets::{self, Floater};

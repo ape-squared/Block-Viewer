@@ -2,7 +2,7 @@
 // ffx_fsr3upscaler_shading_change_pyramid.h), as one pass per level read
 // downstream instead of the single pass downsampler: the farthest depth at
 // half size (the luma pyramid's mip 1; its 1x1 average feeds only FSR's own
-// automatic exposure, which Aurora does not use), and the first three
+// automatic exposure, which Block does not use), and the first three
 // levels of the shading change (the signed luma change against the last
 // frame, and its sign, averaged).
 

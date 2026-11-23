@@ -1,4 +1,4 @@
-//! A local editor for the demo mode (`AURORA_DEMO_EDITOR_SYNC`): it does
+//! A local editor for the demo mode (`BLOCK_DEMO_EDITOR_SYNC`): it does
 //! what an outside editor does, over the same loopback socket and the same
 //! checks, so that the sync can be seen without one. It proves itself with
 //! the challenge file, lists the scripts, follows the first one and reports
@@ -75,7 +75,7 @@ pub fn spawn(runtime: &tokio::runtime::Handle, port: u16) -> mpsc::Receiver<Seen
                         "id": value.get("id").cloned().unwrap_or(Value::Null),
                         "result": {
                             "challenge_response": answer,
-                            "client_name": "Aurora demo editor",
+                            "client_name": "Block demo editor",
                             "client_version": "1.0",
                             "protocol_version": "1.0",
                             "languages": ["lsl", "luau"],

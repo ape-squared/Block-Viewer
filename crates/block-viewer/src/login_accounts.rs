@@ -71,7 +71,7 @@ pub fn grid(uri: &str) -> crate::settings::GridChoice {
 }
 
 /// The catalogue, and whether something in it was left out because this
-/// build does not understand it (an account saved by a newer Aurora).
+/// build does not understand it (an account saved by a newer Block).
 fn read(path: &Path) -> std::io::Result<(Vec<Account>, bool)> {
     match std::fs::read(path) {
         Ok(bytes) if bytes.len() <= 1024 * 1024 => crate::tolerant::from_slice::<Vec<Account>>(&bytes, "login_accounts.json")
@@ -137,7 +137,7 @@ fn change_at(path: &Path, update: impl FnOnce(&mut Vec<Account>)) -> Result<Vec<
         // Rewriting would drop what a newer build saved there (as an
         // unreadable catalogue always was): shown, never overwritten.
         return Err(Failure::Refused(std::io::Error::other(
-            "account catalogue holds entries from a newer Aurora, not rewritten",
+            "account catalogue holds entries from a newer Block, not rewritten",
         )));
     }
     update(&mut accounts);
@@ -210,7 +210,7 @@ impl Change {
 /// The catalogue file and the changes its writes could not save yet. Each
 /// change is made on the latest file after the ones still owed, in their
 /// order, until a write takes them all: a refused edit is neither dropped
-/// nor undone by the copy on the disk, and another Aurora's changes made
+/// nor undone by the copy on the disk, and another Block's changes made
 /// meanwhile are kept. The Legacy Viewer keeps its saved logins in memory
 /// and writes them once (LLSecAPIBasicHandler::_writeProtectedData,
 /// indra/newview/llsechandler_basic.cpp); here they are also tried again
@@ -279,7 +279,7 @@ fn catalogue() -> &'static Catalogue {
 }
 
 /// The thread that tries again what the user's catalogue owes.
-static RETRY: crate::save_retry::OnDemand = crate::save_retry::OnDemand::new("aurora-login-accounts", "account catalogue");
+static RETRY: crate::save_retry::OnDemand = crate::save_retry::OnDemand::new("block-login-accounts", "account catalogue");
 
 /// A change of the user's catalogue: the list it makes, saved now or later.
 fn change(change: Change) -> Result<Vec<Account>, std::io::Error> {
@@ -461,7 +461,7 @@ mod tests {
 
     #[test]
     fn an_account_from_a_newer_build_is_shown_and_never_overwritten() {
-        let root = std::env::temp_dir().join(format!("aurora-newer-accounts-{}", uuid::Uuid::new_v4()));
+        let root = std::env::temp_dir().join(format!("block-newer-accounts-{}", uuid::Uuid::new_v4()));
         std::fs::create_dir_all(&root).unwrap();
         let path = root.join("accounts.json");
         let file = serde_json::json!([
@@ -481,7 +481,7 @@ mod tests {
 
     #[test]
     fn saved_order_uses_latest_metadata_and_keeps_concurrent_additions() {
-        let root = std::env::temp_dir().join(format!("aurora-order-{}", uuid::Uuid::new_v4()));
+        let root = std::env::temp_dir().join(format!("block-order-{}", uuid::Uuid::new_v4()));
         let path = root.join("accounts.json");
         let mut alpha = Account::from_settings(&crate::settings::Settings::default(), true, None);
         alpha.username = "synthetic-alpha".into();
@@ -573,7 +573,7 @@ mod tests {
     /// both on the disk.
     #[test]
     fn a_refused_write_keeps_the_edit_until_a_write_takes_it() {
-        let root = std::env::temp_dir().join(format!("aurora-accounts-refused-{}", uuid::Uuid::new_v4()));
+        let root = std::env::temp_dir().join(format!("block-accounts-refused-{}", uuid::Uuid::new_v4()));
         let path = root.join("accounts.json");
         let alpha = synthetic("synthetic-alpha");
         let beta = synthetic("synthetic-beta");
@@ -608,7 +608,7 @@ mod tests {
 
     #[test]
     fn concurrent_catalogue_changes_keep_every_account() {
-        let root = std::env::temp_dir().join(format!("aurora-accounts-{}", uuid::Uuid::new_v4()));
+        let root = std::env::temp_dir().join(format!("block-accounts-{}", uuid::Uuid::new_v4()));
         let path = root.join("accounts.json");
         std::thread::scope(|scope| {
             for i in 0..8 {

@@ -421,7 +421,7 @@ fn share(
                 // it can reach one resident only. The Legacy Viewer
                 // (give_inventory_cb, indra/newview/llavataractions.cpp) gives
                 // it to the first resident after CannotCopyWarning and stops
-                // there, leaving the others with nothing; Aurora leaves the
+                // there, leaving the others with nothing; Block leaves the
                 // no-copy item out and still gives the rest to everyone
                 // (stricter for the item, clearer for the user).
                 Ok(bucket) if rules::offer_has_no_copy(inv, &bucket) && residents.len() > 1 => (

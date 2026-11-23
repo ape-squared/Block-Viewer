@@ -39,7 +39,7 @@ use std::sync::mpsc::{Receiver, Sender, channel};
 use std::time::{Duration, Instant};
 
 /// Property of the stream that says which plugin it belongs to.
-const TAG: &CStr = c"aurora.media";
+const TAG: &CStr = c"block.media";
 /// Name of the streams in the system's mixer, and of the saved volume.
 const STREAM_NAME: &str = "Block Viewer media";
 /// Longest wait for an answer of the server, on the worker's thread.
@@ -326,10 +326,7 @@ mod tests {
         let volume = StreamVolume::new();
         let (name, value) = volume.env();
         assert_eq!(name, "PULSE_PROP_OVERRIDE");
-        assert_eq!(
-            value,
-            format!("application.name='Block Viewer media' aurora.media='{}'", volume.tag)
-        );
+        assert_eq!(value, format!("application.name='Block Viewer media' block.media='{}'", volume.tag));
     }
 
     #[test]

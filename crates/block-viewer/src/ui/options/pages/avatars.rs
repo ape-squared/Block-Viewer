@@ -1,6 +1,6 @@
 //! Preferences › Avatars: everything about the avatars around in one
 //! place, where the Legacy Viewer spreads it over several panels: their
-//! name tags (panel_preferences_UI.xml) and Aurora's plates, the colours of
+//! name tags (panel_preferences_UI.xml) and Block's plates, the colours of
 //! their names, the names themselves, the look-at targets
 //! (panel_preferences_privacy.xml, tab-lookat) and the head that follows
 //! the mouse (panel_preferences_firestorm.xml), the feet kept on the ground
@@ -116,7 +116,7 @@ pub fn page(cx: &mut Cx, tab: usize) {
                 );
             });
             // the plates' settings mean nothing to the classic name tags
-            cx.group(tr!("ui-options-aurora-avatar-plates"), |cx| {
+            cx.group(tr!("ui-options-block-avatar-plates"), |cx| {
                 let classic = cx.s.classic_name_tags;
                 cx.greyed(classic);
                 cx.toggle(
@@ -301,27 +301,27 @@ pub fn page(cx: &mut Cx, tab: usize) {
         _ => {
             cx.group(tr!("ui-options-feet"), |cx| {
                 cx.toggle(
-                    tr!("ui-options-aurora-ground-feet"),
-                    tr!("ui-options-aurora-ground-feet-help"),
+                    tr!("ui-options-block-ground-feet"),
+                    tr!("ui-options-block-ground-feet-help"),
                     &field!(ground_avatar_feet),
                 );
                 let off = !cx.s.ground_avatar_feet;
                 cx.subs(off, |cx| {
                     cx.toggle(
-                        tr!("ui-options-aurora-ground-feet-moving"),
-                        tr!("ui-options-aurora-ground-feet-moving-help"),
+                        tr!("ui-options-block-ground-feet-moving"),
+                        tr!("ui-options-block-ground-feet-moving-help"),
                         &field!(ground_feet_while_moving),
                     );
                     cx.slider(
-                        tr!("ui-options-aurora-ground-feet-height"),
-                        tr!("ui-options-aurora-ground-feet-height-help"),
+                        tr!("ui-options-block-ground-feet-height"),
+                        tr!("ui-options-block-ground-feet-height-help"),
                         &field!(ground_feet_max_height),
                         0.0..=crate::settings::MAX_GROUND_FEET_HEIGHT,
                         " m",
                     );
                     cx.slider(
-                        tr!("ui-options-aurora-ground-feet-avatars"),
-                        tr!("ui-options-aurora-ground-feet-avatars-help"),
+                        tr!("ui-options-block-ground-feet-avatars"),
+                        tr!("ui-options-block-ground-feet-avatars-help"),
                         &field!(ground_feet_max_avatars),
                         0..=crate::settings::MAX_GROUND_FEET_AVATARS,
                         "",

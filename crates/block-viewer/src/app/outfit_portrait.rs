@@ -684,12 +684,12 @@ impl App {
     }
 }
 
-/// `AURORA_DEMO_APPEARANCE=portrait|portrait-not-worn|portrait-shot|photo-mode`,
+/// `BLOCK_DEMO_APPEARANCE=portrait|portrait-not-worn|portrait-shot|photo-mode`,
 /// and the HD picture's `portrait-hd|portrait-hd-poor|photo-mode-hd`.
 fn demo_mode() -> Option<&'static str> {
     static MODE: std::sync::OnceLock<Option<String>> = std::sync::OnceLock::new();
     MODE.get_or_init(|| {
-        std::env::var("AURORA_DEMO_APPEARANCE")
+        std::env::var("BLOCK_DEMO_APPEARANCE")
             .ok()
             .filter(|m| m.starts_with("portrait") || m.starts_with("photo-mode"))
     })
@@ -697,7 +697,7 @@ fn demo_mode() -> Option<&'static str> {
 }
 
 impl App {
-    /// The demo's steps (`AURORA_DEMO_APPEARANCE`): over the showcase, at
+    /// The demo's steps (`BLOCK_DEMO_APPEARANCE`): over the showcase, at
     /// frame 600 the auto portrait of the outfit worn (`portrait`), of one
     /// not worn (`portrait-not-worn`), the square photo mode
     /// (`photo-mode`); `portrait-shot` takes the photo at frame 900. The HD

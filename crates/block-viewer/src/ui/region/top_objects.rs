@@ -69,7 +69,7 @@ pub(super) struct TopState {
     /// (column, descending)
     sort: Option<(Column, bool)>,
     ask_return_all: bool,
-    /// AURORA_DEMO_REGION's report, opened once the simulator answered.
+    /// BLOCK_DEMO_REGION's report, opened once the simulator answered.
     pub demo: Option<u32>,
 }
 
@@ -594,7 +594,7 @@ mod tests {
             handle: block_net::origin_to_handle(1012 * 256, 998 * 256),
             role: Role::Owner,
             shown: Role::Owner,
-            name: "Aurora".into(),
+            name: "Block".into(),
             sim_access: 13,
             flags: 0,
             owner: Uuid::from_u128(1),

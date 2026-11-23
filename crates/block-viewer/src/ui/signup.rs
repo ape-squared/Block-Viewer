@@ -172,7 +172,7 @@ impl SignupUi {
         self.page = Some(page);
     }
 
-    /// Open the window on another address (`AURORA_DEMO_SIGNUP`): the
+    /// Open the window on another address (`BLOCK_DEMO_SIGNUP`): the
     /// sign-up commands are heard, `join` only from a Second Life page.
     pub fn open_demo(&mut self, url: &str) {
         self.close();

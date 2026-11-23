@@ -134,7 +134,7 @@ pub fn backup(path: &Path) {
 }
 
 /// The copies whose write was refused, with their bytes.
-static OWED: crate::save_retry::OwedFiles = crate::save_retry::OwedFiles::new("aurora-newer-backup", "copy of a newer file");
+static OWED: crate::save_retry::OwedFiles = crate::save_retry::OwedFiles::new("block-newer-backup", "copy of a newer file");
 
 /// The viewer closing: a copy still owed is tried once more.
 pub fn save_before_exit() {
@@ -283,7 +283,7 @@ mod tests {
     /// newer build's bytes once the place is free.
     #[test]
     fn a_refused_copy_is_written_later_from_memory() {
-        let root = std::env::temp_dir().join(format!("aurora-newer-backup-{}", uuid::Uuid::new_v4()));
+        let root = std::env::temp_dir().join(format!("block-newer-backup-{}", uuid::Uuid::new_v4()));
         std::fs::create_dir_all(&root).unwrap();
         let path = root.join("settings.json");
         std::fs::write(&path, b"{\"from\":\"a newer build\"}").unwrap();

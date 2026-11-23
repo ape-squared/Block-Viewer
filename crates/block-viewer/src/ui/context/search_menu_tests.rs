@@ -62,7 +62,7 @@ fn the_search_menu_has_the_legacy_entries_in_their_order() {
     ];
     let ys: Vec<f32> = order.iter().map(|l| row(l)).collect();
     assert!(ys.windows(2).all(|pair| pair[0] < pair[1]), "{order:?} at {ys:?}");
-    // Aurora's own additions stay
+    // Block's own additions stay
     for extra in ["common-zoom-2", "common-teleport-to", "ui-context-report-abuse", "common-copy-name"] {
         painted(&texts, block_i18n::text(extra));
     }

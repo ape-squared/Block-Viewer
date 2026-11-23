@@ -1,7 +1,7 @@
 //! The system's `secondlife:` link handler: whether links of web pages open
 //! in this viewer, and the choice to make them so. The Legacy Viewer's
 //! installer asks and writes the class (CreateUrlRegistryEntries,
-//! indra/newview/installers/windows/installer_template.nsi); Aurora has no
+//! indra/newview/installers/windows/installer_template.nsi); Block has no
 //! installer and writes the same class for the user alone
 //! (HKCU\Software\Classes\secondlife, which wins over a machine-wide one),
 //! from Preferences › Interface. The command is the installer's
@@ -10,7 +10,7 @@
 //! On Linux the Legacy Viewer's register_secondlifeprotocol.sh
 //! (indra/newview/linux_tools/) writes a hidden desktop entry for the scheme
 //! into the user's applications folder and makes it the default with
-//! `xdg-mime default`. Aurora writes the same two files itself, per the XDG
+//! `xdg-mime default`. Block writes the same two files itself, per the XDG
 //! specifications: `$XDG_DATA_HOME/applications/block-viewer-slurl.desktop`
 //! and its `x-scheme-handler/<scheme>` defaults in
 //! `$XDG_CONFIG_HOME/mimeapps.list`, the rest of which it leaves untouched.
@@ -25,7 +25,7 @@ pub enum Handler {
     None,
 }
 
-/// Whether this system lets Aurora register itself.
+/// Whether this system lets Block register itself.
 pub fn supported() -> bool {
     cfg!(any(windows, target_os = "linux"))
 }
@@ -215,7 +215,7 @@ mod win {
         }
     }
 
-    /// A user class left pointing at an Aurora executable that no longer
+    /// A user class left pointing at a Block executable that no longer
     /// exists (the folder moved) is pointed at this one.
     pub fn repair() {
         for scheme in SCHEMES {
@@ -242,7 +242,7 @@ mod xdg {
     use super::{Handler, SCHEMES};
     use std::path::{Path, PathBuf};
 
-    /// Aurora's own entry, hidden from the menus (the shipped
+    /// Block's own entry, hidden from the menus (the shipped
     /// `block-viewer.desktop` claims no scheme: registering stays a choice).
     const DESKTOP_ID: &str = "block-viewer-slurl.desktop";
     const DEFAULTS: &str = "Default Applications";
@@ -518,7 +518,7 @@ mod xdg {
         if let Some(dir) = path.parent() {
             std::fs::create_dir_all(dir).map_err(|e| format!("{}: {e}", dir.display()))?;
         }
-        let tmp = path.with_extension("aurora-tmp");
+        let tmp = path.with_extension("block-tmp");
         let kept = std::fs::metadata(&path).ok().map(|m| m.permissions());
         std::fs::write(&tmp, text)
             .and_then(|()| kept.map_or(Ok(()), |mode| std::fs::set_permissions(&tmp, mode)))
@@ -534,7 +534,7 @@ mod xdg {
         list.unwrap_or_default().split(';').map(str::trim).filter(|id| !id.is_empty())
     }
 
-    /// Aurora's entry first, then the handlers that were there before it
+    /// Block's entry first, then the handlers that were there before it
     /// (a Legacy Viewer's, set by `xdg-mime default`): turning the links
     /// off gives them back.
     pub(super) fn ours_first(list: Option<&str>) -> String {
@@ -544,7 +544,7 @@ mod xdg {
             .collect()
     }
 
-    /// The list without Aurora's entry; None when nothing is left.
+    /// The list without Block's entry; None when nothing is left.
     pub(super) fn without_ours(list: Option<&str>) -> Option<String> {
         let rest: String = ids(list).filter(|id| *id != DESKTOP_ID).map(|id| format!("{id};")).collect();
         (!rest.is_empty()).then_some(rest)
@@ -587,7 +587,7 @@ mod xdg {
         Ok(())
     }
 
-    /// Aurora's entry, when it opens this executable.
+    /// Block's entry, when it opens this executable.
     fn own_entry_if_ours() -> Result<Option<PathBuf>, String> {
         let entry = own_entry()?;
         let text = std::fs::read_to_string(&entry).unwrap_or_default();
@@ -618,7 +618,7 @@ mod xdg {
 
     /// Removes this viewer's defaults and entry; another handler of the
     /// lists or of the system takes the links again. An entry left by
-    /// another Aurora executable stays.
+    /// another Block executable stays.
     pub fn unregister() -> Result<(), String> {
         let Some(entry) = own_entry_if_ours()? else {
             return Ok(());
@@ -642,7 +642,7 @@ mod xdg {
         Ok(())
     }
 
-    /// Aurora's entry left pointing at an executable that no longer exists
+    /// Block's entry left pointing at an executable that no longer exists
     /// (moved or rebuilt elsewhere) is pointed at this one.
     pub fn repair() {
         let Ok(entry) = own_entry() else {
@@ -714,9 +714,9 @@ pub fn refresh() {
 }
 
 /// At start, published builds outside demo mode only: a registration left
-/// on a moved Aurora is pointed at this one (test builds never take it).
+/// on a moved Block is pointed at this one (test builds never take it).
 pub fn repair_at_start() {
-    if env!("AURORA_BUILD_PROFILE") == "release" && std::env::var_os("AURORA_DEMO").is_none() {
+    if env!("BLOCK_BUILD_PROFILE") == "release" && std::env::var_os("BLOCK_DEMO").is_none() {
         #[cfg(windows)]
         win::repair();
         #[cfg(target_os = "linux")]
@@ -729,8 +729,8 @@ mod tests {
     #[test]
     fn command_program() {
         assert_eq!(
-            super::win::command_exe(r#""C:\Viewers\Aurora\block-viewer.exe" -url "%1""#),
-            Some(std::path::PathBuf::from(r"C:\Viewers\Aurora\block-viewer.exe"))
+            super::win::command_exe(r#""C:\Viewers\Block\block-viewer.exe" -url "%1""#),
+            Some(std::path::PathBuf::from(r"C:\Viewers\Block\block-viewer.exe"))
         );
         assert_eq!(
             super::win::command_exe(r#"C:\Viewer\viewer.exe -url "%1""#),
@@ -747,7 +747,7 @@ mod xdg_tests {
 
     #[test]
     fn a_replaced_executable_is_registered_at_its_path() {
-        let dir = std::env::temp_dir().join(format!("aurora-live-exe-{}", std::process::id()));
+        let dir = std::env::temp_dir().join(format!("block-live-exe-{}", std::process::id()));
         std::fs::create_dir_all(&dir).expect("temp dir");
         let exe = dir.join("block-viewer");
         std::fs::write(&exe, "").expect("temp file");
@@ -798,7 +798,7 @@ mod xdg_tests {
             ours_first(Some("a.desktop; block-viewer-slurl.desktop;b.desktop")),
             "block-viewer-slurl.desktop;a.desktop;b.desktop;"
         );
-        // no earlier handler: Aurora alone, and nothing left once off
+        // no earlier handler: Block alone, and nothing left once off
         assert_eq!(ours_first(None), "block-viewer-slurl.desktop;");
         assert_eq!(without_ours(Some("block-viewer-slurl.desktop;")), None);
         assert_eq!(without_ours(None), None);
@@ -810,7 +810,7 @@ mod xdg_tests {
             "/usr/bin/block-viewer",
             "/home/me/My Viewers/block-viewer",
             "/opt/100%/block-viewer",
-            r#"/odd/"q"$x`b\\%/aurora"#,
+            r#"/odd/"q"$x`b\\%/block"#,
         ] {
             let line = exec_line(exe);
             assert!(line.ends_with(" -url %u"), "{line}");

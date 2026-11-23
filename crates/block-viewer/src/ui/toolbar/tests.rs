@@ -889,9 +889,9 @@ fn toolbar_sanitize_skips_the_retired_howto_command() {
     assert!(catalogue::find("howto").is_none());
 }
 
-/// The window lists the Legacy Viewer commands and Aurora additions, each
+/// The window lists the Legacy Viewer commands and Block additions, each
 /// once, with an embedded icon and localized labels;
-/// what Aurora runs does something, what it cannot run yet does nothing.
+/// what Block runs does something, what it cannot run yet does nothing.
 #[test]
 fn toolbar_catalogue_holds_firestorm_commands_and_runs_the_ready_ones() {
     let skin = Layout::default();
@@ -932,7 +932,7 @@ fn toolbar_catalogue_holds_firestorm_commands_and_runs_the_ready_ones() {
     assert!(ready("a_skin_command"));
 }
 
-/// A saved button of a command Aurora does not have yet stays in its
+/// A saved button of a command Block does not have yet stays in its
 /// toolbar, dimmed by its tooltip, and its click does nothing.
 #[test]
 fn toolbar_window_tiles_show_placed_and_missing_commands() {
@@ -950,7 +950,7 @@ fn toolbar_window_tiles_show_placed_and_missing_commands() {
     let flickr = bench.tile_rect("flickr");
     bench.pointer(flickr.center(), true, false);
     bench.pointer(flickr.center(), false, false);
-    assert_eq!(bench.saves, 0, "not in Aurora yet");
+    assert_eq!(bench.saves, 0, "not in Block yet");
     let build = bench.tile_rect("build");
     bench.pointer(build.center(), true, false);
     bench.pointer(build.center(), false, false);

@@ -1,5 +1,5 @@
 //! Image enlargement scoped to the Conversations floater (#806). This is an
-//! Aurora interaction: LLChatHistory / FSChatHistory retain text-only links.
+//! Block interaction: LLChatHistory / FSChatHistory retain text-only links.
 
 use super::{Shown, lp};
 use crate::theme::Palette;

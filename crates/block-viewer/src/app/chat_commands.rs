@@ -1,6 +1,6 @@
 //! Running the chat bar commands (see [`crate::cmdline`]): what each branch
 //! of Firestorm's cmd_line_chat does (indra/newview/chatbar_as_cmdline.cpp),
-//! with Aurora's world, camera and network.
+//! with Block's world, camera and network.
 
 use std::time::Instant;
 
@@ -228,7 +228,7 @@ impl App {
                 ));
             }
             Command::TrackAvatar(name) => match self.find_nearby(&name) {
-                // Deviation: LLAvatarActions::track follows the avatar; Aurora
+                // Deviation: LLAvatarActions::track follows the avatar; Block
                 // has no avatar tracking yet and marks where it is now.
                 Some((id, pos)) => {
                     let (x, y) = crate::ui::minimap::to_global(&self.world, pos);
@@ -246,7 +246,7 @@ impl App {
                 self.world.nearby_read();
             }
             Command::CopyCamera => {
-                // Focus 1 m ahead of the camera; Aurora's camera has no roll.
+                // Focus 1 m ahead of the camera; Block's camera has no roll.
                 let pos = self.camera.position;
                 let text = cmdline::format_camera(pos, pos + self.camera.forward(), 0.0);
                 self.egui_ctx.copy_text(text.clone());

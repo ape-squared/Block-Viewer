@@ -1,4 +1,4 @@
-//! People › Contact sets in Aurora's look: the contact sets of
+//! People › Contact sets in Block's look: the contact sets of
 //! Conversations › Contacts (FSPanelContactSets, fspanelcontactsets.cpp,
 //! panel_fs_contacts_sets.xml, LGGContactSets) laid out as a list of sets
 //! beside their members. The sets come in their priority order, each with
@@ -13,7 +13,7 @@
 //! click, Ctrl or Shift get a bar of actions (add to a set, move, nickname,
 //! remove). Non-friends stay in their sets. Nicknames are in the sheet too.
 //!
-//! Visible differences from the Legacy Viewer, all Aurora's own: the sets
+//! Visible differences from the Legacy Viewer, all Block's own: the sets
 //! are listed by priority rather than by name (the Legacy Viewer has no
 //! priority) and dragged to reorder it; Quick sort; the selection bar.
 
@@ -47,7 +47,7 @@ pub(super) fn tab(ui: &mut egui::Ui, c: &mut Ctx, data: &super::RadarData, st: &
 }
 
 /// The set shown: the one chosen while it exists, else the highest set,
-/// else all of them (FSPanelContactSets::refreshSetList, in Aurora's order).
+/// else all of them (FSPanelContactSets::refreshSetList, in Block's order).
 fn choice(c: &mut Ctx) -> String {
     let (shown, store) = shown_set(c.contacts.set_choice.as_deref(), &c.world.contact_sets);
     if store {

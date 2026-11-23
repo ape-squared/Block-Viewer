@@ -4,11 +4,11 @@
 //! mouselook, the saved camera positions of LLFloaterSaveCameraPreset) and
 //! movement controls (LLFloaterMove, floater_moveview.xml: turn, walk, slide,
 //! fly up and down, walk / run / fly, stop flying, stand up) in one window
-//! with two tabs, or, with Preferences › Aurora, Firestorm's two windows.
+//! with two tabs, or, with Preferences › Block, Firestorm's two windows.
 //! The buttons and the joysticks are held keys: the app moves the avatar and
 //! the camera with them as with the keyboard (`App::update_move_input`).
 //! While the photo window's free camera flies, the camera tab drives it
-//! (Aurora's own: Firestorm has no keyboard free camera, `camera/free.rs`).
+//! (Block's own: Firestorm has no keyboard free camera, `camera/free.rs`).
 
 use super::widgets::{self, Floater, keycap};
 use crate::camera::{CameraPreset, CameraShot, SavedViews, free};
@@ -16,7 +16,7 @@ use crate::keybinds::{Action, Binding, KeyBindings};
 use crate::theme::Palette;
 use egui::{FontId, Pos2, Rect, Sense, Vec2};
 
-/// The Aurora window, and Firestorm's two.
+/// The Block window, and Firestorm's two.
 pub const WINDOW: &str = "controls";
 pub const CLASSIC_CAMERA: &str = "camera_controls";
 pub const CLASSIC_MOVEMENT: &str = "movement_controls";
@@ -190,12 +190,12 @@ pub struct Output {
 }
 
 impl ControlsUi {
-    /// The Aurora window (`camera` / `movement`: the toolbar's View and
+    /// The Block window (`camera` / `movement`: the toolbar's View and
     /// Movement, the World menu's entries; either opens it on its tab), or
     /// Firestorm's two windows when `classic`.
     pub fn show(&mut self, ctx: &egui::Context, p: &Palette, camera: &mut bool, movement: &mut bool, classic: bool, view: &View) -> Output {
         let mut out = Output::default();
-        // the free camera keeps Aurora's window (Firestorm has none)
+        // the free camera keeps Block's window (Firestorm has none)
         if classic && view.free.is_none() {
             if *camera {
                 let size = Vec2::new(250.0, 210.0);
@@ -575,7 +575,7 @@ fn parse_speed(text: &str) -> Option<f64> {
 /// The camera (`movement` false) or movement controls asked for by a
 /// toolbar button or a shortcut (`toggle`, LLFloaterReg::toggleInstance) or
 /// a menu item (LLFloaterReg::showInstance). A minimized window expands on
-/// the tab asked for (minimized, Aurora's window only shows the camera's
+/// the tab asked for (minimized, Block's window only shows the camera's
 /// joysticks: #1815); the other tab shown switches to it; the tab shown
 /// closes with `toggle`. `classic`: Legacy's two windows, each its own.
 pub fn request(ctx: &egui::Context, camera: &mut bool, movement: &mut bool, classic: bool, want_movement: bool, toggle: bool) {

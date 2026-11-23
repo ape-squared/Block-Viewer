@@ -1,6 +1,6 @@
 //! The account's saved smart searches (advanced inventory search), shared by
 //! every inventory window: the sidebar lists them, the chip bar and the rule
-//! builder save into them. Aurora's own feature, no Legacy Viewer source.
+//! builder save into them. Block's own feature, no Legacy Viewer source.
 //! Kept in `inventory-smart-searches.json` in the account's folder, read and
 //! written by a thread of its own like the favourites' order
 //! (`world/favorites.rs`); the demo keeps them in memory.
@@ -58,7 +58,7 @@ pub fn load(path: PathBuf) {
         };
         store.writer = Some(writer.clone());
     });
-    let spawned = std::thread::Builder::new().name("aurora-smart-searches".into()).spawn(move || {
+    let spawned = std::thread::Builder::new().name("block-smart-searches".into()).spawn(move || {
         let read = match std::fs::read(&path) {
             Ok(bytes) => serde_json::from_slice::<Vec<Saved>>(&bytes).unwrap_or_else(|error| {
                 log::warn!("Cannot read the saved smart searches: {error}");

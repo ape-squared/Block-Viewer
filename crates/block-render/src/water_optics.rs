@@ -8,8 +8,8 @@ use std::sync::OnceLock;
 fn demo_mode() -> Option<&'static str> {
     static MODE: OnceLock<Option<String>> = OnceLock::new();
     MODE.get_or_init(|| {
-        std::env::var_os("AURORA_DEMO")?;
-        std::env::var("AURORA_DEMO_WATER").ok()
+        std::env::var_os("BLOCK_DEMO")?;
+        std::env::var("BLOCK_DEMO_WATER").ok()
     })
     .as_deref()
 }

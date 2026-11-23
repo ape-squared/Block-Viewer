@@ -1,5 +1,5 @@
 //! Offline layered-alpha benchmark for issue #1696.
-//! AURORA_DEMO_ALPHA_MASK_AB=planes|cross|spheres|none:<layers>:blend|mask[:touch].
+//! BLOCK_DEMO_ALPHA_MASK_AB=planes|cross|spheres|none:<layers>:blend|mask[:touch].
 use super::{HANDLE, height, prim, shape};
 use block_net::NetEvent;
 use block_prim::params::*;
@@ -11,7 +11,7 @@ use uuid::Uuid;
 const TEX_BLEND: Uuid = Uuid::from_u128(0xDE40_AB16_9600_0000_0000_0000_0000_0001);
 const TEX_MASK: Uuid = Uuid::from_u128(0xDE40_AB16_9600_0000_0000_0000_0000_0002);
 pub fn events() -> Vec<NetEvent> {
-    let Ok(spec) = std::env::var("AURORA_DEMO_ALPHA_MASK_AB") else {
+    let Ok(spec) = std::env::var("BLOCK_DEMO_ALPHA_MASK_AB") else {
         return Vec::new();
     };
     let parts: Vec<_> = spec.split(':').collect();

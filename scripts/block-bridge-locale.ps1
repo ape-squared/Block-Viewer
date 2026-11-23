@@ -1,4 +1,4 @@
-﻿# Rewrites viewer-branded "Aurora bridge" strings to "Block bridge" in locale FTL files.
+﻿# Rewrites viewer-branded "Block bridge" strings to "Block bridge" in locale FTL files.
 $ErrorActionPreference = 'Stop'
 $root = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
 if (-not (Test-Path (Join-Path $root 'crates\block-i18n\locales'))) {
@@ -9,89 +9,89 @@ $utf8 = New-Object System.Text.UTF8Encoding $false
 
 # Longer phrases first; bridge-adjacent product name only.
 $replacements = @(
-    @{ Old = 'Authenticated read-only Aurora bridge queries'; New = 'Authenticated read-only Block bridge queries' },
-    @{ Old = 'through the Aurora bridge'; New = 'through the Block bridge' },
-    @{ Old = 'with the Aurora bridge'; New = 'with the Block bridge' },
-    @{ Old = 'the Aurora bridge'; New = 'the Block bridge' },
-    @{ Old = 'The Aurora bridge'; New = 'The Block bridge' },
-    @{ Old = 'wear the Aurora bridge'; New = 'wear the Block bridge' },
-    @{ Old = 'Use the Aurora bridge'; New = 'Use the Block bridge' },
-    @{ Old = 'Repair Aurora bridge'; New = 'Repair Block bridge' },
-    @{ Old = 'Preparing Aurora bridge'; New = 'Preparing Block bridge' },
-    @{ Old = 'Aurora bridge ('; New = 'Block bridge (' },
-    @{ Old = 'Aurora bridge'; New = 'Block bridge' },
-    @{ Old = 'Aurora Köprüsünü Onar'; New = 'Block köprüsünü onar' },
-    @{ Old = 'Aurora köprüsünü kullan'; New = 'Block köprüsünü kullan' },
-    @{ Old = 'Aurora köprüsü'; New = 'Block köprüsü' },
-    @{ Old = 'Aurora Köprüsü'; New = 'Block köprüsü' },
+    @{ Old = 'Authenticated read-only Block bridge queries'; New = 'Authenticated read-only Block bridge queries' },
+    @{ Old = 'through the Block bridge'; New = 'through the Block bridge' },
+    @{ Old = 'with the Block bridge'; New = 'with the Block bridge' },
+    @{ Old = 'the Block bridge'; New = 'the Block bridge' },
+    @{ Old = 'The Block bridge'; New = 'The Block bridge' },
+    @{ Old = 'wear the Block bridge'; New = 'wear the Block bridge' },
+    @{ Old = 'Use the Block bridge'; New = 'Use the Block bridge' },
+    @{ Old = 'Repair Block bridge'; New = 'Repair Block bridge' },
+    @{ Old = 'Preparing Block bridge'; New = 'Preparing Block bridge' },
+    @{ Old = 'Block bridge ('; New = 'Block bridge (' },
+    @{ Old = 'Block bridge'; New = 'Block bridge' },
+    @{ Old = 'Block Köprüsünü Onar'; New = 'Block köprüsünü onar' },
+    @{ Old = 'Block köprüsünü kullan'; New = 'Block köprüsünü kullan' },
+    @{ Old = 'Block köprüsü'; New = 'Block köprüsü' },
+    @{ Old = 'Block Köprüsü'; New = 'Block köprüsü' },
     @{ Old = 'Aurora-broen'; New = 'Block-broen' },
-    @{ Old = 'Auroraブリッジ'; New = 'Blockブリッジ' },
-    @{ Old = 'Aurora 桥接器'; New = 'Block 桥接器' },
-    @{ Old = 'Aurora 橋接器'; New = 'Block 橋接器' },
-    @{ Old = 'Bridge de Aurora'; New = 'Bridge de Block' },
-    @{ Old = 'Bridge Aurora'; New = 'Bridge Block' },
-    @{ Old = 'Bridge di Aurora'; New = 'Bridge Block' },
-    @{ Old = 'Ponte do Aurora'; New = 'Ponte do Block' },
-    @{ Old = 'Ponte Aurora'; New = 'Ponte Block' },
+    @{ Old = 'Blockブリッジ'; New = 'Blockブリッジ' },
+    @{ Old = 'Block 桥接器'; New = 'Block 桥接器' },
+    @{ Old = 'Block 橋接器'; New = 'Block 橋接器' },
+    @{ Old = 'Bridge de Block'; New = 'Bridge de Block' },
+    @{ Old = 'Bridge Block'; New = 'Bridge Block' },
+    @{ Old = 'Bridge di Block'; New = 'Bridge Block' },
+    @{ Old = 'Ponte do Block'; New = 'Ponte do Block' },
+    @{ Old = 'Ponte Block'; New = 'Ponte Block' },
     @{ Old = 'Aurora-Brücke'; New = 'Block-Brücke' },
-    @{ Old = 'Most Aurora'; New = 'Most Block' },
-    @{ Old = 'mostu Aurora'; New = 'mostu Block' },
-    @{ Old = 'mosta Aurora'; New = 'mosta Block' },
-    @{ Old = 'Мост Aurora'; New = 'Мост Block' },
-    @{ Old = 'Міст Aurora'; New = 'Міст Block' },
-    @{ Old = 'мосту Aurora'; New = 'мосту Block' },
-    @{ Old = 'моста Aurora'; New = 'моста Block' },
-    @{ Old = 'мост Aurora'; New = 'мост Block' },
-    @{ Old = 'міст Aurora'; New = 'міст Block' },
+    @{ Old = 'Most Block'; New = 'Most Block' },
+    @{ Old = 'mostu Block'; New = 'mostu Block' },
+    @{ Old = 'mosta Block'; New = 'mosta Block' },
+    @{ Old = 'Мост Block'; New = 'Мост Block' },
+    @{ Old = 'Міст Block'; New = 'Міст Block' },
+    @{ Old = 'мосту Block'; New = 'мосту Block' },
+    @{ Old = 'моста Block'; New = 'моста Block' },
+    @{ Old = 'мост Block'; New = 'мост Block' },
+    @{ Old = 'міст Block'; New = 'міст Block' },
     @{ Old = 'Aurora-Bridge'; New = 'Block-Bridge' },
-    @{ Old = 'bridge di Aurora'; New = 'bridge di Block' },
-    @{ Old = 'bridge de Aurora'; New = 'bridge de Block' },
-    @{ Old = 'bridge Aurora'; New = 'bridge Block' },
-    @{ Old = 'le bridge Aurora'; New = 'le bridge Block' },
-    @{ Old = 'la ponte Aurora'; New = 'la ponte Block' },
-    @{ Old = 'a ponte do Aurora'; New = 'a ponte do Block' },
-    @{ Old = 'A ponte do Aurora'; New = 'A ponte do Block' },
-    @{ Old = 'a ponte Aurora'; New = 'a ponte Block' },
-    @{ Old = 'ponte do Aurora'; New = 'ponte do Block' },
-    @{ Old = 'ponte Aurora'; New = 'ponte Block' },
-    @{ Old = 'Usar a ponte Aurora'; New = 'Usar a ponte Block' },
-    @{ Old = 'Usar a ponte do Aurora'; New = 'Usar a ponte do Block' },
-    @{ Old = 'przez most Aurora'; New = 'przez most Block' },
-    @{ Old = 'Napraw most Aurora'; New = 'Napraw most Block' },
-    @{ Old = 'Відновити міст Aurora'; New = 'Відновити міст Block' },
-    @{ Old = 'через міст Aurora'; New = 'через міст Block' },
-    @{ Old = 'Використовувати міст Aurora'; New = 'Використовувати міст Block' },
-    @{ Old = 'Настройки → Aurora →'; New = 'Настройки → Block →' }
+    @{ Old = 'bridge di Block'; New = 'bridge di Block' },
+    @{ Old = 'bridge de Block'; New = 'bridge de Block' },
+    @{ Old = 'bridge Block'; New = 'bridge Block' },
+    @{ Old = 'le bridge Block'; New = 'le bridge Block' },
+    @{ Old = 'la ponte Block'; New = 'la ponte Block' },
+    @{ Old = 'a ponte do Block'; New = 'a ponte do Block' },
+    @{ Old = 'A ponte do Block'; New = 'A ponte do Block' },
+    @{ Old = 'a ponte Block'; New = 'a ponte Block' },
+    @{ Old = 'ponte do Block'; New = 'ponte do Block' },
+    @{ Old = 'ponte Block'; New = 'ponte Block' },
+    @{ Old = 'Usar a ponte Block'; New = 'Usar a ponte Block' },
+    @{ Old = 'Usar a ponte do Block'; New = 'Usar a ponte do Block' },
+    @{ Old = 'przez most Block'; New = 'przez most Block' },
+    @{ Old = 'Napraw most Block'; New = 'Napraw most Block' },
+    @{ Old = 'Відновити міст Block'; New = 'Відновити міст Block' },
+    @{ Old = 'через міст Block'; New = 'через міст Block' },
+    @{ Old = 'Використовувати міст Block'; New = 'Використовувати міст Block' },
+    @{ Old = 'Настройки → Block →'; New = 'Настройки → Block →' }
 )
 
 $helpViewerReplacements = @(
-    @{ Old = 'Aurora 将不再'; New = 'Block 将不再' },
-    @{ Old = 'Aurora no longer'; New = 'Block no longer' },
-    @{ Old = 'lager eller tar Aurora'; New = 'lager eller tar Block' },
-    @{ Old = 'o Aurora deixa'; New = 'o Block deixa' },
-    @{ Old = 'que o Aurora'; New = 'que o Block' },
-    @{ Old = 'que Aurora crea'; New = 'que Block crea' },
-    @{ Old = 'Aurora crea'; New = 'Block crea' },
-    @{ Old = 'Aurora crée'; New = 'Block crée' },
-    @{ Old = 'qu''Aurora crée'; New = 'que Block crée' },
-    @{ Old = 'Aurora ne le'; New = 'Block ne le' },
-    @{ Old = 'Aurora deja'; New = 'Block deja' },
-    @{ Old = 'Aurora sama'; New = 'Block sama' },
-    @{ Old = 'Aurora создаёт'; New = 'Block создаёт' },
-    @{ Old = 'Aurora снимает'; New = 'Block снимает' },
-    @{ Old = 'Aurora створює'; New = 'Block створює' },
-    @{ Old = 'Aurora більше'; New = 'Block більше' },
-    @{ Old = 'den Aurora für'; New = 'den Block für' },
-    @{ Old = 'trägt Aurora'; New = 'trägt Block' },
-    @{ Old = 'erstellt und trägt Aurora'; New = 'erstellt und trägt Block' },
-    @{ Old = "Aurora'nın"; New = "Block'un" },
-    @{ Old = 'Aurora onu'; New = 'Block onu' },
-    @{ Old = 'Kapalıyken Aurora'; New = 'Kapalıyken Block' }
+    @{ Old = 'Block 将不再'; New = 'Block 将不再' },
+    @{ Old = 'Block no longer'; New = 'Block no longer' },
+    @{ Old = 'lager eller tar Block'; New = 'lager eller tar Block' },
+    @{ Old = 'o Block deixa'; New = 'o Block deixa' },
+    @{ Old = 'que o Block'; New = 'que o Block' },
+    @{ Old = 'que Block crea'; New = 'que Block crea' },
+    @{ Old = 'Block crea'; New = 'Block crea' },
+    @{ Old = 'Block crée'; New = 'Block crée' },
+    @{ Old = 'qu''Block crée'; New = 'que Block crée' },
+    @{ Old = 'Block ne le'; New = 'Block ne le' },
+    @{ Old = 'Block deja'; New = 'Block deja' },
+    @{ Old = 'Block sama'; New = 'Block sama' },
+    @{ Old = 'Block создаёт'; New = 'Block создаёт' },
+    @{ Old = 'Block снимает'; New = 'Block снимает' },
+    @{ Old = 'Block створює'; New = 'Block створює' },
+    @{ Old = 'Block більше'; New = 'Block більше' },
+    @{ Old = 'den Block für'; New = 'den Block für' },
+    @{ Old = 'trägt Block'; New = 'trägt Block' },
+    @{ Old = 'erstellt und trägt Block'; New = 'erstellt und trägt Block' },
+    @{ Old = "Block'nın"; New = "Block'un" },
+    @{ Old = 'Block onu'; New = 'Block onu' },
+    @{ Old = 'Kapalıyken Block'; New = 'Kapalıyken Block' }
 )
 
 # Viewer makes/wears the bridge (English help).
 $lineKeyPrefixes = @(
-    'ui-options-aurora-use-bridge',
+    'ui-options-block-use-bridge',
     'anim-couple-ask-needs',
     'bridge-',
     'poser-bridge-',
@@ -109,8 +109,8 @@ Get-ChildItem -Path $locales -Filter '*.ftl' | ForEach-Object {
     }
 
     # Preferences path on bridge-disabled lines in translated files.
-    $text = $text -replace '(bridge-disabled\s*=.*?)› Aurora ›', '$1› Block ›'
-    $text = $text -replace '(poser-bridge-disabled\s*=.*?)› Aurora ›', '$1› Block ›'
+    $text = $text -replace '(bridge-disabled\s*=.*?)› Block ›', '$1› Block ›'
+    $text = $text -replace '(poser-bridge-disabled\s*=.*?)› Block ›', '$1› Block ›'
 
     $lines = $text -split "`n", -1
     for ($i = 0; $i -lt $lines.Length; $i++) {
@@ -125,8 +125,8 @@ Get-ChildItem -Path $locales -Filter '*.ftl' | ForEach-Object {
         foreach ($pair in $helpViewerReplacements) {
             $line = $line.Replace($pair.Old, $pair.New)
         }
-        $line = $line -replace '\bAurora makes\b', 'Block makes'
-        $line = $line -replace '\bthat Aurora\b', 'that Block'
+        $line = $line -replace '\bBlock makes\b', 'Block makes'
+        $line = $line -replace '\bthat Block\b', 'that Block'
         $lines[$i] = $line
     }
     $text = $lines -join "`n"

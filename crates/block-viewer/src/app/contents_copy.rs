@@ -524,7 +524,7 @@ impl App {
         }
     }
 
-    /// `AURORA_DEMO_ACTIONS=open-copy|open-replace|open-add[-yes]`: the
+    /// `BLOCK_DEMO_ACTIONS=open-copy|open-replace|open-add[-yes]`: the
     /// contents window's copy at frame 420, the move warning confirmed at
     /// 480 with `-yes`, the inventory opened on the new folder at 540.
     pub(super) fn demo_contents_copy(&mut self, mode: &str) {

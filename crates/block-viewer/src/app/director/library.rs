@@ -3,7 +3,7 @@
 //! read and written on threads; the montage played or filmed
 //! (`director_montage`); the keyframes' thumbnails (`director_thumbs`,
 //! `block_render::thumbnail`); and the ffmpeg pack's download
-//! (`director_ffmpeg`). Aurora's own: the Legacy Viewer has no camera path
+//! (`director_ffmpeg`). Block's own: the Legacy Viewer has no camera path
 //! tool.
 //!
 //! Every file read here is data from outside (a file shared by someone
@@ -663,7 +663,7 @@ impl App {
         }
     }
 
-    /// AURORA_DEMO_DIRECTOR=montage: the demo's track and the same track
+    /// BLOCK_DEMO_DIRECTOR=montage: the demo's track and the same track
     /// backwards, played one after the other as a montage (in memory, no
     /// file written).
     pub(super) fn director_demo_montage(&mut self) {

@@ -1,4 +1,4 @@
-//! The second camera's window (Aurora's own; the idea comes from
+//! The second camera's window (Block's own; the idea comes from
 //! SnowPastel's multi-view-viewer, see `camera/second.rs`): our avatar seen
 //! by a camera of its own, edge to edge in the window, while the main
 //! camera looks elsewhere. Dragged, the picture turns the camera around
@@ -37,7 +37,7 @@ pub struct Picture {
 pub struct SecondCameraUi {
     /// The framing changed: it is saved with the settings.
     pub framing_changed: bool,
-    /// `AURORA_DEMO_SECOND_CAMERA` was looked at (app/second_camera.rs).
+    /// `BLOCK_DEMO_SECOND_CAMERA` was looked at (app/second_camera.rs).
     pub demo_done: bool,
 }
 

@@ -5,7 +5,7 @@
 //! some PC makers and programs. The Vulkan loader loads it beside the GPU's
 //! own driver, and while it lists its devices Dozen opens every Direct3D 12
 //! adapter: an old AMD Direct3D 12 driver (`amdxc64`, 2023) crashed there,
-//! inside `vkCreateInstance`, before Aurora had chosen any GPU (crash report
+//! inside `vkCreateInstance`, before Block had chosen any GPU (crash report
 //! of 2026-10-26: `vulkan-1` → `vulkan_dzn` → `d3d12core` → `amdxc64`).
 //! Dozen only translates Vulkan to the Direct3D 12 driver of a GPU that
 //! already has its own Vulkan driver, with fewer features, so the viewer
@@ -20,7 +20,7 @@
 //! `main`, before any thread, unless the user chose the drivers themself.
 //! On a PC where Dozen is the only Vulkan driver (no native one for the GPU),
 //! the renderer finds no adapter without it and lets it back in with
-//! [`allow_again`] before trying once more. `AURORA_VULKAN_DRIVERS=keep`
+//! [`allow_again`] before trying once more. `BLOCK_VULKAN_DRIVERS=keep`
 //! leaves the environment as it is.
 
 use std::sync::atomic::{AtomicBool, Ordering};
@@ -45,7 +45,7 @@ const USER_CHOICE: &[&str] = &[
 /// Set when [`disable`] put the filter in the environment.
 static DISABLED: AtomicBool = AtomicBool::new(false);
 
-/// Whether to keep Dozen out: not with `AURORA_VULKAN_DRIVERS=keep` (`keep`),
+/// Whether to keep Dozen out: not with `BLOCK_VULKAN_DRIVERS=keep` (`keep`),
 /// nor when the user set one of the loader's driver variables (`is_set`).
 pub fn should_disable(keep: Option<&str>, is_set: impl Fn(&str) -> bool) -> bool {
     !keep.is_some_and(|v| v.trim().eq_ignore_ascii_case("keep")) && !USER_CHOICE.iter().any(|v| is_set(v))
@@ -59,7 +59,7 @@ pub fn should_disable(keep: Option<&str>, is_set: impl Fn(&str) -> bool) -> bool
 /// Must be called before any other thread of the process starts (the
 /// first lines of `main`): it changes the environment.
 pub unsafe fn disable() -> bool {
-    let keep = std::env::var("AURORA_VULKAN_DRIVERS").ok();
+    let keep = std::env::var("BLOCK_VULKAN_DRIVERS").ok();
     if !should_disable(keep.as_deref(), |v| std::env::var_os(v).is_some()) {
         return false;
     }

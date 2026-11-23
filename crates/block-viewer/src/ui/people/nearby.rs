@@ -1,10 +1,10 @@
-//! "Near you" in Aurora's look (the People mock-up, radar A): the avatars
+//! "Near you" in Block's look (the People mock-up, radar A): the avatars
 //! as rows with their picture, status, badges and range, grouped by the
 //! ranges of the chat (whisper, say, shout, beyond); a compact density of
 //! one line each for a crowd; sort pills; and the sheet of the person
 //! held, at the right (`sheet.rs`). The data, rules, options and menus
 //! are those of Firestorm's radar table (`radar.rs`: FSRadar,
-//! fspanelradar.cpp, menu_fs_radar_options.xml), which Preferences â€º Aurora
+//! fspanelradar.cpp, menu_fs_radar_options.xml), which Preferences â€º Block
 //! â€º People brings back.
 
 use super::radar::{self, Age, Column, Payment, RadarData, RadarSettings, Row};
@@ -123,9 +123,9 @@ fn badges(p: &Palette, settings: &RadarSettings, row: &Row) -> Vec<(&'static str
         out.push(("ban", p.muted_dim, block_i18n::tr!("common-blocked").to_owned()));
     }
     if row.friend {
-        out.push(("heart-filled", p.success, block_i18n::tr!("ui-profile-aurora-friend").to_owned()));
+        out.push(("heart-filled", p.success, block_i18n::tr!("ui-profile-block-friend").to_owned()));
     }
-    // Columns › … of the gear menu used to change nothing in Aurora Near you
+    // Columns › … of the gear menu used to change nothing in Block Near you
     // (#2999): the Legacy radar table honoured them, these badges did not.
     if settings.shows(Column::Voice) {
         match row.voice {
@@ -177,7 +177,7 @@ fn age_text(row: &Row, settings: &RadarSettings) -> Option<(String, bool)> {
 
 /// The age figure in `cell`, against its right edge, after the cake of
 /// Columns › Age: the Legacy table names the figure with its "Age" header,
-/// the Aurora rows have none, so the icon says what the number is. Its
+/// the Block rows have none, so the icon says what the number is. Its
 /// colour follows the figure (red under the age alert).
 fn paint_age(ui: &egui::Ui, p: &Palette, cell: Rect, text: String, young: bool, size: f32) {
     let color = if young { p.danger } else { p.muted };
@@ -518,7 +518,7 @@ fn toolbar(ui: &mut egui::Ui, p: &Palette, data: &mut RadarData, st: &mut People
     ui.allocate_ui_with_layout(line, egui::Layout::right_to_left(egui::Align::Center), |ui| {
         ui.spacing_mut().item_spacing.x = 6.0;
         let resp = super::rows::gear(ui, p, block_i18n::tr!("people-alerts-options"));
-        if std::env::var_os("AURORA_DEMO").is_some() && std::env::var("AURORA_DEMO_BRIDGE_QUERY").is_ok_and(|m| m == "radar") {
+        if std::env::var_os("BLOCK_DEMO").is_some() && std::env::var("BLOCK_DEMO_BRIDGE_QUERY").is_ok_and(|m| m == "radar") {
             egui::Popup::open_id(ui.ctx(), egui::Popup::default_response_id(&resp));
         }
         menu::dropdown(&resp, p, egui::PopupCloseBehavior::CloseOnClick, |ui| {
@@ -1003,7 +1003,7 @@ fn paint_rich(
     tip.or_else(|| (cut && pointer.is_some_and(|at| at.x >= left && at.x <= left + width)).then(|| row.name.clone()))
 }
 
-/// Points a member of the Aurora team's tag takes after a name `font`
+/// Points a member of the Block team's tag takes after a name `font`
 /// points high in `width` (the gap included), or 0: the name is cut before
 /// the tag is, as in the other lists (`rows::person_names`).
 fn staff_room(ui: &egui::Ui, p: &Palette, mark: Option<crate::world::staff::Mark>, font: f32, width: f32) -> f32 {
@@ -1373,7 +1373,7 @@ mod tests {
     }
 
     #[test]
-    fn aurora_near_you_honours_the_columns_menu() {
+    fn block_near_you_honours_the_columns_menu() {
         let p = crate::theme::Theme::default().palette();
         let mut row = Row {
             id: Uuid::from_u128(1),

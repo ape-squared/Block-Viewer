@@ -262,7 +262,7 @@ mod tests {
 
     fn region() -> Region<'static> {
         Region {
-            name: "Aurora",
+            name: "Block",
             billable_factor: 1.0,
             max_tasks: 15000,
         }
@@ -312,7 +312,7 @@ mod tests {
             (4500, 1024, 1024, 234)
         );
         assert!(o.sold_with_objects);
-        assert_eq!(o.location, "Aurora 144,208");
+        assert_eq!(o.location, "Block 144,208");
         assert!((o.price_per_m2() - 4.39).abs() < 0.01);
     }
 

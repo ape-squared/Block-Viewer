@@ -1,4 +1,4 @@
-//! AURORA_DEMO_LEGACY_BUMP=1: a grid of texture-entry bump codes 0–17,
+//! BLOCK_DEMO_LEGACY_BUMP=1: a grid of texture-entry bump codes 0–17,
 //! followed by explicit legacy-normal and PBR-normal controls. Standard
 //! preset panels use synthetic height images, not the grid's preset artwork.
 //! The preset
@@ -25,8 +25,8 @@ const PANEL: f32 = 1.55;
 
 pub fn enabled() -> bool {
     static ENABLED: std::sync::LazyLock<bool> = std::sync::LazyLock::new(|| {
-        std::env::var("AURORA_DEMO").is_ok_and(|v| v.trim() == "1")
-            && std::env::var("AURORA_DEMO_LEGACY_BUMP").is_ok_and(|v| matches!(v.trim(), "1" | "matrix"))
+        std::env::var("BLOCK_DEMO").is_ok_and(|v| v.trim() == "1")
+            && std::env::var("BLOCK_DEMO_LEGACY_BUMP").is_ok_and(|v| matches!(v.trim(), "1" | "matrix"))
     });
     *ENABLED
 }
@@ -167,7 +167,7 @@ impl LegacyBumpDemo {
     pub fn from_env() -> Option<Self> {
         enabled().then(|| Self {
             sent: false,
-            matrix: std::env::var("AURORA_DEMO_LEGACY_BUMP").is_ok_and(|v| v.trim() == "matrix"),
+            matrix: std::env::var("BLOCK_DEMO_LEGACY_BUMP").is_ok_and(|v| v.trim() == "matrix"),
         })
     }
 

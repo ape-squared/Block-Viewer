@@ -420,7 +420,7 @@ mod save_as_tests {
     #[test]
     fn bvh_sits_next_to_the_pose_without_its_extension() {
         assert_eq!(bvh_file(Path::new("/d/Wave.aurora-pose.json")), Path::new("/d/Wave.bvh"));
-        assert_eq!(bvh_file(Path::new("/d/Wave.Aurora-Pose.JSON")), Path::new("/d/Wave.bvh"));
+        assert_eq!(bvh_file(Path::new("/d/Wave.Block-Pose.JSON")), Path::new("/d/Wave.bvh"));
         assert_eq!(bvh_file(Path::new("/d/Wave.json")), Path::new("/d/Wave.bvh"));
     }
 }

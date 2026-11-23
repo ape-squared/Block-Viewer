@@ -20,7 +20,7 @@ fn words_follow_the_legacy_scan() {
 
 #[test]
 fn numbers_names_and_addresses_are_left_alone() {
-    let text = "see x3 and 2nd user_name at https://example.com/wrold or www.exemple.org/abcd, mail me@exemple.org (secondlife://Aurora%20Demo/1/2/3) end";
+    let text = "see x3 and 2nd user_name at https://example.com/wrold or www.exemple.org/abcd, mail me@exemple.org (secondlife://Block%20Demo/1/2/3) end";
     assert_eq!(texts(text, &words(text)), ["see", "and", "mail", "end"]);
     // emoji codes, typed or closed; a word after ": " stays a word
     let text = "hi :hea and :smile: note: text";
@@ -65,7 +65,7 @@ fn the_default_dictionaries_check_and_suggest() {
     let defaults = SpellSettings::default();
     let dict = dictionaries::build(&dir, &defaults.main, &defaults.extra).expect("en_us + glossary");
     for right in [
-        "hello", "Hello", "world", "optimize", "don't", "teleport", "avatar", "notecard", "Aurora", "inworld",
+        "hello", "Hello", "world", "optimize", "don't", "teleport", "avatar", "notecard", "Block", "inworld",
     ] {
         assert!(dict.check(right), "{right}");
     }

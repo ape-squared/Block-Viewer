@@ -133,7 +133,7 @@ impl Gesture {
     /// a negative step count or an unknown step type fail (an unreadable one
     /// too: these are C locals the Legacy Viewer leaves uninitialised), and a
     /// value missing at the end. Another bad number is 0 (a key, none), a bad
-    /// UUID nil, and what follows the last step is ignored. Aurora keeps its
+    /// UUID nil, and what follows the last step is ignored. Block keeps its
     /// size limits, and a value whole where getValueStr cuts it at 511 bytes.
     /// Such a gesture is only written back when the resident saves it.
     pub fn decode(data: &[u8]) -> Result<Self, AssetError> {
@@ -274,7 +274,7 @@ mod tests {
         ]);
         assert_eq!(Gesture::decode(&g.encode().expect("encode")).expect("decode"), g);
     }
-    /// LLMultiGesture::deserialize fails only on these (and Aurora on its
+    /// LLMultiGesture::deserialize fails only on these (and Block on its
     /// size limits and a value missing at the end).
     #[test]
     fn rejects_invalid_external_data_without_panicking() {

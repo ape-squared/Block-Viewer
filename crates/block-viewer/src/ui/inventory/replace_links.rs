@@ -2,7 +2,7 @@
 //! (indra/newview/llfloaterlinkreplace.cpp, originally LGPL 2.1): the new
 //! target is dropped from an inventory window on a field, as on
 //! LLInventoryLinkReplaceDropTarget, a link standing for its original. The
-//! filtered list of the items of the same kind is an Aurora addition, kept
+//! filtered list of the items of the same kind is a Block addition, kept
 //! from the first version of the window. It is built once per inventory
 //! change, in parallel, and only the rows in sight are laid out: filtering,
 //! sorting and drawing every item at every frame held a resident with a few

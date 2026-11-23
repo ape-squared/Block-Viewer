@@ -19,7 +19,7 @@
 param([int]$Pr)
 . "$PSScriptRoot\common.ps1"
 
-$p = Get-AuroraPaths
+$p = Get-BlockPaths
 $rel = Join-Path $p.Root 'RELEASE'
 $src = Join-Path $rel 'src'
 $out = Join-Path $rel 'Block-Viewer'
@@ -93,7 +93,7 @@ $sw = [Diagnostics.Stopwatch]::StartNew()
 Push-Location $src
 # A shell inherited from a release job must not stamp another commit with
 # its tag. The local build resolves the version from this checkout's Git.
-$previousVersionTag = [Environment]::GetEnvironmentVariable('AURORA_VERSION_TAG', 'Process')
+$previousVersionTag = [Environment]::GetEnvironmentVariable('BLOCK_VERSION_TAG', 'Process')
 # The OpenXR loader built in, like the published exe (release.yml): without
 # it, VR depends on an openxr_loader.dll found on the PC, which a headset
 # software update can remove. Building it needs CMake (docs/VR_WINDOWS.md).
@@ -104,12 +104,12 @@ if (Get-Command cmake -ErrorAction SilentlyContinue) {
     Write-Host 'CMake not found: the OpenXR loader is not built in, VR will need an openxr_loader.dll on this PC. Install CMake (winget install Kitware.CMake) to build it in.' -ForegroundColor Yellow
 }
 try {
-    [Environment]::SetEnvironmentVariable('AURORA_VERSION_TAG', $null, 'Process')
+    [Environment]::SetEnvironmentVariable('BLOCK_VERSION_TAG', $null, 'Process')
     # the Rust version this commit names, one install at a time for the PC
     Install-RustVersion $src
     Invoke-Checked 'cargo build' { cargo build --release --locked -p block-viewer @features }
 } finally {
-    [Environment]::SetEnvironmentVariable('AURORA_VERSION_TAG', $previousVersionTag, 'Process')
+    [Environment]::SetEnvironmentVariable('BLOCK_VERSION_TAG', $previousVersionTag, 'Process')
     Pop-Location
 }
 

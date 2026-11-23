@@ -575,7 +575,7 @@ mod tests {
     fn session_layout_keeps_nearby_geometry_after_memory_reload() {
         use crate::settings::{NearbyChatWindow, Settings};
         let p = crate::theme::Theme::default().palette();
-        for style in [ChatStyle::Aurora, ChatStyle::Compact, ChatStyle::Bubbles, ChatStyle::Legacy] {
+        for style in [ChatStyle::Block, ChatStyle::Compact, ChatStyle::Bubbles, ChatStyle::Legacy] {
             let mut kit = Kit::new(style);
             kit.st = ChatUi::from_settings(&Settings {
                 nearby_chat_window: NearbyChatWindow::Detached,
@@ -748,7 +748,7 @@ mod tests {
     #[test]
     fn detached_entries_leave_every_chat_style_and_return_when_docked() {
         let p = crate::theme::Theme::default().palette();
-        for style in [ChatStyle::Aurora, ChatStyle::Compact, ChatStyle::Bubbles, ChatStyle::Legacy] {
+        for style in [ChatStyle::Block, ChatStyle::Compact, ChatStyle::Bubbles, ChatStyle::Legacy] {
             let (mut kit, mut frames) = docking_fixture(style, 1.0);
             for (id, name, group) in [
                 (Uuid::from_u128(0xB), "Group dock test", true),
@@ -816,7 +816,7 @@ mod tests {
 
     #[test]
     fn title_drops_dock_conversations_and_contacts_in_every_style() {
-        for style in [ChatStyle::Aurora, ChatStyle::Compact, ChatStyle::Bubbles, ChatStyle::Legacy] {
+        for style in [ChatStyle::Block, ChatStyle::Compact, ChatStyle::Bubbles, ChatStyle::Legacy] {
             for scale in [1.0, 1.5] {
                 for source in [Some(JANE), None] {
                     let (mut kit, mut frames) = docking_fixture(style, scale);
@@ -877,7 +877,7 @@ mod tests {
     #[test]
     fn docking_requires_a_title_drag_and_an_expanded_visible_host() {
         for mode in ["outside", "body", "resize", "closed", "minimized", "click"] {
-            let (mut kit, mut frames) = docking_fixture(ChatStyle::Aurora, 1.0);
+            let (mut kit, mut frames) = docking_fixture(ChatStyle::Block, 1.0);
             let source = egui::Id::unique(floater_id(Some(JANE)));
             let title = frames.ctx.read_response(source.with("title_double_click")).unwrap().rect;
             let source_rect = frames.ctx.memory(|m| m.area_rect(source)).unwrap();
@@ -906,7 +906,7 @@ mod tests {
 
     #[test]
     fn closing_detached_pinned_windows_restores_their_entries_without_opening_the_host() {
-        for style in [ChatStyle::Aurora, ChatStyle::Compact, ChatStyle::Bubbles, ChatStyle::Legacy] {
+        for style in [ChatStyle::Block, ChatStyle::Compact, ChatStyle::Bubbles, ChatStyle::Legacy] {
             for contacts in [false, true] {
                 let (mut kit, mut frames) = docking_fixture(style, 1.0);
                 let source = if contacts {
@@ -950,7 +950,7 @@ mod tests {
     fn title_docking_handles_coalesced_motion_and_escape_cancels_the_drop() {
         let p = crate::theme::Theme::default().palette();
         for cancel in [false, true] {
-            let (mut kit, mut frames) = docking_fixture(ChatStyle::Aurora, 1.0);
+            let (mut kit, mut frames) = docking_fixture(ChatStyle::Block, 1.0);
             let title = frames
                 .ctx
                 .read_response(egui::Id::unique(floater_id(Some(JANE))).with("title_double_click"))
@@ -992,7 +992,7 @@ mod tests {
     #[test]
     fn the_last_docked_nearby_chat_detaches_and_attaches_from_its_title() {
         let p = crate::theme::Theme::default().palette();
-        for style in [ChatStyle::Aurora, ChatStyle::Compact, ChatStyle::Bubbles, ChatStyle::Legacy] {
+        for style in [ChatStyle::Block, ChatStyle::Compact, ChatStyle::Bubbles, ChatStyle::Legacy] {
             for (other_detached, contacts_docked) in [(false, false), (true, false), (false, true)] {
                 let mut kit = Kit::new(style);
                 if !other_detached {
@@ -1082,7 +1082,7 @@ mod tests {
     /// the workspace's style and the tabs' (`widgets::steady_size`).
     #[test]
     fn a_window_of_its_own_keeps_its_size() {
-        for style in [ChatStyle::Aurora, ChatStyle::Legacy] {
+        for style in [ChatStyle::Block, ChatStyle::Legacy] {
             let name = Kit::new(style).world.session_title(&JANE);
             let bottom = if style.workspace() {
                 block_i18n::tr!("ui-chat-write-to", name = name.as_str())
@@ -1103,7 +1103,7 @@ mod tests {
     /// front; a conversation that ends elsewhere takes its window along.
     #[test]
     fn the_cross_closes_the_conversation_and_an_ended_one_loses_its_window() {
-        let mut kit = Kit::new(ChatStyle::Aurora);
+        let mut kit = Kit::new(ChatStyle::Block);
         let mut frames = crate::ui::widgets::elide_tests::Frames::new();
         let p = crate::theme::Theme::default().palette();
         for _ in 0..3 {
@@ -1158,7 +1158,7 @@ mod tests {
             });
         }
         assert!(clash(&texts), "a clash is seen");
-        for style in [ChatStyle::Aurora, ChatStyle::Legacy] {
+        for style in [ChatStyle::Block, ChatStyle::Legacy] {
             let mut kit = Kit::new(style);
             kit.world.conversation_line(
                 BOB,

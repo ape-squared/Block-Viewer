@@ -1817,7 +1817,7 @@ impl Scene {
         // Only the objects the ray can meet (hover.rs, `PickIndex`): the
         // steps walked every object of the region, 2 to 4 ms a click with
         // 23,000 of them, a spike in the frame graph at each click. Same
-        // tests, same order, same answer (AURORA_HOVER_CHECK compares).
+        // tests, same order, same answer (BLOCK_HOVER_CHECK compares).
         let mut candidates = Vec::new();
         self.pick.point_candidates(ray, depth, &mut candidates);
         let point = self.action_point_among(world, ray, depth, far, Some(&candidates));

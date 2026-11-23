@@ -1,4 +1,4 @@
-//! The spinning cat: an easter egg of Aurora's own. Typing the Konami code
+//! The spinning cat: an easter egg of Block's own. Typing the Konami code
 //! in the world brings a warning about flashing lights; once it is
 //! accepted, a circle wakes on the ground in front of the avatar, a cat
 //! arrives in it and spins to its music while the view takes the colours of

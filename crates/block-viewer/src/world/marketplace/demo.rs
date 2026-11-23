@@ -1,4 +1,4 @@
-//! The demo's Marketplace listings (AURORA_DEMO_MARKETPLACE_LISTINGS, see
+//! The demo's Marketplace listings (BLOCK_DEMO_MARKETPLACE_LISTINGS, see
 //! docs/TESTING.md): an SLM server simulated in the viewer and a sample
 //! listings folder. Nothing leaves the viewer and no grid data is read.
 
@@ -21,7 +21,7 @@ pub enum Mode {
 
 impl Mode {
     pub fn from_env() -> Option<Mode> {
-        match std::env::var("AURORA_DEMO_MARKETPLACE_LISTINGS").ok()?.as_str() {
+        match std::env::var("BLOCK_DEMO_MARKETPLACE_LISTINGS").ok()?.as_str() {
             "not-merchant" => Some(Mode::NotMerchant),
             "error" => Some(Mode::Error),
             "" => None,

@@ -299,7 +299,7 @@ fn no_message_entry_in_sight_in_dnd_from_a_blocked_resident_or_when_turned_off()
     w.status.dnd = true;
     receive(&mut w, JANE, JANE, "hello", ImKind::Private, false);
     assert!(messages(&w).is_empty());
-    // Aurora's paused bell keeps it in "To do", silently, when messages
+    // Block's paused bell keeps it in "To do", silently, when messages
     // stay under it; a toast alone has nothing to show
     let mut w = world();
     w.notifications.aurora = true;

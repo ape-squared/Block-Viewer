@@ -175,9 +175,9 @@ cmd_package() {
     cp "$src/libvpx/PATENTS" "$dir/LICENSES/libvpx-PATENTS.txt"
     cp "$src/opus/COPYING" "$dir/LICENSES/opus-COPYING.txt"
     cat > "$dir/README.txt" <<EOF
-Aurora Viewer's ffmpeg pack $version ($system)
+Block Viewer's ffmpeg pack $version ($system)
 
-The ffmpeg program the Director of Aurora Viewer records its films with. The
+The ffmpeg program the Director of Block Viewer records its films with. The
 viewer downloads this archive when the user asks for it, checks its size and
 SHA-256, and runs bin/$program only to encode the Director's films.
 
@@ -245,7 +245,7 @@ cmd_source() {
     cp "$src/opus/package_version" "$stage/$name/opus/package_version"
     cp "${BASH_SOURCE[0]}" "$stage/$name/ffmpeg-pack.sh"
     cat > "$stage/$name/README.txt" <<EOF
-Corresponding source of Aurora Viewer's ffmpeg pack $version.
+Corresponding source of Block Viewer's ffmpeg pack $version.
 
 ffmpeg/  FFmpeg/FFmpeg@$FFMPEG_COMMIT ($FFMPEG_VERSION)
 x264/    videolan/x264@$X264_COMMIT

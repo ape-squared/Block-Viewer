@@ -368,7 +368,7 @@ fn crosshair(cx: &mut Cx) {
                 ],
             );
             cx.wide().row(tr!("ui-options-crosshair-preview"), "", &Nothing, |ui, s| {
-                // AURORA_DEMO_CROSSHAIR's shape in the demo's captures too
+                // BLOCK_DEMO_CROSSHAIR's shape in the demo's captures too
                 let shown = crosshair::demo(&s.crosshair);
                 crosshair::preview(ui, &p, shown.as_ref().unwrap_or(&s.crosshair));
                 false
@@ -464,7 +464,7 @@ fn pick_image(
         {
             let (tx, rx) = mpsc::channel();
             let title = tr!("ui-options-crosshair-image");
-            let spawned = std::thread::Builder::new().name("aurora-crosshair-dialog".into()).spawn(move || {
+            let spawned = std::thread::Builder::new().name("block-crosshair-dialog".into()).spawn(move || {
                 let picked = rfd::FileDialog::new()
                     .set_title(title)
                     .add_filter(title, &["png", "jpg", "jpeg", "tga", "bmp", "gif", "webp"])

@@ -1,5 +1,5 @@
-//! Logging to the console and to `aurora.log` in the logs directory (the
-//! previous run is kept as `aurora.previous.log`), so a session can be
+//! Logging to the console and to `block.log` in the logs directory (the
+//! previous run is kept as `block.previous.log`), so a session can be
 //! shared after a test even when the viewer was started without a console.
 //! Capability URLs are secrets for the session: their id is masked.
 //! Each start deletes, on a thread of its own, the viewer's log files past
@@ -7,7 +7,7 @@
 //! this run's nor one another viewer still has open ([`prune_old_logs`]).
 //!
 //! A thread that logs never waits for the disk (#2655): the line goes into
-//! a bounded queue, and the "aurora-log-write" thread writes it to the
+//! a bounded queue, and the "block-log-write" thread writes it to the
 //! files and the console, in the order logged. A disk that stalls holds
 //! that thread alone; when the queue is full, the lines are counted and
 //! dropped, and a "N log lines dropped" line marks the gap once room
@@ -56,15 +56,15 @@ pub fn log_path() -> PathBuf {
 
 /// The offline demo logs apart, so it never rotates a live session's log;
 /// `--title` adds the window name (one log per test window) and
-/// AURORA_LOG_NAME picks any other name.
+/// BLOCK_LOG_NAME picks any other name.
 fn log_stem() -> String {
-    if let Some(name) = std::env::var_os("AURORA_LOG_NAME").filter(|n| !n.is_empty()) {
+    if let Some(name) = std::env::var_os("BLOCK_LOG_NAME").filter(|n| !n.is_empty()) {
         return name.to_string_lossy().into_owned();
     }
-    let base = if std::env::var_os("AURORA_DEMO").is_some() {
-        "aurora-demo"
+    let base = if std::env::var_os("BLOCK_DEMO").is_some() {
+        "block-demo"
     } else {
-        "aurora"
+        "block"
     };
     match crate::cli::title_slug() {
         Some(slug) => format!("{base}-{slug}"),
@@ -122,7 +122,7 @@ pub fn capture<R>(f: impl FnOnce() -> R) -> (R, String) {
 }
 
 /// Log lines without env_logger's header
-/// ("[2026-10-20T12:00:00.000Z INFO  aurora_viewer::scene] text").
+/// ("[2026-10-20T12:00:00.000Z INFO  block_viewer::scene] text").
 fn strip_headers(text: &str) -> String {
     let mut out = String::with_capacity(text.len());
     for line in text.lines() {
@@ -291,7 +291,7 @@ impl Queue {
         // stay reachable from here
         let slot = Arc::new(Mutex::new(Some(sinks)));
         let (thread_slot, thread_progress) = (slot.clone(), progress.clone());
-        let spawned = std::thread::Builder::new().name("aurora-log-write".into()).spawn(move || {
+        let spawned = std::thread::Builder::new().name("block-log-write".into()).spawn(move || {
             let sinks = thread_slot
                 .lock()
                 .unwrap_or_else(PoisonError::into_inner)
@@ -468,12 +468,12 @@ const KEEP_NEWEST: usize = 20;
 /// running (each viewer writes a file of its own, [`log_stem`]).
 const KEEP_FOR: Duration = Duration::from_secs(14 * 24 * 60 * 60);
 
-/// A log file of the viewer in the logs folder: `aurora-<pid>.log`,
-/// `aurora-<title>.log`, `aurora-demo-….log`, their `.previous.log`, and
-/// the older `aurora.log`. A name picked with AURORA_LOG_NAME, the crash
+/// A log file of the viewer in the logs folder: `block-<pid>.log`,
+/// `block-<title>.log`, `block-demo-….log`, their `.previous.log`, and
+/// the older `block.log`. A name picked with BLOCK_LOG_NAME, the crash
 /// sessions' folder and the other files of the folder are not.
 fn is_viewer_log(name: &str) -> bool {
-    name.starts_with("aurora") && name.ends_with(".log")
+    name.starts_with("block") && name.ends_with(".log")
 }
 
 /// The log files to delete among `files` (path, last write): past the
@@ -518,7 +518,7 @@ fn in_use(_: &Path) -> bool {
 /// file still in use ([`in_use`]) or that cannot be deleted is left, for a
 /// later start.
 fn prune_old_logs(dir: PathBuf, keep: Vec<PathBuf>) {
-    let spawned = std::thread::Builder::new().name("aurora-log-prune".into()).spawn(move || {
+    let spawned = std::thread::Builder::new().name("block-log-prune".into()).spawn(move || {
         let Ok(entries) = std::fs::read_dir(&dir) else { return };
         let files = entries
             .flatten()
@@ -735,9 +735,9 @@ mod tests {
     fn cost_per_line() {
         use std::io::Write;
         const LINES: usize = 20_000;
-        let dir = std::env::temp_dir().join(format!("aurora-log-cost-{}", std::process::id()));
+        let dir = std::env::temp_dir().join(format!("block-log-cost-{}", std::process::id()));
         std::fs::create_dir_all(&dir).unwrap();
-        let text = "[2026-11-06T12:00:00.000Z INFO  aurora_viewer::media] media objects: 12 faces, 3 players, 1 stream\n";
+        let text = "[2026-11-06T12:00:00.000Z INFO  block_viewer::media] media objects: 12 faces, 3 players, 1 stream\n";
         let mut files = [0, 1].map(|n| std::fs::File::create(dir.join(format!("direct-{n}.log"))).unwrap());
         let start = Instant::now();
         for _ in 0..LINES {
@@ -765,7 +765,7 @@ mod tests {
     #[test]
     fn record_headers_give_clock_and_level() {
         let (clock, level, message) =
-            parse_record("[2026-10-20T02:34:46.538Z WARN  aurora_viewer::scene::textures] texture memory: pressure\n").unwrap();
+            parse_record("[2026-10-20T02:34:46.538Z WARN  block_viewer::scene::textures] texture memory: pressure\n").unwrap();
         assert_eq!(clock, "02:34:46");
         assert_eq!(level, log::Level::Warn);
         assert_eq!(message, "texture memory: pressure");
@@ -774,7 +774,7 @@ mod tests {
 
     #[test]
     fn captured_lines_lose_their_header() {
-        let text = "[2026-10-20T12:00:00.000Z INFO  aurora_viewer::scene::describe] attachment '?' point 40\n  prim [0 tex] x\n";
+        let text = "[2026-10-20T12:00:00.000Z INFO  block_viewer::scene::describe] attachment '?' point 40\n  prim [0 tex] x\n";
         assert_eq!(strip_headers(text), "attachment '?' point 40\n  prim [0 tex] x\n");
     }
 
@@ -791,15 +791,10 @@ mod tests {
 
     #[test]
     fn only_the_viewer_logs_are_pruned() {
-        for name in [
-            "aurora-1234.log",
-            "aurora-1234.previous.log",
-            "aurora-demo-test-x.log",
-            "aurora.log",
-        ] {
+        for name in ["block-1234.log", "block-1234.previous.log", "block-demo-test-x.log", "block.log"] {
             assert!(is_viewer_log(name), "{name}");
         }
-        for name in ["resource-monitor_2026.csv", "crashes", "mine.log", "aurora-1234.log.txt"] {
+        for name in ["resource-monitor_2026.csv", "crashes", "mine.log", "block-1234.log.txt"] {
             assert!(!is_viewer_log(name), "{name}");
         }
     }
@@ -812,7 +807,7 @@ mod tests {
         use std::time::SystemTime;
         let now = SystemTime::UNIX_EPOCH + Duration::from_secs(1 << 32);
         let day = Duration::from_secs(24 * 60 * 60);
-        let file = |n: usize, age: Duration| (PathBuf::from(format!("aurora-{n}.log")), now - age);
+        let file = |n: usize, age: Duration| (PathBuf::from(format!("block-{n}.log")), now - age);
         // fewer than KEEP_NEWEST, all old: nothing goes
         let few: Vec<_> = (0..KEEP_NEWEST).map(|n| file(n, KEEP_FOR * 4)).collect();
         assert!(prune_choice(few, now, &[]).is_empty());
@@ -827,13 +822,13 @@ mod tests {
         files.push(file(102, KEEP_FOR * 5));
         let mut chosen = prune_choice(files.clone(), now, &[]);
         chosen.sort();
-        assert_eq!(chosen, vec![PathBuf::from("aurora-100.log"), PathBuf::from("aurora-102.log")]);
+        assert_eq!(chosen, vec![PathBuf::from("block-100.log"), PathBuf::from("block-102.log")]);
         // this run's files never, even the oldest
-        let keep = [PathBuf::from("aurora-102.log")];
-        assert_eq!(prune_choice(files, now, &keep), vec![PathBuf::from("aurora-100.log")]);
+        let keep = [PathBuf::from("block-102.log")];
+        assert_eq!(prune_choice(files, now, &keep), vec![PathBuf::from("block-100.log")]);
         // a clock set back (a write "in the future") keeps the file
         let ahead: Vec<_> = (0..KEEP_NEWEST + 1)
-            .map(|n| (PathBuf::from(format!("aurora-{n}.log")), now + day))
+            .map(|n| (PathBuf::from(format!("block-{n}.log")), now + day))
             .collect();
         assert!(prune_choice(ahead, now, &[]).is_empty());
     }

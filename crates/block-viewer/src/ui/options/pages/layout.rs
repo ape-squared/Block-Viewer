@@ -1,5 +1,5 @@
 //! Preferences › Layout: the bars and the windows (panel_preferences_UI.xml
-//! and Aurora's islands), the hover tips of the world ("Hover Tips":
+//! and Block's islands), the hover tips of the world ("Hover Tips":
 //! ShowHoverTips and what it enables) and what opens at startup.
 
 use super::super::cx::{Cx, field, fields};
@@ -63,7 +63,7 @@ pub fn page(cx: &mut Cx, tab: usize) {
                     );
                 });
                 cx.toggle(tr!("bug-toolbar"), tr!("bug-toolbar-help"), &field!(show_bug_report));
-                // the place island of the Aurora bars (also in its right-click menu)
+                // the place island of the Block bars (also in its right-click menu)
                 cx.toggle(
                     tr!("ui-options-place-bar-stretch"),
                     tr!("ui-options-place-bar-stretch-help"),

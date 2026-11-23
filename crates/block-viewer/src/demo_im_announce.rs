@@ -1,4 +1,4 @@
-//! AURORA_DEMO_IM_ANNOUNCE: from frame 700, every 600 frames, Nova then Tess
+//! BLOCK_DEMO_IM_ANNOUNCE: from frame 700, every 600 frames, Nova then Tess
 //! in turn start typing an IM to us, and send it 300 frames later. `1` turns
 //! on "Announce incoming IMs as soon as the sender starts typing" and "Show
 //! the number of unread IMs in the window title" for the run (never saved);
@@ -16,7 +16,7 @@ const TURN: u64 = 600;
 const MESSAGE_AFTER: u64 = 300;
 
 fn mode() -> Option<String> {
-    std::env::var("AURORA_DEMO_IM_ANNOUNCE").ok()
+    std::env::var("BLOCK_DEMO_IM_ANNOUNCE").ok()
 }
 
 /// The scenario runs.

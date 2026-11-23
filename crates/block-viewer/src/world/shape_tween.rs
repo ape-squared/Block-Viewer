@@ -8,12 +8,12 @@
 //! APPEARANCE_MORPH_TIME) and LLVisualParam::animate
 //! (indra/llcharacter/llvisualparam.cpp), originally LGPL 2.1.
 //!
-//! The Legacy Viewer animates every avatar but its own; Aurora only those
+//! The Legacy Viewer animates every avatar but its own; Block only those
 //! within [`RANGE`] of the agent (a farther one snaps, as its change is
 //! hardly seen there): each step rebuilds the avatar's skeleton and the
 //! morphed geometry of its visible system body parts, about 0.1 ms of the
 //! main thread per avatar and frame during the glide (21 avatars at once
-//! in AURORA_DEMO_SHAPE_MORPH: +1.5 ms on the seconds they glide, dev
+//! in BLOCK_DEMO_SHAPE_MORPH: +1.5 ms on the seconds they glide, dev
 //! build, worst frames unchanged).
 
 use std::collections::HashMap;

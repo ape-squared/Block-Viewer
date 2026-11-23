@@ -1,6 +1,6 @@
 name: Mac runner
 description: >
-  Prepares a job on the team's Mac mini (self-hosted, label aurora-mac):
+  Prepares a job on the team's Mac mini (self-hosted, label block-mac):
   checks its tools, points Cargo at the build folder it keeps between runs,
   and gives the job an empty home, as a GitHub runner has. Run it right
   after the checkout, on self-hosted runners only.
@@ -28,7 +28,7 @@ runs:
     - name: Build folder
       shell: bash
       run: |
-        target="$(dirname "$RUNNER_WORKSPACE")/aurora-target"
+        target="$(dirname "$RUNNER_WORKSPACE")/block-target"
         mkdir -p "$target"
         free_gb=$(( $(df -k "$target" | awk 'NR == 2 { print $4 }') / 1024 / 1024 ))
         if [ "$free_gb" -lt 40 ]; then
@@ -56,5 +56,5 @@ runs:
         home="$RUNNER_TEMP/home"
         mkdir -p "$home"
         echo "CARGO_HOME=${CARGO_HOME:-$HOME/.cargo}" >> "$GITHUB_ENV"
-        echo "RUSTUP_HOME=$(dirname "$RUNNER_WORKSPACE")/aurora-rustup" >> "$GITHUB_ENV"
+        echo "RUSTUP_HOME=$(dirname "$RUNNER_WORKSPACE")/block-rustup" >> "$GITHUB_ENV"
         echo "HOME=$home" >> "$GITHUB_ENV"

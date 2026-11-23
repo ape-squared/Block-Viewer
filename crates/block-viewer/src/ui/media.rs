@@ -105,7 +105,7 @@ pub fn show(ctx: &egui::Context, p: &Palette, icons: &Icons, media: &mut MediaMa
         st.url_edit = None;
         st.shown_for = Some(key);
     }
-    // no plugins: where Aurora's pack stands, or its Download button
+    // no plugins: where Block's pack stands, or its Download button
     let no_plugins = media.plugins_found().is_none();
     let Some(m) = media.find_mut(&key) else {
         return;

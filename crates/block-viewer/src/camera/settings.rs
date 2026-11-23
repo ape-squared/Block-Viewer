@@ -503,7 +503,7 @@ impl Default for CameraSettings {
 
 /// A camera preset saved by name (LLFloaterSaveCameraPreset: the camera
 /// and its focus where they are, in the avatar's frame), used again as a
-/// custom view; Aurora's may hold the camera elsewhere and keep the lens,
+/// custom view; Block's may hold the camera elsewhere and keep the lens,
 /// the looks and the light too (`presets`, issue #1164).
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct CameraShot {
@@ -578,7 +578,7 @@ pub const FOV_RANGE: std::ops::RangeInclusive<f32> = 0.17..=2.97;
 /// CameraPositionSmoothing: the limits of Phototools' "Cam. Smoothing" slider
 /// (floater_phototools_camera.xml, floater_phototools.xml), up to a half-life
 /// of 6 s, and not the 9 of panel_preferences_move.xml: both sliders drive the
-/// same setting, and Aurora has one.
+/// same setting, and Block has one.
 pub const SMOOTHING_RANGE: std::ops::RangeInclusive<f32> = 0.0..=300.0;
 
 impl CameraSettings {

@@ -1,4 +1,4 @@
-//! AURORA_DEMO_SIM_VERSION=1|on: the region's simulator version changes
+//! BLOCK_DEMO_SIM_VERSION=1|on: the region's simulator version changes
 //! during the run, as after a teleport to a region on another release.
 //! `1` follows Preferences › Confirmations › Simulator version change (off
 //! by default: no notice); `on` turns the notice on for the run without
@@ -9,7 +9,7 @@ use block_net::estate::EstateEvent;
 
 /// The scenario asked, if any: `Some(true)` for `on`.
 pub fn mode() -> Option<bool> {
-    let mode = std::env::var("AURORA_DEMO_SIM_VERSION").ok()?;
+    let mode = std::env::var("BLOCK_DEMO_SIM_VERSION").ok()?;
     (!mode.is_empty() && mode != "0").then_some(mode == "on")
 }
 

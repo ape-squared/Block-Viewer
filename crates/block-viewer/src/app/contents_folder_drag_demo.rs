@@ -1,4 +1,4 @@
-//! `AURORA_DEMO_ACTIONS=open-folder[-drop]`: after `open` (the Open window
+//! `BLOCK_DEMO_ACTIONS=open-folder[-drop]`: after `open` (the Open window
 //! of the demo cube 976, yours, holding a notecard, a script and the no-copy
 //! "Spare cube"), the inventory opens at frame 540 and a real pointer drag
 //! takes the window's root "Contents" row from frame 620 onto the
@@ -29,7 +29,7 @@ impl App {
             ui::widgets::open_floater(&ctx, "inventory", &mut self.panels.inventory);
             return;
         }
-        let drop = std::env::var("AURORA_DEMO_ACTIONS").is_ok_and(|mode| mode.ends_with("-drop"));
+        let drop = std::env::var("BLOCK_DEMO_ACTIONS").is_ok_and(|mode| mode.ends_with("-drop"));
         let Some(root) = ui::object_actions::contents_demo_root(&ctx) else {
             return;
         };

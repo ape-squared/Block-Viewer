@@ -26,7 +26,7 @@ impl Scene {
         }
     }
 
-    /// AURORA_DEMO_WORLD_CLICKS=worn-other-mesh: a cube mesh without a skin,
+    /// BLOCK_DEMO_WORLD_CLICKS=worn-other-mesh: a cube mesh without a skin,
     /// placed by the attachment point it is worn on.
     pub fn install_demo_unrigged_cube(&mut self, renderer: &mut Renderer) {
         let id = crate::demo::WORN_UNRIGGED_MESH;

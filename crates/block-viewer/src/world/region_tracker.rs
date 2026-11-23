@@ -12,7 +12,7 @@ pub const FILE: &str = "tracked_regions.json";
 
 /// The lists whose write was refused: tried again (`save_retry`), once more
 /// at exit, and read from here by a login meanwhile.
-static OWED: crate::save_retry::OwedFiles = crate::save_retry::OwedFiles::new("aurora-tracked-regions", "tracked regions");
+static OWED: crate::save_retry::OwedFiles = crate::save_retry::OwedFiles::new("block-tracked-regions", "tracked regions");
 
 /// The viewer closing: a list still owed is tried once more.
 pub fn save_before_exit() {
@@ -166,7 +166,7 @@ mod tests {
 
     #[test]
     fn legacy_json_list_round_trips() {
-        let path = std::env::temp_dir().join(format!("aurora-region-tracker-{}.json", uuid::Uuid::new_v4()));
+        let path = std::env::temp_dir().join(format!("block-region-tracker-{}.json", uuid::Uuid::new_v4()));
         let mut list = RegionTracker::default();
         list.add("Ahern", "home");
         list.save(&path).expect("save tracker");
@@ -176,7 +176,7 @@ mod tests {
 
     #[test]
     fn missing_or_unreadable_file_is_an_empty_list_and_a_label_is_optional() {
-        let dir = std::env::temp_dir().join(format!("aurora-region-tracker-{}", uuid::Uuid::new_v4()));
+        let dir = std::env::temp_dir().join(format!("block-region-tracker-{}", uuid::Uuid::new_v4()));
         std::fs::create_dir_all(&dir).expect("temp dir");
         assert!(RegionTracker::load(&dir.join(FILE)).regions().is_empty());
         let path = dir.join(FILE);

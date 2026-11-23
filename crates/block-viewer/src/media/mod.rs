@@ -19,7 +19,7 @@
 //!   account's list does not allow before the resident answered.
 //!
 //! Plugins run out of process through `block-media` (SLPlugin + the
-//! CEF / LibVLC plugins of Aurora's pack, `pack.rs`, or of a folder chosen
+//! CEF / LibVLC plugins of Block's pack, `pack.rs`, or of a folder chosen
 //! in the preferences).
 //!
 //! Derived from indra/newview (llviewermedia.cpp, llviewerparcelmedia.cpp,
@@ -373,7 +373,7 @@ pub struct MediaSettings {
     /// MediaEnableFilter: media and music ask before a site not in the
     /// account's list (on by default, as there).
     pub filter: bool,
-    /// Aurora's own: media on our own worn items (attachments and HUDs),
+    /// Block's own: media on our own worn items (attachments and HUDs),
     /// whoever made them, loads without the filter's question; a site the
     /// list refuses stays refused. On by default: wearing a media earring
     /// or a HUD should not raise a question (the Legacy Viewer never
@@ -384,7 +384,7 @@ pub struct MediaSettings {
     pub filter_explained: bool,
     /// Folder with SLPlugin and llplugin\ (empty: automatic).
     pub plugin_dir: String,
-    /// Aurora's own: the answer to the download of the media plugins pack
+    /// Block's own: the answer to the download of the media plugins pack
     /// (`pack.rs`); asked once, the first time it is needed.
     pub pack_consent: pack::Consent,
 }
@@ -575,7 +575,7 @@ pub fn browser_settings(cache_dir: &std::path::Path, language: &str, media: &Med
         // (LLPluginClassMedia::init gets getCacheDir + getDirDelimiter): a
         // `\` made a folder named `cef\cef_cache` on macOS and Linux
         cache_path: format!("{}{}", browser_cache(cache_dir).display(), std::path::MAIN_SEPARATOR),
-        username: "aurora".into(),
+        username: "block".into(),
         cef_log_file: cache_dir.join("cef.log").display().to_string(),
         language: language.to_string(),
         user_agent: user_agent(),
@@ -662,7 +662,7 @@ mod cache_tests {
 
     #[test]
     fn the_plugin_cache_lands_inside_cef() {
-        let dir = std::env::temp_dir().join("aurora-cef-path");
+        let dir = std::env::temp_dir().join("block-cef-path");
         let s = browser_settings(&dir, "en", &MediaSettings::default());
         assert!(s.javascript_enabled, "BrowserJavascriptEnabled is on by default");
         let off = MediaSettings {
@@ -677,7 +677,7 @@ mod cache_tests {
     #[cfg(unix)]
     #[test]
     fn the_misplaced_cache_is_removed_but_a_running_profile_stays() {
-        let root = std::env::temp_dir().join(format!("aurora-misplaced-cache-{}", std::process::id()));
+        let root = std::env::temp_dir().join(format!("block-misplaced-cache-{}", std::process::id()));
         let _ = std::fs::remove_dir_all(&root);
         let misplaced = root.join("cef\\cef_cache");
         // a plugin id far above any pid_max, and ours, which runs
@@ -697,7 +697,7 @@ mod cache_tests {
     #[cfg(unix)]
     #[test]
     fn without_a_misplaced_cache_nothing_happens() {
-        remove_misplaced_cache(Path::new("/nonexistent/aurora"));
+        remove_misplaced_cache(Path::new("/nonexistent/block"));
     }
 }
 
@@ -733,7 +733,7 @@ impl MediaManager {
     }
 
     /// SLPlugin / llplugin (searched once per configured folder and per state
-    /// of Aurora's pack).
+    /// of Block's pack).
     pub fn plugins(&mut self, settings: &MediaSettings) -> Option<&PluginPaths> {
         if self.paths_for.as_deref() != Some(settings.plugin_dir.as_str()) {
             let dir = settings.plugin_dir.trim();
@@ -741,13 +741,13 @@ impl MediaManager {
             self.paths_for = Some(settings.plugin_dir.clone());
             match &self.paths {
                 Some(p) => log::info!("media: plugins in {} (launcher {})", p.plugin_dir.display(), p.launcher.display()),
-                None => log::warn!("media: no media plugins yet: web and video media wait for Aurora's pack"),
+                None => log::warn!("media: no media plugins yet: web and video media wait for Block's pack"),
             }
         }
         self.paths.as_ref()
     }
 
-    /// Where Aurora's media plugins pack is installed (`None` until it is).
+    /// Where Block's media plugins pack is installed (`None` until it is).
     /// Media that were waiting for plugins start at the next update.
     pub fn set_pack_dir(&mut self, dir: Option<&std::path::Path>) {
         if self.pack_dir.as_deref() != dir {
@@ -877,7 +877,7 @@ impl MediaManager {
         self.demo_face(object, face, url, false);
     }
 
-    /// `mini` is `PRIM_MEDIA_CONTROLS_MINI` (`AURORA_DEMO_MEDIA=mini`).
+    /// `mini` is `PRIM_MEDIA_CONTROLS_MINI` (`BLOCK_DEMO_MEDIA=mini`).
     pub fn demo_face(&mut self, object: Uuid, face: u8, url: &str, mini: bool) {
         let entry = MediaEntry {
             current_url: url.to_string(),

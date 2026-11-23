@@ -12,14 +12,14 @@
 //! without a fragment shader; and the cascade of a pixel chosen from its own
 //! distance, which gives the far cascades a nearest receiver, so that the
 //! culling can leave the casters near the camera out of them.
-//! AURORA_SHADOW_LEGACY brings back the path before this module, to compare.
+//! BLOCK_SHADOW_LEGACY brings back the path before this module, to compare.
 
 use std::sync::OnceLock;
 use std::sync::atomic::{AtomicUsize, Ordering};
 
 use glam::{Mat4, Vec3};
 
-/// Parts of the shadow path, which AURORA_SHADOW_LEGACY turns off.
+/// Parts of the shadow path, which BLOCK_SHADOW_LEGACY turns off.
 pub mod path {
     /// Casters culled to what the view can receive in each cascade
     /// (`caster_planes`).
@@ -44,9 +44,9 @@ pub mod path {
 }
 
 /// Paths the session goes through, one per profile period.
-/// AURORA_SHADOW_LEGACY: `1` the path before this module; `splits` only
+/// BLOCK_SHADOW_LEGACY: `1` the path before this module; `splits` only
 /// its choice of the cascades; `separate` every caster drawn in each
-/// cascade it shadows, as before `path::MERGE`; `ab` (with AURORA_PROFILE,
+/// cascade it shadows, as before `path::MERGE`; `ab` (with BLOCK_PROFILE,
 /// whose periods drive the cycle) the old path, the new one and `splits`
 /// in turn, a second each, to compare them in the same session and under
 /// the same outside load; `merge` likewise `separate` one second in three
@@ -54,8 +54,8 @@ pub mod path {
 /// the same path).
 fn cycle() -> &'static [u32] {
     static CYCLE: OnceLock<Vec<u32>> = OnceLock::new();
-    let profile = std::env::var_os("AURORA_PROFILE").is_some();
-    CYCLE.get_or_init(|| match std::env::var("AURORA_SHADOW_LEGACY").as_deref() {
+    let profile = std::env::var_os("BLOCK_PROFILE").is_some();
+    CYCLE.get_or_init(|| match std::env::var("BLOCK_SHADOW_LEGACY").as_deref() {
         Ok("ab") if profile => vec![path::LEGACY, path::NEW, path::VERTEX_SPLITS],
         Ok("merge") if profile => vec![path::SEPARATE, path::NEW, path::NEW],
         Ok("splits") => vec![path::VERTEX_SPLITS],
@@ -68,11 +68,11 @@ fn cycle() -> &'static [u32] {
 /// Alpha-blended faces that are not rigged cast sun and projector shadows,
 /// as in LLPipeline::renderShadow (indra/newview/pipeline.cpp, originally
 /// LGPL 2.1), whose renderAlphaObjects draws rigged and static blended faces
-/// alike: glass with opaque frames, blended foliage. AURORA_BLEND_SHADOWS=0
+/// alike: glass with opaque frames, blended foliage. BLOCK_BLEND_SHADOWS=0
 /// leaves them out as before (only rigged ones cast), to compare.
 pub fn blend_casts() -> bool {
     static ON: OnceLock<bool> = OnceLock::new();
-    *ON.get_or_init(|| std::env::var("AURORA_BLEND_SHADOWS").as_deref() != Ok("0"))
+    *ON.get_or_init(|| std::env::var("BLOCK_BLEND_SHADOWS").as_deref() != Ok("0"))
 }
 
 static STEP: AtomicUsize = AtomicUsize::new(0);
@@ -130,7 +130,7 @@ pub fn slice_corners(inv_view: Mat4, tan_x: f32, tan_y: f32, near: f32, far: f32
 /// outside one of them (`casts_into`) shadows nothing in `receivers`,
 /// however long its shadow: Firestorm reaches the same casters by fitting
 /// each shadow frustum to the visible part of its split
-/// (`LLPipeline::getVisiblePointCloud`), where Aurora keeps a cascade wider
+/// (`LLPipeline::getVisiblePointCloud`), where Block keeps a cascade wider
 /// than its split so that its texels stay still.
 ///
 /// `margin` moves every plane outwards (filter width and biases of the

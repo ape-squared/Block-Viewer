@@ -89,7 +89,7 @@ fn received_filing_view_pins_marketplace_and_scopes_sender_search_without_server
         InvFolder {
             id: base,
             parent: inv.root,
-            name: "#Aurora".into(),
+            name: "#Block".into(),
             type_default: -1,
             ..Default::default()
         },
@@ -375,12 +375,12 @@ pub struct InventoryPreferences {
     /// show again" box turns this off). Purge from Trash always asks.
     /// On by default (#2344).
     pub confirm_delete: bool,
-    /// The rights Aurora's rows show (its "CMT" menu).
+    /// The rights Block's rows show (its "CMT" menu).
     pub rights: super::permissions::Rights,
-    /// Aurora's window shows the selection's details: the card at the
+    /// Block's window shows the selection's details: the card at the
     /// bottom of the narrow and medium widths, the pane of the wide one.
     pub show_details: bool,
-    /// Aurora's dual-panel layout: two panes side by side in the Inventory
+    /// Block's dual-panel layout: two panes side by side in the Inventory
     /// window, each with its own folder, search and selection. Off by
     /// default (the Legacy Viewer has one pane).
     pub dual_panel: bool,
@@ -483,7 +483,7 @@ impl Default for ExplorerPreferences {
 /// The views of the Legacy Viewer's single folder mode (LLPanelMainInventory
 /// ::setViewMode, indra/newview/llpanelmaininventory.cpp): the list, the
 /// gallery of every entry, or the combination of a gallery of the entries
-/// that have a picture above a list of the others. Aurora difference: the
+/// that have a picture above a list of the others. Block difference: the
 /// choice is kept, and the explorer starts with its list as before (the
 /// Legacy Viewer starts each single folder mode in the combination view).
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Serialize, Deserialize)]
@@ -1307,7 +1307,7 @@ fn compare(a: &Entry, b: &Entry, sort: Sort) -> Ordering {
     // including in date order, as for Firestorm's support folder. #RLV
     // joins them like the Legacy Viewer's FT_RLV (LLFolderBridge::getSortGroup
     // with FSSortFSFoldersToTop, llinventorybridge.cpp).
-    let support = |e: &Entry| e.folder && !e.library && matches!(e.name.as_str(), "#aurora" | "#firestorm" | "#rlv");
+    let support = |e: &Entry| e.folder && !e.library && matches!(e.name.as_str(), "#block" | "#firestorm" | "#rlv");
     let pinned = support(b).cmp(&support(a));
     if pinned != Ordering::Equal {
         return pinned;
@@ -1757,7 +1757,7 @@ mod tests {
         let ctx = egui::Context::default();
         let (mut inv, _) = fixture();
         let root = inv.root;
-        folder(&mut inv, 30, root, -1, "#Aurora");
+        folder(&mut inv, 30, root, -1, "#Block");
         folder(&mut inv, 31, id(2), -1, "Folder 10");
         folder(&mut inv, 32, id(2), -1, "folder 2");
         inv.add_items(vec![
@@ -1808,7 +1808,7 @@ mod tests {
     fn viewer_support_folders_stay_above_system_folders_with_every_sort() {
         let (mut inv, _) = fixture();
         let root = inv.root;
-        folder(&mut inv, 30, root, -1, "#Aurora");
+        folder(&mut inv, 30, root, -1, "#Block");
         folder(&mut inv, 31, root, -1, "#Firestorm");
         folder(&mut inv, 32, root, -1, "#RLV");
         for by_date in [false, true] {
@@ -2425,7 +2425,7 @@ mod tests {
         let (mut inv, facts) = fixture();
         let root = inv.root;
         folder(&mut inv, 20, root, -1, "Store delivery");
-        folder(&mut inv, 21, root, -1, "#Aurora");
+        folder(&mut inv, 21, root, -1, "#Block");
         folder(&mut inv, 22, root, -1, "#RLV");
         inv.add_items(vec![
             item(30, id(4), "Old texture", 200),

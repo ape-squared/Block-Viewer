@@ -280,7 +280,7 @@ impl DeviceLost {
 /// A submission the GPU had not finished this long after it, when the
 /// loss came, hung: the driver's watchdog reset the card. Measured, not
 /// the 2 s of the Windows TDR setting: an RTX 5070 Ti (driver 621.01)
-/// declared `AURORA_DEMO_GPU_HANG`'s submission lost 1.101 s after it.
+/// declared `BLOCK_DEMO_GPU_HANG`'s submission lost 1.101 s after it.
 const HANG_AFTER: Duration = Duration::from_millis(500);
 /// A loss this soon after a submission the GPU had not finished is a fault
 /// the driver found in that work (an invalid access on NVIDIA:
@@ -323,12 +323,12 @@ fn hang_or_fault(submitted: Option<(u64, Duration)>, finished: Option<(u64, Dura
     )
 }
 
-/// The renderers made so far in the run, for `AURORA_DEMO_GPU_LOST`'s list,
+/// The renderers made so far in the run, for `BLOCK_DEMO_GPU_LOST`'s list,
 /// and whether the demo's hang was given to one already.
 pub(crate) static DEMO_RENDERERS: std::sync::atomic::AtomicUsize = std::sync::atomic::AtomicUsize::new(0);
 pub(crate) static DEMO_HANG_TAKEN: AtomicBool = AtomicBool::new(false);
 
-/// `AURORA_DEMO_GPU_HANG=<frame>`: a real GPU hang, for the recovery's test
+/// `BLOCK_DEMO_GPU_HANG=<frame>`: a real GPU hang, for the recovery's test
 /// on a real driver reset. One compute dispatch whose loop runs about 12 s
 /// on a recent card: the driver's watchdog resets the GPU first (a Windows
 /// TDR after 2 s, amdgpu's lockup timeout on Linux), as in the crash
@@ -348,7 +348,7 @@ pub(crate) fn demo_hang(device: &wgpu::Device, queue: &wgpu::Queue) {
     // ~6e11 loop steps a second on an RX 9070 XT: about 12 s
     const STEPS: u32 = 30_000_000;
     log::warn!(
-        "AURORA_DEMO_GPU_HANG: submitting a GPU hang ({STEPS} steps in each of {} threads)",
+        "BLOCK_DEMO_GPU_HANG: submitting a GPU hang ({STEPS} steps in each of {} threads)",
         GROUPS * 64
     );
     let module = device.create_shader_module(wgpu::ShaderModuleDescriptor {
@@ -401,14 +401,14 @@ pub(crate) fn demo_hang(device: &wgpu::Device, queue: &wgpu::Queue) {
     queue.submit([encoder.finish()]);
 }
 
-/// `AURORA_DEMO_GPU_LOST=<frame>`, with `AURORA_DEMO` only: the device is
+/// `BLOCK_DEMO_GPU_LOST=<frame>`, with `BLOCK_DEMO` only: the device is
 /// taken as lost at that frame, as the device-lost callback would after a
 /// driver reset.
 pub(crate) fn demo_frame(demo: bool, var: Option<&str>) -> Option<u64> {
     demo_frame_of(demo, var, 0)
 }
 
-/// `AURORA_DEMO_GPU_LOST=<frame>,<frame>…`: the frame the `renderer`-th
+/// `BLOCK_DEMO_GPU_LOST=<frame>,<frame>…`: the frame the `renderer`-th
 /// renderer of the run (0 at the start, then one per GPU recovery) takes its
 /// device as lost at, counted from its own start; none past the list.
 pub(crate) fn demo_frame_of(demo: bool, var: Option<&str>, renderer: usize) -> Option<u64> {
@@ -479,7 +479,7 @@ mod tests {
     }
 
     /// The line of the loss tells a hang (the last frame not finished after
-    /// `HANG_AFTER`: the real hang of `AURORA_DEMO_GPU_HANG` on an RTX 5070
+    /// `HANG_AFTER`: the real hang of `BLOCK_DEMO_GPU_HANG` on an RTX 5070
     /// Ti was declared lost 1.101 s after its submission) from a fault (the
     /// last frame finished, or lost within `FAULT_WITHIN` of its
     /// submission), and leaves the band between undecided.

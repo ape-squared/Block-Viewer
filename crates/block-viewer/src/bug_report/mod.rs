@@ -1,6 +1,6 @@
 //! User-reviewed diagnostics. Inspired by Firestorm's handle_report_bug
 //! (indra/newview/llviewermenu.cpp, originally LGPL 2.1). Unlike its direct
-//! environment/location link, Aurora makes every collected field optional.
+//! environment/location link, Block makes every collected field optional.
 //! This model deliberately has no access to login, session or chat state.
 
 pub mod files;

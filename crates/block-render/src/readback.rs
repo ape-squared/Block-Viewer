@@ -2,7 +2,7 @@
 //!
 //! The Legacy Viewer reads timer results from GL query objects into scalar
 //! values (`indra/llrender/llglslshader.cpp`,
-//! `LLGLSLShader::placeProfileQuery` / `readProfileQuery`); Aurora copies
+//! `LLGLSLShader::placeProfileQuery` / `readProfileQuery`); Block copies
 //! mapped bytes into scalars instead.
 
 /// Round a buffer allocation up so adjacent read-back allocations keep an

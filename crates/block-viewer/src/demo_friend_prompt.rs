@@ -1,4 +1,4 @@
-//! AURORA_DEMO_FRIEND_PROMPT=1: the friendship offer in the middle of the
+//! BLOCK_DEMO_FRIEND_PROMPT=1: the friendship offer in the middle of the
 //! screen (#465), turned on for the run without saving it. Nova offers
 //! friendship with a message, then Tess without one: Nova's card shows
 //! that one more offer waits, Tess's comes once Nova's is answered or put
@@ -9,9 +9,7 @@ use uuid::Uuid;
 
 /// The scenario, if asked.
 pub fn mode() -> Option<String> {
-    std::env::var("AURORA_DEMO_FRIEND_PROMPT")
-        .ok()
-        .filter(|m| !m.is_empty() && m != "0")
+    std::env::var("BLOCK_DEMO_FRIEND_PROMPT").ok().filter(|m| !m.is_empty() && m != "0")
 }
 
 /// Frame at which `later` puts Nova's offer off.

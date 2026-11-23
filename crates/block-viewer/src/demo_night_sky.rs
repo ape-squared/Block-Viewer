@@ -1,6 +1,6 @@
 //! Night sky in the offline demo
-//! (`AURORA_DEMO_NIGHT_SKY=real|legacy[:<azimuth>,<elevation>]`): the
-//! demo's midnight (unless `AURORA_DEMO_TOD` says otherwise), the chosen
+//! (`BLOCK_DEMO_NIGHT_SKY=real|legacy[:<azimuth>,<elevation>]`): the
+//! demo's midnight (unless `BLOCK_DEMO_TOD` says otherwise), the chosen
 //! stars (Preferences › Graphics › Environment, "Night sky", in memory only)
 //! and the camera looking at the sky, by default north 35° up: the Pole Star
 //! with the Plough and Cassiopeia on either side. Azimuth in degrees from
@@ -9,12 +9,12 @@
 use crate::world::night_sky::NightSky;
 use glam::Vec3;
 
-/// `AURORA_DEMO_NIGHT_SKY_PLACE=<latitude>[,<gain>[,<milky way>]]`: where
+/// `BLOCK_DEMO_NIGHT_SKY_PLACE=<latitude>[,<gain>[,<milky way>]]`: where
 /// the real sky is seen from (degrees north; the place becomes Custom), the
 /// stars' brightness and the Milky Way's, for this launch. An empty field
 /// keeps the setting (`48.86,,1` sets the Milky Way alone).
 pub fn place() -> Option<(f32, Option<f32>, Option<f32>)> {
-    parse_place(&std::env::var("AURORA_DEMO_NIGHT_SKY_PLACE").ok()?)
+    parse_place(&std::env::var("BLOCK_DEMO_NIGHT_SKY_PLACE").ok()?)
 }
 
 fn parse_place(v: &str) -> Option<(f32, Option<f32>, Option<f32>)> {
@@ -23,21 +23,21 @@ fn parse_place(v: &str) -> Option<(f32, Option<f32>, Option<f32>)> {
     Some((latitude.clamp(-90.0, 90.0), numbers.next().flatten(), numbers.next().flatten()))
 }
 
-/// `AURORA_DEMO_NIGHT_SKY_CLOCK=<longitude>[,<YYYY-MM-DDTHH:MM>]`: the real
+/// `BLOCK_DEMO_NIGHT_SKY_CLOCK=<longitude>[,<YYYY-MM-DDTHH:MM>]`: the real
 /// sky's hour from the clock (Preferences, "Star hour": Real time) at this
 /// longitude (degrees east; the place becomes Custom), for this launch, and
 /// the moment, in UTC, if given (the clock otherwise).
 fn clock() -> Option<(f32, Option<f64>)> {
     static CLOCK: std::sync::OnceLock<Option<(f32, Option<f64>)>> = std::sync::OnceLock::new();
-    *CLOCK.get_or_init(|| parse_clock(&std::env::var("AURORA_DEMO_NIGHT_SKY_CLOCK").ok()?))
+    *CLOCK.get_or_init(|| parse_clock(&std::env::var("BLOCK_DEMO_NIGHT_SKY_CLOCK").ok()?))
 }
 
-/// The longitude of `AURORA_DEMO_NIGHT_SKY_CLOCK`.
+/// The longitude of `BLOCK_DEMO_NIGHT_SKY_CLOCK`.
 pub fn clock_longitude() -> Option<f32> {
     clock().map(|(longitude, _)| longitude)
 }
 
-/// The fixed moment of `AURORA_DEMO_NIGHT_SKY_CLOCK`, in days since
+/// The fixed moment of `BLOCK_DEMO_NIGHT_SKY_CLOCK`, in days since
 /// 1970-01-01 UTC.
 pub fn instant() -> Option<f64> {
     clock()?.1
@@ -74,7 +74,7 @@ fn unix_days(v: &str) -> Option<f64> {
 /// The scenario: which stars, and where the camera looks (a unit
 /// direction, x east, y north, z up). `None` when off or not understood.
 pub fn scenario() -> Option<(NightSky, Vec3)> {
-    parse(&std::env::var("AURORA_DEMO_NIGHT_SKY").ok()?)
+    parse(&std::env::var("BLOCK_DEMO_NIGHT_SKY").ok()?)
 }
 
 fn parse(v: &str) -> Option<(NightSky, Vec3)> {

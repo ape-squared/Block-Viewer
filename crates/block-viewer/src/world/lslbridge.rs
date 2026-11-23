@@ -3,7 +3,7 @@
 //! FSLSLBridge::lslToViewer (indra/newview/fslslbridge.cpp, originally LGPL
 //! 2.1), called from process_chat_from_simulator for CHAT_TYPE_OWNER.
 //!
-//! Aurora uses its own bridge (world/bridge.rs). Firestorm's bridge is
+//! Block uses its own bridge (world/bridge.rs). Firestorm's bridge is
 //! treated as Firestorm with UseLSLBridge off: the
 //! handshake (`<bridgeURL>…</bridgeURL><bridgeAuth>…</bridgeAuth>…`, which
 //! carries the bridge's capability URL and its key) is hidden and never
@@ -40,7 +40,7 @@ impl LslBridge {
             if self.bridge != Some(c.source_id) {
                 // never the message itself: it holds the capability URL and key
                 log::info!(
-                    "Firestorm LSL bridge: handshake from object {} hidden (Aurora uses its own bridge)",
+                    "Firestorm LSL bridge: handshake from object {} hidden (Block uses its own bridge)",
                     c.source_id
                 );
                 self.bridge = Some(c.source_id);

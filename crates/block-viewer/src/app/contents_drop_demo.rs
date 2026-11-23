@@ -1,9 +1,9 @@
-//! `AURORA_DEMO_CONTENTS_DROP=world|panel[:ctrl][:drop]`: a selection of four
+//! `BLOCK_DEMO_CONTENTS_DROP=world|panel[:ctrl][:drop]`: a selection of four
 //! demo inventory entries (a notecard, a script, a sound and an object)
 //! carried from frame 700, without a press. `world` puts the pointer on the
-//! demo action object 976 (yours, modifiable; `AURORA_DEMO_ACTIONS`),
+//! demo action object 976 (yours, modifiable; `BLOCK_DEMO_ACTIONS`),
 //! `panel` on the Contents tab of the edit window
-//! (`AURORA_DEMO_BUILD=move,object:976`, `AURORA_DEMO_BUILD_TAB=contents`).
+//! (`BLOCK_DEMO_BUILD=move,object:976`, `BLOCK_DEMO_BUILD_TAB=contents`).
 //! `:ctrl` holds Ctrl, `:drop` releases at frame 720.
 
 use super::*;
@@ -18,10 +18,10 @@ struct Mode {
 fn mode() -> Option<Mode> {
     static MODE: std::sync::OnceLock<Option<Mode>> = std::sync::OnceLock::new();
     *MODE.get_or_init(|| {
-        if std::env::var("AURORA_DEMO").as_deref() != Ok("1") {
+        if std::env::var("BLOCK_DEMO").as_deref() != Ok("1") {
             return None;
         }
-        let v = std::env::var("AURORA_DEMO_CONTENTS_DROP").ok()?;
+        let v = std::env::var("BLOCK_DEMO_CONTENTS_DROP").ok()?;
         let mut parts = v.split(':');
         let panel = match parts.next()? {
             "world" => false,

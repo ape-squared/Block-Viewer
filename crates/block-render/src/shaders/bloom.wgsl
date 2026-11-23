@@ -1,4 +1,4 @@
-// Bloom of the bright parts of the image, Aurora's own (the Legacy Viewer
+// Bloom of the bright parts of the image, Block's own (the Legacy Viewer
 // only has the glow of faces with a glow value, glow.wgsl, which stays as
 // it is): the mip chain of Jimenez, "Next Generation Post Processing in
 // Call of Duty: Advanced Warfare" (SIGGRAPH 2014). The first level is

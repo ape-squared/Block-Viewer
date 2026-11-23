@@ -2,7 +2,7 @@
 //! render (`director_render.rs`) and its world clock, the live film's frames
 //! read back without waiting (block-render's film_readback.rs), its sound
 //! (`film_sound.rs`), and the fades and title cards drawn into the picture
-//! (`director_titles.rs`). Aurora's own: the Legacy Viewer has no camera
+//! (`director_titles.rs`). Block's own: the Legacy Viewer has no camera
 //! path tool.
 
 use super::App;
@@ -214,7 +214,7 @@ impl App {
                 return;
             }
             (
-                Writer::Png(PngWriter::start(out.clone(), "Aurora".to_owned(), schedule.count(), size)),
+                Writer::Png(PngWriter::start(out.clone(), "Block".to_owned(), schedule.count(), size)),
                 out,
             )
         } else {
@@ -574,7 +574,7 @@ impl App {
         }
     }
 
-    /// `AURORA_DEMO_DIRECTOR=titles`: fades and two titles on the demo's
+    /// `BLOCK_DEMO_DIRECTOR=titles`: fades and two titles on the demo's
     /// track, played; `render`: that track rendered as PNG images at
     /// 1080p, a second of it.
     pub(super) fn director_render_demo(&mut self, mode: &str) {

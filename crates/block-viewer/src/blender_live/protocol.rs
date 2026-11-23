@@ -1,6 +1,6 @@
 //! Bounded, versioned rest-mesh snapshots. No file paths or simulator assets
 //! are accepted. Skinning uses the normal local mesh pipeline (VJLocalMeshObject,
-//! indra/newview/vjlocalmesh.cpp); the live transport is an Aurora extension.
+//! indra/newview/vjlocalmesh.cpp); the live transport is a Block extension.
 
 use block_assets::import_mesh::{self, Instance, Model, Scene, Skin, Vertex, encode};
 use glam::{Mat4, Vec3};
@@ -194,7 +194,7 @@ pub(super) fn prepare_snapshot(
         let source = mesh.source_id.unwrap_or_else(|| {
             use sha2::{Digest, Sha256};
             let mut hash = Sha256::new();
-            hash.update(b"Aurora Blender Live source v1");
+            hash.update(b"Block Blender Live source v1");
             hash.update(occurrence.to_le_bytes());
             hash.update(mesh.name.as_bytes());
             let mut bytes = [0; 16];

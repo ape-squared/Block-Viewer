@@ -17,10 +17,10 @@ use std::time::Instant;
 use winit::keyboard::KeyCode;
 
 impl App {
-    /// The photo mode shows the viewfinder (Preferences › Aurora › Photo
+    /// The photo mode shows the viewfinder (Preferences › Block › Photo
     /// mode › Viewfinder).
     pub(super) fn viewfinder_on(&self) -> bool {
-        self.panels.snapshot && self.photo_style() == PhotoWindowStyle::Aurora
+        self.panels.snapshot && self.photo_style() == PhotoWindowStyle::Block
     }
 
     /// The HUDs show (and take clicks): Preferences' switch and, in
@@ -373,7 +373,7 @@ impl App {
         self.snapshots.vf.af.hunt(target, now);
     }
 
-    /// The demo's group (AURORA_DEMO_SNAPSHOT=viewfinder-group): the other
+    /// The demo's group (BLOCK_DEMO_SNAPSHOT=viewfinder-group): the other
     /// avatars in view within 25 m added one by one, as Shift + clicks on
     /// them would.
     fn vf_demo_group(&mut self, eye: glam::Vec3, at: glam::Vec3, now: f64) {

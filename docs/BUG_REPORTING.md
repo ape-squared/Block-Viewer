@@ -25,7 +25,7 @@ browser" opens a new issue with the same title and text instead (text in
 the clipboard when the link would be too long).
 
 The authorization is kept in the system credential store (Windows
-Credential Manager, entry "Aurora Viewer GitHub"), never in the settings,
+Credential Manager, entry "Block Viewer GitHub"), never in the settings,
 the reports or the logs: an expiring user token and its refresh token,
 refreshed without any client secret (allowed for the Device Flow) and
 replaced at each refresh. "Forget the GitHub connection", in the crash
@@ -49,7 +49,7 @@ crash report would publish (version, commit, crash kind, system, GPU, the
 stack as `module+0xoffset` with the modules' PDB identities, the panic
 location inside the sources, recognised warning categories). It never
 contains raw addresses, panic messages, paths or log lines; the
-`<!-- aurora-crash v1 -->` marker at its top is for the repository's crash
+`<!-- block-crash v1 -->` marker at its top is for the repository's crash
 triage.
 
 What each part tells the one who fixes it:
@@ -163,7 +163,7 @@ What each part tells the one who fixes it:
   loss was seen (the
   reason wgpu gave, the class of its message, the first place that saw it),
   how long the GPU held the render thread past 2 seconds (no row otherwise:
-  a reset that comes sooner shows in **GPU work at the loss**), the other Aurora viewers on the card (from the viewer registry, not in demo),
+  a reset that comes sooner shows in **GPU work at the loss**), the other Block viewers on the card (from the viewer registry, not in demo),
   and the card's memory in use by all programs and by the others (Windows). Fixed words and numbers only.
 - **Recent warnings and errors**: the last 20, as
   `-<seconds before the end> s | level | Rust module | kind`, repeats folded
@@ -171,12 +171,12 @@ What each part tells the one who fixes it:
 
 ### Crash symbols
 
-Each Windows release carries `Aurora-Viewer-vX.Y.Z-windows-x64-symbols.zip`:
+Each Windows release carries `Block-Viewer-vX.Y.Z-windows-x64-symbols.zip`:
 the Breakpad symbol file of the exe, made by `dump_syms` from the release
 build's PDB (line tables only) and stored as
-`aurora_viewer.pdb/<debug id>/aurora_viewer.sym`. The debug id is the
-`id=` of the `aurora_viewer` line in a report's modules: the file of the
-version that crashed turns each `aurora_viewer+0xoffset` into a function
+`block_viewer.pdb/<debug id>/block_viewer.sym`. The debug id is the
+`id=` of the `block_viewer` line in a report's modules: the file of the
+version that crashed turns each `block_viewer+0xoffset` into a function
 and a source line. A pull request that changes the Release workflow keeps
 the file of its dry run as the run's artifact. The PDB itself is not
 published. To resolve a stack by hand, unzip the file and look up, for
@@ -186,7 +186,7 @@ contains it and the line record under it; or use the triage script below.
 ### Crash triage
 
 The Crash triage workflow (`.github/workflows/crash-triage.yml`) runs on
-every new issue whose body carries the `<!-- aurora-crash v1 -->` marker.
+every new issue whose body carries the `<!-- block-crash v1 -->` marker.
 `scripts/crash-triage.ps1` reads the issue through the API and validates
 each value again (anyone can write an issue). For a released version whose
 symbol file has the report's debug id, it resolves the viewer's frames,
@@ -240,7 +240,7 @@ closed issue is not a reference: a crash that comes back after its fix
 opens a new issue. "Run workflow" with an issue number triages it again,
 for example once the symbols of its version are published. Locally, on a
 crash session's `public-report.md` and an unzipped symbol file:
-`./scripts/crash-triage.ps1 -ReportFile <public-report.md> -SymbolFile <aurora_viewer.sym>`
+`./scripts/crash-triage.ps1 -ReportFile <public-report.md> -SymbolFile <block_viewer.sym>`
 prints the section, title and signature without writing to GitHub.
 `scripts/test-crash-triage.ps1` holds the fixture tests; the workflow runs
 them on the pull requests that change the triage.
@@ -258,10 +258,10 @@ disabled for now; its code stays in the tree, out of the build, to be
 brought back later: uncomment every line marked "Bug report form (disabled,
 see main.rs)" (`main.rs` lists its files). The rest of this page describes
 that form, as it works once enabled, and its GitHub setup.
-`AURORA_DEMO_BUG_REPORT` has no effect while it is disabled.
+`BLOCK_DEMO_BUG_REPORT` has no effect while it is disabled.
 
 The shared form can be reached from the top bar, Help and the login screen.
-"Send from Aurora" is the first choice and the default mode of new reports.
+"Send from Block" is the first choice and the default mode of new reports.
 The sending options are independent of the report template.
 The browser mode is available without any application setup; both modes
 require the tester to have a GitHub account. Without an account, a local
@@ -280,7 +280,7 @@ new authorisation from the tester.
 
 ### Setting up direct sending
 
-Create a **GitHub App**, in the developer settings of the Aurora-Viewer
+Create a **GitHub App**, in the developer settings of the Block-Viewer
 organisation, then:
 
 - turn on **Enable Device Flow**, keep the expiry of the authorisations;
@@ -288,7 +288,7 @@ organisation, then:
 - repository permissions: **Issues — Read and write**, read-only metadata,
   no other permission;
 - public application (**Any account**) for the testers; install it on the
-  organisation with only the Aurora-Viewer repository selected;
+  organisation with only the Block-Viewer repository selected;
 - copy the **public Client ID** into `bug_report/github.rs::CLIENT_ID`.
   The numeric App ID is not suitable. No Client secret and no private key
   may be added to the viewer.
@@ -353,12 +353,12 @@ The `public` subfolder contains the chosen text and, if included,
 local diagnostics and must never be attached to a public issue. Nothing
 leaves the PC besides the text of the issue: GitHub's API takes no
 attachment, so in both modes the viewer opens the `public` folder and the
-tester drags `screenshot.png` into the issue themselves. Aurora runs no
+tester drags `screenshot.png` into the issue themselves. Block runs no
 server of its own for the reports.
 
 ### Validation
 
-`AURORA_DEMO_BUG_REPORT=1` with demo mode opens a sample report. Both
+`BLOCK_DEMO_BUG_REPORT=1` with demo mode opens a sample report. Both
 sending modes stay local, without GitHub authorisation and without opening
 the browser. The `details`, `image`, `image-ui` and `direct` modes show
 respectively the information with the location unticked, a screenshot of

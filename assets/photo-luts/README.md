@@ -1,7 +1,7 @@
 # Creators' LUT packs
 
 The photo mode's LUT tab shows, above the user's own tables, LUT packs
-that their creators agreed to share with every Aurora user. Each pack is
+that their creators agreed to share with every Block user. Each pack is
 built into the executable (`crates/block-viewer/src/snapshot/lut_packs.rs`)
 and credited under its creator's name in the tab.
 
@@ -60,10 +60,10 @@ Emerald, Frost, Honey, Lilac, Peach, Rouge, Velvet; Retro - Afterglow,
 Afterhours, Arcade, Daydream, Electric, Goldenhour, Lavender, Nightfall,
 Nostalgia, Seabreeze).
 
-JuicyBomb made them for Aurora and offered on 2026-11-19 that the viewer
+JuicyBomb made them for Block and offered on 2026-11-19 that the viewer
 includes them. On 2026-11-20 they confirmed they made them alone and own
 all their rights, and wrote: "Created by JuicyBomb, with full permission
-granted to Aurora Viewer to include, use, and distribute these LUTs as
+granted to Block Viewer to include, use, and distribute these LUTs as
 part of the viewer." They asked to be credited as JuicyBomb, their blog
 name. The looks remain JuicyBomb's work.
 

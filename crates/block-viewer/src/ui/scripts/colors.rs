@@ -1,4 +1,4 @@
-//! Inline LSL color literals, using the shared Aurora color picker. This is
+//! Inline LSL color literals, using the shared Block color picker. This is
 //! an intentional addition to Firestorm's script editor: numeric unit vectors
 //! are treated as potential colors without guessing from variable names.
 
@@ -74,8 +74,7 @@ impl State {
             id,
         });
         self.picker.open_from(literal.rgb, false, parent);
-        if std::env::var("AURORA_DEMO_SCRIPTS").is_ok_and(|mode| matches!(mode.as_str(), "color-picker" | "color-accept" | "color-cancel"))
-        {
+        if std::env::var("BLOCK_DEMO_SCRIPTS").is_ok_and(|mode| matches!(mode.as_str(), "color-picker" | "color-accept" | "color-cancel")) {
             self.picker.track_controls();
         }
     }

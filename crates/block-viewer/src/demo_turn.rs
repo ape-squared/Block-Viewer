@@ -1,10 +1,10 @@
-//! AURORA_DEMO_TURN=<degrees per second>[,<seconds turning>[,<seconds still>]]:
+//! BLOCK_DEMO_TURN=<degrees per second>[,<seconds turning>[,<seconds still>]]:
 //! fast camera turns, as a resident looks around in a busy place. Once the
 //! loading screen is gone, our avatar (and the camera behind it) turns at
 //! that rate for the first duration (1 s by default), then stays still for
 //! the second (3 s), and again. What comes into view then has to be synced,
 //! listed and textured: read the worst frame of each second (`max=`, `max:`
-//! and `ft=` of `perf summary`) with AURORA_PROFILE=1.
+//! and `ft=` of `perf summary`) with BLOCK_PROFILE=1.
 
 use std::time::{Duration, Instant};
 
@@ -48,7 +48,7 @@ fn turned(rate: f32, on: f32, off: f32, from: f32, to: f32) -> f32 {
 
 impl TurnDemo {
     pub fn from_env() -> Option<Self> {
-        let (rate, on, off) = parse(&std::env::var("AURORA_DEMO_TURN").ok()?);
+        let (rate, on, off) = parse(&std::env::var("BLOCK_DEMO_TURN").ok()?);
         log::info!("demo turn: {rate:.0} degrees a second for {on:.1} s, then still for {off:.1} s");
         Some(TurnDemo {
             rate: rate.to_radians(),

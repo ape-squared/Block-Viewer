@@ -1,7 +1,7 @@
-//! AURORA_DEMO_SOCIAL_MENU: a resident's "Invite to group", "Add to
+//! BLOCK_DEMO_SOCIAL_MENU: a resident's "Invite to group", "Add to
 //! contact set" and "Block particles" (app/social_menu_demo.rs runs the
 //! steps). The violet wolf stands in for the resident: not blocked in this
-//! scenario, owner of the plaza's fountain, and our abilities in "Aurora
+//! scenario, owner of the plaza's fountain, and our abilities in "Block
 //! Builders" include inviting (an officer's).
 use uuid::Uuid;
 
@@ -11,7 +11,7 @@ pub enum Step {
     Menu,
     /// "Invite to group": the group picker.
     Picker,
-    /// The picker answered: the invitation into "Aurora Builders".
+    /// The picker answered: the invitation into "Block Builders".
     Invite,
     /// "New contact set…": its name asked.
     NewSet,
@@ -27,7 +27,7 @@ pub enum Step {
 }
 
 pub fn step() -> Option<Step> {
-    Some(match std::env::var("AURORA_DEMO_SOCIAL_MENU").ok()?.trim() {
+    Some(match std::env::var("BLOCK_DEMO_SOCIAL_MENU").ok()?.trim() {
         "1" | "menu" => Step::Menu,
         "picker" => Step::Picker,
         "invite" => Step::Invite,

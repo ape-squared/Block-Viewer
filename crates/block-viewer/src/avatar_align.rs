@@ -5,7 +5,7 @@
 //! the compass. The app applies the turn (`app/avatar_align.rs`), the window
 //! draws the compass (`ui/avatar_align.rs`).
 //!
-//! Bearings are the compass's: degrees from north, clockwise. Aurora's
+//! Bearings are the compass's: degrees from north, clockwise. Block's
 //! `AgentState::yaw` is the world's angle: radians from east (+X),
 //! counter-clockwise.
 

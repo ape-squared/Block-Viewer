@@ -1,4 +1,4 @@
-//! AURORA_SYNC_CHECK: what the scene sync visited during each second, and
+//! BLOCK_SYNC_CHECK: what the scene sync visited during each second, and
 //! what came of it. One log line per second: the objects listed per frame
 //! by the set that listed them (sync_sets.rs), by what they are, and for
 //! each kind how many only had their placement checked, had their records
@@ -160,9 +160,9 @@ pub struct SyncCheck {
 }
 
 impl SyncCheck {
-    /// The check, when AURORA_SYNC_CHECK asks for it.
+    /// The check, when BLOCK_SYNC_CHECK asks for it.
     pub fn from_env() -> Option<SyncCheck> {
-        std::env::var_os("AURORA_SYNC_CHECK")
+        std::env::var_os("BLOCK_SYNC_CHECK")
             .filter(|v| v != "0")
             .map(|_| SyncCheck::new(Instant::now()))
     }

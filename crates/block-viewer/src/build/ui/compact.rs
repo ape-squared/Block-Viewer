@@ -1,4 +1,4 @@
-//! Compact Aurora build workspace. Five sections reorganize the
+//! Compact Block build workspace. Five sections reorganize the
 //! LLFloaterTools / LLPanelObject controls without changing their commands.
 
 use super::{Env, common, contents, features, general, layout, object, replace, texture, tools};

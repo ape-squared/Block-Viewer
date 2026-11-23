@@ -1,6 +1,6 @@
 //! Explicit quit / logout choice. LogoutRequest and the six-second fallback
 //! follow LLAppViewer::requestQuit/sendLogoutRequest (llappviewer.cpp,
-//! originally LGPL 2.1); the three-way prompt is Aurora's requested behavior.
+//! originally LGPL 2.1); the three-way prompt is Block's requested behavior.
 
 use super::widgets::{self, ActionKind};
 use crate::theme::Palette;

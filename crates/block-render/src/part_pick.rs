@@ -1,4 +1,4 @@
-//! The poser's part under the cursor, read from the meshes (Aurora's own):
+//! The poser's part under the cursor, read from the meshes (Block's own):
 //! the part that carries the most skinning weight on the subject's surface
 //! seen at a pixel.
 //!

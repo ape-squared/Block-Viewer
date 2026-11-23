@@ -5,7 +5,7 @@
 //! easing of the way to it, the lens that keeps the subject's size on that
 //! way, and a camera that travels with its target.
 //!
-//! Aurora's own: the Legacy Viewer has no camera path tool.
+//! Block's own: the Legacy Viewer has no camera path tool.
 //!
 //! - **Easing** (`Ease`) remaps the time along one segment (the way to a
 //!   keyframe from the one before, as its time and speed are): the path,

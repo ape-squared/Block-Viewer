@@ -22,8 +22,8 @@ pub fn preview_items() -> [Uuid; 4] {
     [id(300), id(301), id(400), id(401)]
 }
 
-/// The panorama demo's items (`AURORA_DEMO_TEXTURE_LIBRARY=panorama*`): an
-/// Aurora 360° upload by its name, a plain 2:1 texture, and a marked one
+/// The panorama demo's items (`BLOCK_DEMO_TEXTURE_LIBRARY=panorama*`): an
+/// Block 360° upload by its name, a plain 2:1 texture, and a marked one
 /// the agent may not copy.
 pub fn panorama_items() -> [Uuid; 3] {
     [id(1000), id(1001), id(1002)]
@@ -45,18 +45,18 @@ pub fn seed_panorama(inv: &mut Inventory, agent: Uuid) {
         ..Default::default()
     };
     let items = vec![
-        item(0, &aurora_snapshot_name("Aurora Demo"), 0x7fffffff),
+        item(0, &block_snapshot_name("Block Demo"), 0x7fffffff),
         item(1, "Wide sky", 0x7fffffff),
         item(
             2,
-            &aurora_snapshot_name("No copy"),
+            &block_snapshot_name("No copy"),
             0x7fffffff & !(crate::world::inventory::actions::COPY | crate::world::inventory::actions::TRANSFER),
         ),
     ];
     inv.add_items(items);
 }
 
-fn aurora_snapshot_name(place: &str) -> String {
+fn block_snapshot_name(place: &str) -> String {
     crate::snapshot::capture_360::item_name(place)
 }
 
@@ -149,21 +149,21 @@ pub fn seed_cascade(inv: &mut Inventory, agent: Uuid, kind: i32) {
 pub fn inventory_drag_enabled() -> bool {
     static ENABLED: std::sync::OnceLock<bool> = std::sync::OnceLock::new();
     *ENABLED.get_or_init(|| {
-        std::env::var("AURORA_DEMO").as_deref() == Ok("1")
-            && std::env::var("AURORA_DEMO_TEXTURE_LIBRARY")
+        std::env::var("BLOCK_DEMO").as_deref() == Ok("1")
+            && std::env::var("BLOCK_DEMO_TEXTURE_LIBRARY")
                 .is_ok_and(|mode| matches!(mode.as_str(), "preview" | "preview-drag" | "inventory-drag"))
     })
 }
 
 pub fn seed(inv: &mut Inventory, scene: &mut Scene, agent: Uuid, empty: bool) {
-    let aurora = catalogue::child(inv, inv.root, catalogue::AURORA).unwrap_or(id(1));
+    let aurora = catalogue::child(inv, inv.root, catalogue::BLOCK).unwrap_or(id(1));
     let root = catalogue::root(inv).unwrap_or(id(2));
     let objects = catalogue::child(inv, root, "Objects").unwrap_or(id(4));
     inv.created_folders(vec![
         InvFolder {
             id: aurora,
             parent: inv.root,
-            name: catalogue::AURORA.into(),
+            name: catalogue::BLOCK.into(),
             type_default: -1,
             ..Default::default()
         },

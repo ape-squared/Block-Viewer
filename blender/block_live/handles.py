@@ -70,14 +70,14 @@ def _geometry(style, side):
 def _shape(style, side, frame):
     revision = "4" if style == "HAND" else "3"
     signature = style + side + ":" + revision + ":" + repr(tuple(round(value, 5) for row in frame for value in row))
-    obj = next((obj for obj in bpy.data.objects if obj.get("aurora_ik_shape") == signature), None)
+    obj = next((obj for obj in bpy.data.objects if obj.get("block_ik_shape") == signature), None)
     if obj is None:
         geometry = _geometry(style, side)
-        mesh = bpy.data.meshes.new("_AuroraIKShape." + style + "." + side)
+        mesh = bpy.data.meshes.new("_BlockIKShape." + style + "." + side)
         mesh.from_pydata([frame @ p for p in geometry.vertices], geometry.edges, [])
         mesh.update()
         obj = bpy.data.objects.new(mesh.name, mesh)
-        obj["aurora_ik_shape"] = signature
+        obj["block_ik_shape"] = signature
         # Referenced by PoseBone.custom_shape, never linked to a scene.
     return obj
 
@@ -86,7 +86,7 @@ def apply(rig, replace=False):
     from . import rigging
     if rig.type != "ARMATURE" or rig.library or rig.data.library or rig.mode == "EDIT" or not rigging.ready(rig):
         return
-    factor = getattr(rig, "aurora_live_ik_handle_size", 1)
+    factor = getattr(rig, "block_live_ik_handle_size", 1)
     for key in rigging.LIMBS:
         names = rigging.chain(rig, key)
         root, middle, end = (rig.data.bones[name] for name in names)
@@ -94,9 +94,9 @@ def apply(rig, replace=False):
         side = key[-1]
         for pole in (False, True):
             bone = rig.pose.bones[rigging.control_name(key, pole)]
-            if not bone.bone.get("aurora_control"):
+            if not bone.bone.get("block_control"):
                 continue
-            if bone.custom_shape and not bone.custom_shape.get("aurora_ik_shape") and not replace:
+            if bone.custom_shape and not bone.custom_shape.get("block_ik_shape") and not replace:
                 continue
             hand = key.startswith("HAND")
             style = ("ELBOW" if hand else "KNEE") if pole else ("HAND" if hand else "FOOT")
@@ -106,7 +106,7 @@ def apply(rig, replace=False):
                 # ankle bone points down/forward. Derive -Y-forward rigs too.
                 forward = end.tail_local - end.head_local
                 foot_name = "mFoot" + ("Left" if side == "L" else "Right")
-                foot = next((b for b in rig.data.bones if b.get("aurora_joint", b.name) == foot_name), None)
+                foot = next((b for b in rig.data.bones if b.get("block_joint", b.name) == foot_name), None)
                 if foot:
                     forward = foot.head_local - end.head_local
                 forward.z = 0

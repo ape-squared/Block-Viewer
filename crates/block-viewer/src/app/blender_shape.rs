@@ -114,13 +114,13 @@ impl App {
         if self.demo
             && !self.blender_live.shape.demo_sent
             && matches!(
-                std::env::var("AURORA_DEMO_BLENDER_LIVE").as_deref(),
+                std::env::var("BLOCK_DEMO_BLENDER_LIVE").as_deref(),
                 Ok("shape" | "shape-readonly" | "shape-apply")
             )
             && self.blender_live.shape_connection().is_ok()
         {
             self.blender_live.shape.demo_sent = true;
-            let action = if std::env::var("AURORA_DEMO_BLENDER_LIVE").as_deref() == Ok("shape-apply") {
+            let action = if std::env::var("BLOCK_DEMO_BLENDER_LIVE").as_deref() == Ok("shape-apply") {
                 Action::Apply
             } else {
                 Action::Create

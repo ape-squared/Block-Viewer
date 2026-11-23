@@ -1,5 +1,5 @@
 //! Application bridge for the Pay windows (`ui/pay.rs`): the look chosen in
-//! Preferences › Aurora, what they ask for, and the demo's scenario.
+//! Preferences › Block, what they ask for, and the demo's scenario.
 
 use super::*;
 use crate::interaction::Action;
@@ -61,11 +61,11 @@ impl App {
         }
     }
 
-    /// AURORA_DEMO_PAY=resident|short|confirm|sent|group (docs/TESTING.md):
+    /// BLOCK_DEMO_PAY=resident|short|confirm|sent|group (docs/TESTING.md):
     /// the Pay window in that state, Nova as the payee. An object's payment
-    /// is AURORA_DEMO_ACTIONS=pay.
+    /// is BLOCK_DEMO_ACTIONS=pay.
     pub(super) fn demo_pay(&mut self) {
-        let Ok(mode) = std::env::var("AURORA_DEMO_PAY") else {
+        let Ok(mode) = std::env::var("BLOCK_DEMO_PAY") else {
             return;
         };
         self.world.apply(NetEvent::Balance(1000));

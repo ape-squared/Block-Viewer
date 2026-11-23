@@ -99,7 +99,7 @@ struct ResolveParams {
 const HDR_MAX: f32 = 65504.0;
 
 // Whether the samples are tested for a NaN (oit_stochastic.rs `with_guards`
-// turns it off for a measurement, AURORA_ST_GUARDS=0); the history's test stays.
+// turns it off for a measurement, BLOCK_ST_GUARDS=0); the history's test stays.
 const ST_GUARDS: bool = true;
 
 // Whether `x` is not a number. Tested on its bits (object.wgsl

@@ -130,7 +130,7 @@ pub fn filter_pill(ui: &mut egui::Ui, p: &Palette, icon: &str, label: &str, on: 
 /// A G / M / A toggle: its badge, and its name when `label` (a compact
 /// window shows the badge alone, the name in its tooltip), lit on `raised`
 /// while on; a rating the account may not see stays off and says why.
-/// Shared by Aurora's Search and Destinations.
+/// Shared by Block's Search and Destinations.
 pub fn rating_toggle(ui: &mut egui::Ui, p: &Palette, on: &mut bool, name: &str, allowed: bool, label: bool) -> bool {
     let font = FontId::proportional(12.0);
     let lit = *on && allowed;

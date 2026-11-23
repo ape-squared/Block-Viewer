@@ -4,7 +4,7 @@
 //! originally LGPL 2.1): from the left wrist of the avatar (mWristLeft) to
 //! the object it edits, grabs or gives to, or to the point it aims at.
 //!
-//! Aurora's look, chosen by the human: a thread in the sender's colour that
+//! Block's look, chosen by the human: a thread in the sender's colour that
 //! rises in a light arc from the hand and brightens toward the target, a
 //! glow running along it, the halo of the look-at targets on the point
 //! aimed at with a ripple where each glow arrives, and the avatar's name in
@@ -12,7 +12,7 @@
 //! (`beams::Style::Legacy`): its stream of particles, 0.1 m wide, each
 //! crossing the beam in half a second and fading to 40 % on its way.
 //!
-//! Aurora's look draws one beam per avatar (`Beams::leading`): a Legacy
+//! Block's look draws one beam per avatar (`Beams::leading`): a Legacy
 //! Viewer's beam shape would otherwise stack dozens of threads and names.
 //!
 //! Painted on the world layer like the look-at lines, each piece after the
@@ -187,10 +187,10 @@ pub fn draw(ctx: &egui::Context, p: &Palette, world: &World, scene: &Scene, proj
     let painter = world_painter(ctx);
     let now = Instant::now();
     let time = ctx.input(|i| i.time);
-    // Aurora's look: one thread and one name per avatar, a beam shape's
+    // Block's look: one thread and one name per avatar, a beam shape's
     // dots left out (`Beams::leading`); the Legacy look draws them all
     let beams: Vec<(&Uuid, &Beam)> = match s.style {
-        Style::Aurora => world.beams.leading().collect(),
+        Style::Block => world.beams.leading().collect(),
         Style::Legacy => world.beams.shown.iter().collect(),
     };
     for (effect, b) in beams {
@@ -206,7 +206,7 @@ pub fn draw(ctx: &egui::Context, p: &Palette, world: &World, scene: &Scene, proj
         let alpha = alpha * own_alpha;
         match s.style {
             Style::Legacy => particles(ctx, &painter, proj, eye, from, to, color, alpha, time),
-            Style::Aurora => {
+            Style::Block => {
                 let name = (b.source != world.agent_id)
                     .then(|| super::lookat_targets::name(world, &b.source, name_format))
                     .flatten();
@@ -217,7 +217,7 @@ pub fn draw(ctx: &egui::Context, p: &Palette, world: &World, scene: &Scene, proj
     block_render::world_label_at(ctx, None);
 }
 
-/// Aurora's beam: the arc, its glows, the halo and the ripple on the target,
+/// Block's beam: the arc, its glows, the halo and the ripple on the target,
 /// the name above it.
 #[allow(clippy::too_many_arguments)]
 fn thread(

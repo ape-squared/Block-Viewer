@@ -140,7 +140,7 @@ impl FaceHeight {
 /// Keep the previous object-centre ordering for a controlled A/B launch.
 pub fn face_sort_enabled() -> bool {
     static ENABLED: std::sync::OnceLock<bool> = std::sync::OnceLock::new();
-    *ENABLED.get_or_init(|| std::env::var("AURORA_ALPHA_FACE_SORT").as_deref() != Ok("0"))
+    *ENABLED.get_or_init(|| std::env::var("BLOCK_ALPHA_FACE_SORT").as_deref() != Ok("0"))
 }
 
 /// Where the blended faces of a rigged mesh come among those of its
@@ -266,7 +266,7 @@ pub struct BlendEntry {
 
 /// The order of the blended faces is the user's setting
 /// (`Settings::blend_order`, `set_user`): the exact one, or the sorted one
-/// (`Layers`). AURORA_RIGGED_BLEND, when set, names it instead: `layers`
+/// (`Layers`). BLOCK_RIGGED_BLEND, when set, names it instead: `layers`
 /// (or any other word), the rigged faces apart, object by object
 /// in their order what is at least half covered writing its depth as it is
 /// drawn, then the fainter texels, then their depth from 1/255, into a copy
@@ -301,7 +301,7 @@ pub enum Mode {
 
 pub fn mode() -> Mode {
     static MODE: std::sync::OnceLock<Mode> = std::sync::OnceLock::new();
-    *MODE.get_or_init(|| match std::env::var("AURORA_RIGGED_BLEND").as_deref().map(str::trim) {
+    *MODE.get_or_init(|| match std::env::var("BLOCK_RIGGED_BLEND").as_deref().map(str::trim) {
         Ok("exact") => Mode::Exact,
         Ok("exact-alt") => Mode::ExactAlternate,
         Ok("split") => Mode::Split,
@@ -315,11 +315,11 @@ pub fn mode() -> Mode {
     })
 }
 
-/// Whether AURORA_RIGGED_BLEND names an order: the user's setting then
+/// Whether BLOCK_RIGGED_BLEND names an order: the user's setting then
 /// gives way to it.
 fn mode_named() -> bool {
     static NAMED: std::sync::OnceLock<bool> = std::sync::OnceLock::new();
-    *NAMED.get_or_init(|| std::env::var("AURORA_RIGGED_BLEND").is_ok_and(|v| !v.trim().is_empty()))
+    *NAMED.get_or_init(|| std::env::var("BLOCK_RIGGED_BLEND").is_ok_and(|v| !v.trim().is_empty()))
 }
 
 /// The user's order of the blended faces (`Settings::blend_order`): 0
@@ -343,7 +343,7 @@ pub fn set_user(level: u8, exact_available: bool) {
 /// From which alpha the exact order composes a fragment in its exact place
 /// (`BlendPrecision`): the level of the user's setting, every layer from
 /// 3 % of alpha when the setting asks for the sorted order and
-/// AURORA_RIGGED_BLEND for the exact one.
+/// BLOCK_RIGGED_BLEND for the exact one.
 pub fn precision() -> block_render::BlendPrecision {
     precision_at(USER.load(std::sync::atomic::Ordering::Relaxed))
 }
@@ -377,7 +377,7 @@ pub fn depth_mode() -> RiggedBlendDepth {
     drawable(depth_mode_in(mode, OLD_NOW.load(Relaxed)), EXACT_AVAILABLE.load(Relaxed))
 }
 
-/// The order of this run: the one AURORA_RIGGED_BLEND names, else the exact
+/// The order of this run: the one BLOCK_RIGGED_BLEND names, else the exact
 /// order when the user's setting asks for it.
 fn chosen_mode(mode: Mode, named: bool, user: u8) -> Mode {
     if !named && (1..=4).contains(&user) { Mode::Exact } else { mode }

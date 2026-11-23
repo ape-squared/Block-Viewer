@@ -325,7 +325,7 @@ pub fn copy_request(
 }
 
 /// The same folder copy for the Open button and the selected-items menus.
-/// Aurora also offers it in the editor, where the Legacy Viewer uses a drag.
+/// Block also offers it in the editor, where the Legacy Viewer uses a drag.
 pub fn task_copy_request(
     object: uuid::Uuid,
     items: Vec<block_net::build::TaskItem>,

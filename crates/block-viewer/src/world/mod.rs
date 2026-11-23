@@ -205,7 +205,7 @@ pub struct Region {
     /// GameControlData (LLViewerRegion::gameControlEnabled).
     pub game_control: bool,
     pub max_link_children: Option<u32>,
-    /// OpenRegionInfo (Aurora-Sim based grids): the Region / Estate
+    /// OpenRegionInfo (Block-Sim based grids): the Region / Estate
     /// window's "Region settings".
     pub open_settings: Option<block_net::open_region::OpenRegionSettings>,
     pub animated_object_max_tris: u32,
@@ -435,7 +435,7 @@ fn heard_from(kind: ChatKind, dnd: bool) -> bool {
 }
 
 /// Drawn speed (m/s) under which our walk stops after a release, with
-/// Aurora's movement (`World::update_own_locomotion`).
+/// Block's movement (`World::update_own_locomotion`).
 const GLIDE_WALKING: f32 = 0.5;
 
 /// First known simulator signal, independent of visibility and asset loading.
@@ -595,7 +595,7 @@ pub struct World {
     /// The announced restart of the agent's region (region_restart.rs).
     pub region_restart: region_restart::Tracker,
     pub movement_complete: bool,
-    /// AURORA_DEMO_OUTFIT_RESTORE: the demo region answers the outfit
+    /// BLOCK_DEMO_OUTFIT_RESTORE: the demo region answers the outfit
     /// restore, which then starts without the inventory capability.
     pub demo_outfit_region: bool,
     pub avatar_lib: Arc<AvatarLibrary>,
@@ -771,7 +771,7 @@ pub struct World {
     pub animations: HashMap<Uuid, Vec<PlayingAnimation>>,
     /// AO remapping applies only to our rendered pose, never movement signals.
     pub ao_pose: Option<Vec<PlayingAnimation>>,
-    /// Aurora's movement: our walk, run, crouch and fly started and
+    /// Block's movement: our walk, run, crouch and fly started and
     /// stopped with the keys over the simulator's signals (own_motion.rs),
     /// and the list drawn instead of `animations` while it differs.
     own_locomotion: crate::own_motion::Locomotion,
@@ -808,7 +808,7 @@ pub struct World {
     /// The photo's isolation (`snapshot::isolate`): read with the parcel
     /// filter by `parcel_object_visibility`.
     pub photo_isolation: crate::snapshot::isolate::Isolation,
-    /// Inventory item of the Aurora bridge while its factory sets it up
+    /// Inventory item of the Block bridge while its factory sets it up
     /// (`bridge::Bridge::update`), nil otherwise: its worn object is the
     /// Library container until the simulator applies its new look, and the
     /// HUD pass leaves it out (`concealed`, `Scene::build_huds`).
@@ -1574,7 +1574,7 @@ impl World {
 
     /// Behaviour of LLAgent::teleportCore(is_local), indra/newview/llagent.cpp:
     /// track local teleports without showing progress. Intentional difference
-    /// requested for Aurora: local teleports are also silent.
+    /// requested for Block: local teleports are also silent.
     pub fn begin_teleport(&mut self, show_progress: bool) {
         self.cancel_friend_join_flight();
         self.cancel_friend_join();
@@ -1782,7 +1782,7 @@ impl World {
     fn inventory_cache_path(&self) -> Option<std::path::PathBuf> {
         // The fetch demo starts cold on purpose: a cache from an earlier run
         // would restore the folders and the walk would have nothing to load.
-        if std::env::var_os("AURORA_DEMO").is_some() && inventory::demo::big().is_some_and(|big| big.fetch) {
+        if std::env::var_os("BLOCK_DEMO").is_some() && inventory::demo::big().is_some_and(|big| big.fetch) {
             return None;
         }
         let dir = self.cache_dir.as_ref()?;
@@ -2246,7 +2246,7 @@ impl World {
         self.agent.constrain_prediction(clipped, clipped != end);
     }
 
-    /// When our avatar's report counts from: with Aurora's movement, when
+    /// When our avatar's report counts from: with Block's movement, when
     /// the network read it (item 6 of the network audit); with Firestorm's,
     /// the frame that applies it, as on Firestorm (`mLastInterpUpdateSecs`).
     /// The other objects take the reading time in both (`ObjectStore::report_clock`).
@@ -2285,7 +2285,7 @@ impl World {
     }
 
     /// Start or stop our walk, run, crouch and fly animations with the keys
-    /// (`intent`), with Aurora's movement on; off, or seated, in a teleport
+    /// (`intent`), with Block's movement on; off, or seated, in a teleport
     /// or before the arrival, the simulator's signals as they are.
     /// `window`: how long a local start or stop waits for the simulator.
     pub fn update_own_locomotion(
@@ -3792,7 +3792,7 @@ impl World {
                 // shape glides to its new values (setAnimationTarget), its
                 // first appearance lands at once; from what it shows now
                 // when a glide is under way. Within shape_tween::RANGE only.
-                // (Aurora's own: from the kept look too, which was drawn)
+                // (Block's own: from the kept look too, which was drawn)
                 if !own {
                     let from = self
                         .shape_tweens
@@ -5958,7 +5958,7 @@ impl World {
             .link_name(id, name, notifications::NameTarget::Experience(q.experience));
         self.link_object_notification(id, q.task, &object, &owner);
         // process_script_experience_details: UISndQuestionExperience, off by
-        // default like the Legacy Viewer's (Aurora played the script
+        // default like the Legacy Viewer's (Block played the script
         // dialog's sound here before the sound existed)
         self.ui_sounds.push(UiSound::QuestionExperience);
     }
@@ -6368,7 +6368,7 @@ impl World {
             ImKind::Group => prefs.group_im,
             ImKind::Private | ImKind::Conference => prefs.im,
         };
-        // Aurora's paused bell still keeps them in "To do", silently; a
+        // Block's paused bell still keeps them in "To do", silently; a
         // toast alone has nothing to show then
         if !wanted || in_sight || (self.status.dnd && !(self.notifications.aurora && prefs.im_in_bell)) {
             return;
@@ -6643,7 +6643,7 @@ impl World {
             let id = o.full_id;
             let is_self = id == self.agent_id && self.agent.has_local_control();
             // the walk the simulator signals (mSignaledAnimations), ours
-            // with Aurora's movement
+            // with Block's movement
             let walking = step_back && {
                 let signals = if id == self.agent_id {
                     self.own_signals()
@@ -6654,7 +6654,7 @@ impl World {
             };
             let input = if is_self {
                 let a = &self.agent;
-                // (with Aurora's movement, the velocity it is drawn at)
+                // (with Block's movement, the velocity it is drawn at)
                 let velocity = a.drawn_velocity();
                 body::Input {
                     prim_dir: a.forward(),
@@ -10221,7 +10221,7 @@ mod motion_tests {
         (world, update, handle)
     }
 
-    /// Item 6 of the network audit: with Aurora's movement our avatar's
+    /// Item 6 of the network audit: with Block's movement our avatar's
     /// report moves from when the network read it, not from when a frame
     /// got to it; with Firestorm's, from the frame, as on Firestorm.
     #[test]
@@ -10265,11 +10265,11 @@ mod motion_tests {
         assert!(moved < 0.1, "{moved}");
     }
 
-    /// Aurora's movement starts our walk with the key, over the
+    /// Block's movement starts our walk with the key, over the
     /// simulator's signals, which stay as they came; off, or seated, the
     /// simulator's list alone.
     #[test]
-    fn with_aurora_movement_our_walk_follows_the_keys_but_never_seated() {
+    fn with_block_movement_our_walk_follows_the_keys_but_never_seated() {
         use crate::own_motion::{ANIM_STAND, ANIM_WALK, Intent};
         let (mut world, _, _) = arrived_fixture();
         let me = world.agent_id;
@@ -10319,7 +10319,7 @@ mod motion_tests {
         world.agent.set_predicting(true);
         world.agent.position -= Vec3::X * 0.2;
         world.agent.update(&Default::default(), false, 1.0 / 60.0, 3.0);
-        assert!(world.own_motion_moving(), "Aurora's drawn glide must settle too");
+        assert!(world.own_motion_moving(), "Block's drawn glide must settle too");
         for _ in 0..180 {
             world.agent.update(&Default::default(), false, 1.0 / 60.0, 3.0);
         }

@@ -141,7 +141,7 @@ impl Installer {
                 enabled: mode == "installer-done",
                 plugin_version: (mode == "installer-done").then(|| addon::version().into()),
                 profile: "Blender/profile".into(),
-                target: "Blender/profile/extensions/aurora_live_mesh".into(),
+                target: "Blender/profile/extensions/block_live_mesh".into(),
                 error: (mode == "installer-error").then(|| block_i18n::tr!("blender-live-installer-no-report").into()),
                 ..Default::default()
             };
@@ -309,7 +309,7 @@ fn install_selected(executable: &Path, mut run: impl FnMut(&Path, bool) -> Resul
     }
 }
 
-/// One Blender looked at by the removal of Aurora's add-on.
+/// One Blender looked at by the removal of Block's add-on.
 #[derive(Clone, Debug)]
 pub(crate) struct Removal {
     pub executable: PathBuf,
@@ -321,7 +321,7 @@ pub(crate) struct Removal {
     pub error: Option<String>,
 }
 
-/// Removes Aurora's add-on from every Blender found (as the scan finds
+/// Removes Block's add-on from every Blender found (as the scan finds
 /// them, with the ones chosen by hand) whose profile has it. Runs Blender
 /// itself, up to minutes: on a worker or the command line only.
 pub(crate) fn remove_everywhere() -> Vec<Removal> {
@@ -329,7 +329,7 @@ pub(crate) fn remove_everywhere() -> Vec<Removal> {
     remove_from(installations, |executable| bridge(command(executable), Operation::Uninstall))
 }
 
-/// The uninstall of each installation that reports Aurora's package; a
+/// The uninstall of each installation that reports Block's package; a
 /// Blender whose probe failed is left alone (nothing says the add-on is
 /// there, and its profile could not be read).
 fn remove_from(installations: Vec<Installation>, mut run: impl FnMut(&Path) -> Result<Report, String>) -> Vec<Removal> {
@@ -337,14 +337,14 @@ fn remove_from(installations: Vec<Installation>, mut run: impl FnMut(&Path) -> R
         .into_iter()
         .filter(|i| {
             if let Some(error) = &i.report.error {
-                log::warn!("Aurora's Blender add-on: {} not checked ({error})", i.executable.display());
+                log::warn!("Block's Blender add-on: {} not checked ({error})", i.executable.display());
                 return false;
             }
             i.report.plugin_version.is_some() || i.report.enabled
         })
         .map(|i| {
             let backups =
-                Some(i.report.profile.join("aurora-backups")).filter(|dir| !i.report.profile.as_os_str().is_empty() && dir.is_dir());
+                Some(i.report.profile.join("block-backups")).filter(|dir| !i.report.profile.as_os_str().is_empty() && dir.is_dir());
             match run(&i.executable) {
                 Ok(report) => Removal {
                     executable: i.executable,
@@ -532,7 +532,7 @@ fn scan(manual: &[PathBuf]) -> Vec<Installation> {
 struct Temporary(PathBuf);
 impl Temporary {
     fn new() -> Result<Self, String> {
-        let path = std::env::temp_dir().join(format!("aurora-blender-{}", uuid::Uuid::new_v4()));
+        let path = std::env::temp_dir().join(format!("block-blender-{}", uuid::Uuid::new_v4()));
         std::fs::create_dir(&path).map_err(|e| e.to_string())?;
         Ok(Self(path))
     }
@@ -567,8 +567,8 @@ fn command(executable: &Path) -> Command {
 enum Operation {
     Probe,
     Install,
-    /// Disables and deletes Aurora's package (`--uninstall`, Preferences ›
-    /// Remove Aurora from this computer); install's backups stay.
+    /// Disables and deletes Block's package (`--uninstall`, Preferences ›
+    /// Remove Block from this computer); install's backups stay.
     Uninstall,
 }
 

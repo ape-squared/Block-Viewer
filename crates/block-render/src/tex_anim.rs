@@ -6,7 +6,7 @@
 //! originally LGPL 2.1.
 //!
 //! Firestorm evaluates every animation once per frame on the CPU and loads a
-//! texture matrix per face (`texture_matrix0`). Aurora writes the animation
+//! texture matrix per face (`texture_matrix0`). Block writes the animation
 //! into the face's draw record once, when it changes, and the vertex shaders
 //! evaluate it against the renderer clock (`tex_anim_*` in object.wgsl, a
 //! line-by-line copy of [`clock_counter`] and [`frame_from_counter`]): no

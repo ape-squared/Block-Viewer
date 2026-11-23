@@ -1,6 +1,6 @@
 //! Volumetric clouds in the offline demo
-//! (`AURORA_DEMO_CLOUDS=fair|broken|stratocumulus|overcast`): the setting
-//! Preferences › Aurora › Clouds is turned on, and the region answers its
+//! (`BLOCK_DEMO_CLOUDS=fair|broken|stratocumulus|overcast`): the setting
+//! Preferences › Block › Clouds is turned on, and the region answers its
 //! ExtEnvironment with a one-key day whose sky is fixed: the sun high in the
 //! south-east, the Legacy Viewer's haze and cloud colours, and a cover that
 //! gives the preset's cloud type (block-render `clouds.rs`: the type follows
@@ -13,7 +13,7 @@
 //! - `stratocumulus`: a lumpy sheet with gaps.
 //! - `overcast`: a grey stratus sheet.
 //!
-//! `AURORA_CLOUDS=legacy` keeps the same sky with the Legacy Viewer's layer
+//! `BLOCK_CLOUDS=legacy` keeps the same sky with the Legacy Viewer's layer
 //! (before / after).
 
 use super::HANDLE;
@@ -32,8 +32,8 @@ const REGION_FRAME: u64 = 40;
 pub fn scenario() -> Option<&'static str> {
     static S: OnceLock<Option<&'static str>> = OnceLock::new();
     *S.get_or_init(|| {
-        std::env::var_os("AURORA_DEMO")?;
-        preset(&std::env::var("AURORA_DEMO_CLOUDS").ok()?)
+        std::env::var_os("BLOCK_DEMO")?;
+        preset(&std::env::var("BLOCK_DEMO_CLOUDS").ok()?)
     })
 }
 
@@ -83,9 +83,9 @@ fn sky(cloud_shadow: f32) -> Llsd {
 /// takes the upper half of the picture.
 pub fn view_direction() -> Option<Vec3> {
     scenario()?;
-    // AURORA_DEMO_CLOUDS_PITCH=<degrees>: a lower or higher view (the clouds
+    // BLOCK_DEMO_CLOUDS_PITCH=<degrees>: a lower or higher view (the clouds
     // at the horizon are seen at 1 to 3 degrees)
-    let degrees = std::env::var("AURORA_DEMO_CLOUDS_PITCH")
+    let degrees = std::env::var("BLOCK_DEMO_CLOUDS_PITCH")
         .ok()
         .and_then(|v| v.trim().parse::<f32>().ok())
         .map_or(12.0, |v| v.clamp(-10.0, 60.0));

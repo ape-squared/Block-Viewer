@@ -46,7 +46,7 @@ impl Saving {
         let progress = Arc::new(AtomicU32::new(0));
         let (tx, rx) = crossbeam_channel::bounded(1);
         let p = progress.clone();
-        let spawned = std::thread::Builder::new().name("aurora-photo-save".into()).spawn(move || {
+        let spawned = std::thread::Builder::new().name("block-photo-save".into()).spawn(move || {
             let _ = tx.send(save(job, &p));
         });
         if let Err(e) = spawned {

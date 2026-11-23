@@ -1,4 +1,4 @@
-//! AURORA_DEMO_OMNIFILTER=1: the Omnifilter (`crate::omnifilter`,
+//! BLOCK_DEMO_OMNIFILTER=1: the Omnifilter (`crate::omnifilter`,
 //! `world/omnifilter.rs`) on for this run with rules of its own, never
 //! saved, and the Rules Editor open. From frame 700, nearby chat, an IM and
 //! two script dialogs arrive: the shouter's line is hidden, the
@@ -16,7 +16,7 @@ use uuid::Uuid;
 pub const OPEN: u64 = 640;
 
 pub fn on() -> bool {
-    std::env::var_os("AURORA_DEMO_OMNIFILTER").is_some()
+    std::env::var_os("BLOCK_DEMO_OMNIFILTER").is_some()
 }
 
 /// On, the demo's rule set, for this run.

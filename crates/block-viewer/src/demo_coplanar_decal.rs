@@ -1,4 +1,4 @@
-//! AURORA_DEMO_COPLANAR_DECAL=1|mask|blend|layers: blended faces lying
+//! BLOCK_DEMO_COPLANAR_DECAL=1|mask|blend|layers: blended faces lying
 //! exactly on an opaque face of the same mesh (issue #3059), and on one
 //! another.
 //!
@@ -17,7 +17,7 @@
 //! mesh eye are: face 0 the grass, face 1 a blue disc, face 2 a smaller
 //! black disc, face 3 two white dots, the three of them blended. Each must
 //! lie over the faces before it whatever the order of transparent surfaces
-//! (`AURORA_BLEND_ORDER`): the Legacy Viewer draws blended faces at one
+//! (`BLOCK_BLEND_ORDER`): the Legacy Viewer draws blended faces at one
 //! distance in the order of the faces (`stacked_layer_rank`, scene/mod.rs).
 
 use super::*;
@@ -63,7 +63,7 @@ impl Mode {
 }
 
 fn mode() -> Option<Mode> {
-    match std::env::var("AURORA_DEMO_COPLANAR_DECAL").ok()?.trim() {
+    match std::env::var("BLOCK_DEMO_COPLANAR_DECAL").ok()?.trim() {
         "mask" => Some(Mode::Mask),
         "blend" => Some(Mode::Blend),
         "layers" => Some(Mode::Layers),

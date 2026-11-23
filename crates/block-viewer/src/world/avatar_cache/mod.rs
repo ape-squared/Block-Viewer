@@ -1,5 +1,5 @@
 //! Avatars drawn from a cache while the region sends them: their look and
-//! what they wear. Aurora's own: the Legacy Viewer draws an avatar as a
+//! what they wear. Block's own: the Legacy Viewer draws an avatar as a
 //! cloud until its appearance comes, and its attachments only once the
 //! region has sent them. At login our outfit took 15 to 74 s to be whole
 //! (the region puts back about half of it by itself, `outfit.rs` asks for
@@ -96,7 +96,7 @@ impl Io {
     fn start(dir: PathBuf) -> Option<Io> {
         let (jobs, todo) = std::sync::mpsc::channel::<Job>();
         let (done, read) = std::sync::mpsc::channel();
-        let spawned = std::thread::Builder::new().name("aurora-avatar-cache".into()).spawn(move || {
+        let spawned = std::thread::Builder::new().name("block-avatar-cache".into()).spawn(move || {
             for job in todo {
                 match job {
                     Job::Read(avatar, path) => {

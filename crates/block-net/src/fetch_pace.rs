@@ -4,7 +4,7 @@
 //! The Legacy Viewer gives each kind of asset its own connections and keeps
 //! up to 5 pipelined requests on each (`LLAppCoreHttp::init_data`,
 //! `_httppolicy.cpp`), about 40 textures, 40 meshes and 60 other assets in
-//! flight; Aurora's client does not pipeline (HTTP/1.1, one request per
+//! flight; Block's client does not pipeline (HTTP/1.1, one request per
 //! connection) and had 24 for everything. In cold-cache arrivals at KB on
 //! 2026-10-27, on a fast link, those 24 were the limit: about 450 requests
 //! a second (24 over ~50 ms each) with up to 7,400 waiting while the link
@@ -23,16 +23,16 @@
 //!   a transport error;
 //! - never below the 24 of before, never above `MAX`.
 //!
-//! `AURORA_FETCH_SLOTS=<n>` fixes it for a launch, to compare.
+//! `BLOCK_FETCH_SLOTS=<n>` fixes it for a launch, to compare.
 
 use std::time::{Duration, Instant};
 
-/// The fixed number Aurora used before, and the floor of the limit.
+/// The fixed number Block used before, and the floor of the limit.
 pub const MIN: usize = 24;
 /// The ceiling: past 128 at once the arrivals at KB gained little. It sits
 /// near the Legacy Viewer's total (about 28 connections with pipelining,
 /// some 140 requests in flight, `LLAppCoreHttp::init_data` in
-/// llappcorehttp.cpp), a little above because Aurora's requests are not
+/// llappcorehttp.cpp), a little above because Block's requests are not
 /// pipelined. It is reached only while requests wait and the hosts still
 /// answer as fast as when idle: a 429 or 503 halves the limit, a first
 /// byte twice as slow takes a fifth off, and the "Limited" connections
@@ -79,7 +79,7 @@ pub struct Pace {
 }
 
 impl Pace {
-    /// Adaptive, or fixed at `fixed` (`AURORA_FETCH_SLOTS`).
+    /// Adaptive, or fixed at `fixed` (`BLOCK_FETCH_SLOTS`).
     pub fn new(fixed: Option<usize>, now: Instant) -> Pace {
         let (min, max) = match fixed {
             Some(n) => (n, n),

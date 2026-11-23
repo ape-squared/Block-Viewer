@@ -20,7 +20,7 @@
 //!
 //! A save reports its own failure (a log line, or a message it hands back
 //! to the frame through a channel of its own): the queue only orders them.
-//! Aurora's own: the Legacy Viewer writes these files on its main thread
+//! Block's own: the Legacy Viewer writes these files on its main thread
 //! (LLControlGroup::saveToFile, indra/llxml/llcontrol.cpp;
 //! LLInventoryModel::saveToFile, indra/newview/llinventorymodel.cpp). The
 //! files and what they hold are the same.
@@ -117,7 +117,7 @@ fn queue(saves: &Arc<Saves>, path: PathBuf, whole: bool, job: Job) {
     let worker = Arc::clone(saves);
     let thread_path = path.clone();
     let spawned = std::thread::Builder::new()
-        .name("aurora-save".into())
+        .name("block-save".into())
         .spawn(move || worker.run(&thread_path));
     if let Err(e) = spawned {
         // written here, as before the save threads

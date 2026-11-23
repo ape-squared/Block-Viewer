@@ -1,5 +1,5 @@
 //! Volumetric clouds: a sky-attached layer raymarched in compute and
-//! composited into the sky pass (shaders/clouds.wgsl), an Aurora choice
+//! composited into the sky pass (shaders/clouds.wgsl), a Block choice
 //! beside the Legacy Viewer's flat cloud layer (the Legacy path is the one
 //! the sky shader already has; nothing here runs with the setting off).
 //!
@@ -178,12 +178,12 @@ impl Params {
     }
 }
 
-/// `AURORA_CLOUDS_DEBUG=weather`: the weather map's coverage instead of the
+/// `BLOCK_CLOUDS_DEBUG=weather`: the weather map's coverage instead of the
 /// clouds; `slice`: vertical slices of the density, for measuring the aspect
 /// of the heaps (0: the clouds).
 fn debug_view() -> u32 {
     static VIEW: std::sync::OnceLock<u32> = std::sync::OnceLock::new();
-    *VIEW.get_or_init(|| match std::env::var("AURORA_CLOUDS_DEBUG").as_deref().map(str::trim) {
+    *VIEW.get_or_init(|| match std::env::var("BLOCK_CLOUDS_DEBUG").as_deref().map(str::trim) {
         Ok("weather") => 1,
         Ok("slice") => 2,
         _ => 0,
@@ -476,7 +476,7 @@ impl Clouds {
         use wgpu::TextureFormat::Rgba8Unorm;
         let module = device.create_shader_module(wgpu::ShaderModuleDescriptor {
             label: Some("clouds"),
-            // (AURORA_DEMO_WATER_SHADERS=1 reads it from the source folder
+            // (BLOCK_DEMO_WATER_SHADERS=1 reads it from the source folder
             // in the demo: tune without a build)
             source: wgpu::ShaderSource::Wgsl(crate::water_shader_source(&["clouds.wgsl"], include_str!("shaders/clouds.wgsl"))),
         });

@@ -4,7 +4,7 @@
 //!
 //! - ViewerFrozenMessage carries one BOOL. process_frozen_message
 //!   (indra/newview/llviewermessage.cpp, originally LGPL 2.1) only resets the
-//!   busy cursor ("TODO: make being frozen change view"); Aurora keeps the
+//!   busy cursor ("TODO: make being frozen change view"); Block keeps the
 //!   state to show it on the navigation bar while it lasts.
 //! - The words come with an AlertMessage whose AlertInfo names the
 //!   notification (attempt_standard_notification): `AvatarFrozen`,

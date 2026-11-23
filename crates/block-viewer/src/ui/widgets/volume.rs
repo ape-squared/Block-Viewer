@@ -32,11 +32,11 @@ fn key() -> egui::Id {
     egui::Id::unique("perceptual_volume_sliders")
 }
 
-/// `AURORA_PERCEPTUAL_VOLUME=0|1`: the curve forced for this launch, for
+/// `BLOCK_PERCEPTUAL_VOLUME=0|1`: the curve forced for this launch, for
 /// demo captures, without touching the saved setting.
 pub fn perceptual_override() -> Option<bool> {
     static OVERRIDE: std::sync::OnceLock<Option<bool>> = std::sync::OnceLock::new();
-    *OVERRIDE.get_or_init(|| match std::env::var("AURORA_PERCEPTUAL_VOLUME").as_deref().map(str::trim) {
+    *OVERRIDE.get_or_init(|| match std::env::var("BLOCK_PERCEPTUAL_VOLUME").as_deref().map(str::trim) {
         Ok("1") => Some(true),
         Ok("0") => Some(false),
         _ => None,
@@ -44,7 +44,7 @@ pub fn perceptual_override() -> Option<bool> {
 }
 
 /// Publishes the setting for the frame's sliders (once per UI frame, by
-/// the app); `AURORA_PERCEPTUAL_VOLUME` wins over it.
+/// the app); `BLOCK_PERCEPTUAL_VOLUME` wins over it.
 pub fn set_perceptual_volume(ctx: &egui::Context, on: bool) {
     let on = perceptual_override().unwrap_or(on);
     ctx.data_mut(|d| d.insert_temp(key(), on));

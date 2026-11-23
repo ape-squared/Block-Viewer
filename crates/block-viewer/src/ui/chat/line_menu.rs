@@ -164,7 +164,7 @@ pub(super) fn show(ui: &Ui, id: Id, p: &Palette, body: impl FnOnce(&mut Ui, &Tar
 /// A real right click in the visible transcript, for offline captures.
 pub(super) fn demo_mark(ui: &Ui, drawn: &[super::select::Row]) {
     static ENABLED: std::sync::LazyLock<bool> =
-        std::sync::LazyLock::new(|| std::env::var("AURORA_DEMO_CONV_LINE_MENU").is_ok_and(|v| v == "1"));
+        std::sync::LazyLock::new(|| std::env::var("BLOCK_DEMO_CONV_LINE_MENU").is_ok_and(|v| v == "1"));
     if !*ENABLED || ui.is_sizing_pass() {
         return;
     }

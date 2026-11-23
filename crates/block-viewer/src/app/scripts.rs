@@ -68,7 +68,7 @@ default
 }
 "#;
 
-/// `AURORA_DEMO_SCRIPTS=lua`: a Lua (SLua) source, item subtype SST_LUA.
+/// `BLOCK_DEMO_SCRIPTS=lua`: a Lua (SLua) source, item subtype SST_LUA.
 const LUA_DEMO_SOURCE: &str = r#"-- A Lua script: saved for the Luau VM, never as LSL
 local function greet(name: string)
     ll.Say(0, "Hello, " .. name .. "!")
@@ -146,7 +146,7 @@ impl App {
         if !self.demo {
             return;
         }
-        let Ok(mode) = std::env::var("AURORA_DEMO_SCRIPTS") else { return };
+        let Ok(mode) = std::env::var("BLOCK_DEMO_SCRIPTS") else { return };
         if matches!(mode.as_str(), "insert-filter" | "insert-empty") {
             raw.events
                 .extend(self.script_editors.demo_insertion_events(&self.egui_ctx, self.frame_count, &mode));
@@ -223,7 +223,7 @@ impl App {
     }
 
     pub(super) fn demo_script_steps(&mut self) {
-        let Ok(mode) = std::env::var("AURORA_DEMO_SCRIPTS") else { return };
+        let Ok(mode) = std::env::var("BLOCK_DEMO_SCRIPTS") else { return };
         let syntax_demo = matches!(
             mode.as_str(),
             "syntax"
@@ -404,7 +404,7 @@ impl App {
                 self.world.inventory.add_items(vec![include]);
                 self.demo_script_sources.insert(
                     target,
-                    "#pragma once\ngreet(integer channel) { llSay(channel, \"Bonjour, Aurora !\"); }".into(),
+                    "#pragma once\ngreet(integer channel) { llSay(channel, \"Bonjour, Block !\"); }".into(),
                 );
             }
         }
@@ -464,7 +464,7 @@ impl App {
             };
             if let Some(action) = self
                 .script_editors
-                .demo_edit(target, LUA_DEMO_SOURCE.replace("Avatar", "Aurora"), true)
+                .demo_edit(target, LUA_DEMO_SOURCE.replace("Avatar", "Block"), true)
             {
                 self.apply_script_action(action);
             }
@@ -488,9 +488,9 @@ impl App {
                 }
             };
             let source = if mode == "error" {
-                DEFAULT_SOURCE.replace("llSay(0, \"Hello, Avatar!\");", "AURORA_DEMO_SYNTAX_ERROR")
+                DEFAULT_SOURCE.replace("llSay(0, \"Hello, Avatar!\");", "BLOCK_DEMO_SYNTAX_ERROR")
             } else {
-                DEFAULT_SOURCE.replace("Hello, Avatar!", "Bonjour, Aurora !")
+                DEFAULT_SOURCE.replace("Hello, Avatar!", "Bonjour, Block !")
             };
             if let Some(action) = self.script_editors.demo_edit(target, source, true) {
                 self.apply_script_action(action);
@@ -818,7 +818,7 @@ impl App {
         }
     }
 
-    /// AURORA_DEMO_EDITOR_SYNC=1|<port>: the sync turned on for the run,
+    /// BLOCK_DEMO_EDITOR_SYNC=1|<port>: the sync turned on for the run,
     /// the demo script sent to the external editor, and a local editor
     /// (block_editor_sync::demo_client) that proves itself, follows it and
     /// gets the result of a save with an error. Everything stays on
@@ -828,7 +828,7 @@ impl App {
         if !self.demo {
             return;
         }
-        let Ok(mode) = std::env::var("AURORA_DEMO_EDITOR_SYNC") else {
+        let Ok(mode) = std::env::var("BLOCK_DEMO_EDITOR_SYNC") else {
             return;
         };
         let target = ScriptTarget {
@@ -862,7 +862,7 @@ impl App {
             let title = match seen {
                 Seen::Followed { success: true, .. } => {
                     // a save with an error: its result goes to the editor
-                    let source = DEFAULT_SOURCE.replace("llSay(0, \"Hello, Avatar!\");", "AURORA_DEMO_SYNTAX_ERROR");
+                    let source = DEFAULT_SOURCE.replace("llSay(0, \"Hello, Avatar!\");", "BLOCK_DEMO_SYNTAX_ERROR");
                     if let Some(action) = self.script_editors.demo_edit(target, source, true) {
                         self.apply_script_action(action);
                     }
@@ -1014,7 +1014,7 @@ impl App {
             } => {
                 // A named marker simulates a server diagnostic in demo mode;
                 // this is deliberately not a local LSL compiler.
-                let compiled = !source.contains("AURORA_DEMO_SYNTAX_ERROR");
+                let compiled = !source.contains("BLOCK_DEMO_SYNTAX_ERROR");
                 log::info!("demo scripts: saved {} for target {}", target.item, options.compile.name());
                 let asset = Uuid::new_v4();
                 self.demo_script_sources.insert(*target, source.clone());

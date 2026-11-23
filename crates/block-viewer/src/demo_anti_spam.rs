@@ -124,10 +124,10 @@ pub fn lone_events() -> Option<Vec<NetEvent>> {
 }
 
 pub fn events(agent: Uuid) -> Vec<NetEvent> {
-    if std::env::var("AURORA_DEMO_ANTI_SPAM").as_deref() == Ok("burst") {
+    if std::env::var("BLOCK_DEMO_ANTI_SPAM").as_deref() == Ok("burst") {
         return burst_events();
     }
-    if std::env::var("AURORA_DEMO_ANTI_SPAM").as_deref() == Ok("text") {
+    if std::env::var("BLOCK_DEMO_ANTI_SPAM").as_deref() == Ok("text") {
         let mut out: Vec<_> = (0..4).map(|n| offer(agent, agent, 9, n)).collect();
         let text = format!("{}\n", block_i18n::tr!("anti-spam-demo-offer")).repeat(6);
         out.push(NetEvent::Chat(ChatMessage {

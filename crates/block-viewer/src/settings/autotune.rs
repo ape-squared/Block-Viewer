@@ -27,7 +27,7 @@
 //! Differences, all stricter or safer than the Legacy Viewer (TASKS.md):
 //! - The avatar lever is the number of avatars drawn in full
 //!   (RenderAvatarMaxNonImpostors), not a render time per avatar
-//!   (RenderAvatarMaxART): Aurora's renderer does not time each avatar. As
+//!   (RenderAvatarMaxART): Block's renderer does not time each avatar. As
 //!   the Legacy Viewer leaves its five nearest avatars untuned
 //!   (MIN_NONTUNED_AVS), ours and the five nearest stay in full
 //!   ([`AVATAR_FLOOR`]). Avatars the user set to always render fully, and
@@ -92,7 +92,7 @@ pub const DISTANCE_MARGIN: f32 = 4.0;
 pub const RESUME_WAIT: Duration = Duration::from_secs(5);
 /// Draw distance step (DD_STEP, m).
 pub const DD_STEP: f32 = 10.0;
-/// The lowest draw distance Aurora allows (`settings::DRAW_DISTANCE_MIN`).
+/// The lowest draw distance Block allows (`settings::DRAW_DISTANCE_MIN`).
 pub const DD_FLOOR: f32 = crate::settings::DRAW_DISTANCE_MIN;
 /// The avatars Autotune keeps in full: ours and the five nearest
 /// (MIN_NONTUNED_AVS = 5, llvoavatar.cpp).
@@ -244,7 +244,7 @@ impl Hold {
         }
     }
 
-    /// Writes `to`, held within the user's values and Aurora's bounds: never
+    /// Writes `to`, held within the user's values and Block's bounds: never
     /// above the user's, never under the floors. Does nothing while another
     /// hold has the live values.
     pub fn write(&mut self, s: &mut Settings, to: Tuned) {

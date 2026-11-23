@@ -35,8 +35,8 @@ pub struct UpdateDemo {
 
 impl UpdateDemo {
     pub fn from_env(settings: &Settings) -> Option<Self> {
-        std::env::var_os("AURORA_DEMO")?;
-        let mode = std::env::var("AURORA_DEMO_UPDATE").ok()?;
+        std::env::var_os("BLOCK_DEMO")?;
+        let mode = std::env::var("BLOCK_DEMO_UPDATE").ok()?;
         let mut settings = settings.clone();
         settings.username.clear();
         settings.remember_username = false;
@@ -503,7 +503,7 @@ pub fn show_real(
 }
 
 fn demo_maintenance() -> block_updater::Maintenance {
-    let choice = std::env::var("AURORA_DEMO_UPDATE_MAINTENANCE").unwrap_or_default();
+    let choice = std::env::var("BLOCK_DEMO_UPDATE_MAINTENANCE").unwrap_or_default();
     block_updater::Maintenance {
         clear_cache: matches!(choice.as_str(), "cache" | "both"),
         reset_settings: matches!(choice.as_str(), "settings" | "both"),

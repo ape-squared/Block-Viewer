@@ -211,7 +211,7 @@ pub struct Renderer {
     motion_cut: bool,
     /// `shift_world`'s moves not yet sent with a frame.
     world_shift: [f32; 2],
-    /// Palette bytes written since the last frame (AURORA_PROFILE).
+    /// Palette bytes written since the last frame (BLOCK_PROFILE).
     palettes_uploaded: u64,
     /// Bytes of vertices deformed in place this frame (profile).
     vertices_uploaded: u64,
@@ -222,7 +222,7 @@ pub struct Renderer {
     /// Bumped when the palette or skin binding buffer is reallocated (the
     /// render thread rebuilds the records bind group).
     bind_generation: u64,
-    /// The device can draw the GPU lists (and AURORA_CPU_CULL is not set).
+    /// The device can draw the GPU lists (and BLOCK_CPU_CULL is not set).
     gpu_cull: bool,
     size: (u32, u32),
     vsync: bool,
@@ -256,7 +256,7 @@ pub struct Renderer {
     /// since the last `render` returned.
     last_stats: RenderStats,
     fresh: bool,
-    /// Frame pacing (pacing.rs, on unless AURORA_FRAME_PACING=0): what the
+    /// Frame pacing (pacing.rs, on unless BLOCK_FRAME_PACING=0): what the
     /// GPU has finished, as the backend tells it; the last wait.
     gpu_frames: Arc<crate::pacing::GpuFrames<wgpu::SubmissionIndex>>,
     gpu_waited: Duration,
@@ -328,9 +328,9 @@ pub struct Renderer {
     pub second_view: Option<crate::second_view::SecondViewJob>,
     /// Set by the device-lost callback (device_lost.rs).
     lost: DeviceLost,
-    /// AURORA_DEMO_GPU_LOST: the frame the device is taken as lost at.
+    /// BLOCK_DEMO_GPU_LOST: the frame the device is taken as lost at.
     demo_lost: Option<u64>,
-    /// AURORA_DEMO_GPU_HANG: the frame a real GPU hang is submitted at, and
+    /// BLOCK_DEMO_GPU_HANG: the frame a real GPU hang is submitted at, and
     /// the queue it goes on.
     demo_hang: Option<(u64, wgpu::Queue)>,
 }
@@ -360,13 +360,13 @@ impl Renderer {
         let desc = || {
             let mut desc = wgpu::InstanceDescriptor::new_without_display_handle();
             desc.backends = crate::BACKENDS;
-            desc.flags = gpu_instance_flags(std::env::var_os("AURORA_GPU_VALIDATION").is_some());
+            desc.flags = gpu_instance_flags(std::env::var_os("BLOCK_GPU_VALIDATION").is_some());
             desc
         };
         #[cfg(any(target_os = "linux", target_os = "windows", target_os = "macos"))]
         #[allow(unused_mut)] // reassigned only by the Windows AMD-layer fallback below
         let mut xr_graphics = {
-            let demo_xr = std::env::var_os("AURORA_DEMO_XR_DEVICE").is_some() || std::env::var_os("AURORA_DEMO_XR_WORLD").is_some();
+            let demo_xr = std::env::var_os("BLOCK_DEMO_XR_DEVICE").is_some() || std::env::var_os("BLOCK_DEMO_XR_WORLD").is_some();
             if !xr && !demo_xr {
                 log::info!("OpenXR not opened at start: VR is not set up at startup");
                 None
@@ -404,7 +404,7 @@ impl Renderer {
         // session and its notice (crash/summary.rs, gpu_in, gpu_notice_in).
         #[cfg(windows)]
         if adapters.is_empty() {
-            let keep = std::env::var("AURORA_VULKAN_LAYERS").ok();
+            let keep = std::env::var("BLOCK_VULKAN_LAYERS").ok();
             let amd_allowed = crate::vulkan_layers::amd_retry_allowed(
                 keep.as_deref(),
                 std::env::var_os(crate::vulkan_layers::AMD_SWITCHABLE_DISABLE_VARIABLE).is_some(),
@@ -538,7 +538,7 @@ impl Renderer {
             match opened_device {
                 Ok(o) => {
                     let why = match (n, plan.reason) {
-                        (0, crate::adapter_choice::Reason::Wanted) => "the one asked for (AURORA_GPU or Preferences › Graphics)",
+                        (0, crate::adapter_choice::Reason::Wanted) => "the one asked for (BLOCK_GPU or Preferences › Graphics)",
                         (0, _) => "automatic: discrete before integrated, then the most video memory",
                         _ => "the ones before it failed to open",
                     };
@@ -598,9 +598,9 @@ impl Renderer {
         // device's own end at shutdown.
         let lost = DeviceLost::default();
         crate::device_lost::forget_details();
-        // AURORA_GPU_START_FAIL=lost: as if the driver lost the device now
-        if std::env::var("AURORA_GPU_START_FAIL").is_ok_and(|mode| mode == "lost") {
-            log::error!("GPU device lost (Unknown): AURORA_GPU_START_FAIL");
+        // BLOCK_GPU_START_FAIL=lost: as if the driver lost the device now
+        if std::env::var("BLOCK_GPU_START_FAIL").is_ok_and(|mode| mode == "lost") {
+            log::error!("GPU device lost (Unknown): BLOCK_GPU_START_FAIL");
             lost.set_by("start");
         }
         let on_lost = lost.clone();
@@ -638,7 +638,7 @@ impl Renderer {
         let mut writes = GpuWrites::default();
         // (as many textures as the table has slots; `max_textures` bounds
         // the pages they are grouped in)
-        let slots = crate::textures::slot_capacity(std::env::var("AURORA_TEXTURE_SLOTS").ok().as_deref());
+        let slots = crate::textures::slot_capacity(std::env::var("BLOCK_TEXTURE_SLOTS").ok().as_deref());
         let textures = TextureTable::new_with_integrated(
             &device,
             &mut writes,
@@ -671,12 +671,12 @@ impl Renderer {
             if gpu_cull {
                 "culled on the GPU (multi_draw_indexed_indirect_count)"
             } else {
-                "built on the CPU (no MULTI_DRAW_INDIRECT_COUNT, or AURORA_CPU_CULL)"
+                "built on the CPU (no MULTI_DRAW_INDIRECT_COUNT, or BLOCK_CPU_CULL)"
             }
         );
         let anim_clock = crate::tex_anim::AnimClock::new(Instant::now());
         let video_memory = crate::vram::VideoMemoryProbe::new(adapter.clone());
-        let pacing = std::env::var("AURORA_FRAME_PACING").ok();
+        let pacing = std::env::var("BLOCK_FRAME_PACING").ok();
         let gpu_frames = Arc::new(crate::pacing::GpuFrames::new(crate::pacing::wanted(pacing.as_deref())));
         let pace_gate = crate::pacing::Gate::new(crate::pacing::always(pacing.as_deref()));
         #[cfg(any(target_os = "linux", target_os = "windows", target_os = "macos"))]
@@ -695,10 +695,10 @@ impl Renderer {
         // before the first one is made
         crate::pipeline_cache::open(&device, &ainfo);
         crate::start_progress::enter(crate::start_progress::Phase::Pipelines);
-        // AURORA_DEMO_GPU_HANG: a real hang needs the queue on this thread
+        // BLOCK_DEMO_GPU_HANG: a real hang needs the queue on this thread
         let demo_hang = crate::device_lost::demo_frame(
-            std::env::var_os("AURORA_DEMO").is_some(),
-            std::env::var("AURORA_DEMO_GPU_HANG").ok().as_deref(),
+            std::env::var_os("BLOCK_DEMO").is_some(),
+            std::env::var("BLOCK_DEMO_GPU_HANG").ok().as_deref(),
         )
         .filter(|_| !crate::device_lost::DEMO_HANG_TAKEN.swap(true, std::sync::atomic::Ordering::Relaxed))
         .map(|frame| (frame, queue.clone()));
@@ -739,17 +739,13 @@ impl Renderer {
         let blend_exact_supported = backend.blend_exact_supported();
         let can_capture = backend.can_capture();
         let output_format = backend.output_format();
-        let host = Host::new(
-            backend,
-            window,
-            thread_wanted(std::env::var("AURORA_RENDER_THREAD").ok().as_deref()),
-        );
+        let host = Host::new(backend, window, thread_wanted(std::env::var("BLOCK_RENDER_THREAD").ok().as_deref()));
         log::info!(
             "renderer: {}",
             if host.threaded() {
                 "frames drawn by the render thread"
             } else {
-                "frames drawn on the main thread (AURORA_RENDER_THREAD=0)"
+                "frames drawn on the main thread (BLOCK_RENDER_THREAD=0)"
             }
         );
         crate::start_progress::enter(crate::start_progress::Phase::Ready);
@@ -831,8 +827,8 @@ impl Renderer {
             // one of the list for each renderer of the run (a recovery's
             // counts its frames from 0 again)
             demo_lost: crate::device_lost::demo_frame_of(
-                std::env::var_os("AURORA_DEMO").is_some(),
-                std::env::var("AURORA_DEMO_GPU_LOST").ok().as_deref(),
+                std::env::var_os("BLOCK_DEMO").is_some(),
+                std::env::var("BLOCK_DEMO_GPU_LOST").ok().as_deref(),
                 crate::device_lost::DEMO_RENDERERS.fetch_add(1, std::sync::atomic::Ordering::Relaxed),
             ),
             demo_hang,
@@ -1108,7 +1104,7 @@ impl Renderer {
         self.blend_exact_supported
     }
 
-    /// Frames are drawn by the render thread (false: AURORA_RENDER_THREAD=0).
+    /// Frames are drawn by the render thread (false: BLOCK_RENDER_THREAD=0).
     pub fn threaded(&self) -> bool {
         self.host.threaded()
     }
@@ -1478,7 +1474,7 @@ impl Renderer {
         }
         if self.demo_lost == Some(self.frames) && !self.lost.get() {
             self.lost.set_by("demo");
-            log::error!("GPU device lost (Unknown): AURORA_DEMO_GPU_LOST at frame {}", self.frames);
+            log::error!("GPU device lost (Unknown): BLOCK_DEMO_GPU_LOST at frame {}", self.frames);
             log::error!("GPU work at the loss: {}", self.lost.work_at_loss());
         }
         if self.lost.get() {
@@ -1745,7 +1741,7 @@ impl Renderer {
     /// Once a frame is handed over, before the next one reads its input:
     /// wait until the GPU has finished the frame before it (pacing.rs), at
     /// most [`GPU_WAIT`]. The time it took (nothing when the GPU is not the
-    /// limit, or with AURORA_FRAME_PACING=0).
+    /// limit, or with BLOCK_FRAME_PACING=0).
     pub fn wait_for_gpu(&mut self) -> Duration {
         self.gpu_waited = Duration::ZERO;
         if !self.gpu_frames.active() || self.failed || self.stalled || self.lost.get() {
@@ -1868,7 +1864,7 @@ impl Renderer {
     /// Like [`Self::request_pick`], waiting for the answer: for the frame in
     /// flight on the render thread, then for everything the GPU has in its
     /// queue (16 to 20 ms in a region that keeps it busy). What a click did
-    /// before; kept to compare the two (AURORA_CLICK_PICK).
+    /// before; kept to compare the two (BLOCK_CLICK_PICK).
     pub fn pick_world(&mut self, x: f32, y: f32) -> Option<Vec3> {
         let (w, h) = self.size;
         if x < 0.0 || y < 0.0 || x >= w as f32 || y >= h as f32 || self.failed {
@@ -2047,7 +2043,7 @@ fn open_device(
     // Keep the actual water triangles across the near plane. The portable
     // shader path restores their real depth when hardware clamp is absent.
     let portable_water =
-        std::env::var_os("AURORA_DEMO").is_some() && std::env::var("AURORA_DEMO_WATER").is_ok_and(|mode| mode.contains("portable-depth"));
+        std::env::var_os("BLOCK_DEMO").is_some() && std::env::var("BLOCK_DEMO_WATER").is_ok_and(|mode| mode.contains("portable-depth"));
     if afeat.contains(wgpu::Features::DEPTH_CLIP_CONTROL) && !portable_water {
         features |= wgpu::Features::DEPTH_CLIP_CONTROL;
     }
@@ -2075,7 +2071,7 @@ fn open_device(
     features |= afeat & crate::blend_exact::TWO_SOURCES;
     // and the places of their haze whole in its target
     features |= afeat & crate::blend_exact::WIDE_RANGE;
-    // Aurora's own pipeline cache on disk (pipeline_cache.rs)
+    // Block's own pipeline cache on disk (pipeline_cache.rs)
     features |= crate::pipeline_cache::feature(afeat);
     // naga's SampleMask built-in fixed on Vulkan (spirv_fix.rs)
     features |= crate::spirv_fix::feature(afeat);
@@ -2096,7 +2092,7 @@ fn open_device(
         in_all_pools.map_or_else(|| "unknown".to_string(), |n| n.to_string()),
     );
     let descriptor = wgpu::DeviceDescriptor {
-        label: Some("aurora"),
+        label: Some("block"),
         required_features: features,
         required_limits: alim.clone(),
         experimental_features: wgpu::ExperimentalFeatures::disabled(),

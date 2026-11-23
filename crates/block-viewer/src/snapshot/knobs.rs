@@ -1,4 +1,4 @@
-//! The settings of Aurora's looks (issue #969): for each look, the few
+//! The settings of Block's looks (issue #969): for each look, the few
 //! numbers worth changing, as sliders. A setting names its operation in
 //! the look's file and the numbers of that operation it changes
 //! (`LookOp::set_param`); its values are kept per look in the photo's
@@ -72,8 +72,8 @@ const fn vignette(op: usize) -> Knob {
 
 const ALPHA: &[usize] = &[3, 4, 5];
 
-/// The settings of one of Aurora's looks (the operations of its file in
-/// `block-render/src/looks/aurora/`).
+/// The settings of one of Block's looks (the operations of its file in
+/// `block-render/src/looks/block/`).
 pub fn knobs(id: &str) -> &'static [Knob] {
     const SATURATION: &str = "photo-knob-saturation";
     const CONTRAST: &str = "photo-knob-contrast";
@@ -375,11 +375,11 @@ pub fn apply(knobs: &[Knob], ops: &[LookOp], values: &[f32]) -> Vec<LookOp> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use block_render::looks::aurora_looks;
+    use block_render::looks::block_looks;
 
     #[test]
     fn every_setting_names_a_number_of_its_look() {
-        for look in aurora_looks() {
+        for look in block_looks() {
             let knobs = knobs(look.id);
             assert!(!knobs.is_empty(), "{} has no setting", look.id);
             for knob in knobs {

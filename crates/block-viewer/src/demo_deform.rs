@@ -1,4 +1,4 @@
-//! A deformed avatar to reset (AURORA_DEMO_DEFORM, docs/TESTING.md, #272):
+//! A deformed avatar to reset (BLOCK_DEMO_DEFORM, docs/TESTING.md, #272):
 //! a short pose that moves joints plays once on the avatar in front of the
 //! start position, then stops. As in Second Life, the joints keep the
 //! positions it gave them: the neck stays stretched and the shoulders wide
@@ -31,7 +31,7 @@ pub struct Mode {
 pub fn mode() -> Option<Mode> {
     static MODE: std::sync::OnceLock<Option<Mode>> = std::sync::OnceLock::new();
     *MODE.get_or_init(|| {
-        let value = std::env::var("AURORA_DEMO_DEFORM").ok()?;
+        let value = std::env::var("BLOCK_DEMO_DEFORM").ok()?;
         let (own, reset) = match value.trim() {
             "reset" => (false, Some(false)),
             "reset-anim" => (false, Some(true)),

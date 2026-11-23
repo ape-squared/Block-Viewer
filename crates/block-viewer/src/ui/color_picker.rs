@@ -1,4 +1,4 @@
-//! Aurora color picker, following LLFloaterColorPicker and LLToolPipette
+//! Block color picker, following LLFloaterColorPicker and LLToolPipette
 //! (Firestorm, originally LGPL 2.1). RGB/LSL/hex, HSL, saved palette,
 //! pipette and Apply/OK/Cancel use one shared, unquantized sRGB draft.
 

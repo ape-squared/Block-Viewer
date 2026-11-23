@@ -11,7 +11,7 @@
 //!   profile window's same checkbox), our profile asked again at the
 //!   opening.
 //!
-//! The Legacy Viewer sends them with OK; Aurora's preferences apply at
+//! The Legacy Viewer sends them with OK; Block's preferences apply at
 //! once, like its other settings.
 
 use super::{World, notifications};

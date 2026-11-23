@@ -264,7 +264,7 @@ fn clear_light() {
     }
 }
 
-// Every pixel lit, for `AURORA_CONTACT_VARIANT=skip`, which dispatches no
+// Every pixel lit, for `BLOCK_CONTACT_VARIANT=skip`, which dispatches no
 // wavefront (wgpu's clear_texture needs a device feature).
 @compute @workgroup_size(8, 8, 1)
 fn clear(@builtin(global_invocation_id) id: vec3<u32>) {

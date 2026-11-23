@@ -1,4 +1,4 @@
-//! `AURORA_DEMO_BARS=<words>`: the states of the bars for the side-by-side
+//! `BLOCK_DEMO_BARS=<words>`: the states of the bars for the side-by-side
 //! comparisons with the mockup, without touching the saved settings. Words,
 //! separated by commas: `legacy` (Firestorm's bars), `compact` (the place
 //! island as wide as its content), `rights` (the rights named), and one
@@ -67,7 +67,7 @@ pub enum Open {
     TpList,
 }
 
-/// What `AURORA_DEMO_BARS` asks for (nothing without it).
+/// What `BLOCK_DEMO_BARS` asks for (nothing without it).
 #[derive(Debug, Clone, Copy, Default, PartialEq)]
 pub struct DemoBars {
     pub on: bool,
@@ -288,7 +288,7 @@ pub fn parse(value: &str) -> DemoBars {
 /// The demo's request, read once.
 pub fn get() -> DemoBars {
     static DEMO: OnceLock<DemoBars> = OnceLock::new();
-    *DEMO.get_or_init(|| std::env::var("AURORA_DEMO_BARS").map(|v| parse(&v)).unwrap_or_default())
+    *DEMO.get_or_init(|| std::env::var("BLOCK_DEMO_BARS").map(|v| parse(&v)).unwrap_or_default())
 }
 
 #[cfg(test)]

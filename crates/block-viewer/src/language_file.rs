@@ -3,7 +3,7 @@
 //! (`crates/block-i18n/locales/`), read once at startup, so a new file
 //! applies at the next launch. A file that cannot be read leaves the
 //! language of the list. The Legacy Viewer has no such choice: it is an
-//! Aurora addition, for translators and the languages Aurora does not ship.
+//! Block addition, for translators and the languages Block does not ship.
 //!
 //! Only the file's name reaches the log: its folder holds the Windows user
 //! name.
@@ -199,7 +199,7 @@ mod tests {
 
     #[test]
     fn unreadable_files_are_refused_before_the_catalog() {
-        let dir = std::env::temp_dir().join(format!("aurora-language-file-{}", std::process::id()));
+        let dir = std::env::temp_dir().join(format!("block-language-file-{}", std::process::id()));
         std::fs::create_dir_all(&dir).expect("temporary folder");
         assert_eq!(read(&dir.join("missing.ftl")), Err(Failure::Missing));
         let latin1 = dir.join("de.ftl");

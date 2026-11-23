@@ -2,7 +2,7 @@
 
 pub fn rez_mode() -> Option<&'static str> {
     static MODE: std::sync::OnceLock<Option<String>> = std::sync::OnceLock::new();
-    MODE.get_or_init(|| std::env::var("AURORA_DEMO_REZ").ok()).as_deref()
+    MODE.get_or_init(|| std::env::var("BLOCK_DEMO_REZ").ok()).as_deref()
 }
 
 /// Record the real row; scripted tests drag this widget, not a fabricated cargo.
@@ -78,12 +78,12 @@ pub fn rez_events(ctx: &egui::Context, frame: u64, destination: egui::Pos2) -> V
     }
 }
 
-/// `AURORA_DEMO_WORN=inventory|library|sound`: the inventory rows it
+/// `BLOCK_DEMO_WORN=inventory|library|sound`: the inventory rows it
 /// double-clicks, (first frame, item) (`demo::worn::double_clicks`).
 fn worn_clicks() -> &'static [(u64, uuid::Uuid)] {
     static CLICKS: std::sync::OnceLock<Vec<(u64, uuid::Uuid)>> = std::sync::OnceLock::new();
     CLICKS.get_or_init(|| {
-        std::env::var("AURORA_DEMO_WORN")
+        std::env::var("BLOCK_DEMO_WORN")
             .map(|mode| crate::demo::worn::double_clicks(&mode))
             .unwrap_or_default()
     })
@@ -122,7 +122,7 @@ pub fn worn_events(ctx: &egui::Context, frame: u64) -> Vec<egui::Event> {
 }
 
 pub fn events(ctx: &egui::Context, frame: u64) -> Vec<egui::Event> {
-    let Ok(mode) = std::env::var("AURORA_DEMO_WINDOWS") else {
+    let Ok(mode) = std::env::var("BLOCK_DEMO_WINDOWS") else {
         return Vec::new();
     };
     let id = egui::Id::unique("inventory").with("title_double_click");
@@ -182,7 +182,7 @@ fn island_gap(ctx: &egui::Context, top: bool) -> Option<egui::Pos2> {
         .map(|(_, x)| egui::pos2(x, y))
 }
 
-/// `AURORA_DEMO_WINDOWS=reach-top|reach-bottom|reach-right|reach-left|reach-down`:
+/// `BLOCK_DEMO_WINDOWS=reach-top|reach-bottom|reach-right|reach-left|reach-down`:
 /// the real title bar of the inventory is dragged at frames 700–709 into
 /// the widest gap between the top islands, between the bottom ones, or far
 /// past the right, left or bottom edge of the screen, and released there.
@@ -217,13 +217,13 @@ fn reach_events(ctx: &egui::Context, frame: u64, id: egui::Id, pos: egui::Pos2, 
     }
 }
 
-/// AURORA_DEMO_MINIMIZED=1|expand: the real title bar of Conversations is
+/// BLOCK_DEMO_MINIMIZED=1|expand: the real title bar of Conversations is
 /// double-clicked at frames 600–605, the window is minimized while the demo
 /// chat goes on (its bar lights up, the toolbar button keeps its dot);
 /// `expand` then clicks the real Conversations toolbar button at frames
 /// 900–901, which expands the window instead of closing it (#269).
 pub fn minimized_events(ctx: &egui::Context, frame: u64) -> Vec<egui::Event> {
-    let Ok(mode) = std::env::var("AURORA_DEMO_MINIMIZED") else {
+    let Ok(mode) = std::env::var("BLOCK_DEMO_MINIMIZED") else {
         return Vec::new();
     };
     let button = |pos, pressed| egui::Event::PointerButton {
@@ -250,9 +250,9 @@ pub fn minimized_events(ctx: &egui::Context, frame: u64) -> Vec<egui::Event> {
     }
 }
 
-/// AURORA_DEMO_RESIZE=corner|edge|drag|sweep|sweep-h|sweep-fast[,<window>]: the resize
+/// BLOCK_DEMO_RESIZE=corner|edge|drag|sweep|sweep-h|sweep-fast[,<window>]: the resize
 /// marks of a real window (`conversations` by default; the id of another
-/// floater, such as `about_land_aurora`, or `minimap`) from frame 600: the
+/// floater, such as `about_land_block`, or `minimap`) from frame 600: the
 /// pointer rests in its bottom-right corner (`corner`) or on its right edge
 /// (`edge`), or presses that corner and holds it 40 x 30 further out
 /// (`drag`) or drags it in then out over the frames (`sweep` the width,
@@ -260,7 +260,7 @@ pub fn minimized_events(ctx: &egui::Context, frame: u64) -> Vec<egui::Event> {
 /// out quickly: `fast_offset`; `sweep-right` / `sweep-bottom` the same as
 /// `sweep` / `sweep-h` by the right or bottom edge), released at frame 1000.
 pub fn resize_events(ctx: &egui::Context, frame: u64) -> Vec<egui::Event> {
-    let Ok(value) = std::env::var("AURORA_DEMO_RESIZE") else {
+    let Ok(value) = std::env::var("BLOCK_DEMO_RESIZE") else {
         return Vec::new();
     };
     if frame < 600 {
@@ -355,7 +355,7 @@ fn fast_offset(frame: u64) -> egui::Vec2 {
     egui::vec2(d, 0.0)
 }
 
-/// AURORA_DEMO_SNAP=1|group|size|free|detach: Conversations dragged by its
+/// BLOCK_DEMO_SNAP=1|group|size|free|detach: Conversations dragged by its
 /// title next to the People window, on the real windows. Frame 700: the
 /// title is pressed; until 900 it is held 6 px short of the right side of
 /// People and 5 px under the line of its top, with Alt held (the guide
@@ -366,7 +366,7 @@ fn fast_offset(frame: u64) -> egui::Vec2 {
 /// pointer. `free` omits Alt and then moves People alone. `detach` attaches
 /// first, then drags People with Alt so that Conversations stays behind.
 pub fn snap_events(ctx: &egui::Context, frame: u64) -> Vec<egui::Event> {
-    let Ok(mode) = std::env::var("AURORA_DEMO_SNAP") else {
+    let Ok(mode) = std::env::var("BLOCK_DEMO_SNAP") else {
         return Vec::new();
     };
     let modifiers = egui::Modifiers {

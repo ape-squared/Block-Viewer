@@ -1,7 +1,7 @@
 //! The Director's timeline strip, for long tracks and at a glance: the
 //! seconds the ruler shows (its zoom: Ctrl + wheel, the strip's zoom
 //! buttons; a wheel pans), and the thumbnails above the keyframes
-//! (`director_thumbs`). Aurora's own; drawn by `ui::director::ruler`, whose
+//! (`director_thumbs`). Block's own; drawn by `ui::director::ruler`, whose
 //! clicks, drags and double clicks stay as they are.
 
 use super::widgets;

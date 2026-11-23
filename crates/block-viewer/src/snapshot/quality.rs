@@ -1,5 +1,5 @@
 //! Photo quality: while the photo window is open with its "Photo quality"
-//! switch on, the graphics settings are raised to the most Aurora renders
+//! switch on, the graphics settings are raised to the most Block renders
 //! (draw distance, levels of detail, every avatar in full, shadows,
 //! ambient occlusion, reflections at full resolution, anisotropy), the
 //! textures in view are loaded at full resolution and the photo itself is
@@ -148,12 +148,12 @@ impl Held {
 }
 
 /// The most each setting goes to. The draw distance stays at 512 m on
-/// purpose, below Aurora's 1,024 m (the Legacy Viewer's slider): every metre
+/// purpose, below Block's 1,024 m (the Legacy Viewer's slider): every metre
 /// beyond grows the ground's buffers by area ([`GROUND_BYTES_PER_M2`]), and a
 /// boost must not run a photo out of video memory; a user already at 1,024 m
 /// keeps it, since a boost never lowers a setting. The LOD factor goes to 4
 /// (the Legacy Viewer allows 8 by hand). Every avatar is drawn in full (no
-/// impostor up to Aurora's 100, no complexity limit): a photo shows people as
+/// impostor up to Block's 100, no complexity limit): a photo shows people as
 /// they are.
 fn photo_maxima() -> Values {
     Values {
@@ -183,7 +183,7 @@ pub const MSAA_8X: u8 = 4;
 /// The boosted values: each one at the photo maxima, never lower than the
 /// user's (an unlimited complexity stays unlimited), the anti-aliasing at
 /// MSAA 8x. The particles, the screen-space reflections, the sharpening, the
-/// glow and Aurora's effects (bloom, contact shadows, indirect light) stay
+/// glow and Block's effects (bloom, contact shadows, indirect light) stay
 /// the user's own choices.
 pub fn boosted(user: Values) -> Values {
     let top = photo_maxima();

@@ -46,13 +46,13 @@ impl App {
         out.env
     }
 
-    /// AURORA_DEMO_PHOTOTOOLS=<tab>: the window opened at the start, on
+    /// BLOCK_DEMO_PHOTOTOOLS=<tab>: the window opened at the start, on
     /// that tab (`env` or `general`; `1` the first).
     fn demo_phototools(&mut self) {
         if self.phototools_demo_done {
             return;
         }
-        let Some(value) = std::env::var_os("AURORA_DEMO_PHOTOTOOLS") else {
+        let Some(value) = std::env::var_os("BLOCK_DEMO_PHOTOTOOLS") else {
             return;
         };
         self.phototools_demo_done = true;

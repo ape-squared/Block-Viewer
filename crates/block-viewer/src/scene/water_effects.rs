@@ -315,7 +315,7 @@ impl Effects {
             }
             self.bodies.sample(sample, time, part_settings, &mut self.events);
             if self.events.len() > before {
-                log::trace!(target: "aurora_viewer::water_contacts", "water part {}: center {:?}, surface {:.3}, events {:?}", water_contacts::PARTS[sample.part], sample.matrix.w_axis.truncate(), sample.surface, self.events[before..].iter().map(|e| (e.params[1], e.params[3], e.motion[3])).collect::<Vec<_>>());
+                log::trace!(target: "block_viewer::water_contacts", "water part {}: center {:?}, surface {:.3}, events {:?}", water_contacts::PARTS[sample.part], sample.matrix.w_axis.truncate(), sample.surface, self.events[before..].iter().map(|e| (e.params[1], e.params[3], e.motion[3])).collect::<Vec<_>>());
             }
         }
 

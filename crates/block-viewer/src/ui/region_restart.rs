@@ -85,7 +85,7 @@ fn unit(seconds: i32) -> &'static str {
     }
 }
 
-/// French elides "de" before a vowel ("d'Aurora", "de Lune"): the catalogs
+/// French elides "de" before a vowel ("d'Block", "de Lune"): the catalogs
 /// select on it.
 fn elide(region: &str) -> &'static str {
     let first = region.chars().next().map(|c| c.to_lowercase().next().unwrap_or(c));
@@ -901,7 +901,7 @@ pub struct BellInfo {
     pub color: Color32,
 }
 
-/// The restart's card in Aurora's center, pinned at the top of "To do": the
+/// The restart's card in Block's center, pinned at the top of "To do": the
 /// region and the live count, Home, "Show the alert". Accept goes home, Open
 /// shows the alert.
 pub fn bell_card(ui: &mut egui::Ui, p: &Palette, info: &BellInfo) -> Option<crate::world::notifications::Response> {
@@ -1095,7 +1095,7 @@ mod tests {
         t.notice(
             &Notice {
                 seconds,
-                region: Some("Aurora Démo".into()),
+                region: Some("Block Démo".into()),
                 opensim: false,
             },
             "",
@@ -1162,7 +1162,7 @@ mod tests {
 
     #[test]
     fn french_elides_before_a_vowel() {
-        assert_eq!(elide("Aurora Démo"), "yes");
+        assert_eq!(elide("Block Démo"), "yes");
         assert_eq!(elide("Écume"), "yes");
         assert_eq!(elide("Lune Bleue"), "no");
         assert_eq!(elide(""), "no");

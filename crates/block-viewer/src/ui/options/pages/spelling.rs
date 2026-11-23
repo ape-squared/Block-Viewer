@@ -260,7 +260,7 @@ fn dialog(st: &mut SpellingPage, run: impl FnOnce() -> Option<Dialog> + Send + '
     let (tx, rx) = mpsc::channel();
     st.dialog = Some(rx);
     st.message = None;
-    let spawned = std::thread::Builder::new().name("aurora-autoreplace-dialog".into()).spawn(move || {
+    let spawned = std::thread::Builder::new().name("block-autoreplace-dialog".into()).spawn(move || {
         if let Some(answer) = run() {
             let _ = tx.send(answer);
         }

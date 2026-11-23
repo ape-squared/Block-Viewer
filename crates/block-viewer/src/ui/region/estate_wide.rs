@@ -129,7 +129,7 @@ impl Dialog {
 #[derive(Default)]
 pub(super) struct EstateWideState {
     pub dialog: Option<Dialog>,
-    /// AURORA_DEMO_REGION's dialog, shown once the simulator answered.
+    /// BLOCK_DEMO_REGION's dialog, shown once the simulator answered.
     pub demo: Option<Dialog>,
     /// The day's length and offset (hours) and the sky altitudes being
     /// dragged, sent once let go (commitDayLenOffsetChanges, onAltSliderMouseUp).

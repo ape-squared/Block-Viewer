@@ -1,4 +1,4 @@
-//! "Region settings" of Aurora-Sim based grids: the limits their
+//! "Region settings" of Block-Sim based grids: the limits their
 //! simulators let the estate set (draw distance, prim sizes, link counts,
 //! name tags, minimap…), shown only when the region offers the
 //! DispatchOpenRegionSettings capability. Port of

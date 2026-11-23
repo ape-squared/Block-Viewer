@@ -45,25 +45,26 @@ pub enum BlockedChat {
     Greyed,
 }
 
-/// How the Conversations window looks (Preferences › Aurora): Aurora's
+/// How the Conversations window looks (Preferences › Block): Block's
 /// workspace (the default: a column of conversations, messages grouped by
-/// author with their picture, `ui/chat/aurora.rs`), its compact variant (one
+/// author with their picture, `ui/chat/block.rs`), its compact variant (one
 /// row per message, no pictures), a messenger's bubbles (`ui/chat/bubbles.rs`)
 /// or the lines of Firestorm's conversations (the legacy style).
 #[derive(Debug, Clone, Copy, Default, Serialize, Deserialize, PartialEq, Eq)]
 pub enum ChatStyle {
     #[default]
-    Aurora,
+    #[serde(alias = "Block")]
+    Block,
     Compact,
     Bubbles,
     Legacy,
 }
 
 impl ChatStyle {
-    /// Aurora's workspace (column, head, members, call stage): the two
+    /// Block's workspace (column, head, members, call stage): the two
     /// first styles. The others keep the window of tabs.
     pub fn workspace(self) -> bool {
-        matches!(self, ChatStyle::Aurora | ChatStyle::Compact)
+        matches!(self, ChatStyle::Block | ChatStyle::Compact)
     }
 }
 
@@ -92,7 +93,7 @@ pub enum ChatThumbnails {
 /// The nearby chat bar (Preferences › Chat, #2696): at the bottom always,
 /// only while it is used (the Legacy Viewer's `AutohideChatBar`, #1009), or
 /// never, the Nearby tab of the Conversations window taking its place
-/// (Aurora's: there Enter always shows the bar, `start_chat` in
+/// (Block's: there Enter always shows the bar, `start_chat` in
 /// indra/newview/llviewerinput.cpp).
 #[derive(Debug, Clone, Copy, Default, Serialize, Deserialize, PartialEq, Eq)]
 pub enum ChatBar {
@@ -148,7 +149,7 @@ pub struct SystemIsland {
     #[serde(deserialize_with = "clock_zone_or_slt")]
     pub clock_zone: ClockZone,
     /// The clock's seconds (the Legacy Viewer's FSStatusBarTimeFormat
-    /// "Seconds" formats); on, as Aurora's clock always showed them.
+    /// "Seconds" formats); on, as Block's clock always showed them.
     pub clock_seconds: bool,
     /// 12 or 24 hours, by default as the system's regional format.
     pub clock_format: ClockFormat,
@@ -217,18 +218,19 @@ pub enum ClockFormat {
     H24,
 }
 
-/// How notifications arrive (Preferences › Aurora): unrolled from the bell
+/// How notifications arrive (Preferences › Block): unrolled from the bell
 /// at the right end of the navigation bar and folded back into it (the
 /// default, `ui/notification_center.rs`), or as Firestorm's toasts stacked
 /// apart from the bell (`ui/notifications.rs`).
 #[derive(Debug, Clone, Copy, Default, Serialize, Deserialize, PartialEq, Eq)]
 pub enum NotificationsStyle {
     #[default]
-    Aurora,
+    #[serde(alias = "Block")]
+    Block,
     Legacy,
 }
 
-/// Where the friends' online / offline toasts of Aurora's notification
+/// Where the friends' online / offline toasts of Block's notification
 /// center stand (Preferences › Chat › Toasts), in the room the bars leave
 /// (`ui/notification_center/presence.rs`). Top right by default, under the
 /// bell, waiting while its cards or its list are out; Firestorm's toasts
@@ -272,7 +274,7 @@ impl PresencePosition {
         }
     }
 
-    /// The word of `AURORA_DEMO_PRESENCE` (`top-left` … `bottom-right`).
+    /// The word of `BLOCK_DEMO_PRESENCE` (`top-left` … `bottom-right`).
     pub fn from_word(word: &str) -> Option<Self> {
         Some(match word {
             "top-left" => Self::TopLeft,
@@ -288,39 +290,42 @@ impl PresencePosition {
 
 /// How the world map lays out its controls: over a map filling the window
 /// (the default), or in Firestorm's side panel next to the map (the legacy
-/// style, Preferences › Aurora).
+/// style, Preferences › Block).
 #[derive(Debug, Clone, Copy, Default, Serialize, Deserialize, PartialEq, Eq)]
 pub enum WorldMapStyle {
     #[default]
-    Aurora,
+    #[serde(alias = "Block")]
+    Block,
     Legacy,
 }
 
-/// The Destinations window: Aurora's own list of the guide's places
-/// (`ui/destinations/aurora.rs`, the default), or the guide's web page as
-/// the Legacy Viewer shows it (Preferences › Aurora). A grid whose guide is
+/// The Destinations window: Block's own list of the guide's places
+/// (`ui/destinations/block.rs`, the default), or the guide's web page as
+/// the Legacy Viewer shows it (Preferences › Block). A grid whose guide is
 /// a web page only shows that page in both.
 #[derive(Debug, Clone, Copy, Default, Serialize, Deserialize, PartialEq, Eq)]
 pub enum DestinationsStyle {
     #[default]
-    Aurora,
+    #[serde(alias = "Block")]
+    Block,
     Legacy,
 }
 
-/// The photo mode: Aurora's viewfinder (the world full screen under a
-/// camera's overlay, `ui::viewfinder`), Aurora's panel anchored on the
+/// The photo mode: Block's viewfinder (the world full screen under a
+/// camera's overlay, `ui::viewfinder`), Block's panel anchored on the
 /// right, or the Legacy Viewer's floater (floater_snapshot.xml: a floating
 /// window, the controls on the left, the preview on the right).
-/// Preferences › Aurora.
+/// Preferences › Block.
 #[derive(Debug, Clone, Copy, Default, Serialize, Deserialize, PartialEq, Eq)]
 pub enum PhotoWindowStyle {
     #[default]
-    Aurora,
+    #[serde(alias = "Block")]
+    Block,
     Panel,
     Legacy,
 }
 
-/// The order of the landmarks in Aurora's "Places" (`ui/places/aurora.rs`):
+/// The order of the landmarks in Block's "Places" (`ui/places/block.rs`):
 /// last visit first (the default), by name, or newest landmark first.
 #[derive(Debug, Clone, Copy, Default, Serialize, Deserialize, PartialEq, Eq)]
 pub enum PlacesSort {
@@ -364,7 +369,7 @@ pub enum DownloadConnections {
     /// under many connections is present (`net_adapters::needs_limited`).
     #[default]
     Automatic,
-    /// Always follow the link (`fetch_pace.rs`), Aurora's fast default.
+    /// Always follow the link (`fetch_pace.rs`), Block's fast default.
     Adaptive,
     /// Always the Legacy Viewer's bounded connections.
     Limited,
@@ -578,7 +583,7 @@ pub struct Settings {
     pub update_channel: block_updater::feed::Channel,
     /// How often a running viewer looks for a new version again, after the
     /// check at launch (Preferences › Language and updates); a new one shows
-    /// a notice. Aurora only: the Legacy Viewer checks at launch.
+    /// a notice. Block only: the Legacy Viewer checks at launch.
     pub update_check_interval: crate::updater::Interval,
     pub ignored_update: String,
     /// When this installation first saw the minimum supported version that
@@ -592,7 +597,7 @@ pub struct Settings {
     /// Firestorm LanguageIsPublic, exposed through llGetAgentLanguage.
     pub language_is_public: bool,
     /// The interface uses `custom_language_file` instead of `language`
-    /// (an Aurora addition, language_file.rs).
+    /// (a Block addition, language_file.rs).
     pub custom_language: bool,
     /// The Fluent catalog file chosen for the interface, "" for none: read
     /// at startup (language_file.rs). A path of this PC.
@@ -647,7 +652,7 @@ pub struct Settings {
     pub pending_legacy_gamepad: Option<crate::joystick::Settings>,
     /// Ground foot geometry after wearing/detaching a body attachment.
     pub auto_hover_height: bool,
-    /// What the second camera frames (View › Second camera, Aurora's own).
+    /// What the second camera frames (View › Second camera, Block's own).
     pub second_camera_framing: crate::camera::second::Framing,
     /// Fixed adjustment added to each automatic grounding estimate (metres).
     pub auto_hover_offset: f32,
@@ -733,16 +738,12 @@ pub struct Settings {
     pub autotune_hold: Option<autotune::Hold>,
     /// The GPU to draw with (Preferences › Graphics; #894): empty for the
     /// automatic choice (discrete first), or the adapter's name; read at
-    /// startup (`block_render::adapter_choice`), `AURORA_GPU` overrides it.
+    /// startup (`block_render::adapter_choice`), `BLOCK_GPU` overrides it.
     pub gpu_adapter: String,
     /// The graphics driver whose "out of date" warning the user dismissed
     /// on the login screen (`gpu_driver::Notice::key`): a newer driver that
     /// is still too old warns again.
     pub gpu_driver_dismissed: String,
-    /// Let other programs' overlay layers (Steam overlay, RivaTuner, Epic…)
-    /// into the viewer (Preferences › Graphics); off: kept out at startup
-    /// (`block_render::vulkan_layers`), read by `allow_overlays_at_start`.
-    pub allow_overlays: bool,
     pub vsync: bool,
     pub shadows: bool,
     pub force_midday: bool,
@@ -757,10 +758,10 @@ pub struct Settings {
     /// The weather of this viewer (the Environment window's "Weather").
     pub weather: crate::weather::WeatherSettings,
     /// Sky, water and day cycle lists A–Z instead of the inventory's order
-    /// (an Aurora switch on the lists, off: the order since #812; the
+    /// (a Block switch on the lists, off: the order since #812; the
     /// Legacy Viewer's lists are always by name).
     pub env_lists_by_name: bool,
-    /// Which stars the night sky shows: the real sky over Paris (Aurora's
+    /// Which stars the night sky shows: the real sky over Paris (Block's
     /// default) or the Legacy Viewer's random stars (world/night_sky.rs).
     pub night_sky: crate::world::night_sky::NightSky,
     /// Where on Earth the real sky is seen from (Paris by default).
@@ -784,7 +785,7 @@ pub struct Settings {
     pub sharpen: f32,
     /// Glow of faces with a glow value (Firestorm RenderGlow, on).
     pub glow: bool,
-    /// Aurora's bloom around the bright parts of the image (the Legacy
+    /// Block's bloom around the bright parts of the image (the Legacy
     /// Viewer has none): off by default.
     pub bloom: bool,
     /// The share of the light over the threshold it spreads (0.05 to 1).
@@ -808,7 +809,7 @@ pub struct Settings {
     /// 2048 by default): `TextureStreamer::max_resolution`.
     pub max_texture_resolution: u32,
     pub ui_scale: f32,
-    /// Firestorm UsePieMenu. Keep Aurora's existing list menu by default.
+    /// Firestorm UsePieMenu. Keep Block's existing list menu by default.
     pub use_pie_menu: bool,
     /// Independent arrangements for land, objects, avatars, attachments and HUDs.
     pub world_context_menus: crate::ui::context::Preferences,
@@ -925,7 +926,7 @@ pub struct Settings {
     pub notify_money_threshold: i32,
     /// Preferences › Layout › Bars and the balance's right click: L$
     /// received (or bought) show under the balance, in green, before they
-    /// join it (`ui/balance_gains.rs`, Aurora's own, on by default).
+    /// join it (`ui/balance_gains.rs`, Block's own, on by default).
     pub balance_shows_received: bool,
     /// The same for L$ spent, in red.
     pub balance_shows_spent: bool,
@@ -995,7 +996,7 @@ pub struct Settings {
     pub show_recent_emojis_legacy: bool,
     /// Favourite emojis, kept by a right-click on an emoji: first in the
     /// recent row and a star tab in the picker. Off (the human's choice,
-    /// 2026-11-09; an Aurora addition); Preferences > Chat.
+    /// 2026-11-09; a Block addition); Preferences > Chat.
     pub favorite_emojis: bool,
     /// Our own objects' script errors in the nearby chat, with a red
     /// warning sign, instead of opening the Script debug window, which
@@ -1025,11 +1026,11 @@ pub struct Settings {
     /// CloseChatOnReturn off). On by default (human choice of 2026-10-16);
     /// off, the bar lets go after sending.
     pub chat_keep_focus: bool,
-    /// Aurora extension, Enter toggles typing: Enter on an empty field gives
+    /// Block extension, Enter toggles typing: Enter on an empty field gives
     /// the keyboard back to the world in every conversation too (IMs and
     /// group chats), not only in the nearby chat. Off by default.
     pub chat_enter_toggles: bool,
-    /// Aurora extension, Enter returns to the last chat field used: from the
+    /// Block extension, Enter returns to the last chat field used: from the
     /// world, Enter focuses the conversation last talked in when its window
     /// is open, instead of always the chat bar. Off by default.
     pub chat_enter_last_field: bool,
@@ -1117,7 +1118,7 @@ pub struct Settings {
     pub window_opacity_active: f32,
     /// Opacity of the background of the other windows
     /// (InactiveFloaterTransparency; 1 here where the Legacy Viewer has 0.95:
-    /// Aurora's windows are glass already).
+    /// Block's windows are glass already).
     pub window_opacity_inactive: f32,
     /// Opacity of the Conversations window and the detached conversations
     /// while not focused (FSIMOpacity, 1; there the lower of it and the
@@ -1126,12 +1127,12 @@ pub struct Settings {
     /// Conversations takes the active window's opacity while it has the
     /// focus (FSImActiveOpacityOverride, off).
     pub conversations_active_opacity_override: bool,
-    /// Opacity of the background of the bars (Aurora's own, 1).
+    /// Opacity of the background of the bars (Block's own, 1).
     pub bar_opacity: f32,
     /// Opacity of the menus' background (FSMenuBackgroundAlpha, 1).
     pub menu_opacity: f32,
     /// Opacity of the chat cards over the world (ConsoleBackgroundOpacity;
-    /// 0.75 here where the Legacy Viewer has 0.5: Aurora's cards always had it).
+    /// 0.75 here where the Legacy Viewer has 0.5: Block's cards always had it).
     pub console_opacity: f32,
     /// Opacity of the mini-map's background (FSMiniMapOpacity, 0.66).
     pub minimap_opacity: f32,
@@ -1194,16 +1195,16 @@ pub struct Settings {
     /// The same notices as a line of nearby chat (OnlineOfflinetoNearbyChat;
     /// off here, on in the Legacy Viewer's own settings).
     pub friends_online_in_chat: bool,
-    /// Where those toasts stand with Aurora's notification center.
+    /// Where those toasts stand with Block's notification center.
     pub presence_position: PresencePosition,
     /// A friendship offer shows as a card in the middle of the screen
-    /// instead of a toast (`ui::friend_prompt`, #465; on, an Aurora
+    /// instead of a toast (`ui::friend_prompt`, #465; on, a Block
     /// addition the Legacy Viewer does not have: its toast stays one switch
     /// away).
     pub friend_request_prompt: bool,
     /// A message to the whole region shows as a card in the middle of the
     /// screen instead of a toast (`ui::region_message_prompt`, #1404; on,
-    /// an Aurora addition: off gives back the Legacy Viewer's GodMessage
+    /// a Block addition: off gives back the Legacy Viewer's GodMessage
     /// toast). Its line of nearby chat stays either way.
     pub region_message_prompt: bool,
     /// Toast of an IM or conference message out of sight (EnableIMChatPopups, on).
@@ -1218,7 +1219,7 @@ pub struct Settings {
     pub im_toast_seconds: f32,
     /// Seconds a friend's online / offline toast stays with the Legacy
     /// Viewer's toasts (NotificationTipToastLifeTime, 10, its slider 1–30);
-    /// Aurora's center keeps its own timing.
+    /// Block's center keeps its own timing.
     pub tip_toast_seconds: f32,
     /// Points between two stacked toasts, in both notification styles
     /// (ToastGap, 7, its slider 0–30; LLScreenChannel::redrawToasts).
@@ -1247,12 +1248,12 @@ pub struct Settings {
     /// Date in the names of these files (LogFileNamewithDate, off).
     pub log_dated_names: bool,
     /// Import the Legacy Viewer's transcripts at each login. On by default
-    /// (an Aurora addition): moving between the two viewers keeps the
+    /// (a Block addition): moving between the two viewers keeps the
     /// history, and a notice says what came in.
     pub log_import_at_login: bool,
     /// The transcripts in the Legacy Viewer's own layout under the chosen
     /// folder (`<folder>/<first_last>`), so that both viewers share them. An
-    /// Aurora addition, off by default: Aurora then only appends lines there.
+    /// Block addition, off by default: Block then only appends lines there.
     pub log_legacy_layout: bool,
     /// Ask before opening a web link outside the trusted domains (the box
     /// "Do not warn me again" of the warning turns it off).
@@ -1361,16 +1362,16 @@ pub struct Settings {
     pub plate_shift_click: PlateClick,
     pub plate_ctrl_click: PlateClick,
     /// Profiles in Firestorm's tabbed window (Second Life, Feed, Favorites…)
-    /// instead of the header and cards of `ui/profile/aurora.rs`; group
+    /// instead of the header and cards of `ui/profile/block.rs`; group
     /// profiles in the classic window too (`ui/group_profile.rs`).
     pub classic_profiles: bool,
-    /// A friend's rights on the Info card of the Aurora profile (on by
+    /// A friend's rights on the Info card of the Block profile (on by
     /// default); off, they stay in the Contacts window.
     pub profile_rights: bool,
     /// Firestorm's Pay window (floater_pay.xml) instead of `ui/pay.rs`.
     pub classic_pay_window: bool,
     /// The Legacy Viewer's money tracker (floater_fs_money_tracker.xml)
-    /// instead of the Aurora look of `ui/money_tracker/aurora.rs`.
+    /// instead of the Block look of `ui/money_tracker/block.rs`.
     pub legacy_money_tracker: bool,
     /// The full-width top and bottom bars of Firestorm instead of the glass
     /// islands of `ui/bars/islands.rs`.
@@ -1430,25 +1431,25 @@ pub struct Settings {
     /// The world's hover tips (Preferences › Interface).
     pub hover_tips: HoverTips,
     /// The Legacy Viewer's plain text hover tips with their "i" button
-    /// instead of Aurora's bubble, card or readout (`ui/hover_tips.rs`).
+    /// instead of Block's bubble, card or readout (`ui/hover_tips.rs`).
     pub classic_hover_tips: bool,
-    /// Aurora's movement of our avatar (Preferences › Aurora › Movement,
+    /// Block's movement of our avatar (Preferences › Block › Movement,
     /// `own_motion.rs`): it moves as soon as a key is pressed and corrections
     /// fade slowly. Off, the default until it has been tried on the grid:
     /// Firestorm's, the avatar moves when the simulator's update comes back.
     pub predict_own_motion: bool,
-    /// Preferences › Aurora › Animations: follow the first known signal's
+    /// Preferences › Block › Animations: follow the first known signal's
     /// elapsed time, including late loading and edit release. Off by default:
     /// the Legacy Viewer starts at asset activation and suspends during edits.
     pub synchronize_animations: bool,
-    /// Preferences › Aurora › Behavior: make, wear and use the Aurora bridge
+    /// Preferences › Block › Behavior: make, wear and use the Block bridge
     /// (`world/bridge.rs`). On by default, as the Legacy Viewer's UseLSLBridge.
     pub use_bridge: bool,
     /// Experimental filing of new deliveries by the sender's legacy name.
     pub sort_received_items: bool,
     pub received_items_since: i64,
     /// Preferences › Inventory › Received items: a notification for each
-    /// Marketplace delivery (Aurora only, the Legacy Viewer just marks the
+    /// Marketplace delivery (Block only, the Legacy Viewer just marks the
     /// inbox new; #752). On by default: nothing else tells about a gift.
     pub notify_deliveries: bool,
     /// AutoAcceptNewInventory: accept new resident/object inventory offers
@@ -1462,14 +1463,14 @@ pub struct Settings {
     /// inventory on what it gave (ShowInInventory, off by default as in the
     /// Legacy Viewer).
     pub show_accepted_in_inventory: bool,
-    /// Replace native motion foot placement/recovery with Aurora's terrain
+    /// Replace native motion foot placement/recovery with Block's terrain
     /// solver. Off by default: the Legacy Viewer behaviour remains automatic.
     pub ground_avatar_feet: bool,
     /// Also adapt walking, running and crouch-walking feet. Off by default.
     pub ground_feet_while_moving: bool,
     /// Maximum vertical terrain correction in metres, relative to animation.
     pub ground_feet_max_height: f32,
-    /// Other avatars receiving Aurora leg correction, nearest in the camera
+    /// Other avatars receiving Block leg correction, nearest in the camera
     /// frustum. Our avatar is outside this budget; zero means self only.
     pub ground_feet_max_avatars: u32,
     /// The region restart alert (Preferences › Interface › Region restart).
@@ -1527,11 +1528,11 @@ pub struct Settings {
     /// order and names, moderators, "(You)", brackets, history fade, opening
     /// on offline messages (`ui/chat/conversation_options.rs`).
     pub conversation_options: crate::ui::chat::conversation_options::Settings,
-    /// The notification center's style (Preferences › Aurora).
+    /// The notification center's style (Preferences › Block).
     pub notifications_style: NotificationsStyle,
     /// The world map's layout (`ui/worldmap/overlay.rs` or the side panel).
     pub world_map_style: WorldMapStyle,
-    /// The photo window's layout (Preferences › Aurora).
+    /// The photo window's layout (Preferences › Block).
     pub photo_window: PhotoWindowStyle,
     /// The user's graphics values while the photo window's "Photo quality"
     /// raises them (`snapshot::quality`): never saved, they are what is
@@ -1539,41 +1540,41 @@ pub struct Settings {
     #[serde(skip)]
     pub photo_held: Option<crate::snapshot::quality::Held>,
     /// About Land as Firestorm's nine tabs (`ui/land`) instead of the
-    /// overview and the settings grouped by intent (`ui/land/aurora`).
+    /// overview and the settings grouped by intent (`ui/land/block`).
     pub classic_about_land: bool,
     /// Search as the Legacy Viewer's seven tabs (`ui/search.rs`) instead of
     /// one field, type chips and the details beside the results
-    /// (`ui/search/aurora.rs`).
+    /// (`ui/search/block.rs`).
     pub classic_search: bool,
     /// Region / Estate as Firestorm's eight tabs (not ported yet: the
-    /// Aurora window opens meanwhile) instead of Aurora's (`ui/region`).
+    /// Block window opens meanwhile) instead of Block's (`ui/region`).
     pub classic_region_estate: bool,
     /// The inventory as the Legacy Viewer's single tree with its tabs and
-    /// footer instead of Aurora's window that widens from a compact tree to
-    /// an explorer (`ui/inventory/aurora`).
+    /// footer instead of Block's window that widens from a compact tree to
+    /// an explorer (`ui/inventory/block`).
     pub classic_inventory: bool,
     /// Appearance's outfit gallery as the Legacy Viewer's grid of small
-    /// tiles instead of Aurora's showcase: collections, large pictures and
+    /// tiles instead of Block's showcase: collections, large pictures and
     /// a preview of the chosen outfit (`ui/appearance/showcase.rs`).
     pub classic_outfit_gallery: bool,
     /// The outfit portrait's choices, kept for the next one when asked
     /// (`snapshot::portrait`).
     pub outfit_portrait: crate::snapshot::portrait::PortraitSettings,
     /// "Places" as the Legacy Viewer's three tabs (`ui/places.rs`) instead
-    /// of Aurora's list and preview (`ui/places/aurora.rs`).
+    /// of Block's list and preview (`ui/places/block.rs`).
     pub classic_places: bool,
-    /// The order of Aurora's "Places" lists.
+    /// The order of Block's "Places" lists.
     pub places_sort: PlacesSort,
     /// The Destinations window's look.
     pub destinations_style: DestinationsStyle,
-    /// Aurora's Destinations window in its wide view (rail, cards and
+    /// Block's Destinations window in its wide view (rail, cards and
     /// preview): the first time, then the last view chosen.
     pub destinations_wide: bool,
     pub invert_mouse: bool,
-    /// Aurora extension: allow the left/right mouse chord on land and objects
+    /// Block extension: allow the left/right mouse chord on land and objects
     /// without a click action, in addition to our avatar. Off by default.
     pub world_mouse_walk: bool,
-    /// Aurora extension, MMO-style mouse buttons: the right button's drag
+    /// Block extension, MMO-style mouse buttons: the right button's drag
     /// steers our avatar (the turn keys slide, the left button walks
     /// forward) and the left button held on our avatar orbits the camera,
     /// the other way round from the default. Off by default.
@@ -1603,7 +1604,7 @@ pub struct Settings {
     /// only).
     pub avatar_turn_speed: f32,
     /// Hold Up to start flying (agent_jump, indra/newview/llviewerinput.cpp).
-    /// Aurora splits AutomaticFly into independent takeoff/landing choices;
+    /// Block splits AutomaticFly into independent takeoff/landing choices;
     /// both default to on.
     pub automatic_fly: bool,
     /// Hold Down on physical support to end flight (LLAgent::propagate,
@@ -1668,7 +1669,7 @@ pub struct Settings {
     /// Privacy and Controls).
     pub lookat: crate::world::lookat::Settings,
     /// Selection and give beams: shown or not, their look, our colour
-    /// (Preferences › Build, Aurora and Colors).
+    /// (Preferences › Build, Block and Colors).
     pub beams: crate::world::beams::Settings,
     /// The former "Look-at tracking" switch and its range, read once to
     /// carry the user's choice into `lookat`.
@@ -1726,7 +1727,7 @@ pub struct Settings {
     pub render_scale_auto: bool,
     /// Geometric specular anti-aliasing (common.wgsl `specular_aa_roughness`):
     /// highlights widened where the shading normal turns faster than a
-    /// pixel, so they stop shimmering as the camera moves. An Aurora
+    /// pixel, so they stop shimmering as the camera moves. A Block
     /// improvement, on by default.
     pub specular_aa: bool,
     /// The sky ambient keeps its colour at full strength (x 0.7), as the
@@ -1738,9 +1739,9 @@ pub struct Settings {
     /// experimental setting, off by default.
     pub colored_sky_ambient: bool,
     /// Volumetric clouds (block-render `clouds.rs`) in the place of the
-    /// Legacy Viewer's flat cloud layer: Aurora (true) or Legacy. Off by
+    /// Legacy Viewer's flat cloud layer: Block (true) or Legacy. Off by
     /// default until tried on modest GPUs, and left alone by the two buttons
-    /// of Preferences › Aurora, as the water effects once were.
+    /// of Preferences › Block, as the water effects once were.
     pub volumetric_clouds: bool,
     /// 0 Khronos PBR Neutral, 1 ACES (RenderTonemapType: ACES by default,
     /// like the Legacy Viewer)
@@ -1797,7 +1798,7 @@ pub struct Settings {
     /// Local visual water, independent of simulator physics.
     pub water_effects: WaterEffectsSettings,
     /// With GTAO: screen-space indirect light (a visibility bitmask and one
-    /// bounce of light from the surfaces around). Aurora's own, off by
+    /// bounce of light from the surfaces around). Block's own, off by
     /// default.
     pub screen_indirect_light: bool,
     /// Its strength, 0 to 4 (1 = one physical bounce).
@@ -1833,7 +1834,7 @@ pub struct Settings {
     /// Avatars still loading: 0 particle cloud + progress bar under the name
     /// (Firestorm), 1 progress bar only (drawn as they load), 2 nothing.
     pub loading_avatars: u8,
-    /// Aurora's own: while an avatar's worn objects are on their way, draw
+    /// Block's own: while an avatar's worn objects are on their way, draw
     /// copies of the ones kept from the last time (world/avatar_cache), then
     /// the region's own.
     pub avatar_cache: bool,
@@ -1888,7 +1889,7 @@ pub struct Settings {
     pub chat_log_location: String,
     /// The most the simulators may send, all channels together, in kb/s
     /// (Firestorm's ThrottleBandwidthKBPS; the default and the top of the
-    /// range are Aurora's, `block_net::throttle::DEFAULT_KBPS`).
+    /// range are Block's, `block_net::throttle::DEFAULT_KBPS`).
     pub bandwidth_kbps: u32,
     /// How many asset downloads may be under way at once (Preferences ›
     /// Network and cache): automatic follows the link, or stays limited
@@ -1933,7 +1934,7 @@ pub struct Settings {
     /// (missing in older files: 0).
     #[serde(default)]
     pub settings_version: u32,
-    /// The file as a newer Aurora wrote it, to write it back without losing
+    /// The file as a newer Block wrote it, to write it back without losing
     /// what this build does not know (`tolerant::merge_over_newer`).
     #[serde(skip)]
     pub(crate) newer_file: Option<std::sync::Arc<NewerFile>>,
@@ -1967,7 +1968,7 @@ pub(crate) fn foot_height_limit(value: f32) -> f32 {
 
 /// Limits of Preferences › Appearance › Text size, a multiplier of every
 /// interface font. The Legacy Viewer stops at +2 points (FSFontSizeAdjustment,
-/// panel_preferences_UI.xml, about 1.2×); Aurora goes up to twice the size for
+/// panel_preferences_UI.xml, about 1.2×); Block goes up to twice the size for
 /// visually impaired users (#1227), on top of the interface scale.
 pub(crate) const FONT_SCALE_MIN: f32 = 0.8;
 pub(crate) const FONT_SCALE_MAX: f32 = 2.0;
@@ -2030,7 +2031,7 @@ const fn hex(v: u32) -> Rgba {
 }
 
 /// Firestorm color preferences (colors.xml names in comments); defaults
-/// follow the Aurora skin palette.
+/// follow the Block skin palette.
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq)]
 #[serde(default)]
 pub struct ColorSettings {
@@ -2216,7 +2217,7 @@ pub struct AudioSettings {
     /// World › Stream title shown, kept between sessions (the Legacy
     /// Viewer's fs_streamtitle saves its visibility; off).
     pub stream_title_window: bool,
-    /// Aurora: the stream title as its text alone, laid over the world and
+    /// Block: the stream title as its text alone, laid over the world and
     /// moved anywhere, instead of the window (off).
     pub stream_title_text_only: bool,
     /// Titles kept in its history (FSStreamtitleHistoryLength, 10).
@@ -2249,15 +2250,15 @@ pub struct AudioSettings {
     /// Doppler shift of moving world sounds, 0 (off) to 2: the Legacy
     /// Viewer's is a fixed 1 (AUDIO_LEVEL_DOPPLER, llvieweraudio.cpp).
     pub doppler: f32,
-    /// World sounds muffled behind walls and objects (Aurora's own, on;
+    /// World sounds muffled behind walls and objects (Block's own, on;
     /// off: heard unobstructed, as in the Legacy Viewer).
     pub sound_occlusion: bool,
-    /// World sounds rendered binaurally, for headphones (Aurora's own,
+    /// World sounds rendered binaurally, for headphones (Block's own,
     /// off: on speakers it sounds wrong; off pans them, as in the Legacy
     /// Viewer).
     pub sound_hrtf: bool,
     /// World sounds reverberated by the surroundings: a room, a hall, the
-    /// open air (Aurora's own, off; off: dry, as in the Legacy Viewer).
+    /// open air (Block's own, off; off: dry, as in the Legacy Viewer).
     pub sound_reverb: bool,
     /// Interface sounds (IM, money, teleport, windows, menus, typing...;
     /// Firestorm's PlayModeUISnd* defaults).
@@ -2469,7 +2470,6 @@ impl Default for Settings {
             autotune_hold: None,
             gpu_adapter: String::new(),
             gpu_driver_dismissed: String::new(),
-            allow_overlays: false,
             vsync: false,
             shadows: true,
             force_midday: false,
@@ -2760,14 +2760,14 @@ impl Default for Settings {
             plate_click: PlateClick::Nothing,
             plate_shift_click: PlateClick::Nothing,
             plate_ctrl_click: PlateClick::Nothing,
-            chat_style: ChatStyle::Aurora,
+            chat_style: ChatStyle::Block,
             chat_column_collapsed: false,
             link_previews: Default::default(),
             gifs: Default::default(),
             conversation_options: Default::default(),
-            notifications_style: NotificationsStyle::Aurora,
-            world_map_style: WorldMapStyle::Aurora,
-            photo_window: PhotoWindowStyle::Aurora,
+            notifications_style: NotificationsStyle::Block,
+            world_map_style: WorldMapStyle::Block,
+            photo_window: PhotoWindowStyle::Block,
             photo_held: None,
             classic_about_land: false,
             classic_search: false,
@@ -2777,7 +2777,7 @@ impl Default for Settings {
             outfit_portrait: Default::default(),
             classic_places: false,
             places_sort: PlacesSort::Visit,
-            destinations_style: DestinationsStyle::Aurora,
+            destinations_style: DestinationsStyle::Block,
             destinations_wide: true,
             invert_mouse: false,
             arrows_strafe: false,
@@ -2934,13 +2934,6 @@ pub fn auto_texture_budget(dedicated_mb: Option<u64>, shared_mb: Option<u64>, in
 
 /// The offline demo keeps its own settings and cache (a `demo` folder inside
 /// each), so test runs never change the user's real ones.
-/// `allow_overlays` of a settings file's bytes; false for anything else.
-fn allow_overlays_in(file: Option<&[u8]>) -> bool {
-    file.and_then(|bytes| serde_json::from_slice::<serde_json::Value>(bytes).ok())
-        .and_then(|value| value.get("allow_overlays").and_then(serde_json::Value::as_bool))
-        .unwrap_or(false)
-}
-
 /// `language` of a settings file's bytes ("default" for anything else),
 /// and its language file when its use is chosen.
 fn language_in(file: Option<&[u8]>) -> (String, Option<String>) {
@@ -2963,7 +2956,7 @@ fn language_file_in(value: &serde_json::Value) -> Option<String> {
 }
 
 fn for_mode(dir: PathBuf) -> PathBuf {
-    if std::env::var_os("AURORA_DEMO").is_some() {
+    if std::env::var_os("BLOCK_DEMO").is_some() {
         dir.join("demo")
     } else {
         dir
@@ -3048,7 +3041,7 @@ pub fn default_cache_dirs() -> Vec<PathBuf> {
     vec![default_cache_root()]
 }
 
-/// Where Aurora's media plugins pack is installed: next to the logs, outside
+/// Where Block's media plugins pack is installed: next to the logs, outside
 /// the cache (it survives a cache clear and the viewer's updates) and shared
 /// by the offline demo and the real sessions, several hundred MB being
 /// downloaded once.
@@ -3114,14 +3107,6 @@ impl Settings {
         Self::load_from(&Self::path())
     }
 
-    /// Whether the overlays are allowed, before anything else of the viewer
-    /// starts (the Vulkan layers are chosen on `main`'s first lines, before
-    /// any thread): this one field of the file, no log, no thread; false
-    /// when the file or the field is missing or unreadable.
-    pub fn allow_overlays_at_start() -> bool {
-        allow_overlays_in(std::fs::read(Self::path()).ok().as_deref())
-    }
-
     /// One text field of the settings file as saved, read alone (no repair
     /// of the file, no log): empty when the file or the field is missing.
     pub fn saved_text(field: &str) -> String {
@@ -3165,7 +3150,7 @@ impl Settings {
                 Some(s)
             })
             .unwrap_or_default();
-        let forced = std::env::var_os("AURORA_CAPTURE").is_some();
+        let forced = std::env::var_os("BLOCK_CAPTURE").is_some();
         s.window_maximized = window_starts_maximized(saved_window.0, saved_window.1, forced);
         s.new_profile = new_profile;
         s.finished(newer)
@@ -3192,7 +3177,7 @@ impl Settings {
             // No migration runs backwards: `sanitized` only migrates older
             // versions, and the newer number is written back.
             log::info!(
-                "settings.json comes from a newer Aurora (version {version}, this build {SETTINGS_VERSION}): \
+                "settings.json comes from a newer Block (version {version}, this build {SETTINGS_VERSION}): \
                  read without migration, its unknown values kept on save"
             );
             let mut kept: Vec<String> = read.dropped.iter().map(|p| crate::tolerant::top_key(p).to_owned()).collect();
@@ -3416,9 +3401,9 @@ impl Settings {
             self.keybinds.follow_layout_letters();
         }
         if self.settings_version < 13 && self.chat_style == ChatStyle::Bubbles {
-            // the bubbles were the default every file wrote: Aurora's
+            // the bubbles were the default every file wrote: Block's
             // workspace takes their place; the Firestorm lines, a choice, stay
-            self.chat_style = ChatStyle::Aurora;
+            self.chat_style = ChatStyle::Block;
         }
         if self.settings_version < 14 {
             // new defaults: unrestricted camera, no camera collisions (every
@@ -3529,7 +3514,7 @@ impl Settings {
             // the head turns toward the cursor's side by default, like the
             // Legacy Viewer, instead of looking at the point under it, which
             // everyone nearby saw. Every earlier file wrote the former
-            // default, Point: once to Direction, Preferences › Aurora keeps
+            // default, Point: once to Direction, Preferences › Block keeps
             // Point as a choice
             self.lookat.aim = crate::world::lookat::Aim::Direction;
         }
@@ -3597,10 +3582,10 @@ impl Settings {
             self.chat_bar = if autohide { ChatBar::WhenTyping } else { ChatBar::Always };
         }
         if self.settings_version < 42 {
-            // the Instant movement is still experimental, and "All in Aurora
+            // the Instant movement is still experimental, and "All in Block
             // version" turned it on with the rest: every earlier file goes
             // back once to the simulator's movement (Legacy), its row in
-            // Preferences › Aurora keeps Instant as a choice
+            // Preferences › Block keeps Instant as a choice
             self.predict_own_motion = false;
         }
         if self.settings_version < 43 {
@@ -4576,29 +4561,6 @@ mod tests {
         }
     }
 
-    /// The early read of `allow_overlays` agrees with the full settings and
-    /// keeps the overlays out on any doubt.
-    #[test]
-    fn overlays_are_allowed_only_when_the_file_says_so() {
-        assert!(super::allow_overlays_in(Some(br#"{"draw_distance":96,"allow_overlays":true}"#)));
-        for file in [
-            Some(&br#"{"allow_overlays":false}"#[..]),
-            Some(br#"{"allow_overlays":"yes"}"#),
-            Some(br#"{"draw_distance":96}"#),
-            Some(b"not json"),
-            None,
-        ] {
-            assert!(!super::allow_overlays_in(file), "{file:?}");
-        }
-        assert!(!super::Settings::default().allow_overlays);
-        let saved = serde_json::to_vec(&super::Settings {
-            allow_overlays: true,
-            ..Default::default()
-        })
-        .expect("settings json");
-        assert!(super::allow_overlays_in(Some(&saved)));
-    }
-
     /// The splash's early read of the language agrees with the settings.
     #[test]
     fn the_splash_reads_the_saved_language() {
@@ -4828,7 +4790,7 @@ mod tests {
     }
 
     #[test]
-    fn browser_behavior_round_trips_and_old_settings_keep_aurora_routing() {
+    fn browser_behavior_round_trips_and_old_settings_keep_block_routing() {
         let old: Settings = serde_json::from_str(r#"{"browser_home_page":"https://example.net/"}"#).expect("old settings");
         assert_eq!(old.browser_behavior, BrowserBehavior::BuiltInForSecondLife);
         // an ordinary link still opens in the system browser, as before the choice existed
@@ -5333,7 +5295,7 @@ mod tests {
     }
 
     /// ArrowKeysAlwaysMove is off in the Legacy Viewer: the arrows move the
-    /// chat bar's cursor. Earlier files all held Aurora's former "on".
+    /// chat bar's cursor. Earlier files all held Block's former "on".
     #[test]
     fn arrow_keys_edit_the_chat_bar_by_default_and_once_for_earlier_files() {
         assert!(!Settings::default().sanitized().arrow_keys_always_move);
@@ -5756,12 +5718,12 @@ mod tests {
     }
 
     /// The bubbles every earlier file wrote (they were the default) become
-    /// Aurora's workspace once; Firestorm's lines, a choice, stay; from now
+    /// Block's workspace once; Firestorm's lines, a choice, stay; from now
     /// on the bubbles chosen again are kept.
     #[test]
-    fn saved_bubbles_move_to_the_aurora_workspace_once() {
-        assert_eq!(Settings::default().chat_style, ChatStyle::Aurora);
-        for (before, after) in [(ChatStyle::Bubbles, ChatStyle::Aurora), (ChatStyle::Legacy, ChatStyle::Legacy)] {
+    fn saved_bubbles_move_to_the_block_workspace_once() {
+        assert_eq!(Settings::default().chat_style, ChatStyle::Block);
+        for (before, after) in [(ChatStyle::Bubbles, ChatStyle::Block), (ChatStyle::Legacy, ChatStyle::Legacy)] {
             let old = Settings {
                 settings_version: 12,
                 chat_style: before,
@@ -6227,7 +6189,7 @@ mod tests {
         // only what is not understood falls back to its default
         assert_eq!(s.draw_distance, 200.0);
         assert_eq!(s.username, "Someone Resident");
-        assert_eq!(s.chat_style, ChatStyle::Aurora);
+        assert_eq!(s.chat_style, ChatStyle::Block);
         assert_eq!(s.keybinds, Settings::default().keybinds);
         assert!(crate::tolerant::backup_path(&path).exists(), "the newer file is kept aside");
         // saved unchanged: the newer build finds its own values again
@@ -6276,7 +6238,7 @@ mod tests {
         assert!(newer.is_none(), "same version: nothing to keep on save");
         let s = s.finished(newer);
         assert_eq!(s.draw_distance, 180.0);
-        assert_eq!(s.chat_style, ChatStyle::Aurora);
+        assert_eq!(s.chat_style, ChatStyle::Block);
         assert!(crate::tolerant::backup_path(&path).exists(), "the damaged file is kept aside");
         s.save_to(&path);
         let written = read_back(&path);

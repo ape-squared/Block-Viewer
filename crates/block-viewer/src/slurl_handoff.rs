@@ -1,11 +1,11 @@
-//! A SLURL opened while Aurora already runs goes to that viewer instead of
+//! A SLURL opened while Block already runs goes to that viewer instead of
 //! starting a second one, as LLAppViewer::initConfiguration hands the
 //! startup SLURL to the other instance and quits
 //! (LLAppViewerWin32::sendURLToOtherInstance, FindWindow + WM_COPYDATA;
 //! LLViewerWindow::handleDataCopy; indra/newview/llappviewer.cpp,
 //! llappviewerwin32.cpp, llviewerwindow.cpp, originally LGPL 2.1).
 //!
-//! Aurora uses a named pipe of the user's session instead of a window
+//! Block uses a named pipe of the user's session instead of a window
 //! message (winit owns the window procedure): every viewer creates an
 //! endpoint and publishes it through properties of its main window. Actual
 //! focus events record which receiver was used last. A launch with a link
@@ -22,7 +22,7 @@
 //! `GoSLURL(s)`; indra/newview/llappviewerlinux.cpp): the first viewer owns
 //! a well-known name, the bus gives it up when that viewer exits (even on a
 //! crash), and only the user's own processes reach the session bus. The
-//! name is Aurora's and not the Legacy Viewer's `com.secondlife.ViewerAppAPIService`,
+//! name is Block's and not the Legacy Viewer's `com.secondlife.ViewerAppAPIService`,
 //! which every viewer of that family owns: a link would otherwise go to
 //! whichever of them started first. Demo mode and `--title` windows add
 //! their own part to the name.
@@ -86,7 +86,7 @@ mod bus {
 
     /// `org.block_viewer.BlockViewer[.Demo][.T_<title>]`.
     fn bus_name() -> String {
-        name_for(std::env::var_os("AURORA_DEMO").is_some(), crate::cli::title_slug().as_deref())
+        name_for(std::env::var_os("BLOCK_DEMO").is_some(), crate::cli::title_slug().as_deref())
     }
 
     /// A bus name's elements hold only `[A-Za-z0-9_]` and do not start with

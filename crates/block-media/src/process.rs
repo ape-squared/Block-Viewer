@@ -504,7 +504,7 @@ impl Drop for PluginProcess {
 }
 
 /// `LD_LIBRARY_PATH` of the plugin process on Linux: SLPlugin's folder
-/// (Aurora's pack keeps libcef.so there, in `llplugin/`), then the `lib`
+/// (Block's pack keeps libcef.so there, in `llplugin/`), then the `lib`
 /// folder beside it when there is one (a Legacy Viewer install chosen as the
 /// plugins folder: `bin/SLPlugin`, `lib/libcef.so`; its wrapper.sh puts
 /// `lib` first in LD_LIBRARY_PATH, indra/newview/linux_tools/wrapper.sh),
@@ -561,7 +561,7 @@ impl PluginPaths {
     }
 
     /// A folder holding `llplugin\` and SLPlugin (either inside `llplugin\`,
-    /// as in Aurora's pack, or next to it, as in a Firestorm / SL install);
+    /// as in Block's pack, or next to it, as in a Firestorm / SL install);
     /// on macOS, a folder holding SLPlugin.app ([`Self::bundle_in`]).
     pub fn in_dir(dir: &Path) -> Option<PluginPaths> {
         if cfg!(target_os = "macos") {
@@ -589,7 +589,7 @@ impl PluginPaths {
     /// (indra/llfilesystem/lldir_mac.cpp: the launcher in its Contents/MacOS,
     /// the plugins, CEF's framework and helpers and LibVLC in its
     /// Contents/Frameworks, the folder SLPlugin runs in). Found in
-    /// `llplugin/` (Aurora's pack), in the folder itself, or in the
+    /// `llplugin/` (Block's pack), in the folder itself, or in the
     /// Contents/Resources of an application chosen as the folder (an
     /// installed Legacy Viewer's .app).
     #[cfg_attr(not(target_os = "macos"), allow(dead_code))]
@@ -608,7 +608,7 @@ impl PluginPaths {
     }
 
     /// Search order: the folder chosen by the user, the viewer's own folder,
-    /// then Aurora's media plugins pack. The plugins of another program are
+    /// then Block's media plugins pack. The plugins of another program are
     /// only used when the user names its folder: an installed Firestorm or
     /// Second Life viewer is not looked for.
     ///
@@ -885,7 +885,7 @@ mod tests {
         let lib = root.join("legacy").join("lib");
         std::fs::create_dir_all(&bin).expect("fixture");
         std::fs::create_dir_all(&lib).expect("fixture");
-        // Aurora's pack: llplugin/SLPlugin, nothing beside llplugin
+        // Block's pack: llplugin/SLPlugin, nothing beside llplugin
         let pack = root.join("pack").join("llplugin");
         std::fs::create_dir_all(&pack).expect("fixture");
         // the paths come back resolved (macOS' temp folder is a link,

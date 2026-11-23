@@ -10,7 +10,7 @@ const SOUND_PREVIEW: u64 = u64::MAX - 10;
 impl App {
     pub(super) fn show_imports(&mut self, ctx: &egui::Context, palette: &Palette) {
         if self.demo && !self.imports.demo_started {
-            // keep a scenario's own balance (AURORA_DEMO_ACTIONS sets one)
+            // keep a scenario's own balance (BLOCK_DEMO_ACTIONS sets one)
             self.world.balance.get_or_insert(1000);
             self.imports.demo_started = true;
             self.imports.load_preferences = self.settings.imports.clone();
@@ -49,7 +49,7 @@ impl App {
             .sync_destinations(&self.settings.imports, &self.world, &self.settings.inventory);
         if !self.imports.persistence.started() {
             let persistence_path = if self.demo && !self.imports.demo_mode.is_empty() {
-                std::env::var_os("AURORA_DEMO_IMPORT_REGISTRY").map(std::path::PathBuf::from)
+                std::env::var_os("BLOCK_DEMO_IMPORT_REGISTRY").map(std::path::PathBuf::from)
             } else {
                 Some(crate::imports::Imports::registry_path())
             };
@@ -819,7 +819,7 @@ impl App {
     }
 
     pub(super) fn local_appearance_demo_input(&mut self, raw: &mut egui::RawInput) {
-        let Ok(mode) = std::env::var("AURORA_DEMO_LOCAL_APPEARANCES") else {
+        let Ok(mode) = std::env::var("BLOCK_DEMO_LOCAL_APPEARANCES") else {
             return;
         };
         if mode == "deleted"

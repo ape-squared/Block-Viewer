@@ -827,7 +827,7 @@ mod tests {
 
     #[test]
     fn the_rules_survive_a_round_trip_on_disk() {
-        let dir = std::env::temp_dir().join(format!("aurora-region-titles-{}", Uuid::new_v4()));
+        let dir = std::env::temp_dir().join(format!("block-region-titles-{}", Uuid::new_v4()));
         let path = dir.join(file_name("agni"));
         let mut t = RegionTitles::load(path.clone());
         t.assign("North", target(G1, R1, "Builder"));

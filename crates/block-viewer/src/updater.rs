@@ -2,7 +2,7 @@
 //! workers. Optional policy follows Firestorm's UpdaterServiceSetting (0/1/3).
 //!
 //! After the check at launch, a running viewer checks again every
-//! `Settings::update_check_interval` (Aurora only: the Legacy Viewer checks
+//! `Settings::update_check_interval` (Block only: the Legacy Viewer checks
 //! at launch). Such a check is quiet: it never blocks the login, never opens
 //! the update window by itself and says nothing when it fails; a version it
 //! finds becomes a `Notice` (downloaded first in the Automatic mode), shown
@@ -162,9 +162,9 @@ pub struct Updater {
 }
 
 pub fn checks_enabled() -> bool {
-    std::env::var_os("AURORA_DEMO").is_none()
+    std::env::var_os("BLOCK_DEMO").is_none()
         && (block_updater::test_environment().is_some()
-            || (env!("AURORA_BUILD_PROFILE") == "release" && published_version(block_version::version())))
+            || (env!("BLOCK_BUILD_PROFILE") == "release" && published_version(block_version::version())))
 }
 
 /// A version the Release workflow published: a stable one, or a beta. A

@@ -39,11 +39,11 @@ impl App {
     }
 
     pub(super) fn studio_frame(&mut self, renderer: &mut Renderer, dt: f32) {
-        if self.demo && self.frame_count == 640 && std::env::var_os("AURORA_DEMO_AVATAR_STUDIO").is_some() {
+        if self.demo && self.frame_count == 640 && std::env::var_os("BLOCK_DEMO_AVATAR_STUDIO").is_some() {
             self.panels.avatar_studio = true;
             log::info!("avatar studio demo: toolbar command avatar_studio");
         }
-        if self.demo && self.frame_count == 960 && std::env::var("AURORA_DEMO_AVATAR_STUDIO").is_ok_and(|mode| mode == "cycle") {
+        if self.demo && self.frame_count == 960 && std::env::var("BLOCK_DEMO_AVATAR_STUDIO").is_ok_and(|mode| mode == "cycle") {
             self.panels.avatar_studio = false;
         }
         if !self.panels.avatar_studio && !self.avatar_studio.active && !self.studio_transition.busy() {
@@ -67,14 +67,14 @@ impl App {
                 self.avatar_studio.enter(studio_facing(&self.world, Instant::now()), height);
                 self.avatar_studio.floor_offset = floor.z - self.studio_root().z;
                 self.avatar_studio.podium_center = podium_center;
-                if self.demo && std::env::var("AURORA_DEMO_AVATAR_STUDIO").is_ok_and(|mode| mode == "grounding") {
+                if self.demo && std::env::var("BLOCK_DEMO_AVATAR_STUDIO").is_ok_and(|mode| mode == "grounding") {
                     self.avatar_studio.floor_offset -= 1.25;
                 }
-                if self.demo && std::env::var("AURORA_DEMO_AVATAR_STUDIO").is_ok_and(|mode| mode == "pedestal") {
+                if self.demo && std::env::var("BLOCK_DEMO_AVATAR_STUDIO").is_ok_and(|mode| mode == "pedestal") {
                     self.avatar_studio.inspect_feet();
                 }
                 if self.demo
-                    && std::env::var("AURORA_DEMO_AVATAR_STUDIO")
+                    && std::env::var("BLOCK_DEMO_AVATAR_STUDIO")
                         .is_ok_and(|mode| matches!(mode.as_str(), "hover-height" | "animation-editor-hover"))
                 {
                     self.avatar_studio.hover_height = 0.35;
@@ -99,7 +99,7 @@ impl App {
         }
         if self.demo
             && active
-            && let Ok(mode) = std::env::var("AURORA_DEMO_AVATAR_STUDIO")
+            && let Ok(mode) = std::env::var("BLOCK_DEMO_AVATAR_STUDIO")
         {
             if matches!(mode.as_str(), "animation-editor" | "animation-editor-hover" | "animation-jump") && self.frame_count == 800 {
                 self.avatar_studio.animation_editor = true;
@@ -269,7 +269,7 @@ impl App {
             return None;
         }
         if self.demo {
-            match std::env::var("AURORA_DEMO_AVATAR_STUDIO").as_deref() {
+            match std::env::var("BLOCK_DEMO_AVATAR_STUDIO").as_deref() {
                 Ok("white") => return Some(0.22),
                 Ok("reveal") => return Some(0.65),
                 _ => {}
@@ -443,7 +443,7 @@ impl App {
                             },
                         );
                         ui.add_space(8.0);
-                        let demo_menu = self.demo.then(|| std::env::var("AURORA_DEMO_AVATAR_STUDIO").unwrap_or_default());
+                        let demo_menu = self.demo.then(|| std::env::var("BLOCK_DEMO_AVATAR_STUDIO").unwrap_or_default());
                         studio_pose_menu(
                             ui,
                             &self.palette,
@@ -451,11 +451,11 @@ impl App {
                             demo_menu.as_deref() == Some("pose-menu") && self.frame_count == 800,
                         );
                         let couple = self.world.couple_partner.is_some();
-                        // AURORA_DEMO_COUPLE=hover opens the menu once Nova is B
+                        // BLOCK_DEMO_COUPLE=hover opens the menu once Nova is B
                         let couple_hover_demo = self.demo
                             && couple
                             && self.frame_count == 1300
-                            && std::env::var("AURORA_DEMO_COUPLE").is_ok_and(|mode| mode == "hover");
+                            && std::env::var("BLOCK_DEMO_COUPLE").is_ok_and(|mode| mode == "hover");
                         studio_hover_menu(
                             ui,
                             &self.palette,

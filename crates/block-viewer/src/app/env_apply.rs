@@ -398,7 +398,7 @@ impl App {
     /// doApplyEnvironment of the day cycle editor (inventory context): the
     /// item's asset when unchanged, else the day inline. Firestorm's base
     /// class tests the type "day" where a day cycle's is "daycycle", so a
-    /// changed day is never sent there; Aurora sends it.
+    /// changed day is never sent there; Block sends it.
     pub(super) fn day_editor_apply(&mut self, region: bool) {
         let Some(mut doc) = self.day_editor.doc.clone() else { return };
         let title = block_i18n::tr!("ui-day-editor-title");
@@ -681,7 +681,7 @@ impl App {
         });
     }
 
-    /// `AURORA_DEMO_ENV_EDITOR=parcel|region|custom` (`-refused`: the
+    /// `BLOCK_DEMO_ENV_EDITOR=parcel|region|custom` (`-refused`: the
     /// simulator refuses inline days):
     /// - `parcel`: the sky editor on "My purple sky" (frame 400), applied to
     ///   the parcel unchanged, as its asset (900), then brightened and

@@ -1,5 +1,5 @@
 //! The Weather window: the weather drawn for this viewer only
-//! (Aurora's own: the Legacy Viewer has none). A summary of the sky shown
+//! (Block's own: the Legacy Viewer has none). A summary of the sky shown
 //! now with the main switch on its right, then cards in two columns: what
 //! falls and what it leaves on the ground on the left; the wind (with its
 //! compass), thunder and the northern lights (with their preview) on the
@@ -22,7 +22,7 @@ const SKY_TILE: f32 = 72.0;
 /// The side of the wind's compass.
 const COMPASS: f32 = 112.0;
 /// The height of the northern lights' preview.
-const AURORA_PREVIEW_H: f32 = 70.0;
+const BLOCK_PREVIEW_H: f32 = 70.0;
 /// The size of a row's label and of its value.
 const LABEL_SIZE: f32 = 12.5;
 const VALUE_SIZE: f32 = 12.0;
@@ -370,7 +370,7 @@ fn precipitation_card(ui: &mut egui::Ui, p: &Palette, w: &mut WeatherSettings) {
 
 /// The "Falling" card's rows, under its switch.
 fn precipitation_rows(ui: &mut egui::Ui, p: &Palette, w: &mut WeatherSettings) {
-    // AURORA_SNOW shows as snow until the window is used
+    // BLOCK_SNOW shows as snow until the window is used
     let snowing = w.snowing();
     let (rain_line, snow_line) = (block_i18n::tr!("ui-weather-rain-sub"), block_i18n::tr!("ui-weather-snow-sub"));
     // both as tall as the taller: a line that wraps in one language
@@ -919,7 +919,7 @@ fn northern_lights_card(ui: &mut egui::Ui, p: &Palette, w: &mut WeatherSettings)
 /// it is set, in its colours.
 fn aurora_preview(ui: &mut egui::Ui, p: &Palette, w: &WeatherSettings) {
     let width = ui.available_width();
-    let (rect, _) = ui.allocate_exact_size(Vec2::new(width, AURORA_PREVIEW_H), Sense::hover());
+    let (rect, _) = ui.allocate_exact_size(Vec2::new(width, BLOCK_PREVIEW_H), Sense::hover());
     let enabled = ui.is_enabled();
     let fade = |c: egui::Color32| if enabled { c } else { c.gamma_multiply(0.4) };
     let painter = ui.painter().with_clip_rect(rect.intersect(ui.clip_rect()));

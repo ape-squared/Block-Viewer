@@ -1,6 +1,6 @@
 //! World cursors drawn from Tabler outline icons, in the skin's ink with a
 //! dark outline. Firestorm shows its own artwork for the same states
-//! (LLToolPie click actions, LLToolCamera, LLToolPipette); Aurora keeps its
+//! (LLToolPie click actions, LLToolCamera, LLToolPipette); Block keeps its
 //! rules and replaces the drawings with the interface's icons, at the
 //! human's request.
 use crate::interaction::Action;

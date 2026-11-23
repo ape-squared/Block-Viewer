@@ -1,4 +1,4 @@
-//! AURORA_DEMO_DELIVERY: Marketplace deliveries arriving in Received items
+//! BLOCK_DEMO_DELIVERY: Marketplace deliveries arriving in Received items
 //! with no offer (#752), added the way the server's BulkUpdateInventory adds
 //! them. The inbox is seeded at frame 600 (not news), the delivery lands at
 //! 700: `1` one purchase, its card unrolls from the bell; `several` three at
@@ -13,7 +13,7 @@ use uuid::Uuid;
 
 /// The scenario, if asked: `1`, `several`, `open` or `history`.
 pub fn mode() -> Option<String> {
-    std::env::var("AURORA_DEMO_DELIVERY").ok()
+    std::env::var("BLOCK_DEMO_DELIVERY").ok()
 }
 
 /// The inbox and its earlier purchase appear (`seed_received`).

@@ -37,7 +37,7 @@ pub struct ParcelIcon {
     pub label: Option<String>,
     pub tip: String,
     /// The ability in a word or two, written next to the icon by the place
-    /// island of the Aurora bars when there is room for it.
+    /// island of the Block bars when there is room for it.
     pub name: &'static str,
 }
 
@@ -76,14 +76,14 @@ pub fn parcel_icons(s: &ParcelState) -> Vec<ParcelIcon> {
     let mut out = Vec::with_capacity(8);
 
     // Admin status: the Legacy Viewer reddens its menu bar
-    // (setMenuBackgroundColor); Aurora keeps a crown in front, lit, with the
+    // (setMenuBackgroundColor); Block keeps a crown in front, lit, with the
     // level and the way back in its tooltip
     if s.god_level > 0 {
         let tip = block_i18n::tr!("god-mode-badge-tip", level = i64::from(s.god_level));
         out.push(icon("crown-filled", true, block_i18n::tr!("god-mode-badge"), &tip));
     }
 
-    // process_frozen_message shows nothing; Aurora keeps the state in sight
+    // process_frozen_message shows nothing; Block keeps the state in sight
     // until the simulator releases us. Red without a strike: it is active.
     if s.frozen {
         let mut f = icon(

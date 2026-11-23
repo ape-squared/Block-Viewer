@@ -1,4 +1,4 @@
-//! The viewer's own mix, for the Director's film (Aurora's own: the Legacy
+//! The viewer's own mix, for the Director's film (Block's own: the Legacy
 //! Viewer records no film). The mixer writes, beside what the device
 //! plays, the sum of the channels chosen (the world's sounds, the media, the
 //! interface; voice only when asked: it records other people) at the volumes

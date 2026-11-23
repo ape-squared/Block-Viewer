@@ -14,7 +14,7 @@
 use std::collections::HashMap;
 use uuid::Uuid;
 
-/// AURORA_MATERIAL_REBUILD: `all` rebuilds every material user at each
+/// BLOCK_MATERIAL_REBUILD: `all` rebuilds every material user at each
 /// material change, as before; `alt` alternates the two ways by the second
 /// (one second in three the old way).
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -26,7 +26,7 @@ pub enum Mode {
 
 pub fn mode() -> Mode {
     static MODE: std::sync::OnceLock<Mode> = std::sync::OnceLock::new();
-    *MODE.get_or_init(|| match std::env::var("AURORA_MATERIAL_REBUILD").as_deref() {
+    *MODE.get_or_init(|| match std::env::var("BLOCK_MATERIAL_REBUILD").as_deref() {
         Ok("all") => Mode::All,
         Ok("alt") => Mode::Alternate,
         _ => Mode::Targeted,
@@ -44,7 +44,7 @@ pub fn all_now() -> bool {
     }
 }
 
-/// `AURORA_MATERIAL_REBUILD=alt`: the way of second `n` (true: the old
+/// `BLOCK_MATERIAL_REBUILD=alt`: the way of second `n` (true: the old
 /// way). None without `alt`.
 pub fn alternate(n: u64) -> Option<bool> {
     (mode() == Mode::Alternate).then(|| {

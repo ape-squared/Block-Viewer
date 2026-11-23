@@ -1,6 +1,6 @@
 //! The Director's recording: the frames of the 3D view, without the
 //! interface, sent as raw RGBA to an ffmpeg the user has on their computer,
-//! which encodes the film. Aurora's own: the Legacy Viewer records nothing.
+//! which encodes the film. Block's own: the Legacy Viewer records nothing.
 //!
 //! ffmpeg is a separate program: it is found on the PATH or chosen by the
 //! user, never shipped nor downloaded by the viewer, and only ever run with
@@ -696,10 +696,10 @@ pub fn free_path(folder: &Path, stamp: &str, format: Format) -> PathBuf {
     (0u32..)
         .map(|n| {
             let suffix = if n == 0 { String::new() } else { format!("_{n}") };
-            folder.join(format!("Aurora_{stamp}{suffix}.{}", format.extension()))
+            folder.join(format!("Block_{stamp}{suffix}.{}", format.extension()))
         })
         .find(|path| !path.exists())
-        .unwrap_or_else(|| folder.join(format!("Aurora_{stamp}.{}", format.extension())))
+        .unwrap_or_else(|| folder.join(format!("Block_{stamp}.{}", format.extension())))
 }
 
 #[cfg(test)]
@@ -863,7 +863,7 @@ mod tests {
 
     #[test]
     fn the_ffmpeg_of_the_path_is_found() {
-        let root = std::env::temp_dir().join(format!("aurora-recorder-{}", std::process::id()));
+        let root = std::env::temp_dir().join(format!("block-recorder-{}", std::process::id()));
         let (empty, with) = (root.join("empty"), root.join("with"));
         std::fs::create_dir_all(&empty).expect("folder");
         std::fs::create_dir_all(&with).expect("folder");
@@ -876,7 +876,7 @@ mod tests {
 
     #[test]
     fn the_frames_reach_the_file_each_as_many_times_as_asked() {
-        let root = std::env::temp_dir().join(format!("aurora-recording-{}", std::process::id()));
+        let root = std::env::temp_dir().join(format!("block-recording-{}", std::process::id()));
         std::fs::create_dir_all(&root).expect("folder");
         let out = root.join("film.rgba");
         let mut recording = Recording::start(Sink::Raw(out.clone()), (2, 1), 30, out.clone());
@@ -904,8 +904,8 @@ mod tests {
 
     #[test]
     fn a_program_that_is_not_there_fails_with_its_name() {
-        let missing = std::env::temp_dir().join("aurora-no-such-ffmpeg").join(program());
-        assert!(Tool::probe(&missing).expect_err("missing").contains("aurora-no-such-ffmpeg"));
+        let missing = std::env::temp_dir().join("block-no-such-ffmpeg").join(program());
+        assert!(Tool::probe(&missing).expect_err("missing").contains("block-no-such-ffmpeg"));
         let mut finishing = Recording::start(Sink::Ffmpeg(missing.clone(), Vec::new()), (2, 2), 30, PathBuf::from("x.mp4")).finish();
         let done = loop {
             if let Some(done) = finishing.done() {
@@ -913,23 +913,23 @@ mod tests {
             }
             std::thread::yield_now();
         };
-        assert!(done.expect_err("missing").contains("aurora-no-such-ffmpeg"));
+        assert!(done.expect_err("missing").contains("block-no-such-ffmpeg"));
     }
 
     #[test]
     fn a_film_gets_a_name_no_file_has() {
-        let root = std::env::temp_dir().join(format!("aurora-films-{}", std::process::id()));
+        let root = std::env::temp_dir().join(format!("block-films-{}", std::process::id()));
         std::fs::create_dir_all(&root).expect("folder");
         let first = free_path(&root, "2026-11-15_16-00-00", Format::Mp4);
-        assert_eq!(first, root.join("Aurora_2026-11-15_16-00-00.mp4"));
+        assert_eq!(first, root.join("Block_2026-11-15_16-00-00.mp4"));
         std::fs::write(&first, b"").expect("file");
         assert_eq!(
             free_path(&root, "2026-11-15_16-00-00", Format::Mp4),
-            root.join("Aurora_2026-11-15_16-00-00_1.mp4")
+            root.join("Block_2026-11-15_16-00-00_1.mp4")
         );
         assert_eq!(
             free_path(&root, "2026-11-15_16-00-00", Format::ProRes),
-            root.join("Aurora_2026-11-15_16-00-00.mov")
+            root.join("Block_2026-11-15_16-00-00.mov")
         );
         let _ = std::fs::remove_dir_all(&root);
         assert_eq!(Options::default().rate(), 30);
@@ -1154,7 +1154,7 @@ mod tests {
         assert_eq!(uncapped.written(), 301);
         assert_eq!(uncapped.due(5.0), 0, "in step again");
         // the render: frames offered one by one, each written once
-        let out = std::env::temp_dir().join(format!("aurora-offer-{}.raw", std::process::id()));
+        let out = std::env::temp_dir().join(format!("block-offer-{}.raw", std::process::id()));
         let mut film = Recording::start_with(Sink::Raw(out.clone()), (2, 2), Pace::new(30), out.clone());
         let mut offered = 0;
         while offered < 8 {

@@ -1,4 +1,4 @@
-//! The keyboard shortcuts of the Legacy Viewer's menus that run an Aurora
+//! The keyboard shortcuts of the Legacy Viewer's menus that run a Block
 //! feature reached otherwise from a menu, a window or the toolbar
 //! (menu_viewer.xml accelerators): People on a tab, Contacts, the master
 //! mute, double-click teleport, selection outlines, the camera's angles and
@@ -173,11 +173,11 @@ impl App {
             .set_script_focus(camera, target, object, &mut self.world.agent, &self.settings.camera);
     }
 
-    /// AURORA_DEMO_LAST_CHATTER=1: at frame 500 the nearest resident says a
+    /// BLOCK_DEMO_LAST_CHATTER=1: at frame 500 the nearest resident says a
     /// line in nearby chat; at frame 540 Ctrl+\ is pressed through the
     /// bindings, as a key would be, and the camera looks at that resident.
     pub(super) fn demo_look_at_last_chatter(&mut self) {
-        if !self.demo || !matches!(self.frame_count, 500 | 540) || std::env::var_os("AURORA_DEMO_LAST_CHATTER").is_none() {
+        if !self.demo || !matches!(self.frame_count, 500 | 540) || std::env::var_os("BLOCK_DEMO_LAST_CHATTER").is_none() {
             return;
         }
         if self.frame_count == 500 {

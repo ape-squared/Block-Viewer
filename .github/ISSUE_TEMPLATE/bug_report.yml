@@ -1,5 +1,5 @@
 name: Bug Report
-description: Report a bug in Aurora
+description: Report a bug in Block
 type: Bug
 body:
   - type: textarea

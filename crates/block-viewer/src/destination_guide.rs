@@ -1,5 +1,5 @@
-//! The Destination Guide's places, read for Aurora's own Destinations
-//! window (`ui/destinations/aurora.rs`). The data is the public feed the
+//! The Destination Guide's places, read for Block's own Destinations
+//! window (`ui/destinations/block.rs`). The data is the public feed the
 //! official guide page reads (`guide.js` of the v3.0 viewer web
 //! components, the page LLFloaterDestinations shows): the categories of the
 //! `viewer_dg` channel, then the places of each category sorted by
@@ -115,7 +115,7 @@ pub enum Load {
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Source {
     Live,
-    /// The offline fixture of `AURORA_DEMO_DESTINATIONS`.
+    /// The offline fixture of `BLOCK_DEMO_DESTINATIONS`.
     Demo(demo::Fixture),
 }
 

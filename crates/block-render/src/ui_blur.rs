@@ -1,6 +1,6 @@
 //! Live modal backdrop: scene and lower UI layers are blurred on the GPU;
 //! the modal and higher layers are painted afterwards at full resolution.
-//! This presentation is an explicit Aurora UI choice, requested by the user.
+//! This presentation is an explicit Block UI choice, requested by the user.
 //!
 //! Preferences › Accessibility › Disable glass turns the GPU blur off
 //! (`set_ui_blur`); high contrast already skips glass by making surfaces

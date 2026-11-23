@@ -26,7 +26,7 @@
 //!   rests; and every object every [`SWEEP_SECONDS`], a safety net for
 //!   state changed behind the store's back. Never more per frame than the
 //!   slice below.
-//! - **LOD slice** ([`LodChecks::Slice`], `AURORA_SYNC_SLICE=1`): each
+//! - **LOD slice** ([`LodChecks::Slice`], `BLOCK_SYNC_SLICE=1`): each
 //!   object visited every [`LOD_PERIOD`] frames, as before the checks
 //!   above. Only that frame's slice of the slab is walked.
 //! - **Backlog**: objects whose full sync did not fit the frame's time
@@ -67,7 +67,7 @@ pub enum LodChecks<'a> {
     },
 }
 
-/// AURORA_SYNC_SLICE: the scene sync as before the checks by events (LOD
+/// BLOCK_SYNC_SLICE: the scene sync as before the checks by events (LOD
 /// slice of every object, HUD attachments placed at each frame, whole
 /// chunks of records uploaded), to compare. `1`: always; `alt`: one second
 /// in three, the app switching at each line of the frame profile.
@@ -80,7 +80,7 @@ pub enum SliceEnv {
 
 pub fn slice_env() -> SliceEnv {
     static ENV: std::sync::OnceLock<SliceEnv> = std::sync::OnceLock::new();
-    *ENV.get_or_init(|| match std::env::var("AURORA_SYNC_SLICE").as_deref() {
+    *ENV.get_or_init(|| match std::env::var("BLOCK_SYNC_SLICE").as_deref() {
         Ok("alt") => SliceEnv::Alternate,
         Ok("0") | Ok("") | Err(_) => SliceEnv::Off,
         Ok(_) => SliceEnv::On,
@@ -102,7 +102,7 @@ fn set_slice_mode(on: bool) {
     block_render::set_whole_chunk_uploads(on);
 }
 
-/// `AURORA_SYNC_SLICE=alt`: switch to the way of second `n` of the run and
+/// `BLOCK_SYNC_SLICE=alt`: switch to the way of second `n` of the run and
 /// tell which it is (true: as before). The old way one second in three, so
 /// that work done every other second falls on both. None without `alt`.
 pub fn alternate_slice(n: u64) -> Option<bool> {
@@ -163,11 +163,11 @@ pub enum PendingGeom {
 }
 
 /// Whether objects waiting for a geometry are parked: not with
-/// `AURORA_PENDING_PARK=0`, which asks about all of them in the round as
+/// `BLOCK_PENDING_PARK=0`, which asks about all of them in the round as
 /// before, to compare.
 fn parking() -> bool {
     static ON: std::sync::OnceLock<bool> = std::sync::OnceLock::new();
-    *ON.get_or_init(|| std::env::var("AURORA_PENDING_PARK").as_deref() != Ok("0"))
+    *ON.get_or_init(|| std::env::var("BLOCK_PENDING_PARK").as_deref() != Ok("0"))
 }
 
 /// Parent chains longer than this are cut (as `Scene::object_transform`).
@@ -325,7 +325,7 @@ pub fn depth(objects: &ObjectStore, mut idx: usize) -> u8 {
 #[derive(Default)]
 pub struct FrameList {
     pub items: Vec<(usize, u8)>,
-    /// How many of them each set listed (AURORA_SYNC_CHECK).
+    /// How many of them each set listed (BLOCK_SYNC_CHECK).
     pub sources: Sources,
     /// Objects the detail level check looked at.
     pub lod_checked: usize,
@@ -2017,7 +2017,7 @@ mod tests {
         let hat = f.add(9010, 9000, false);
         let all = [avatar, hud, button, needle, hat];
         f.frame(&state);
-        // the slice way (AURORA_SYNC_SLICE): with the wearer at each frame
+        // the slice way (BLOCK_SYNC_SLICE): with the wearer at each frame
         assert_eq!(f.quiet_frame(&all, &state), all.to_vec());
         // found on a HUD point by their sync
         state.hud.extend([hud, button, needle]);

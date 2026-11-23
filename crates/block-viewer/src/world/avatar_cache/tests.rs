@@ -459,7 +459,7 @@ fn the_store_stays_for_the_next_login() {
     let (mut world, _, _) = setup();
     world
         .avatar_cache
-        .set_store(Some(std::env::temp_dir().join("aurora-avatar-cache-next-login-test")));
+        .set_store(Some(std::env::temp_dir().join("block-avatar-cache-next-login-test")));
     world.avatar_cache.insert_set(
         OTHER,
         KeptAvatar {

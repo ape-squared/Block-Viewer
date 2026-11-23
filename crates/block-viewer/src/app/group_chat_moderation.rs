@@ -34,8 +34,8 @@ impl App {
         }
     }
 
-    /// `AURORA_DEMO_CONV_MODERATE=eject|ban|banned|error|ban-all|unban-all|
-    /// ban-all-run`, on the builder shown as "Tess" in Aurora Builders
+    /// `BLOCK_DEMO_CONV_MODERATE=eject|ban|banned|error|ban-all|unban-all|
+    /// ban-all-run`, on the builder shown as "Tess" in Block Builders
     /// (docs/TESTING.md).
     fn group_chat_moderation_demo(&mut self) {
         let (group, agent) = (crate::demo::DEMO_GROUP1, crate::demo::DEMO_NOVA);

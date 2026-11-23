@@ -161,7 +161,7 @@ pub(crate) const COMMON_SHADER: &str = concat!(
 
 /// Offline material iteration only. Normal viewers always use their baked shaders.
 pub(crate) fn water_shader_source(files: &[&str], baked: &'static str) -> std::borrow::Cow<'static, str> {
-    if std::env::var_os("AURORA_DEMO").is_none() || std::env::var("AURORA_DEMO_WATER_SHADERS").as_deref() != Ok("1") {
+    if std::env::var_os("BLOCK_DEMO").is_none() || std::env::var("BLOCK_DEMO_WATER_SHADERS").as_deref() != Ok("1") {
         return baked.into();
     }
     let directory = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("src/shaders");
@@ -1101,7 +1101,7 @@ fn probe(@builtin(global_invocation_id) id:vec3<u32>) {{
         validate(&crate::contact_shadows::shader_source(192, 13));
         let (count, hard) = crate::contact_shadows::samples(100.0);
         validate(&crate::contact_shadows::shader_source(count, hard));
-        // the diagnostic variants (AURORA_CONTACT_VARIANT)
+        // the diagnostic variants (BLOCK_CONTACT_VARIANT)
         use crate::contact_shadows::{Variant, photo_source, variant_source};
         for v in [Variant::NoEarlyOut, Variant::NoShared, Variant::Short] {
             validate(&variant_source(v));

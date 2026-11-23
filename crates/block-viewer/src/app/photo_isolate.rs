@@ -29,7 +29,7 @@ pub(super) enum Pick {
 /// Points waiting for their answer: past this, the oldest are given up.
 const PENDING: usize = 6;
 
-/// The frame `AURORA_DEMO_ISOLATE=…-back` returns to the entire scene.
+/// The frame `BLOCK_DEMO_ISOLATE=…-back` returns to the entire scene.
 const DEMO_BACK: u64 = 1500;
 
 impl App {
@@ -171,8 +171,8 @@ impl App {
         (rows, hover)
     }
 
-    /// AURORA_DEMO_ISOLATE=<own|pick>[-panel][-opaque][-back], with the
-    /// photo mode open (AURORA_DEMO_SNAPSHOT): at frame 640 `own` shows our
+    /// BLOCK_DEMO_ISOLATE=<own|pick>[-panel][-opaque][-back], with the
+    /// photo mode open (BLOCK_DEMO_SNAPSHOT): at frame 640 `own` shows our
     /// avatar alone on an empty background (`-opaque` keeping the sky and
     /// the ground); `pick` chooses in the scene instead, the pointer at the
     /// middle of the window, 70 % down (our avatar in the viewfinder) from
@@ -184,7 +184,7 @@ impl App {
         if !self.demo || !(640..=DEMO_BACK).contains(&self.frame_count) {
             return;
         }
-        let Ok(mode) = std::env::var("AURORA_DEMO_ISOLATE") else {
+        let Ok(mode) = std::env::var("BLOCK_DEMO_ISOLATE") else {
             return;
         };
         let words: Vec<&str> = mode.split('-').collect();

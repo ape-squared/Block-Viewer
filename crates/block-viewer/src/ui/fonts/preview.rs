@@ -1,5 +1,5 @@
 //! Preferences › Appearance › System fonts draws each family's name in its
-//! own face, like the font pickers of the operating systems. An Aurora
+//! own face, like the font pickers of the operating systems. A Block
 //! addition: the Legacy Viewer lists no system fonts on Linux.
 //!
 //! An installed system can have thousands of families, and adding a face to
@@ -28,7 +28,7 @@ const MARGIN: usize = 64;
 /// dropped, so a long scroll does not keep growing the textures.
 const CAP: usize = 512;
 
-const STATE_ID: &str = "aurora-font-previews";
+const STATE_ID: &str = "block-font-previews";
 
 /// A name drawn in its own face, ready to paint.
 #[derive(Clone)]
@@ -209,7 +209,7 @@ impl Previews {
             s.entries.insert(path.clone(), Entry::Pending);
         }
         let (look, generation, sender, ctx) = (self.look, s.generation, s.sender.clone(), ctx.clone());
-        let spawned = std::thread::Builder::new().name("aurora-font-previews".into()).spawn(move || {
+        let spawned = std::thread::Builder::new().name("block-font-previews".into()).spawn(move || {
             for (path, name) in wanted {
                 let image = picture(&path, &name, look);
                 if sender.send(Picture { generation, path, image }).is_err() {
@@ -403,7 +403,7 @@ mod tests {
     /// another test has mapped cannot be rewritten (Windows refuses it,
     /// Linux may kill the mapping test with SIGBUS).
     fn font_files(test: &str) -> Vec<SystemFont> {
-        let dir = std::env::temp_dir().join(format!("aurora-font-previews-{}-{test}", std::process::id()));
+        let dir = std::env::temp_dir().join(format!("block-font-previews-{}-{test}", std::process::id()));
         std::fs::create_dir_all(&dir).expect("temporary folder");
         [
             ("Inter", super::super::INTER_TTF),

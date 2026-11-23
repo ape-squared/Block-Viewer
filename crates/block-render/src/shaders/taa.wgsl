@@ -11,7 +11,7 @@ struct TaaParams {
     inv_view_proj: mat4x4<f32>,
     prev_view_proj: mat4x4<f32>,
     params: vec4<f32>, // x reset, y current weight, z width, w height
-    motion: vec4<f32>, // x: 1 when the motion vectors move the history (AURORA_TAA_MOTION)
+    motion: vec4<f32>, // x: 1 when the motion vectors move the history (BLOCK_TAA_MOTION)
 };
 @group(0) @binding(4) var<uniform> taa: TaaParams;
 // xy: the mesh normal (GTAO's), zw: the pixel's screen motion since the

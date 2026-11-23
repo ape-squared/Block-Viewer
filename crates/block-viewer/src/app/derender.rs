@@ -214,13 +214,13 @@ impl App {
         }
     }
 
-    /// AURORA_DEMO_FRIENDS_ONLY: Show Friends Only switched on at frame
+    /// BLOCK_DEMO_FRIENDS_ONLY: Show Friends Only switched on at frame
     /// 700, then off at 900 (docs/TESTING.md).
     pub(super) fn demo_friends_only_steps(&mut self) {
         if !self.demo {
             return;
         }
-        let Ok(mode) = std::env::var("AURORA_DEMO_FRIENDS_ONLY") else {
+        let Ok(mode) = std::env::var("BLOCK_DEMO_FRIENDS_ONLY") else {
             return;
         };
         let wolf = crate::demo::DEMO_LOUP;
@@ -244,14 +244,14 @@ impl App {
         }
     }
 
-    /// AURORA_DEMO_DERENDER: the scripted right click on the demo's other
+    /// BLOCK_DEMO_DERENDER: the scripted right click on the demo's other
     /// avatar (or the hat it wears) and the entries chosen
     /// (docs/TESTING.md).
     pub(super) fn demo_derender_steps(&mut self) {
         if !self.demo {
             return;
         }
-        let Ok(mode) = std::env::var("AURORA_DEMO_DERENDER") else {
+        let Ok(mode) = std::env::var("BLOCK_DEMO_DERENDER") else {
             return;
         };
         let mode = mode.trim();

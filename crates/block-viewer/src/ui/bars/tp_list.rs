@@ -7,7 +7,7 @@
 //! onBackOrForwardButtonHeldDown, showTeleportHistoryMenu and
 //! rebuildTeleportHistoryMenu (indra/newview/llnavigationbar.cpp,
 //! originally LGPL 2.1). The arrival time, the right click and the link to
-//! the full Teleport history are Aurora's: the Legacy Viewer's list has
+//! the full Teleport history are Block's: the Legacy Viewer's list has
 //! the names alone.
 
 use super::{BarAction, StatusInfo};
@@ -137,7 +137,7 @@ mod tests {
 
     #[test]
     fn long_titles_end_with_an_ellipsis() {
-        assert_eq!(short("Aurora Lagoon, Boreal Lagoon"), "Aurora Lagoon, Boreal Lagoon");
+        assert_eq!(short("Block Lagoon, Boreal Lagoon"), "Block Lagoon, Boreal Lagoon");
         let long = "Ä".repeat(60);
         let cut = short(&long);
         assert_eq!(cut.chars().count(), TITLE_MAX);

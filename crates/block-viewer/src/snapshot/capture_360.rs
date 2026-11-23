@@ -19,7 +19,7 @@ pub const INVENTORY_FACE: u32 = 512;
 pub const INVENTORY_OUTPUT: (u32, u32) = (2048, 1024);
 /// JPEG quality of the saved panorama (360CaptureJPEGEncodeQuality).
 pub const JPEG_QUALITY: u8 = 95;
-/// What an Aurora 360° upload's item name starts with. ASCII only: the grid
+/// What a Block 360° upload's item name starts with. ASCII only: the grid
 /// (and the Legacy Viewer, `LLStringUtil::replaceNonstandardASCII` through
 /// `LLInventoryObject::correctInventoryName`) replace every byte above 0x7f
 /// in an item name, so a "°" would not come back.
@@ -168,7 +168,7 @@ pub fn item_name(place: &str) -> String {
     name.trim_end().to_owned()
 }
 
-/// A texture an Aurora 360° upload made: its name starts with the marker
+/// A texture a Block 360° upload made: its name starts with the marker
 /// (any case, after any leading spaces). Whether it is a panorama still
 /// depends on its shape (`is_equirect`).
 pub fn is_marked(name: &str) -> bool {
@@ -350,8 +350,8 @@ mod tests {
     #[test]
     fn proposed_name_cleans_the_region() {
         assert_eq!(
-            proposed_file_name("Aurora Démo (2)", 4096, 2048, 512, "20261107_140305"),
-            "sl360_Aurora_D_mo__2__4096x2048_512_20261107_140305.jpg"
+            proposed_file_name("Block Démo (2)", 4096, 2048, 512, "20261107_140305"),
+            "sl360_Block_D_mo__2__4096x2048_512_20261107_140305.jpg"
         );
         assert_eq!(proposed_file_name("", 4096, 2048, 128, "s"), "sl360_4096x2048_128_s.jpg");
     }
@@ -431,15 +431,15 @@ mod tests {
         assert!(MARKER.is_ascii());
         assert!(item_name("Démo ° (2)").is_ascii());
         assert!(is_marked(&item_name("Démo ° (2)")));
-        assert_eq!(item_name("Aurora"), "360 Snapshot : Aurora");
+        assert_eq!(item_name("Block"), "360 Snapshot : Block");
     }
 
     #[test]
     fn marked_names_are_found_whatever_the_case_or_the_spaces() {
-        for name in ["360 Snapshot : Aurora", "360 snapshot", "  360 SNAPSHOT : x", "360 Snapshot"] {
+        for name in ["360 Snapshot : Block", "360 snapshot", "  360 SNAPSHOT : x", "360 Snapshot"] {
             assert!(is_marked(name), "{name}");
         }
-        for name in ["Snapshot : Aurora", "My 360 Snapshot", "", "360", "360 Snap", "360 Snapshé"] {
+        for name in ["Snapshot : Block", "My 360 Snapshot", "", "360", "360 Snap", "360 Snapshé"] {
             assert!(!is_marked(name), "{name}");
         }
     }

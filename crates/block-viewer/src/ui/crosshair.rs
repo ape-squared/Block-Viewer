@@ -3,7 +3,7 @@
 //!
 //! The Legacy Viewer only has ShowCrosshairs (on): LLToolGun::draw puts the
 //! 8×8 `crosshairs.tga` (four white corners with a black border) in the
-//! middle of the world view. Aurora keeps that switch and that look (the
+//! middle of the world view. Block keeps that switch and that look (the
 //! `Legacy` shape), and adds the choices of a game's crosshair: a dot (the
 //! default, the human's choice of 2026-10-27), a cross, a circle or a
 //! picture of one's own, with their size, thickness, gap, colour and
@@ -259,7 +259,7 @@ impl Picture {
             let (tx, rx) = mpsc::channel();
             self.loading = Some(rx);
             let (owned, repaint) = (path.to_owned(), ctx.clone());
-            let spawned = std::thread::Builder::new().name("aurora-crosshair-picture".into()).spawn(move || {
+            let spawned = std::thread::Builder::new().name("block-crosshair-picture".into()).spawn(move || {
                 let _ = tx.send(read_picture(&owned));
                 repaint.request_repaint();
             });
@@ -300,11 +300,11 @@ fn read_picture(path: &Path) -> Option<egui::ColorImage> {
     Some(egui::ColorImage::from_rgba_unmultiplied(size, rgba.as_raw()))
 }
 
-/// AURORA_DEMO_CROSSHAIR=dot|cross|circle|legacy|off|image:<file>: the
+/// BLOCK_DEMO_CROSSHAIR=dot|cross|circle|legacy|off|image:<file>: the
 /// crosshair of that shape for the session (nothing saved); `cross` and
 /// `circle` with their centre dot.
 pub fn demo(s: &Settings) -> Option<Settings> {
-    let spec = std::env::var("AURORA_DEMO_CROSSHAIR").ok()?;
+    let spec = std::env::var("BLOCK_DEMO_CROSSHAIR").ok()?;
     let mut shown = s.clone();
     match spec.as_str() {
         "dot" => shown.shape = Shape::Dot,

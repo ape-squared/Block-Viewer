@@ -263,7 +263,7 @@ pub fn read_words(path: &Path) -> Vec<String> {
 /// exit (`save_before_exit`).
 static OWED: parking_lot::Mutex<Vec<(PathBuf, String)>> = parking_lot::Mutex::new(Vec::new());
 
-static RETRY: crate::save_retry::OnDemand = crate::save_retry::OnDemand::new("aurora-spelling-words", "dictionary words");
+static RETRY: crate::save_retry::OnDemand = crate::save_retry::OnDemand::new("block-spelling-words", "dictionary words");
 
 /// LLSpellChecker::addToDictFile: the list written again with `word` added,
 /// and with the words still owed.

@@ -821,15 +821,15 @@ impl App {
     }
 }
 
-/// `AURORA_DEMO_APPEARANCE=batch|batch-run|batch-hd|batch-hd-poor`.
+/// `BLOCK_DEMO_APPEARANCE=batch|batch-run|batch-hd|batch-hd-poor`.
 fn demo_mode() -> Option<&'static str> {
     static MODE: std::sync::OnceLock<Option<String>> = std::sync::OnceLock::new();
-    MODE.get_or_init(|| std::env::var("AURORA_DEMO_APPEARANCE").ok().filter(|m| m.starts_with("batch")))
+    MODE.get_or_init(|| std::env::var("BLOCK_DEMO_APPEARANCE").ok().filter(|m| m.starts_with("batch")))
         .as_deref()
 }
 
 impl App {
-    /// The demo's steps (`AURORA_DEMO_APPEARANCE`): over the showcase, at
+    /// The demo's steps (`BLOCK_DEMO_APPEARANCE`): over the showcase, at
     /// frame 600 the batch portraits' window over the demo's outfits
     /// (`batch`); `batch-run` saves the current outfit's changes at frame
     /// 640 and starts it at frame 700. `batch-hd`: the HD pictures ticked

@@ -1,4 +1,4 @@
-//! AURORA_DEMO_VEILS=<n>[,<strings>[,<gap>]]: a hall hung with lace, as a wedding
+//! BLOCK_DEMO_VEILS=<n>[,<strings>[,<gap>]]: a hall hung with lace, as a wedding
 //! venue is: the order and the cost of many blended layers one behind the
 //! other, crossing one another, with faintly glowing strings among them.
 //!
@@ -18,7 +18,7 @@
 //! What to look for: a curtain keeps its tint from one side of a crossing to
 //! the other, and the nearer of two is the one seen over the other on both
 //! sides; the strings behind several curtains glow less than those in front.
-//! From the start position, or AURORA_DEMO_POS="x,y".
+//! From the start position, or BLOCK_DEMO_POS="x,y".
 
 use super::{HANDLE, height, prim, shape};
 use block_net::NetEvent;
@@ -39,7 +39,7 @@ const TINTS: [[f32; 3]; 4] = [[1.0, 0.96, 0.9], [1.0, 0.82, 0.86], [0.84, 0.9, 1
 
 /// Curtains and strings asked for, and the meters between two curtains.
 fn counts() -> Option<(u32, u32, f32)> {
-    let v = std::env::var("AURORA_DEMO_VEILS").ok()?;
+    let v = std::env::var("BLOCK_DEMO_VEILS").ok()?;
     let mut parts = v.split(',').map(|p| p.trim().parse::<u32>().ok());
     let curtains = parts.next().flatten().unwrap_or(40).clamp(1, 400);
     let strings = parts.next().flatten().unwrap_or(curtains).min(2000);
@@ -76,7 +76,7 @@ pub fn events() -> Vec<NetEvent> {
     let look = Vec3::new(0.8, 0.4, 0.0).normalize();
     let across = Vec3::new(-look.y, look.x, 0.0);
     let yaw = look.y.atan2(look.x);
-    let eye = std::env::var("AURORA_DEMO_POS")
+    let eye = std::env::var("BLOCK_DEMO_POS")
         .ok()
         .map(|v| v.split(',').filter_map(|s| s.trim().parse::<f32>().ok()).collect::<Vec<_>>())
         .filter(|p| p.len() >= 2)

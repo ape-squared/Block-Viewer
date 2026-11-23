@@ -2,9 +2,9 @@
 //! the layout of the bars mockup: the commands in a grid of tiles with a
 //! filter, each toolbar's mode, alignment and size, Locked, Clear all and
 //! Restore defaults. A command already in a toolbar stays in the grid,
-//! hollow, and cannot be added twice (LLFloaterToybox::draw); one Aurora
+//! hollow, and cannot be added twice (LLFloaterToybox::draw); one Block
 //! does not have yet is dimmed. A click on a free tile adds it at the end
-//! of the bottom toolbar (Aurora's, for the keyboard).
+//! of the bottom toolbar (Block's, for the keyboard).
 
 use super::{Align, Bar, BarStyle, ButtonMode, Drag, Edit, Sizing, ToolbarSettings, ToolbarUi, catalogue, label, ready};
 use crate::theme::Palette;
@@ -58,7 +58,7 @@ fn placed_tip(bar: Bar, islands: bool) -> &'static str {
 enum Tile {
     Free,
     Placed,
-    /// Not in Aurora yet.
+    /// Not in Block yet.
     Missing,
     /// Being dragged out of the window.
     Dragged,
@@ -440,7 +440,7 @@ fn ghost(ctx: &egui::Context, p: &Palette, button: &ToolButton, pointer: egui::P
         });
 }
 
-/// The settings of a demo run (`AURORA_DEMO_TOOLBAR`): `custom` is the
+/// The settings of a demo run (`BLOCK_DEMO_TOOLBAR`): `custom` is the
 /// mockup's "custom" state (Environments, Radar and Teleport history in the
 /// left bar, Performance out of the dock); `side` the same bars without the
 /// window (`sidemenu`: Radar's right click at frame 650); `right` them in
@@ -492,7 +492,7 @@ pub fn demo_settings(settings: &mut ToolbarSettings, layout: &Layout) {
 
 fn demo_mode() -> Option<&'static str> {
     static MODE: std::sync::OnceLock<Option<String>> = std::sync::OnceLock::new();
-    MODE.get_or_init(|| std::env::var("AURORA_DEMO_TOOLBAR").ok()).as_deref()
+    MODE.get_or_init(|| std::env::var("BLOCK_DEMO_TOOLBAR").ok()).as_deref()
 }
 
 /// Offline scenarios use the real widgets and pointer events, as the human does.

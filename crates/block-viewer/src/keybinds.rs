@@ -466,7 +466,7 @@ pub enum Action {
     RegionEstate,
     /// The compact texture/material library (Ctrl+Space).
     TextureLibrary,
-    /// Aurora's IK authoring panel (Ctrl+K).
+    /// Block's IK authoring panel (Ctrl+K).
     IkEdit,
     /// "Search" (Firestorm Ctrl+F, menu_viewer.xml).
     Search,
@@ -478,9 +478,9 @@ pub enum Action {
     /// The world's hover tips on or off (the Legacy Viewer's Show Tips,
     /// Ctrl+Shift+T, `View.ShowHoverTips`).
     HoverTips,
-    /// Open Aurora's batch importer and its native file picker.
+    /// Open Block's batch importer and its native file picker.
     Import,
-    /// Aurora's held shortcut for dragging a visible HUD with the left button.
+    /// Block's held shortcut for dragging a visible HUD with the left button.
     HudDrag,
     /// HUD attachments shown or hidden (the Legacy Viewer's View › Show HUD
     /// Attachments, Alt+Shift+H, `View.ShowHUDAttachments`).
@@ -512,7 +512,7 @@ pub enum Action {
     RenderObjects,
     RenderGrass,
     RenderClouds,
-    /// Aurora's Dev Toolbox window (Ctrl+Alt+D).
+    /// Block's Dev Toolbox window (Ctrl+Alt+D).
     DevToolbox,
     /// Advanced › Request Admin Status (menu_viewer.xml, control|alt|G).
     RequestAdminStatus,
@@ -548,7 +548,7 @@ pub enum Action {
     /// from the field's key events and never by the world (`is_chat`). The
     /// Legacy Viewer hard-codes them (FSFloaterIM::handleKeyHere,
     /// FSNearbyChatControl::handleKeyHere, LLChatEntry and
-    /// LLFloaterIMContainer::handleKeyHere, indra/newview); Aurora lets
+    /// LLFloaterIMContainer::handleKeyHere, indra/newview); Block lets
     /// them be rebound (human request of 2026-11-15). A line break: the
     /// Legacy Ctrl+Shift+Enter second, Shift+Enter first.
     ChatNewLine,
@@ -1078,7 +1078,7 @@ impl KeyBindings {
             (Action::RenderClouds, [kalt(K::Minus, true, true), None]),
             // menu_viewer.xml: Show HUD Attachments, shortcut="alt|shift|H"
             (Action::ShowHuds, [kalt(K::KeyH, false, true), None]),
-            // Aurora's direct HUD gesture must leave Alt to Firestorm's camera (#266).
+            // Block's direct HUD gesture must leave Alt to Firestorm's camera (#266).
             (Action::HudDrag, [k(K::ControlLeft), None]),
             (
                 Action::ShowTransparency,
@@ -1104,7 +1104,7 @@ impl KeyBindings {
                     None,
                 ],
             ),
-            // Aurora's Dev Toolbox (Advanced › Dev Toolbox)
+            // Block's Dev Toolbox (Advanced › Dev Toolbox)
             (Action::DevToolbox, [kalt(K::KeyD, true, false), None]),
             // menu_viewer.xml: Request Admin Status
             (Action::RequestAdminStatus, [kalt(K::KeyG, true, false), None]),
@@ -2100,7 +2100,7 @@ mod tests {
     }
 
     #[test]
-    fn the_legacy_menu_chords_aurora_lacked_run_their_actions() {
+    fn the_legacy_menu_chords_block_lacked_run_their_actions() {
         // menu_viewer.xml accelerators (US QWERTY places)
         let kb = KeyBindings::us_places([KeyCode::KeyW, KeyCode::KeyS, KeyCode::KeyA, KeyCode::KeyD]);
         let m = |ctrl, shift, alt| Mods { ctrl, shift, alt };

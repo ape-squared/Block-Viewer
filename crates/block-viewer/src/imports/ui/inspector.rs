@@ -2,7 +2,7 @@
 
 use super::*;
 
-/// The queue is an Aurora addition to the Legacy Viewer's material editor
+/// The queue is a Block addition to the Legacy Viewer's material editor
 /// (floater_material_editor.xml); keep its width with each window's layout.
 fn queue_width(ui: &mut egui::Ui, window: Choice, height: f32) -> (f32, bool) {
     let available = ui.available_width();

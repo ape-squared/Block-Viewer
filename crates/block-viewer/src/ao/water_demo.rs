@@ -31,7 +31,7 @@ const FILES: [&str; 12] = [
 
 pub fn mode() -> Option<&'static str> {
     static MODE: OnceLock<Option<String>> = OnceLock::new();
-    MODE.get_or_init(|| std::env::var("AURORA_DEMO_WATER_ACTIONS").ok()).as_deref()
+    MODE.get_or_init(|| std::env::var("BLOCK_DEMO_WATER_ACTIONS").ok()).as_deref()
 }
 
 pub fn asset(index: usize) -> Uuid {
@@ -43,7 +43,7 @@ pub fn install(scene: &mut Scene, catalog: &mut super::inventory::Catalog) -> Op
     static PACK: OnceLock<Option<Vec<block_assets::Animation>>> = OnceLock::new();
     let pack = PACK
         .get_or_init(|| {
-            let root = std::env::var_os("AURORA_DEMO_WATER_ANIMS")?;
+            let root = std::env::var_os("BLOCK_DEMO_WATER_ANIMS")?;
             let root = std::path::Path::new(&root);
             let mut pack = Vec::new();
             for name in FILES {

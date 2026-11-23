@@ -1,6 +1,6 @@
 //! The world's own filters (`snapshot::looks::WorldLook`): their window
 //! (`ui/world_look.rs`) driven, and their look on the 3D view outside the
-//! photo mode and the Director. Aurora's own.
+//! photo mode and the Director. Block's own.
 
 use super::*;
 use crate::snapshot::looks::{self, Placement};
@@ -61,16 +61,16 @@ impl App {
         looks::frame_look(&layers, place, None, false, focus)
     }
 
-    /// AURORA_DEMO_WORLD_LOOK=<look>[+<look>…][:window]: at frame 600, the
+    /// BLOCK_DEMO_WORLD_LOOK=<look>[+<look>…][:window]: at frame 600, the
     /// world's filters switched on with those looks stacked in that order
-    /// (the ids of AURORA_DEMO_PHOTO_LOOK: `Sepia`, `aurora:vhs`,
+    /// (the ids of BLOCK_DEMO_PHOTO_LOOK: `Sepia`, `block:vhs`,
     /// `lut:<file>`, `pack:<pack>/<table>`), the last one chosen; `window`
     /// opens their window. Not saved.
     pub(super) fn world_look_demo(&mut self) {
         if !self.demo || self.frame_count != 600 {
             return;
         }
-        let Ok(value) = std::env::var("AURORA_DEMO_WORLD_LOOK") else {
+        let Ok(value) = std::env::var("BLOCK_DEMO_WORLD_LOOK") else {
             return;
         };
         let (ids, window) = match value.strip_suffix(":window") {

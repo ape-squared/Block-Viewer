@@ -2,7 +2,7 @@
 //! LLRecentPeople (indra/newview/llrecentpeople.cpp, originally LGPL 2.1).
 //! Someone joins it when they talk to us in the nearby chat or by IM, or
 //! when we open a conversation with them (LLAvatarActions::startIM), with the
-//! date and, Aurora's addition for the list's second line, the region we
+//! date and, Block's addition for the list's second line, the region we
 //! were in. Kept for the session, as Firestorm does.
 
 use std::time::SystemTime;

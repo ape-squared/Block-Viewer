@@ -8,7 +8,7 @@
 //! has several, with Clear all regions), Info, Refresh, "Use default title
 //! in regions without assignment" and Set as default.
 //!
-//! Aurora addition: under the titles, the list of the regions given a title
+//! Block addition: under the titles, the list of the regions given a title
 //! (the Legacy Viewer only shows them in the titles' column), where a
 //! region's title is changed or removed, and a rule whose group was left is
 //! shown as ignored. The rules themselves are `world/region_titles.rs`.
@@ -58,7 +58,7 @@ pub enum TitlesAction {
     AssignHere(Target),
     /// The FSSetTitleRegion dialog's name, to look up on the map.
     LookUp(String, Target),
-    /// A region given another title (Aurora's rule list).
+    /// A region given another title (Block's rule list).
     Reassign(String, Target),
     Remove(String),
     RemoveTitle(Uuid, Uuid),
@@ -258,7 +258,7 @@ impl GroupTitlesUi {
         }
     }
 
-    /// Aurora's list of the regions given a title.
+    /// Block's list of the regions given a title.
     fn rule_rows(ui: &mut egui::Ui, p: &Palette, view: &View, all: &[Row], actions: &mut Vec<TitlesAction>) {
         ui.add_space(10.0);
         widgets::section_header(ui, p, "map-pin-filled", block_i18n::tr!("group-titles-rules"));

@@ -1,9 +1,9 @@
-//! AURORA_DEMO_TEXREFRESH=1|auto: "Refresh textures" without a grid. A
+//! BLOCK_DEMO_TEXREFRESH=1|auto: "Refresh textures" without a grid. A
 //! panel stands in front of the avatar, wearing a texture whose file in the
 //! disk cache is stale: a grey picture crossed in red, written as its
 //! `.j2c` before the panel arrives, so that the streamer reads it from the
 //! disk as it would a damaged cache entry. The local asset server
-//! (demo_asset_server.rs) holds the right picture, Aurora's violet and teal
+//! (demo_asset_server.rs) holds the right picture, Block's violet and teal
 //! stripes. "Refresh textures" on the panel (right click), or `auto` at
 //! frame 900, forgets the texture, removes its files and downloads it
 //! again: the stripes replace the cross.
@@ -39,7 +39,7 @@ pub struct TexRefreshDemo {
 
 impl TexRefreshDemo {
     pub fn from_env() -> Option<Self> {
-        let value = std::env::var("AURORA_DEMO_TEXREFRESH").ok()?;
+        let value = std::env::var("BLOCK_DEMO_TEXREFRESH").ok()?;
         Some(TexRefreshDemo {
             auto: value.trim() == "auto",
             armed: false,
@@ -82,7 +82,7 @@ impl TexRefreshDemo {
         if let Err(e) = std::fs::create_dir_all(&tex).and_then(|()| std::fs::write(tex.join(format!("{TEXTURE}.j2c")), &stale)) {
             log::warn!("demo texture refresh: stale file not written ({e})");
         }
-        let served: PathBuf = std::env::temp_dir().join("aurora-demo-texrefresh.j2c");
+        let served: PathBuf = std::env::temp_dir().join("block-demo-texrefresh.j2c");
         if let Err(e) = std::fs::write(&served, &right) {
             log::warn!("demo texture refresh: served file not written ({e})");
             return;

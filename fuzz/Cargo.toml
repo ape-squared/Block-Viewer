@@ -7,7 +7,7 @@
 # No lock of its own: copy the viewer's Cargo.lock here first, so that every
 # shared crate is fuzzed at its shipped version.
 [package]
-name = "aurora-fuzz"
+name = "block-fuzz"
 version = "0.0.0"
 edition = "2024"
 license = "GPL-3.0-or-later"

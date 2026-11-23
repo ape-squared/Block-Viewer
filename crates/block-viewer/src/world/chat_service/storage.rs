@@ -5,7 +5,7 @@
 //! names, the same checks and the same order of writes, so that a folder
 //! left by one viewer reads the same in the other.
 //!
-//! Everything here runs on the transcript thread (`aurora-chatlog`), in
+//! Everything here runs on the transcript thread (`block-chatlog`), in
 //! turn with the transcript writes, as the LL viewer's General queue runs
 //! them under its storage mutex. [`Storage`] sits behind a mutex too: the
 //! stitched reads of the IM windows scan an archive under the same lock.
@@ -37,7 +37,7 @@ const PREFIX: &str = "chat_service_";
 /// The account's Chat Service folder for a grid:
 /// `<account folder>/chat_service/<grid>`. The LL viewer writes these files
 /// in the per-account folder, which the chat-logs folder preference never
-/// moves; Aurora's account folder is the settings' one, so the archives
+/// moves; Block's account folder is the settings' one, so the archives
 /// stay out of a chosen transcript folder and out of the Legacy layout,
 /// which the Legacy Viewer reads too. The grid is part of the path like
 /// the transcripts' (`chat_logs/<grid>`): an account id is only unique on

@@ -37,7 +37,7 @@
 //! them and their prims placed again and their records sent at each
 //! frame. The sync still visits what moves by itself below them (a child
 //! that spins too has its own mover, a flexible prim, a seated avatar).
-//! `AURORA_MOVING_ANCHORS=0` leaves them to the sync, `alt` alternates.
+//! `BLOCK_MOVING_ANCHORS=0` leaves them to the sync, `alt` alternates.
 //!
 //! Left to the sync as before: HUD attachments, flexible prims, and what
 //! only moves for a while (the fading correction of a report, a seat being
@@ -53,7 +53,7 @@
 //! transforms are computed on demand, as for any object
 //! (`Scene::object_transform`).
 //!
-//! `AURORA_CPU_ATTACH=1` leaves all of them to the sync (comparison).
+//! `BLOCK_CPU_ATTACH=1` leaves all of them to the sync (comparison).
 
 use super::anim::{ANCHOR_BASE, ANCHORS, PALETTE_JOINTS};
 use super::animesh::JointBounds;
@@ -98,7 +98,7 @@ const MOVERS_PER_SLOT: usize = super::live_morphs::WEIGHTS;
 /// was placed from it is placed again by the sync in the meantime.
 const MOVER_QUARANTINE: u64 = 4;
 
-/// `AURORA_MOVING_ANCHORS`: `0` leaves what moves by itself to the sync,
+/// `BLOCK_MOVING_ANCHORS`: `0` leaves what moves by itself to the sync,
 /// `alt` alternates.
 #[derive(Clone, Copy, PartialEq, Eq)]
 enum MoverMode {
@@ -109,7 +109,7 @@ enum MoverMode {
 
 fn mover_mode() -> MoverMode {
     static MODE: std::sync::OnceLock<MoverMode> = std::sync::OnceLock::new();
-    *MODE.get_or_init(|| match std::env::var("AURORA_MOVING_ANCHORS").as_deref() {
+    *MODE.get_or_init(|| match std::env::var("BLOCK_MOVING_ANCHORS").as_deref() {
         Ok("0") => MoverMode::Off,
         Ok("alt") => MoverMode::Alternate,
         _ => MoverMode::On,
@@ -119,7 +119,7 @@ fn mover_mode() -> MoverMode {
 /// The old way this second, with `alt`.
 static MOVERS_OLD: std::sync::atomic::AtomicBool = std::sync::atomic::AtomicBool::new(false);
 
-/// `AURORA_MOVING_ANCHORS=alt`: the way of second `n` (true: the sync
+/// `BLOCK_MOVING_ANCHORS=alt`: the way of second `n` (true: the sync
 /// places what moves by itself, one second in three). None without `alt`.
 pub fn alternate_movers(n: u64) -> Option<bool> {
     (mover_mode() == MoverMode::Alternate).then(|| {
@@ -299,18 +299,18 @@ pub fn anchor_slot(lib: &AvatarLibrary, point: u8) -> Option<u8> {
     }
 }
 
-/// AURORA_ANCHOR_CENTRES=every: the centre of every anchored object is
+/// BLOCK_ANCHOR_CENTRES=every: the centre of every anchored object is
 /// recomputed at each frame, as before, instead of those whose anchor
 /// changed (comparison).
 fn every_centre() -> bool {
     static ON: std::sync::OnceLock<bool> = std::sync::OnceLock::new();
-    *ON.get_or_init(|| std::env::var("AURORA_ANCHOR_CENTRES").is_ok_and(|v| v == "every"))
+    *ON.get_or_init(|| std::env::var("BLOCK_ANCHOR_CENTRES").is_ok_and(|v| v == "every"))
 }
 
-/// AURORA_CPU_ATTACH=1: the sync places everything, as before the anchors.
+/// BLOCK_CPU_ATTACH=1: the sync places everything, as before the anchors.
 pub fn enabled() -> bool {
     static ON: std::sync::OnceLock<bool> = std::sync::OnceLock::new();
-    *ON.get_or_init(|| std::env::var_os("AURORA_CPU_ATTACH").is_none_or(|v| v == "0"))
+    *ON.get_or_init(|| std::env::var_os("BLOCK_CPU_ATTACH").is_none_or(|v| v == "0"))
 }
 
 /// The anchor object `o` hangs from and its transform relative to it, when
@@ -524,13 +524,13 @@ pub struct Anchors {
     frame: u64,
     /// Anchored objects (validated at each frame, removed lazily).
     members: IndexSet,
-    /// AURORA_SYNC_CHECK: centres left as they were, and those of them not
+    /// BLOCK_SYNC_CHECK: centres left as they were, and those of them not
     /// where their anchor puts them (must stay 0).
     pub kept_centres: (u64, u64),
-    /// AURORA_SYNC_CHECK: anchors left as they were, and those of them not
+    /// BLOCK_SYNC_CHECK: anchors left as they were, and those of them not
     /// what the wearer's pose and place give (must stay 0).
     pub kept_anchors: (u64, u64),
-    /// AURORA_SYNC_CHECK: objects placed from a mover, and those of them
+    /// BLOCK_SYNC_CHECK: objects placed from a mover, and those of them
     /// the GPU puts elsewhere than the sync would (must stay 0).
     pub mover_placed: (u64, u64),
 }
@@ -730,7 +730,7 @@ impl Scene {
             let k = &mut self.anchors.kept_anchors;
             (&mut k.0, &mut k.1)
         };
-        // (the seconds of AURORA_IMPOSTOR_POSES=every or alt that pose every
+        // (the seconds of BLOCK_IMPOSTOR_POSES=every or alt that pose every
         // impostor are the old way here too)
         let every_centre = every_centre() || super::impostors::pose_every_frame();
         for (&widx, w) in &mut self.anchors.wearers {

@@ -29,13 +29,14 @@ const MAX_DURATION: f32 = 30.0;
 /// How long a beam takes to fade out once its time is up (s).
 pub const FADE_OUT: f32 = 0.3;
 
-/// The look of the beams (Preferences › Aurora).
+/// The look of the beams (Preferences › Block).
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default, serde::Serialize, serde::Deserialize)]
 pub enum Style {
     /// A glowing thread from the hand, the halo of the look-at targets on
     /// the point aimed at and the avatar's name in a pill.
     #[default]
-    Aurora,
+    #[serde(alias = "Block")]
+    Block,
     /// LLViewerPartSourceBeam: a stream of particles from the hand.
     Legacy,
 }
@@ -58,7 +59,7 @@ impl Default for Settings {
         Self {
             show: true,
             color: [255; 4],
-            style: Style::Aurora,
+            style: Style::Block,
         }
     }
 }
@@ -173,7 +174,7 @@ impl Beams {
         self.next_seq
     }
 
-    /// One beam per sender, for Aurora's look: a beam shape (the Legacy
+    /// One beam per sender, for Block's look: a beam shape (the Legacy
     /// Viewer's FSBeamShape, "Phoenix" by default) sends, besides the main
     /// beam, one short beam per dot of the shape, each under a new id, every
     /// time the main one is sent again: dozens at once, all from the same

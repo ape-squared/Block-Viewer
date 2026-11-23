@@ -9,7 +9,7 @@
 //! environment, EstateParcelEnvironmentOverride (ChangeLindenEstate on a
 //! Linden estate) for the parcels' own environments and
 //! EstateChangeCovenant before the covenant is replaced or cleared. One is
-//! Aurora's own: an access change that shuts people out (the lists only, a
+//! Block's own: an access change that shuts people out (the lists only, a
 //! public limit turned on) is confirmed before it is sent, with how many
 //! people are in the region.
 

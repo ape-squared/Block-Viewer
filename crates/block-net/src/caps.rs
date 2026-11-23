@@ -34,7 +34,7 @@ pub const REQUESTED_CAPS: &[&str] = &[
     // the General panel's "Apply", the estate lists, the Estate panel's
     // "Apply", the region's experiences and its restart schedule
     "DispatchRegionInfo",
-    // the "Region settings" tab of Aurora-Sim based grids
+    // the "Region settings" tab of Block-Sim based grids
     // (LLPanelRegionOpenSettingsInfo, buildCapabilityNames)
     "DispatchOpenRegionSettings",
     "EnvironmentSettings",
@@ -314,7 +314,7 @@ pub async fn post_llsd(http: &reqwest::Client, url: &str, body: &Llsd) -> Result
 }
 
 /// [`post_llsd`] counted under another kind than `cap` by the HTTP probe
-/// (AURORA_PROFILE: inventory fetches).
+/// (BLOCK_PROFILE: inventory fetches).
 pub async fn post_llsd_as(http: &reqwest::Client, url: &str, body: &Llsd, kind: HttpKind) -> Result<Llsd, CapsError> {
     let req = http.post(url).header("Content-Type", "application/llsd+xml").body(to_xml(body));
     send_llsd(req, kind).await
@@ -336,7 +336,7 @@ pub async fn request_llsd(http: &reqwest::Client, url: &str, body: &Llsd, put: b
 }
 
 /// Send a capability request that answers in LLSD XML, timed by the HTTP
-/// probe under `kind` (AURORA_PROFILE).
+/// probe under `kind` (BLOCK_PROFILE).
 async fn send_llsd(req: reqwest::RequestBuilder, kind: HttpKind) -> Result<Llsd, CapsError> {
     let timed = probe::HttpRequest::start(kind);
     let finish = |timed: Option<probe::HttpRequest>, status: u16, bytes: usize, ok: bool| {

@@ -3,7 +3,7 @@
 //! region names and access, people, hubs, land for sale and events,
 //! home, our position and camera cone, the tracked location; wheel zoom
 //! around the pointer, drag pan, click to track, double-click to teleport.
-//! Two layouts (Preferences › Aurora › World map): the map filling the
+//! Two layouts (Preferences › Block › World map): the map filling the
 //! window with its controls floating over it (`overlay.rs`, the default),
 //! or Firestorm's right panel with the legend, landmarks, region search,
 //! the coordinates and the teleport / SLurl buttons.
@@ -88,7 +88,7 @@ pub struct WorldMapUi {
     pub wanted_images: HashSet<Uuid>,
     pub wanted_pics: HashSet<Uuid>,
     pub want_folders: HashSet<Uuid>,
-    /// AURORA_DEMO_MAP=legacy: the side panel without touching the setting.
+    /// BLOCK_DEMO_MAP=legacy: the side panel without touching the setting.
     pub demo_style: Option<WorldMapStyle>,
     /// The teleport history's days in the drawer: the zone of Places
     /// (`tp_history_zone`), set by the app before each frame.
@@ -157,7 +157,7 @@ impl WorldMapUi {
         self.opened_by_script = true;
     }
 
-    /// AURORA_DEMO_MAP=search:<text>: the region search, as if typed.
+    /// BLOCK_DEMO_MAP=search:<text>: the region search, as if typed.
     pub fn demo_search(&mut self, world: &mut World, text: &str) {
         self.search = text.to_owned();
         self.selected = None;
@@ -165,7 +165,7 @@ impl WorldMapUi {
         self.ov.demo_search(text);
     }
 
-    /// AURORA_DEMO_MAP=drawer:<landmarks|history|friends>: the drawer open
+    /// BLOCK_DEMO_MAP=drawer:<landmarks|history|friends>: the drawer open
     /// on that tab.
     pub fn demo_drawer(&mut self, tab: &str) {
         self.ov.demo_drawer(tab);
@@ -223,7 +223,7 @@ impl WorldMapUi {
         }
         self.focus(world, cam);
         let screen = ctx.content_rect();
-        if self.demo_style.unwrap_or(style) == WorldMapStyle::Aurora {
+        if self.demo_style.unwrap_or(style) == WorldMapStyle::Block {
             // the mockup's window: a map twice the side panel layout's
             let size = vec2(1040.0, 640.0);
             let default_pos = pos2((screen.width() - size.x).max(0.0) * 0.5, 60.0);
@@ -1782,7 +1782,7 @@ mod size_tests {
 
     #[test]
     fn the_full_frame_layout_keeps_its_size() {
-        assert_steady(WorldMapStyle::Aurora, block_i18n::tr!("common-copy-slurl"));
+        assert_steady(WorldMapStyle::Block, block_i18n::tr!("common-copy-slurl"));
     }
 
     /// The side panel layout in a window placed at (40, 40) with `size`,
@@ -2008,14 +2008,14 @@ mod focus_tests {
         fn query(&self) -> &str {
             match self.style {
                 WorldMapStyle::Legacy => &self.map.search,
-                WorldMapStyle::Aurora => &self.map.ov.query,
+                WorldMapStyle::Block => &self.map.ov.query,
             }
         }
     }
 
     #[test]
     fn opening_the_map_focuses_search_and_types_in_both_layouts() {
-        for style in [WorldMapStyle::Legacy, WorldMapStyle::Aurora] {
+        for style in [WorldMapStyle::Legacy, WorldMapStyle::Block] {
             let mut bench = Bench::new(style);
             // opened by the user (toolbar, menu, Ctrl+M); the side panel
             // window's first frame is a sizing pass
@@ -2023,7 +2023,7 @@ mod focus_tests {
             bench.frame(true, vec![]);
             let search = match style {
                 WorldMapStyle::Legacy => side_search_id(),
-                WorldMapStyle::Aurora => overlay::search_id(),
+                WorldMapStyle::Block => overlay::search_id(),
             };
             assert!(
                 bench.ctx.memory(|memory| memory.has_focus(search)),
@@ -2036,7 +2036,7 @@ mod focus_tests {
 
     #[test]
     fn programmatic_map_open_does_not_take_keyboard_focus() {
-        for style in [WorldMapStyle::Legacy, WorldMapStyle::Aurora] {
+        for style in [WorldMapStyle::Legacy, WorldMapStyle::Block] {
             let mut bench = Bench::new(style);
             // llMapDestination without BEACON_FOCUS_MAP
             bench.map.open_for_script();
@@ -2052,7 +2052,7 @@ mod focus_tests {
 
     #[test]
     fn a_later_user_opening_takes_the_keyboard_again() {
-        let mut bench = Bench::new(WorldMapStyle::Aurora);
+        let mut bench = Bench::new(WorldMapStyle::Block);
         bench.map.open_for_script();
         bench.frame(true, vec![]);
         bench.frame(false, vec![]);

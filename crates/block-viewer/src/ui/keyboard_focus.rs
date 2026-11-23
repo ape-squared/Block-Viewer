@@ -1,7 +1,7 @@
 //! A visible destination for Tab and Shift+Tab, including painter-drawn
 //! controls. The Legacy Viewer's LLButton::draw and LLLineEditor::draw
 //! (indra/llui/llbutton.cpp, lllineeditor.cpp) outline the focused control.
-//! Aurora shows this extra outline after keyboard navigation, until the
+//! Block shows this extra outline after keyboard navigation, until the
 //! next pointer press; ordinary mouse focus and text carets keep their look.
 //!
 //! Observe input only. egui and the widgets still decide what Tab does,

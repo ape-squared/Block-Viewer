@@ -48,8 +48,8 @@ Assert-Nightly (@(Get-BetasToPrune @('v0.7.6', 'v0.7.7-beta.20261025.1') 10).Cou
 # The policy line: the newest stable tag's thresholds, the beta's version,
 # accepted by the release's own check (tools/update-policy.ps1).
 . "$PSScriptRoot/tools/update-policy.ps1"
-$line = Get-PolicyLine @('Block Viewer 0.7.6', '', 'Aurora-Update-Policy: {"schema":1,"version":"0.7.6","minimum_supported_version":null,"cache_invalidation_before":"0.7.1","settings_reset_before":"0.7.3"}') '0.7.7-beta.20261025.1'
-$policy = $line.Substring('Aurora-Update-Policy: '.Length) | ConvertFrom-Json
+$line = Get-PolicyLine @('Block Viewer 0.7.6', '', 'Block-Update-Policy: {"schema":1,"version":"0.7.6","minimum_supported_version":null,"cache_invalidation_before":"0.7.1","settings_reset_before":"0.7.3"}') '0.7.7-beta.20261025.1'
+$policy = $line.Substring('Block-Update-Policy: '.Length) | ConvertFrom-Json
 Assert-Nightly ($policy.version -eq '0.7.7-beta.20261025.1' -and $policy.cache_invalidation_before -eq '0.7.1' -and $policy.settings_reset_before -eq '0.7.3') "Unexpected policy line: $line"
 Assert-UpdatePolicy $policy '0.7.7-beta.20261025.1'
 Assert-Nightly ($null -eq (Get-PolicyLine @('Block Viewer 0.7.6') '0.7.7-beta.20261025.1')) 'No policy line.'
@@ -57,20 +57,20 @@ $none = '{"minimum_supported_version":null,"cache_invalidation_before":null,"set
 Assert-Nightly ($null -eq (Get-PolicyLine @('Block Viewer 0.7.6') '0.7.7-beta.20261025.1' $none)) 'No policy line and no threshold in update-policy.json.'
 
 # update-policy.json at the tagged commit: the higher threshold of each field.
-$stableLine = 'Aurora-Update-Policy: {"schema":1,"version":"0.9.1","minimum_supported_version":null,"cache_invalidation_before":"0.7.1","settings_reset_before":"0.7.3"}'
+$stableLine = 'Block-Update-Policy: {"schema":1,"version":"0.9.1","minimum_supported_version":null,"cache_invalidation_before":"0.7.1","settings_reset_before":"0.7.3"}'
 $defaults = '{"minimum_supported_version":"0.9.1","cache_invalidation_before":null,"settings_reset_before":"0.7.2"}' | ConvertFrom-Json
 $line = Get-PolicyLine @('Block Viewer 0.9.1', '', $stableLine) '0.9.2-beta.20261105.1' $defaults
-$policy = $line.Substring('Aurora-Update-Policy: '.Length) | ConvertFrom-Json
+$policy = $line.Substring('Block-Update-Policy: '.Length) | ConvertFrom-Json
 Assert-Nightly ($policy.minimum_supported_version -eq '0.9.1' -and $policy.cache_invalidation_before -eq '0.7.1' -and $policy.settings_reset_before -eq '0.7.3') "update-policy.json must raise the thresholds: $line"
 Assert-UpdatePolicy $policy '0.9.2-beta.20261105.1'
 # without a policy in the stable tag
 $line = Get-PolicyLine @('Block Viewer 0.9.1') '0.9.2-beta.20261105.1' $defaults
-$policy = $line.Substring('Aurora-Update-Policy: '.Length) | ConvertFrom-Json
+$policy = $line.Substring('Block-Update-Policy: '.Length) | ConvertFrom-Json
 Assert-Nightly ($policy.version -eq '0.9.2-beta.20261105.1' -and $policy.minimum_supported_version -eq '0.9.1' -and $null -eq $policy.cache_invalidation_before) "Thresholds of update-policy.json alone: $line"
 # a minimum the beta does not reach is left out (the updater refuses it)
 $ahead = '{"minimum_supported_version":"0.9.2","cache_invalidation_before":null,"settings_reset_before":null}' | ConvertFrom-Json
 $line = Get-PolicyLine @('Block Viewer 0.9.1', '', $stableLine) '0.9.2-beta.20261105.1' $ahead
-$policy = $line.Substring('Aurora-Update-Policy: '.Length) | ConvertFrom-Json
+$policy = $line.Substring('Block-Update-Policy: '.Length) | ConvertFrom-Json
 Assert-Nightly ($null -eq $policy.minimum_supported_version) "A minimum equal to the beta's number must be left out: $line"
 Assert-UpdatePolicy $policy '0.9.2-beta.20261105.1'
 $bad = '{"minimum_supported_version":"0.9","cache_invalidation_before":null,"settings_reset_before":null}' | ConvertFrom-Json

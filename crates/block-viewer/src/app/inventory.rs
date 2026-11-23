@@ -33,7 +33,7 @@ impl App {
         use block_net::{InventoryOfferStatus, inventory::ais::ItemReads};
         match cmd {
             NetCommand::OfferInventory { receipt, .. } => {
-                let mode = std::env::var("AURORA_DEMO_INVENTORY").unwrap_or_default();
+                let mode = std::env::var("BLOCK_DEMO_INVENTORY").unwrap_or_default();
                 if mode != "offer-unsent" {
                     let _ = receipt.try_send(InventoryOfferStatus::Transmitted);
                     if mode != "offer-uncertain" {
@@ -45,7 +45,7 @@ impl App {
                 // The synthetic simulator processed the offer but lost its ACK.
                 let mut reads = ItemReads::default();
                 for id in items {
-                    if std::env::var("AURORA_DEMO_INVENTORY").is_ok_and(|v| v == "offer-uncertain") && *id == Uuid::from_u128(8109) {
+                    if std::env::var("BLOCK_DEMO_INVENTORY").is_ok_and(|v| v == "offer-uncertain") && *id == Uuid::from_u128(8109) {
                         reads.missing.push(*id);
                     } else if let Some(it) = self.world.inventory.items.get(id) {
                         reads.items.push(it.clone());
@@ -60,7 +60,7 @@ impl App {
         true
     }
 
-    /// `AURORA_DEMO_INVENTORY=big,toggle=â€¦,churn=â€¦`: open and close the
+    /// `BLOCK_DEMO_INVENTORY=big,toggle=â€¦,churn=â€¦`: open and close the
     /// window, and change one item now and then, once in the world.
     pub(super) fn demo_big_inventory(&mut self, big: &crate::world::inventory::demo::Big) {
         use std::sync::OnceLock;

@@ -1,4 +1,4 @@
-//! AURORA_DEMO_SLIDESHOW=1[,<seconds>][,net=<ms>][,mbps=<m>][,side=<px>][,count=<n>][,crowd=<n>][,preload]:
+//! BLOCK_DEMO_SLIDESHOW=1[,<seconds>][,net=<ms>][,mbps=<m>][,side=<px>][,count=<n>][,crowd=<n>][,preload]:
 //! a scripted slideshow without a grid. A panel stands 4 m ahead of the camera,
 //! and every `seconds` (3 by default) its texture entry changes to the next
 //! of `count` pictures (6), as a script calling llSetTexture makes the
@@ -109,7 +109,7 @@ pub struct SlideshowDemo {
 
 impl SlideshowDemo {
     pub fn from_env() -> Option<Self> {
-        let value = std::env::var("AURORA_DEMO_SLIDESHOW").ok()?;
+        let value = std::env::var("BLOCK_DEMO_SLIDESHOW").ok()?;
         Some(SlideshowDemo {
             options: Options::parse(&value),
             ready: None,
@@ -233,7 +233,7 @@ impl SlideshowDemo {
         let (tx, rx) = std::sync::mpsc::channel();
         let (count, side, delay, mbps) = (self.options.count, self.options.side, self.options.delay, self.options.mbps);
         let spawned = std::thread::Builder::new().name("demo-slideshow".into()).spawn(move || {
-            let dir = std::env::temp_dir().join("aurora-demo-slideshow");
+            let dir = std::env::temp_dir().join("block-demo-slideshow");
             let _ = std::fs::create_dir_all(&dir);
             let mut files: Vec<PathBuf> = Vec::new();
             for i in 0..count {

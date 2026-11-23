@@ -179,13 +179,13 @@ fn mappable_heap_bytes(memory: &vk::PhysicalDeviceMemoryProperties) -> Option<u6
     memory.memory_heaps_as_slice().get(ty.heap_index as usize).map(|heap| heap.size)
 }
 
-/// [`mappable_heap_bytes`] of this adapter, in MB; `AURORA_MAPPABLE_MB`
+/// [`mappable_heap_bytes`] of this adapter, in MB; `BLOCK_MAPPABLE_MB`
 /// replaces the reading (a card with no Resizable BAR on one that has it).
 pub fn mappable_mb(adapter: &wgpu::Adapter) -> Option<u64> {
-    mappable_override(std::env::var("AURORA_MAPPABLE_MB").ok().as_deref()).or_else(|| mappable_mb_of(adapter))
+    mappable_override(std::env::var("BLOCK_MAPPABLE_MB").ok().as_deref()).or_else(|| mappable_mb_of(adapter))
 }
 
-/// The value of `AURORA_MAPPABLE_MB`, in MB; anything but a whole number
+/// The value of `BLOCK_MAPPABLE_MB`, in MB; anything but a whole number
 /// leaves the adapter's reading.
 fn mappable_override(value: Option<&str>) -> Option<u64> {
     value?.trim().parse().ok()
@@ -215,13 +215,13 @@ fn mappable_mb_of(_adapter: &wgpu::Adapter) -> Option<u64> {
 /// 256 MB window alone, and the other programs' mappings then fail (#2171).
 pub const SMALL_MAPPABLE_MB: u64 = 1024;
 
-/// AURORA_VRAM_BUDGET_MB: the driver's budget taken as this many megabytes
+/// BLOCK_VRAM_BUDGET_MB: the driver's budget taken as this many megabytes
 /// (a smaller card on a large one: the texture budget, the Performance
 /// window's warning).
 fn forced_budget() -> Option<u64> {
     static FORCED: std::sync::OnceLock<Option<u64>> = std::sync::OnceLock::new();
     *FORCED.get_or_init(|| {
-        let mb: u64 = std::env::var("AURORA_VRAM_BUDGET_MB").ok()?.trim().parse().ok()?;
+        let mb: u64 = std::env::var("BLOCK_VRAM_BUDGET_MB").ok()?.trim().parse().ok()?;
         Some(mb.clamp(256, 1 << 20) << 20)
     })
 }
@@ -343,7 +343,7 @@ impl BudgetSampler {
             parking_lot::Condvar::new(),
         ));
         let (output, shared) = (latest.clone(), control.clone());
-        let spawned = std::thread::Builder::new().name("aurora-vram".into()).spawn(move || {
+        let spawned = std::thread::Builder::new().name("block-vram".into()).spawn(move || {
             let (lock, wake) = &*shared;
             let mut floor = BudgetFloor::default();
             let mut shared_floor = BudgetFloor::default();

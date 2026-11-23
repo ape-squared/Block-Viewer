@@ -1,6 +1,6 @@
 //! The editor of a contact set (FSFloaterContactSetConfiguration,
 //! fsfloatercontactsetconfiguration.cpp, floater_fs_contact_set_
-//! configuration.xml, originally LGPL 2.1), in Aurora's look: a live
+//! configuration.xml, originally LGPL 2.1), in Block's look: a live
 //! preview of the set's look on the left (its plate, a chat line, a list
 //! row, and its marker from afar while it has one); on the right
 //! the set's tile, its name edited in place and its counts, then four tabs:
@@ -63,7 +63,7 @@ pub(crate) struct EditorUi {
     pub raise: bool,
 }
 
-/// Where AURORA_DEMO_SET_NOTICES takes the editor: its auto-replies, or
+/// Where BLOCK_DEMO_SET_NOTICES takes the editor: its auto-replies, or
 /// the options shared by every set.
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub enum DemoScroll {

@@ -1,4 +1,4 @@
-//! AURORA_DEMO_TOASTS: a friend going offline then online, two messages of
+//! BLOCK_DEMO_TOASTS: a friend going offline then online, two messages of
 //! one resident, a group chat message, then the list under the bell (`1`:
 //! the messages toast only, `bell`: they stay listed) and, with `click` /
 //! `minimized`, a click on the resident's entry (the Conversations window
@@ -11,7 +11,7 @@ use uuid::Uuid;
 
 /// The scenario, if asked: `1`, `bell`, `click`, `minimized` or `emote`.
 pub fn mode() -> Option<String> {
-    std::env::var("AURORA_DEMO_TOASTS").ok()
+    std::env::var("BLOCK_DEMO_TOASTS").ok()
 }
 
 /// Frame at which the list under the bell opens.
@@ -81,7 +81,7 @@ pub fn events(frame: u64, agent: Uuid) -> Vec<NetEvent> {
                 block_i18n::tr!("demo-toast-group-message"),
                 block_i18n::tr!("demo-toast-group-emote"),
             ),
-            b"Aurora Builders\0",
+            b"Block Builders\0",
         )],
         _ => Vec::new(),
     }

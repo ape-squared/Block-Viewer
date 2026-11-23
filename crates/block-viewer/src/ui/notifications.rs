@@ -1,6 +1,6 @@
 //! Notification center: bell of the navigation bar (unread badge), the
 //! list it opens and the toasts shown when something arrives — the
-//! Firestorm notification well / toasts, flattened to Aurora cards.
+//! Firestorm notification well / toasts, flattened to Block cards.
 //! Script grids follow LLToastNotifyPanel::updateButtonsLayout
 //! (indra/newview/lltoastnotifypanel.cpp, originally LGPL 2.1).
 
@@ -44,14 +44,14 @@ pub struct NotifUi {
     pub wanted_pics: HashSet<Uuid>,
     /// Textures the cards want: the insignias of the group notices' groups.
     pub wanted_images: HashSet<Uuid>,
-    /// The bell's rectangle (Aurora's center unrolls under it).
+    /// The bell's rectangle (Block's center unrolls under it).
     pub bell: Option<egui::Rect>,
     /// With the islands, from the system island's left edge to the bell
-    /// island's right edge, as drawn this frame: Aurora's center (its list,
+    /// island's right edge, as drawn this frame: Block's center (its list,
     /// its cards, the friends' toasts at the top right) stands exactly under
     /// it. `None` with Firestorm's bars.
     pub column: Option<egui::Rect>,
-    /// Aurora's center (`ui::notification_center`).
+    /// Block's center (`ui::notification_center`).
     pub center: super::notification_center::CenterUi,
 }
 
@@ -66,17 +66,17 @@ pub struct ToastEnv<'a> {
     /// Seconds a message toast stays (NotificationToastLifeTime).
     pub message_seconds: f64,
     /// Seconds a friend's online / offline toast stays
-    /// (NotificationTipToastLifeTime): these toasts only, Aurora's center
+    /// (NotificationTipToastLifeTime): these toasts only, Block's center
     /// keeps its own timing (`notification_center::PRESENCE`).
     pub tip_seconds: f64,
     /// Points between two stacked toasts (ToastGap, `settings::toast_gap`),
-    /// in both styles: the Legacy toasts, the cards under Aurora's bell
+    /// in both styles: the Legacy toasts, the cards under Block's bell
     /// and its friends' toasts.
     pub toast_gap: f32,
-    /// The region restart counting down: its card in Aurora's center shows
+    /// The region restart counting down: its card in Block's center shows
     /// the live count (`ui::region_restart::bell_card`).
     pub restart: Option<super::region_restart::BellInfo>,
-    /// Where Aurora's center shows the friends' online / offline toasts
+    /// Where Block's center shows the friends' online / offline toasts
     /// (`notification_center::presence`), and whether Firestorm's
     /// full-width bars are shown (their room has no margin of its own).
     pub presence_at: crate::settings::PresencePosition,
@@ -104,9 +104,9 @@ fn toast_seconds(n: &Notification, message_seconds: f64, tip_seconds: f64) -> f6
     }
 }
 
-/// Bell button with the unread count, in an island of the Aurora bars
+/// Bell button with the unread count, in an island of the Block bars
 /// (`island`) or in the Legacy Viewer's top bar; in do not disturb the
-/// paused bell of Aurora's center (`bell-z`, grey). Returns its response: a
+/// paused bell of Block's center (`bell-z`, grey). Returns its response: a
 /// click opens the notifications, a right click turns do not disturb on or
 /// off (#491).
 pub fn bell(ui: &mut egui::Ui, p: &Palette, icons: &Icons, unread: usize, open: bool, dnd: bool, island: bool) -> egui::Response {
@@ -369,7 +369,7 @@ pub(super) fn person_card(
 }
 
 /// One notification card; returns the user's answer. `aurora`: the card of
-/// Aurora's center (its kind in a coloured disc beside the text, the width
+/// Block's center (its kind in a coloured disc beside the text, the width
 /// of its panel). A group notice shows its group's insignia instead of the
 /// kind (LLToastGroupNotifyPanel's group_icon), from `images` once loaded
 /// (asked for in `wanted`), and its attachment to save.
@@ -445,7 +445,7 @@ pub(super) fn card(
                 let w = (ui.available_width() - 34.0 - time_width(ui, &time)).max(40.0);
                 ui.allocate_ui(Vec2::new(w, 18.0), |ui| {
                     if update && aurora {
-                        let title = super::notification_center::aurora::title(ui, p, &n.title, 12.5);
+                        let title = super::notification_center::block::title(ui, p, &n.title, 12.5);
                         ui.add(egui::Label::new(title).wrap());
                     } else {
                         text::show(
@@ -841,7 +841,7 @@ pub(super) fn card(
 }
 
 /// Close Window takes the newest visible LLScriptFloater (llDialog, llTextBox,
-/// llLoadURL and object inventory offers). Aurora also stacks permission
+/// llLoadURL and object inventory offers). Block also stacks permission
 /// questions here, so their shortcut follows their cross without answering.
 /// Cards kept in the list receive Close All only.
 pub(super) fn close_script_prompt(ctx: &egui::Context, n: &Notification, window: bool) -> bool {
@@ -1000,7 +1000,7 @@ fn update_toasts(list: &mut Notifications, nui: &mut NotifUi, now: f64, message_
 
 /// The toasts drawn (oldest first) and how many wait behind them: the
 /// scripted windows first (the newest three), the newest others in the
-/// room left, as Aurora's center does (`notification_center::visible`). In
+/// room left, as Block's center does (`notification_center::visible`). In
 /// do not disturb only the script menus come out; the rest waits there.
 fn shown_toasts(list: &Notifications, nui: &NotifUi, dnd: bool) -> (Vec<u64>, usize) {
     let drawn: Vec<(u64, bool)> = nui
@@ -1034,7 +1034,7 @@ pub fn show(
     let mut asks = Vec::new();
     let now = ctx.input(|i| i.time);
     // Firestorm's toasts keep their own place: the islands' column is for
-    // Aurora's center only (not kept for a later frame of it)
+    // Block's center only (not kept for a later frame of it)
     nui.column = None;
     update_toasts(list, nui, now, env.message_seconds, env.tip_seconds, env.hidden, dnd);
 
@@ -1080,7 +1080,7 @@ pub fn show(
                             });
                         });
                         ui.add_space(4.0);
-                        // the history, as in Aurora's center
+                        // the history, as in Block's center
                         if super::notification_center::tabs(ui, p, &mut nui.center.tab) {
                             ui.add_space(4.0);
                             super::notification_center::history_list(
@@ -1217,7 +1217,7 @@ mod tests {
     const TOAST_TIP: f64 = 10.0;
 
     /// Close Window reaches the Legacy Viewer's script floaters (a dialog,
-    /// a text box, a URL, an object's offer) and Aurora's stacked permission
+    /// a text box, a URL, an object's offer) and Block's stacked permission
     /// question; a resident's offer stays out.
     #[test]
     fn script_windows_include_permission_questions_over_the_legacy_viewer() {
@@ -1459,7 +1459,7 @@ mod tests {
     /// its field, scrolling past three lines, ran a fraction of a point
     /// past the card on some frames, and the toast, anchored to the right,
     /// shimmered sideways. Toasts are the Legacy card (`aurora: false`); the
-    /// Aurora card takes the width of the notification center's list.
+    /// Block card takes the width of the notification center's list.
     #[test]
     fn script_text_box_toast_keeps_its_place() {
         let aurora = false;
@@ -1667,7 +1667,7 @@ mod tests {
                 let (_, answer) = frame(click(false));
                 assert!(
                     matches!(answer, Some(Response::Button(i)) if i == index),
-                    "aurora={aurora}, button={index}: {answer:?}"
+                    "block={aurora}, button={index}: {answer:?}"
                 );
             }
         }
@@ -1751,13 +1751,13 @@ mod tests {
                     _ => None,
                 })
                 .expect("body shown");
-            assert!(text_rect(&output, "Texture kit").is_some(), "aurora={aurora}: attachment named");
+            assert!(text_rect(&output, "Texture kit").is_some(), "block={aurora}: attachment named");
             let save = text_rect(&output, block_i18n::tr!("ui-group-notices-save")).expect("save button");
             // the toast's own width: nothing past its time and close button
             let right = 320.0 + 16.0;
             assert!(
                 save.right() <= right,
-                "aurora={aurora}: button inside the card ({} > {right})",
+                "block={aurora}: button inside the card ({} > {right})",
                 save.right()
             );
             assert!(save.top() > body.bottom(), "under the text");
@@ -1773,7 +1773,7 @@ mod tests {
                     &mut list,
                 );
                 if !pressed {
-                    assert!(matches!(answer, Some(Response::Accept)), "aurora={aurora}: {answer:?}");
+                    assert!(matches!(answer, Some(Response::Accept)), "block={aurora}: {answer:?}");
                 }
             }
             let (out, _) = list.respond(list.list[0].id, Response::Accept, |_| Uuid::from_u128(7), Uuid::nil());
@@ -1781,7 +1781,7 @@ mod tests {
             let (output, _) = frame(vec![], &mut list);
             assert!(
                 text_rect(&output, block_i18n::tr!("ui-group-notices-saved")).is_some(),
-                "aurora={aurora}: saved"
+                "block={aurora}: saved"
             );
         }
     }
@@ -1794,7 +1794,7 @@ mod tests {
     /// of its own, and checks that run.
     #[test]
     fn legacy_object_offer_wrapped_buttons_keep_the_text_indent_in_french() {
-        const ALONE: &str = "AURORA_TEST_FRENCH_OFFER_ALONE";
+        const ALONE: &str = "BLOCK_TEST_FRENCH_OFFER_ALONE";
         if std::env::var_os(ALONE).is_none() {
             // the name libtest gives this test: its path without the crate
             let path = concat!(

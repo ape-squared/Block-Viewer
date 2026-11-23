@@ -1,5 +1,5 @@
 //! LLFloaterScriptEdPrefs / app_settings/settings.xml (Firestorm, LGPL 2.1).
-//! Defaults follow Firestorm's options; color defaults follow Aurora's skin.
+//! Defaults follow Firestorm's options; color defaults follow Block's skin.
 
 use crate::theme::Palette;
 use egui::Color32;

@@ -124,15 +124,15 @@ impl Source {
     /// `None` where the login screen stays offline: demo and updater test
     /// installation.
     fn from_environment() -> Option<Self> {
-        if std::env::var_os("AURORA_DEMO").is_some() || block_updater::test_environment().is_some() {
+        if std::env::var_os("BLOCK_DEMO").is_some() || block_updater::test_environment().is_some() {
             return None;
         }
-        if let Ok(address) = std::env::var("AURORA_NEWS_URL") {
+        if let Ok(address) = std::env::var("BLOCK_NEWS_URL") {
             if let Some(source) = Self::test(&address) {
-                log::info!("Login news read from {} (AURORA_NEWS_URL), not kept in the cache", source.base);
+                log::info!("Login news read from {} (BLOCK_NEWS_URL), not kept in the cache", source.base);
                 return Some(source);
             }
-            log::warn!("AURORA_NEWS_URL ignored: neither a server of this machine nor a folder of the Block Viewer repository");
+            log::warn!("BLOCK_NEWS_URL ignored: neither a server of this machine nor a folder of the Block Viewer repository");
         }
         let base = crate::links::NEWS_FEED;
         (!base.is_empty()).then(|| Self {
@@ -142,7 +142,7 @@ impl Source {
         })
     }
 
-    /// `AURORA_NEWS_URL`: a server of this machine, or another branch or
+    /// `BLOCK_NEWS_URL`: a server of this machine, or another branch or
     /// folder of the project's repository (to read a news file before it is
     /// merged). Nothing else: the variable must not be a way to make the
     /// login screen show somebody else's text.
@@ -495,7 +495,7 @@ mod tests {
             "http://user:secret@127.0.0.1/",
             "http://127.0.0.1/?next=https://example.org",
             "http://raw.githubusercontent.com/Aurora-Viewer/Aurora-Viewer/main/news/",
-            "https://raw.githubusercontent.com/Somebody/Aurora-Viewer/main/news/",
+            "https://raw.githubusercontent.com/Somebody/Block-Viewer/main/news/",
             "https://raw.githubusercontent.com/Aurora-Viewer/Aurora-Viewer/../../Somebody/Else/main/",
             "https://raw.githubusercontent.com.example.org/Aurora-Viewer/Aurora-Viewer/main/news/",
             "file:///C:/news/",
@@ -537,7 +537,7 @@ mod tests {
     #[test]
     fn download_replaces_the_news_and_is_kept_for_the_next_start() {
         let rt = runtime();
-        let cache = std::env::temp_dir().join(format!("aurora-news-test-{}", uuid::Uuid::new_v4()));
+        let cache = std::env::temp_dir().join(format!("block-news-test-{}", uuid::Uuid::new_v4()));
         let base = serve(vec![
             ("/fr.md", "## 2026-11-02 — Publié\nTexte.\n[Suite](https://example.org/fr)\n".into()),
             ("/en.md", "## 2026-11-02 — Published\nText.\n".into()),

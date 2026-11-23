@@ -1,6 +1,6 @@
-//! AURORA_DEMO_FREEZE_WORLD=1: what the simulator sends while the photo
+//! BLOCK_DEMO_FREEZE_WORLD=1: what the simulator sends while the photo
 //! mode holds the world still (#1154), with
-//! `AURORA_DEMO_SNAPSHOT=viewfinder-frozen` (frozen at frame 600). A
+//! `BLOCK_DEMO_SNAPSHOT=viewfinder-frozen` (frozen at frame 600). A
 //! violet box and a teal disc of another resident rez beside our avatar at
 //! 400; at 650 the box is derezzed and a script starts a fountain of
 //! particles on the disc. Frozen, the box stays and the disc emits nothing;
@@ -11,7 +11,7 @@ use block_net::objects::ParticleUpdate;
 use glam::{Quat, Vec3};
 
 pub fn on() -> bool {
-    std::env::var("AURORA_DEMO_FREEZE_WORLD").is_ok_and(|v| v.trim() == "1")
+    std::env::var("BLOCK_DEMO_FREEZE_WORLD").is_ok_and(|v| v.trim() == "1")
 }
 
 pub const REZ_AT: u64 = 400;

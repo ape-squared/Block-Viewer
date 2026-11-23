@@ -9,7 +9,7 @@
     it (PR merged, or no build for -IdleDays days): the code stays, only
     the build goes; a task that resumes rebuilds. A task with no build for
     -TrimHours hours only loses its incremental\ folders, three quarters
-    of a target\ (5 to 20 GB): its next build recompiles Aurora's own
+    of a target\ (5 to 20 GB): its next build recompiles Block's own
     crates, the dependencies stay.
 
 .EXAMPLE
@@ -24,7 +24,7 @@ param(
 )
 . "$PSScriptRoot\common.ps1"
 
-$p = Get-AuroraPaths
+$p = Get-BlockPaths
 $slug = Get-TaskSlug $Name
 $branch = "$Kind/$slug"
 $dir = Join-Path $p.Work $slug
@@ -95,6 +95,6 @@ Write-Host "Task ready:" -ForegroundColor Green
 Write-Host "  folder  $dir"
 Write-Host "  branch  $branch (from $base)"
 Write-Host ""
-Write-Host "Test:   `$env:AURORA_DEMO='1'; cargo run -p block-viewer -- --title `"Test $slug`""
+Write-Host "Test:   `$env:BLOCK_DEMO='1'; cargo run -p block-viewer -- --title `"Test $slug`""
 Write-Host "Check:  ./scripts/check.ps1"
 Write-Host "Finish: ./scripts/end-task.ps1 -Name $slug (after the PR is merged)"

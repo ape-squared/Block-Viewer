@@ -1,6 +1,6 @@
 //! Groups of My Outfits in Appearance (#1002): their rows in the list,
 //! their sections in the gallery, their menu, "Move to folder" and the New,
-//! Rename and Delete dialogs. An Aurora addition: the Legacy Viewer lists
+//! Rename and Delete dialogs. A Block addition: the Legacy Viewer lists
 //! the outfits of these folders flat (LLOutfitListBase::refreshList) and
 //! leaves the folders to the inventory; the rules are those of
 //! `world/outfit_folders.rs`.
@@ -74,7 +74,7 @@ pub(super) fn header(ui: &mut egui::Ui, p: &Palette, title: &str, count: usize, 
     const ICON: f32 = 14.0;
     const CARET: f32 = 12.0;
     let unit = ui.spacing().indent;
-    let height = crate::ui::inventory::AURORA_ROW_HEIGHT;
+    let height = crate::ui::inventory::BLOCK_ROW_HEIGHT;
     let (rect, response) = ui.allocate_exact_size(Vec2::new(ui.available_width(), height), egui::Sense::click());
     response.widget_info(|| {
         if open.is_some() {

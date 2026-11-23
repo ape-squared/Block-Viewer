@@ -18,7 +18,7 @@
 //! are blended though they look opaque) and the impostor cards; those
 //! blended faces then also receive them.
 //!
-//! `AURORA_CONTACT_SHADOWS=0|1|alt|prepass|shell` overrides the setting for
+//! `BLOCK_CONTACT_SHADOWS=0|1|alt|prepass|shell` overrides the setting for
 //! a comparison; `alt` switches every second, `prepass`: the prepass alone
 //! casts (before the blended faces and the cards were added), `shell`: the
 //! occluders are Bend's thin shell instead of [`OCCLUDER_DEPTH`] deep.
@@ -82,7 +82,7 @@ pub(crate) fn shader_source(count: i32, hard: i32) -> String {
 /// depth around it at `scale` ([`samples`]): its samples, the bilinear
 /// read beside the ray, and the filter's radius (contact_shadows_filter.wgsl).
 /// A photo drawn in tiles draws this much around each one; 0 when the
-/// contact shadows are off (`on`, the setting; `AURORA_CONTACT_SHADOWS`
+/// contact shadows are off (`on`, the setting; `BLOCK_CONTACT_SHADOWS`
 /// included).
 pub fn tile_reach(on: bool, scale: f32) -> u32 {
     if Override::from_env().needed(on) {
@@ -110,7 +110,7 @@ const SHADOW_CONTRAST: f32 = 4.0;
 /// this (`depth_delta`, contact_shadows.wgsl); one shell from 10 m on. With
 /// one layer of depth a ray that passes beside or behind a caster looks the
 /// same, so each caster also darkens a little of the ground beside it: at
-/// 15 cm that copy of its outline showed (demo `AURORA_DEMO_FEET`, sun
+/// 15 cm that copy of its outline showed (demo `BLOCK_DEMO_FEET`, sun
 /// ahead), at 5 cm it stays within the shadow's own edge.
 const OCCLUDER_DEPTH: f32 = 0.05;
 
@@ -280,7 +280,7 @@ pub(crate) fn build_dispatch_list(
     out
 }
 
-/// `AURORA_CONTACT_SHADOWS`: the setting forced for a comparison.
+/// `BLOCK_CONTACT_SHADOWS`: the setting forced for a comparison.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub(crate) enum Override {
     None,
@@ -309,7 +309,7 @@ impl Override {
 
     pub(crate) fn from_env() -> Self {
         static MODE: std::sync::OnceLock<Override> = std::sync::OnceLock::new();
-        *MODE.get_or_init(|| Override::parse(std::env::var("AURORA_CONTACT_SHADOWS").ok().as_deref()))
+        *MODE.get_or_init(|| Override::parse(std::env::var("BLOCK_CONTACT_SHADOWS").ok().as_deref()))
     }
 
     /// Whether the targets are kept for the setting `on`.
@@ -342,7 +342,7 @@ impl Override {
 }
 
 /// The window's shader, without one of Bend's constructs when it is not
-/// `Bend` (`variant_source`). `AURORA_CONTACT_VARIANT` chooses one, as a
+/// `Bend` (`variant_source`). `BLOCK_CONTACT_VARIANT` chooses one, as a
 /// diagnostic of the GPU hangs (device lost) of the AMD RX 9000 cards; with
 /// the variable unset, those cards get `NoShared` ([`Variant::for_card`]).
 /// A photo's pipeline is `NoShared` too when the window's is, Bend's
@@ -376,14 +376,14 @@ impl Variant {
         }
     }
 
-    /// The variant for the card `info` names: `AURORA_CONTACT_VARIANT` when
+    /// The variant for the card `info` names: `BLOCK_CONTACT_VARIANT` when
     /// it is set (`bend` keeps Bend's on an RX 9000, to compare), else
     /// [`Variant::for_card`].
     pub(crate) fn for_adapter(info: &wgpu::AdapterInfo) -> Self {
-        let env = std::env::var("AURORA_CONTACT_VARIANT").ok();
+        let env = std::env::var("BLOCK_CONTACT_VARIANT").ok();
         let v = Variant::choose(env.as_deref(), info.vendor, &info.name);
         if env.as_deref().is_some_and(|e| !e.trim().is_empty()) {
-            log::info!("contact shadows: diagnostic variant {v:?} (AURORA_CONTACT_VARIANT)");
+            log::info!("contact shadows: diagnostic variant {v:?} (BLOCK_CONTACT_VARIANT)");
         } else if v == Variant::NoShared {
             log::info!(
                 "contact shadows: without workgroup memory on {} (AMD RX 9000: Bend's shader hangs the card, #2238)",
@@ -610,11 +610,11 @@ impl Filter {
     }
 }
 
-/// `AURORA_CONTACT_SOFT=0`: the mask reaches the shading as the pass wrote
+/// `BLOCK_CONTACT_SOFT=0`: the mask reaches the shading as the pass wrote
 /// it, hard pixel steps, for a comparison.
 fn soft_from_env() -> bool {
     static SOFT: std::sync::OnceLock<bool> = std::sync::OnceLock::new();
-    *SOFT.get_or_init(|| std::env::var("AURORA_CONTACT_SOFT").map_or(true, |v| v.trim() != "0"))
+    *SOFT.get_or_init(|| std::env::var("BLOCK_CONTACT_SOFT").map_or(true, |v| v.trim() != "0"))
 }
 
 /// The mask of one window size, the depth it may read instead of the

@@ -1,6 +1,6 @@
 //! The Director's saved tracks and montages as files: what a montage file
 //! holds, how an imported file is checked, what an export carries, and the
-//! names they are saved under. Aurora's own: the Legacy Viewer has no
+//! names they are saved under. Block's own: the Legacy Viewer has no
 //! camera path tool. The files are written and read by threads of
 //! `app/director_library.rs`; everything here is pure.
 //!
@@ -28,7 +28,7 @@ pub const MONTAGES: &str = "montages";
 /// The version of the montages' files.
 pub const MONTAGE_VERSION: u32 = 1;
 /// What a montage exported with its tracks says it is.
-pub const BUNDLE_KIND: &str = "aurora-director-montage";
+pub const BUNDLE_KIND: &str = "block-director-montage";
 pub const BUNDLE_VERSION: u32 = 1;
 /// A montage holds this many shots at most.
 pub const MAX_SHOTS: usize = 100;
@@ -218,7 +218,7 @@ pub fn read_import(bytes: &[u8], file_name: &str, fallback: &str) -> Result<Impo
         .file_stem()
         .map(|s| s.to_string_lossy().into_owned())
         .unwrap_or_default();
-    // "Dance.aurora-montage" and the like keep their first part
+    // "Dance.block-montage" and the like keep their first part
     let stem = stem.split('.').next().unwrap_or_default().to_owned();
     let name = track::file_stem(&stem).unwrap_or_else(|| fallback.to_owned());
     Ok(Imported::Track { name, file })
@@ -502,7 +502,7 @@ mod tests {
 
     #[test]
     fn the_files_of_a_folder_are_listed_without_its_subfolders() {
-        let folder = std::env::temp_dir().join(format!("aurora-director-lib-{}", uuid::Uuid::new_v4()));
+        let folder = std::env::temp_dir().join(format!("block-director-lib-{}", uuid::Uuid::new_v4()));
         std::fs::create_dir_all(folder.join(MONTAGES)).expect("fixture");
         for name in ["b.json", "A.JSON", "notes.txt"] {
             std::fs::write(folder.join(name), b"{}").expect("fixture");

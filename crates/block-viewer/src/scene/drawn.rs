@@ -24,7 +24,7 @@
 //! attachment cannot be touched, sat on or bought by a click, the click
 //! goes to the avatar's collision volumes or to what is behind. Firestorm
 //! skins the mesh again on the CPU for each pick, which is why it is left
-//! out. Aurora reads what is drawn, so the menu and the build tools reach a
+//! out. Block reads what is drawn, so the menu and the build tools reach a
 //! rigged mesh where it is shown. Once designated it follows the rules of
 //! any object of its kind: click action, IGNORE, transparency, rights,
 //! menus.
@@ -113,7 +113,7 @@ impl Default for RiggedClicks {
 }
 
 impl RiggedClicks {
-    /// Every kind (`clickable` of AURORA_DEMO_CLICKS).
+    /// Every kind (`clickable` of BLOCK_DEMO_CLICKS).
     pub const ALL: Self = Self {
         animesh: true,
         own: true,
@@ -398,7 +398,7 @@ impl Scene {
     /// opaque, in one scan of the objects' faces. The hover turns an answer
     /// into a target ten times a second, and each step of it looked its
     /// record up again: up to five scans an answer, 1.4 ms on average in a
-    /// crowded region (`hover trace cost`, AURORA_HOVER_TRACE).
+    /// crowded region (`hover trace cost`, BLOCK_HOVER_TRACE).
     pub fn drawn_objects(&self, drawn: &Drawn) -> DrawnObjects {
         let wanted = [drawn.blend.map(|f| f.record), drawn.opaque.map(|f| f.record)];
         let mut found: [Option<(usize, &ObjGpu, &FaceDraw)>; 2] = [None; 2];
@@ -750,7 +750,7 @@ mod tests {
         );
     }
 
-    /// Gesture x target: what Aurora designates from the drawn faces.
+    /// Gesture x target: what Block designates from the drawn faces.
     #[test]
     fn every_gesture_reaches_a_rigged_mesh_without_requiring_an_action() {
         let animesh = RIGGED;

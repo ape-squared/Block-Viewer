@@ -1,4 +1,4 @@
-//! "Report Abuse" window, floater_report_abuse.xml in the Aurora theme: the
+//! "Report Abuse" window, floater_report_abuse.xml in the Block theme: the
 //! screenshot, who reports from where, the object picked in the world, the
 //! category, the abuser, the place, the summary and the details. The rules
 //! are in `crate::report_abuse`; the app takes the screenshot, the picks and

@@ -958,7 +958,7 @@ mod tests {
         for (width, height) in [(1280.0, 720.0), (1600.0, 900.0), (1920.0, 1080.0)] {
             let screen = screen(width, height);
             let work = Rect::from_min_max(Pos2::new(8.0, 53.0), Pos2::new(width - 8.0, height - 57.0));
-            let people = Rect::from_min_size(super::super::people::default_pos(work), super::super::people::AURORA_SIZE);
+            let people = Rect::from_min_size(super::super::people::default_pos(work), super::super::people::BLOCK_SIZE);
             let map = super::super::minimap::default_rect(work);
             let chat = super::super::chat::default_rect(work);
             let (people_point, people_travel) = if height == 720.0 {
@@ -1302,14 +1302,14 @@ mod tests {
         restore(&ctx, &saved).expect("restore");
         crate::theme::Theme::default().apply(&ctx, 1.4);
         crate::ui::fonts::apply(&ctx, crate::ui::fonts::DEFAULT);
-        assert_eq!(first_font(&ctx), "aurora-main");
+        assert_eq!(first_font(&ctx), "block-main");
         assert_eq!(crate::ui::fonts::scale(&ctx), 1.4);
-        ctx.fonts(|fonts| assert_eq!(fonts.definitions().font_data["aurora-main"].tweak.scale, 1.4));
+        ctx.fonts(|fonts| assert_eq!(fonts.definitions().font_data["block-main"].tweak.scale, 1.4));
 
         let ctx = egui::Context::default();
         crate::ui::fonts::apply(&ctx, crate::ui::fonts::DEFAULT);
         super::restore(&ctx, &saved).expect("restore");
-        assert_ne!(first_font(&ctx), "aurora-main", "egui keeps pending fonts now: the order is free");
+        assert_ne!(first_font(&ctx), "block-main", "egui keeps pending fonts now: the order is free");
     }
 
     const ALL: Edges = Edges {

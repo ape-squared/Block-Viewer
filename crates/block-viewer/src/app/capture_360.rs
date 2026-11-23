@@ -43,7 +43,7 @@ const FACE_WAIT: u32 = 1800;
 /// view (`CullView::with_texture_camera` caps the half field at a half turn).
 pub(super) const OMNI_TEXTURE_ASPECT: f32 = 1000.0;
 
-/// The frame `AURORA_DEMO_SNAPSHOT_360` opens the photo window.
+/// The frame `BLOCK_DEMO_SNAPSHOT_360` opens the photo window.
 const DEMO_OPEN_FRAME: u64 = 600;
 /// The frame it presses the shutter (the window has been drawn by then).
 const DEMO_SHUTTER_FRAME: u64 = 630;
@@ -128,7 +128,7 @@ pub(super) struct Shown {
     pub serial: u64,
 }
 
-/// `AURORA_DEMO_SNAPSHOT_360=<folder>[:preview|medium|high|maximum][:hide][:inventory][:panel|:classic]`.
+/// `BLOCK_DEMO_SNAPSHOT_360=<folder>[:preview|medium|high|maximum][:hide][:inventory][:panel|:classic]`.
 struct Demo {
     folder: PathBuf,
     quality: Option<Quality>,
@@ -590,7 +590,7 @@ impl App {
     fn capture_360_show(&mut self, width: u32, height: u32, rgba: Arc<Vec<u8>>, yaw: f32, quality: Quality) {
         let cap = if quality == Quality::Maximum { 8192 } else { 4096 };
         let (tx, rx) = crossbeam_channel::bounded(1);
-        let spawned = std::thread::Builder::new().name("aurora-360-shown".into()).spawn(move || {
+        let spawned = std::thread::Builder::new().name("block-360-shown".into()).spawn(move || {
             // (at full size, one copy into the shared image, not two)
             let image = if width.max(height) <= cap {
                 Image {
@@ -653,7 +653,7 @@ impl App {
     /// The panorama encoded and written at `path` on a worker.
     fn capture_360_save(&mut self, path: PathBuf, width: u32, height: u32, rgba: Arc<Vec<u8>>, meta: Meta) {
         let (tx, rx) = crossbeam_channel::bounded(1);
-        let spawned = std::thread::Builder::new().name("aurora-360-save".into()).spawn(move || {
+        let spawned = std::thread::Builder::new().name("block-360-save".into()).spawn(move || {
             let result = rules::encode(width, height, &rgba, &meta).and_then(|bytes| {
                 if let Some(parent) = path.parent() {
                     std::fs::create_dir_all(parent).map_err(|e| e.to_string())?;
@@ -744,7 +744,7 @@ impl App {
         let name = self.capture_360_disk_name(renderer);
         let folder = self.settings.snapshot.folder();
         let (tx, rx) = crossbeam_channel::bounded(1);
-        let spawned = std::thread::Builder::new().name("aurora-360-dialog".into()).spawn(move || {
+        let spawned = std::thread::Builder::new().name("block-360-dialog".into()).spawn(move || {
             let path = rfd::FileDialog::new()
                 .set_directory(&folder)
                 .set_title(block_i18n::tr!("capture-360-save-dialog"))
@@ -780,7 +780,7 @@ impl App {
         )
     }
 
-    /// `AURORA_DEMO_SNAPSHOT_360=<folder>[:preview|medium|high|maximum]
+    /// `BLOCK_DEMO_SNAPSHOT_360=<folder>[:preview|medium|high|maximum]
     /// [:hide][:inventory][:panel|:classic]`: the photo window opened in 360° at frame 600
     /// and its shutter pressed a few frames later; the panorama is written
     /// to the folder under its proposed name (with `:inventory`, the
@@ -792,7 +792,7 @@ impl App {
         }
         if !self.capture_360.demo_read {
             self.capture_360.demo_read = true;
-            if let Ok(value) = std::env::var("AURORA_DEMO_SNAPSHOT_360") {
+            if let Ok(value) = std::env::var("BLOCK_DEMO_SNAPSHOT_360") {
                 self.capture_360.demo = parse_demo(&value);
             }
         }
@@ -998,7 +998,7 @@ mod tests {
 
     #[test]
     fn a_file_that_exists_gets_a_number() {
-        let dir = std::env::temp_dir().join(format!("aurora-360-unique-{}", std::process::id()));
+        let dir = std::env::temp_dir().join(format!("block-360-unique-{}", std::process::id()));
         std::fs::create_dir_all(&dir).expect("temporary folder");
         let first = dir.join("sl360_a.jpg");
         assert_eq!(unique(first.clone()), first);

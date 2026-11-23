@@ -1153,7 +1153,7 @@ mod tests {
     }
 
     #[test]
-    fn aurora_calibrates_shoes_without_writing_the_manual_hover_height() {
+    fn block_calibrates_shoes_without_writing_the_manual_hover_height() {
         let (mut world, mut scene, now) = fixture();
         let lib = world.avatar_lib.clone();
         crate::demo::auto_hover::install_mesh(&lib, &mut scene).unwrap();
@@ -1598,7 +1598,7 @@ mod tests {
     }
 
     #[test]
-    fn aurora_idle_keeps_measured_shoe_soles_without_changing_manual_hover() {
+    fn block_idle_keeps_measured_shoe_soles_without_changing_manual_hover() {
         for while_moving in [false, true] {
             let (mut world, mut scene, now) = fixture();
             let lib = world.avatar_lib.clone();

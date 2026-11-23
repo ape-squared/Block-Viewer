@@ -1,4 +1,4 @@
-//! Doppler shift (AURORA_DEMO_SOUND_DOPPLER=1, docs/TESTING.md): one
+//! Doppler shift (BLOCK_DEMO_SOUND_DOPPLER=1, docs/TESTING.md): one
 //! looping buzz passes in front of the listener, back and forth along a
 //! straight line 8 m ahead, at 20 m/s, like a passing car. With
 //! Preferences › Sound, "Doppler effect" at 1, it is heard higher while it
@@ -16,7 +16,7 @@ use uuid::Uuid;
 
 pub fn active() -> bool {
     static ON: OnceLock<bool> = OnceLock::new();
-    *ON.get_or_init(|| std::env::var("AURORA_DEMO_SOUND_DOPPLER").is_ok_and(|v| !v.is_empty() && v != "0"))
+    *ON.get_or_init(|| std::env::var("BLOCK_DEMO_SOUND_DOPPLER").is_ok_and(|v| !v.is_empty() && v != "0"))
 }
 
 const SOUND: u128 = 0xA0E0_50CC_0000_0000_0000_0000_0000_0041;

@@ -1,7 +1,7 @@
-"""Aurora's bundled, offline installer, run by the selected Blender executable.
+"""Block's bundled, offline installer, run by the selected Blender executable.
 
 Blender loads its preferences normally (re-reading them via an operator crashes
-some 4.2 builds). Only Aurora's package/enable state is changed, and no scene is
+some 4.2 builds). Only Block's package/enable state is changed, and no scene is
 saved. Probe never saves preferences.
 """
 import ast
@@ -53,21 +53,21 @@ def locations():
     overridden = os.environ.get("BLENDER_USER_CONFIG")
     if overridden and config.resolve() != Path(overridden).resolve():
         raise RuntimeError("Blender did not honor BLENDER_USER_CONFIG; refusing to touch a different profile.")
-    legacy = Path(bpy.utils.user_resource("SCRIPTS")) / "addons" / "aurora_live"
+    legacy = Path(bpy.utils.user_resource("SCRIPTS")) / "addons" / "block_live"
     repo = None
     if extension:
         repos = bpy.context.preferences.extensions.repos
         # Update an existing local installation in place, including a custom repo.
         repo = next((r for r in repos if r.enabled and not r.use_remote_url
-                     and (Path(r.directory) / "aurora_live_mesh").is_dir()), None)
+                     and (Path(r.directory) / "block_live_mesh").is_dir()), None)
         if repo is None:
             repo = next((r for r in repos if r.module == "user_default" and r.enabled and not r.use_remote_url), None)
         if repo is None:
             raise RuntimeError("No enabled local extension repository. Enable User Default in Blender preferences.")
-        target = Path(repo.directory) / "aurora_live_mesh"
-        module = "bl_ext." + repo.module + ".aurora_live_mesh"
+        target = Path(repo.directory) / "block_live_mesh"
+        module = "bl_ext." + repo.module + ".block_live_mesh"
     else:
-        target, module = legacy, "aurora_live"
+        target, module = legacy, "block_live"
     return extension, config, legacy, repo, target, module
 
 
@@ -102,21 +102,21 @@ def install(request, state):
     expected = request["plugin_version"]
     old = package_version(target, extension) or (package_version(legacy, False) if extension else None)
     if old and tuple(int(v) for v in old.split(".")) > tuple(int(v) for v in expected.split(".")):
-        raise RuntimeError("A newer Aurora plug-in is already installed; downgrade refused.")
+        raise RuntimeError("A newer Block plug-in is already installed; downgrade refused.")
     package = Path(request["extension_zip"] if extension else request["legacy_zip"])
     with zipfile.ZipFile(package) as archive:
         files = {}
         for name in archive.namelist():
-            relative = Path(name if extension else name.removeprefix("aurora_live/"))
+            relative = Path(name if extension else name.removeprefix("block_live/"))
             if relative.is_absolute() or ".." in relative.parts:
-                raise RuntimeError("Invalid path in the bundled Aurora package.")
+                raise RuntimeError("Invalid path in the bundled Block package.")
             if not name.endswith("/"):
                 files[relative] = archive.read(name)
     if Path("__init__.py") not in files:
-        raise RuntimeError("The bundled Aurora package is incomplete.")
+        raise RuntimeError("The bundled Block package is incomplete.")
     config.parent.mkdir(parents=True, exist_ok=True)
     config.mkdir(parents=True, exist_ok=True)
-    backup = config.parent / "aurora-backups" / (datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ-") + uuid.uuid4().hex)
+    backup = config.parent / "block-backups" / (datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ-") + uuid.uuid4().hex)
     backup.mkdir(parents=True)
     prefs = config / "userpref.blend"
     before_addons = set(bpy.context.preferences.addons.keys())
@@ -127,7 +127,7 @@ def install(request, state):
     existed = []
     for path, saved in directories:
         if path.is_symlink() or (path.exists() and not path.is_dir()):
-            raise RuntimeError("Aurora package location is not a regular directory: " + str(path))
+            raise RuntimeError("Block package location is not a regular directory: " + str(path))
         existed.append(path.is_dir())
         if path.is_dir():
             shutil.copytree(path, saved, symlinks=True)
@@ -135,8 +135,8 @@ def install(request, state):
         shutil.copy2(prefs, backup / "userpref.blend")
     directories = [(path.resolve(), saved) for path, saved in directories]
     try:
-        if extension and "aurora_live" in before_addons:
-            checked(bpy.ops.preferences.addon_disable(module="aurora_live"))
+        if extension and "block_live" in before_addons:
+            checked(bpy.ops.preferences.addon_disable(module="block_live"))
         if extension:
             checked(bpy.ops.extensions.package_install_files(
                 filepath=request["extension_zip"], repo=repo.module, enable_on_install=True, overwrite=True))
@@ -145,16 +145,16 @@ def install(request, state):
             checked(bpy.ops.preferences.addon_enable(module=module))
         installed = importlib.import_module(module)
         if package_version(Path(installed.__file__).parent, extension) != expected:
-            raise RuntimeError("Installed Aurora plug-in version does not match the bundled package.")
+            raise RuntimeError("Installed Block plug-in version does not match the bundled package.")
         # Some Blender operators return FINISHED after reporting an install error.
         # A previously enabled package must never be mistaken for a new install.
         for relative, contents in files.items():
             if (target / relative).read_bytes() != contents:
-                raise RuntimeError("Blender did not install the complete bundled Aurora package: " + str(relative))
-        if not hasattr(bpy.types.Scene, "aurora_live") or module not in bpy.context.preferences.addons:
-            raise RuntimeError("Aurora plug-in did not enable correctly.")
+                raise RuntimeError("Blender did not install the complete bundled Block package: " + str(relative))
+        if not hasattr(bpy.types.Scene, "block_live") or module not in bpy.context.preferences.addons:
+            raise RuntimeError("Block plug-in did not enable correctly.")
         after_addons = set(bpy.context.preferences.addons.keys())
-        if after_addons - {module, "aurora_live"} != before_addons - {module, "aurora_live"}:
+        if after_addons - {module, "block_live"} != before_addons - {module, "block_live"}:
             raise RuntimeError("Unrelated enabled add-ons changed; restoring the previous installation.")
         # Old Blender falls back to its normal config if an environment override
         # points to a directory that does not exist at save time.
@@ -188,14 +188,14 @@ def install(request, state):
 
 
 def uninstall(state):
-    """Disable and delete Aurora's package from this profile, then save the
+    """Disable and delete Block's package from this profile, then save the
     preferences so Blender no longer lists it. Only the folders that hold
-    Aurora's own package are deleted; the backups made by `install` stay,
+    Block's own package are deleted; the backups made by `install` stay,
     as copies of the user's own preferences."""
     extension, config, legacy, repo, target, module = state
     removed = []
     disabled = False
-    for name in dict.fromkeys([module, "aurora_live"]):
+    for name in dict.fromkeys([module, "block_live"]):
         if name in bpy.context.preferences.addons:
             checked(bpy.ops.preferences.addon_disable(module=name))
             disabled = True
@@ -226,11 +226,11 @@ def run(request):
     report["plugin_version"] = package_version(target, extension) or (package_version(legacy, False) if extension else None)
     report["enabled"] = module in bpy.context.preferences.addons
     if request["operation"] == "install":
-        with install_lock(config.parent / ".aurora-install.lock"):
+        with install_lock(config.parent / ".block-install.lock"):
             report["backup"] = install(request, state)
             report["plugin_version"], report["enabled"] = request["plugin_version"], True
     elif request["operation"] == "uninstall":
-        lock = config.parent / ".aurora-install.lock"
+        lock = config.parent / ".block-install.lock"
         with install_lock(lock):
             report["removed"] = uninstall(state)
             report["plugin_version"], report["enabled"] = None, False

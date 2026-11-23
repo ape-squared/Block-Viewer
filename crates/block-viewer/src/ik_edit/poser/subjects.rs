@@ -258,7 +258,7 @@ impl Editor {
             ui.painter().image(chevron.id(), at, uv, p.muted);
         }
         response.widget_info(|| egui::WidgetInfo::labeled(egui::Role::Button, true, &name));
-        // AURORA_DEMO_POSER=consent-* / bridge-*: the menu opens by itself, as a click
+        // BLOCK_DEMO_POSER=consent-* / bridge-*: the menu opens by itself, as a click
         let demo = egui::Id::unique("poser-subjects-open");
         if ui.ctx().data_mut(|d| d.remove_temp::<bool>(demo)).unwrap_or(false) {
             egui::Popup::open_id(ui.ctx(), egui::Popup::default_response_id(&response));

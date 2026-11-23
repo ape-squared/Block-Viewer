@@ -21,7 +21,7 @@ pub(super) struct Tracker {
     notifier: Notifier,
     published_at: Option<Instant>,
     own_at: Option<Instant>,
-    /// `AURORA_DEMO_RENDER_INFO`: the made-up answer's last time.
+    /// `BLOCK_DEMO_RENDER_INFO`: the made-up answer's last time.
     demo_at: Option<Instant>,
     demo_logged: bool,
 }
@@ -38,7 +38,7 @@ impl Default for Tracker {
     }
 }
 
-/// `AURORA_DEMO_RENDER_INFO=<overlimit>[/<reporting>]`: the counts the
+/// `BLOCK_DEMO_RENDER_INFO=<overlimit>[/<reporting>]`: the counts the
 /// demo's region answers with (8 viewers reporting by default).
 fn demo_counts(value: &str) -> Option<Visibility> {
     let (over, reporting) = value.split_once('/').unwrap_or((value, "8"));
@@ -143,13 +143,13 @@ impl App {
         }
     }
 
-    /// `AURORA_DEMO_RENDER_INFO`: the demo's region answers every 15 s
+    /// `BLOCK_DEMO_RENDER_INFO`: the demo's region answers every 15 s
     /// with the given counts, as a region's GET would.
     fn demo_render_info(&mut self, now: Instant) {
         if !self.demo || self.render_info.demo_at.is_some_and(|t| now.duration_since(t) < REQUEST_PERIOD) {
             return;
         }
-        let Some(counts) = std::env::var("AURORA_DEMO_RENDER_INFO").ok().and_then(|v| demo_counts(&v)) else {
+        let Some(counts) = std::env::var("BLOCK_DEMO_RENDER_INFO").ok().and_then(|v| demo_counts(&v)) else {
             return;
         };
         let Some(handle) = self.world.main_region else {
@@ -159,10 +159,10 @@ impl App {
         self.render_info_answer(handle, counts);
     }
 
-    /// `AURORA_DEMO_RENDER_INFO`: the report the agent's region would get,
+    /// `BLOCK_DEMO_RENDER_INFO`: the report the agent's region would get,
     /// written to the log once our avatar is in it.
     fn demo_log_render_info(&mut self, seen: &[SeenAvatar]) {
-        if self.render_info.demo_logged || std::env::var_os("AURORA_DEMO_RENDER_INFO").is_none() {
+        if self.render_info.demo_logged || std::env::var_os("BLOCK_DEMO_RENDER_INFO").is_none() {
             return;
         }
         let Some(handle) = self.world.main_region else {

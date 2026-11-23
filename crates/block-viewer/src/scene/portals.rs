@@ -1,4 +1,4 @@
-//! Shared GPU aperture with procedural Aurora flow, depth-tested and sorted
+//! Shared GPU aperture with procedural Block flow, depth-tested and sorted
 //! with world transparency/glow. No texture generation or particle uploads.
 use crate::{
     theme::Palette,
@@ -137,7 +137,7 @@ impl super::Scene {
 
     pub fn update_portal_clipping(&mut self, renderer: &mut Renderer, world: &World) {
         static ENABLED: std::sync::OnceLock<bool> = std::sync::OnceLock::new();
-        let enabled = *ENABLED.get_or_init(|| std::env::var("AURORA_PORTAL_CLIP").as_deref() != Ok("0"));
+        let enabled = *ENABLED.get_or_init(|| std::env::var("BLOCK_PORTAL_CLIP").as_deref() != Ok("0"));
         if !enabled || world.portals.entries.is_empty() {
             self.portals.clipping.clear();
             self.portals.planes.clear();

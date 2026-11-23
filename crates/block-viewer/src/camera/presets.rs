@@ -1,7 +1,7 @@
 //! Camera presets (issue #1164): a saved camera position grown into a
 //! whole shot. The Legacy Viewer's camera presets (LLFloaterSaveCameraPreset,
 //! LLPresetsManager::getControlNames, indra/newview, originally LGPL 2.1)
-//! keep the camera and its focus in the avatar's frame; Aurora's also choose
+//! keep the camera and its focus in the avatar's frame; Block's also choose
 //! what holds the camera (the avatar, a fixed place in the world, or an
 //! object it follows) and may keep the photo mode's lens (focal length,
 //! aperture and focus, exposure), its looks and the light (the local
@@ -311,10 +311,10 @@ mod tests {
     #[test]
     fn a_preset_keeps_only_the_settings_of_its_looks() {
         let mut settings = BTreeMap::new();
-        settings.insert("aurora:film".to_owned(), vec![0.5]);
-        settings.insert("aurora:vignette".to_owned(), vec![0.2]);
-        let looks = looks_of(&[Layer::new("aurora:film")], &settings);
-        assert_eq!(looks.settings.keys().collect::<Vec<_>>(), ["aurora:film"]);
+        settings.insert("block:film".to_owned(), vec![0.5]);
+        settings.insert("block:vignette".to_owned(), vec![0.2]);
+        let looks = looks_of(&[Layer::new("block:film")], &settings);
+        assert_eq!(looks.settings.keys().collect::<Vec<_>>(), ["block:film"]);
     }
 
     #[test]

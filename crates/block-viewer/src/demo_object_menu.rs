@@ -1,4 +1,4 @@
-//! Offline objects of the object menu scenario (AURORA_DEMO_OBJECT_MENU):
+//! Offline objects of the object menu scenario (BLOCK_DEMO_OBJECT_MENU):
 //! a scripted bell of ours with its touch and sit texts, a crate of ours
 //! beside it (Link, Take multiple), and a cloud of particles another
 //! resident owns (Block particle owner). They go through the same
@@ -15,7 +15,7 @@ const OURS: u32 = (1 << 2) | (1 << 3) | (1 << 4) | (1 << 5) | (1 << 8) | (1 << 1
 
 pub fn mode() -> Option<&'static str> {
     static MODE: std::sync::OnceLock<Option<String>> = std::sync::OnceLock::new();
-    MODE.get_or_init(|| std::env::var("AURORA_DEMO_OBJECT_MENU").ok()).as_deref()
+    MODE.get_or_init(|| std::env::var("BLOCK_DEMO_OBJECT_MENU").ok()).as_deref()
 }
 
 /// The bell's touch and sit texts (its ObjectProperties).

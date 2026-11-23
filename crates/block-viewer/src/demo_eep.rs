@@ -1,5 +1,5 @@
 //! EEP environment answers in the offline demo
-//! (`AURORA_DEMO_EEP_PARCEL=1|parcel|default|stale`): replays what the
+//! (`BLOCK_DEMO_EEP_PARCEL=1|parcel|default|stale`): replays what the
 //! ExtEnvironment capability answers on the grid, 0.4 s apart like the
 //! Yikes log (region day, then the parcel request).
 //!
@@ -25,7 +25,7 @@ const PARCEL_FRAME: u64 = 64;
 
 fn scenario() -> &'static str {
     static S: OnceLock<String> = OnceLock::new();
-    S.get_or_init(|| match std::env::var("AURORA_DEMO_EEP_PARCEL") {
+    S.get_or_init(|| match std::env::var("BLOCK_DEMO_EEP_PARCEL") {
         Ok(v) => v.trim().to_owned(),
         // the environment editors' parcel and region scenarios need the
         // region's day (createDayCycleFromEnvironment clones it)

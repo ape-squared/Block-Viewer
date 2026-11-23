@@ -189,7 +189,7 @@ fn bound_tile_parts(cs: &[u8], plausible: usize) -> Option<Vec<u8>> {
 /// check the tile-part number (TPsot) against that size, so a later
 /// `opj_j2k_read_sod` can write one slot past the index (a heap overflow;
 /// fixed on OpenJPEG master by PR #1621, not yet in any release, hence
-/// openjpeg-sys 1.0.12 is still affected). Aurora always decodes a whole
+/// openjpeg-sys 1.0.12 is still affected). Block always decodes a whole
 /// texture in codestream order and never uses TLM to seek, so every TLM
 /// segment of the main header is disabled before OpenJPEG reads it: its Stlm
 /// byte is set to the reserved size code (ST = 3), which `opj_j2k_read_tlm`
@@ -759,7 +759,7 @@ pub fn decode_j2k_timed(data: &[u8], discard: u8) -> Result<(DecodedImage, Decod
     let bounded = bound_tile_parts(cs, plausible);
     let cs = bounded.as_deref().unwrap_or(cs);
     // Disable any TLM tile-part index: OpenJPEG 2.5.3 can write past it (see
-    // `disable_tlm_index`). Aurora decodes textures in codestream order anyway.
+    // `disable_tlm_index`). Block decodes textures in codestream order anyway.
     let no_tlm = disable_tlm_index(cs)?;
     let cs = no_tlm.as_deref().unwrap_or(cs);
 

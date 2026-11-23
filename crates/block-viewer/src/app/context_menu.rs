@@ -228,7 +228,7 @@ impl App {
             self.moderation_menu_opened(id);
         }
         self.request_particle_source_names();
-        if self.clicks.scripted() || self.demo && std::env::var_os("AURORA_DEMO_ACTIONS").is_some() {
+        if self.clicks.scripted() || self.demo && std::env::var_os("BLOCK_DEMO_ACTIONS").is_some() {
             log::info!("demo menu: {target:?}");
         }
         let ppp = self.egui_ctx.pixels_per_point().max(0.1);

@@ -4,7 +4,7 @@
 //!
 //! - **CPU** (share of the machine): the system's load of each group of
 //!   threads (`sys_probe`). A group that works for a single part counts for
-//!   it (`block-render` for rendering, `aurora-pages` for textures…); the
+//!   it (`block-render` for rendering, `block-pages` for textures…); the
 //!   main thread is shared out by the time of the frame's steps
 //!   (`frame_profile`), the render thread by its steps, the frame workers by
 //!   the steps they run in parallel, the decode pool by the time of its
@@ -267,33 +267,33 @@ impl Attribution {
 /// Groups of threads that work for a single part (their names without
 /// the pool's number, `sys_probe::group_of`).
 const GROUPS: &[(&str, RowId)] = &[
-    ("aurora-pages", RowId::TexPages),
-    ("aurora-texcache", RowId::TexCache),
-    ("aurora-trash", RowId::Scene),
+    ("block-pages", RowId::TexPages),
+    ("block-texcache", RowId::TexCache),
+    ("block-trash", RowId::Scene),
     ("block-audio-out", RowId::AudioMixer),
     ("block-audio-stream", RowId::AudioStream),
     ("block-voice", RowId::Voice),
     ("block-voice-rt", RowId::Voice),
     ("block-audio-in", RowId::Voice),
-    ("aurora-inventory-cache", RowId::SvcInventory),
-    ("aurora-chatlog", RowId::SvcLogs),
-    ("aurora-transcript", RowId::SvcLogs),
-    ("aurora-notification-history", RowId::SvcLogs),
-    ("aurora-experience-log", RowId::SvcLogs),
-    ("aurora-favorites", RowId::Services),
-    ("aurora-web-profile", RowId::Services),
-    ("aurora-cache", RowId::CacheUpkeep),
-    ("aurora-web-cache", RowId::CacheUpkeep),
-    ("aurora-web-misplaced", RowId::CacheUpkeep),
-    ("aurora-monitor", RowId::UiMonitor),
-    ("aurora-probe", RowId::UiMonitor),
-    ("aurora-fonts", RowId::Interface),
-    ("aurora-hud-scales", RowId::Interface),
-    ("aurora-local-previews", RowId::Interface),
-    ("aurora-photo-save", RowId::Interface),
-    ("aurora-open-wait", RowId::Interface),
-    ("aurora-geometry-needs", RowId::Meshes),
-    ("aurora-hover-height", RowId::Avatars),
+    ("block-inventory-cache", RowId::SvcInventory),
+    ("block-chatlog", RowId::SvcLogs),
+    ("block-transcript", RowId::SvcLogs),
+    ("block-notification-history", RowId::SvcLogs),
+    ("block-experience-log", RowId::SvcLogs),
+    ("block-favorites", RowId::Services),
+    ("block-web-profile", RowId::Services),
+    ("block-cache", RowId::CacheUpkeep),
+    ("block-web-cache", RowId::CacheUpkeep),
+    ("block-web-misplaced", RowId::CacheUpkeep),
+    ("block-monitor", RowId::UiMonitor),
+    ("block-probe", RowId::UiMonitor),
+    ("block-fonts", RowId::Interface),
+    ("block-hud-scales", RowId::Interface),
+    ("block-local-previews", RowId::Interface),
+    ("block-photo-save", RowId::Interface),
+    ("block-open-wait", RowId::Interface),
+    ("block-geometry-needs", RowId::Meshes),
+    ("block-hover-height", RowId::Avatars),
 ];
 
 /// Groups shared out by what they ran ([`attribute`]).
@@ -301,8 +301,8 @@ const SHARED: [&str; 6] = [
     "main",
     "block-render",
     "block-render-finish",
-    "aurora-worker",
-    "aurora-jobs",
+    "block-worker",
+    "block-jobs",
     "block-net",
 ];
 
@@ -559,12 +559,12 @@ pub fn attribute(inp: &Inputs) -> Attribution {
             .filter(|(r, _)| matches!(r, RowId::SceneCull | RowId::SceneSync | RowId::AvPoses))
             .copied()
             .collect();
-        let workers = group("aurora-worker");
+        let workers = group("block-worker");
         if !share(&mut u, Column::Cpu, workers, &parallel) {
             u[RowId::Scene.index()].add(Column::Cpu, workers);
         }
         // the decode pool by the time of its jobs
-        let jobs = group("aurora-jobs");
+        let jobs = group("block-jobs");
         let job_weights: Vec<(RowId, f64)> = inp
             .probes
             .map(|p| {
@@ -649,7 +649,7 @@ mod tests {
         let cpu = CpuSnapshot {
             cores: 16,
             process: 6.25 + 1.0,
-            groups: vec![group("main", 100.0), group("aurora-pages", 16.0)],
+            groups: vec![group("main", 100.0), group("block-pages", 16.0)],
             ..CpuSnapshot::default()
         };
         // 3 ms of interface (2 of them in the bars), 1 ms of lists

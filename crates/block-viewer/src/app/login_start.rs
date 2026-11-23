@@ -45,19 +45,19 @@ mod tests {
 
     #[test]
     fn the_region_field_takes_a_slurl_like_the_legacy_viewer() {
-        let want = Some("uri:Aurora Démo&12&34&56".to_owned());
+        let want = Some("uri:Block Démo&12&34&56".to_owned());
         for typed in [
-            "http://maps.secondlife.com/secondlife/Aurora%20D%C3%A9mo/12/34/56",
-            "https://maps.secondlife.com/secondlife/Aurora%20D%C3%A9mo/12/34/56/?title=x",
-            "  secondlife://Aurora Démo/12/34/56  ",
-            "secondlife:///app/teleport/Aurora%20D%C3%A9mo/12/34/56",
-            "Aurora Démo/12/34/56",
+            "http://maps.secondlife.com/secondlife/Block%20D%C3%A9mo/12/34/56",
+            "https://maps.secondlife.com/secondlife/Block%20D%C3%A9mo/12/34/56/?title=x",
+            "  secondlife://Block Démo/12/34/56  ",
+            "secondlife:///app/teleport/Block%20D%C3%A9mo/12/34/56",
+            "Block Démo/12/34/56",
         ] {
             assert_eq!(login(typed), want, "{typed}");
         }
         // a bare name, or a SLURL without a position: the centre, on the
         // ground (LLSLURL's default position)
-        assert_eq!(login("Aurora Démo"), Some("uri:Aurora Démo&128&128&0".to_owned()));
+        assert_eq!(login("Block Démo"), Some("uri:Block Démo&128&128&0".to_owned()));
         assert_eq!(
             login("http://maps.secondlife.com/secondlife/Ahern"),
             Some("uri:Ahern&128&128&0".to_owned())

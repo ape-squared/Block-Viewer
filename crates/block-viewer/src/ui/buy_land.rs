@@ -151,7 +151,7 @@ pub struct BuyLandUi {
     pending: Option<LandCommand>,
     /// The purchase is sent: the window closes (mBought).
     bought: bool,
-    /// AURORA_DEMO_BUY_LAND=…:confirm: agree and open the confirmation once
+    /// BLOCK_DEMO_BUY_LAND=…:confirm: agree and open the confirmation once
     /// the website has answered.
     demo_confirm: bool,
     pub wanted_images: HashSet<Uuid>,
@@ -179,7 +179,7 @@ impl BuyLandUi {
         };
     }
 
-    /// AURORA_DEMO_BUY_LAND=…:confirm (see docs/TESTING.md).
+    /// BLOCK_DEMO_BUY_LAND=…:confirm (see docs/TESTING.md).
     pub fn demo_confirm(&mut self) {
         self.demo_confirm = true;
     }

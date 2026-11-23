@@ -4,8 +4,8 @@
 //! like LLImageFilter::executeFilter (indra/llimage/llimagefilter.cpp,
 //! originally LGPL 2.1): a missing parameter reads 0, an unknown shape,
 //! blend mode or screen takes the first one, an unknown operation is left
-//! out with a warning. Aurora's looks (`aurora/`) are files of the same
-//! form, with the names of Aurora's operations besides.
+//! out with a warning. Block's looks (`block/`) are files of the same
+//! form, with the names of Block's operations besides.
 
 use super::{LookOp, MAX_OPS, ScreenMode, StencilMode, StencilShape};
 use block_llsd::Llsd;
@@ -46,9 +46,9 @@ const LEGACY: [(&str, &str); 30] = [
     ("Video", include_str!("legacy/Video.xml")),
 ];
 
-/// The sections of Aurora's looks, in the order the interface shows them.
+/// The sections of Block's looks, in the order the interface shows them.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum AuroraSection {
+pub enum BlockSection {
     Film,
     Color,
     Lens,
@@ -56,22 +56,22 @@ pub enum AuroraSection {
     Depth,
 }
 
-/// One of Aurora's looks.
+/// One of Block's looks.
 #[derive(Debug, Clone)]
-pub struct AuroraLook {
+pub struct BlockLook {
     pub id: &'static str,
-    pub section: AuroraSection,
+    pub section: BlockSection,
     pub ops: Arc<[LookOp]>,
 }
 
-macro_rules! aurora_files {
+macro_rules! block_files {
     ($($section:ident: [$($id:literal),* $(,)?]),* $(,)?) => {
-        [$($((AuroraSection::$section, $id, include_str!(concat!("aurora/", $id, ".xml")))),*),*]
+        [$($((BlockSection::$section, $id, include_str!(concat!("block/", $id, ".xml")))),*),*]
     };
 }
 
-/// Aurora's looks, by section.
-const AURORA: [(AuroraSection, &str, &str); 36] = aurora_files!(
+/// Block's looks, by section.
+const BLOCK: [(BlockSection, &str, &str); 36] = block_files!(
     Film: ["fine-grain", "silver-grain", "teal-orange", "bleach-bypass", "cross-process", "instant", "chrome", "halation", "cyanotype", "infrared"],
     Color: ["vivid", "faded", "keep-red", "keep-yellow", "keep-green", "keep-blue", "duotone", "sunset", "night-vision"],
     Lens: ["chromatic", "fisheye", "old-lens", "scope", "widescreen", "dreamy"],
@@ -79,14 +79,14 @@ const AURORA: [(AuroraSection, &str, &str); 36] = aurora_files!(
     Depth: ["haze", "golden-haze", "miniature-3d", "background-blur", "subject"],
 );
 
-/// Aurora's looks, in their sections' order, read once.
-pub fn aurora_looks() -> &'static [AuroraLook] {
-    static LOOKS: OnceLock<Vec<AuroraLook>> = OnceLock::new();
+/// Block's looks, in their sections' order, read once.
+pub fn block_looks() -> &'static [BlockLook] {
+    static LOOKS: OnceLock<Vec<BlockLook>> = OnceLock::new();
     LOOKS.get_or_init(|| {
-        AURORA
+        BLOCK
             .iter()
             .filter_map(|&(section, id, xml)| match parse_look(xml.as_bytes()) {
-                Ok(ops) => Some(AuroraLook {
+                Ok(ops) => Some(BlockLook {
                     id,
                     section,
                     ops: ops.into(),
@@ -100,9 +100,9 @@ pub fn aurora_looks() -> &'static [AuroraLook] {
     })
 }
 
-/// One of Aurora's looks by its id.
-pub fn aurora_look(id: &str) -> Option<&'static AuroraLook> {
-    aurora_looks().iter().find(|look| look.id == id)
+/// One of Block's looks by its id.
+pub fn aurora_look(id: &str) -> Option<&'static BlockLook> {
+    block_looks().iter().find(|look| look.id == id)
 }
 
 /// The Legacy Viewer's looks, by name, read once.

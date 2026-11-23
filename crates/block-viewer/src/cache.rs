@@ -61,7 +61,7 @@ fn publish(path: &Path, file: &[u8]) -> std::io::Result<()> {
 
 /// Whether a file not in the store format reads as it is. Only in the
 /// unit tests, which write their files by hand, and in the demo: its
-/// sources are plain files (`AURORA_DEMO_STREAM`'s `j2k=` folder, what its
+/// sources are plain files (`BLOCK_DEMO_STREAM`'s `j2k=` folder, what its
 /// local asset server serves, the maps its scenarios write), and it never
 /// meets a grid. Anywhere else such a file is a cache miss: the asset is
 /// fetched again.
@@ -70,7 +70,7 @@ fn plain_files_read() -> bool {
 }
 
 fn demo() -> bool {
-    static DEMO: std::sync::LazyLock<bool> = std::sync::LazyLock::new(|| std::env::var_os("AURORA_DEMO").is_some());
+    static DEMO: std::sync::LazyLock<bool> = std::sync::LazyLock::new(|| std::env::var_os("BLOCK_DEMO").is_some());
     *DEMO
 }
 
@@ -139,7 +139,7 @@ pub fn remove_unsealed(old_root: PathBuf) {
     if found.is_empty() {
         return;
     }
-    let _ = std::thread::Builder::new().name("aurora-cache-unsealed".into()).spawn(move || {
+    let _ = std::thread::Builder::new().name("block-cache-unsealed".into()).spawn(move || {
         let started = Instant::now();
         let mut files = Vec::new();
         for d in &found {
@@ -235,7 +235,7 @@ impl Renames {
 /// 50,000 files); a file read before its turn is renamed on the spot. Not
 /// in the demo, which keeps the ids as names.
 pub fn rename_to_keyed_names(root: PathBuf) {
-    let _ = std::thread::Builder::new().name("aurora-cache-names".into()).spawn(move || {
+    let _ = std::thread::Builder::new().name("block-cache-names".into()).spawn(move || {
         let started = Instant::now();
         let found = RENAMES.scan(&root);
         if found.is_empty() {
@@ -343,7 +343,7 @@ impl DiskCache {
             let (root, limit, usage, clearing) = (root.clone(), limit.clone(), usage.clone(), clearing.clone());
             let (by_dir, last_trim) = (by_dir.clone(), last_trim.clone());
             let mut last_walk = Instant::now();
-            let _ = std::thread::Builder::new().name("aurora-cache".into()).spawn(move || {
+            let _ = std::thread::Builder::new().name("block-cache".into()).spawn(move || {
                 loop {
                     let cmd = match rx.recv_timeout(Duration::from_secs(30)) {
                         // coalesce queued trims (e.g. while the size slider moves)
@@ -515,7 +515,7 @@ mod tests {
 
     #[test]
     fn files_named_by_id_take_their_keyed_name() {
-        let root = std::env::temp_dir().join(format!("aurora-cache-test-{}", uuid::Uuid::new_v4()));
+        let root = std::env::temp_dir().join(format!("block-cache-test-{}", uuid::Uuid::new_v4()));
         let (a, b, c) = (uuid::Uuid::from_u128(1), uuid::Uuid::from_u128(2), uuid::Uuid::from_u128(3));
         let earlier = |folder: &str, id: &uuid::Uuid, ext: &str| root.join(folder).join(format!("{id}.{ext}"));
         for folder in DIRS {
@@ -526,7 +526,7 @@ mod tests {
         }
         // fetched again before the rename: the newer file stays
         write(path(&root, "mesh", &c, "mesh"), b"newer").expect("newer file");
-        let picture = root.join(CLIPBOARD_IMAGES).join("Aurora-image-0123456789abcdef.png");
+        let picture = root.join(CLIPBOARD_IMAGES).join("Block-image-0123456789abcdef.png");
         write_plain(&picture, b"png").expect("picture");
         let tmp = root.join("tex").join(format!("{a}.tmp"));
         write_plain(&tmp, b"tmp").expect("tmp");
@@ -551,9 +551,9 @@ mod tests {
 
     #[test]
     fn clear_takes_the_copied_pictures() {
-        let root = std::env::temp_dir().join(format!("aurora-cache-test-{}", uuid::Uuid::new_v4()));
+        let root = std::env::temp_dir().join(format!("block-cache-test-{}", uuid::Uuid::new_v4()));
         let cache = DiskCache::new(root.clone(), 100);
-        let picture = root.join(CLIPBOARD_IMAGES).join("Aurora-image-0123456789abcdef.png");
+        let picture = root.join(CLIPBOARD_IMAGES).join("Block-image-0123456789abcdef.png");
         write_plain(&picture, b"png").expect("picture");
         cache.clear();
         let deadline = std::time::Instant::now() + Duration::from_secs(5);
@@ -566,7 +566,7 @@ mod tests {
 
     #[test]
     fn evicts_least_recently_used() {
-        let root = std::env::temp_dir().join(format!("aurora-cache-test-{}", uuid::Uuid::new_v4()));
+        let root = std::env::temp_dir().join(format!("block-cache-test-{}", uuid::Uuid::new_v4()));
         let cache = DiskCache::new(root.clone(), 1);
         // 3 files of 400 KB: over the 1 MB limit
         for (i, name) in ["a", "b", "c"].iter().enumerate() {
@@ -589,7 +589,7 @@ mod tests {
 
     #[test]
     fn sounds_and_settings_are_trimmed_and_counted() {
-        let root = std::env::temp_dir().join(format!("aurora-cache-test-{}", uuid::Uuid::new_v4()));
+        let root = std::env::temp_dir().join(format!("block-cache-test-{}", uuid::Uuid::new_v4()));
         let cache = DiskCache::new(root.clone(), 1);
         // 1210 KB against the 1 MB limit: the oldest file, a sound, goes
         let files = [

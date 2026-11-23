@@ -3,7 +3,7 @@
 //! results apart), a search that waits for the typing to pause, the
 //! service's categories, the trending GIFs while nothing is typed, and the
 //! favourites. A click sends the GIF's link at once, as a message of the
-//! conversation; Aurora's link previews play it (`previews.rs`).
+//! conversation; Block's link previews play it (`previews.rs`).
 //!
 //! The tiles load only while they show, as small animations within a
 //! memory budget, and everything is freed when the picker closes.
@@ -155,9 +155,9 @@ pub struct GifPicker {
     active: bool,
     /// The tiles of the last pass and their GIFs' ids.
     drawn: Vec<(egui::Rect, String)>,
-    /// `AURORA_DEMO_GIFS=sent`: the first GIF is sent once its tile shows.
+    /// `BLOCK_DEMO_GIFS=sent`: the first GIF is sent once its tile shows.
     demo_send: bool,
-    /// `AURORA_DEMO_GIFS=menu`: the button's right-click menu opens once.
+    /// `BLOCK_DEMO_GIFS=menu`: the button's right-click menu opens once.
     demo_menu: bool,
     tx: mpsc::Sender<Answer>,
     rx: mpsc::Receiver<Answer>,
@@ -205,7 +205,7 @@ impl Default for GifPicker {
 }
 
 impl GifPicker {
-    /// `AURORA_DEMO_GIFS`: where the picker opens, what it does.
+    /// `BLOCK_DEMO_GIFS`: where the picker opens, what it does.
     pub fn demo_scene(&mut self, mode: crate::demo::Gifs) {
         match mode {
             crate::demo::Gifs::Klipy => {
@@ -857,10 +857,10 @@ impl GifPicker {
     }
 }
 
-/// Where `AURORA_DEMO_GIFS=menu` finds the GIF button.
+/// Where `BLOCK_DEMO_GIFS=menu` finds the GIF button.
 const DEMO_BUTTON: &str = "gif_button_demo";
 
-/// `AURORA_DEMO_GIFS=menu`: a right click on the GIF button at frame 700.
+/// `BLOCK_DEMO_GIFS=menu`: a right click on the GIF button at frame 700.
 pub(super) fn demo_events(ctx: &egui::Context, frame: u64) -> Vec<egui::Event> {
     if !(700..=702).contains(&frame) {
         return Vec::new();

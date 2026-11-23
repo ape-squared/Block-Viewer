@@ -1,4 +1,4 @@
-//! Approved AO workshop layout using the unchanged Aurora widgets and palette.
+//! Approved AO workshop layout using the unchanged Block widgets and palette.
 use super::*;
 use crate::ao::{Animation, StateConfig, inventory::editor::List};
 

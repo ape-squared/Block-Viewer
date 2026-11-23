@@ -13,7 +13,7 @@
 //! table is, which reads the same state: after an object's sync, when its
 //! faces change class, when its slot is released.
 //!
-//! `AURORA_LIST_INDEX=0` walks the objects as before, to compare;
+//! `BLOCK_LIST_INDEX=0` walks the objects as before, to compare;
 //! `check` compares the index with the objects every thirtieth frame and
 //! logs the slots that differ (there must be none).
 
@@ -30,7 +30,7 @@ pub const HUD: u8 = 8;
 /// System bodies and everything worn in world space, for portal cuts.
 pub const AVATAR_PART: u8 = 16;
 
-/// AURORA_LIST_INDEX.
+/// BLOCK_LIST_INDEX.
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub enum Mode {
     /// The lists read the index.
@@ -43,7 +43,7 @@ pub enum Mode {
 
 pub fn mode() -> Mode {
     static MODE: OnceLock<Mode> = OnceLock::new();
-    *MODE.get_or_init(|| match std::env::var("AURORA_LIST_INDEX").as_deref() {
+    *MODE.get_or_init(|| match std::env::var("BLOCK_LIST_INDEX").as_deref() {
         Ok("0") => Mode::Walk,
         Ok("check") => Mode::Check,
         _ => Mode::Index,

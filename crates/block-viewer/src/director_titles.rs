@@ -3,7 +3,7 @@
 //! or more lines, shown at the start, at the end or over a time range, in
 //! the centre or as a lower third, with a fade of their own).
 //!
-//! Aurora's own (the Legacy Viewer has no camera path tool). They are drawn
+//! Block's own (the Legacy Viewer has no camera path tool). They are drawn
 //! into the 3D picture, not over it by the interface: the film's frames are
 //! taken before the interface is drawn (a live film) or drawn without it
 //! (an offline render). Both are frame overlays of the renderer
@@ -413,7 +413,7 @@ mod tests {
     #[test]
     fn a_title_shows_at_its_time_and_fades_in_and_out() {
         let mut title = Title {
-            text: "Aurora".to_owned(),
+            text: "Block".to_owned(),
             ..Default::default()
         };
         // at the start, three seconds: whole at once at the start
@@ -498,7 +498,7 @@ mod tests {
     #[test]
     fn a_title_card_is_drawn_from_the_viewer_fonts() {
         let title = Title {
-            text: "Aurora\nViewer".to_owned(),
+            text: "Block\nViewer".to_owned(),
             ..Default::default()
         };
         let (w, h, rgba) = rasterize(&title, 1080).expect("a card");

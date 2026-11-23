@@ -9,9 +9,9 @@ $ErrorActionPreference = 'Continue'
 # Main repository (also when called from a worktree) and its parent folder,
 # which holds work\ and phoenix-firestorm\. Found from the scripts' own
 # folder, so a script works whatever the current folder (double-click…).
-function Get-AuroraPaths {
+function Get-BlockPaths {
     $common = (git -C $PSScriptRoot rev-parse --path-format=absolute --git-common-dir).Trim()
-    if ($LASTEXITCODE -ne 0 -or -not $common) { throw "Not in an Block Viewer git repository." }
+    if ($LASTEXITCODE -ne 0 -or -not $common) { throw "Not in a Block Viewer git repository." }
     $main = Split-Path $common -Parent
     $root = Split-Path $main -Parent
     [pscustomobject]@{ Main = $main; Root = $root; Work = (Join-Path $root 'work') }
@@ -56,7 +56,7 @@ function Get-IncrementalDirs([string]$Target) {
 #   through it, and a heavy crate waits there for a build slot. A cargo
 #   command typed by hand cannot go around it, unlike the slot of check.ps1
 #   (below). It is built here with rustc alone and kept in <root>\.cargo\.
-# - sccache, when it is installed (the Aurora tools install it): every
+# - sccache, when it is installed (the Block tools install it): every
 #   worktree builds the same dependencies, and their compiled crates are kept
 #   in one folder next to the repository (<root>\.sccache), where a new
 #   worktree takes them. The gate hands the compiler over to it.
@@ -149,10 +149,10 @@ function Get-BuildGate([string]$Root) {
 
 # Writes or deletes <root>\.cargo\config.toml to match the build gate and the
 # installed sccache. A file there that these scripts did not write is left
-# alone. Size of the cache: AURORA_BUILD_CACHE_SIZE (sccache format, 10G by
+# alone. Size of the cache: BLOCK_BUILD_CACHE_SIZE (sccache format, 10G by
 # default).
 function Sync-BuildCache([string]$Root) {
-    if (-not $Root) { $Root = (Get-AuroraPaths).Root }
+    if (-not $Root) { $Root = (Get-BlockPaths).Root }
     $file = Join-Path $Root '.cargo\config.toml'
     if ((Test-Path -LiteralPath $file) -and
         -not (Select-String -LiteralPath $file -Pattern (@($BuildCacheMarker) + $BuildCacheOlderMarkers) -SimpleMatch -Quiet)) { return }
@@ -172,9 +172,9 @@ function Sync-BuildCache([string]$Root) {
         "rustc-wrapper = '$wrapper'"
     )
     if ($sccache) {
-        $size = if ($env:AURORA_BUILD_CACHE_SIZE) { $env:AURORA_BUILD_CACHE_SIZE } else { '10G' }
+        $size = if ($env:BLOCK_BUILD_CACHE_SIZE) { $env:BLOCK_BUILD_CACHE_SIZE } else { '10G' }
         $lines += '', '[env]'
-        if ($gate) { $lines += '# the build gate hands the compiler over to sccache', "AURORA_GATE_NEXT = '$sccache'" }
+        if ($gate) { $lines += '# the build gate hands the compiler over to sccache', "BLOCK_GATE_NEXT = '$sccache'" }
         $lines += @(
             "SCCACHE_DIR = '$(Join-Path $Root '.sccache')'",
             "SCCACHE_CACHE_SIZE = '$size'",
@@ -217,7 +217,7 @@ function Install-RustVersion([string]$Repo) {
     $version = Get-RustVersion $Repo
     if (-not $version -or -not (Get-Command rustup -ErrorAction SilentlyContinue)) { return }
     if (Test-RustVersion $version) { return }
-    $lock = New-Object Threading.Mutex($false, 'Local\AuroraViewerRustInstall')
+    $lock = New-Object Threading.Mutex($false, 'Local\BlockViewerRustInstall')
     $held = $false
     try {
         try {
@@ -249,7 +249,7 @@ function Install-RustVersion([string]$Repo) {
 # --- One heavy build at a time --------------------------------------------------
 # Several agents running check.ps1 at once each take every core, and all of
 # them end up slower than one after the other. A heavy build takes one of
-# AURORA_BUILD_SLOTS slots (2 by default) and waits for a free one. A slot is
+# BLOCK_BUILD_SLOTS slots (2 by default) and waits for a free one. A slot is
 # a named mutex: the OS frees it if the script dies.
 #
 # These slots hold a whole run of check.ps1 (clippy, then the tests). The
@@ -262,8 +262,8 @@ function Install-RustVersion([string]$Repo) {
 
 function Enter-BuildSlot {
     $count = 2
-    if ($env:AURORA_BUILD_SLOTS -match '^\d+$' -and [int]$env:AURORA_BUILD_SLOTS -ge 1) { $count = [int]$env:AURORA_BUILD_SLOTS }
-    $slots = [Threading.Mutex[]](1..$count | ForEach-Object { New-Object Threading.Mutex($false, "Local\AuroraViewerBuildSlot$_") })
+    if ($env:BLOCK_BUILD_SLOTS -match '^\d+$' -and [int]$env:BLOCK_BUILD_SLOTS -ge 1) { $count = [int]$env:BLOCK_BUILD_SLOTS }
+    $slots = [Threading.Mutex[]](1..$count | ForEach-Object { New-Object Threading.Mutex($false, "Local\BlockViewerBuildSlot$_") })
     # $IsWindows is unset on Windows PowerShell 5.1; that edition is Windows.
     $waitAny = ($PSVersionTable.PSEdition -eq 'Desktop') -or $IsWindows
     $waited = [Diagnostics.Stopwatch]::StartNew()
@@ -299,7 +299,7 @@ function Enter-BuildSlot {
             $taken = $e.MutexIndex
         }
         if ($taken -lt 0 -and $timeout -eq 0) {
-            Write-Host "Waiting for a build slot: $count heavy build(s) already running on this PC (AURORA_BUILD_SLOTS)…" -ForegroundColor Yellow
+            Write-Host "Waiting for a build slot: $count heavy build(s) already running on this PC (BLOCK_BUILD_SLOTS)…" -ForegroundColor Yellow
             $timeout = 1000
         }
     }

@@ -34,7 +34,7 @@ impl App {
     /// avatar's own body took theirs before).
     pub(super) fn double_click_ground(&mut self, point: Vec3) {
         let action = self.double_click_action();
-        if self.demo && std::env::var_os("AURORA_DEMO_DOUBLECLICK").is_some() {
+        if self.demo && std::env::var_os("BLOCK_DEMO_DOUBLECLICK").is_some() {
             log::info!("demo double click: {action:?} at {point:?}");
         }
         // LLToolPie::walkToClickedLocation / teleportToClickedLocation: under
@@ -263,7 +263,7 @@ impl App {
             let success = !user_cancel && ap.reached(self.world.agent.position);
             self.autopilot_arrived(arrival, success, user_cancel);
         }
-        if self.demo && std::env::var_os("AURORA_DEMO_DOUBLECLICK").is_some() {
+        if self.demo && std::env::var_os("BLOCK_DEMO_DOUBLECLICK").is_some() {
             log::info!(
                 "demo walk ended ({}): at {:?}, target {:?}",
                 if user_cancel { "cancelled" } else { "done" },
@@ -366,7 +366,7 @@ impl App {
             }
             self.stop_autopilot(false);
         } else if self.demo {
-            if std::env::var("AURORA_DEMO_AVATAR_TRAVEL").is_ok_and(|mode| mode.starts_with("stuck-")) {
+            if std::env::var("BLOCK_DEMO_AVATAR_TRAVEL").is_ok_and(|mode| mode.starts_with("stuck-")) {
                 // Offline stand-in for a wall: the pilot asks to walk, but
                 // neither local physics nor AgentUpdate advances our body.
                 self.autopilot_flags = control::STOP;
@@ -409,11 +409,11 @@ impl App {
         block_render::world_label_at(ctx, None);
     }
 
-    /// AURORA_DEMO_DOUBLECLICK=menu[,y]: the wolf menu opened at frame 540,
+    /// BLOCK_DEMO_DOUBLECLICK=menu[,y]: the wolf menu opened at frame 540,
     /// Me hovered at 560 and the "Double-click on the ground" entry (`y`
     /// points from the top of the window) at 580: capture frame 620.
     pub(super) fn double_click_menu_demo_input(&mut self, raw: &mut egui::RawInput) {
-        let Ok(v) = std::env::var("AURORA_DEMO_DOUBLECLICK") else {
+        let Ok(v) = std::env::var("BLOCK_DEMO_DOUBLECLICK") else {
             return;
         };
         let mut parts = v.split(',');
@@ -444,12 +444,12 @@ impl App {
         }
     }
 
-    /// AURORA_DEMO_DOUBLECLICK=walk|run|tp[,x,y]: once the world shows, a
+    /// BLOCK_DEMO_DOUBLECLICK=walk|run|tp[,x,y]: once the world shows, a
     /// double click with the left button at pixel (x, y) of the window (on
     /// the ground ahead and to the left by default), through the same way
     /// in as the mouse.
     pub(super) fn demo_double_click_steps(&mut self) {
-        let Ok(v) = std::env::var("AURORA_DEMO_DOUBLECLICK") else {
+        let Ok(v) = std::env::var("BLOCK_DEMO_DOUBLECLICK") else {
             return;
         };
         const START: u64 = 700;
@@ -468,7 +468,7 @@ impl App {
 
     /// Offline avatar approach and follow, through the context action route.
     pub(super) fn demo_avatar_travel_steps(&mut self) {
-        let Ok(mode) = std::env::var("AURORA_DEMO_AVATAR_TRAVEL") else {
+        let Ok(mode) = std::env::var("BLOCK_DEMO_AVATAR_TRAVEL") else {
             return;
         };
         let id = crate::demo::DEMO_LOUP;

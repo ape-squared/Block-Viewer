@@ -5,7 +5,7 @@ from mathutils.kdtree import KDTree
 
 
 def _allowed(rig):
-    return {bone.name for bone in rig.data.bones if bone.use_deform and not bone.get("aurora_control", False)}
+    return {bone.name for bone in rig.data.bones if bone.use_deform and not bone.get("block_control", False)}
 
 
 def _normalized(values):
@@ -125,9 +125,9 @@ def apply(context, objects, rig=None, donor=None, method="SURFACE", max_distance
                 values = [_normalized({names[g.group]: g.weight for g in vertex.groups if g.group in names})
                           for vertex in source.data.vertices]
             else:
-                canonical = {str(bone.get("aurora_joint", bone.name)): bone.name for bone in target.data.bones if bone.name in allowed}
+                canonical = {str(bone.get("block_joint", bone.name)): bone.name for bone in target.data.bones if bone.name in allowed}
                 donor_rig = donor.find_armature()
-                mapping = {group.name: canonical.get(str(donor_rig.data.bones[group.name].get("aurora_joint", group.name))
+                mapping = {group.name: canonical.get(str(donor_rig.data.bones[group.name].get("block_joint", group.name))
                            if donor_rig and group.name in donor_rig.data.bones else group.name) for group in donor.vertex_groups}
                 values = []
                 # Match the current fitted shape while retaining original vertex

@@ -310,10 +310,10 @@ pub fn top_controls(
     slot: Vec2,
 ) -> AudioAction {
     let mut action = AudioAction::None;
-    // demo captures: AURORA_DEMO_VOLUME=open pins the panel open, `muted`
+    // demo captures: BLOCK_DEMO_VOLUME=open pins the panel open, `muted`
     // also draws the speaker muted (display only, the settings stay)
     static DEMO: std::sync::OnceLock<Option<String>> = std::sync::OnceLock::new();
-    let demo = DEMO.get_or_init(|| std::env::var("AURORA_DEMO_VOLUME").ok()).as_deref();
+    let demo = DEMO.get_or_init(|| std::env::var("BLOCK_DEMO_VOLUME").ok()).as_deref();
     let demo_muted = demo == Some("muted");
     // the three icons form one group: tight, even gaps inside it, the bar's
     // spacing around it

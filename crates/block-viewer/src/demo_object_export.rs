@@ -1,4 +1,4 @@
-//! Offline objects of the object export scenario (AURORA_DEMO_OBJECT_EXPORT):
+//! Offline objects of the object export scenario (BLOCK_DEMO_OBJECT_EXPORT):
 //! a garden lamp of four linked prims of ours. We created three of them;
 //! the fourth (a torus) another resident did, so the window counts 3/4
 //! exportable prims. The root bears a texture we uploaded (an item of ours
@@ -21,17 +21,17 @@ pub const OTHER_CREATOR: Uuid = Uuid::from_u128(0xA0E0_A6E1_0000_0000_0000_0000_
 pub const OUR_TEXTURE_ITEM: Uuid = Uuid::from_u128(0xA0E0_0E10_0000_0000_0000_0000_0000_0001);
 pub const BOUGHT_TEXTURE_ITEM: Uuid = Uuid::from_u128(0xA0E0_0E10_0000_0000_0000_0000_0000_0002);
 
-/// `AURORA_DEMO_OBJECT_EXPORT=collada|obj`: the window opened in that
+/// `BLOCK_DEMO_OBJECT_EXPORT=collada|obj`: the window opened in that
 /// format on the lamp.
 pub fn mode() -> Option<&'static str> {
     static MODE: std::sync::OnceLock<Option<String>> = std::sync::OnceLock::new();
-    MODE.get_or_init(|| std::env::var("AURORA_DEMO_OBJECT_EXPORT").ok()).as_deref()
+    MODE.get_or_init(|| std::env::var("BLOCK_DEMO_OBJECT_EXPORT").ok()).as_deref()
 }
 
-/// `AURORA_DEMO_OBJECT_EXPORT_FILE=<path>`: Save as writes there without
+/// `BLOCK_DEMO_OBJECT_EXPORT_FILE=<path>`: Save as writes there without
 /// the file dialog (an automated run).
 pub fn file() -> Option<std::path::PathBuf> {
-    std::env::var_os("AURORA_DEMO_OBJECT_EXPORT_FILE")
+    std::env::var_os("BLOCK_DEMO_OBJECT_EXPORT_FILE")
         .filter(|f| !f.is_empty())
         .map(std::path::PathBuf::from)
 }

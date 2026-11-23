@@ -1,12 +1,12 @@
 //! The world's hover tips in the offline demo
-//! (`AURORA_DEMO_HOVER_TIPS=<bubble|card|readout|legacy>[:all][:noland][:avatars]`):
+//! (`BLOCK_DEMO_HOVER_TIPS=<bubble|card|readout|legacy>[:all][:noland][:avatars]`):
 //! the tips on in that form for the session, without touching the saved
 //! settings, on land too unless `noland`, on every object with `all`; with
 //! `avatars`, the main switch off and avatar tips alone (#2475). The
 //! simulator answers the hovered parcel (two parcels: the plaza, the
 //! 128 m square in the middle, and a garden for sale around it) and the properties
 //! of the demo's objects. Rest the cursor somewhere with
-//! `AURORA_DEMO_HOVER="x,y"`; `AURORA_DEMO_ACTIONS=1` brings the cubes
+//! `BLOCK_DEMO_HOVER="x,y"`; `BLOCK_DEMO_ACTIONS=1` brings the cubes
 //! that can be bought, paid and touched.
 
 use super::{DEMO_LOUP, DEMO_NOVA};
@@ -20,7 +20,7 @@ use uuid::Uuid;
 pub fn scenario() -> Option<(HoverTips, bool)> {
     static ON: OnceLock<Option<(HoverTips, bool)>> = OnceLock::new();
     ON.get_or_init(|| {
-        let v = std::env::var("AURORA_DEMO_HOVER_TIPS").ok()?;
+        let v = std::env::var("BLOCK_DEMO_HOVER_TIPS").ok()?;
         let mut parts = v.split(':').map(|s| s.trim().to_lowercase());
         let form = parts.next().unwrap_or_default();
         let rest: Vec<String> = parts.collect();
@@ -85,7 +85,7 @@ pub fn parcel_at(west: f32, south: f32, plaza: Option<Arc<ParcelInfo>>) -> Optio
 }
 
 /// ObjectPropertiesFamily of a demo object the scenario hovers (the cubes
-/// of AURORA_DEMO_ACTIONS answer for themselves).
+/// of BLOCK_DEMO_ACTIONS answer for themselves).
 pub fn object_props(object: Uuid) -> block_net::build::ObjectProps {
     use block_net::build::perm;
     block_net::build::ObjectProps {

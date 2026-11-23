@@ -439,7 +439,7 @@ fn local_fields_are_the_zone_s_own() {
 
 #[test]
 fn free_names_skip_the_taken_ones() {
-    let dir = std::env::temp_dir().join(format!("aurora-photo-names-{}", std::process::id()));
+    let dir = std::env::temp_dir().join(format!("block-photo-names-{}", std::process::id()));
     let _ = std::fs::remove_dir_all(&dir);
     std::fs::create_dir_all(&dir).unwrap();
     let first = free_path(&dir, "Snapshot", None, FileFormat::Png);
@@ -453,7 +453,7 @@ fn free_names_skip_the_taken_ones() {
 
 #[test]
 fn saved_photos_read_back_in_every_format() {
-    let dir = std::env::temp_dir().join(format!("aurora-photo-save-{}", std::process::id()));
+    let dir = std::env::temp_dir().join(format!("block-photo-save-{}", std::process::id()));
     let _ = std::fs::remove_dir_all(&dir);
     let (w, h) = (300u32, 170u32);
     let mut rgba = Vec::with_capacity((w * h * 4) as usize);
@@ -500,7 +500,7 @@ fn saved_photos_read_back_in_every_format() {
 
 #[test]
 fn a_wrong_buffer_is_refused_without_a_file() {
-    let dir = std::env::temp_dir().join(format!("aurora-photo-bad-{}", std::process::id()));
+    let dir = std::env::temp_dir().join(format!("block-photo-bad-{}", std::process::id()));
     let path = dir.join("bad.png");
     let r = save::save(
         save::Job {
@@ -520,7 +520,7 @@ fn a_wrong_buffer_is_refused_without_a_file() {
 
 #[test]
 fn a_cut_out_photo_keeps_its_alpha_in_the_png_and_its_colour_when_reduced() {
-    let dir = std::env::temp_dir().join(format!("aurora-photo-cutout-{}", std::process::id()));
+    let dir = std::env::temp_dir().join(format!("block-photo-cutout-{}", std::process::id()));
     let path = dir.join("cutout.png");
     // left half a red subject, a half covered column, the rest empty
     let (w, h) = (4u32, 2u32);

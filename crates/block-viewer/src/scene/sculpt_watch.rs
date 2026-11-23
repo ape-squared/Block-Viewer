@@ -20,11 +20,11 @@ pub(super) struct SculptWatch {
 
 impl SculptWatch {
     pub(super) fn from_env() -> Option<Self> {
-        let value = std::env::var("AURORA_SCULPT_WATCH").ok()?;
+        let value = std::env::var("BLOCK_SCULPT_WATCH").ok()?;
         let target = match Uuid::parse_str(&value).ok().filter(|id| !id.is_nil()) {
             Some(id) => id,
             None => {
-                log::warn!("sculpt watch: AURORA_SCULPT_WATCH requires a non-null avatar UUID");
+                log::warn!("sculpt watch: BLOCK_SCULPT_WATCH requires a non-null avatar UUID");
                 return None;
             }
         };

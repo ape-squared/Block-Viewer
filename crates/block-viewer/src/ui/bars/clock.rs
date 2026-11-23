@@ -22,7 +22,7 @@
 //! The Legacy Viewer's status bar shows SLT alone (LLStatusBar::
 //! updateClockDisplay); FSStatusBarTimeFormat picks 12 or 24 hours, the
 //! seconds and the time zone, by default the format of the viewer's
-//! language (24 hours in English and French). Aurora's Auto follows the
+//! language (24 hours in English and French). Block's Auto follows the
 //! system's regional format instead, the user's own 12 / 24 hours choice.
 
 use crate::settings::{ClockFormat, ClockZone, SystemIsland};
@@ -335,7 +335,7 @@ fn twelve_hours(format: ClockFormat) -> bool {
 /// clock's format, published once per UI frame by the app
 /// (`set_chat_format`). The Legacy Viewer's chat follows Use24HourClock
 /// (FSFloaterNearbyChat's appendTime, LLFloaterIMSessionTab::appendTime);
-/// Aurora's chat follows the bars' clock, its one 12 / 24 hours setting.
+/// Block's chat follows the bars' clock, its one 12 / 24 hours setting.
 /// 24 hours until the first frame.
 static CHAT_12H: AtomicBool = AtomicBool::new(false);
 

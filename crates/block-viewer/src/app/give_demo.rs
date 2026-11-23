@@ -1,12 +1,12 @@
-//! `AURORA_DEMO_GIVE=profile|avatar|texture[:over|:drop]` (#991): inventory carried
+//! `BLOCK_DEMO_GIVE=profile|avatar|texture[:over|:drop]` (#991): inventory carried
 //! from frame 700 to a resident's profile window or to their avatar in the
 //! world, without a press (the payload alone lasts until a release).
 //! `profile` leaves the pointer beside the window (it fades behind the
 //! hint), `:over` puts it on the window (outlined, the hint in ink) and
 //! `:drop` releases it there at frame 720 (the Share confirmation). The
-//! window is `AURORA_DEMO_PROFILE`'s. `avatar` puts the pointer on the
+//! window is `BLOCK_DEMO_PROFILE`'s. `avatar` puts the pointer on the
 //! other avatar nearest the middle of the view (outlined); `:drop` releases
-//! it there at frame 720. The entries are seven of `AURORA_DEMO_INVENTORY`'s;
+//! it there at frame 720. The entries are seven of `BLOCK_DEMO_INVENTORY`'s;
 //! `texture` carries its demo texture alone to the avatar, as a row dragged
 //! from the inventory (a single texture, which the texture library also
 //! takes, is given there too).
@@ -25,10 +25,10 @@ struct Mode {
 fn mode() -> Option<Mode> {
     static MODE: std::sync::OnceLock<Option<Mode>> = std::sync::OnceLock::new();
     *MODE.get_or_init(|| {
-        if std::env::var("AURORA_DEMO").as_deref() != Ok("1") {
+        if std::env::var("BLOCK_DEMO").as_deref() != Ok("1") {
             return None;
         }
-        let v = std::env::var("AURORA_DEMO_GIVE").ok()?;
+        let v = std::env::var("BLOCK_DEMO_GIVE").ok()?;
         let (target, step) = v.split_once(':').unwrap_or((v.as_str(), ""));
         let (avatar, texture) = match target {
             "profile" => (false, false),

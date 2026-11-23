@@ -1,6 +1,6 @@
 //! Open-conversation order, shared by the workspace and the older tab styles.
 //! Follows LLTabContainer's locked-tab rearrangement (lltabcontainer.cpp).
-//! Aurora additionally keeps each conversation in its original category
+//! Block additionally keeps each conversation in its original category
 //! (its kind, or the contact set shown apart that it belongs to, #1104).
 //!
 //! The entry dragged leaves its place and is carried under the pointer;
@@ -74,7 +74,7 @@ pub(super) struct Ghost {
     pub out: bool,
 }
 
-/// `AURORA_DEMO_CONV_REORDER`: what the synthetic drag does.
+/// `BLOCK_DEMO_CONV_REORDER`: what the synthetic drag does.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Demo {
     /// `1`: the first conversation dropped after the next of its category.

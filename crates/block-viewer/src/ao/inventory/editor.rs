@@ -112,7 +112,7 @@ pub fn combine(
     let id = folder(&mut change, parent, format!("{name}{suffix}"));
     let members: Vec<_> = chosen.iter().flat_map(|s| &s.members).cloned().collect();
     links(&mut change, id, &members);
-    // Only obsolete Aurora link items are deleted, after destination creation.
+    // Only obsolete Block link items are deleted, after destination creation.
     for step in &chosen {
         if !inv.items.get(&step.id).is_some_and(|a| a.parent == parent && a.asset_type == 24) {
             return Err(missing());

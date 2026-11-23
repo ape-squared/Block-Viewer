@@ -7,7 +7,7 @@
 //! order, a right click offers Firestorm's favourites menu
 //! (menu_favorites.xml, LLFavoritesBarCtrl::doToSelected). Firestorm shows
 //! its favourites as one bar of buttons under the navigation bar
-//! (LLFavoritesBarCtrl); the menu and the grid are Aurora's.
+//! (LLFavoritesBarCtrl); the menu and the grid are Block's.
 
 use super::islands::{GAP, ICON, PAD, SLOT, area, slot_face, slot_ink};
 use super::{BarAction, paint_icon};
@@ -835,7 +835,7 @@ pub fn grid_body(ui: &mut egui::Ui, p: &Palette, icons: &Icons, view: &View, out
 }
 
 /// A demo thumbnail: the mockup's 160° gradient through three colours
-/// (`AURORA_DEMO_BARS`'s favourites).
+/// (`BLOCK_DEMO_BARS`'s favourites).
 pub fn demo_thumbnail(colors: [[u8; 3]; 3]) -> egui::ColorImage {
     const W: usize = 80;
     const H: usize = 56;
@@ -872,7 +872,7 @@ fn demo_target(ctx: &egui::Context, kind: &'static str, rects: &[(usize, Rect)])
     }
 }
 
-/// `AURORA_DEMO_BARS=rowdrag`: the second pill of the row picked up at
+/// `BLOCK_DEMO_BARS=rowdrag`: the second pill of the row picked up at
 /// frame 650 and held after the fourth (the mockup's reorder state).
 pub fn demo_events(ctx: &egui::Context, frame: u64) -> Vec<egui::Event> {
     let demo = super::demo::get();
@@ -966,7 +966,7 @@ mod tests {
             thumbnail: None,
         };
         let view = View {
-            list: vec![fav("Plage des Lucioles", "Aurora Démo"), fav("Club Néon", "Pulsar")],
+            list: vec![fav("Plage des Lucioles", "Block Démo"), fav("Club Néon", "Pulsar")],
             ..View::default()
         };
         assert_eq!(filtered(&view, "").len(), 2);

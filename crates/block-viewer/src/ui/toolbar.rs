@@ -98,7 +98,7 @@ pub struct Style {
 
 impl BarStyle {
     /// The dock: icons, centred, fixed buttons (the mockup); Firestorm's
-    /// bottom bar: icons filling the bar, as Aurora drew it before; the side
+    /// bottom bar: icons filling the bar, as Block drew it before; the side
     /// bars: icons, centred (skins/default/toolbars.xml).
     pub fn resolve(&self, bar: Bar, islands: bool) -> Style {
         let default = match (bar, islands) {
@@ -365,8 +365,8 @@ pub fn label(button: &ToolButton) -> &str {
     }
 }
 
-/// Whether Aurora runs the command (else its button is dimmed, with "Not
-/// available in Aurora yet").
+/// Whether Block runs the command (else its button is dimmed, with "Not
+/// available in Block yet").
 pub fn ready(command: &str) -> bool {
     catalogue::ready(command)
 }
@@ -421,7 +421,7 @@ fn insertion(rects: &[Rect], pos: egui::Pos2, vertical: bool) -> usize {
 impl ToolbarUi {
     /// The right-click menu of a toolbar or of one of its buttons:
     /// Firestorm's (menu_toolbars_horizontal.xml, _vertical.xml), with
-    /// Aurora's microphone options and favourites access.
+    /// Block's microphone options and favourites access.
     pub fn context(&mut self, response: &Response, p: &Palette, bar: Bar, style: Style, button: Option<&ToolButton>, locked: bool) {
         // Buttons such as Favorites also own a left-click dropdown.
         menu::context_menu_of_button(response, p, |ui| {

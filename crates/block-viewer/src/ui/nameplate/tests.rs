@@ -116,7 +116,7 @@ fn animated_staff_plate_lead_width_is_constant() {
                     c.mark = Some(mark);
                     let face = paint::face(&env, Level::Compact, &c, t as f32);
                     let (label, ..) = face.staff.expect("staff label");
-                    width = Some(aurora::tag_width(label.size().x, Metrics::of(Level::Compact, SCALE).scale));
+                    width = Some(borealis::tag_width(label.size().x, Metrics::of(Level::Compact, SCALE).scale));
                     sections = Some(label.job.sections.len());
                 },
             );
@@ -493,7 +493,7 @@ fn measured(m: &Metrics, name: usize, subs: [Option<usize>; 2]) -> TextSize {
     }
 }
 
-/// A team member's "Aurora Team" tag floats from the text's left: the
+/// A team member's "Block Team" tag floats from the text's left: the
 /// plate is as wide as it needs, and the floating badges start past it.
 #[test]
 fn the_staff_tag_has_its_room_over_the_top_edge() {
@@ -886,7 +886,7 @@ fn only_complete_plates_ask_for_their_picture_nearest_first() {
 #[test]
 fn a_long_name_is_elided_on_the_plate_only() {
     let ctx = egui::Context::default();
-    let long = "Maximilienne ♪ the Wandering Northern Aurora Wolf of the Seven Seas and Beyond".repeat(2);
+    let long = "Maximilienne ♪ the Wandering Northern Block Wolf of the Seven Seas and Beyond".repeat(2);
     let tags = [tag(
         1,
         3.0,

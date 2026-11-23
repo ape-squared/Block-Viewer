@@ -1,4 +1,4 @@
-//! Aurora's own media plugins (SLPlugin, CEF, LibVLC): a pack downloaded once
+//! Block's own media plugins (SLPlugin, CEF, LibVLC): a pack downloaded once
 //! into the user's data folder when no plugins are found, then used by every
 //! session. The state is owned by the UI thread; HTTP, hashing and extraction
 //! run on workers (`block_updater::media_pack`).
@@ -62,7 +62,7 @@ pub struct PluginPack {
     consent: Consent,
     /// No plugins were found at the last `poll`.
     wanted: bool,
-    /// `AURORA_DEMO_MEDIA_PACK=consent`: the card, whatever was answered.
+    /// `BLOCK_DEMO_MEDIA_PACK=consent`: the card, whatever was answered.
     demo_card: bool,
 }
 
@@ -120,18 +120,18 @@ impl PluginPack {
             wanted: false,
             demo_card: false,
         };
-        // AURORA_MEDIA_PACK_FEED: a pack served by a test server of this PC
+        // BLOCK_MEDIA_PACK_FEED: a pack served by a test server of this PC
         // (loopback only), to try it before it is published. Its size and
         // SHA-256 are still those this viewer was built for.
-        if let Ok(feed) = std::env::var("AURORA_MEDIA_PACK_FEED") {
+        if let Ok(feed) = std::env::var("BLOCK_MEDIA_PACK_FEED") {
             match Source::local(&feed) {
                 Ok(source) => this.source = source,
-                Err(e) => log::warn!("media: AURORA_MEDIA_PACK_FEED ignored: {e:#}"),
+                Err(e) => log::warn!("media: BLOCK_MEDIA_PACK_FEED ignored: {e:#}"),
             }
         }
-        // AURORA_DEMO_MEDIA_PACK: a fixed state for the screenshots
-        if std::env::var_os("AURORA_DEMO").is_some()
-            && let Ok(mode) = std::env::var("AURORA_DEMO_MEDIA_PACK")
+        // BLOCK_DEMO_MEDIA_PACK: a fixed state for the screenshots
+        if std::env::var_os("BLOCK_DEMO").is_some()
+            && let Ok(mode) = std::env::var("BLOCK_DEMO_MEDIA_PACK")
         {
             this.automatic = false;
             this.dir = None;

@@ -1,6 +1,6 @@
 # Security policy
 
-Thank you for helping keep Aurora Viewer and its users safe. If you think you
+Thank you for helping keep Block Viewer and its users safe. If you think you
 found a security problem, please tell us **privately** first, so that we can
 fix it before it is made public.
 
@@ -52,7 +52,7 @@ Out of scope, please report them to their owners:
 
 - Second Life itself (the grid, its servers, its websites, accounts): Linden
   Lab;
-- other viewers, including the ones Aurora ports code from: their own
+- other viewers, including the ones Block ports code from: their own
   projects;
 - the third-party services and websites the viewer opens on your request.
 

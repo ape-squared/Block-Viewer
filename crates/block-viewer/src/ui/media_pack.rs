@@ -1,4 +1,4 @@
-//! The card that asks before Aurora's media plugins pack is downloaded
+//! The card that asks before Block's media plugins pack is downloaded
 //! (`media/pack.rs`): shown once, the first time web pages or media need
 //! the plugins, over the login screen or the world. "Not now" leaves the
 //! Download buttons of Preferences › Sound and voice › Media, of the pages

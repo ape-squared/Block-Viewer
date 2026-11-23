@@ -14,7 +14,7 @@
 //! The local environment (ENV_LOCAL) is what the user picks: the environment
 //! selector's sky, water and day cycle items (LLEnvironment::setEnvironment
 //! with a settings asset: a day replaces everything, a sky or a water is
-//! fixed on top, the missing half taken from what is shown), Aurora's time
+//! fixed on top, the missing half taken from what is shown), Block's time
 //! of day presets, "Personal lighting" (LLFloaterEnvironmentAdjust) and
 //! "Shared environment" (setSharedEnvironment). It survives region
 //! changes and, like EnvironmentPersistAcrossLogin, sessions
@@ -699,7 +699,7 @@ impl EnvSelector {
     /// environments" (setSharedEnvironment). The sky shown stays until the
     /// asset arrives, like any settings item picked. If it cannot be
     /// fetched the Legacy Viewer keeps the sky shown (FailedToFindSettings);
-    /// Aurora shows its built-in sky with the preset's sun instead, so the
+    /// Block shows its built-in sky with the preset's sun instead, so the
     /// preset still does what its name says.
     pub fn set_time_of_day(&mut self, preset: u8) {
         if self.rlva_locked {
@@ -1303,7 +1303,7 @@ impl EnvSelector {
             // updateEnvironment: from what is shown (itself possibly mid-fade).
             // Manual local changes use FSEnvironmentManualTransitionTime
             // (Firestorm only fades into a new local environment and changes
-            // a live one at once: Aurora fades both, identical with the
+            // a live one at once: Block fades both, identical with the
             // default 0 s); going back to the shared environment fades over
             // TRANSITION_DEFAULT (setSelectedEnvironment's default).
             let duration = if closing {

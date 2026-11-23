@@ -231,7 +231,7 @@ permission rule hides it.
   showhovertext/all/hud/world. In Appearance, showinv disables the "My
   Outfits" list alone, and leaves it and the outfit editor once, when it
   starts (RlvBehaviourToggleHandler<RLV_BHVR_SHOWINV>); the outfit gallery
-  stays, without the list of an outfit's items Aurora adds to it. Pay stays
+  stays, without the list of an outfit's items Block adds to it. Pay stays
   enabled in a profile under pay: the pay window refuses to open. Back and
   Forward toward a place showloc hid stay enabled, and ask for the zeroed
   place the history keeps (LLTeleportHistory::goToItem).
@@ -410,7 +410,7 @@ Before live scripts, inspect the offline viewer in both languages:
 
 For live validation the human logs in, using a disposable controller and a
 test outfit. Compare the same commands and preferences in the reference and
-Aurora, retaining issuer UUIDs and response channels when reporting a mismatch.
+Block, retaining issuer UUIDs and response channels when reporting a mismatch.
 Test both successful replies and malformed/empty options, release/clear from
 one of two issuers, then global disable while a response is pending.
 
@@ -533,7 +533,7 @@ The `sitting` FR capture and its native demo log confirm one object sit,
 one stand and then `ground_sit=true, object_seated=false`. Fixture actions
 are delivered once per rendered frame, even when native updates repeat.
 
-`AURORA_DEMO_RLVA=enabled|disabled|released` opens the native preference page
+`BLOCK_DEMO_RLVA=enabled|disabled|released` opens the native preference page
 and delivers synthetic object commands through `World::apply`. Capture after
 frame 800. The three modes show active locks, ignored commands and locks
 released by the global switch. These fixtures do not establish grid parity.

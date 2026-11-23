@@ -6,7 +6,7 @@ use block_prim::params::*;
 use glam::{Quat, Vec3};
 
 pub fn events() -> Vec<NetEvent> {
-    if std::env::var("AURORA_DEMO_TORTURED_PRIMS").as_deref() != Ok("1") {
+    if std::env::var("BLOCK_DEMO_TORTURED_PRIMS").as_deref() != Ok("1") {
         return Vec::new();
     }
     let origin = Vec3::new(100.0, 100.0, height(100.0, 100.0) + 2.0);

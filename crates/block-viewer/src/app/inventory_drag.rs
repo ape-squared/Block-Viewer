@@ -2,7 +2,7 @@
 //! dad3dRezObjectOnObject,dad3dRezFromObjectOnLand,dad3dRezFromObjectOnObject,
 //! dropObject,willObjectAcceptInventory} and FSCommon::getGroupForRezzing
 //! (Firestorm indra/newview, LGPL 2.1).
-//! Aurora owns the input, geometry queries and command preparation; what
+//! Block owns the input, geometry queries and command preparation; what
 //! goes into an object's contents is decided by `build::contents_drop`.
 
 use super::*;

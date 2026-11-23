@@ -18,7 +18,7 @@ impl Writer {
     fn start(path: PathBuf) -> Option<Self> {
         let (sender, writes) = crossbeam_channel::bounded::<Flags>(1);
         let discard = writes.clone();
-        let worker = std::thread::Builder::new().name("aurora-rlva-login".into()).spawn(move || {
+        let worker = std::thread::Builder::new().name("block-rlva-login".into()).spawn(move || {
             // a refused write is tried again, and once more when the
             // writer goes (save_retry)
             crate::save_retry::write_latest("RLVa next-login state", &writes, |flags| {
@@ -149,7 +149,7 @@ mod tests {
 
     #[test]
     fn rlva_login_state_coalesces_writes_and_persists_the_final_disable_without_frame_thread_io() {
-        let directory = std::env::temp_dir().join(format!("aurora-rlva-login-{}", Uuid::new_v4()));
+        let directory = std::env::temp_dir().join(format!("block-rlva-login-{}", Uuid::new_v4()));
         let path = directory.join("login.json");
         let a = Uuid::from_u128(1);
         {

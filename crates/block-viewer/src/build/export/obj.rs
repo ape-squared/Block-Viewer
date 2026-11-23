@@ -1,4 +1,4 @@
-//! The Wavefront OBJ and MTL files of a model. Aurora's own: the Legacy
+//! The Wavefront OBJ and MTL files of a model. Block's own: the Legacy
 //! Viewer writes Collada only. The same model, rights and options as the
 //! Collada export (`collada.rs`), in the form OBJ readers expect:
 //!
@@ -143,16 +143,16 @@ mod tests {
             extension: "png".into(),
             ..Default::default()
         };
-        let plain = write_mtl(&model(), &files, &Settings::default(), "Aurora");
+        let plain = write_mtl(&model(), &files, &Settings::default(), "Block");
         assert!(plain.contains("newmtl Material0\n"));
         assert!(plain.contains("Kd 1.000000 0.000000 0.000000\nd 0.500000"));
         files.names.insert(Uuid::from_u128(1), "Brick".into());
-        let textured = write_mtl(&model(), &files, &Settings::default(), "Aurora");
+        let textured = write_mtl(&model(), &files, &Settings::default(), "Block");
         assert!(textured.contains("map_Kd Brick.png\nmap_d Brick.png"));
         let off = Settings {
             textures: false,
             ..Settings::default()
         };
-        assert!(!write_mtl(&model(), &files, &off, "Aurora").contains("map_Kd"));
+        assert!(!write_mtl(&model(), &files, &off, "Block").contains("map_Kd"));
     }
 }

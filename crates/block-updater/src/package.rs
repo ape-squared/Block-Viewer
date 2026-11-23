@@ -421,7 +421,7 @@ mod tests {
 
     #[test]
     fn windows_archive_paths() {
-        assert!(components("Aurora/assets/character/a.llm").is_ok());
+        assert!(components("Block/assets/character/a.llm").is_ok());
         for value in [
             "../a",
             "/a",

@@ -1,7 +1,7 @@
 //! Radial world menus after PieMenu::{show,handleHover,handleMouseButtonUp}
 //! (Firestorm indra/newview/piemenu.cpp, originally LGPL 2.1) and menu_pie_*.xml.
 //! Eight fixed directions, clockwise screen coordinates reversed to match SL,
-//! disabled slices, click-through submenus. Aurora keeps its extra actions in
+//! disabled slices, click-through submenus. Block keeps its extra actions in
 //! "More" and adds a center back button; it does not warp the system pointer.
 //! At the user's request, right-click goes back instead of selecting a slice.
 
@@ -68,7 +68,7 @@ fn seated(entries: &mut Vec<Entry>) -> Entry {
     if standing.enabled { standing } else { sitting }
 }
 
-/// Main directions follow Firestorm. Only Aurora's additional/unfinished
+/// Main directions follow Firestorm. Only Block's additional/unfinished
 /// entries move into "More"; list-menu order remains unchanged.
 fn layout(target: &Target, entries: &[Entry]) -> Vec<Entry> {
     let mut rest = entries.to_vec();
@@ -104,7 +104,7 @@ fn layout(target: &Target, entries: &[Entry]) -> Vec<Entry> {
         Target::Ground => {
             let about = take_action(&mut rest, |a| matches!(a, CtxAction::AboutLand(_)));
             let build = take_action(&mut rest, |a| matches!(a, CtxAction::Build));
-            // Aurora has no autopilot yet: its existing Zoom action occupies
+            // Block has no autopilot yet: its existing Zoom action occupies
             // Go Here's direction rather than introducing an unavailable walk.
             let zoom = take_action(&mut rest, |a| matches!(a, CtxAction::Zoom(..)));
             let stand = take_action(&mut rest, |a| matches!(a, CtxAction::StandUp));

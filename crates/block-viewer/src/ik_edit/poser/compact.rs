@@ -9,7 +9,7 @@
 //! (the segmented track, the small icon buttons) so it reads as the other
 //! windows do.
 //!
-//! An Aurora addition: the Legacy Viewer's poser (FSFloaterPoser) has one
+//! A Block addition: the Legacy Viewer's poser (FSFloaterPoser) has one
 //! window, whose advanced panel collapses. Every action here is one of the
 //! full window's, with the same rules and the same state.
 use super::*;
@@ -360,7 +360,7 @@ impl Editor {
             response.widget_info(|| egui::WidgetInfo::labeled(egui::Role::Button, true, tip));
             let response = response.on_hover_text(tip);
             let menu = egui::Popup::default_response_id(&response);
-            // AURORA_DEMO_POSER=compact-invite: the menu opens by itself
+            // BLOCK_DEMO_POSER=compact-invite: the menu opens by itself
             let demo = egui::Id::unique("poser-subjects-open");
             if ui.ctx().data_mut(|d| d.remove_temp::<bool>(demo)).unwrap_or(false) {
                 egui::Popup::open_id(ui.ctx(), egui::Popup::default_response_id(&response));
@@ -824,7 +824,7 @@ impl Editor {
             widgets::button_track(ui, p, 3, BUTTON, |ui| {
                 let tag = (block_i18n::text("poser-tip-save"), block_i18n::text("poser-tip-save-detail"));
                 let save = square(ui, p, "device-floppy-filled", tag, false, free);
-                // AURORA_DEMO_POSER=compact-save: the form opens by itself
+                // BLOCK_DEMO_POSER=compact-save: the form opens by itself
                 let demo = egui::Id::unique("poser-save-open");
                 if ui.ctx().data_mut(|d| d.remove_temp::<bool>(demo)).unwrap_or(false) {
                     egui::Popup::open_id(ui.ctx(), egui::Popup::default_response_id(&save));

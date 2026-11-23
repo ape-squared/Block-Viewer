@@ -1,4 +1,4 @@
-//! "Overview" of the Aurora About Land (`aurora.rs`): what anyone wants to
+//! "Overview" of the Block About Land (`block.rs`): what anyone wants to
 //! know of a parcel before its settings. The actions of Firestorm's floater
 //! that are not settings (teleport to the landing point, FIRE-10043; buy a
 //! pass, LLPanelLandGeneral::onClickBuyPass; buy land, script info), the
@@ -11,7 +11,7 @@
 //! for what the region overrides, with the parcel's own three states
 //! (everyone, group, nobody) of LLPanelLandOptions where it has them.
 
-use super::aurora::{Tone, card_title, cards, kv, pill};
+use super::block::{Tone, card_title, cards, kv, pill};
 use super::dialogs::Confirm;
 use super::{Dialog, LandUi, View};
 use crate::theme::Palette;
@@ -711,7 +711,7 @@ fn region_link(ui: &mut egui::Ui, p: &Palette) {
             ui.spacing_mut().item_spacing.x = 4.0;
             widgets::glyph(ui, "building-castle", p.violet_light, 13.0);
             let text = format!("{} ›", block_i18n::tr!("region-title"));
-            ui.add(egui::Label::new(super::aurora::semibold(ui, &text, 12.0, p.violet_light)).sense(egui::Sense::click()))
+            ui.add(egui::Label::new(super::block::semibold(ui, &text, 12.0, p.violet_light)).sense(egui::Sense::click()))
         })
         .inner;
     if r.on_hover_cursor(egui::CursorIcon::PointingHand).clicked() {

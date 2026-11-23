@@ -1,7 +1,7 @@
 name: Rust cache (save)
 description: >
   Saves the Cargo registry and target/ under the key that ../action.yml
-  computed, without Aurora's own build outputs. For main only (pull requests
+  computed, without Block's own build outputs. For main only (pull requests
   and queue runs read main's caches and write none, see ci.yml).
 inputs:
   key:
@@ -10,7 +10,7 @@ inputs:
 runs:
   using: composite
   steps:
-    # Aurora's crates are rebuilt by whoever restores the cache: the script
+    # Block's crates are rebuilt by whoever restores the cache: the script
     # says why, and what it removes in each of Cargo's two layouts. It warns
     # when it finds none of the workspace's outputs.
     - name: Drop the workspace's own outputs

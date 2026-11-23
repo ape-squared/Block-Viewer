@@ -34,10 +34,10 @@ pub(super) async fn select(request: &Request, cancellation: &Cancellation) -> an
     if cancellation.cancelled() {
         return Ok(Vec::new());
     }
-    let token = format!("aurora_import_{}", uuid::Uuid::new_v4().simple());
+    let token = format!("block_import_{}", uuid::Uuid::new_v4().simple());
     let options = options(request, &token);
     // Do not drop this future on cancellation: first acquire the returned
-    // handle, then Close it, even if Aurora closed while OpenFile was pending.
+    // handle, then Close it, even if Block closed while OpenFile was pending.
     let handle: OwnedObjectPath = chooser.call("OpenFile", &("", &request.title, options)).await?;
     let pending = Proxy::new(&bus, DESTINATION, handle.clone(), REQUEST).await?;
     let response = wait_for_response(
@@ -129,7 +129,7 @@ mod tests {
                 }
                 let closed = Cell::new(0);
                 let pending = async {
-                    // Simulates closing Aurora while OpenFile is returning its
+                    // Simulates closing Block while OpenFile is returning its
                     // handle; the portal will never emit Response after Close.
                     cancellation.cancel();
                     std::future::pending().await
@@ -190,8 +190,8 @@ mod tests {
                     vec!["png".into(), "j2c".into()]
                 },
             };
-            let options = options(&request, "aurora_import_fixture");
-            assert_eq!(options["handle_token"], Value::from("aurora_import_fixture"));
+            let options = options(&request, "block_import_fixture");
+            assert_eq!(options["handle_token"], Value::from("block_import_fixture"));
             assert_eq!(options["modal"], Value::from(false));
             assert_eq!(options["multiple"], Value::from(kind == Kind::Files));
             assert_eq!(options["directory"], Value::from(kind == Kind::Folder));

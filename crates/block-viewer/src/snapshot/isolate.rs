@@ -1,4 +1,4 @@
-//! Photo isolation (issue #977; an Aurora addition, the Legacy Viewer has
+//! Photo isolation (issue #977; a Block addition, the Legacy Viewer has
 //! none): the photo shows our own avatar alone, or the avatars and objects
 //! the photographer chose, everything else left out. A choice is a whole
 //! avatar with what it wears, or a whole linkset: what is clicked is

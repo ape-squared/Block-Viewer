@@ -8,7 +8,7 @@
 //! capture in LLIMProcessing::processNewMessage (llimprocessing.cpp), LL
 //! viewer 26.5, LGPL 2.1.
 //!
-//! - every file operation runs on the transcript thread (`aurora-chatlog`),
+//! - every file operation runs on the transcript thread (`block-chatlog`),
 //!   after the transcript lines queued before it, and answers through a
 //!   channel polled each frame;
 //! - group chats and conferences keep the transcript's tail
@@ -39,7 +39,7 @@ pub const LIST_CAP: &str = "PersistentChatConversationsRequest";
 pub const HISTORY_CAP: &str = "PersistentChatHistoryRequest";
 
 /// The key a live row carries to find its session line again.
-const LINE_KEY: &str = "aurora_line";
+const LINE_KEY: &str = "block_line";
 
 /// What the transcript thread answers.
 enum Reply {

@@ -212,7 +212,7 @@ impl Scene {
         let mut found = None;
         // The HUD objects `build_huds` listed for this frame's view, in
         // index order: not a pass over every object of the region at each
-        // frame the cursor is over the world (AURORA_HOVER_LEGACY: that
+        // frame the cursor is over the world (BLOCK_HOVER_LEGACY: that
         // pass, to compare).
         let legacy = self.hover.legacy();
         let every = if legacy { 0..self.gpu.len() } else { 0..0 };

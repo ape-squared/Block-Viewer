@@ -533,7 +533,7 @@ impl MeshStreamer {
         );
     }
 
-    /// AURORA_DEMO_CLOUD=self: a mesh the asset server answered 404 for, as
+    /// BLOCK_DEMO_CLOUD=self: a mesh the asset server answered 404 for, as
     /// `on_fetch` leaves it (no asset fetch offline).
     pub fn insert_demo_unavailable(&mut self, id: Uuid) {
         self.entries.entry(id).or_default();

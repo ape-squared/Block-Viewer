@@ -17,14 +17,14 @@ const JANE: Uuid = Uuid::from_u128(0xA);
 const BOB: Uuid = Uuid::from_u128(0xB);
 const GROUP: Uuid = Uuid::from_u128(0x6E);
 const MEETING: Uuid = Uuid::from_u128(0xC0);
-const ALL: [ChatStyle; 4] = [ChatStyle::Aurora, ChatStyle::Compact, ChatStyle::Bubbles, ChatStyle::Legacy];
+const ALL: [ChatStyle; 4] = [ChatStyle::Block, ChatStyle::Compact, ChatStyle::Bubbles, ChatStyle::Legacy];
 
 #[test]
 fn teleport_invitation_paints_one_destination_in_every_style() {
     use crate::world::teleport_invites::{Answer, Invite, InviteKind, Place, Rating};
     for style in ALL {
         let mut h = H::new(style);
-        let message = "Join me\r\nhttp://maps.secondlife.com/secondlife/Aurora%20Demo/135/88/24";
+        let message = "Join me\r\nhttp://maps.secondlife.com/secondlife/Block%20Demo/135/88/24";
         h.world.teleport_invites.list.push(Invite {
             id: 1,
             from: JANE,
@@ -33,7 +33,7 @@ fn teleport_invitation_paints_one_destination_in_every_style() {
                 place: Some(Place {
                     grid: (1000, 1000),
                     pos: glam::Vec3::new(133.0, 88.0, 25.0),
-                    region: Some("Aurora Demo".into()),
+                    region: Some("Block Demo".into()),
                 }),
                 godlike: false,
             },
@@ -46,7 +46,7 @@ fn teleport_invitation_paints_one_destination_in_every_style() {
         h.world.conversation_line(JANE, line("Jane", JANE, ChatKind::Invite(1), message));
         h.open(Some(JANE));
         h.settle();
-        let occurrences: usize = h.texts.iter().map(|t| t.source.matches("Aurora Demo (").count()).sum();
+        let occurrences: usize = h.texts.iter().map(|t| t.source.matches("Block Demo (").count()).sum();
         assert_eq!(occurrences, 1, "{style:?}: the destination is painted once");
         assert!(
             h.texts.iter().any(|t| t.source.contains("Join me")),
@@ -473,12 +473,12 @@ fn has(actions: &[ConvAction], f: impl Fn(&ConvAction) -> bool) -> bool {
     actions.iter().any(f)
 }
 
-/// Column (Aurora, Compact): the search filters and finds a resident; the
+/// Column (Block, Compact): the search filters and finds a resident; the
 /// "new conversation" button beside it starts each kind of conversation;
 /// the entries show theirs.
 #[test]
 fn the_column_searches_and_starts_conversations() {
-    for style in [ChatStyle::Aurora, ChatStyle::Compact] {
+    for style in [ChatStyle::Block, ChatStyle::Compact] {
         let mut h = H::new(style);
         h.settle();
         h.press(search_id());
@@ -526,7 +526,7 @@ fn the_column_searches_and_starts_conversations() {
 /// Narrow, the rail's pictures show their conversations.
 #[test]
 fn the_rail_shows_conversations() {
-    let mut h = H::new(ChatStyle::Aurora);
+    let mut h = H::new(ChatStyle::Block);
     crate::ui::widgets::place_floater(&h.frames.ctx, "conversations", egui::pos2(20.0, 20.0), egui::vec2(460.0, 580.0));
     h.settle();
     h.press(entry_id(Pinned::Conversation(BOB)));
@@ -535,12 +535,12 @@ fn the_rail_shows_conversations() {
     assert_eq!(h.st.selected, None);
 }
 
-/// The head (Aurora, Compact) of a resident's conversation, a role group's
+/// The head (Block, Compact) of a resident's conversation, a role group's
 /// and a conference's: call, add people, profile, add friend, teleport,
 /// close, members, find, and the rows of its "…".
 #[test]
 fn the_head_acts() {
-    for style in [ChatStyle::Aurora, ChatStyle::Compact] {
+    for style in [ChatStyle::Block, ChatStyle::Compact] {
         let mut h = H::new(style);
         h.open(Some(BOB));
         h.press(control_id("head-phone-filled"));
@@ -787,7 +787,7 @@ fn group_head_opens_group_profile_in_every_style() {
 /// menu (the profile among them).
 #[test]
 fn the_message_menu_acts() {
-    for style in [ChatStyle::Aurora, ChatStyle::Compact] {
+    for style in [ChatStyle::Block, ChatStyle::Compact] {
         let mut h = H::new(style);
         h.open(Some(JANE));
         let text = h.texts.iter().rev().find(|t| t.source == "hello from Jane").expect("the line").rect;
@@ -841,7 +841,7 @@ fn the_message_menu_acts() {
 /// whole message.
 #[test]
 fn a_double_clicked_word_is_copied_alone() {
-    for style in [ChatStyle::Aurora, ChatStyle::Compact] {
+    for style in [ChatStyle::Block, ChatStyle::Compact] {
         for conversation in [None, Some(JANE)] {
             // the first and last words of a message, and a message of one word
             for (said, at, word) in [
@@ -883,7 +883,7 @@ fn a_double_clicked_word_is_copied_alone() {
 
 #[test]
 fn selected_messages_copy_from_the_menu_even_after_eviction() {
-    for style in [ChatStyle::Aurora, ChatStyle::Compact] {
+    for style in [ChatStyle::Block, ChatStyle::Compact] {
         for conversation in [None, Some(JANE)] {
             for reverse in [false, true] {
                 let mut h = H::new(style);
@@ -1013,7 +1013,7 @@ fn pasted_transcripts_keep_paragraphs_when_sent_in_every_style() {
 
 #[test]
 fn pasted_transcripts_keep_paragraphs_in_the_nearby_chat_bar() {
-    let mut h = H::new(ChatStyle::Aurora);
+    let mut h = H::new(ChatStyle::Block);
     h.st.focus_request = true;
     h.bar_frame(Vec::new());
     h.bar_frame(Vec::new());
@@ -1110,7 +1110,7 @@ fn paragraph_editor_wraps_scrolls_and_collapses_in_every_style() {
         h.settle();
         let expanded = rect(&h);
         assert!(expanded.height() > before.height() + 10.0, "{style:?}: wraps");
-        // four rows, or in Aurora's workspace up to thirty, within what the
+        // four rows, or in Block's workspace up to thirty, within what the
         // window has room for (`compose::field_cap`)
         let bound = if style.workspace() { 30.0 * 20.0 } else { 100.0 };
         assert!(expanded.height() <= bound, "{style:?}: bounded viewport {expanded:?}");
@@ -1261,7 +1261,7 @@ fn the_enter_that_focuses_a_conversation_is_not_typed_in_it() {
 
 #[test]
 fn nearby_bar_paragraph_chord_keeps_focus_and_volume_shortcuts() {
-    let mut h = H::new(ChatStyle::Aurora);
+    let mut h = H::new(ChatStyle::Block);
     h.st.keep_focus = true;
     h.st.focus_request = true;
     // a Shout key set (none by default): the Legacy Viewer's Ctrl+Enter
@@ -1498,7 +1498,7 @@ fn incoming_messages_keep_short_chat_context_menus_open() {
 /// received, then leaves it before the first arrival throughout that menu.
 #[test]
 fn chat_context_menu_moves_the_new_marker_below_existing_messages() {
-    for style in [ChatStyle::Aurora, ChatStyle::Compact] {
+    for style in [ChatStyle::Block, ChatStyle::Compact] {
         let mut h = H::new(style);
         for i in 0..6 {
             h.world
@@ -1546,8 +1546,8 @@ fn chat_context_menu_moves_the_new_marker_below_existing_messages() {
 /// while retaining its original native actions.
 #[test]
 fn an_inline_place_menu_holds_its_containing_message() {
-    let url = "http://maps.secondlife.com/secondlife/Aurora%20Demo/128/130/24";
-    for style in [ChatStyle::Aurora, ChatStyle::Compact] {
+    let url = "http://maps.secondlife.com/secondlife/Block%20Demo/128/130/24";
+    for style in [ChatStyle::Block, ChatStyle::Compact] {
         let mut h = H::new(style);
         h.world
             .conversation_line(GROUP, line("Jane", JANE, ChatKind::Im, &format!("Look here: {url}")));
@@ -1557,7 +1557,7 @@ fn an_inline_place_menu_holds_its_containing_message() {
         let link = h
             .texts
             .iter()
-            .find(|t| t.source.contains("Aurora Demo (") && !t.source.contains("Look here"))
+            .find(|t| t.source.contains("Block Demo (") && !t.source.contains("Look here"))
             .expect("place badge")
             .source
             .clone();
@@ -1790,7 +1790,7 @@ fn resizing_the_conversation_closes_its_context_menu() {
 /// removed it from both the viewport and the bounded live transcript.
 #[test]
 fn the_message_menu_retains_copy_and_quote_after_eviction() {
-    for style in [ChatStyle::Aurora, ChatStyle::Compact] {
+    for style in [ChatStyle::Block, ChatStyle::Compact] {
         for quote in [false, true] {
             let mut h = H::new(style);
             h.open(Some(JANE));
@@ -1846,11 +1846,11 @@ fn the_message_menu_retains_copy_and_quote_after_eviction() {
     }
 }
 
-/// The field (Aurora, Compact): emoji, the volume's menu, inventory,
+/// The field (Block, Compact): emoji, the volume's menu, inventory,
 /// channel, send.
 #[test]
 fn the_field_acts() {
-    for style in [ChatStyle::Aurora, ChatStyle::Compact] {
+    for style in [ChatStyle::Block, ChatStyle::Compact] {
         let mut h = H::new(style);
         h.open(None);
         h.press(control_id("box-mood-smile-filled"));
@@ -2015,7 +2015,7 @@ fn the_channel_selector_works_in_every_conversation_style() {
 
 #[test]
 fn the_chat_bar_channel_selector_is_visible_and_keeps_the_channel_on_send() {
-    let mut h = H::new(ChatStyle::Aurora);
+    let mut h = H::new(ChatStyle::Block);
     h.st.show_channel = true;
     h.st.input = "hello".into();
     h.st.focus_request = true;
@@ -2058,7 +2058,7 @@ fn the_chat_bar_channel_selector_is_visible_and_keeps_the_channel_on_send() {
 #[test]
 fn typing_for_another_channel_is_not_typing_aloud() {
     for (shown, channel, aloud) in [(true, 5, false), (true, 0, true), (false, 5, true)] {
-        let mut h = H::new(ChatStyle::Aurora);
+        let mut h = H::new(ChatStyle::Block);
         h.st.show_channel = shown;
         h.st.chat_channel = channel;
         h.st.focus_request = true;
@@ -2078,7 +2078,7 @@ fn typing_for_another_channel_is_not_typing_aloud() {
 /// the bar shown once the pointer leaves the bar for the menu.
 #[test]
 fn an_autohidden_bar_stays_while_its_channel_menu_is_open() {
-    let mut h = H::new(ChatStyle::Aurora);
+    let mut h = H::new(ChatStyle::Block);
     h.st.show_channel = true;
     h.st.bar_mode = crate::settings::ChatBar::WhenTyping;
     h.st.focus_request = true;
@@ -2106,7 +2106,7 @@ fn an_inventory_drag_says_where_to_drop_it() {
         pressed,
         modifiers: Default::default(),
     };
-    for style in [ChatStyle::Aurora, ChatStyle::Compact] {
+    for style in [ChatStyle::Block, ChatStyle::Compact] {
         let mut h = H::new(style);
         let hint = block_i18n::tr!("ui-chat-drop-to-give", name = h.world.session_title(&JANE));
         h.open(Some(JANE));
@@ -2318,11 +2318,11 @@ fn inventory_drops_do_not_give_to_nearby_groups_or_conferences() {
     }
 }
 
-/// A call in progress (Aurora, Compact): its stage, its strip, the column's
+/// A call in progress (Block, Compact): its stage, its strip, the column's
 /// panel while another conversation is shown, a participant's menu.
 #[test]
 fn the_call_controls_act() {
-    for style in [ChatStyle::Aurora, ChatStyle::Compact] {
+    for style in [ChatStyle::Block, ChatStyle::Compact] {
         for conversation in [BOB, MEETING] {
             let mut h = H::new(style);
             h.open(Some(conversation));
@@ -2387,19 +2387,19 @@ fn the_call_controls_act() {
 /// A role group's call adds nobody, from its stage either.
 #[test]
 fn a_role_group_call_adds_nobody() {
-    let mut h = H::new(ChatStyle::Aurora);
+    let mut h = H::new(ChatStyle::Block);
     h.open(Some(GROUP));
     h.call(GROUP);
     assert!(h.shown(control_id("call-hang-up")).is_some());
     assert!(h.shown(control_id("call-add")).is_none());
 }
 
-/// Invitations (Aurora, Compact): a resident's call is answered or
+/// Invitations (Block, Compact): a resident's call is answered or
 /// declined, a group's joined or ignored; a group call going on without
 /// us is joined.
 #[test]
 fn invitations_are_answered() {
-    for style in [ChatStyle::Aurora, ChatStyle::Compact] {
+    for style in [ChatStyle::Block, ChatStyle::Compact] {
         for (p2p, answer) in [
             (true, InviteAnswer::Accept),
             (true, InviteAnswer::Decline),
@@ -2595,7 +2595,7 @@ fn the_request_button_needs_room_beside_the_picture() {
 /// A narrow workspace drops the head's button, and its "…" row still asks.
 #[test]
 fn a_narrow_head_leaves_the_request_to_its_menu() {
-    let mut h = H::new(ChatStyle::Aurora);
+    let mut h = H::new(ChatStyle::Block);
     h.open(Some(BOB));
     let button = control_id(&format!("head-{}", super::head::REQUEST_TELEPORT_ICON));
     assert!(h.shown(button).is_some(), "the button in a wide window");
@@ -2754,7 +2754,7 @@ fn ooc_shortcut_keeps_bar_channel_focus_and_event_volume() {
         (M::CTRL, M::NONE, Some((5, "brb", C::Normal))),
     ];
     for (pressed, after, expected) in cases {
-        let mut h = H::new(ChatStyle::Aurora);
+        let mut h = H::new(ChatStyle::Block);
         h.st.keep_focus = true;
         h.st.focus_request = true;
         h.bar_frame(Vec::new());

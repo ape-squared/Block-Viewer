@@ -305,10 +305,10 @@ impl Drop for Session {
     }
 }
 
-/// `AURORA_DEMO_CRASH_SEND=…,fail`: the simulated issue creation fails.
+/// `BLOCK_DEMO_CRASH_SEND=…,fail`: the simulated issue creation fails.
 fn demo_send() -> Reply {
     std::thread::sleep(Duration::from_millis(800));
-    if std::env::var("AURORA_DEMO_CRASH_SEND").is_ok_and(|v| v.split(',').any(|p| p == "fail")) {
+    if std::env::var("BLOCK_DEMO_CRASH_SEND").is_ok_and(|v| v.split(',').any(|p| p == "fail")) {
         Reply::Failed(Failure::Network)
     } else {
         Reply::Created(4242)
@@ -582,7 +582,7 @@ mod tests {
             .unwrap();
         let (title, preview) = (
             "Crash: Rust panic at crates/a.rs:1:2 (0.8.0)",
-            "<!-- aurora-crash v1 -->\nÉchec & exemple",
+            "<!-- block-crash v1 -->\nÉchec & exemple",
         );
         for (status, reply, expected) in [
             (201, r#"{"number":123}"#, Ok(123)),

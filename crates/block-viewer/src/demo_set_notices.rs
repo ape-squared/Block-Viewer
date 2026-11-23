@@ -1,4 +1,4 @@
-//! AURORA_DEMO_SET_NOTICES=config|config-responses|config-bottom|chat: a contact set's own online notices
+//! BLOCK_DEMO_SET_NOTICES=config|config-responses|config-bottom|chat: a contact set's own online notices
 //! and automatic responses (world/contact_sets/notices.rs). At frame 60 the
 //! set Family (the demo friend in it, kept in memory) gets "Show
 //! notifications" and its own do not disturb response, and the friends'
@@ -22,7 +22,7 @@ pub const DND: u64 = 400;
 pub const MESSAGE: u64 = 420;
 
 pub fn mode() -> Option<String> {
-    std::env::var("AURORA_DEMO_SET_NOTICES").ok()
+    std::env::var("BLOCK_DEMO_SET_NOTICES").ok()
 }
 
 pub fn active() -> bool {

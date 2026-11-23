@@ -11,7 +11,7 @@ import unittest
 from unittest.mock import patch
 import zlib
 
-spec = importlib.util.spec_from_file_location("aurora_client", Path(__file__).resolve().parents[1] / "aurora_live" / "client.py")
+spec = importlib.util.spec_from_file_location("block_client", Path(__file__).resolve().parents[1] / "block_live" / "client.py")
 module = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(module)
 
@@ -85,7 +85,7 @@ class ClientTests(unittest.TestCase):
             self.assertLess(len(payload), module.MAX_BYTES)
             plain, errors = module.prepare_frame(value, {"features": ["pbr-materials"]})
             self.assertFalse(json.loads(plain)["meshes"])
-            self.assertIn("Update Aurora", errors["Detailed source"])
+            self.assertIn("Update Block", errors["Detailed source"])
 
     def test_oversized_source_is_omitted_with_images_and_links_repaired(self):
         big = {"name": "Too large", "source_id": "root", "faces": [], "padding": "x" * 4096}
@@ -398,12 +398,12 @@ class TokenTests(unittest.TestCase):
 
     def test_token_path_follows_the_viewers_folders(self):
         with patch.object(module.sys, "platform", "win32"), patch.dict(module.os.environ, {"LOCALAPPDATA": r"C:\Users\u\AppData\Local"}):
-            self.assertTrue(module.token_path(17655).replace("\\", "/").endswith("Local/Aurora/AuroraViewer/data/blender-live/17655.token"))
+            self.assertTrue(module.token_path(17655).replace("\\", "/").endswith("Local/Block/BlockViewer/data/blender-live/17655.token"))
         with patch.object(module.sys, "platform", "linux"), patch.dict(module.os.environ, {"XDG_DATA_HOME": "/home/u/.data"}):
-            self.assertEqual(module.token_path(17656).replace("\\", "/"), "/home/u/.data/auroraviewer/blender-live/17656.token")
+            self.assertEqual(module.token_path(17656).replace("\\", "/"), "/home/u/.data/blockviewer/blender-live/17656.token")
         with patch.object(module.sys, "platform", "darwin"):
             self.assertTrue(module.token_path(17655).replace("\\", "/").endswith(
-                "Library/Application Support/org.Aurora.AuroraViewer/blender-live/17655.token"))
+                "Library/Application Support/org.Block.BlockViewer/blender-live/17655.token"))
 
 if __name__ == "__main__":
     unittest.main()

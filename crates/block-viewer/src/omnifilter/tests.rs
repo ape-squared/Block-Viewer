@@ -417,7 +417,7 @@ fn installed_sets_put_default_first() {
 
 #[test]
 fn the_file_saves_after_a_pause_and_loads_on_start() {
-    let dir = std::env::temp_dir().join(format!("aurora-omnifilter-{}", std::process::id()));
+    let dir = std::env::temp_dir().join(format!("block-omnifilter-{}", std::process::id()));
     let _ = std::fs::remove_dir_all(&dir);
     let path = dir.join("omnifilter.xml");
     let mut e = Engine::default();
@@ -452,7 +452,7 @@ fn the_file_saves_after_a_pause_and_loads_on_start() {
 }
 
 fn temp_dir(tag: &str) -> std::path::PathBuf {
-    let dir = std::env::temp_dir().join(format!("aurora-omnifilter-{tag}-{}", std::process::id()));
+    let dir = std::env::temp_dir().join(format!("block-omnifilter-{tag}-{}", std::process::id()));
     let _ = std::fs::remove_dir_all(&dir);
     dir
 }

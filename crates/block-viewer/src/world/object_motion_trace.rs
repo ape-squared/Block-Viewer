@@ -25,7 +25,7 @@ struct Trace {
 fn state() -> Option<&'static Mutex<Trace>> {
     TRACE
         .get_or_init(|| {
-            let path = std::env::var_os("AURORA_OBJECT_MOTION_TRACE")?;
+            let path = std::env::var_os("BLOCK_OBJECT_MOTION_TRACE")?;
             let now = Instant::now();
             log::info!("object motion trace: armed");
             Some(Mutex::new(Trace {

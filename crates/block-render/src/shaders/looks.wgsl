@@ -7,7 +7,7 @@
 // the rows bottom up). An operation that reads its neighbours (a 3 x 3
 // convolution) starts a pass of its own; looks.rs plans the passes.
 //
-// Aurora's own operations (kinds from 6) follow the same rules: worked in
+// Block's own operations (kinds from 6) follow the same rules: worked in
 // levels and in the photo's pixels, blended through the stencil, and those
 // that read around the pixel (chromatic aberration, distortion, the wide
 // gathers) start a pass. Sizes are shares of the photo's height, so that the
@@ -245,7 +245,7 @@ fn neighbour(frag: vec2<f32>, di: f32, dj: f32, srgb: bool) -> vec3<f32> {
     return levels(textureSampleLevel(src, src_sampler, at / size, 0.0).rgb, srgb);
 }
 
-// ---- Aurora's operations
+// ---- Block's operations
 
 fn luma(p: vec3<f32>) -> f32 {
     return dot(p, vec3<f32>(0.2126, 0.7152, 0.0722)) / 255.0;
@@ -307,9 +307,9 @@ fn hue(p: vec3<f32>) -> vec2<f32> {
     return vec2<f32>(h, select(0.0, d / mx, mx > 0.0));
 }
 
-// One of Aurora's operations at photo point `q` of a photo `size`, `frag`
+// One of Block's operations at photo point `q` of a photo `size`, `frag`
 // the pixel of the frame: its colour before the stencil.
-fn aurora(op: Op, p: vec3<f32>, q: vec2<f32>, size: vec2<f32>, frag: vec2<f32>, srgb: bool) -> vec3<f32> {
+fn block(op: Op, p: vec3<f32>, q: vec2<f32>, size: vec2<f32>, frag: vec2<f32>, srgb: bool) -> vec3<f32> {
     let kind = op.a.x;
     let h = size.y;
     let center = size * 0.5;
@@ -515,7 +515,7 @@ fn fs_look(in: Out) -> @location(0) vec4<f32> {
             } else if (kind == OP_SCREEN) {
                 c = vec3<f32>(screen(op, p.r, i, j, size.y));
             } else if (kind != OP_CONVOLVE) {
-                c = aurora(op, p, q, size, in.clip.xy, src_srgb);
+                c = block(op, p, q, size, in.clip.xy, src_srgb);
             } else {
                 // a convolution: always the first operation of its pass, read
                 // from the pass's source; the border of the photo goes black

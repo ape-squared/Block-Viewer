@@ -12,14 +12,14 @@ pub(super) struct PreviewWindow {
     pub(super) texture: texture_view::ImageView,
     description: Option<String>,
     /// The 360° view of a 2:1 texture: None follows the item's name (an
-    /// Aurora 360° upload opens as a panorama), Some is the user's choice.
+    /// Block 360° upload opens as a panorama), Some is the user's choice.
     pano: Option<bool>,
     pano_view: Option<crate::ui::panorama::PanoView>,
 }
 
 /// Whether a texture can be looked into as a panorama, and whether it is:
 /// 2:1 and wide enough (`capture_360::is_equirect`); on when the user chose it,
-/// or, with no choice made, when the item's name is an Aurora 360° upload's.
+/// or, with no choice made, when the item's name is a Block 360° upload's.
 pub(super) fn panorama_state(dimensions: Option<(u32, u32)>, name: &str, choice: Option<bool>) -> (bool, bool) {
     let eligible = dimensions.is_some_and(crate::snapshot::capture_360::is_equirect);
     let on = eligible && choice.unwrap_or_else(|| crate::snapshot::capture_360::is_marked(name));
@@ -180,8 +180,8 @@ impl LibraryUi {
             if let Some(editor) = &mut window.editor {
                 editor.shape = if mode.ends_with("cube") {
                     crate::imports::preview::MaterialShape::Cube
-                } else if mode.ends_with("aurora") {
-                    crate::imports::preview::MaterialShape::Aurora
+                } else if mode.ends_with("block") {
+                    crate::imports::preview::MaterialShape::Block
                 } else {
                     crate::imports::preview::MaterialShape::Sphere
                 };
@@ -419,7 +419,7 @@ impl LibraryUi {
                 let image = window.texture.image.as_ref().or_else(|| images.get(&asset));
                 let dimensions = scene.textures.full_size(&asset).or(window.texture.dimensions);
                 let before = window.texture.display;
-                // a 2:1 texture can be looked into as a panorama; an Aurora
+                // a 2:1 texture can be looked into as a panorama; a Block
                 // 360° upload (by its name) opens that way
                 let (eligible, mut pano_on) = panorama_state(dimensions, &item.name, window.pano);
                 let was_on = pano_on;

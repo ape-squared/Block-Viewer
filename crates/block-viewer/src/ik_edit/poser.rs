@@ -59,7 +59,7 @@ pub struct Config {
     pub stop_on_close: bool,
     pub markers: bool,
     /// The joint markers show only while the pointer is over the avatar
-    /// being posed (the selected joint's gizmo stays): an Aurora addition,
+    /// being posed (the selected joint's gizmo stays): a Block addition,
     /// the Legacy Viewer's markers are on or off.
     pub markers_hover: bool,
     /// The world's hints (`world_hints`): the tint of another group's part
@@ -204,7 +204,7 @@ pub(super) struct State {
     /// drops it.
     window_override: Option<bool>,
     /// A click beside the joints and the gizmo left no joint selected: the
-    /// pelvis is not picked again by itself (an Aurora addition).
+    /// pelvis is not picked again by itself (a Block addition).
     unselected: bool,
     /// Profile pictures for the subject menu and the head: the app's, for
     /// the residents drawn last frame (`pictures_drawn`); the missing ones
@@ -337,7 +337,7 @@ impl Editor {
     }
     /// The Other bones listed this frame: weighted by a rigged mesh of the
     /// subject, or moved by its pose (a loaded pose that bends a wing keeps
-    /// it reachable to reset). Aurora's own: the Legacy Viewer lists every
+    /// it reachable to reset). Block's own: the Legacy Viewer lists every
     /// Other bone. The ones inside the body (`inner_bone`: the spine, the
     /// groin, the skull) go to the full window's list alone, never to the
     /// world nor the compact window, even used: the spine's are collapsed

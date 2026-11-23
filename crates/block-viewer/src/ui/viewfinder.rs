@@ -1,4 +1,4 @@
-//! The photo viewfinder (Preferences › Aurora › Photo mode › Viewfinder):
+//! The photo viewfinder (Preferences › Block › Photo mode › Viewfinder):
 //! the world full screen under a camera's overlay, like an electronic
 //! viewfinder. Its three display levels (DISP), the AF point that hunts,
 //! turns green and beeps, the distance scale with the zone kept sharp, the

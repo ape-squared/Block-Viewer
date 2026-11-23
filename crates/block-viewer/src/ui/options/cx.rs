@@ -381,7 +381,7 @@ impl<'a> Cx<'a> {
             mode,
             number_width,
             words: words(query),
-            page: Page::Aurora,
+            page: Page::Block,
             tab: 0,
             group: String::new(),
             group_untitled: false,
@@ -791,7 +791,7 @@ impl<'a> Cx<'a> {
         self.row(label, hint, f, |ui, s| super::combo_blocked(ui, get(s), choices))
     }
 
-    /// A few choices side by side (`accent`: in Aurora's accent); a long
+    /// A few choices side by side (`accent`: in Block's accent); a long
     /// one takes both columns.
     pub fn choice<T: PartialEq + Copy + Clone>(&mut self, label: &str, hint: &str, f: &F<T>, choices: &[(T, &str, bool)]) -> bool {
         let (p, get) = (self.p, f.get_mut);

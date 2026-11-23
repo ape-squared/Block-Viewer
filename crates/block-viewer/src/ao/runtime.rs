@@ -539,7 +539,7 @@ impl Runtime {
         let handoff = frame.native_running && self.active.iter().any(|a| a.id == State::Running.motion());
         let fallback_run = (frame.run_hold.is_some() || handoff) && !run_assets.iter().any(&mut ready);
         if fallback_run {
-            // This belongs to the enhancer even when Aurora AO is disabled.
+            // This belongs to the enhancer even when Block AO is disabled.
             // AgentAnimation makes the standard run visible to other viewers.
             desired.push(State::Running.motion());
         }

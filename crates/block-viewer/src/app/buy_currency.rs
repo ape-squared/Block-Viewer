@@ -13,7 +13,7 @@ const DEMO_HELPER: &str = "demo://currency/";
 /// A region's currency-base-uri as a helper page, checked as the grid's
 /// is (`Grid::helper_page`: http(s), a host, no credentials). OpenSim
 /// only: LFSimFeatureHandler::setSupportedFeatures clears mHelperUriOverride
-/// for a region without OpenSimExtras, which Second Life never sends; Aurora
+/// for a region without OpenSimExtras, which Second Life never sends; Block
 /// ignores the value on Second Life outright.
 fn region_page(region: Option<&str>, settings: &crate::settings::Settings) -> Option<String> {
     if settings.grid != GridChoice::Custom {
@@ -75,7 +75,7 @@ impl App {
     }
 
     /// At login on an OpenSim grid, read its get_grid_info again in the
-    /// background: a grid saved before Aurora kept the helper, or whose
+    /// background: a grid saved before Block kept the helper, or whose
     /// helper moved, has the right one by the time Buy L$ is opened.
     pub(super) fn refresh_grid_helper(&mut self) {
         if self.demo || self.settings.grid != GridChoice::Custom {
@@ -158,14 +158,14 @@ impl App {
         }
     }
 
-    /// AURORA_DEMO_BUY_CURRENCY: a balance, and the window in the state its
+    /// BLOCK_DEMO_BUY_CURRENCY: a balance, and the window in the state its
     /// mode names (docs/TESTING.md).
     pub(super) fn demo_buy_currency(&mut self) {
-        // AURORA_DEMO_CURRENCY=<symbol>: an OpenSim grid's own money symbol
-        if let Ok(symbol) = std::env::var("AURORA_DEMO_CURRENCY") {
+        // BLOCK_DEMO_CURRENCY=<symbol>: an OpenSim grid's own money symbol
+        if let Ok(symbol) = std::env::var("BLOCK_DEMO_CURRENCY") {
             self.world.grid_currency = symbol;
         }
-        let Ok(mode) = std::env::var("AURORA_DEMO_BUY_CURRENCY") else {
+        let Ok(mode) = std::env::var("BLOCK_DEMO_BUY_CURRENCY") else {
             return;
         };
         self.world.apply(NetEvent::Balance(479));
@@ -180,7 +180,7 @@ impl App {
     pub(super) fn demo_currency_command(&mut self, cmd: &NetCommand) -> bool {
         match cmd {
             NetCommand::CurrencyQuote { amount, .. } => {
-                let mode = std::env::var("AURORA_DEMO_BUY_CURRENCY").unwrap_or_default();
+                let mode = std::env::var("BLOCK_DEMO_BUY_CURRENCY").unwrap_or_default();
                 let result = if mode == "error" {
                     Err(CurrencyError {
                         message: block_i18n::tr!("demo-currency-refused").into(),

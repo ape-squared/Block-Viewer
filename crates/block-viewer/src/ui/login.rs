@@ -413,7 +413,7 @@ fn favorite_place(favorite: &crate::login_favorites::Favorite) -> String {
     format!("{} ({}, {}, {})", favorite.region, x.round(), y.round(), z.round())
 }
 
-/// AURORA_DEMO_LOGIN_FAVORITES=open: the first start menu with favourites
+/// BLOCK_DEMO_LOGIN_FAVORITES=open: the first start menu with favourites
 /// (the combo `salt` of `ui`) opens once, after the login screen's first
 /// frames, for captures.
 pub(super) fn demo_open_start_menu(ui: &egui::Ui, salt: &str, favorites: &StartFavorites) {
@@ -551,7 +551,7 @@ pub(crate) fn strip(r: egui::Rect, stops: &[(f32, Color32)]) -> egui::Shape {
 
 /// Card of the login screen: a pane of frosted glass. Under the tint of the
 /// in-world windows it shows the sky behind it out of focus
-/// (`aurora_bg::frosted`) and two lights of the aurora, which also spill
+/// (`block_bg::frosted`) and two lights of the aurora, which also spill
 /// around the card; its top edge catches the light, and the card the screen
 /// is for (`accent`) wears the brand line. An opaque skin (panel_alpha =
 /// 255) keeps its plain surface.

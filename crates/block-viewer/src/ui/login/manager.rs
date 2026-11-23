@@ -79,7 +79,7 @@ fn summary(ui: &mut egui::Ui, p: &Palette, icon: &str, label: &str, remembered: 
 }
 
 pub fn show(ctx: &Context, p: &Palette, icons: &Icons, settings: &mut Settings, form: &mut LoginForm) {
-    show_impl(ctx, p, icons, settings, form, std::env::var_os("AURORA_DEMO").is_some());
+    show_impl(ctx, p, icons, settings, form, std::env::var_os("BLOCK_DEMO").is_some());
 }
 
 fn show_impl(ctx: &Context, p: &Palette, icons: &Icons, settings: &mut Settings, form: &mut LoginForm, offline: bool) {

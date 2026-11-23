@@ -142,7 +142,7 @@ fn listen_on(name: String) -> Option<Receiver<String>> {
 fn start_receiver(name: String, tx: crossbeam_channel::Sender<String>, relay: Option<Scope>) -> bool {
     let (ready_tx, ready_rx) = crossbeam_channel::bounded(1);
     let spawned = std::thread::Builder::new()
-        .name("aurora-slurl-pipe".into())
+        .name("block-slurl-pipe".into())
         .spawn(move || serve(&name, &ready_tx, &tx, relay.as_ref()));
     if let Err(e) = spawned {
         log::warn!("startup links: no pipe thread ({e})");

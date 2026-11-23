@@ -1,5 +1,5 @@
-//! One startup fallback from the Legacy Viewer AO to Aurora-owned inventory links.
-//! Existing Aurora folders, including an empty AO, are always authoritative.
+//! One startup fallback from the Legacy Viewer AO to Block-owned inventory links.
+//! Existing Block folders, including an empty AO, are always authoritative.
 use super::inventory::{self, Catalog};
 use crate::world::{
     World,
@@ -91,10 +91,10 @@ impl Bootstrap {
         if !writable {
             return None;
         }
-        // The independent bridge factory owns startup creation of #Aurora.
+        // The independent bridge factory owns startup creation of #Block.
         // Wait for its inventory acknowledgement instead of racing a second
         // parent creation. No bridge attachment or motor is required here.
-        inventory::child(inv, inv.root, "#Aurora")?;
+        crate::world::bridge::brand_folder(inv)?;
         self.finished = true;
         Some(inventory::reconstruct(inv, &self.source, selected))
     }

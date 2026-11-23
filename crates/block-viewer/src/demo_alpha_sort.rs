@@ -1,4 +1,4 @@
-//! AURORA_DEMO_ALPHA_SORT=front|back|hud|hud-back|hud-zoom: the same unrigged DAE and PNGs supplied
+//! BLOCK_DEMO_ALPHA_SORT=front|back|hud|hud-back|hud-zoom: the same unrigged DAE and PNGs supplied
 //! for the human's grid comparison (#2575), passed through the normal loader.
 
 use super::*;
@@ -18,11 +18,11 @@ const PNG: [&[u8]; 3] = [
 ];
 
 pub fn enabled() -> bool {
-    std::env::var_os("AURORA_DEMO_ALPHA_SORT").is_some()
+    std::env::var_os("BLOCK_DEMO_ALPHA_SORT").is_some()
 }
 
 fn is_hud() -> bool {
-    std::env::var("AURORA_DEMO_ALPHA_SORT").is_ok_and(|v| v.starts_with("hud"))
+    std::env::var("BLOCK_DEMO_ALPHA_SORT").is_ok_and(|v| v.starts_with("hud"))
 }
 
 fn model() -> Result<Model, block_assets::AssetError> {
@@ -41,7 +41,7 @@ pub fn view(frame: u64) -> Option<(Vec3, Vec3)> {
     if !enabled() || is_hud() || frame != 300 {
         return None;
     }
-    let y = if std::env::var("AURORA_DEMO_ALPHA_SORT").as_deref() == Ok("back") {
+    let y = if std::env::var("BLOCK_DEMO_ALPHA_SORT").as_deref() == Ok("back") {
         4.0
     } else {
         -4.0
@@ -89,7 +89,7 @@ pub fn tick(world: &mut crate::world::World, scene: &mut crate::scene::Scene, fr
         face.texture = texture;
     }
     let hud = is_hud();
-    let back = std::env::var("AURORA_DEMO_ALPHA_SORT").as_deref() == Ok("hud-back");
+    let back = std::env::var("BLOCK_DEMO_ALPHA_SORT").as_deref() == Ok("hud-back");
     let mut object = prim(
         25750,
         if hud { Vec3::new(0.0, 0.35, 0.03) } else { point() },
@@ -128,7 +128,7 @@ pub fn tick(world: &mut crate::world::World, scene: &mut crate::scene::Scene, fr
     if hud {
         // A prior demo run may have saved this synthetic attachment's zoom.
         world.hud_zoom = 1.0;
-        let zoom = if std::env::var("AURORA_DEMO_ALPHA_SORT").as_deref() == Ok("hud-zoom") {
+        let zoom = if std::env::var("BLOCK_DEMO_ALPHA_SORT").as_deref() == Ok("hud-zoom") {
             0.5
         } else {
             1.0

@@ -99,7 +99,7 @@ pub(crate) fn auto_height_body(room: f32) -> egui::ScrollArea {
 struct SolidAreas(std::collections::HashSet<egui::Id>);
 
 fn solid_areas_id() -> egui::Id {
-    egui::Id::unique("aurora_solid_background_areas")
+    egui::Id::unique("block_solid_background_areas")
 }
 
 /// The background area `id` (`Order::Background`, kept under the windows) is
@@ -929,7 +929,7 @@ impl<'a> Floater<'a> {
         // LLFloater::setMinimized keeps the expanded geometry. egui's Resize
         // otherwise retains the old height when the body disappears, and then
         // forgets it when clamped to the header. Restore that size once.
-        // Aurora keeps the dragged bar's current position when restoring.
+        // Block keeps the dragged bar's current position when restoring.
         if let Some(width) = self.compact_minimized.filter(|_| compact) {
             w = w.auto_sized().min_width(width).max_width(width);
         } else if minimized {
@@ -1434,7 +1434,7 @@ struct HiddenWindows {
 }
 
 fn hidden_windows_id() -> egui::Id {
-    egui::Id::unique("aurora_hidden_windows")
+    egui::Id::unique("block_hidden_windows")
 }
 
 /// The interface is hidden (`hide_windows`).
@@ -2326,7 +2326,7 @@ pub fn segmented_size(ui: &egui::Ui, options: &[(&str, bool)]) -> Vec2 {
 }
 
 /// Choice between a few options side by side, in one track: the chosen
-/// segment is lit, in the accent when its option is `accent` (Aurora's own
+/// segment is lit, in the accent when its option is `accent` (Block's own
 /// look), in `raised` otherwise (a legacy look). The lit face slides from
 /// the segment chosen before, as the poser's tracks do (`tracks::icon_track`;
 /// none under Reduce animations). Returns true when the selection changed.
@@ -2443,7 +2443,7 @@ fn letters_in_middle(painter: &egui::Painter, galley: &egui::Galley, rect: egui:
 }
 
 /// Tabs sharing one track as wide as the space left, each with its count
-/// after its label (Aurora's Places, the money tracker): the chosen one is
+/// after its label (Block's Places, the money tracker): the chosen one is
 /// lit in `raised`. Returns true when the selection changed.
 pub fn count_tabs(ui: &mut egui::Ui, p: &Palette, id_salt: &str, selected: &mut usize, tabs: &[(&str, usize)]) -> bool {
     let (bar, _) = ui.allocate_exact_size(Vec2::new(ui.available_width(), 30.0), Sense::hover());
@@ -2706,7 +2706,7 @@ fn text_button(ui: &mut egui::Ui, ink: Color32, label: &str, size: Option<Vec2>)
 }
 
 /// Signed height adjustment: keep egui's pointer/keyboard behaviour, with a
-/// visible Aurora rail, zero marker, accent fill and solid rectangular knob.
+/// visible Block rail, zero marker, accent fill and solid rectangular knob.
 /// The surrounding floater supplies the shared glass, no opaque card here.
 pub fn height_slider(
     ui: &mut egui::Ui,
@@ -3180,7 +3180,7 @@ pub fn glass_action_icon(ui: &mut egui::Ui, p: &Palette, icon: &str, label: &str
     response.on_hover_cursor(egui::CursorIcon::PointingHand)
 }
 
-/// Primary action using the Aurora accent and the flat button geometry.
+/// Primary action using the Block accent and the flat button geometry.
 pub fn primary_button_sized(ui: &mut egui::Ui, p: &Palette, label: &str, size: Vec2) -> egui::Response {
     let mut response = ui.add_sized(
         size,
@@ -3199,7 +3199,7 @@ pub fn online_color(p: &Palette, online: bool) -> Color32 {
     if online { p.success } else { p.muted_dim }
 }
 
-/// Region maturity badge (G / M / A), flat vector square in the Aurora style.
+/// Region maturity badge (G / M / A), flat vector square in the Block style.
 /// Letter, background and letter color of a classification label.
 /// Fixed-meaning colors (kept from the official viewer): G violet, M white,
 /// A red.
@@ -3315,7 +3315,7 @@ pub fn region_rating(ctx: &egui::Context, ratings: &crate::world::worldmap::Regi
 }
 
 fn wanted_regions_id() -> egui::Id {
-    egui::Id::unique("aurora-wanted-region-ratings")
+    egui::Id::unique("block-wanted-region-ratings")
 }
 
 fn want_region(ctx: &egui::Context, region: &str) {

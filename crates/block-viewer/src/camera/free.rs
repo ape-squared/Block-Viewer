@@ -5,7 +5,7 @@
 //! LGPL 2.1): it starts from where the camera is, moves in the camera's own
 //! frame and caps a long frame at 0.2 s, as here. Firestorm has no keyboard
 //! free camera; speed, the slow / fast modifiers and the optional collisions
-//! are Aurora's.
+//! are Block's.
 
 use glam::Vec3;
 use std::ops::RangeInclusive;

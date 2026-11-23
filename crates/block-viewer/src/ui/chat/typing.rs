@@ -129,7 +129,7 @@ impl LocalTyping {
         None
     }
 
-    /// Keep typing as if a key came now (`AURORA_DEMO_TYPING`); true when
+    /// Keep typing as if a key came now (`BLOCK_DEMO_TYPING`); true when
     /// it starts.
     pub fn hold(&mut self, now: Instant) -> bool {
         self.last_key.replace(now).is_none()

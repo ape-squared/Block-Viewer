@@ -277,7 +277,7 @@ pub(crate) struct LabelDepth {
     /// Locals and the scene's depth: made again when that depth is (a
     /// resize, another anti-aliasing).
     bind_group: Option<(wgpu::TextureView, wgpu::BindGroup)>,
-    /// False with AURORA_LABEL_OCCLUSION=0: egui-wgpu draws the labels over
+    /// False with BLOCK_LABEL_OCCLUSION=0: egui-wgpu draws the labels over
     /// the scene, as before.
     enabled: bool,
 }
@@ -438,7 +438,7 @@ impl LabelDepth {
             indices: Vec::new(),
             draws: Vec::new(),
             bind_group: None,
-            enabled: !std::env::var("AURORA_LABEL_OCCLUSION").is_ok_and(|v| v.trim() == "0"),
+            enabled: !std::env::var("BLOCK_LABEL_OCCLUSION").is_ok_and(|v| v.trim() == "0"),
         }
     }
 
@@ -641,11 +641,11 @@ mod tests {
         gpu_upload_growth(false);
     }
 
-    /// Run in a separate process with AURORA_GPU_OOM=0.
+    /// Run in a separate process with BLOCK_GPU_OOM=0.
     #[test]
     #[ignore]
     fn refused_label_upload_growth_keeps_valid_buffers() {
-        assert_eq!(std::env::var("AURORA_GPU_OOM").as_deref(), Ok("0"));
+        assert_eq!(std::env::var("BLOCK_GPU_OOM").as_deref(), Ok("0"));
         gpu_upload_growth(true);
     }
 
@@ -808,7 +808,7 @@ mod tests {
         assert_eq!(second, vec![1; 6]);
     }
 
-    /// AURORA_LABEL_OCCLUSION=0: egui-wgpu draws the labels, and would warn
+    /// BLOCK_LABEL_OCCLUSION=0: egui-wgpu draws the labels, and would warn
     /// about each mark, a callback that is not its own.
     #[test]
     fn switched_off_the_marks_are_gone_and_the_meshes_stay() {

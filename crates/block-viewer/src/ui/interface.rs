@@ -10,7 +10,7 @@
 //! as long as the pointer stays on them (the bars mockup); with Firestorm's
 //! bars, its ConfirmHideUI question comes first.
 //!
-//! Immersive mode (#859, an Aurora addition: the Legacy Viewer has none) is
+//! Immersive mode (#859, a Block addition: the Legacy Viewer has none) is
 //! the same hidden interface with the chat kept: the conversation windows
 //! stay, the chat lines and the chat bar (Enter) as when hidden; no edge
 //! brings the bars back, no hint: small glass buttons in the top right

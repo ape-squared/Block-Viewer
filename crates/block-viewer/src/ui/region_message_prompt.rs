@@ -1,5 +1,5 @@
 //! A message to the whole region in the middle of the screen (#1404): an
-//! Aurora addition, on by default (Preferences › Chat › Toasts), where the
+//! Block addition, on by default (Preferences › Chat › Toasts), where the
 //! Legacy Viewer only has the toast of GodMessage (notifications.xml) and
 //! the line of nearby chat, which stays. Built like the friendship offer's
 //! card (`friend_prompt.rs`): the message stays the notification center's,
@@ -217,7 +217,7 @@ mod tests {
             text,
             Data::RegionMessage {
                 from,
-                region: "Aurora Demo".into(),
+                region: "Block Demo".into(),
             },
         )
     }

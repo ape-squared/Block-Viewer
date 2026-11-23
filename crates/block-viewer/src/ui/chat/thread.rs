@@ -1,8 +1,8 @@
-//! The messages of a conversation in Aurora's workspace, as a desktop chat
+//! The messages of a conversation in Block's workspace, as a desktop chat
 //! shows them (the human's choice of 2026-10-15): left
 //! aligned and grouped by author.
 //!
-//! - Roomy (`Aurora`): the author's picture in a 56 px gutter, their name,
+//! - Roomy (`Block`): the author's picture in a 56 px gutter, their name,
 //!   tags and time once at the head of a group, then the lines; the time of
 //!   a following line shows in the gutter under the pointer.
 //! - Compact: one row per message, `time · name · text`, no pictures.
@@ -197,7 +197,7 @@ struct Who {
     avatar: uuid::Uuid,
     object: bool,
     logged: bool,
-    /// A member of the Aurora team or of Linden Lab (`world::staff`).
+    /// A member of the Block team or of Linden Lab (`world::staff`).
     mark: Option<crate::world::staff::Mark>,
 }
 

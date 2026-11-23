@@ -1,9 +1,9 @@
 //! Colour vision deficiencies (Preferences › Accessibility › Colour
 //! blindness, #418): the interface palette and the configurable colours
 //! adapted so that what tells two things apart by colour stays visible.
-//! Firestorm has no such option; this is Aurora's own.
+//! Firestorm has no such option; this is Block's own.
 //!
-//! - **The palette** (`palette`) keeps the Aurora look: only the colours
+//! - **The palette** (`palette`) keeps the Block look: only the colours
 //!   that carry a meaning and collide for the deficiency move, to a
 //!   colour-blind-safe hue (Okabe & Ito, "Color Universal Design", 2008)
 //!   of the same luminance, so that the contrast a skin was designed with
@@ -71,7 +71,7 @@ impl Deficiency {
         }
     }
 
-    /// `AURORA_DEMO_COLORBLIND` values.
+    /// `BLOCK_DEMO_COLORBLIND` values.
     pub fn parse(s: &str) -> Option<Deficiency> {
         Some(match s.trim().to_ascii_lowercase().as_str() {
             "off" | "none" => Deficiency::Off,
@@ -138,10 +138,10 @@ pub fn current() -> Vision {
     decode(CURRENT.load(Ordering::Relaxed))
 }
 
-/// `AURORA_DEMO_COLORBLIND=protan|deutan|tritan|mono[:strength]` (demo
+/// `BLOCK_DEMO_COLORBLIND=protan|deutan|tritan|mono[:strength]` (demo
 /// mode only): the vision of this run, never saved in the settings.
 pub fn demo_override() -> Option<Vision> {
-    let v = std::env::var("AURORA_DEMO_COLORBLIND").ok()?;
+    let v = std::env::var("BLOCK_DEMO_COLORBLIND").ok()?;
     let (kind, strength) = match v.split_once(':') {
         Some((k, s)) => (k, s.trim().parse::<f32>().ok()?),
         None => (v.as_str(), 1.0),

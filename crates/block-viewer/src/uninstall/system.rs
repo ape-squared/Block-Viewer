@@ -8,7 +8,7 @@ use std::path::PathBuf;
 /// The system of this run: the dry run in demo mode and in unit tests,
 /// never the computer.
 pub fn for_run() -> Box<dyn System> {
-    if cfg!(test) || std::env::var_os("AURORA_DEMO").is_some() {
+    if cfg!(test) || std::env::var_os("BLOCK_DEMO").is_some() {
         Box::new(DryRun)
     } else {
         Box::new(Computer)
@@ -85,7 +85,7 @@ impl System for DryRun {
     }
 
     fn notification_id(&self) -> Option<String> {
-        cfg!(windows).then(|| r"HKEY_CURRENT_USER\Software\Classes\AppUserModelId\Aurora.Viewer".to_owned())
+        cfg!(windows).then(|| r"HKEY_CURRENT_USER\Software\Classes\AppUserModelId\Block.Viewer".to_owned())
     }
 
     fn remove_notification_id(&mut self) -> Result<(), String> {
@@ -109,7 +109,7 @@ impl System for DryRun {
         };
         vec![AddonRemoval {
             executable: PathBuf::from(executable),
-            removed: vec![PathBuf::from("Blender/4.5/extensions/user_default/aurora_live_mesh")],
+            removed: vec![PathBuf::from("Blender/4.5/extensions/user_default/block_live_mesh")],
             backups: None,
             error: None,
         }]

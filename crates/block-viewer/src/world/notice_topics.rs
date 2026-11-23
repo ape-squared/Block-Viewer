@@ -96,7 +96,7 @@ mod tests {
     fn a_notice_keeps_its_topic_and_an_unknown_one_is_info() {
         let mut topics = Topics::default();
         let online = notice(0, "Nova Example is online.");
-        let tp = notice(1, "Teleporting to Aurora Demo…");
+        let tp = notice(1, "Teleporting to Block Demo…");
         topics.note(&online, Topic::People);
         topics.note(&tp, Topic::Teleport);
         assert_eq!(topics.of(&online), Topic::People);

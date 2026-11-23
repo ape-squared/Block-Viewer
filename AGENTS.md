@@ -1,6 +1,6 @@
 # AGENTS.md — rules for AI agents
 
-This file is for the AI agents (Claude Code, Codex, etc.) working on Aurora
+This file is for the AI agents (Claude Code, Codex, etc.) working on Block
 Viewer. **Read it in full at the start of every session**, then
 [ARCHITECTURE.md](ARCHITECTURE.md) and [TASKS.md](TASKS.md). It overrides your
 default habits. Humans have their own guide: [HUMANS.md](HUMANS.md).
@@ -71,7 +71,7 @@ it is done:
   (side-by-side screenshots, same settings).
 - **We do not copy** its outdated techniques: constraints inherited from
   OpenGL, spaced-out updates that sacrifice smoothness, historical patches.
-  Aurora is written in Rust on Vulkan: we redo things cleanly and in a modern
+  Block is written in Rust on Vulkan: we redo things cleanly and in a modern
   way, using the GPU to the full (bindless, compute, GPU culling, parallel
   work…), for a smooth viewer, flawless rendering and a very high frame rate.
 - **The network and the protocol** (messages, capabilities, rates, order of
@@ -83,12 +83,12 @@ it is done:
 
 Before porting or changing a feature, **look at how Firestorm really does
 it**, to learn the expected behaviour and its edge cases, then choose the
-best implementation for Aurora.
+best implementation for Block.
 
 - The official sources must sit **next to the repository**:
   `../phoenix-firestorm` (read-only, never inside the repository).
 - **If that folder is missing**, suggest that the human opens
-  `aurora-tools.cmd` and chooses "Repair / update" (it clones it with the
+  `block-tools.cmd` and chooses "Repair / update" (it clones it with the
   rest), or clones it alone:
 
   ```bash
@@ -108,7 +108,7 @@ best implementation for Aurora.
   Linden Research or The Phoenix Firestorm Project (a resident, another
   viewer's project, a shader's author), add or extend their line in the
   "Authors of the ported code" table of [NOTICE.md](NOTICE.md), with the
-  Aurora files that follow it. Code under another licence (MIT, BSD,
+  Block files that follow it. Code under another licence (MIT, BSD,
   Apache…) keeps its notice: its own NOTICE.md section with the licence
   text, and the notice at the top of the ported file. A test of `check.ps1`
   fails when the table names a file that no longer exists: a renamed or
@@ -155,7 +155,7 @@ gestures, wearables and object contents.
 
   A feature that needs a rule none of them gives adds it there, with its
   tests, instead of reading `owner_mask` or `everyone_mask` itself.
-- **Both interface styles.** A window with an Aurora and a Legacy style (the
+- **Both interface styles.** A window with a Block and a Legacy style (the
   `*_style` settings, the `legacy_*` panels such as
   `build/ui/legacy_texture.rs`) calls the same rule function in both. The
   tests and the check by eye (section 7) cover both styles.
@@ -168,7 +168,7 @@ gestures, wearables and object contents.
   scripting bridge, the RLVa replies, drag and drop, the clipboard, the IK
   and other project or export files, the link previews, and the demo and test
   tools apply the same rule as the main windows.
-  - An `AURORA_*` variable or a demo scenario never relaxes a permission
+  - An `BLOCK_*` variable or a demo scenario never relaxes a permission
     check. The only exception is the offline demo's own assets: the viewer
     makes them up and they belong to no one, so the demo may show their ids.
   - A published (release) build never serves the user's cache store to
@@ -188,11 +188,11 @@ gestures, wearables and object contents.
 Second Life's shared experience policy: a viewer may draw the world its own
 way, but it must not put data of its own where the grid keeps it or other
 residents receive it, so that only that viewer makes something of it.
-Aurora Weather's region weather broke it, and was removed: it wrote weather
+Block Weather's region weather broke it, and was removed: it wrote weather
 codes at the end of EEP sky and day names and hid bits in the lowest bits of
 a sky's numbers ("data smuggling").
 
-- **Never write Aurora-only data** into anything the server stores or sends
+- **Never write Block-only data** into anything the server stores or sends
   to others: assets (EEP settings, notecards, scripts, textures, meshes,
   materials, animations, gestures, wearables), object fields (names,
   descriptions, hover text, extra parameters, texture entries, unknown LLSD
@@ -201,14 +201,14 @@ a sky's numbers ("data smuggling").
 - **No hidden carrier either**: no code at the end of a name, no invisible
   characters, no low bits of numbers, no unused fields, no extra keys, no
   chat channel or message of our own for viewers to talk to each other.
-- **Never read such data back** to give Aurora users something other viewers
+- **Never read such data back** to give Block users something other viewers
   do not get, even when someone else wrote it.
 - **What is allowed**: drawing standard data better or differently, on this
-  viewer only (the weather of the Aurora Weather window, the volumetric
+  viewer only (the weather of the Block Weather window, the volumetric
   clouds); and the Legacy Viewer's own protocols exactly as it uses them
   (RLVa replies, its scripting bridge), which the server already knows.
 - **A feature that needs other residents to see the same thing** (shared
-  weather, shared effects, a marker for other Aurora users) is not built:
+  weather, shared effects, a marker for other Block users) is not built:
   stop and tell the human.
 - The review (section 11) checks it like the permissions.
 
@@ -263,9 +263,9 @@ worktree, branch, `target` folder and logs.
   A task that resumes rebuilds: its dependencies come from sccache.
 - To see the space taken by builds and free some: `./scripts/clean.ps1`
   (deletes nothing without `-Apply`).
-- `aurora-tools.cmd` (repository root) is the humans' menu: do not launch it,
+- `block-tools.cmd` (repository root) is the humans' menu: do not launch it,
   it waits for key presses. Its actions exist without the menu if needed:
-  `./scripts/tools/aurora-tools.ps1 -Action diagnose` (environment),
+  `./scripts/tools/block-tools.ps1 -Action diagnose` (environment),
   `repair`, `tasks`… If you change these tools, update HUMANS.md.
 - Once the PR is merged:
   `./scripts/end-task.ps1 -Name "avatar-gaze"` deletes the worktree and the
@@ -280,14 +280,14 @@ Demo mode simulates a server locally (a plaza, avatars, objects, messages…).
 It is your testing ground: you can launch the viewer as often as needed.
 
 ```powershell
-$env:AURORA_DEMO = "1"
+$env:BLOCK_DEMO = "1"
 cargo run -p block-viewer -- --title "Test avatar-gaze"
 ```
 
 - **Always `--title "Test <task>"`**: the window is named
-  "Aurora Viewer <version> - Test <task> (Dev)" (the build profile ends the
+  "Block Viewer <version> - Test <task> (Dev)" (the build profile ends the
   title: Dev, Release or Debug) and the log is
-  `%LOCALAPPDATA%\Aurora\AuroraViewer\data\logs\aurora-demo-test-<task>.log`.
+  `%LOCALAPPDATA%\Block\BlockViewer\data\logs\block-demo-test-<task>.log`.
   The agents' windows and logs do not get mixed up.
 - **Automated tests without human intervention**: use
   `--title "Test <task> [AUTOMATION - DO NOT TOUCH]"` and run
@@ -299,14 +299,14 @@ cargo run -p block-viewer -- --title "Test avatar-gaze"
   on the PC reads the same settings folder (`settings.json` and the files
   beside it): the human's, and every agent's from every worktree (the
   Claude app gives the viewers it launches a private copy of it,
-  `%LOCALAPPDATA%\Packages\Claude_*\LocalCache\Roaming\Aurora`, that all of
+  `%LOCALAPPDATA%\Packages\Claude_*\LocalCache\Roaming\Block`, that all of
   them share). A setting changed there, in Preferences or in the file,
   stays for the next viewers and spoils their tests: on 2026-11-20 a manual
   2 GB texture memory left by one task ran under the grid readings of
   another.
-  - A setting your test needs goes through an `AURORA_*` variable or a
+  - A setting your test needs goes through an `BLOCK_*` variable or a
     command-line argument, for that launch only
-    (`AURORA_TEXTURE_BUDGET_MB`…). If none exists, add one in your task
+    (`BLOCK_TEXTURE_BUDGET_MB`…). If none exists, add one in your task
     (docs/TESTING.md), or ask your human.
   - Before a measurement, check in the log the settings it depends on
     (the `perf settings` line, `texture_target_mb`): a value you did not
@@ -315,10 +315,10 @@ cargo run -p block-viewer -- --title "Test avatar-gaze"
     you: it may be the test of another agent, or the human's choice.
   - When the human tests in a viewer you launched, tell them that what
     they change in Preferences stays for every viewer.
-- Automatic screenshots: `AURORA_CAPTURE=<file.png>`,
-  `AURORA_CAPTURE_EXIT=1`, `AURORA_CAPTURE_FRAMES=620` (after the loading
+- Automatic screenshots: `BLOCK_CAPTURE=<file.png>`,
+  `BLOCK_CAPTURE_EXIT=1`, `BLOCK_CAPTURE_FRAMES=620` (after the loading
   fade). Look at your screenshots: they are your visual check.
-- The full list of `AURORA_*` variables is in
+- The full list of `BLOCK_*` variables is in
   [docs/TESTING.md](docs/TESTING.md); the command-line arguments are in the
   [README](README.md#command-line). **If you add, change or remove a variable
   or an argument, update the file concerned in the same PR.** For a
@@ -328,11 +328,11 @@ cargo run -p block-viewer -- --title "Test avatar-gaze"
 - The asset files of the disk cache (`cache/store`) are only read and
   written through `crate::cache` (`read`, `read_touch`, `reader`,
   `write`): never with an outside tool or `std::fs`. A scenario that takes
-  assets from a folder (`AURORA_DEMO_ARRIVAL`, `AURORA_DEMO_STREAM`'s
+  assets from a folder (`BLOCK_DEMO_ARRIVAL`, `BLOCK_DEMO_STREAM`'s
   `j2k=`) reads it through `demo::source`: plain asset files in every
   build, files of the cache's format (a store) in development builds only
   (`dev`, `ci`, `debugging`); a `--release` build takes plain folders.
-- For a new feature, add a demo scenario (`AURORA_DEMO_<NAME>`) when possible:
+- For a new feature, add a demo scenario (`BLOCK_DEMO_<NAME>`) when possible:
   it shows the feature and makes it testable without a grid.
 - Some things can only be tested on the grid (real network, voice,
   teleports…): tell the human precisely what to test (section 8).
@@ -347,11 +347,11 @@ Before each significant commit, and always before the PR:
 
 - **Build slots**: several agents share the PC, and one compile of the
   viewer crate takes 8 to 17 GB of memory. Two limits share the PC, each of
-  `AURORA_BUILD_SLOTS` slots (the human's setting, 2 by default):
-  - **the build gate**: every compile of the `aurora_viewer` crate waits for
+  `BLOCK_BUILD_SLOTS` slots (the human's setting, 2 by default):
+  - **the build gate**: every compile of the `block_viewer` crate waits for
     a free slot, whatever started it (`cargo test`, `clippy`, `build`,
     `run`, `check.ps1`). It waits without a message: a build that stays on
-    `aurora_viewer` while the processor is idle is behind the builds of
+    `block_viewer` while the processor is idle is behind the builds of
     other tasks;
   - **`check.ps1`** takes a slot of its own before clippy and the tests
     ("Waiting for a build slot…") and holds it until the end. A demo launch
@@ -375,7 +375,7 @@ Before each significant commit, and always before the PR:
   30 to 50 seconds and 9 to 10 GB after an edit (it is built without
   optimisation, section 3), more memory than clippy either way. Run it once
   the code compiles and lints, not after every edit.
-- **Tools.** "Repair / update" of `aurora-tools.cmd` installs `rg`
+- **Tools.** "Repair / update" of `block-tools.cmd` installs `rg`
   (ripgrep), `fd`, `jq` and `ast-grep`; Linux and macOS take them from
   their packages ([docs/LINUX.md](docs/LINUX.md),
   [docs/MACOS.md](docs/MACOS.md)). One that is missing is no reason to
@@ -467,7 +467,7 @@ Before each significant commit, and always before the PR:
   - do not hesitate to optimise or to rewrite cleanly, in a modern way, what
     needs it, as soon as it gains performance or smoothness, with no
     functional or visual regression;
-  - measure before and after (`AURORA_PROFILE=1`, see
+  - measure before and after (`BLOCK_PROFILE=1`, see
     [docs/TESTING.md](docs/TESTING.md#profiling)) and give the numbers in the
     PR.
 - **No regression of the rewrite**: if you change a behaviour ported from
@@ -500,7 +500,7 @@ progress, ⬜ to do. It is written in English.
 
 ## 7. Interface and branding
 
-The whole interface follows the Aurora theme: flat, clean, modern, almost
+The whole interface follows the Block theme: flat, clean, modern, almost
 square corners, discreet glass. A screen that does not look like the others
 is a defect, even if it works. The full rules are in
 [docs/BRANDING.md](docs/BRANDING.md); the points you must respect with every
@@ -613,7 +613,7 @@ change to the interface:
    - **Command refused by your tool** (Claude Code in auto mode:
      "auto-approval" on `gh pr comment` or `merge-pr.ps1`, for example): do
      not work around it. Give the command to the human, and suggest the
-     "Claude permissions" choice of `aurora-tools.cmd`, which allows the
+     "Claude permissions" choice of `block-tools.cmd`, which allows the
      follow-up commands once and for all: `gh pr view / list / checks /
      comment`, `gh run view / list / watch`, `gh issue list / view / edit /
      comment / close / reopen`, `merge-pr.ps1`, `pr-captures.ps1` and
@@ -687,7 +687,7 @@ Labels (created by `scripts/setup-labels.ps1`):
   scripts);
 - **`on-hold`**, for PRs only, when a human asks to put a PR on hold: add
   the label (`gh pr edit <n> --add-label on-hold`) and a comment saying why
-  and what will unblock it. The PR panel of `aurora-tools.cmd` stops
+  and what will unblock it. The PR panel of `block-tools.cmd` stops
   showing it. An agent neither reviews nor merges a PR on hold. When the
   human resumes it, remove the label (`--remove-label on-hold`). Issues use
   the board's `On hold` Status instead (section 15).
@@ -699,7 +699,7 @@ Labels (created by `scripts/setup-labels.ps1`):
 - **`waiting-for-slot`**, set and removed by the Review slots workflow:
   an outside contributor has at most 10 PRs in review, the others carry
   this label and come back on their own, oldest first, when a slot frees
-  up. The PR panel of `aurora-tools.cmd` hides them, like `on-hold`. Do not
+  up. The PR panel of `block-tools.cmd` hides them, like `on-hold`. Do not
   review a PR that carries it. Never add it by hand; removing it by hand
   is how a maintainer gives that PR a slot (when its author asks, or the
   human wants it reviewed first): the author's newest other PR in review
@@ -790,9 +790,9 @@ outside contributor's CI waits for a maintainer's "Approve and run", so ask
 your human to approve it, and do not read the code before. When you ask the
 author of someone else's PR for changes,
 open that comment with `## Changes requested`: the PR tracking of
-`aurora-tools.cmd` lists the PR as waiting on its author until a new
+`block-tools.cmd` lists the PR as waiting on its author until a new
 commit of its own (a merge of main does not count). Structure of your review (keep the `## Review` heading and the
-`Verdict:` line as they are: the PR tracking of `aurora-tools.cmd` reads
+`Verdict:` line as they are: the PR tracking of `block-tools.cmd` reads
 them):
 
 ```markdown
@@ -808,7 +808,7 @@ them):
 | Non-regression of neighbouring features | ✅ … |
 | Legacy Viewer fidelity | ✅ files checked: … |
 | Creators' permissions | ✅ same as the Legacy Viewer or stricter, both interface styles |
-| No data of our own in shared places | ✅ nothing Aurora-only written to or read from assets, objects, names or chat (section 2) |
+| No data of our own in shared places | ✅ nothing Block-only written to or read from assets, objects, names or chat (section 2) |
 | Credits | ✅ authors of the ported files in NOTICE.md, THIRD-PARTY-LICENSES.md regenerated if Cargo.lock changed |
 | Secrets / personal data | ✅ none |
 | Docs (README, ARCHITECTURE, TASKS) | ✅ |
@@ -840,14 +840,14 @@ the review comment.
   tag and their short identifier. `Cargo.toml` keeps the versions of the
   internal crates, without serving as the viewer's number. Do not put
   `CARGO_PKG_VERSION` back in the interface, the logs or the network clients.
-- The Release workflow provides `AURORA_VERSION_TAG` at build time, then
+- The Release workflow provides `BLOCK_VERSION_TAG` at build time, then
   checks the exe with `scripts/verify-version.ps1` and `--version`, before
   publishing. An archive without Git can receive the same variable; without
   Git or a provided tag, the build identifies itself as `0.0.0+0.gunknown`.
 - **SemVer**: `vMAJOR.MINOR.PATCH`. Before 1.0: a feature bumps MINOR, a fix
   bumps PATCH.
 - The human can publish or delete a release themselves, with the "Manage
-  releases" choice of `aurora-tools.cmd`; they can also ask you to.
+  releases" choice of `block-tools.cmd`; they can also ask you to.
 - A release is made **when the human asks for it** ("release 0.4.0"), never
   on your own initiative. If they give no number, propose one from the labels
   of the PRs merged since the last version and wait for their agreement.
@@ -856,7 +856,7 @@ the review comment.
   ```powershell
   gh run list --workflow CI --branch main --limit 1   # main must be green
   git fetch origin
-  git tag -a v0.4.0 origin/main -m "Aurora Viewer 0.4.0"
+  git tag -a v0.4.0 origin/main -m "Block Viewer 0.4.0"
   git push origin v0.4.0
   gh run list --workflow Release --limit 1   # the tag's run (a few seconds after the push)
   gh run watch <id> --exit-status
@@ -913,10 +913,10 @@ without reading or asking for a token.
 ### Read the thread and the attachments
 
 ```powershell
-gh issue list --repo Aurora-Viewer/Aurora-Viewer --state open --limit 100
-gh issue view <n> --repo Aurora-Viewer/Aurora-Viewer --json number,title,body,comments,assignees,state,url
+gh issue list --repo ape-squared/Block-Viewer --state open --limit 100
+gh issue view <n> --repo ape-squared/Block-Viewer --json number,title,body,comments,assignees,state,url
 # Long thread: read every page of comments.
-gh api repos/Aurora-Viewer/Aurora-Viewer/issues/<n>/comments --paginate
+gh api repos/ape-squared/Block-Viewer/issues/<n>/comments --paginate
 ```
 
 - Read the description, all the comments, the links to other issues / PRs and
@@ -926,7 +926,7 @@ gh api repos/Aurora-Viewer/Aurora-Viewer/issues/<n>/comments --paginate
   or PowerShell loop around them (to choose the fields: `--json … --jq …`).
   If your tool still refuses the read (Claude Code in auto mode:
   "interference with workloads"), do not work around it: suggest to the human
-  the "Claude permissions" choice of `aurora-tools.cmd`, which allows
+  the "Claude permissions" choice of `block-tools.cmd`, which allows
   these two commands once and for all.
 - **Really open the screenshots and attached files**, in the description as
   in the comments: Markdown images, HTML `<img src="…">` tags, file links
@@ -976,10 +976,10 @@ gh api repos/Aurora-Viewer/Aurora-Viewer/issues/<n>/comments --paginate
 
 ```powershell
 # Read or change the type (Bug, Feature, Task or Epic).
-gh api repos/Aurora-Viewer/Aurora-Viewer/issues/<n> --jq .type.name
-gh api -X PATCH repos/Aurora-Viewer/Aurora-Viewer/issues/<n> -f type=Bug
+gh api repos/ape-squared/Block-Viewer/issues/<n> --jq .type.name
+gh api -X PATCH repos/ape-squared/Block-Viewer/issues/<n> -f type=Bug
 # Area labels.
-gh issue edit <n> --repo Aurora-Viewer/Aurora-Viewer --add-label chat
+gh issue edit <n> --repo ape-squared/Block-Viewer --add-label chat
 ```
 
 - **Tracking** goes through the project board (below), the assignment and
@@ -996,8 +996,8 @@ preserve the changes made in the meantime by others.
 
 ### The project board
 
-The team follows the issues on the GitHub project **Aurora Team Planning**
-(organisation Aurora-Viewer). Its **Status** column says where each issue
+The team follows the issues on the GitHub project **Block Team Planning**
+(organisation Block-Viewer). Its **Status** column says where each issue
 stands:
 
 | Status | Meaning | Set by |
@@ -1068,7 +1068,7 @@ task, before the code, search the open issues with a few words of the
 feature and its Legacy Viewer name:
 
 ```powershell
-gh issue list --repo Aurora-Viewer/Aurora-Viewer --state open --search "<words> in:title,body"
+gh issue list --repo ape-squared/Block-Viewer --state open --search "<words> in:title,body"
 ```
 
 - One matches: it is your task's issue. Take it as below, link it in your
@@ -1076,7 +1076,7 @@ gh issue list --repo Aurora-Viewer/Aurora-Viewer --state open --search "<words> 
   (`Closes #<n>`, or `Refs #<n>` while a grid validation stays pending;
   section 9, "Link the PR and its issues").
 - It is an epic: never take the epic itself. Take the sub-issue that matches
-  your task (`gh api repos/Aurora-Viewer/Aurora-Viewer/issues/<epic>/sub_issues --paginate`;
+  your task (`gh api repos/ape-squared/Block-Viewer/issues/<epic>/sub_issues --paginate`;
   without `--paginate` the list stops at 30).
   An epic is closed by the project manager, once all its sub-issues are
   closed: when your PR closes the last open one, tell your human.
@@ -1089,7 +1089,7 @@ order:
 1. **Assign it to your human** (their `gh` account):
 
    ```powershell
-   gh issue edit <n> --repo Aurora-Viewer/Aurora-Viewer --add-assignee @me
+   gh issue edit <n> --repo ape-squared/Block-Viewer --add-assignee @me
    ```
 
    If the issue is already assigned to someone else, do not take it: it is
@@ -1125,7 +1125,7 @@ both are done:
 - On closing, the assignment stays: it records who did the work.
 - Run each command alone, with no `cd` or `;`, like the other `gh issue`
   commands. If your tool refuses one, do not work around it: give it to your
-  human, and suggest the "Claude permissions" choice of `aurora-tools.cmd`.
+  human, and suggest the "Claude permissions" choice of `block-tools.cmd`.
 
 ### Reply and close
 
@@ -1137,12 +1137,12 @@ both are done:
   `--body-file`.
 
   ```powershell
-  gh issue comment <n> --repo Aurora-Viewer/Aurora-Viewer --body-file .scratch/issue-reply.md
+  gh issue comment <n> --repo ape-squared/Block-Viewer --body-file .scratch/issue-reply.md
   ```
 
   If your tool refuses this command (Claude Code in auto mode: "write to an
   external system"), do not work around it: give it to the human and suggest
-  the "Claude permissions" choice of `aurora-tools.cmd`, which allows it
+  the "Claude permissions" choice of `block-tools.cmd`, which allows it
   once and for all. Run it alone, with no `cd` or `;`.
 
 - **Resolved**: close only when the solution covers the whole issue, has
@@ -1153,7 +1153,7 @@ both are done:
   body of a PR to `main` closes the issue automatically on merge; use
   `Refs #<n>` if a validation or a part of the problem will stay pending.
   Otherwise, after these checks:
-  `gh issue close <n> --repo Aurora-Viewer/Aurora-Viewer --reason completed`.
+  `gh issue close <n> --repo ape-squared/Block-Viewer --reason completed`.
   Post a summary with the link of every PR that fixed it, the tests and the
   available version, or state that the fix is still waiting for a release.
   Check the final state, including after an automatic close.
@@ -1169,7 +1169,7 @@ both are done:
   happens), and do not close an epic this way.
 - **Established duplicate**: explain the link with the reference issue (its
   number in the comment), then close with
-  `gh issue close <n> --repo Aurora-Viewer/Aurora-Viewer --duplicate-of <reference-number>`.
+  `gh issue close <n> --repo ape-squared/Block-Viewer --duplicate-of <reference-number>`.
 - **Documented out of scope**: explain and link the scope rule, then close
   with `--reason "not planned"`. A new or disputed product choice must be
   decided by the human before closing.
@@ -1187,7 +1187,7 @@ both are done:
   the last comment is from another user the team has not answered, nor
   when an open PR names the issue.
 - **Old crash reports** (sent from the crash window, the
-  `<!-- aurora-crash v1 -->` marker): a report from a version older than
+  `<!-- block-crash v1 -->` marker): a report from a version older than
   0.9.4 lacks the details that tell its cause apart (the settings that were
   on, the first GPU loss, what the card was doing). Close it with
   `--reason "not planned"` and ask for a new report from the crash window

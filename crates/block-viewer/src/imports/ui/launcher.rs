@@ -1,5 +1,5 @@
 //! Compact import entry point. Typed pickers follow llviewermenufile.cpp;
-//! the movable icon strip and shared upload queue are Aurora additions.
+//! the movable icon strip and shared upload queue are Block additions.
 
 use super::*;
 

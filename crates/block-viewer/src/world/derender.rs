@@ -15,7 +15,7 @@
 //!
 //! Deliberate difference: the Legacy Viewer waits for the simulator to send
 //! an object again once it leaves the list (a removed object may stay away
-//! until the next teleport). Aurora puts it back at once from the last
+//! until the next teleport). Block puts it back at once from the last
 //! update it kept, then asks the simulator for it (RequestMultipleObjects).
 //!
 //! "Show Friends Only" (FSRenderFriendsOnly, `friends_only.rs`) hides the
@@ -39,7 +39,7 @@ pub const FILE: &str = "asset_blacklist.xml";
 /// FSAssetBlacklist's MAGIC_ID: the key that masks the UUIDs of the file.
 const MAGIC_ID: Uuid = Uuid::from_u128(0x3c11_5e51_04f4_523c_9fa6_98af_f103_4730);
 
-/// LLAssetType values of the file's entries Aurora acts on.
+/// LLAssetType values of the file's entries Block acts on.
 const AT_OBJECT: i32 = 6;
 const AT_SOUND: i32 = 1;
 const AT_ANIMATION: i32 = 20;
@@ -121,7 +121,7 @@ pub struct Restore {
 #[derive(Default)]
 pub struct Derender {
     entries: HashMap<Uuid, Entry>,
-    /// The file's entries of other asset types (textures): Aurora does
+    /// The file's entries of other asset types (textures): Block does
     /// not act on them and writes them back as they came.
     other: Vec<(String, Llsd)>,
     hidden: HashMap<ObjKey, Hidden>,
@@ -183,7 +183,7 @@ pub fn now_secs() -> i64 {
 /// The lists whose write was refused: tried again (`save_retry`), once more
 /// at exit, and read from here by a login meanwhile.
 /// FSAssetBlacklist::saveBlacklist writes once and warns.
-static OWED: crate::save_retry::OwedFiles = crate::save_retry::OwedFiles::new("aurora-asset-blacklist", "asset blacklist");
+static OWED: crate::save_retry::OwedFiles = crate::save_retry::OwedFiles::new("block-asset-blacklist", "asset blacklist");
 
 /// The viewer closing: a list still owed is tried once more.
 pub fn save_before_exit() {
@@ -852,7 +852,7 @@ mod tests {
 
     #[test]
     fn animation_entries_persist_as_the_legacy_asset_type_and_never_derender() {
-        let dir = std::env::temp_dir().join(format!("aurora-animation-blacklist-{}", Uuid::new_v4()));
+        let dir = std::env::temp_dir().join(format!("block-animation-blacklist-{}", Uuid::new_v4()));
         let path = dir.join(FILE);
         let anim = Uuid::from_u128(404);
         let mut list = Derender::load(path.clone());
@@ -873,7 +873,7 @@ mod tests {
 
     #[test]
     fn sound_explorer_sound_flags_persist_merge_and_never_derender_the_owner() {
-        let dir = std::env::temp_dir().join(format!("aurora-sound-blacklist-{}", Uuid::new_v4()));
+        let dir = std::env::temp_dir().join(format!("block-sound-blacklist-{}", Uuid::new_v4()));
         let path = dir.join(FILE);
         let owner = Uuid::from_u128(101);
         let asset = Uuid::from_u128(202);
@@ -899,7 +899,7 @@ mod tests {
 
     #[test]
     fn avatar_sound_category_switches_set_and_clear_independent_persistent_bits() {
-        let dir = std::env::temp_dir().join(format!("aurora-avatar-sound-categories-{}", Uuid::new_v4()));
+        let dir = std::env::temp_dir().join(format!("block-avatar-sound-categories-{}", Uuid::new_v4()));
         let path = dir.join(FILE);
         let owner = Uuid::from_u128(101);
         let asset = Uuid::from_u128(202);
@@ -937,7 +937,7 @@ mod tests {
 
     #[test]
     fn blacklist_sound_categories_can_be_removed_independently_across_relogs() {
-        let dir = std::env::temp_dir().join(format!("aurora-blacklist-rows-{}", Uuid::new_v4()));
+        let dir = std::env::temp_dir().join(format!("block-blacklist-rows-{}", Uuid::new_v4()));
         let path = dir.join(FILE);
         let owner = Uuid::from_u128(101);
         let asset = Uuid::from_u128(202);
@@ -989,9 +989,9 @@ mod tests {
 
     #[test]
     fn permanent_entries_survive_a_relog_and_others_are_kept_untouched() {
-        let dir = std::env::temp_dir().join(format!("aurora-blacklist-{}", Uuid::new_v4()));
+        let dir = std::env::temp_dir().join(format!("block-blacklist-{}", Uuid::new_v4()));
         let path = dir.join(FILE);
-        // a sound entry written by the Legacy Viewer, which Aurora keeps
+        // a sound entry written by the Legacy Viewer, which Block keeps
         let sound = Uuid::from_u128(77);
         let mut legacy = block_llsd::Map::new();
         let mut data = block_llsd::Map::new();

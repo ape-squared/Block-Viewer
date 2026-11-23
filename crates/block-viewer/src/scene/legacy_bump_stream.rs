@@ -333,7 +333,7 @@ mod tests {
     }
 
     fn streamer() -> TextureStreamer {
-        TextureStreamer::new(std::env::temp_dir().join(format!("aurora-bump-{}", Uuid::new_v4())))
+        TextureStreamer::new(std::env::temp_dir().join(format!("block-bump-{}", Uuid::new_v4())))
     }
 
     #[test]

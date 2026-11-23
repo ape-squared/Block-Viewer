@@ -176,7 +176,7 @@ impl Job {
 /// Open capture menus after the startup focus/size changes have settled.
 pub fn demo_menu(frame: u64, st: &mut InventoryUi) {
     if frame == 650
-        && let Ok(mode) = std::env::var("AURORA_DEMO_INVENTORY")
+        && let Ok(mode) = std::env::var("BLOCK_DEMO_INVENTORY")
     {
         st.demo_menu = match mode.as_str() {
             "bulk-multi" => Some(Uuid::from_u128(8100)),

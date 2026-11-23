@@ -1,5 +1,5 @@
 //! Rainbow and 22° halo in the offline demo
-//! (`AURORA_DEMO_SKY_OPTICS=rainbow|halo|clear`):
+//! (`BLOCK_DEMO_SKY_OPTICS=rainbow|halo|clear`):
 //! the region answers its ExtEnvironment with a one-key day whose sky has a
 //! moisture level (rainbow) or an ice level (halo), the light placed for the
 //! demo camera, which looks east.
@@ -27,7 +27,7 @@ const REGION_FRAME: u64 = 40;
 
 fn scenario() -> &'static str {
     static S: OnceLock<String> = OnceLock::new();
-    S.get_or_init(|| std::env::var("AURORA_DEMO_SKY_OPTICS").unwrap_or_default().trim().to_owned())
+    S.get_or_init(|| std::env::var("BLOCK_DEMO_SKY_OPTICS").unwrap_or_default().trim().to_owned())
 }
 
 fn arr(v: &[f32]) -> Llsd {
@@ -229,7 +229,7 @@ fn halo() -> (Vec<u8>, u32, u32) {
 /// offline demo's scenario only: these are the ids of Second Life's own
 /// textures, which a grid session fetches.
 pub fn texture(id: &Uuid) -> Option<(Vec<u8>, u32, u32)> {
-    if std::env::var_os("AURORA_DEMO").is_none() || view_direction().is_none() {
+    if std::env::var_os("BLOCK_DEMO").is_none() || view_direction().is_none() {
         None
     } else if *id == DEFAULT_RAINBOW_ID {
         Some(rainbow())

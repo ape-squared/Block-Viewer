@@ -1,6 +1,6 @@
 //! Order-independent transparency by depth-based stochastic transparency
 //! (the "Stochastic" choice of the order of transparent surfaces;
-//! `AURORA_OIT` in docs/TESTING.md). An Aurora addition:
+//! `BLOCK_OIT` in docs/TESTING.md). A Block addition:
 //! the Legacy Viewer sorts its alpha (LLDrawPoolAlpha).
 //!
 //! Enderton, Sintorn, Shirley and Luebke, "Stochastic Transparency", I3D
@@ -170,13 +170,13 @@ pub enum Method {
     Stochastic,
 }
 
-/// `AURORA_OIT` read once.
+/// `BLOCK_OIT` read once.
 fn env_value() -> Option<&'static str> {
     static VALUE: std::sync::OnceLock<Option<String>> = std::sync::OnceLock::new();
-    VALUE.get_or_init(|| std::env::var("AURORA_OIT").ok()).as_deref()
+    VALUE.get_or_init(|| std::env::var("BLOCK_OIT").ok()).as_deref()
 }
 
-/// The method for an `AURORA_OIT` value (`0` off, `1` or `stochastic` on,
+/// The method for an `BLOCK_OIT` value (`0` off, `1` or `stochastic` on,
 /// whatever the setting; anything else, or none, leaves it to the setting)
 /// and `RenderSettings::oit`.
 pub(crate) fn method_with(env: Option<&str>, setting_oit: bool) -> Method {
@@ -205,10 +205,10 @@ pub(crate) fn method(setting_oit: bool) -> Method {
     method_with(env_value(), setting_oit)
 }
 
-/// With `AURORA_OIT=alt`: this second draws the order the setting names.
+/// With `BLOCK_OIT=alt`: this second draws the order the setting names.
 static ALT_OFF: std::sync::atomic::AtomicBool = std::sync::atomic::AtomicBool::new(false);
 
-/// Whether `AURORA_OIT=alt` is set: the method two seconds in three, the
+/// Whether `BLOCK_OIT=alt` is set: the method two seconds in three, the
 /// order the setting names the third (`set_alt_off`; `xmode=old` on the
 /// profile lines), to compare the two from one place in one run. Its
 /// targets stay through that second.
@@ -264,7 +264,7 @@ pub(crate) fn st_object_source_with(src: &str, prim: bool) -> String {
 
 /// `src` (the method's object.wgsl or the resolve's source) with its
 /// `ST_GUARDS` constant set: false turns off the tests for a NaN of the
-/// alpha passes and of the resolve's samples (`AURORA_ST_GUARDS=0`, to
+/// alpha passes and of the resolve's samples (`BLOCK_ST_GUARDS=0`, to
 /// measure what they cost; the history's test stays). Unchanged when on.
 pub(crate) fn with_guards(src: String, on: bool) -> String {
     if on {
@@ -275,7 +275,7 @@ pub(crate) fn with_guards(src: String, on: bool) -> String {
     off
 }
 
-/// Whether an `AURORA_ST_GUARDS` value leaves the NaN tests on: only `0`
+/// Whether an `BLOCK_ST_GUARDS` value leaves the NaN tests on: only `0`
 /// turns them off, and only in a development build (`dev`, `ci`,
 /// `debugging`): a published viewer keeps its guards whatever is set.
 fn guards_from(value: Option<&str>, development: bool) -> bool {
@@ -286,23 +286,23 @@ fn guards_from(value: Option<&str>, development: bool) -> bool {
 static DEVELOPMENT: std::sync::atomic::AtomicBool = std::sync::atomic::AtomicBool::new(false);
 
 /// Tells the method the viewer's build profile, at start, before any frame:
-/// `AURORA_ST_GUARDS` is read by development builds only.
+/// `BLOCK_ST_GUARDS` is read by development builds only.
 pub fn set_development_build(on: bool) {
     DEVELOPMENT.store(on, std::sync::atomic::Ordering::Relaxed);
 }
 
-/// `AURORA_ST_GUARDS` read once (a measurement switch, docs/TESTING.md).
+/// `BLOCK_ST_GUARDS` read once (a measurement switch, docs/TESTING.md).
 fn guards_on() -> bool {
     static VALUE: std::sync::OnceLock<bool> = std::sync::OnceLock::new();
     *VALUE.get_or_init(|| {
         guards_from(
-            std::env::var("AURORA_ST_GUARDS").ok().as_deref(),
+            std::env::var("BLOCK_ST_GUARDS").ok().as_deref(),
             DEVELOPMENT.load(std::sync::atomic::Ordering::Relaxed),
         )
     })
 }
 
-/// The most samples an `AURORA_ST_SAMPLES` value allows a pass: 4 or 8;
+/// The most samples an `BLOCK_ST_SAMPLES` value allows a pass: 4 or 8;
 /// anything else, or none, leaves the most there is.
 fn samples_cap_from(value: Option<&str>) -> u32 {
     match value.map(str::trim) {
@@ -311,10 +311,10 @@ fn samples_cap_from(value: Option<&str>) -> u32 {
     }
 }
 
-/// `AURORA_ST_SAMPLES` read once (a measurement switch, docs/TESTING.md).
+/// `BLOCK_ST_SAMPLES` read once (a measurement switch, docs/TESTING.md).
 fn samples_cap() -> u32 {
     static VALUE: std::sync::OnceLock<u32> = std::sync::OnceLock::new();
-    *VALUE.get_or_init(|| samples_cap_from(std::env::var("AURORA_ST_SAMPLES").ok().as_deref()))
+    *VALUE.get_or_init(|| samples_cap_from(std::env::var("BLOCK_ST_SAMPLES").ok().as_deref()))
 }
 
 /// The directive the method's module starts with when the triangle index
@@ -1238,7 +1238,7 @@ impl Stochastic {
         self.idle = 0;
     }
 
-    /// A frame of the other order under `AURORA_OIT=alt`: the targets stay,
+    /// A frame of the other order under `BLOCK_OIT=alt`: the targets stay,
     /// what they hold is no longer the last frame's.
     pub fn pause(&mut self) {
         self.history_ready = false;

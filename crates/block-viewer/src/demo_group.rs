@@ -1,9 +1,9 @@
 //! Demo group server: what the dataserver answers about the demo groups
 //! (GroupMembersRequest, GroupRoleDataRequest, GroupRoleMembersRequest,
 //! GroupTitlesRequest, GroupNoticesListRequest, JoinGroupRequest), so that
-//! the group profile shows a full group offline. "Aurora Builders" has its
+//! the group profile shows a full group offline. "Block Builders" has its
 //! named members (the founder, an officer, a builder…) among 1248; our own
-//! place in it follows `AURORA_DEMO_GROUP_PROFILE`:
+//! place in it follows `BLOCK_DEMO_GROUP_PROFILE`:
 //! - `1` or `member`: a builder (the default);
 //! - `officer`: an officer, who may invite and sees the roles and donations;
 //! - `owner`: an owner, every ability;
@@ -18,7 +18,7 @@
 //! 1 024 we may give, and eight weeks of accounts; `:experiences` the
 //! Experiences tab: the group owns the sandbox's doors, whose profile reads
 //! and changes our permission. `:classic` anywhere after the scenario shows
-//! the classic window (Preferences › Aurora › Profiles), the section of the
+//! the classic window (Preferences › Block › Profiles), the section of the
 //! chosen tab open.
 //!
 //! The other demo groups get generated members and the three roles every
@@ -45,7 +45,7 @@ pub enum Scenario {
 }
 
 pub fn scenario() -> Scenario {
-    let v = std::env::var("AURORA_DEMO_GROUP_PROFILE").unwrap_or_default();
+    let v = std::env::var("BLOCK_DEMO_GROUP_PROFILE").unwrap_or_default();
     match v.split(':').next().unwrap_or_default() {
         "officer" | "officier" => Scenario::Officer,
         "owner" | "proprietaire" | "propriétaire" => Scenario::Owner,
@@ -57,27 +57,27 @@ pub fn scenario() -> Scenario {
 /// `<scenario>:admin`: the window opens on the Administration tab
 /// (`:identity` on its Group identity section).
 pub fn admin_tab() -> bool {
-    std::env::var("AURORA_DEMO_GROUP_PROFILE").is_ok_and(|v| matches!(v.split(':').nth(1), Some("admin" | "identity")))
+    std::env::var("BLOCK_DEMO_GROUP_PROFILE").is_ok_and(|v| matches!(v.split(':').nth(1), Some("admin" | "identity")))
 }
 
 /// `<scenario>[:…]:classic`: the classic look of the group profile.
 pub fn profile_classic() -> bool {
-    std::env::var("AURORA_DEMO_GROUP_PROFILE").is_ok_and(|v| v.split(':').skip(1).any(|p| p == "classic"))
+    std::env::var("BLOCK_DEMO_GROUP_PROFILE").is_ok_and(|v| v.split(':').skip(1).any(|p| p == "classic"))
 }
 
 /// A wide profile for comparing the notice's two-column layout.
 pub fn profile_wide() -> bool {
-    std::env::var("AURORA_DEMO_GROUP_PROFILE").is_ok_and(|v| v.split(':').skip(1).any(|p| p == "wide"))
+    std::env::var("BLOCK_DEMO_GROUP_PROFILE").is_ok_and(|v| v.split(':').skip(1).any(|p| p == "wide"))
 }
 
 pub fn identity_section() -> bool {
-    std::env::var("AURORA_DEMO_GROUP_PROFILE").is_ok_and(|v| v.split(':').nth(1) == Some("identity"))
+    std::env::var("BLOCK_DEMO_GROUP_PROFILE").is_ok_and(|v| v.split(':').nth(1) == Some("identity"))
 }
 
 /// `<scenario>:land`: the window opens on the "Land and L$" tab, on the
 /// planning page (`:land-details`, `:land-sales` on the others).
 pub fn land_tab() -> Option<Ledger> {
-    let v = std::env::var("AURORA_DEMO_GROUP_PROFILE").ok()?;
+    let v = std::env::var("BLOCK_DEMO_GROUP_PROFILE").ok()?;
     match v.split(':').nth(1)? {
         "land" => Some(Ledger::Planning),
         "land-details" => Some(Ledger::Details),
@@ -88,10 +88,10 @@ pub fn land_tab() -> Option<Ledger> {
 
 /// `<scenario>:experiences`: the window opens on the Experiences tab.
 pub fn experiences_tab() -> bool {
-    std::env::var("AURORA_DEMO_GROUP_PROFILE").is_ok_and(|v| v.split(':').nth(1) == Some("experiences"))
+    std::env::var("BLOCK_DEMO_GROUP_PROFILE").is_ok_and(|v| v.split(':').nth(1) == Some("experiences"))
 }
 
-/// The experience "Aurora Builders" owns: the sandbox's doors, land-scope.
+/// The experience "Block Builders" owns: the sandbox's doors, land-scope.
 pub const GROUP_EXPERIENCE: Uuid = Uuid::from_u128(0x6E60_0000_0000_4000_8000_0000_0000_0001);
 
 /// The agent's permission for the group's experience during the run.
@@ -106,7 +106,7 @@ fn group_experience() -> ExperienceDetails {
         maturity: block_net::search::SIM_ACCESS_PG,
         owner: DEMO_LOUP,
         group: DEMO_GROUP1,
-        slurl: "secondlife://Aurora%20D%C3%A9mo/64/200/24".into(),
+        slurl: "secondlife://Block%20D%C3%A9mo/64/200/24".into(),
         ..Default::default()
     }
 }
@@ -114,14 +114,14 @@ fn group_experience() -> ExperienceDetails {
 /// `<scenario>:members`: the window opens on the Members tab, a builder
 /// selected.
 pub fn members_tab() -> Option<Uuid> {
-    let v = std::env::var("AURORA_DEMO_GROUP_PROFILE").ok()?;
+    let v = std::env::var("BLOCK_DEMO_GROUP_PROFILE").ok()?;
     (v.split(':').nth(1) == Some("members")).then_some(DEMO_NOVA)
 }
 
 /// `<scenario>:invite`: the invitation window, with two residents who are
 /// not in the group and one who is ("already in the group" once sent).
 pub fn invitees() -> Option<Vec<Uuid>> {
-    let v = std::env::var("AURORA_DEMO_GROUP_PROFILE").ok()?;
+    let v = std::env::var("BLOCK_DEMO_GROUP_PROFILE").ok()?;
     (v.split(':').nth(1) == Some("invite")).then(|| vec![super::DEMO_FRIEND, Uuid::from_u128(MEMBER | 5000), DEMO_NOVA])
 }
 
@@ -138,7 +138,7 @@ const MEMBER: u128 = 0x6E6E_0000_0000_0000_0000_0000_0000_0000;
 const LUNE: u128 = MEMBER | 1;
 const PIXEL: u128 = MEMBER | 2;
 const IRIS: u128 = MEMBER | 3;
-/// The roles of "Aurora Builders" (the "everyone" role is nil).
+/// The roles of "Block Builders" (the "everyone" role is nil).
 const OWNERS: Uuid = Uuid::from_u128(0x6E40_0000_0000_0000_0000_0000_0000_0001);
 const OFFICERS: Uuid = Uuid::from_u128(0x6E40_0000_0000_0000_0000_0000_0000_0002);
 const BUILDERS: Uuid = Uuid::from_u128(0x6E40_0000_0000_0000_0000_0000_0000_0003);
@@ -157,12 +157,12 @@ const DEFAULT_OFFICER: u64 = DEFAULT_MEMBER
     | powers::MEMBER_VISIBLE_IN_DIR
     | powers::SESSION_POST_LINKS;
 
-/// With AURORA_DEMO_GROUP_PROFILE, the region applies the ability to post
+/// With BLOCK_DEMO_GROUP_PROFILE, the region applies the ability to post
 /// links in group chat, like the grid's (GroupChatPostLinksEnabled), so the
 /// role editor lists it; `<scenario>:no-links` leaves it off, as on a
 /// region that does not apply it yet.
 pub fn simulator_features() -> Option<NetEvent> {
-    let v = std::env::var("AURORA_DEMO_GROUP_PROFILE").ok()?;
+    let v = std::env::var("BLOCK_DEMO_GROUP_PROFILE").ok()?;
     Some(NetEvent::SimulatorFeatures {
         handle: super::HANDLE,
         animated_object_max_tris: 0,
@@ -183,14 +183,14 @@ pub fn simulator_features() -> Option<NetEvent> {
     })
 }
 
-/// Our powers in "Aurora Builders" (AgentGroupDataUpdate).
+/// Our powers in "Block Builders" (AgentGroupDataUpdate).
 pub fn my_powers() -> u64 {
     match scenario() {
         Scenario::Owner => u64::MAX,
         Scenario::Officer => DEFAULT_OFFICER,
-        // AURORA_DEMO_CONV_MODERATE: every ability, to moderate its chat
+        // BLOCK_DEMO_CONV_MODERATE: every ability, to moderate its chat
         _ if crate::ui::chat::moderation::demo_mode().is_some() => u64::MAX,
-        // AURORA_DEMO_SOCIAL_MENU: someone to invite into it
+        // BLOCK_DEMO_SOCIAL_MENU: someone to invite into it
         _ if super::social_menu::step().is_some() => DEFAULT_OFFICER,
         _ => DEFAULT_MEMBER,
     }
@@ -398,7 +398,7 @@ fn spec(group: &Uuid) -> Option<Spec> {
     Some(Spec { members, roles, pairs })
 }
 
-/// The titles we can wear in "Aurora Builders": those of our roles.
+/// The titles we can wear in "Block Builders": those of our roles.
 fn titles() -> Vec<GroupTitle> {
     let t = |title: &str, role: Uuid, selected: bool| GroupTitle {
         title: title.into(),
@@ -420,7 +420,7 @@ fn titles() -> Vec<GroupTitle> {
     v
 }
 
-/// The notices of "Aurora Builders", newest first.
+/// The notices of "Block Builders", newest first.
 fn notices() -> Vec<NoticeSummary> {
     let now = std::time::SystemTime::now()
         .duration_since(std::time::UNIX_EPOCH)
@@ -499,7 +499,7 @@ fn notice_im(notice: &Uuid) -> Option<NetEvent> {
 /// `<scenario>:notices`: the Notices tab, the two latest notices unread;
 /// `:compose` on a new notice.
 pub fn notices_tab() -> Option<(Uuid, Vec<Uuid>, bool)> {
-    let v = std::env::var("AURORA_DEMO_GROUP_PROFILE").ok()?;
+    let v = std::env::var("BLOCK_DEMO_GROUP_PROFILE").ok()?;
     let mode = v.split(':').nth(1)?;
     matches!(mode, "notices" | "compose").then(|| (DEMO_GROUP1, read_but_two(), mode == "compose"))
 }
@@ -509,14 +509,14 @@ pub fn read_but_two() -> Vec<Uuid> {
     notices().iter().skip(2).map(|n| n.id).collect()
 }
 
-/// Our land given to "Aurora Builders" (AgentGroupDataUpdate), in m².
+/// Our land given to "Block Builders" (AgentGroupDataUpdate), in m².
 pub const MY_CONTRIBUTION: i32 = 512;
 /// The land the demo account may hold and holds (MoneyBalanceReply): 512
 /// m² left, so 1 024 m² we may give to the group.
 pub const LAND_CREDIT: i32 = 4096;
 pub const LAND_COMMITTED: i32 = 3584;
 
-/// PlacesReply of "Aurora Builders": the totals block, then the sandbox of
+/// PlacesReply of "Block Builders": the totals block, then the sandbox of
 /// the plaza and a workshop in the sandbox region (sent in two packets, as
 /// a long list is).
 fn group_land(group: Uuid, transaction: Uuid) -> Vec<NetEvent> {
@@ -538,7 +538,7 @@ fn group_land(group: Uuid, transaction: Uuid) -> Vec<NetEvent> {
             totals: None,
             parcels: vec![parcel(
                 block_i18n::tr!("demo-group-land-workshop"),
-                block_i18n::tr!("common-aurora-demo"),
+                block_i18n::tr!("common-block-demo"),
                 (256_140.0, 256_130.0),
                 512,
             )],
@@ -554,7 +554,7 @@ fn group_land(group: Uuid, transaction: Uuid) -> Vec<NetEvent> {
     }
     let sandbox = parcel(
         block_i18n::tr!("demo-group-land-sandbox"),
-        block_i18n::tr!("common-aurora-demo"),
+        block_i18n::tr!("common-block-demo"),
         (256_000.0 + 64.0, 256_000.0 + 200.0),
         4096,
     );
@@ -604,7 +604,7 @@ fn date(days: i64) -> String {
     format!("{y:04}-{m:02}-{d:02}")
 }
 
-/// The accounts of "Aurora Builders", by week: the plaza's sales and the
+/// The accounts of "Block Builders", by week: the plaza's sales and the
 /// members' gifts, less the land fees; nothing older than six weeks.
 fn group_account(r: &AccountRequest) -> Vec<NetEvent> {
     let weeks = if r.ledger == Ledger::Planning { 0 } else { r.interval };
@@ -692,16 +692,16 @@ fn group_account(r: &AccountRequest) -> Vec<NetEvent> {
     }
 }
 
-/// The charter of "Aurora Builders", with a place link.
+/// The charter of "Block Builders", with a place link.
 fn charter() -> String {
     format!(
-        "{}\n{} http://maps.secondlife.com/secondlife/Aurora%20D%C3%A9mo/64/200/24",
+        "{}\n{} http://maps.secondlife.com/secondlife/Block%20D%C3%A9mo/64/200/24",
         block_i18n::tr!("demo-resident-in-block-viewer-s-offline-demo"),
         block_i18n::tr!("demo-group-charter")
     )
 }
 
-/// `AURORA_DEMO_GROUP_CREATE=<mode>[:classic]`: the "Create a group" window
+/// `BLOCK_DEMO_GROUP_CREATE=<mode>[:classic]`: the "Create a group" window
 /// - `form`: empty, as opened from People › Groups;
 /// - `cost`: filled, "Create" clicked: the fee to confirm;
 /// - `refused`: sent with the name of a demo group: the server refuses it;
@@ -717,7 +717,7 @@ pub enum CreateScenario {
 }
 
 pub fn create_scenario() -> Option<CreateScenario> {
-    let v = std::env::var("AURORA_DEMO_GROUP_CREATE").ok()?;
+    let v = std::env::var("BLOCK_DEMO_GROUP_CREATE").ok()?;
     Some(match v.split(':').next().unwrap_or_default() {
         "cost" | "cout" | "coût" => CreateScenario::Cost,
         "refused" | "refuse" | "refusé" => CreateScenario::Refused,
@@ -730,7 +730,7 @@ pub fn create_scenario() -> Option<CreateScenario> {
 /// `<mode>:classic`: the classic look (Firestorm's creation panel, and the
 /// classic profile of the new group).
 pub fn create_classic() -> bool {
-    std::env::var("AURORA_DEMO_GROUP_CREATE").is_ok_and(|v| v.split(':').any(|p| p == "classic"))
+    std::env::var("BLOCK_DEMO_GROUP_CREATE").is_ok_and(|v| v.split(':').any(|p| p == "classic"))
 }
 
 /// The fee of a new group by membership in the creation scenarios (the
@@ -760,7 +760,7 @@ pub fn login_benefits() -> Option<Vec<(&'static str, block_llsd::Llsd)>> {
 /// The name the scenarios type: a new one, or a demo group's (`refused`).
 pub fn create_name(scenario: CreateScenario) -> &'static str {
     match scenario {
-        CreateScenario::Refused => "Aurora Builders",
+        CreateScenario::Refused => "Block Builders",
         _ => "Lagoon Painters",
     }
 }
@@ -778,7 +778,7 @@ fn created(group: &Uuid) -> Option<block_net::search::GroupProfile> {
 pub fn create(name: &str, info: &block_net::groups::GroupInfo, balance: i32, fee: i32, can_join: bool) -> Vec<NetEvent> {
     let taken = super::search::group_named(name)
         || [
-            "Aurora Builders",
+            "Block Builders",
             block_i18n::tr!("demo-northern-wolves"),
             block_i18n::tr!("common-plaza-market"),
         ]
@@ -947,7 +947,7 @@ pub fn reply(cmd: &NetCommand) -> Option<Vec<NetEvent>> {
         }
         // a ban in all our groups: each group answers; the Northern Wolves
         // refuse, so that the report has both lists
-        // (AURORA_DEMO_CONV_MODERATE=ban-all-run)
+        // (BLOCK_DEMO_CONV_MODERATE=ban-all-run)
         NetCommand::BanInGroups { agent, groups, ban } => {
             log::info!("demo group: ban {ban} of {agent} in {} group(s)", groups.len());
             groups
@@ -993,7 +993,7 @@ pub fn reply(cmd: &NetCommand) -> Option<Vec<NetEvent>> {
             log::info!("demo group: notice sent ({} bytes attached)", bucket.len().saturating_sub(1));
             vec![NetEvent::InstantMessage(block_net::InstantMessage {
                 from_agent_id: DEMO_GROUP1,
-                from_name: "Aurora Demo".into(),
+                from_name: "Block Demo".into(),
                 to_agent_id: DEMO_AGENT,
                 dialog: 32,
                 session_id: Uuid::new_v4(),
@@ -1010,7 +1010,7 @@ pub fn reply(cmd: &NetCommand) -> Option<Vec<NetEvent>> {
             Vec::new()
         }
         NetCommand::GroupLandQuery { group, transaction } => group_land(*group, *transaction),
-        // getGroupExperiencesCoro: "Aurora Builders" owns one
+        // getGroupExperiencesCoro: "Block Builders" owns one
         NetCommand::GroupExperiences(group) => vec![NetEvent::GroupExperiences {
             group: *group,
             ids: if *group == DEMO_GROUP1 {
@@ -1121,7 +1121,7 @@ mod tests {
             ..Default::default()
         };
         let refused = |events: Vec<NetEvent>| matches!(events.as_slice(), [NetEvent::GroupCreated { success: false, .. }]);
-        assert!(refused(create("aurora builders", &info, 1000, 100, true)), "a demo group's name");
+        assert!(refused(create("block builders", &info, 1000, 100, true)), "a demo group's name");
         assert!(refused(create("Test Fee Group", &info, 50, 100, true)), "not enough L$");
         assert!(refused(create("Test Limit Group", &info, 1000, 100, false)), "the group limit");
         let events = create("Test Created Group", &info, 1000, 100, true);
@@ -1143,7 +1143,7 @@ mod tests {
     }
 
     #[test]
-    fn aurora_builders_has_its_named_members_among_all() {
+    fn block_builders_has_its_named_members_among_all() {
         let s = spec(&DEMO_GROUP1).expect("demo group");
         assert_eq!(s.members.len(), 1248);
         let online = s.members.iter().filter(|m| m.last_seen == LastSeen::Online).count();

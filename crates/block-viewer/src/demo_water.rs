@@ -15,7 +15,7 @@ pub const CONTACT_ANIM: Uuid = Uuid::from_u128(0x9950_2aa0_0000_0000_0000_0000_0
 
 pub fn mode() -> Option<&'static str> {
     static MODE: OnceLock<Option<String>> = OnceLock::new();
-    MODE.get_or_init(|| std::env::var("AURORA_DEMO_WATER").ok()).as_deref()
+    MODE.get_or_init(|| std::env::var("BLOCK_DEMO_WATER").ok()).as_deref()
 }
 
 /// Fixed wave and actor phase for same-camera optical comparisons.

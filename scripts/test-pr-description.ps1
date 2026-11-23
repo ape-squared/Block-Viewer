@@ -84,7 +84,7 @@ Assert-Pr ((@(Get-PrDescriptionProblems 'No issue')[0]).Contains('TEMPLATE_URL')
 
 # the comment
 $comment = Format-PrDescriptionComment @('A.', 'See [it](TEMPLATE_URL).') 'https://example.org/t' '2026-11-11' 'someone'
-Assert-Pr ($comment.StartsWith('## Changes requested')) 'The comment must open with "## Changes requested" (Aurora Tools PR panel).'
+Assert-Pr ($comment.StartsWith('## Changes requested')) 'The comment must open with "## Changes requested" (Block Tools PR panel).'
 Assert-Pr ($comment.TrimEnd().EndsWith($PrDescriptionMarker)) 'The comment must end with its marker.'
 Assert-Pr ($comment -match '(?m)^1\. A\.$' -and $comment.Contains('2. See [it](https://example.org/t).')) 'The comment numbers each missing part and links the template.'
 Assert-Pr ($comment.Contains('Hi @someone') -and $comment.Contains('2 things')) 'The comment greets the author and counts the points.'

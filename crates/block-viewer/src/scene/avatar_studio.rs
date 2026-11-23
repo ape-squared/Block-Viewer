@@ -16,7 +16,7 @@ const PODIUM_BEVEL: f32 = 0.055;
 
 /// T-pose follows the shaped rest skeleton, as reset-joint posing does
 /// (FSPoserAnimator::resetJoint, indra/newview/fsposeranimator.cpp).
-/// Aurora's A-pose lowers each straight arm 45 degrees. Apply only to the
+/// Block's A-pose lowers each straight arm 45 degrees. Apply only to the
 /// final displayed palette, never to animation signals or held blend state.
 pub(super) fn inspection_pose(
     rig: &super::anim::Rig,

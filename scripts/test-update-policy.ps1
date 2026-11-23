@@ -1,7 +1,7 @@
 ﻿# Local policy/tag fixtures; never publishes a release or changes the checkout.
 $ErrorActionPreference = 'Stop'
 . "$PSScriptRoot/tools/update-policy.ps1"
-$taskRoot = Join-Path ([IO.Path]::GetTempPath()) "aurora-policy-test-$([Guid]::NewGuid().ToString('N'))"
+$taskRoot = Join-Path ([IO.Path]::GetTempPath()) "block-policy-test-$([Guid]::NewGuid().ToString('N'))"
 New-Item -ItemType Directory -Path $taskRoot | Out-Null
 function Assert-PolicyTest([bool]$Condition, [string]$Message) { if (-not $Condition) { throw $Message } }
 try {
@@ -14,7 +14,7 @@ try {
     $blob = git -C $taskRoot hash-object -w update-policy.json
     $old = '{"schema":1,"version":"0.3.0","minimum_supported_version":null,"cache_invalidation_before":"0.3.0","settings_reset_before":null}'
     $messageFile = Join-Path $taskRoot 'tag-message.txt'
-    [IO.File]::WriteAllText($messageFile, "Fixture`nAurora-Update-Policy: $old", [Text.UTF8Encoding]::new($false))
+    [IO.File]::WriteAllText($messageFile, "Fixture`nBlock-Update-Policy: $old", [Text.UTF8Encoding]::new($false))
     git -C $taskRoot tag -a v0.3.0 $blob -F $messageFile
     if ($LASTEXITCODE -ne 0) { throw 'Tag fixture unavailable.' }
     $policy = Get-UpdatePolicy $taskRoot v0.5.0 v0.3.0
@@ -27,7 +27,7 @@ try {
     function Show-Menu($Title, $Items) { $Items[1] }
     $forced = Read-ReleaseMaintenance $policy
     Assert-PolicyTest ($forced.minimum_supported_version -eq '0.5.0' -and $forced.cache_invalidation_before -eq '0.5.0' -and $forced.settings_reset_before -eq '0.5.0') 'The required version and both forced choices must be recorded.'
-    [IO.File]::WriteAllText($messageFile, "Fixture`nAurora-Update-Policy: $($forced | ConvertTo-Json -Compress)", [Text.UTF8Encoding]::new($false))
+    [IO.File]::WriteAllText($messageFile, "Fixture`nBlock-Update-Policy: $($forced | ConvertTo-Json -Compress)", [Text.UTF8Encoding]::new($false))
     git -C $taskRoot tag -a v0.5.0 $blob -F $messageFile
     $read = Get-UpdatePolicy $taskRoot v0.5.0 v0.5.0
     Assert-UpdatePolicy $read '0.5.0'
@@ -78,7 +78,7 @@ try {
     function Show-Menu($Title, $Items) { if ($Title -like '*Minimum version') { $Items[1] } elseif ($Title -like '*Grace period') { $Items | Where-Object { $_.Hours -eq 0 } } else { $Items[0] } }
     $urgent = Read-ReleaseMaintenance (Get-UpdatePolicy $taskRoot v0.7.0 v0.5.0)
     Assert-PolicyTest ($urgent.minimum_supported_version -eq '0.7.0' -and $urgent.grace_hours -eq 0) 'Requiring at once must record no grace period.'
-    [IO.File]::WriteAllText($messageFile, "Fixture`nAurora-Update-Policy: $($urgent | ConvertTo-Json -Compress)", [Text.UTF8Encoding]::new($false))
+    [IO.File]::WriteAllText($messageFile, "Fixture`nBlock-Update-Policy: $($urgent | ConvertTo-Json -Compress)", [Text.UTF8Encoding]::new($false))
     git -C $taskRoot tag -a v0.7.0 $blob -F $messageFile
     Assert-PolicyTest ((Get-UpdatePolicy $taskRoot v0.7.0 v0.7.0).grace_hours -eq 0) 'The workflow must read back the grace period of the tag.'
     $keptUrgent = Get-UpdatePolicy $taskRoot v0.7.1 v0.7.0
@@ -103,6 +103,6 @@ try {
 } finally {
     $taskResolved = [IO.Path]::GetFullPath($taskRoot)
     $taskTemp = [IO.Path]::GetFullPath([IO.Path]::GetTempPath())
-    if ((Split-Path $taskResolved -Parent).TrimEnd('\') -ne $taskTemp.TrimEnd('\') -or (Split-Path $taskResolved -Leaf) -notlike 'aurora-policy-test-*') { throw 'Refused to clean up outside the fixture.' }
+    if ((Split-Path $taskResolved -Parent).TrimEnd('\') -ne $taskTemp.TrimEnd('\') -or (Split-Path $taskResolved -Leaf) -notlike 'block-policy-test-*') { throw 'Refused to clean up outside the fixture.' }
     Remove-Item -LiteralPath $taskResolved -Recurse -Force
 }

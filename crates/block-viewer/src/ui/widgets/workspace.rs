@@ -621,7 +621,7 @@ pub(crate) fn finish_bar_glass(painter: &egui::Painter, slot: egui::layers::Shap
     }
 }
 
-/// Surface of a glass island of the Aurora bars (`ui/bars/islands.rs`):
+/// Surface of a glass island of the Block bars (`ui/bars/islands.rs`):
 /// the windows' shadow, the blur they share under the `bar` colour, a
 /// hairline border, the windows' corners. The islands are a shade lighter
 /// than the full-width bars (80 % of the colour where the bars and windows

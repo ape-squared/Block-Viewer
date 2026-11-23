@@ -108,7 +108,7 @@ mod native {
         let mut hash = std::collections::hash_map::DefaultHasher::new();
         image.size.hash(&mut hash);
         rgba.hash(&mut hash);
-        let path = root.join(format!("Aurora-image-{:016x}.png", hash.finish()));
+        let path = root.join(format!("Block-image-{:016x}.png", hash.finish()));
         std::fs::create_dir_all(root).map_err(|error| error.to_string())?;
         let mut bytes = Vec::new();
         let mut encoder = png::Encoder::new(&mut bytes, image.width() as u32, image.height() as u32);
@@ -143,7 +143,7 @@ mod native {
 
         #[test]
         fn explorer_source_is_a_complete_png_with_original_alpha_and_a_stable_name() {
-            let root = std::env::temp_dir().join(format!("aurora-clipboard-test-{}", uuid::Uuid::new_v4()));
+            let root = std::env::temp_dir().join(format!("block-clipboard-test-{}", uuid::Uuid::new_v4()));
             let image = ColorImage::new(
                 [2, 1],
                 vec![

@@ -1,8 +1,8 @@
-//! AURORA_DEMO_VOICE_CONTROLS: the toolbar's Voice controls window opens
+//! BLOCK_DEMO_VOICE_CONTROLS: the toolbar's Voice controls window opens
 //! on the nearby channel with three residents in it: Nova talks in bursts,
 //! Tess is silent, and Loup leaves the channel for good every 40 s (listed as
 //! "Left" for 10 s, then removed, and back 20 s later). Set
-//! AURORA_DEMO_CALL=conference (or group, p2p) as well for the window on a
+//! BLOCK_DEMO_CALL=conference (or group, p2p) as well for the window on a
 //! call's channel: the call's own participants replace these.
 
 use super::{DEMO_LOUP, DEMO_NOVA, DEMO_TESS};
@@ -10,7 +10,7 @@ use std::collections::HashMap;
 use uuid::Uuid;
 
 pub fn enabled() -> bool {
-    std::env::var_os("AURORA_DEMO_VOICE_CONTROLS").is_some()
+    std::env::var_os("BLOCK_DEMO_VOICE_CONTROLS").is_some()
 }
 
 /// The frame the window opens at.

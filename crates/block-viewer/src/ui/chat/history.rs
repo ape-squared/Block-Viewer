@@ -688,13 +688,13 @@ mod tests {
             speaker: Default::default(),
         };
         assert_eq!(NAMES, NameScope::Roster);
-        assert_eq!(super::super::sender_name(&world, "Aurora Demo", &line), "Near Tester");
+        assert_eq!(super::super::sender_name(&world, "Block Demo", &line), "Near Tester");
         // said now: the stand-in the line takes when it arrives
         let mut said = line.clone();
         said.origin = crate::world::Origin::Live;
         said.source = near;
         world.rlva_freeze_line(NameScope::World, &mut said);
-        let around = super::super::sender_name(&world, "Aurora Demo", &said);
+        let around = super::super::sender_name(&world, "Block Demo", &said);
         assert!(!around.contains("Tester"), "{around}");
         // the text: a notice of the viewer is rewritten when it comes, and
         // read back as the file has it

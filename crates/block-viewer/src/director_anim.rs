@@ -5,7 +5,7 @@
 //! window closed). This is the schedule alone; the app plays each one as
 //! the inventory's "Play in world" does (`app/director_anim.rs`).
 //!
-//! Aurora's own: the Legacy Viewer has no camera path tool.
+//! Block's own: the Legacy Viewer has no camera path tool.
 
 use crate::camera::track::Track;
 use crate::director::{Director, Mode};

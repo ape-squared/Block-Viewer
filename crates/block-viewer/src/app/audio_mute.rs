@@ -38,10 +38,10 @@ pub(super) fn media_volume(audio: &AudioSettings, minimized_mute: bool) -> f32 {
     channel(0) * channel(5)
 }
 
-/// AURORA_DEMO_AUTO_UNMUTE: the ambient sounds and the sound effects
-/// muted, and both unmuted by a teleport (with AURORA_DEMO_TP=remote).
+/// BLOCK_DEMO_AUTO_UNMUTE: the ambient sounds and the sound effects
+/// muted, and both unmuted by a teleport (with BLOCK_DEMO_TP=remote).
 pub(super) fn apply_demo(audio: &mut AudioSettings) {
-    if std::env::var_os("AURORA_DEMO_AUTO_UNMUTE").is_some() {
+    if std::env::var_os("BLOCK_DEMO_AUTO_UNMUTE").is_some() {
         audio.muted[2] = true;
         audio.muted[3] = true;
         audio.auto_unmute_ambient = true;

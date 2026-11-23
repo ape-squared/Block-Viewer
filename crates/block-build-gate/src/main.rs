@@ -1,4 +1,4 @@
-//! Build gate: the compiler wrapper the Aurora scripts give Cargo
+//! Build gate: the compiler wrapper the Block scripts give Cargo
 //! (`rustc-wrapper` of `<project folder>/.cargo/config.toml`, written by
 //! `Sync-BuildCache` in `scripts/common.ps1`). A development tool, not a part
 //! of the viewer.
@@ -8,7 +8,7 @@
 //! 87 GB on a 32 GB machine, and every build crawled in the page file. Cargo
 //! runs every compiler through this program, whatever the command
 //! (`cargo test`, `clippy`, `run`, `check.ps1`): a heavy crate waits here for
-//! one of `AURORA_BUILD_SLOTS` slots (2 by default), the others go straight
+//! one of `BLOCK_BUILD_SLOTS` slots (2 by default), the others go straight
 //! through.
 //!
 //! A slot is a locked file of the `build-slots` folder next to this program:
@@ -42,9 +42,9 @@ use std::thread;
 use std::time::Duration;
 
 /// Crates whose compilation takes a slot, by their `--crate-name`.
-const HEAVY_CRATES: &[&str] = &["aurora_viewer"];
+const HEAVY_CRATES: &[&str] = &["block_viewer"];
 
-/// Slots when `AURORA_BUILD_SLOTS` is not set, as `Enter-BuildSlot` of
+/// Slots when `BLOCK_BUILD_SLOTS` is not set, as `Enter-BuildSlot` of
 /// `scripts/common.ps1`.
 const DEFAULT_SLOTS: usize = 2;
 
@@ -75,13 +75,13 @@ fn main() {
 
     // held until the compiler has ended
     let _slot = if is_heavy(&arguments) {
-        let count = slot_count(env::var("AURORA_BUILD_SLOTS").ok().as_deref());
+        let count = slot_count(env::var("BLOCK_BUILD_SLOTS").ok().as_deref());
         slots_dir().and_then(|dir| take_slot(&dir, count))
     } else {
         None
     };
 
-    let next = env::var_os("AURORA_GATE_NEXT");
+    let next = env::var_os("BLOCK_GATE_NEXT");
     match run(commands(&rustc, &arguments, next.as_deref(), NEXT_COMMAND_LIMIT)) {
         // no code: ended by a signal (Unix)
         Ok(status) => process::exit(status.code().unwrap_or(1)),
@@ -93,7 +93,7 @@ fn main() {
 }
 
 /// The commands to try, in order: through the next wrapper when the scripts
-/// found one (sccache, `AURORA_GATE_NEXT`) and it can take the command line
+/// found one (sccache, `BLOCK_GATE_NEXT`) and it can take the command line
 /// (`next_takes`), then the compiler alone.
 fn commands(rustc: &OsStr, arguments: &[OsString], next: Option<&OsStr>, limit: Option<usize>) -> Vec<Command> {
     let mut list = Vec::with_capacity(2);
@@ -177,7 +177,7 @@ fn expanded(arguments: &[OsString]) -> Vec<String> {
     list
 }
 
-/// Number of slots: `AURORA_BUILD_SLOTS` when it is a whole number of at
+/// Number of slots: `BLOCK_BUILD_SLOTS` when it is a whole number of at
 /// least 1, the default otherwise.
 fn slot_count(setting: Option<&str>) -> usize {
     setting
@@ -277,10 +277,10 @@ mod tests {
 
     #[test]
     fn the_viewer_crate_is_heavy_whatever_the_command() {
-        assert!(is_heavy(&arguments(&["--crate-name", "aurora_viewer", "--edition=2024"])));
-        assert!(is_heavy(&arguments(&["--crate-name", "aurora_viewer", "--test"])));
+        assert!(is_heavy(&arguments(&["--crate-name", "block_viewer", "--edition=2024"])));
+        assert!(is_heavy(&arguments(&["--crate-name", "block_viewer", "--test"])));
         // clippy: `<wrapper> clippy-driver <rustc> <arguments>`
-        assert!(is_heavy(&arguments(&["C:\\toolchain\\rustc.exe", "--crate-name", "aurora_viewer"])));
+        assert!(is_heavy(&arguments(&["C:\\toolchain\\rustc.exe", "--crate-name", "block_viewer"])));
     }
 
     #[test]
@@ -291,7 +291,7 @@ mod tests {
         assert!(!is_heavy(&arguments(&["--crate-name"])));
         assert!(!is_heavy(&arguments(&[])));
         // the heavy name, but not as the crate being built
-        assert!(!is_heavy(&arguments(&["--crate-name", "smoke", "--extern", "aurora_viewer"])));
+        assert!(!is_heavy(&arguments(&["--crate-name", "smoke", "--extern", "block_viewer"])));
     }
 
     #[test]
@@ -304,11 +304,11 @@ mod tests {
             OsString::from(format!("@{}", path.display()))
         };
         // as Cargo writes it: one argument per line
-        let viewer = file("viewer", "--crate-name\naurora_viewer\n--edition=2024\n--test\n");
+        let viewer = file("viewer", "--crate-name\nblock_viewer\n--edition=2024\n--test\n");
         assert!(is_heavy(&[OsString::from("C:\\toolchain\\rustc.exe"), viewer]));
-        let windows_lines = file("crlf", "--crate-name\r\naurora_viewer\r\n--test\r\n");
+        let windows_lines = file("crlf", "--crate-name\r\nblock_viewer\r\n--test\r\n");
         assert!(is_heavy(&[windows_lines]));
-        let other = file("other", "--crate-name\nblock_net\n--extern\naurora_viewer\n");
+        let other = file("other", "--crate-name\nblock_net\n--extern\nblock_viewer\n");
         assert!(!is_heavy(&[other]));
         // a file that is not there: not heavy, and the argument is kept
         let missing = OsString::from(format!("@{}", dir.join("missing").display()));

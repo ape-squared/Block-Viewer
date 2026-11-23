@@ -1,5 +1,5 @@
-//! AURORA_DEMO_SNOW_ROOF=1: four canopies 3 m above the plaza in the snow
-//! (with `AURORA_SNOW` and `AURORA_SNOW_LYING`), for the rain's shelter map,
+//! BLOCK_DEMO_SNOW_ROOF=1: four canopies 3 m above the plaza in the snow
+//! (with `BLOCK_SNOW` and `BLOCK_SNOW_LYING`), for the rain's shelter map,
 //! which holds what is seen from above: a plain one (snow on it, none under
 //! it), one whose top face is fully transparent with its underside still
 //! seen (a skybox's painted ceiling: the snow falls through it onto the
@@ -15,7 +15,7 @@ const GLASS: u32 = 3_700_003;
 const LEAVES: u32 = 3_700_004;
 
 pub fn enabled() -> bool {
-    std::env::var_os("AURORA_DEMO_SNOW_ROOF").is_some()
+    std::env::var_os("BLOCK_DEMO_SNOW_ROOF").is_some()
 }
 
 /// Where the canopies stand: a row north of the demo's arrival.

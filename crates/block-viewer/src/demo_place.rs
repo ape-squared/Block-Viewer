@@ -1,8 +1,8 @@
-//! Places of the demo (`AURORA_DEMO_PLACE`, `AURORA_DEMO_PLACES`): the
+//! Places of the demo (`BLOCK_DEMO_PLACE`, `BLOCK_DEMO_PLACES`): the
 //! RemoteParcelRequest, ParcelInfoRequest and RegionHandleRequest answers
 //! for the regions of the demo map, the landmarks of the Landmarks and
 //! Favorites folders with their assets, and a teleport history over several
-//! days, so the "Places" window can be tried offline. Aurora Demo answers
+//! days, so the "Places" window can be tried offline. Block Demo answers
 //! with the parcel of "About Land"; Flaw answers HTTP 404
 //! (LLPanelPlaceInfo::setErrorStatus).
 
@@ -21,19 +21,19 @@ pub const FAVORITES_FOLDER: u128 = 20;
 pub const SHOPS_FOLDER: u128 = 30;
 /// Nested under Shopping so the Places rail shows a disclosure caret in demo.
 pub const SHOPS_OUTLETS_FOLDER: u128 = 36;
-/// Two more of `AURORA_DEMO_MAP=landmarks`.
+/// Two more of `BLOCK_DEMO_MAP=landmarks`.
 pub const CLUBS_FOLDER: u128 = 32;
 pub const BEACHES_FOLDER: u128 = 33;
 pub const WALKS_FOLDER: u128 = 34;
 pub const MARKETS_FOLDER: u128 = 35;
-/// Landmarks `AURORA_DEMO_MAP=landmarks` adds to the table's: 212 in all,
+/// Landmarks `BLOCK_DEMO_MAP=landmarks` adds to the table's: 212 in all,
 /// the count of a well-travelled inventory, for the world map's drawer and
 /// pins.
 const GENERATED: usize = 204;
 
-/// AURORA_DEMO_MAP=…,landmarks.
+/// BLOCK_DEMO_MAP=…,landmarks.
 pub fn many_landmarks() -> bool {
-    std::env::var("AURORA_DEMO_MAP").is_ok_and(|v| v.split(',').any(|w| w.trim() == "landmarks"))
+    std::env::var("BLOCK_DEMO_MAP").is_ok_and(|v| v.split(',').any(|w| w.trim() == "landmarks"))
 }
 
 /// The n-th landmark `many_landmarks` adds: (folder, name, region grid,
@@ -75,7 +75,7 @@ fn parcels() -> &'static Vec<DemoParcel> {
             DemoParcel {
                 grid: (1001, 1000),
                 id: Uuid::from_u128(0xDE40_91AC_0000_0000_0000_0000_0000_0002),
-                name: block_i18n::tr!("demo-place-aurora-lagoon"),
+                name: block_i18n::tr!("demo-place-block-lagoon"),
                 desc: block_i18n::tr!("demo-place-pier-campfire-and-a-view-of-the-northern-lights"),
                 area: 4096,
                 dwell: 312.6,
@@ -125,11 +125,11 @@ fn region_id(grid: (u32, u32)) -> Uuid {
     Uuid::from_u128(0xDE40_5E61_0000_0000_0000_0000_0000_0000 | ((grid.0 as u128) << 16) | grid.1 as u128)
 }
 
-/// AURORA_DEMO_PLACE=1|lagoon|nordheim|grove|flaw|unknown: the region
+/// BLOCK_DEMO_PLACE=1|lagoon|nordheim|grove|flaw|unknown: the region
 /// name and position of the place link the demo opens (landmark and
 /// history are handled by `profile_scenario`).
 pub fn scenario() -> Option<(&'static str, Vec3)> {
-    let v = std::env::var("AURORA_DEMO_PLACE").ok()?;
+    let v = std::env::var("BLOCK_DEMO_PLACE").ok()?;
     Some(match v.to_lowercase().as_str() {
         "lagoon" | "lagune" => (block_i18n::tr!("common-boreal-lagoon"), Vec3::new(60.0, 200.0, 22.0)),
         "nordheim" => ("Nordheim", Vec3::new(128.0, 64.0, 40.0)),
@@ -138,15 +138,15 @@ pub fn scenario() -> Option<(&'static str, Vec3)> {
         "unknown" | "inconnue" => (block_i18n::tr!("demo-place-atlantis"), Vec3::new(128.0, 128.0, 20.0)),
         "landmark" | "repere" | "history" | "historique" => return None,
         // Violet Wolf's home (the link of his profile)
-        _ => (block_i18n::tr!("common-aurora-demo"), Vec3::new(140.0, 120.0, 25.0)),
+        _ => (block_i18n::tr!("common-block-demo"), Vec3::new(140.0, 120.0, 25.0)),
     })
 }
 
-/// AURORA_DEMO_PLACE=repere|historique: a landmark's or a history entry's
+/// BLOCK_DEMO_PLACE=repere|historique: a landmark's or a history entry's
 /// profile.
 pub fn profile_scenario() -> Option<crate::world::place_details::Source> {
     use crate::world::place_details::Source;
-    match std::env::var("AURORA_DEMO_PLACE").ok()?.to_lowercase().as_str() {
+    match std::env::var("BLOCK_DEMO_PLACE").ok()?.to_lowercase().as_str() {
         "landmark" | "repere" => {
             let (id, asset) = landmark_ids(1);
             Some(Source::Landmark { item: id, asset })
@@ -167,10 +167,10 @@ pub enum TeleportConfirm {
     Landmark(Uuid, &'static str),
 }
 
-/// AURORA_DEMO_TP_CONFIRM=link|landmark: the confirmation of a teleport asked
+/// BLOCK_DEMO_TP_CONFIRM=link|landmark: the confirmation of a teleport asked
 /// by a place link (the default) or by a landmark of "Places".
 pub fn teleport_confirm_scenario() -> Option<TeleportConfirm> {
-    let v = std::env::var("AURORA_DEMO_TP_CONFIRM").ok()?;
+    let v = std::env::var("BLOCK_DEMO_TP_CONFIRM").ok()?;
     Some(match v.to_lowercase().as_str() {
         "landmark" | "repere" => {
             let (_, name, ..) = landmarks().get(1)?;
@@ -229,7 +229,7 @@ pub fn parcel_info(id: Uuid) -> Option<NetEvent> {
             actual_area: l.area,
             billable_area: l.area,
             flags: 0,
-            sim_name: block_i18n::tr!("common-aurora-demo").into(),
+            sim_name: block_i18n::tr!("common-block-demo").into(),
             global: DVec3::new(256_000.0 + 128.0, 256_000.0 + 128.0, 25.0),
             snapshot: TEX_SNAPSHOT,
             dwell: 145.0,
@@ -266,14 +266,14 @@ fn landmarks() -> &'static Vec<(u128, &'static str, (u32, u32), [f32; 3], i64)> 
         vec![
             (
                 LANDMARKS_FOLDER,
-                block_i18n::tr!("demo-place-aurora-beach"),
+                block_i18n::tr!("demo-place-block-beach"),
                 (1000, 1000),
                 [140.0, 120.0, 25.0],
                 1_712_068_948,
             ),
             (
                 LANDMARKS_FOLDER,
-                block_i18n::tr!("demo-place-aurora-lagoon"),
+                block_i18n::tr!("demo-place-block-lagoon"),
                 (1001, 1000),
                 [60.0, 200.0, 22.0],
                 1_740_000_000,
@@ -308,14 +308,14 @@ fn landmarks() -> &'static Vec<(u128, &'static str, (u32, u32), [f32; 3], i64)> 
             ),
             (
                 FAVORITES_FOLDER,
-                block_i18n::tr!("common-aurora-plaza"),
+                block_i18n::tr!("common-block-plaza"),
                 (1000, 1000),
                 [128.0, 128.0, 25.0],
                 1_712_068_948,
             ),
             (
                 FAVORITES_FOLDER,
-                block_i18n::tr!("demo-place-aurora-lagoon"),
+                block_i18n::tr!("demo-place-block-lagoon"),
                 (1001, 1000),
                 [60.0, 200.0, 22.0],
                 1_740_000_000,
@@ -327,7 +327,7 @@ fn landmarks() -> &'static Vec<(u128, &'static str, (u32, u32), [f32; 3], i64)> 
 /// Where the bars' demo favourites start in `landmark_ids`.
 const BAR_FAVORITES: usize = 2000;
 
-/// The favourites of the bars mockup (`AURORA_DEMO_BARS=fav12|added`):
+/// The favourites of the bars mockup (`BLOCK_DEMO_BARS=fav12|added`):
 /// name, region grid, position, created at (newest first: the mockup's
 /// order), and the three colours of the thumbnail's gradient. The last one
 /// is the place we stand on, added from the star with `added`.
@@ -534,7 +534,7 @@ pub fn folder_contents(folder_id: Uuid, owner: Uuid) -> Option<FolderContents> {
         }
         v
     } else if n == SHOPS_FOLDER {
-        // Nested child so the rail can show expand/collapse without AURORA_DEMO_MAP=landmarks.
+        // Nested child so the rail can show expand/collapse without BLOCK_DEMO_MAP=landmarks.
         vec![sub(SHOPS_OUTLETS_FOLDER, block_i18n::tr!("demo-map-outlets"))]
     } else {
         Vec::new()
@@ -577,7 +577,7 @@ pub fn folder_contents(folder_id: Uuid, owner: Uuid) -> Option<FolderContents> {
                 .then(|| landmarks().iter().position(|l| l.0 != FAVORITES_FOLDER && l.1 == *name))
                 .flatten();
             let link = original.filter(|_| {
-                std::env::var("AURORA_DEMO_PLACES")
+                std::env::var("BLOCK_DEMO_PLACES")
                     .is_ok_and(|v| v.split_once(':').is_some_and(|(_, flags)| flags.split(',').any(|f| f == "links")))
             });
             let asset = if let Some(original) = link {
@@ -617,7 +617,7 @@ pub fn folder_contents(folder_id: Uuid, owner: Uuid) -> Option<FolderContents> {
         })
         .chain(extra)
         .collect();
-    // AURORA_DEMO_BARS's favourites take the place of the demo's own
+    // BLOCK_DEMO_BARS's favourites take the place of the demo's own
     let bars = crate::ui::bars::demo::get().favorites;
     let snapshots = bars == Some(crate::ui::bars::demo::Favorites::Snapshots);
     let items = if n == FAVORITES_FOLDER && bars.is_some() {
@@ -644,7 +644,7 @@ pub fn folder_contents(folder_id: Uuid, owner: Uuid) -> Option<FolderContents> {
 }
 
 /// The places of the session before the demo's arrival, oldest first, the
-/// last one twenty minutes ago (`AURORA_DEMO_BARS=tplist`).
+/// last one twenty minutes ago (`BLOCK_DEMO_BARS=tplist`).
 pub fn session() -> Vec<TpEntry> {
     let now = std::time::SystemTime::now()
         .duration_since(std::time::UNIX_EPOCH)
@@ -676,14 +676,14 @@ pub fn session() -> Vec<TpEntry> {
         entry(
             (1001, 1000),
             block_i18n::tr!("common-boreal-lagoon"),
-            block_i18n::tr!("demo-place-aurora-lagoon"),
+            block_i18n::tr!("demo-place-block-lagoon"),
             Vec3::new(60.0, 200.0, 22.0),
             20,
         ),
     ]
 }
 
-/// `AURORA_DEMO_PLACES=history-big` or `history:big` / `history:n=4000`: a
+/// `BLOCK_DEMO_PLACES=history-big` or `history:big` / `history:n=4000`: a
 /// large saved history for the Places FPS case (#2955).
 fn parse_history_count(v: &str) -> Option<usize> {
     let (tab, how) = v.split_once(':').unwrap_or((v, ""));
@@ -713,7 +713,7 @@ fn parse_history_count(v: &str) -> Option<usize> {
 /// `history-big` / `n=…`, thousands of entries (most older than a month) so
 /// Places › History can stress the list (#2955).
 pub fn history() -> Vec<HistoryItem> {
-    if let Some(n) = std::env::var("AURORA_DEMO_PLACES").ok().and_then(|mode| parse_history_count(&mode)) {
+    if let Some(n) = std::env::var("BLOCK_DEMO_PLACES").ok().and_then(|mode| parse_history_count(&mode)) {
         log::info!("demo teleport history: {n} entries (FPS stress)");
         return history_many(n);
     }
@@ -732,7 +732,7 @@ pub fn history() -> Vec<HistoryItem> {
         item("Ahern", DVec3::new(254_208.0 + 128.0, 256_256.0 + 128.0, 30.0), 240.0 * DAY),
         item(block_i18n::tr!("common-sandbox"), at((999, 999), 128.0, 128.0, 25.0), 40.0 * DAY),
         item(
-            block_i18n::tr!("demo-place-wolf-s-workshop-aurora-demo"),
+            block_i18n::tr!("demo-place-wolf-s-workshop-block-demo"),
             at((1000, 1000), 60.0, 200.0, 22.0),
             12.0 * DAY,
         ),
@@ -740,7 +740,7 @@ pub fn history() -> Vec<HistoryItem> {
         // the same parcel as the lagoon's landmark, on a deck above it: a
         // place of its own in the history
         item(
-            block_i18n::tr!("demo-place-aurora-lagoon-boreal-lagoon"),
+            block_i18n::tr!("demo-place-block-lagoon-boreal-lagoon"),
             at((1001, 1000), 64.0, 196.0, 60.0),
             2.0 * DAY,
         ),
@@ -750,7 +750,7 @@ pub fn history() -> Vec<HistoryItem> {
             1.1 * DAY,
         ),
         item(
-            block_i18n::tr!("demo-place-aurora-lagoon-boreal-lagoon"),
+            block_i18n::tr!("demo-place-block-lagoon-boreal-lagoon"),
             at((1001, 1000), 60.0, 200.0, 22.0),
             3.0 * 3600.0,
         ),

@@ -12,7 +12,7 @@
 //! (ShowFavoritesOnLogin, settings_per_account.xml, on by default). Off, the
 //! record keeps only that choice (removeFavoritesRecordOfUser). Writes go to
 //! a thread of their own and merge into the latest file under an OS lock, so
-//! another Aurora's accounts are kept; a refused write keeps its changes and
+//! another Block's accounts are kept; a refused write keeps its changes and
 //! is tried again, and once more at exit (`save_retry`).
 
 use block_net::StartLocation;
@@ -154,7 +154,7 @@ impl Writer {
     fn start(path: PathBuf) -> Option<Self> {
         let owed = Arc::new(Mutex::new(Vec::<Change>::new()));
         let queue = owed.clone();
-        let retrying = crate::save_retry::Retrying::start("aurora-login-favorites", "stored favourites", move || {
+        let retrying = crate::save_retry::Retrying::start("block-login-favorites", "stored favourites", move || {
             let batch = queue.lock().clone();
             if batch.is_empty() {
                 return Ok(());
@@ -345,7 +345,7 @@ pub fn merge(stored: &[Favorite], current: Vec<Current>) -> Vec<Favorite> {
         .collect()
 }
 
-/// AURORA_DEMO_LOGIN_FAVORITES=1|open|pick, with AURORA_DEMO_LOGIN=cards:
+/// BLOCK_DEMO_LOGIN_FAVORITES=1|open|pick, with BLOCK_DEMO_LOGIN=cards:
 /// stored favourites for the second (selected) and third demo accounts (the first
 /// was never logged in here: Home and Last only); `open` opens the
 /// selected card's start menu once, `pick` chooses its second favourite
@@ -360,7 +360,7 @@ pub enum Demo {
 pub fn demo() -> Option<Demo> {
     static DEMO: std::sync::OnceLock<Option<Demo>> = std::sync::OnceLock::new();
     *DEMO.get_or_init(|| {
-        let value = std::env::var("AURORA_DEMO_LOGIN_FAVORITES").ok()?;
+        let value = std::env::var("BLOCK_DEMO_LOGIN_FAVORITES").ok()?;
         match value.trim() {
             "" | "0" | "off" => None,
             "open" => Some(Demo::Open),
@@ -385,8 +385,8 @@ pub fn demo_store(uri: &str) -> Store {
         (
             key(uri, "Example 2"),
             vec![
-                fav(1, tr!("common-aurora-plaza"), tr!("common-aurora-demo"), [128.0, 128.0, 25.0]),
-                fav(2, tr!("demo-place-aurora-lagoon"), tr!("common-boreal-lagoon"), [60.0, 200.0, 22.0]),
+                fav(1, tr!("common-block-plaza"), tr!("common-block-demo"), [128.0, 128.0, 25.0]),
+                fav(2, tr!("demo-place-block-lagoon"), tr!("common-boreal-lagoon"), [60.0, 200.0, 22.0]),
                 fav(3, tr!("common-pine-grove"), tr!("common-pine-grove"), [200.0, 30.0, 24.0]),
                 fav(4, tr!("demo-place-nordheim-hall"), "Nordheim", [128.0, 64.0, 40.0]),
                 fav(5, tr!("demo-fav-fireflies-beach"), tr!("common-sandbox"), [90.5, 140.2, 21.7]),
@@ -394,7 +394,7 @@ pub fn demo_store(uri: &str) -> Store {
         ),
         (
             key(uri, "Example 3"),
-            vec![fav(6, tr!("common-aurora-plaza"), tr!("common-aurora-demo"), [128.0, 128.0, 25.0])],
+            vec![fav(6, tr!("common-block-plaza"), tr!("common-block-demo"), [128.0, 128.0, 25.0])],
         ),
     ])
 }
@@ -414,7 +414,7 @@ mod tests {
     }
 
     fn temp_path(tag: &str) -> (PathBuf, PathBuf) {
-        let root = std::env::temp_dir().join(format!("aurora-{tag}-{}", Uuid::new_v4()));
+        let root = std::env::temp_dir().join(format!("block-{tag}-{}", Uuid::new_v4()));
         let path = root.join(FILE);
         (root, path)
     }

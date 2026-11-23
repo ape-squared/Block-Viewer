@@ -6,7 +6,7 @@
 //! one character cycles through the rows that start with it.
 //!
 //! The Legacy Viewer searches the first text column of its list (the username
-//! of the friend list). Aurora's rows show the chosen name, so every form the
+//! of the friend list). Block's rows show the chosen name, so every form the
 //! row knows is matched. When a display name and another person's username
 //! share a prefix, the first matching row in the current list order wins.
 

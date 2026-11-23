@@ -39,9 +39,9 @@ impl App {
         out.env
     }
 
-    /// AURORA_DEMO_QUICKPREFS=1: the window opened at the start.
+    /// BLOCK_DEMO_QUICKPREFS=1: the window opened at the start.
     fn demo_quick_prefs(&mut self) {
-        if self.quick_prefs_demo_done || std::env::var_os("AURORA_DEMO_QUICKPREFS").is_none() {
+        if self.quick_prefs_demo_done || std::env::var_os("BLOCK_DEMO_QUICKPREFS").is_none() {
             return;
         }
         self.quick_prefs_demo_done = true;

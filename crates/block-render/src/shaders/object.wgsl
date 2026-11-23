@@ -21,7 +21,7 @@ fn portal_clip(rec: DrawRecord, position: vec3<f32>) {
     }
 }
 
-// One analytically bounded Aurora surface, animated by the GPU clock. The
+// One analytically bounded Block surface, animated by the GPU clock. The
 // navy/indigo depth, violet currents and teal rim come from the resolved theme
 // in the record, not a baked image. Its outer corona is purely decorative.
 struct PortalSurface { color: vec3<f32>, alpha: f32, glow: f32 };
@@ -315,7 +315,7 @@ struct VsOut {
     // zero for the per-pixel one
     @location(9) tangent: vec3<f32>,
     @location(10) @interpolate(flat) tangent_sign: f32,
-    // Aurora Weather: how much snow is on the avatar wearing it (0..1),
+    // Block Weather: how much snow is on the avatar wearing it (0..1),
     // and how much this point faces up on the avatar standing (its rest
     // pose: the snow stays where it built up as the avatar moves)
     @location(11) @interpolate(flat) snow: f32,
@@ -709,7 +709,7 @@ fn fs_depth_mask(in: VsOut) {
     }
 }
 
-// The depth prepass with GTAO's mesh normals (gtao.rs, AURORA_GTAO_NORMALS):
+// The depth prepass with GTAO's mesh normals (gtao.rs, BLOCK_GTAO_NORMALS):
 // the position of vs_depth and the vertices' smooth normal, the shading's
 // without its normal map. A normal taken from the depth is the flat
 // triangle's, and showed the facets of low-poly meshes in the occlusion
@@ -965,7 +965,7 @@ struct Material {
 // deferred/shadowUtil.glsl), which leaves the place read in the map
 // unchanged whatever the normal map; moved along the normal-mapped normal,
 // the lookup followed the relief of the map and drew its pattern along the
-// shadow edges. AURORA_SHADOW_FILTER=mapped brings that back, to compare.
+// shadow edges. BLOCK_SHADOW_FILTER=mapped brings that back, to compare.
 fn shadow_normal(m: Material) -> vec3<f32> {
     if ((frame.light_mode.z & SHADOW_OFFSET_MAPPED) != 0u) {
         return m.n;
@@ -973,7 +973,7 @@ fn shadow_normal(m: Material) -> vec3<f32> {
     return m.geo_n;
 }
 
-// Aurora Weather: how much snow is on the avatar a record belongs to: in
+// Block Weather: how much snow is on the avatar a record belongs to: in
 // its skeleton's palette (AVATAR_SNOW), a rigged mesh's from its base, a
 // worn prim's from its anchor's skeleton (palettes are PALETTE_STRIDE
 // apart); none for the rest.
@@ -1074,7 +1074,7 @@ fn eval_material_base(in: VsOut, front: bool) -> Material {
     m.metallic = clamp(rec.params.y * mr_s.b, 0.0, 1.0);
     m.roughness = clamp(rec.params.z * mr_s.g, 0.03, 1.0);
     // a PBR face without a metallic-roughness map reads the white texture:
-    // no occlusion. AURORA_PBR_OCCLUSION=0 (sky_ll.z = 0) leaves it out.
+    // no occlusion. BLOCK_PBR_OCCLUSION=0 (sky_ll.z = 0) leaves it out.
     m.ao = select(1.0, mr_s.r, (rec.flags.x & FLAG_PBR) != 0u && frame.sky_ll.z > 0.5);
     // TE glow is not emissive: it only feeds the glow pass (fs_glow)
     m.emissive = rec.emissive.rgb * srgb_to_linear(em_s.rgb);
@@ -1141,7 +1141,7 @@ fn ll_spec(n: vec3<f32>, v: vec3<f32>, l: vec3<f32>, gloss: f32) -> f32 {
     return legacy_finite(lit * fres * ll_light_func(nh, gloss) * gt / (nh * nl));
 }
 
-// AURORA_LEGACY_NAN=off|check (frame.light_mode.z): `off` lets a legacy
+// BLOCK_LEGACY_NAN=off|check (frame.light_mode.z): `off` lets a legacy
 // highlight or environment term that is not a number through, as before
 // (0.9.8); `check` paints magenta where one was caught.
 const LEGACY_NAN_OFF: u32 = 0x200000u;
@@ -1190,7 +1190,7 @@ fn legacy_finite3(c: vec3<f32>) -> vec3<f32> {
 // legacy_light and legacy_local_spec.
 var<private> legacy_glare: f32 = 0.0;
 
-// AURORA_LEGACY_GLARE=0 (frame.light_mode.z): no glare, the blended legacy
+// BLOCK_LEGACY_GLARE=0 (frame.light_mode.z): no glare, the blended legacy
 // faces take their texture alpha and leave early as before #3259, to tell
 // a glare fault from another on a card we cannot test (#3259 follow-up:
 // squares on blended leaves and streaks in hair on AMD cards).
@@ -1903,7 +1903,7 @@ fn fs_reflect_blend(in: VsOut, @builtin(front_facing) front: bool) -> @location(
 // LLDrawPoolAlpha MINIMUM_ALPHA = 0.004, tested before the atmospherics, the
 // probes and the lights). The empty texels of hair, lashes and lace cost
 // their texture samples only. `false` lights them first, as before, for
-// comparison (AURORA_BLEND_EARLY_DISCARD=0): same image.
+// comparison (BLOCK_BLEND_EARLY_DISCARD=0): same image.
 override BLEND_EARLY_DISCARD: bool = true;
 
 // RiggedBlendDepth::Split (#935): 1 draws only the texels at least half
@@ -2000,7 +2000,7 @@ struct StParams {
 const ST_SEEDS: u32 = 2048u;
 const ST_TILE: u32 = 64u;
 // Whether the alpha passes test a fragment's alpha for a NaN (oit_stochastic.rs
-// `with_guards` turns it off for a measurement, AURORA_ST_GUARDS=0)
+// `with_guards` turns it off for a measurement, BLOCK_ST_GUARDS=0)
 const ST_GUARDS: bool = true;
 
 fn st_hash(v: u32) -> u32 {
@@ -3294,7 +3294,7 @@ fn fs_selection_pattern(in: VsOut, @builtin(front_facing) front: bool) -> @locat
     return vec4<f32>(rgb, c.a);
 }
 
-// The poser's hovered part on the subject's skinned faces (Aurora's own):
+// The poser's hovered part on the subject's skinned faces (Block's own):
 // each vertex's share of skinning weight on the part's palette joints
 // (`frame.part_joints`), graded across the mesh where the weights turn from
 // one part to the next. The position is vs_main's, so the depth test

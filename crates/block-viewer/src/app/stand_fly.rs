@@ -59,7 +59,7 @@ impl App {
         }
     }
 
-    /// AURORA_DEMO_STAND_FLY=ground|object|fly|stand|land|locked|fly-rlva: at frame 240 our
+    /// BLOCK_DEMO_STAND_FLY=ground|object|fly|stand|land|locked|fly-rlva: at frame 240 our
     /// avatar sits on the ground (`ground`, `stand`) or takes off (`fly`,
     /// `land`); at 300 `object` sits on the nearest prim. At 480 `stand`
     /// and `land` press the panel's button. The log gives the buttons shown
@@ -68,7 +68,7 @@ impl App {
         if !self.demo || !matches!(self.frame_count, 240 | 300 | 470 | 480 | 560) {
             return;
         }
-        let Ok(mode) = std::env::var("AURORA_DEMO_STAND_FLY") else {
+        let Ok(mode) = std::env::var("BLOCK_DEMO_STAND_FLY") else {
             return;
         };
         let mode = mode.trim();

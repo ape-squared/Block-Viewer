@@ -152,15 +152,15 @@ mod tests {
 
     #[test]
     fn places() {
-        let want = ("Aurora Démo".to_owned(), [12, 34, 56]);
-        assert_eq!(place("secondlife://Aurora%20D%C3%A9mo/12/34/56"), want);
-        assert_eq!(place("secondlife://Aurora%20D%C3%A9mo/12/34/56/"), want);
-        assert_eq!(place(" http://maps.secondlife.com/secondlife/Aurora%20D%C3%A9mo/12/34/56 "), want);
-        assert_eq!(place("https://slurl.com/secondlife/Aurora%20D%C3%A9mo/12/34/56?title=x"), want);
-        assert_eq!(place("secondlife:///secondlife/Aurora%20D%C3%A9mo/12/34/56"), want);
-        assert_eq!(place("secondlife:///app/teleport/Aurora%20D%C3%A9mo/12/34/56"), want);
-        assert_eq!(place("secondlife://app/teleport/Aurora%20D%C3%A9mo/12/34/56"), want);
-        assert_eq!(place("secondlife:///app/region/Aurora%20D%C3%A9mo/12/34/56"), want);
+        let want = ("Block Démo".to_owned(), [12, 34, 56]);
+        assert_eq!(place("secondlife://Block%20D%C3%A9mo/12/34/56"), want);
+        assert_eq!(place("secondlife://Block%20D%C3%A9mo/12/34/56/"), want);
+        assert_eq!(place(" http://maps.secondlife.com/secondlife/Block%20D%C3%A9mo/12/34/56 "), want);
+        assert_eq!(place("https://slurl.com/secondlife/Block%20D%C3%A9mo/12/34/56?title=x"), want);
+        assert_eq!(place("secondlife:///secondlife/Block%20D%C3%A9mo/12/34/56"), want);
+        assert_eq!(place("secondlife:///app/teleport/Block%20D%C3%A9mo/12/34/56"), want);
+        assert_eq!(place("secondlife://app/teleport/Block%20D%C3%A9mo/12/34/56"), want);
+        assert_eq!(place("secondlife:///app/region/Block%20D%C3%A9mo/12/34/56"), want);
         // a region alone: its centre
         assert_eq!(place("secondlife://Ahern"), ("Ahern".to_owned(), [128, 128, 0]));
     }
@@ -228,13 +228,13 @@ mod tests {
             format!("secondlife:///app/agent/{id}/about"),
             format!("secondlife://app/agent/{id}/inspect/"),
             format!("secondlife:///app/group/{id}/about"),
-            "secondlife:///app/teleport/Aurora%20D%C3%A9mo/12/34/56".to_owned(),
+            "secondlife:///app/teleport/Block%20D%C3%A9mo/12/34/56".to_owned(),
             "secondlife://app/region/Région/1/2/3".to_owned(),
             "secondlife:///app/worldmap/Ahern/1/2/3".to_owned(),
             "secondlife:///app/chat/5/hello".to_owned(),
             "secondlife:///app/wear_folder/?folder_id=x".to_owned(),
             "secondlife:///secondlife/Ahern/1/2/3".to_owned(),
-            "secondlife://Aurora%20D%C3%A9mo/12/34/56/".to_owned(),
+            "secondlife://Block%20D%C3%A9mo/12/34/56/".to_owned(),
             "hop://grid.example:8002/Region/12/34/56".to_owned(),
             "x-grid-location-info://grid.example:8002/Region/1/2/3".to_owned(),
             "https://maps.secondlife.com/secondlife/Ahern/1/2/3".to_owned(),

@@ -18,14 +18,14 @@
 //! helper, from the old viewer's close until the new viewer's own splash is
 //! on screen: the switch (old process ending, folders swapped, a cache set
 //! aside, the antivirus reading the new executable) took several seconds
-//! with nothing of Aurora on screen. The new viewer's splash, once shown,
+//! with nothing of Block on screen. The new viewer's splash, once shown,
 //! tells the helper (`block_updater::install::acknowledge_splash`), which
 //! closes its window then.
 //!
 //! Not on macOS: the main window is visible from its creation there (Metal
 //! presents into a visible layer), and a second process would add a second
-//! icon to the Dock. `AURORA_SPLASH=0` turns it off; automated captures
-//! (`AURORA_CAPTURE`) have none unless `AURORA_SPLASH_CAPTURE` asks for it.
+//! icon to the Dock. `BLOCK_SPLASH=0` turns it off; automated captures
+//! (`BLOCK_CAPTURE`) have none unless `BLOCK_SPLASH_CAPTURE` asks for it.
 
 pub mod progress;
 mod window;
@@ -73,9 +73,9 @@ fn wanted(splash: Option<&str>, capture: bool, splash_capture: bool) -> bool {
 
 fn wanted_here() -> bool {
     wanted(
-        std::env::var("AURORA_SPLASH").ok().as_deref(),
-        std::env::var_os("AURORA_CAPTURE").is_some(),
-        std::env::var_os("AURORA_SPLASH_CAPTURE").is_some(),
+        std::env::var("BLOCK_SPLASH").ok().as_deref(),
+        std::env::var_os("BLOCK_CAPTURE").is_some(),
+        std::env::var_os("BLOCK_SPLASH_CAPTURE").is_some(),
     )
 }
 
@@ -172,9 +172,7 @@ pub fn start() {
     if !wanted_here() {
         return;
     }
-    let spawned = std::thread::Builder::new()
-        .name("aurora-splash".into())
-        .spawn(move || feed(started));
+    let spawned = std::thread::Builder::new().name("block-splash".into()).spawn(move || feed(started));
     if let Err(e) = spawned {
         eprintln!("startup splash: no thread ({e})");
     }
@@ -203,7 +201,7 @@ pub fn report_to_update() {
 /// ([`test_slow_start`]).
 static TEST_STEPS: std::sync::atomic::AtomicU16 = std::sync::atomic::AtomicU16::new(0);
 
-/// `AURORA_UPDATE_TEST_SLOW_START=<seconds>[,stuck]`: the start waits that
+/// `BLOCK_UPDATE_TEST_SLOW_START=<seconds>[,stuck]`: the start waits that
 /// long before its renderer, one step a second for the helper, or none with
 /// `stuck`. Only in the builds of `scripts/test-update.ps1`, and only when
 /// an update started this viewer (the helper's wait, `install.rs`).
@@ -211,7 +209,7 @@ pub fn test_slow_start() {
     if !block_version::update_test_build() || !block_updater::install::started_by_update() {
         return;
     }
-    let Some((seconds, stuck)) = std::env::var("AURORA_UPDATE_TEST_SLOW_START")
+    let Some((seconds, stuck)) = std::env::var("BLOCK_UPDATE_TEST_SLOW_START")
         .ok()
         .as_deref()
         .and_then(parse_slow_start)
@@ -282,7 +280,7 @@ fn feed(started: Instant) {
     };
     // its one line back: on screen
     if let Some(out) = child.stdout.take() {
-        let _ = std::thread::Builder::new().name("aurora-splash-shown".into()).spawn(move || {
+        let _ = std::thread::Builder::new().name("block-splash-shown".into()).spawn(move || {
             use std::io::BufRead;
             for line in std::io::BufReader::new(out).lines().map_while(Result::ok) {
                 if line.trim() == "shown" {
@@ -322,7 +320,7 @@ fn feed(started: Instant) {
         std::thread::sleep(Duration::from_millis(25));
     }
     // its input closed: the splash ends (it holds on with
-    // AURORA_DEMO_SPLASH_HOLD)
+    // BLOCK_DEMO_SPLASH_HOLD)
     drop(input);
     let _ = child.wait();
 }

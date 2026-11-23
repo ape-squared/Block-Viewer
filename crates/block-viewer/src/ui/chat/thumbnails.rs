@@ -11,7 +11,7 @@
 //! list's own, which holds those of menu_imchiclet_p2p / group / adhoc.xml
 //! (profile, add friend, show, end the session).
 //!
-//! Aurora's differences, the human's choices: they stand beside the chat
+//! Block's differences, the human's choices: they stand beside the chat
 //! bar by default (the Legacy Viewer keeps them at the top right, the other
 //! choice of Preferences › Chat); a message flashes the thumbnail like an
 //! entry of the list (`flash.rs`: eight soft rises with the Conversations
@@ -150,10 +150,10 @@ fn arrange(items: &[(Uuid, usize)], fit: usize) -> (Vec<usize>, Vec<usize>) {
     (shown, rest)
 }
 
-/// AURORA_DEMO_THUMBNAILS=bar|top|off: where the thumbnails stand for the
+/// BLOCK_DEMO_THUMBNAILS=bar|top|off: where the thumbnails stand for the
 /// run, the settings left alone.
 pub fn demo_place() -> Option<ChatThumbnails> {
-    match std::env::var("AURORA_DEMO_THUMBNAILS").ok()?.as_str() {
+    match std::env::var("BLOCK_DEMO_THUMBNAILS").ok()?.as_str() {
         "bar" => Some(ChatThumbnails::ChatBar),
         "top" => Some(ChatThumbnails::TopRight),
         "off" => Some(ChatThumbnails::Off),

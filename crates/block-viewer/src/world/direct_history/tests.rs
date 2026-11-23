@@ -16,7 +16,7 @@ const ME: Uuid = Uuid::from_u128(1);
 const JANE: Uuid = Uuid::from_u128(2);
 
 fn temp() -> PathBuf {
-    let dir = std::env::temp_dir().join(format!("aurora-direct-history-{}", Uuid::new_v4()));
+    let dir = std::env::temp_dir().join(format!("block-direct-history-{}", Uuid::new_v4()));
     std::fs::create_dir_all(&dir).unwrap();
     dir
 }

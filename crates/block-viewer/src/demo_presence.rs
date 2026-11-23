@@ -1,5 +1,5 @@
-//! AURORA_DEMO_PRESENCE=<place>: the friends' online / offline toasts of
-//! Aurora's notification center at one of their six places (`top-left`,
+//! BLOCK_DEMO_PRESENCE=<place>: the friends' online / offline toasts of
+//! Block's notification center at one of their six places (`top-left`,
 //! `top-center`, `top-right`, `bottom-left`, `bottom-center`,
 //! `bottom-right`), for this run only. Three nearby chat lines, then three
 //! friends' toasts close together; then an IM card under the bell with a
@@ -13,7 +13,7 @@ use uuid::Uuid;
 
 /// The place asked, if any.
 pub fn position() -> Option<crate::settings::PresencePosition> {
-    let mode = std::env::var("AURORA_DEMO_PRESENCE").ok()?;
+    let mode = std::env::var("BLOCK_DEMO_PRESENCE").ok()?;
     crate::settings::PresencePosition::from_word(mode.split(':').next().unwrap_or_default().trim())
 }
 

@@ -1,5 +1,5 @@
 //! Offline test script of the build tools (demo mode):
-//! `AURORA_DEMO_BUILD="mode,x,y[,part,dx,dy]"`.
+//! `BLOCK_DEMO_BUILD="mode,x,y[,part,dx,dy]"`.
 //!
 //! - mode: move | rotate | stretch | face | align | grab | focus | create |
 //!   land | select | select-join (a simulated multi-parcel selection)
@@ -47,22 +47,22 @@
 //!   rz roll free; stretch: c0..c7, fx fy fz (positive faces)), then dragged
 //!   by dx, dy pixels over 40 frames and held for the capture.
 //!
-//! Frames are counted from AURORA_DEMO_BUILD_FRAME (600 by default: after
+//! Frames are counted from BLOCK_DEMO_BUILD_FRAME (600 by default: after
 //! the loading fade; capture at about +90 frames).
 //! `mode,object:<local_id>[,part,dx,dy]` selects a demo object directly,
 //! so an animated flexible shape needs no fixed screen click coordinate.
 //! `material-deselect,object:<local_id>` then closes the inspector to check
 //! that its last local material display choice survives deselection.
 //!
-//! `AURORA_DEMO_BUILD_TAB` shows a section: general | rights | object | transform |
+//! `BLOCK_DEMO_BUILD_TAB` shows a section: general | rights | object | transform |
 //! shape | features | texture | contents, the texture tab with `:pbr`, `:bp` or
 //! `:media` (e.g. `texture:bp`); `:bp-normal` / `:bp-specular` select empty
 //! legacy map channels, and opens `+weights`, `+grid`, `+media`
 //! (e.g. `general+weights+grid`); `contents+permissions` opens bulk rights.
-//! `AURORA_DEMO_BUILD_HANDLES=<percent>` sets the edit handle size.
-//! `AURORA_DEMO_BUILD_FOCUS=off|on` focuses the selected object before the
+//! `BLOCK_DEMO_BUILD_HANDLES=<percent>` sets the edit handle size.
+//! `BLOCK_DEMO_BUILD_FOCUS=off|on` focuses the selected object before the
 //! drag, with edit camera tracking disabled/enabled.
-//! `AURORA_DEMO_BUILD_EDGE=left|right|top|bottom` moves the cursor to an
+//! `BLOCK_DEMO_BUILD_EDGE=left|right|top|bottom` moves the cursor to an
 //! edge, holds it for 60 frames and releases the move handle at base +136.
 
 use super::manip::Part;
@@ -191,9 +191,9 @@ fn handle_px(tool: &BuildTool, world: &World, s: &BuildSettings, part: Part) -> 
     cam.project_px(p)
 }
 
-/// AURORA_DEMO_BUILD_HANDLES: the edit handle size, in percent.
+/// BLOCK_DEMO_BUILD_HANDLES: the edit handle size, in percent.
 pub fn apply_handle_size(s: &mut BuildSettings) {
-    if let Some(percent) = std::env::var("AURORA_DEMO_BUILD_HANDLES")
+    if let Some(percent) = std::env::var("BLOCK_DEMO_BUILD_HANDLES")
         .ok()
         .and_then(|v| v.trim().parse::<f32>().ok())
     {
@@ -201,22 +201,22 @@ pub fn apply_handle_size(s: &mut BuildSettings) {
     }
 }
 
-/// AURORA_DEMO_OBJECT_SNAP=on: Snap › Objects for the build script.
+/// BLOCK_DEMO_OBJECT_SNAP=on: Snap › Objects for the build script.
 pub fn apply_object_snap(s: &mut BuildSettings) {
-    if std::env::var("AURORA_DEMO_OBJECT_SNAP").is_ok_and(|v| v.trim() == "on") {
+    if std::env::var("BLOCK_DEMO_OBJECT_SNAP").is_ok_and(|v| v.trim() == "on") {
         s.set_snap_mode(super::SnapMode::Objects);
     }
-    // AURORA_DEMO_MOVE_HOLOGRAM=moving|start: the hologram of a move
-    match std::env::var("AURORA_DEMO_MOVE_HOLOGRAM").as_deref().map(str::trim) {
+    // BLOCK_DEMO_MOVE_HOLOGRAM=moving|start: the hologram of a move
+    match std::env::var("BLOCK_DEMO_MOVE_HOLOGRAM").as_deref().map(str::trim) {
         Ok("moving") => s.move_hologram = super::MoveHologram::Moving,
         Ok("start") => s.move_hologram = super::MoveHologram::Start,
         _ => {}
     }
 }
 
-/// AURORA_DEMO_BUILD_TAB: the floater tab (and texture sub-tab) to show.
+/// BLOCK_DEMO_BUILD_TAB: the floater tab (and texture sub-tab) to show.
 pub fn apply_tab(tool: &mut BuildTool) {
-    let Ok(v) = std::env::var("AURORA_DEMO_BUILD_TAB") else { return };
+    let Ok(v) = std::env::var("BLOCK_DEMO_BUILD_TAB") else { return };
     // secondary floaters: +weights, +grid, +media
     let mut parts = v.split('+');
     let v = parts.next().unwrap_or("").to_owned();
@@ -396,8 +396,8 @@ pub fn steps(spec: &str, frame: u64, tool: &BuildTool, world: &World, s: &BuildS
     };
     let h = if object.is_some() { 2 } else { 3 };
     let handle = parts.get(h).and_then(|p| part_of(p));
-    // script start (AURORA_DEMO_BUILD_FRAME, after the loading fade by default)
-    let base: u64 = std::env::var("AURORA_DEMO_BUILD_FRAME")
+    // script start (BLOCK_DEMO_BUILD_FRAME, after the loading fade by default)
+    let base: u64 = std::env::var("BLOCK_DEMO_BUILD_FRAME")
         .ok()
         .and_then(|v| v.parse().ok())
         .unwrap_or(600);
@@ -734,7 +734,7 @@ pub fn steps(spec: &str, frame: u64, tool: &BuildTool, world: &World, s: &BuildS
     }
     let (dx, dy) = (num(h + 1).unwrap_or(120.0), num(h + 2).unwrap_or(0.0));
     let edge = (t == Tool::Edit && m == EditMode::Move)
-        .then(|| std::env::var("AURORA_DEMO_BUILD_EDGE").ok())
+        .then(|| std::env::var("BLOCK_DEMO_BUILD_EDGE").ok())
         .flatten()
         .and_then(|v| match v.as_str() {
             "left" => Some((1.0, y_start(tool))),
@@ -760,7 +760,7 @@ pub fn steps(spec: &str, frame: u64, tool: &BuildTool, world: &World, s: &BuildS
         220 => vec![Step::Cursor(x, y), Step::Press],
         // land brush / selection: held (land: no release), others released
         226 if t != Tool::Land => vec![Step::Release],
-        227 if t == Tool::Edit => match std::env::var("AURORA_DEMO_BUILD_FOCUS").as_deref() {
+        227 if t == Tool::Edit => match std::env::var("BLOCK_DEMO_BUILD_FOCUS").as_deref() {
             Ok("off") => vec![Step::Focus(false)],
             Ok("on") => vec![Step::Focus(true)],
             _ if cycle => vec![Step::Focus(false)],

@@ -666,7 +666,7 @@ fn sound_block_items(ui: &mut Builder, f: &Facts, owner: Uuid) {
 }
 
 /// Legacy menu_avatar_other.xml / menu_attachment_other.xml actions, grouped
-/// deliberately for Aurora (human request and #1135). Keep frequent social
+/// deliberately for Block (human request and #1135). Keep frequent social
 /// actions direct and technical/safety actions out of their click path.
 ///
 /// `@shownames` (issue #3547): the Legacy Viewer greys View profile, Add
@@ -674,10 +674,10 @@ fn sound_block_items(ui: &mut Builder, f: &Facts, owner: Uuid) {
 /// `RLV.CanShowName` (menu_avatar_other.xml; the handlers LLAvatarSendIM,
 /// LLAvatarAddFriend, LLAvatarAddContact, LLAvatarInviteToGroup, ShowAgentProfile
 /// and enable_avatar_call, indra/newview/llviewermenu.cpp, test it again).
-/// Offer teleport is not an entry of those menus there: Aurora adds it, so it
+/// Offer teleport is not an entry of those menus there: Block adds it, so it
 /// follows the same rule (stricter than the Legacy Viewer, which offers a
 /// teleport from an open IM, closed by the same restriction, or from the
-/// People menus, which Aurora keeps as they are).
+/// People menus, which Block keeps as they are).
 fn avatar_social_items(ui: &mut Builder, f: &Facts, id: Uuid) {
     let named = !f.name_hidden;
     ui.item_if("user-filled", block_i18n::tr!("common-view-profile"), named, CtxAction::Profile(id));
@@ -855,7 +855,7 @@ fn avatar_groups(ui: &mut Builder, f: &Facts, id: Uuid, attachment: Option<Uuid>
         );
         // Local mute of their nearby/call voice only (flagVoiceChat), same as
         // People › Block voice and the menu volume row — not land moderation.
-        // An Aurora entry: it files the resident in the same block list, so
+        // A Block entry: it files the resident in the same block list, so
         // it follows the same rule (stricter than the Legacy Viewer, whose
         // menu has no such entry).
         ui.check(
@@ -1001,7 +1001,7 @@ fn self_menu(ui: &mut Builder, f: &Facts, id: Uuid) {
     appearance_submenu(ui, f);
     reload_avatar_item(ui, id);
     community_submenu(ui, id);
-    // not in Firestorm's menu: kept from Aurora's (fly is in menu_attachment_self.xml)
+    // not in Firestorm's menu: kept from Block's (fly is in menu_attachment_self.xml)
     ui.item_if(
         if f.flying {
             "plane-arrival-filled"
@@ -1936,7 +1936,7 @@ mod tests {
             .map(|e| e.label)
             .collect();
         // The backup exporter is a separate subsystem. Script info is
-        // available through the Aurora bridge.
+        // available through the Block bridge.
         let expected = tr(&["ui-context-save-backup"]);
         let mut left_sorted = left.clone();
         left_sorted.sort();

@@ -41,7 +41,7 @@ const RELEASE_AFTER: Duration = Duration::from_secs(3);
 #[derive(Debug, Default)]
 pub(super) struct GamingMode {
     pub(super) on: bool,
-    /// AURORA_DEMO_GAMING_MODE: the scenario turned it on once.
+    /// BLOCK_DEMO_GAMING_MODE: the scenario turned it on once.
     demo_done: bool,
     /// When the focus coming back ended it (`gaming_mode_leave_on_focus`).
     left_on_focus: Option<Instant>,
@@ -105,11 +105,11 @@ fn trim_working_set() {
     }
 }
 
-/// `AURORA_DEMO_GAMING_MODE=<frame>`: gaming mode turns on at that frame,
+/// `BLOCK_DEMO_GAMING_MODE=<frame>`: gaming mode turns on at that frame,
 /// as from its button, to see the pause, its notice and its title.
 fn demo_from() -> Option<u64> {
     static FROM: std::sync::OnceLock<Option<u64>> = std::sync::OnceLock::new();
-    *FROM.get_or_init(|| std::env::var("AURORA_DEMO_GAMING_MODE").ok()?.trim().parse().ok())
+    *FROM.get_or_init(|| std::env::var("BLOCK_DEMO_GAMING_MODE").ok()?.trim().parse().ok())
 }
 
 impl App {

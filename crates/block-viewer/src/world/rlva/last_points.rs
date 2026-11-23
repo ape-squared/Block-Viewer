@@ -1,5 +1,5 @@
 //! The attachment point each object was last seen attached to, kept per
-//! account (Aurora addition, human decision of 2026-10-31). An inventory
+//! account (Block addition, human decision of 2026-10-31). An inventory
 //! item often carries no saved point (flags 0) and the simulator only takes
 //! the point from the object when it attaches, so the wear menus remember
 //! where each object went to grey Wear under an RLVa lock, across sessions.
@@ -35,7 +35,7 @@ struct Writer {
 impl Writer {
     fn start(path: PathBuf) -> Option<Self> {
         let (snapshots, received) = mpsc::unbounded::<Vec<u8>>();
-        let worker = std::thread::Builder::new().name("aurora-rlva-points".into()).spawn(move || {
+        let worker = std::thread::Builder::new().name("block-rlva-points".into()).spawn(move || {
             // a refused write is tried again, and once more when the
             // writer goes (save_retry)
             crate::save_retry::write_latest("rlva: attachment points", &received, |bytes| {
@@ -195,7 +195,7 @@ mod tests {
 
     #[test]
     fn points_survive_a_reload_and_the_oldest_go_first() {
-        let dir = std::env::temp_dir().join(format!("aurora-rlva-points-{}", Uuid::new_v4()));
+        let dir = std::env::temp_dir().join(format!("block-rlva-points-{}", Uuid::new_v4()));
         let path = dir.join(FILE);
         let now = Instant::now();
         let mut points = LastPoints::load(path.clone());
@@ -222,7 +222,7 @@ mod tests {
 
     #[test]
     fn pending_points_are_written_when_dropped() {
-        let dir = std::env::temp_dir().join(format!("aurora-rlva-points-{}", Uuid::new_v4()));
+        let dir = std::env::temp_dir().join(format!("block-rlva-points-{}", Uuid::new_v4()));
         let path = dir.join(FILE);
         let mut points = LastPoints::load(path.clone());
         points.note(Uuid::from_u128(1), 2, Instant::now());
@@ -237,7 +237,7 @@ mod tests {
 
     #[test]
     fn an_oversized_file_keeps_only_its_newest_entries() {
-        let dir = std::env::temp_dir().join(format!("aurora-rlva-points-{}", Uuid::new_v4()));
+        let dir = std::env::temp_dir().join(format!("block-rlva-points-{}", Uuid::new_v4()));
         let path = dir.join(FILE);
         std::fs::create_dir_all(&dir).expect("directory");
         let saved = Saved {

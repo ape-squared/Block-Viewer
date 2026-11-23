@@ -2,7 +2,7 @@
 //! Shortcuts › Communication › Chat (while typing), `keybinds::is_chat`): a line break, shout, whisper,
 //! ((OOC)), the sent messages' history and the conversations' cycling.
 //! The Legacy Viewer hard-codes them (FSFloaterIM::handleKeyHere,
-//! FSNearbyChatControl::handleKeyHere, indra/newview); Aurora reads them
+//! FSNearbyChatControl::handleKeyHere, indra/newview); Block reads them
 //! from the user's table (human request of 2026-11-15). Send (Enter),
 //! Close (Ctrl+W) and Find (Ctrl+F) stay fixed.
 //!

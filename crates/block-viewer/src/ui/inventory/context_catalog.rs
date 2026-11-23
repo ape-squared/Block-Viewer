@@ -1262,7 +1262,7 @@ pub(super) fn execute(
             // acting on every selected folder: LLInventoryAction::doToSelected
             // (indra/newview/llinventoryfunctions.cpp) calls LLFolderBridge's
             // protect_folder / unprotect_folder (indra/newview/llinventorybridge.cpp,
-            // FIRE-29342) for each of them. Aurora keeps one toggle entry and
+            // FIRE-29342) for each of them. Block keeps one toggle entry and
             // applies it to the whole selection: all locked -> unlock them all,
             // otherwise lock them all.
             let all_locked = !ids.is_empty() && ids.iter().all(|id| prefs.protected.contains(id));

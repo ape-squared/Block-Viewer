@@ -1,4 +1,4 @@
-//! AURORA_DEMO_SOCIAL_MENU: the steps of "Invite to group", "Add to contact
+//! BLOCK_DEMO_SOCIAL_MENU: the steps of "Invite to group", "Add to contact
 //! set" and "Block particles" on the demo's resident (demo_social_menu.rs).
 use super::*;
 use crate::demo::social_menu::{RESIDENT, Step};

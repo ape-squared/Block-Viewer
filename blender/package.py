@@ -7,10 +7,10 @@ parser = argparse.ArgumentParser(description=__doc__)
 parser.add_argument("output", type=Path, help="Destination ZIP file")
 parser.add_argument("--legacy", action="store_true", help="Classic add-on layout for Blender 2.93–4.1")
 args = parser.parse_args()
-source = Path(__file__).resolve().parent / "aurora_live"
+source = Path(__file__).resolve().parent / "block_live"
 args.output.parent.mkdir(parents=True, exist_ok=True)
 with zipfile.ZipFile(args.output, "w", zipfile.ZIP_DEFLATED) as archive:
-    prefix = "aurora_live/" if args.legacy else ""
+    prefix = "block_live/" if args.legacy else ""
     for name in ("__init__.py", "compat.py", "client.py", "exporter.py", "starter.py", "weights.py", "materials.py", "tracking.py",
                  "handles.py", "rigging.py", "skinning.py", "posing.py", "tools_ui.py", "lods.py", "shape_apply.py", "shape_transfer.py", "SKELETON-NOTICE.txt"):
         archive.write(source / name, prefix + name)

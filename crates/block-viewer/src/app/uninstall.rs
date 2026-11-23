@@ -1,7 +1,7 @@
 //! The app's side of the removal from this computer (`uninstall.rs`,
 //! `ui/uninstall.rs`): the plan when Preferences asks for it, the removal
 //! on a thread of its own (it may start each Blender found, for minutes),
-//! then the result window. `AURORA_DEMO_UNINSTALL` shows each step, as a dry
+//! then the result window. `BLOCK_DEMO_UNINSTALL` shows each step, as a dry
 //! run.
 
 use super::App;
@@ -86,7 +86,7 @@ impl App {
         let transcripts = super::folders::chat_log_root(&self.settings.chat_log_location);
         let (tx, rx) = std::sync::mpsc::channel();
         let ctx = ctx.clone();
-        let spawned = std::thread::Builder::new().name("aurora-uninstall".into()).spawn(move || {
+        let spawned = std::thread::Builder::new().name("block-uninstall".into()).spawn(move || {
             let mut system = uninstall::system::for_run();
             log::info!(
                 "removal from this computer: {} parts{}",
@@ -109,12 +109,12 @@ impl App {
         }
     }
 
-    /// `AURORA_DEMO_UNINSTALL=confirm|running|result|left`: the preferences
+    /// `BLOCK_DEMO_UNINSTALL=confirm|running|result|left`: the preferences
     /// on the action, then its confirmation, the result window while it
     /// runs, or once the dry run finished (`left`: scrolled to the folders).
     pub(super) fn uninstall_demo(&mut self, mode: &str) {
         self.panels.settings = true;
-        crate::ui::options::demo(&mut self.options_ui, "system:remove-aurora");
+        crate::ui::options::demo(&mut self.options_ui, "system:remove-block");
         match mode {
             "running" => self.uninstall.ui.open = true,
             "result" | "left" => {

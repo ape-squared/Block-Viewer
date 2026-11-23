@@ -108,7 +108,7 @@ impl App {
         // Use the application's frame clock: egui's count starts later
         // than the demo and its capture/loading clock.
         if self.demo && self.frame_count >= 680 {
-            let mode = std::env::var("AURORA_DEMO_MARKETPLACE_LISTINGS").unwrap_or_default();
+            let mode = std::env::var("BLOCK_DEMO_MARKETPLACE_LISTINGS").unwrap_or_default();
             let menu = match mode.as_str() {
                 "menu-listing" => Some(demo::HOODIE),
                 "menu-version" => Some(demo::HOODIE_V2),
@@ -119,7 +119,7 @@ impl App {
                 self.listings_ui.demo_menu(id);
             }
         }
-        if self.demo && std::env::var("AURORA_DEMO_MARKETPLACE_LISTINGS").is_ok_and(|v| v == "audit") {
+        if self.demo && std::env::var("BLOCK_DEMO_MARKETPLACE_LISTINGS").is_ok_and(|v| v == "audit") {
             let worn = self.worn_items();
             self.listings_ui.demo_audit(&self.world.inventory, &worn);
         }
@@ -245,7 +245,7 @@ impl App {
         }
     }
 
-    /// AURORA_DEMO_MARKETPLACE_LISTINGS (docs/TESTING.md): the sample
+    /// BLOCK_DEMO_MARKETPLACE_LISTINGS (docs/TESTING.md): the sample
     /// listings and the window open at start.
     pub(super) fn demo_marketplace_listings(&mut self) {
         let Some(mode) = demo::Mode::from_env() else {

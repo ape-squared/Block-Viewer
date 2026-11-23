@@ -5,10 +5,10 @@
 //! Firestorm's "Quality and speed" slider once a setting moved
 //! (LLFeatureManager::setGraphicsLevel, indra/newview/llfeaturemanager.cpp;
 //! the values follow the Low, LowMid, Mid, High and Ultra lists of
-//! indra/newview/featuretable.txt, mapped onto Aurora's settings).
+//! indra/newview/featuretable.txt, mapped onto Block's settings).
 //!
 //! From Medium up the levels go beyond the Legacy Viewer's lists with
-//! Aurora's own effects, which the Legacy Viewer has no level for (decided by
+//! Block's own effects, which the Legacy Viewer has no level for (decided by
 //! the human on 2026-10-17): the ambient occlusion by GTAO (gtao.rs in
 //! block-render, its specular occlusion following it) at Low quality in
 //! Medium (about 0.1 ms at 2560 x 1369 in the demo crowd), High quality in
@@ -69,7 +69,7 @@ impl Preset {
         }
     }
 
-    /// The name accepted by `AURORA_GRAPHICS_PRESET`.
+    /// The name accepted by `BLOCK_GRAPHICS_PRESET`.
     pub fn from_name(name: &str) -> Option<Preset> {
         Some(match name.trim().to_ascii_lowercase().as_str() {
             "potato" => Preset::Potato,
@@ -152,7 +152,7 @@ impl Preset {
             },
             // "Mid": 128 m, 7 avatars at 200 k, 4,096 particles, FXAA,
             // anisotropy, manual reflection probes; no shadows yet; and
-            // Aurora's ambient occlusion by GTAO at Low quality
+            // Block's ambient occlusion by GTAO at Low quality
             Preset::Medium => Values {
                 draw_distance: 128.0,
                 lod_factor: 2.0,
@@ -184,9 +184,9 @@ impl Preset {
             },
             // "High": 11 avatars at 300 k, sun and moon shadows (detail 1:
             // no projector shadows), ambient occlusion (by GTAO at High
-            // quality, Aurora's method, where the Legacy Viewer has its SSAO),
+            // quality, Block's method, where the Legacy Viewer has its SSAO),
             // water reflection, probes with the terrain, SMAA and CAS
-            // sharpening at 0.4; and Aurora's contact shadows
+            // sharpening at 0.4; and Block's contact shadows
             Preset::High => Values {
                 draw_distance: 128.0,
                 lod_factor: 2.0,
@@ -221,12 +221,12 @@ impl Preset {
             // rest is "the most that stays reasonable": 192 m instead of
             // Ultra's 256 (a busy place costs far less), the complexity of
             // "HighUltra" (Ultra keeps the user's), the highest shadow
-            // quality, ambient occlusion by GTAO at Ultra quality (Aurora's
+            // quality, ambient occlusion by GTAO at Ultra quality (Block's
             // method, beyond the Legacy Viewer's SSAO of Ultra), water
             // reflection at half resolution (full costs a second scene),
-            // Aurora's mirrors as by default and 16x anisotropy;
+            // Block's mirrors as by default and 16x anisotropy;
             // screen-space reflections stay off, as in every Legacy Viewer
-            // level; and Aurora's own effects (module comment)
+            // level; and Block's own effects (module comment)
             Preset::Deluxe => Values {
                 draw_distance: 192.0,
                 lod_factor: 3.0,
@@ -264,10 +264,10 @@ impl Preset {
     /// applyRecommendedSettings): Medium on an integrated GPU or a dedicated
     /// one under 2 GB of video memory (the threshold applyBaseMasks tests
     /// for its VRAMLT2GB mask, a list Firestorm's table leaves empty today:
-    /// lowering the level there is Aurora's own rule), High otherwise; one
+    /// lowering the level there is Block's own rule), High otherwise; one
     /// level lower with less than 8 GB of system memory, as Firestorm does on
     /// Windows.
-    /// Firestorm ranks the card by a memory-bandwidth benchmark; Aurora asks
+    /// Firestorm ranks the card by a memory-bandwidth benchmark; Block asks
     /// wgpu for the kind of adapter and its memory instead. An unknown size
     /// counts as enough.
     pub fn for_machine(integrated: bool, vram_mb: Option<u64>, system_mb: Option<u64>) -> Preset {
@@ -336,12 +336,12 @@ pub(crate) mod mac_mid_high {
     use super::{Preset, Settings, Values};
 
     /// The values of a new Mac profile: the Mac "MidHigh" list mapped onto
-    /// Aurora's Medium level. It keeps the moderate distance, LOD and
+    /// Block's Medium level. It keeps the moderate distance, LOD and
     /// particle budget, turns the ambient occlusion off (RenderDeferredSSAO
     /// 0), uses FXAA, manual probes and no screen-space effects; the avatar
     /// budget (RenderAvatarMaxNonImpostors 9), complexity (250 000), probe
     /// count (64) and anisotropy (2) follow the Mac table. Specular AA, an
-    /// Aurora improvement with no measurable cost, stays as the user has it.
+    /// Block improvement with no measurable cost, stays as the user has it.
     pub(crate) fn values() -> Values {
         Values {
             max_avatars: 9,
@@ -656,7 +656,7 @@ pub(crate) fn upgrade_blend_order(s: &mut Settings) {
     };
 }
 
-/// Aurora's effects beyond the Legacy Viewer's levels, which High and
+/// Block's effects beyond the Legacy Viewer's levels, which High and
 /// Deluxe turn on.
 #[derive(Debug, Clone, Copy, PartialEq, serde::Serialize, serde::Deserialize)]
 pub struct Effects {

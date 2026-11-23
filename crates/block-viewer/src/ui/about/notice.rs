@@ -170,7 +170,7 @@ mod tests {
             for group in ported.split(';') {
                 let mut base = String::new();
                 for path in group.split('`').skip(1).step_by(2) {
-                    let full = if path.starts_with("aurora-") {
+                    let full = if path.starts_with("block-") {
                         base = path.split_once("/src/").map(|(c, _)| format!("{c}/src/")).unwrap_or_default();
                         path.to_owned()
                     } else {

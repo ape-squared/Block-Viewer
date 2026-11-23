@@ -139,7 +139,7 @@ const SETTLE: f64 = 0.4;
 /// must not take a click meant for what was there a moment before, which
 /// teleported or declined an offer without it ever being read.
 fn settled(ui: &egui::Ui, invite: u64, at: egui::Pos2) -> bool {
-    let id = egui::Id::new(("invite_card_settle", invite, ui.layer_id()));
+    let id = egui::Id::unique(("invite_card_settle", invite, ui.layer_id()));
     let now = ui.input(|i| i.time);
     let pass = ui.ctx().cumulative_pass_nr();
     let since = ui.ctx().data_mut(|d| {

@@ -1157,7 +1157,7 @@ pub fn show(
                 // (LLScreenChannel::redrawToasts)
                 ui.spacing_mut().item_spacing.y = env.toast_gap;
                 let (ids, behind) = shown_toasts(list, nui, dnd);
-                let stack = egui::Id::new("notification_toast_stack");
+                let stack = egui::Id::unique("notification_toast_stack");
                 let changed_at = ctx.data_mut(|d| {
                     let kept: Option<(Vec<u64>, f64)> = d.get_temp(stack);
                     let at = match kept {

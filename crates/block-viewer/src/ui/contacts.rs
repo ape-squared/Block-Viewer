@@ -2194,7 +2194,7 @@ const DIALOG_SETTLE: f64 = 0.35;
 /// Whether the contacts' dialog opened less than [`DIALOG_SETTLE`] ago (it
 /// was not shown on the previous pass, or since).
 fn dialog_opening(ctx: &egui::Context) -> bool {
-    let id = egui::Id::new("contacts_dialog_opened");
+    let id = egui::Id::unique("contacts_dialog_opened");
     let now = ctx.input(|i| i.time);
     let pass = ctx.cumulative_pass_nr();
     let since = ctx.data_mut(|d| {

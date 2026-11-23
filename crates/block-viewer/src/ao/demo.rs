@@ -50,7 +50,7 @@ pub fn seed(inv: &mut Inventory, owner: Uuid) -> Uuid {
 
 pub fn seed_firestorm(inv: &mut Inventory, owner: Uuid) -> Uuid {
     let selected = seed(inv, owner);
-    let Some(brand) = inventory::child(inv, inv.root, "#Aurora") else {
+    let Some(brand) = inventory::child(inv, inv.root, "#Block") else {
         return selected;
     };
     let Some(root) = inventory::child(inv, brand, inventory::FOLDER) else {
@@ -168,7 +168,7 @@ pub fn seed_movement_design(inv: &mut Inventory, owner: Uuid) -> Uuid {
 /// An existing native AO and bridge directory under their previous names.
 pub fn seed_folder_names(inv: &mut Inventory, owner: Uuid) -> Uuid {
     let selected = seed_movement_design(inv, owner);
-    if let Some(brand) = inventory::child(inv, inv.root, "#Aurora") {
+    if let Some(brand) = inventory::child(inv, inv.root, "#Block") {
         if let Some(root) = inventory::child(inv, brand, inventory::FOLDER)
             && let Some(root) = inv.folders.get_mut(&root)
         {

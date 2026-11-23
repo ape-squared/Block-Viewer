@@ -2453,7 +2453,7 @@ pub(crate) mod tests {
                 let mut world = World::new(std::sync::Arc::new(crate::scene::avatar::AvatarLibrary::load()));
                 world.inventory.root = Uuid::from_u128(1);
                 world.inventory.created_folders(
-                    [(1, 0, "Inventory"), (2, 1, "#Aurora"), (3, 2, "Block Library")]
+                    [(1, 0, "Inventory"), (2, 1, "#Block"), (3, 2, "Block Library")]
                         .into_iter()
                         .map(|(id, parent, name)| block_net::inventory::InvFolder {
                             id: Uuid::from_u128(id),
@@ -2521,7 +2521,7 @@ pub(crate) mod tests {
                     world.inventory.created_folders(
                         [
                             (1, 0, "Inventory"),
-                            (2, 1, "#Aurora"),
+                            (2, 1, "#Block"),
                             (3, 2, "Block Library"),
                             (4, parent, "Resources"),
                             (5, parent, "Unrelated"),
@@ -2676,7 +2676,7 @@ pub(crate) mod tests {
             world.inventory.root = root;
             let parent = if source == 0 { root } else { Uuid::from_u128(3) };
             world.inventory.created_folders(
-                [(1, 0, "Inventory"), (2, 1, "#Aurora"), (3, 2, "Block Library")]
+                [(1, 0, "Inventory"), (2, 1, "#Block"), (3, 2, "Block Library")]
                     .into_iter()
                     .map(|(id, parent, name)| block_net::inventory::InvFolder {
                         id: Uuid::from_u128(id),

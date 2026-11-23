@@ -14,10 +14,17 @@ use std::collections::HashSet;
 use std::time::{Duration, Instant};
 use uuid::Uuid;
 
-pub const FOLDER: &str = "#Aurora";
+pub const FOLDER: &str = "#Block";
+/// The folder's name before the rename to Block: renamed in place, so the
+/// bridge, the AO and the favourites inside it are kept.
+const OLD_FOLDER: &str = "#Aurora";
 pub const SUBFOLDER: &str = "Block Bridge";
 const OLD_SUBFOLDER: &str = "Bridge";
-pub const NAME: &str = "#Aurora Bridge v1.0";
+pub const NAME: &str = "#Block Bridge v1.0";
+/// The bridge object's and controller script's name before the rename to
+/// Block: the object is still recognised (and renamed in place), the script
+/// is replaced by one named [`NAME`].
+const OLD_NAME: &str = "#Aurora Bridge v1.0";
 /// Center 2, where both viewers wear their bridge (FS_BRIDGE_POINT,
 /// fslslbridge.h).
 pub(crate) const POINT: u8 = 31;
@@ -54,7 +61,9 @@ const ROCK: &str = factory::ROCK;
 const SOURCE: &str = include_str!("bridge/bridge.lsl");
 // Read-only services (radar heights, script and object information) run in a
 // second script: Mono gives each script 64 KB, and the controller has little left.
-pub const QUERY_NAME: &str = "#Aurora Bridge Query";
+pub const QUERY_NAME: &str = "#Block Bridge Query";
+/// The query script's name before the rename to Block: replaced.
+const OLD_QUERY_NAME: &str = "#Aurora Bridge Query";
 const QUERY_SOURCE: &str = include_str!("bridge/query.lsl");
 /// The third script older bridges carried: a relay that listened on a fixed
 /// region channel for hand contacts that objects published to Block viewers.
@@ -100,6 +109,12 @@ fn root_folder(inv: &super::inventory::Inventory, name: &str) -> Option<Uuid> {
     })
 }
 
+/// The viewer's own folder under the inventory root: `#Block`, or `#Aurora`
+/// until the bridge has renamed it (or while the bridge is turned off).
+pub fn brand_folder(inv: &super::inventory::Inventory) -> Option<Uuid> {
+    root_folder(inv, FOLDER).or_else(|| root_folder(inv, OLD_FOLDER))
+}
+
 /// FS_BRIDGE_NAME (fslslbridge.h) with its exact version syntax: a chat tag
 /// or a similarly named ordinary HUD is not the Legacy Viewer's bridge.
 fn legacy_bridge_name(name: &str) -> bool {
@@ -113,7 +128,7 @@ fn legacy_bridge_name(name: &str) -> bool {
 }
 
 /// Whether the inventory item is a viewer's scripting bridge: ours in
-/// `#Aurora`, or the one the Legacy Viewer left worn, in `#Firestorm`. The
+/// `#Block`, or the one the Legacy Viewer left worn, in `#Firestorm`. The
 /// name alone is not enough: the agent owns it and it lies under the
 /// viewer's own folder. RLVa leaves such an object out of what the avatar
 /// wears on `point` (FSLSLBridge::isBridgeValid and getAttachedID, used by
@@ -122,16 +137,16 @@ pub(crate) fn viewer_bridge(world: &World, item: Uuid, point: u8) -> bool {
     let inv = &world.inventory;
     point == POINT
         && inv.items.get(&item).is_some_and(|entry| {
-            let folder = if entry.name == NAME {
-                FOLDER
+            let folder = if entry.name == NAME || entry.name == OLD_NAME {
+                brand_folder(inv)
             } else if legacy_bridge_name(&entry.name) {
-                "#Firestorm"
+                root_folder(inv, "#Firestorm")
             } else {
                 return false;
             };
             entry.owner == world.agent_id
                 && entry.asset_type == 6
-                && root_folder(inv, folder).is_some_and(|folder| super::inventory::actions::under(inv, item, folder))
+                && folder.is_some_and(|folder| super::inventory::actions::under(inv, item, folder))
         })
 }
 
@@ -341,11 +356,11 @@ impl Bridge {
     pub fn folder(&self) -> Uuid {
         self.folder
     }
-    /// Whether the bridge makes `#Aurora` when it is missing: it runs for
+    /// Whether the bridge makes `#Block` when it is missing: it runs for
     /// this account, on, worn, still looking for its folder, and the grid
     /// lets it write (`inventory_writable_with_ais`). What else keeps its
-    /// folders under `#Aurora` at login waits for it instead of asking for
-    /// a second `#Aurora` in the same seconds (the Favorite Wearables; the
+    /// folders under `#Block` at login waits for it instead of asking for
+    /// a second `#Block` in the same seconds (the Favorite Wearables; the
     /// AO's bootstrap waits the same way).
     pub fn makes_brand_folder(&self, world: &World) -> bool {
         !self.agent.is_nil()
@@ -635,7 +650,7 @@ impl Bridge {
             self.error = Some(reason.into());
         }
     }
-    /// Detach our own worn bridge, found by its exact name in `#Aurora`,
+    /// Detach our own worn bridge, found by its exact name in `#Block`,
     /// each worn object once: wearing it again while off detaches it again.
     fn detach_own(&mut self, world: &World, now: Instant) {
         if self.own_poll.is_some_and(|at| now.duration_since(at) < Duration::from_secs(1)) {
@@ -643,14 +658,14 @@ impl Bridge {
         }
         self.own_poll = Some(now);
         let inv = &world.inventory;
-        let folder = root_folder(inv, FOLDER);
+        let folder = brand_folder(inv);
         let mut detach = Vec::new();
         for item in world.worn_attachment_items() {
             let ours = item == self.item
                 || inv.items.get(&item).is_some_and(|entry| {
                     entry.owner == world.agent_id
                         && entry.asset_type == 6
-                        && entry.name == NAME
+                        && (entry.name == NAME || entry.name == OLD_NAME)
                         && folder.is_some_and(|folder| super::inventory::actions::under(inv, item, folder))
                 });
             if ours
@@ -1103,6 +1118,34 @@ impl Bridge {
                     .filter(|f| !f.library && f.info.name == FOLDER)
                     .map(|f| f.info.id)
                     .min();
+                let old_folder = root
+                    .children
+                    .iter()
+                    .filter_map(|id| inv.folders.get(id))
+                    .filter(|f| !f.library && f.info.parent == inv.root && f.info.name == OLD_FOLDER)
+                    .map(|f| f.info.id)
+                    .min();
+                if folder.is_none()
+                    && let Some(old) = old_folder
+                {
+                    if self.phase != Phase::Folder {
+                        // Rename in place: its UUID, contents and worn bridge stay.
+                        self.mutate(
+                            Mutation {
+                                operations: vec![Operation::Patch {
+                                    id: old,
+                                    folder: true,
+                                    body: block_llsd::llsd_map! { "name" => FOLDER },
+                                }],
+                                refresh: vec![inv.root, old],
+                                ..Default::default()
+                            },
+                            Phase::Folder,
+                            now,
+                        );
+                    }
+                    return;
+                }
                 let Some(folder) = folder else {
                     if self.phase == Phase::Inventory {
                         self.mutate(
@@ -1194,7 +1237,7 @@ impl Bridge {
                     .filter_map(|id| inv.items.get(id))
                     .filter(|item| {
                         item.owner == world.agent_id
-                            && ((item.asset_type == 6 && item.name == NAME)
+                            && ((item.asset_type == 6 && (item.name == NAME || item.name == OLD_NAME))
                                 || (item.asset_type == 20
                                     && (crate::movement::Style::ALL.iter().any(|style| item.name == style.name())
                                         || crate::movement::strokes::WATER_CLIPS.iter().any(|(_, name)| item.name == *name))))
@@ -1214,6 +1257,35 @@ impl Bridge {
                                     })
                                     .collect(),
                                 refresh: vec![self.container, folder],
+                                ..Default::default()
+                            },
+                            Phase::Move,
+                            now,
+                        );
+                    }
+                    return;
+                }
+                let renamed: Vec<_> = contents
+                    .items
+                    .iter()
+                    .filter_map(|id| inv.items.get(id))
+                    .filter(|i| i.asset_type == 6 && i.name == OLD_NAME && i.owner == world.agent_id)
+                    .map(|i| i.id)
+                    .collect();
+                if !renamed.is_empty() {
+                    if self.phase != Phase::Move {
+                        // Rename in place: a worn bridge stays worn.
+                        self.mutate(
+                            Mutation {
+                                operations: renamed
+                                    .into_iter()
+                                    .map(|id| Operation::Patch {
+                                        id,
+                                        folder: false,
+                                        body: block_llsd::llsd_map! { "name" => NAME },
+                                    })
+                                    .collect(),
+                                refresh: vec![folder],
                                 ..Default::default()
                             },
                             Phase::Move,
@@ -1524,7 +1596,9 @@ impl Bridge {
                     return true;
                 };
                 let find = |name: &str| items.iter().find(|i| i.asset_type == 10 && i.name == name).map(|i| i.item_id);
-                if let Some(retired) = find(RETIRED_IK_NAME) {
+                // the retired IK relay, and the scripts named before the
+                // rename to Block (new ones are rezzed below in their place)
+                for retired in [RETIRED_IK_NAME, OLD_NAME, OLD_QUERY_NAME].into_iter().filter_map(find) {
                     self.commands.push(NetCommand::Build(BuildCmd::RemoveTaskInventory {
                         handle: root.key.region,
                         local_id: root.key.local_id,

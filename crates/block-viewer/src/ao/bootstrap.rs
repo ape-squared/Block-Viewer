@@ -91,10 +91,10 @@ impl Bootstrap {
         if !writable {
             return None;
         }
-        // The independent bridge factory owns startup creation of #Aurora.
+        // The independent bridge factory owns startup creation of #Block.
         // Wait for its inventory acknowledgement instead of racing a second
         // parent creation. No bridge attachment or motor is required here.
-        inventory::child(inv, inv.root, "#Aurora")?;
+        crate::world::bridge::brand_folder(inv)?;
         self.finished = true;
         Some(inventory::reconstruct(inv, &self.source, selected))
     }

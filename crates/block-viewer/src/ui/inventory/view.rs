@@ -89,7 +89,7 @@ fn received_filing_view_pins_marketplace_and_scopes_sender_search_without_server
         InvFolder {
             id: base,
             parent: inv.root,
-            name: "#Aurora".into(),
+            name: "#Block".into(),
             type_default: -1,
             ..Default::default()
         },
@@ -1757,7 +1757,7 @@ mod tests {
         let ctx = egui::Context::default();
         let (mut inv, _) = fixture();
         let root = inv.root;
-        folder(&mut inv, 30, root, -1, "#Aurora");
+        folder(&mut inv, 30, root, -1, "#Block");
         folder(&mut inv, 31, id(2), -1, "Folder 10");
         folder(&mut inv, 32, id(2), -1, "folder 2");
         inv.add_items(vec![
@@ -1808,7 +1808,7 @@ mod tests {
     fn viewer_support_folders_stay_above_system_folders_with_every_sort() {
         let (mut inv, _) = fixture();
         let root = inv.root;
-        folder(&mut inv, 30, root, -1, "#Aurora");
+        folder(&mut inv, 30, root, -1, "#Block");
         folder(&mut inv, 31, root, -1, "#Firestorm");
         folder(&mut inv, 32, root, -1, "#RLV");
         for by_date in [false, true] {
@@ -2425,7 +2425,7 @@ mod tests {
         let (mut inv, facts) = fixture();
         let root = inv.root;
         folder(&mut inv, 20, root, -1, "Store delivery");
-        folder(&mut inv, 21, root, -1, "#Aurora");
+        folder(&mut inv, 21, root, -1, "#Block");
         folder(&mut inv, 22, root, -1, "#RLV");
         inv.add_items(vec![
             item(30, id(4), "Old texture", 200),

@@ -314,13 +314,13 @@ pub fn removable(inv: &Inventory, id: Uuid, protected: &HashSet<Uuid>) -> bool {
 /// The viewer support folders the Legacy Viewer keeps in place at the root
 /// (FIRE-28977 in LLFolderBridge::isItemMovable, llinventorybridge.cpp):
 /// #RLV, which RLVa only finds there (RlvInventory::getSharedRootID),
-/// #Firestorm and its Block counterpart #Aurora. Deleting and renaming
+/// #Firestorm and its Block counterpart #Block (formerly #Aurora). Deleting and renaming
 /// stay allowed. Unlike the Legacy Viewer, only a root child is held: one
 /// misplaced elsewhere can still be moved back.
 pub fn pinned(inv: &Inventory, id: Uuid) -> bool {
-    inv.folders
-        .get(&id)
-        .is_some_and(|f| !f.library && f.info.parent == inv.root && matches!(f.info.name.as_str(), "#RLV" | "#Firestorm" | "#Aurora"))
+    inv.folders.get(&id).is_some_and(|f| {
+        !f.library && f.info.parent == inv.root && matches!(f.info.name.as_str(), "#RLV" | "#Firestorm" | "#Block" | "#Aurora")
+    })
 }
 /// Can move to another folder than the trash: drag, cut, Move to.
 pub fn relocatable(inv: &Inventory, id: Uuid, protected: &HashSet<Uuid>) -> bool {

@@ -1531,7 +1531,7 @@ inventory-move-confirm = 移動
 inventory-move-connection-unavailable = 移動できません：リージョンとの接続が利用できません。
 inventory-move-invalid-target = アイテムまたは移動先フォルダが見つかりませんでした。インベントリを再読み込みしてください。
 ao-title = ＡＯ・アバターのアニメーション
-ao-help = 左側で状態を選択します。アニメーションをクリックすると選択、ドラッグすると順番を変更できます。「組み合わせ…」で同時再生グループや独自のサイクルを持つトラックを作成します。セットとオプションは #Aurora/Block AO に保存されます。
+ao-help = 左側で状態を選択します。アニメーションをクリックすると選択、ドラッグすると順番を変更できます。「組み合わせ…」で同時再生グループや独自のサイクルを持つトラックを作成します。セットとオプションは #Block/Block AO に保存されます。
 ao-enabled = ＡＯを有効にする
 ao-pause = 一時停止
 ao-stands = 立ちと回転
@@ -1546,7 +1546,7 @@ ao-migrate-help = 既存の浮遊・水泳アニメーションとともに、�
 ao-migrate-legacy = Firestorm
 ao-migrate-alchemy = Alchemy
 ao-migrate-source = { $folder }内のセット
-ao-migrate-destination = #Aurora/Block ＡＯ内の新しいセット名
+ao-migrate-destination = #Block/Block ＡＯ内の新しいセット名
 ao-migrate-missing = { $folder }で利用できるアニメーションセットがありません。リストを再読み込みして再試行してください。
 ao-migrate-name-exists = Blockにはすでにこの名前のセットがあります。別の名前を選択してください。
 ao-duplicate = 複製
@@ -13151,7 +13151,7 @@ resource-preview-local-maps = このマテリアルはローカルのテクス�
 resource-preview-upload-map = ローカルのテクスチャをアップロードします。費用はインポートで確認してください。このマップはアップロードの完了後に置き換えられます。
 texture-library-side = 横に表示
 texture-library-bottom = 下に表示
-texture-library-empty = #Aurora/Block Libraryまたはそのサブフォルダにリソースを置いてください。
+texture-library-empty = #Block/Block Libraryまたはそのサブフォルダにリソースを置いてください。
 texture-library-preparing = ライブラリのフォルダを準備しています…
 texture-library-loading = フォルダを読み込んでいます…
 texture-library-retry = 再試行
@@ -13441,7 +13441,7 @@ bridge-object-info-result =
     あなたの現在位置：{ $observer }
 bridge-query-timeout = ブリッジが要求した情報を時間内に返しませんでした。再試行してください。
 bridge-query-interrupted = リージョンまたはブリッジの接続の変更により、情報のリクエストが中断されました。再試行してください。
-ao-bootstrap-interrupted = #Aurora に未完了のＡＯのインポートがすでにあります。再試行する前にインベントリで確認してください。
+ao-bootstrap-interrupted = #Block に未完了のＡＯのインポートがすでにあります。再試行する前にインベントリで確認してください。
 
 # Guided AO editor
 ao-states = 状態
@@ -14054,7 +14054,7 @@ ao-category-water = 泳ぐ
 # Experimental received inventory filing.
 received-filing-title = 受け取ったアイテム
 received-filing-enabled = 新しく届いたものを送信者ごとに整理
-received-filing-help = 新しいアイテムとフォルダを #Aurora/Received items/<レガシー名> に整理し、種類ごとの通常の保存先より優先します。スクリプトからの配送はオブジェクトの所有者を使います。オフライン中の配送はログイン後に整理されます。空になった送信者のフォルダはゴミ箱に移動します。既存のアイテムはそのままです。
+received-filing-help = 新しいアイテムとフォルダを #Block/Received items/<レガシー名> に整理し、種類ごとの通常の保存先より優先します。スクリプトからの配送はオブジェクトの所有者を使います。オフライン中の配送はログイン後に整理されます。空になった送信者のフォルダはゴミ箱に移動します。既存のアイテムはそのままです。
 received-delivery-notify = マーケットプレイスの配送を通知
 received-delivery-notify-help = 受け取ったアイテムに届いたマーケットプレイスの購入品や贈り物ごとに通知を表示し、通知の履歴に残します。
 received-delivery-title = マーケットプレイスの配送

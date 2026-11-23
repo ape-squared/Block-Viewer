@@ -6,7 +6,7 @@ use block_net::inventory::InvItem;
 use std::collections::{HashSet, VecDeque};
 use uuid::Uuid;
 
-pub const BLOCK: &str = "#Aurora";
+pub const BLOCK: &str = "#Block";
 pub const LIBRARY: &str = "Block Library";
 pub const LEGACY_TEXTURES: &str = "Textures Library";
 pub const OBJECTS_LIBRARY: &str = "Objects Library";
@@ -105,7 +105,7 @@ pub fn child(inv: &Inventory, parent: Uuid, name: &str) -> Option<Uuid> {
         .min()
 }
 pub fn root(inv: &Inventory) -> Option<Uuid> {
-    child(inv, child(inv, inv.root, BLOCK)?, LIBRARY)
+    child(inv, crate::world::bridge::brand_folder(inv)?, LIBRARY)
 }
 /// Follow actual parent IDs; folder names inside the library have no type meaning.
 pub fn contains(inv: &Inventory, item: Uuid) -> bool {

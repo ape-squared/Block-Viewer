@@ -32,7 +32,7 @@ impl Source {
     /// Inventory path shown to the user; folder names are not translated.
     pub fn path(self) -> &'static str {
         match self {
-            Self::Native => "#Aurora/Block AO",
+            Self::Native => "#Block/Block AO",
             Self::Legacy => "#Firestorm/#AO",
             Self::Alchemy => ALCHEMY_FOLDER,
         }
@@ -40,7 +40,7 @@ impl Source {
 
     fn root(self, inv: &Inventory) -> Option<Uuid> {
         match self {
-            Self::Native => child(inv, inv.root, "#Aurora").and_then(|brand| native_root(inv, brand)),
+            Self::Native => crate::world::bridge::brand_folder(inv).and_then(|brand| native_root(inv, brand)),
             Self::Legacy => child(inv, inv.root, "#Firestorm").and_then(|fs| child(inv, fs, "#AO")),
             Self::Alchemy => child(inv, inv.root, ALCHEMY_FOLDER),
         }
@@ -173,7 +173,7 @@ impl Catalog {
         self.loading = !fetch(inv, inv.root, &mut self.waiting, &mut self.failed);
         // The brand folder must be fetched before its AO child can be found.
         let brand = match source {
-            Source::Native => Some("#Aurora"),
+            Source::Native => Some("#Block"),
             Source::Legacy => Some("#Firestorm"),
             Source::Alchemy => None,
         };
@@ -325,7 +325,7 @@ impl Catalog {
                 f.state = FetchState::Unknown;
             }
         }
-        for name in ["#Aurora", FOLDER, OLD_FOLDER, "#Firestorm", "#AO", ALCHEMY_FOLDER] {
+        for name in ["#Block", "#Aurora", FOLDER, OLD_FOLDER, "#Firestorm", "#AO", ALCHEMY_FOLDER] {
             let ids: Vec<_> = inv
                 .folders
                 .values()
@@ -430,7 +430,7 @@ pub fn create(inv: &Inventory, catalog: &Catalog, set: &Set) -> Result<(Mutation
         return Err(block_i18n::tr!("ao-name-or-loading").into());
     }
     let mut change = Mutation::default();
-    let fs = child(inv, inv.root, "#Aurora").unwrap_or_else(|| folder(&mut change, inv.root, "#Aurora".into()));
+    let fs = crate::world::bridge::brand_folder(inv).unwrap_or_else(|| folder(&mut change, inv.root, "#Block".into()));
     let root = catalog.root.unwrap_or_else(|| folder(&mut change, fs, FOLDER.into()));
     let id = append_set(&mut change, root, set)?;
     Ok((finish(change), id))
@@ -479,7 +479,7 @@ fn append_set(change: &mut Mutation, root: Uuid, set: &Set) -> Result<Uuid, Stri
 /// Publish only after every set/link was acknowledged. A partially failed
 /// import stays separate and is never blindly replayed over user AO data.
 pub(super) fn reconstruct(inv: &Inventory, source: &Catalog, selected: Uuid) -> Result<(Mutation, Option<Uuid>), String> {
-    let brand = child(inv, inv.root, "#Aurora").ok_or(block_i18n::tr!("ao-name-or-loading"))?;
+    let brand = crate::world::bridge::brand_folder(inv).ok_or(block_i18n::tr!("ao-name-or-loading"))?;
     if native_root(inv, brand).is_some() || [STAGING, OLD_STAGING].iter().any(|name| child(inv, brand, name).is_some()) {
         return Err(block_i18n::tr!("ao-bootstrap-interrupted").into());
     }

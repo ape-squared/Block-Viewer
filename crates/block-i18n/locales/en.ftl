@@ -1555,7 +1555,7 @@ inventory-move-confirm = Move
 inventory-move-connection-unavailable = Cannot move: the region connection is unavailable.
 inventory-move-invalid-target = The item or destination folder could not be found. Reload the inventory.
 ao-title = AO · Avatar animations
-ao-help = Choose a state on the left. Click an animation to choose it, or drag to change its order. “Combine…” creates a simultaneous group or a track with its own cycle. Sets and options are stored in #Aurora/Block AO.
+ao-help = Choose a state on the left. Click an animation to choose it, or drag to change its order. “Combine…” creates a simultaneous group or a track with its own cycle. Sets and options are stored in #Block/Block AO.
 ao-enabled = Enable AO
 ao-pause = Pause
 ao-stands = Stands and turns
@@ -1570,7 +1570,7 @@ ao-migrate-help = Copy one set into Block with its existing floating and swimmin
 ao-migrate-legacy = Firestorm
 ao-migrate-alchemy = Alchemy
 ao-migrate-source = Set in { $folder }
-ao-migrate-destination = New set name in #Aurora/Block AO
+ao-migrate-destination = New set name in #Block/Block AO
 ao-migrate-missing = No animation set is available in { $folder }. Reload the list to retry.
 ao-migrate-name-exists = Block already has a set with this name. Choose another name.
 ao-duplicate = Duplicate
@@ -13280,7 +13280,7 @@ resource-preview-local-maps = This material uses local textures. They remain loc
 resource-preview-upload-map = Upload a local texture. Review its fee in Import; this map is replaced after the upload completes.
 texture-library-side = Show on the side
 texture-library-bottom = Show at the bottom
-texture-library-empty = Place resources in #Aurora/Block Library or any of its subfolders.
+texture-library-empty = Place resources in #Block/Block Library or any of its subfolders.
 texture-library-preparing = Preparing the library folders…
 texture-library-loading = Loading folders…
 texture-library-retry = Try again
@@ -13570,7 +13570,7 @@ bridge-object-info-result =
     Your current position: { $observer }
 bridge-query-timeout = The bridge did not return the requested information in time. Try again.
 bridge-query-interrupted = The information request was interrupted by a region or bridge connection change. Try again.
-ao-bootstrap-interrupted = An unfinished AO import already exists in #Aurora. Review it in inventory before retrying.
+ao-bootstrap-interrupted = An unfinished AO import already exists in #Block. Review it in inventory before retrying.
 
 # Guided AO editor
 ao-states = States
@@ -14198,7 +14198,7 @@ ao-category-water = Swimming
 # Experimental received inventory filing.
 received-filing-title = Received items
 received-filing-enabled = Sort new deliveries by sender
-received-filing-help = File new items and folders in #Aurora/Received items/<legacy name>, overriding the usual destinations by type. Scripted deliveries use the object's owner. Offline deliveries are filed after login. Empty sender folders move to Trash. Existing items stay where they are.
+received-filing-help = File new items and folders in #Block/Received items/<legacy name>, overriding the usual destinations by type. Scripted deliveries use the object's owner. Offline deliveries are filed after login. Empty sender folders move to Trash. Existing items stay where they are.
 received-delivery-notify = Notify Marketplace deliveries
 received-delivery-notify-help = Show a notification for each Marketplace purchase or gift that arrives in Received items, and keep it in the notification history.
 received-delivery-title = Marketplace delivery

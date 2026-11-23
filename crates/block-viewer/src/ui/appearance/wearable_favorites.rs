@@ -117,7 +117,7 @@ enum Dialog {
 /// While the window is open: the folders of the favorites are fetched, and
 /// the folder is created once when it does not exist (onOpen, initCategory).
 /// `writable` when an inventory change may be sent now; `brand_by_bridge`
-/// while the bridge is about to make `#Aurora` (the folder waits for it,
+/// while the bridge is about to make `#Block` (the folder waits for it,
 /// and is asked for on a later frame). Deliberate
 /// difference: the Legacy Viewer also calls initCategory at every login
 /// (llstartup.cpp), so the folder appears in every account's inventory;

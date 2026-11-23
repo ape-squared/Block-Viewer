@@ -8,7 +8,7 @@
 //! comparators of LLWearableItemsList (same file), originally LGPL 2.1.
 //!
 //! The Legacy Viewer keeps the folder in its own root folder
-//! (ROOT_FIRESTORM_FOLDER); Block's is `#Aurora`, like the bridge, the AO
+//! (ROOT_FIRESTORM_FOLDER); Block's is `#Block`, like the bridge, the AO
 //! and the particle scripts. Every change is an ordinary inventory
 //! mutation: folders by AIS CreateInventory / UpdateCategory /
 //! RemoveCategory, links by link_inventory_object, removals by
@@ -70,9 +70,9 @@ fn child(inv: &Inventory, parent: Uuid, name: &str) -> Option<Uuid> {
         .min()
 }
 
-/// getWearableFavoritesFolderID: `#Wearable Favorites` in `#Aurora`.
+/// getWearableFavoritesFolderID: `#Wearable Favorites` in `#Block`.
 pub fn folder(inv: &Inventory) -> Option<Uuid> {
-    child(inv, child(inv, inv.root, ROOT)?, FOLDER)
+    child(inv, super::bridge::brand_folder(inv)?, FOLDER)
 }
 
 /// getWearableFavoritesFolderID as the Legacy Viewer reads it: the same
@@ -83,15 +83,15 @@ pub fn legacy_folder(inv: &Inventory) -> Option<Uuid> {
 
 /// initCategory: the folders to create when it does not exist yet, the
 /// viewer's root folder too when that one is missing and `make_root` (false
-/// while the bridge is about to make `#Aurora`: two requests in the same
+/// while the bridge is about to make `#Block`: two requests in the same
 /// seconds would leave two, `Bridge::makes_brand_folder`). `None` when
-/// there is nothing to create, `#Aurora` is left to the bridge, or there is
+/// there is nothing to create, `#Block` is left to the bridge, or there is
 /// no inventory yet.
 pub fn create_plan(inv: &Inventory, make_root: bool) -> Option<Mutation> {
     if inv.root.is_nil() || !inv.folders.contains_key(&inv.root) || folder(inv).is_some() {
         return None;
     }
-    let root = child(inv, inv.root, ROOT);
+    let root = super::bridge::brand_folder(inv);
     if root.is_none() && !make_root {
         return None;
     }

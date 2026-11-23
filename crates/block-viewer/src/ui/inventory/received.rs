@@ -267,7 +267,7 @@ fn baseline_ready(inv: &mut Inventory) -> bool {
         .find(|id| {
             inv.folders
                 .get(id)
-                .is_some_and(|f| !f.library && f.info.name == crate::world::bridge::FOLDER)
+                .is_some_and(|f| !f.library && matches!(f.info.name.as_str(), crate::world::bridge::FOLDER | "#Aurora"))
         });
     if let Some(aurora) = aurora {
         check(inv, aurora);
@@ -298,7 +298,7 @@ mod tests {
         for (id, parent, name, kind) in [
             (1, 0, "Inventory", 8),
             (2, 1, "Inbox", 50),
-            (3, 1, "#Aurora", -1),
+            (3, 1, "#Block", -1),
             (4, 3, "Received items", -1),
             (5, 4, "Example Resident", -1),
             (6, 5, "Gift folder", -1),

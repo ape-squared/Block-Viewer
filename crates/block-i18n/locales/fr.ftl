@@ -1558,7 +1558,7 @@ inventory-move-confirm = Déplacer
 inventory-move-connection-unavailable = Le déplacement est impossible : la connexion à la région est indisponible.
 inventory-move-invalid-target = L’élément ou le dossier de destination est introuvable. Rechargez l’inventaire.
 ao-title = AO · Animations de l’avatar
-ao-help = Choisissez un état à gauche. Cliquez sur une animation pour la choisir, ou glissez-la pour changer son ordre. « Combiner… » crée un groupe joué simultanément ou une piste avec son propre cycle. Les ensembles et options sont conservés dans #Aurora/Block AO.
+ao-help = Choisissez un état à gauche. Cliquez sur une animation pour la choisir, ou glissez-la pour changer son ordre. « Combiner… » crée un groupe joué simultanément ou une piste avec son propre cycle. Les ensembles et options sont conservés dans #Block/Block AO.
 ao-enabled = Activer l’AO
 ao-pause = Pause
 ao-stands = Debout et rotations
@@ -1573,7 +1573,7 @@ ao-migrate-help = Copiez un ensemble vers Block avec ses animations de flottaiso
 ao-migrate-legacy = Firestorm
 ao-migrate-alchemy = Alchemy
 ao-migrate-source = Ensemble dans { $folder }
-ao-migrate-destination = Nom du nouvel ensemble dans #Aurora/Block AO
+ao-migrate-destination = Nom du nouvel ensemble dans #Block/Block AO
 ao-migrate-missing = Aucun ensemble d’animations n’est disponible dans { $folder }. Rechargez la liste pour réessayer.
 ao-migrate-name-exists = Block possède déjà un ensemble de ce nom. Choisissez un autre nom.
 ao-duplicate = Dupliquer
@@ -13261,7 +13261,7 @@ resource-preview-local-maps = Ce matériau utilise des textures locales. Elles r
 resource-preview-upload-map = Importer une texture locale. Vérifiez le tarif dans Importer ; cette texture sera remplacée une fois l’importation terminée.
 texture-library-side = Afficher sur le côté
 texture-library-bottom = Afficher en bas
-texture-library-empty = Placez vos ressources dans #Aurora/Block Library ou ses sous-dossiers.
+texture-library-empty = Placez vos ressources dans #Block/Block Library ou ses sous-dossiers.
 texture-library-preparing = Préparation des dossiers de la bibliothèque…
 texture-library-loading = Chargement des dossiers…
 texture-library-retry = Réessayer
@@ -13551,7 +13551,7 @@ bridge-object-info-result =
     Votre position actuelle : { $observer }
 bridge-query-timeout = Le bridge n’a pas répondu à la demande d’informations à temps. Réessayez.
 bridge-query-interrupted = La demande d’informations a été interrompue par un changement de région ou de connexion du bridge. Réessayez.
-ao-bootstrap-interrupted = Un import AO inachevé existe déjà dans #Aurora. Vérifiez-le dans l’inventaire avant de réessayer.
+ao-bootstrap-interrupted = Un import AO inachevé existe déjà dans #Block. Vérifiez-le dans l’inventaire avant de réessayer.
 
 # Guided AO editor
 ao-states = États
@@ -14179,7 +14179,7 @@ ao-category-water = Nage
 # Experimental received inventory filing.
 received-filing-title = Éléments reçus
 received-filing-enabled = Classer les nouveaux envois par expéditeur
-received-filing-help = Range les nouveaux éléments et dossiers dans #Aurora/Received items/<legacy name>, en remplaçant les destinations habituelles par type. Les envois par un objet utilisent le nom de son propriétaire. Les envois hors ligne sont rangés à la connexion. Les dossiers d’expéditeurs vides vont à la corbeille. Les éléments existants restent à leur place.
+received-filing-help = Range les nouveaux éléments et dossiers dans #Block/Received items/<legacy name>, en remplaçant les destinations habituelles par type. Les envois par un objet utilisent le nom de son propriétaire. Les envois hors ligne sont rangés à la connexion. Les dossiers d’expéditeurs vides vont à la corbeille. Les éléments existants restent à leur place.
 received-delivery-notify = Signaler les livraisons Marketplace
 received-delivery-notify-help = Affiche une notification pour chaque achat ou cadeau Marketplace qui arrive dans Éléments reçus, et la garde dans l’historique des notifications.
 received-delivery-title = Livraison Marketplace

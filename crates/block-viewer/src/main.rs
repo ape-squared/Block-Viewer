@@ -14,6 +14,7 @@ mod avatar_align;
 mod avatar_studio;
 mod blender_live;
 mod block_env;
+mod lovense;
 // Bug report form, disabled for now: "Report a bug" (login screen, top bar,
 // crash window) opens GitHub's issue chooser in the browser instead
 // (`links::NEW_ISSUE`). Its code stays in the tree, out of the build

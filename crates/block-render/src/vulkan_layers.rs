@@ -15,11 +15,12 @@
 //!
 //! - [`CRASHING`]: layers known to crash the viewer, always kept out;
 //! - [`OVERLAYS`]: the other overlays' layers (an FPS counter, the Steam
-//!   overlay, OBS Studio's game capture). The viewer always keeps them out
-//!   (`disable(false)` in `main`); there is no setting to let them in.
+//!   overlay). The viewer always keeps them out (`disable(false)` in
+//!   `main`); there is no setting to let them in.
 //!
-//! OBS Studio's game capture layer (`VK_LAYER_OBS_HOOK`, Wallpaper Engine's
-//! copy declares the same variable) joined the overlays after #2443: its
+//! OBS Studio's game capture layer (`VK_LAYER_OBS_HOOK`) is let through, so
+//! that OBS can record and stream the viewer with Game Capture. It had
+//! joined the overlays after #2443: its
 //! manifest registers `graphics-hook64.dll` as an implicit layer, which
 //! loads into Vulkan programs as soon as OBS is installed, running or not.
 //! It was loaded in 61 % of the GPU device-lost reports of 0.8.5 to 0.9.1
@@ -76,14 +77,8 @@ pub const CRASHING: &[Layer] = &[
 /// The other overlays' layers: disabled unless the user allows overlays.
 /// Names and variables from each program's manifest.
 pub const OVERLAYS: &[Layer] = &[
-    // obs-vulkan64.json (OBS Studio's game capture, graphics-hook64.dll),
-    // whose variable Wallpaper Engine's copy (VK_LAYER_WEOBS_HOOK) shares;
-    // in most GPU device-lost reports (#2443, module comment)
-    Layer {
-        program: "OBS Studio game capture",
-        name: "VK_LAYER_OBS_HOOK",
-        variable: "DISABLE_VULKAN_OBS_CAPTURE",
-    },
+    // Not OBS Studio's game capture (obs-vulkan64.json, VK_LAYER_OBS_HOOK):
+    // let through so that OBS can record and stream (module comment).
     // SteamOverlayVulkanLayer64.json; only active for programs Steam starts
     Layer {
         program: "Steam overlay",
@@ -508,25 +503,20 @@ mod tests {
     fn crashing_and_overlay_layers_are_disabled_by_default() {
         let names = names(&to_disable(None, false, |_| false));
         assert_eq!(&names[..2], ["VK_LAYER_OW_OVERLAY", "VK_LAYER_OW_OBS_HOOK"]);
-        for overlay in [
-            "VK_LAYER_OBS_HOOK",
-            "VK_LAYER_VALVE_steam_overlay",
-            "VK_LAYER_RTSS",
-            "VK_LAYER_EOS_Overlay",
-        ] {
+        for overlay in ["VK_LAYER_VALVE_steam_overlay", "VK_LAYER_RTSS", "VK_LAYER_EOS_Overlay"] {
             assert!(names.contains(&overlay), "{overlay}");
         }
         assert_eq!(names.len(), CRASHING.len() + OVERLAYS.len());
     }
 
     #[test]
-    fn obs_capture_is_an_overlay_with_its_manifest_variable() {
-        let obs = OVERLAYS.iter().find(|l| l.name == "VK_LAYER_OBS_HOOK").expect("OBS layer");
-        // obs-vulkan64.json's disable_environment; Wallpaper Engine's copy
-        // declares the same one, so one variable keeps both out
-        assert_eq!(obs.variable, "DISABLE_VULKAN_OBS_CAPTURE");
-        assert!(CRASHING.iter().all(|l| l.variable != obs.variable));
-        assert!(to_disable(None, true, |_| false).iter().all(|l| l.name != obs.name));
+    fn obs_game_capture_is_let_through_for_recording_and_streaming() {
+        // OBS records and streams the viewer with Game Capture: its layer is
+        // never disabled, and neither is its variable set
+        let off = to_disable(None, false, |_| false);
+        assert!(off.iter().all(|l| l.name != "VK_LAYER_OBS_HOOK"));
+        assert!(off.iter().all(|l| l.variable != "DISABLE_VULKAN_OBS_CAPTURE"));
+        assert!(!BY_NAME.contains(&"VK_LAYER_OBS_HOOK"));
     }
 
     #[test]

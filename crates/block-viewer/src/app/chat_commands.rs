@@ -25,11 +25,39 @@ impl App {
     /// as a command when it is one (cmd_line_chat). `true` = handled, the
     /// line must not be sent.
     pub(super) fn chat_command(&mut self, text: &str) -> bool {
+        if self.settings.lovense.enabled
+            && self.settings.lovense.chat_commands
+            && let Some(cmd) = crate::lovense::parse_chat_command(text.trim())
+        {
+            self.run_lovense_chat(cmd);
+            return true;
+        }
         let Some(cmd) = cmdline::parse(text.trim(), &self.settings.chat_commands, random_below) else {
             return false;
         };
         log::info!("chat command: {}", text.split_whitespace().next().unwrap_or_default());
         self.run_chat_command(cmd)
+    }
+
+    /// `/blocktoy` (alias `/lovense`): Lovense Connect from local chat.
+    fn run_lovense_chat(&mut self, cmd: crate::lovense::ChatCmd) {
+        use crate::lovense::ChatCmd;
+        let s = &self.settings.lovense;
+        match cmd {
+            ChatCmd::Help => self.report_command("Lovense: /blocktoy vibrate [0-20] [seconds] | stop | list  (alias /lovense)"),
+            ChatCmd::Stop => {
+                self.lovense.stop_all(s);
+                self.report_command("Lovense: stop sent");
+            }
+            ChatCmd::Refresh => {
+                self.lovense.refresh(s);
+                self.report_command("Lovense: refreshing toy list…");
+            }
+            ChatCmd::Vibrate { strength, secs } => {
+                self.lovense.vibrate(s, None, strength, secs);
+                self.report_command(format!("Lovense: vibrate {strength} for {secs}s"));
+            }
+        }
     }
 
     /// FSCommon::report_cmdline_result: a line in the local chat, also

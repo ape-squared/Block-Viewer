@@ -448,6 +448,9 @@ pub struct HealthMenu {
     pub rebake_keys: String,
     pub refresh_keys: String,
     pub resync_keys: String,
+    /// Something worn (attachments, HUDs, temporary attachments) that
+    /// RLVa lets go: Detach all is greyed otherwise.
+    pub can_detach_all: bool,
 }
 
 /// The navigation bar's star (LLLocationInputCtrl's add landmark button).
@@ -1722,8 +1725,10 @@ fn main_menus(ui: &mut egui::Ui, p: &Palette, panels: &mut Panels, st: &StatusIn
 }
 
 /// Me › Avatar health (menu_viewer.xml "avhealth"): the usual fixes of a
-/// broken avatar, in the Legacy Viewer's order. Its default avatar resets
-/// ("Character Test") and complexity information are left out.
+/// broken avatar, in Firestorm's order. Its default avatar resets
+/// ("Character Test") and complexity information are left out. Detach all
+/// sits last, under a separator, so it is only ever a click: Firestorm's
+/// Detach All (LLAgentWearables::userRemoveAllAttachments).
 fn health_menu(ui: &mut egui::Ui, p: &Palette, h: &HealthMenu) {
     use super::context::{CtxAction, request};
     menu::submenu(ui, p, "medical-cross-filled", block_i18n::tr!("avatar-health-menu"), true, |ui| {
@@ -1771,6 +1776,12 @@ fn health_menu(ui: &mut egui::Ui, p: &Palette, h: &HealthMenu) {
             &h.refresh_keys,
         ) {
             request(ui.ctx(), CtxAction::RefreshAttachments);
+        }
+        // Firestorm's Detach All: everything worn, HUDs and temporary
+        // attachments too, except what RLVa locks. Only on this click.
+        menu::separator(ui, p);
+        if menu::item_if(ui, p, "circle-x-filled", block_i18n::tr!("ui-context-detach-all"), h.can_detach_all) {
+            request(ui.ctx(), CtxAction::DetachAll);
         }
     });
 }

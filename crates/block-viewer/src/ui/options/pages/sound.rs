@@ -599,4 +599,33 @@ fn voice(cx: &mut Cx) {
         cx.toggle(tr!("voice-show-in-calls"), "", &field!(audio.voice_visualizers_in_calls));
         cx.toggle(tr!("voice-show-conversation"), "", &field!(audio.conversation_voice_indicator));
     });
+    // Legacy Voice Morphing menu: the chosen effect (empty = none), applied
+    // as a pitch of the microphone (WebRTC voice has no Vivox voice fonts).
+    cx.group(tr!("voice-morphing"), |cx| {
+        cx.row(
+            tr!("voice-morphing-effect"),
+            tr!("voice-morphing-effect-hint"),
+            &field!(audio.voice_morph),
+            |ui, s| {
+                let label = if s.audio.voice_morph.is_empty() {
+                    tr!("voice-morphing-none")
+                } else {
+                    s.audio.voice_morph.as_str()
+                };
+                let mut changed = false;
+                egui::ComboBox::from_id_salt(ui.scope_id().with("voice-morph"))
+                    .width(SLIDER_W + 90.0)
+                    .selected_text(label)
+                    .show_ui(ui, |ui| {
+                        changed |= ui
+                            .selectable_value(&mut s.audio.voice_morph, String::new(), tr!("voice-morphing-none"))
+                            .changed();
+                        for id in ["Warm", "Breathy", "Robot", "Deep"] {
+                            changed |= ui.selectable_value(&mut s.audio.voice_morph, id.to_owned(), id).changed();
+                        }
+                    });
+                changed
+            },
+        );
+    });
 }

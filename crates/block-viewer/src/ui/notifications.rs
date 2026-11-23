@@ -19,6 +19,10 @@ pub(crate) mod text;
 const TOAST_INFO: f64 = 7.0;
 const TOAST_OFFER: f64 = 25.0;
 const MAX_TOASTS: usize = 3;
+/// How long the toast stack must hold still before a click answers a
+/// teleport offer or request in it: a toast arriving above it (or leaving)
+/// slides the others, and the click meant for one landed on the other.
+const TOAST_SETTLE: f64 = 0.4;
 const WIDTH: f32 = 320.0;
 /// Side of the picture of a friend's or a message's card.
 const PIC: f32 = 32.0;
@@ -1153,6 +1157,20 @@ pub fn show(
                 // (LLScreenChannel::redrawToasts)
                 ui.spacing_mut().item_spacing.y = env.toast_gap;
                 let (ids, behind) = shown_toasts(list, nui, dnd);
+                let stack = egui::Id::new("notification_toast_stack");
+                let changed_at = ctx.data_mut(|d| {
+                    let kept: Option<(Vec<u64>, f64)> = d.get_temp(stack);
+                    let at = match kept {
+                        Some((prev, at)) if prev == ids => at,
+                        _ => now,
+                    };
+                    d.insert_temp(stack, (ids.clone(), at));
+                    at
+                });
+                let settling = now - changed_at < TOAST_SETTLE;
+                if settling {
+                    ctx.request_repaint_after(std::time::Duration::from_secs_f64(TOAST_SETTLE));
+                }
                 for id in ids.into_iter().rev() {
                     if let Some(n) = list.list.iter_mut().find(|n| n.id == id) {
                         let r = if close_script_prompt(ctx, n, true) {
@@ -1177,6 +1195,9 @@ pub fn show(
                                 nui.toasts.retain(|(t, _)| *t != id);
                                 nui.hidden.insert(id);
                             }
+                            // a teleport is answered only once the stack
+                            // holds still (TOAST_SETTLE)
+                            Some(_) if settling && matches!(n.data, Data::Lure { .. } | Data::TeleportRequest { .. }) => {}
                             Some(r) => answers.push((id, r)),
                             None => {}
                         }

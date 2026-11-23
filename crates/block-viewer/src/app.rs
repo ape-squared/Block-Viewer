@@ -1229,6 +1229,8 @@ pub struct App {
     /// The sun and moon beacons when the first environment editor opened.
     env_beacons_saved: Option<[bool; 2]>,
     demo: bool,
+    /// Lovense Connect bridge, driven by `/blocktoy` chat (lovense.rs).
+    lovense: crate::lovense::Bridge,
     inventory_ui: ui::inventory::InventoryUi,
     /// Independent browsing and selection state for the dual-panel inventory.
     dual_inventory_ui: ui::inventory::InventoryUi,
@@ -2326,6 +2328,7 @@ impl App {
             env_applying: None,
             env_beacons_saved: None,
             demo: false,
+            lovense: Default::default(),
             inventory_ui: Default::default(),
             dual_inventory_ui: ui::inventory::InventoryUi::dual_pane(),
             inventory_mutation_editor: None,
@@ -7828,6 +7831,7 @@ impl App {
             parcel: self.world.parcel.as_deref(),
             input_device: &self.settings.audio.input_device,
             mic_gain: self.settings.audio.mic_gain,
+            voice_morph: &self.settings.audio.voice_morph,
             processing: self.settings.audio.mic_processing(),
             ear: self.settings.audio.voice_ear,
             transmit,
@@ -16768,12 +16772,23 @@ impl App {
                 .map(|b| b.label())
                 .unwrap_or_default()
         };
+        let can_detach_all = self
+            .world
+            .worn_attachment_points()
+            .into_iter()
+            .any(|(id, _)| self.world.rlva_can_remove(id, uuid::Uuid::nil()))
+            || self
+                .world
+                .temp_attachments()
+                .into_iter()
+                .any(|t| self.world.rlva_can_remove(t.id, uuid::Uuid::nil()));
         ui::bars::HealthMenu {
             me: self.world.agent_id,
             stop_keys: keys(Action::StopAnimations),
             rebake_keys: keys(Action::Rebake),
             refresh_keys: keys(Action::RefreshAttachments),
             resync_keys: keys(Action::ResyncAnimations),
+            can_detach_all,
         }
     }
 

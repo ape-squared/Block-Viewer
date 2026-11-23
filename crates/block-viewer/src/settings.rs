@@ -1926,6 +1926,9 @@ pub struct Settings {
     pub audio: AudioSettings,
     /// Parcel media and media on a prim.
     pub media: crate::media::MediaSettings,
+    /// Lovense Connect / Remote local bridge (Preferences › Fun).
+    #[serde(default)]
+    pub lovense: crate::lovense::Settings,
     /// Name tag, minimap and chat colors (Firestorm color preferences).
     pub colors: ColorSettings,
     /// Rebindable keyboard / mouse controls.
@@ -2244,6 +2247,9 @@ pub struct AudioSettings {
     pub stop_mic_when_muted: bool,
     /// Microphone gain (0..2).
     pub mic_gain: f32,
+    /// Preferences › Sound › Voice morphing: the effect chosen (empty = none).
+    #[serde(default)]
+    pub voice_morph: String,
     /// Collision sounds (EnableCollisionSounds, on).
     pub collision_sounds: bool,
     /// Sounds of other avatars' gestures (EnableGestureSounds, on).
@@ -2317,6 +2323,7 @@ impl Default for AudioSettings {
             mic_hold: false,
             stop_mic_when_muted: true,
             mic_gain: 1.0,
+            voice_morph: String::new(),
             collision_sounds: true,
             gesture_sounds: true,
             media_sounds_ear: VoiceEar::Camera,
@@ -2899,6 +2906,7 @@ impl Default for Settings {
             legacy_toolbars: Default::default(),
             audio: AudioSettings::default(),
             media: Default::default(),
+            lovense: Default::default(),
             colors: ColorSettings::default(),
             keybinds: Default::default(),
             legacy_hud_drag_key: None,

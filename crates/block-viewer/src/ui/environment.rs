@@ -228,7 +228,7 @@ impl EnvironmentUi {
         let pos = egui::pos2(left.max(screen.left() + 10.0), screen.top() + 90.0);
         let actions = Floater::new(
             "aurora_weather",
-            block_i18n::tr!("ui-weather-aurora"),
+            block_i18n::tr!("ui-weather-block"),
             pos,
             Vec2::new(super::weather_window::WINDOW_W, 300.0),
         )
@@ -336,7 +336,7 @@ impl EnvironmentUi {
             ui.add_space(12.0);
             {
                 let font = widgets::control_font(ui, 12.0);
-                let label = crate::ui::options::block_word(p, block_i18n::tr!("ui-weather-aurora"), font, p.ink);
+                let label = crate::ui::options::block_word(p, block_i18n::tr!("ui-weather-block"), font, p.ink);
                 if ui
                     .add(egui::Button::new(label).min_size(Vec2::new(0.0, 20.0)))
                     .on_hover_text(block_i18n::tr!("ui-weather-window-tip"))

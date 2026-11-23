@@ -131,15 +131,45 @@ pub(super) fn icon(ui: &mut egui::Ui, env: &LineEnv, name: &str, color: egui::Co
     }
 }
 
+/// How long a card's buttons must hold still before a click answers it.
+const SETTLE: f64 = 0.4;
+
+/// Whether the card's buttons, now at `at`, have held still for [`SETTLE`]:
+/// an invitation arriving under the pointer (or the chat scrolling it there)
+/// must not take a click meant for what was there a moment before, which
+/// teleported or declined an offer without it ever being read.
+fn settled(ui: &egui::Ui, invite: u64, at: egui::Pos2) -> bool {
+    let id = egui::Id::new(("invite_card_settle", invite, ui.layer_id()));
+    let now = ui.input(|i| i.time);
+    let pass = ui.ctx().cumulative_pass_nr();
+    let since = ui.ctx().data_mut(|d| {
+        let kept: Option<(egui::Pos2, f64, u64)> = d.get_temp(id);
+        let since = match kept {
+            // drawn on the previous pass (or this one) at the same place
+            Some((pos, since, last)) if last + 1 >= pass && pos.distance(at) <= 1.0 => since,
+            _ => now,
+        };
+        d.insert_temp(id, (at, since, pass));
+        since
+    });
+    let still = now - since >= SETTLE;
+    if !still {
+        ui.ctx().request_repaint_after(std::time::Duration::from_secs_f64(SETTLE));
+    }
+    still
+}
+
 /// The two buttons of a pending invitation, sent as a request of the
 /// interface (the app answers it).
 fn buttons(ui: &mut egui::Ui, p: &Palette, invite: u64, (yes, no): &(String, String), size: Vec2) {
     // "Change and Continue" is longer than the other answers
     let wide = Vec2::new(size.x.max(yes.chars().count() as f32 * 7.0 + 20.0), size.y);
-    if widgets::primary_button_sized(ui, p, yes, wide).clicked() {
+    let accept = widgets::primary_button_sized(ui, p, yes, wide);
+    let still = settled(ui, invite, accept.rect.min);
+    if accept.clicked() && still {
         request(ui.ctx(), CtxAction::AnswerTeleport { invite, accept: true });
     }
-    if widgets::flat_button_sized(ui, p, no, size).clicked() {
+    if widgets::flat_button_sized(ui, p, no, size).clicked() && still {
         request(ui.ctx(), CtxAction::AnswerTeleport { invite, accept: false });
     }
 }

@@ -52,7 +52,7 @@ fn main() -> io::Result<()> {
             target_source.push('\n');
         }
         let target = messages(&target_source, &path)?;
-        let mut missing: Vec<_> = english
+        let missing: Vec<_> = english
             .iter()
             .filter(|(key, _)| **key != "language-name" && !target.contains_key(*key))
             .map(|(_, message)| message.clone())

@@ -1,7 +1,7 @@
 //! Quick check: every bundled FTL parses and has unique keys in Fluent.
 
-use fluent_bundle::concurrent::FluentBundle;
 use fluent_bundle::FluentResource;
+use fluent_bundle::concurrent::FluentBundle;
 
 fn main() {
     for &(lang, source) in block_i18n::SOURCES {

@@ -10,7 +10,7 @@
 //! an entry that is new, or whose `updated` changed, after the first
 //! answer flashes that command's button (sItemsMap, flashCommand).
 //!
-//! The Legacy Viewer's window is the status page in a web browser; Aurora
+//! The Legacy Viewer's window is the status page in a web browser; Block
 //! lists the feed's entries itself (`ui/grid_status.rs`), so it also polls
 //! while that window is open, and the page stays one click away.
 
@@ -24,7 +24,7 @@ pub const SECOND_LIFE_FEED: &str = "https://status.secondlifegrid.net/history.at
 pub const SECOND_LIFE_PAGE: &str = "https://status.secondlifegrid.net/";
 /// GridStatusUpdateDelay (settings.xml).
 pub const UPDATE_DELAY: Duration = Duration::from_secs(60);
-/// The `id` of the demo's feed (`AURORA_DEMO_GRID_STATUS`): read from
+/// The `id` of the demo's feed (`BLOCK_DEMO_GRID_STATUS`): read from
 /// memory, never fetched.
 pub const DEMO_FEED: &str = "demo:grid-status";
 

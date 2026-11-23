@@ -1,6 +1,6 @@
 //! The sound of the Director's live film: the viewer's own mix (the audio
 //! engine's record tap, block-audio's record.rs), written beside the
-//! picture and put in the film's file once both are finished. Aurora's own
+//! picture and put in the film's file once both are finished. Block's own
 //! (the Legacy Viewer records no film).
 //!
 //! The mix comes in blocks from the audio callback; a thread writes them as
@@ -209,7 +209,7 @@ mod tests {
             .and_then(|path| recorder::find_on_path(&path))
             .expect("an ffmpeg on the PATH");
         let tool = recorder::Tool::probe(&path).expect("ffmpeg answers");
-        let root = std::env::temp_dir().join(format!("aurora-film-sound-{}", std::process::id()));
+        let root = std::env::temp_dir().join(format!("block-film-sound-{}", std::process::id()));
         std::fs::create_dir_all(&root).expect("folder");
         let (size, fps, frames) = ((64, 36), 24, 24u64);
         let mut failures = Vec::new();
@@ -288,7 +288,7 @@ mod tests {
 
     #[test]
     fn a_sound_is_cut_or_padded_to_its_length() {
-        let path = std::env::temp_dir().join(format!("aurora-fit-{}.f32", std::process::id()));
+        let path = std::env::temp_dir().join(format!("block-fit-{}.f32", std::process::id()));
         std::fs::write(&path, [1u8; 80]).expect("written");
         fit(&path, 4).expect("cut");
         assert_eq!(std::fs::read(&path).expect("read"), [1u8; 32]);

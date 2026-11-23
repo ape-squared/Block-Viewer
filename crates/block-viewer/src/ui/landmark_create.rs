@@ -15,7 +15,7 @@
 //! Favorites or Landmarks folders lies on the agent's parcel. Unlike the
 //! Legacy Viewer, World and Places allow repeated creation on that parcel,
 //! as requested by the user; the lookup only controls the star.
-//! Aurora's star adds a quick menu (Favorites / Landmarks / more options) and
+//! Block's star adds a quick menu (Favorites / Landmarks / more options) and
 //! opens a found landmark in this window, in its edit form.
 
 use super::widgets::{self, Floater, flat_button};
@@ -45,7 +45,7 @@ pub struct ParcelLandmark {
     pub favorite: bool,
 }
 
-/// AURORA_DEMO_LANDMARK=create|favorite|landmark: the Create Landmark
+/// BLOCK_DEMO_LANDMARK=create|favorite|landmark: the Create Landmark
 /// window, or a landmark of the plaza already in Favorites / Landmarks (the
 /// star lit).
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -56,7 +56,7 @@ pub enum DemoStart {
 
 impl DemoStart {
     pub fn from_env() -> Option<Self> {
-        match std::env::var("AURORA_DEMO_LANDMARK").ok()?.as_str() {
+        match std::env::var("BLOCK_DEMO_LANDMARK").ok()?.as_str() {
             "create" => Some(Self::Window),
             "favorite" | "favorites" => Some(Self::Quick(FOLDER_FAVORITES)),
             "landmark" | "landmarks" => Some(Self::Quick(FOLDER_LANDMARKS)),
@@ -72,7 +72,7 @@ type HereKey = (u64, u64, Option<(u32, u32)>, u64);
 #[derive(Default)]
 pub struct CreateLandmarkUi {
     pub open: bool,
-    /// AURORA_DEMO_LANDMARK: what to do once the agent stands on a parcel.
+    /// BLOCK_DEMO_LANDMARK: what to do once the agent stands on a parcel.
     pub demo_pending: Option<DemoStart>,
     /// CreateInventoryItem sent by the window, its item not arrived yet.
     waiting: bool,
@@ -594,10 +594,10 @@ mod tests {
 
     #[test]
     fn title_is_the_parcel_or_the_region_and_position() {
-        assert_eq!(default_title("Lagune", "Aurora", glam::Vec3::new(1.0, 2.0, 3.0)), "Lagune");
+        assert_eq!(default_title("Lagune", "Block", glam::Vec3::new(1.0, 2.0, 3.0)), "Lagune");
         assert_eq!(
-            default_title("", "Aurora", glam::Vec3::new(128.4, 64.6, 22.0)),
-            "Aurora (128, 65, 22)"
+            default_title("", "Block", glam::Vec3::new(128.4, 64.6, 22.0)),
+            "Block (128, 65, 22)"
         );
     }
 

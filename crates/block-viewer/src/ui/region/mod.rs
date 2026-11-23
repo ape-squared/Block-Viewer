@@ -1,4 +1,4 @@
-//! "Region / Estate" in Aurora's look (LLFloaterRegionInfo,
+//! "Region / Estate" in Block's look (LLFloaterRegionInfo,
 //! newview/llfloaterregioninfo.cpp, floater_region_info.xml, originally
 //! LGPL 2.1): the agent's region and its estate at a glance in a header
 //! shared by three pages, "Overview" for everyone, "Manage" for the
@@ -159,7 +159,7 @@ pub struct RegionUi {
     top: top_objects::TopState,
     /// The rules' and terrain's Advanced folds.
     advanced: advanced::AdvancedState,
-    /// The classic window's tab, and AURORA_DEMO_REGION's `classic`.
+    /// The classic window's tab, and BLOCK_DEMO_REGION's `classic`.
     classic_tab: classic::Tab,
     force_classic: bool,
     /// Environment, Experiences and Covenant: their pickers and dialogs.
@@ -175,7 +175,7 @@ pub struct RegionUi {
     check_texture_heights: bool,
 }
 
-/// What AURORA_DEMO_REGION opens on Manage (`demo_region.rs`).
+/// What BLOCK_DEMO_REGION opens on Manage (`demo_region.rs`).
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
 pub struct ManageDemo {
     /// The section scrolled to: access, rules or terrain.
@@ -198,11 +198,11 @@ pub struct ManageDemo {
 
 /// The menus' and About Land's request to open the window.
 pub fn request_open(ctx: &egui::Context) {
-    ctx.data_mut(|d| d.insert_temp(egui::Id::unique("aurora_open_region_estate"), true));
+    ctx.data_mut(|d| d.insert_temp(egui::Id::unique("block_open_region_estate"), true));
 }
 
 pub fn take_open_request(ctx: &egui::Context) -> bool {
-    ctx.data_mut(|d| d.remove_temp::<bool>(egui::Id::unique("aurora_open_region_estate")))
+    ctx.data_mut(|d| d.remove_temp::<bool>(egui::Id::unique("block_open_region_estate")))
         .unwrap_or(false)
 }
 
@@ -233,7 +233,7 @@ impl RegionUi {
         self.surface.prepare(ctx, scene, &mut self.wanted_images);
     }
 
-    /// AURORA_DEMO_REGION: the page and "View as" of a capture, and on
+    /// BLOCK_DEMO_REGION: the page and "View as" of a capture, and on
     /// Manage its section, changes and question.
     pub fn demo(&mut self, page: Page, as_resident: bool, manage: ManageDemo) {
         self.page = page;
@@ -241,30 +241,30 @@ impl RegionUi {
         self.manage.demo = Some(manage);
     }
 
-    /// AURORA_DEMO_REGION on Manage › Interventions: the dialog shown.
+    /// BLOCK_DEMO_REGION on Manage › Interventions: the dialog shown.
     pub fn demo_intervention(&mut self, d: InterventionDialog) {
         self.interventions.demo = Some(d);
     }
 
-    /// AURORA_DEMO_REGION on Manage › Scripts and physics: the Top window
+    /// BLOCK_DEMO_REGION on Manage › Scripts and physics: the Top window
     /// opened on that report.
     pub fn demo_top(&mut self, report: u32) {
         self.top.demo = Some(report);
     }
 
-    /// AURORA_DEMO_REGION on Manage › Environment, Experiences or
+    /// BLOCK_DEMO_REGION on Manage › Environment, Experiences or
     /// Covenant: the picker or question shown.
     pub fn demo_estate_wide(&mut self, d: EstateWideDialog) {
         self.estate_wide.demo = Some(d);
     }
 
-    /// AURORA_DEMO_REGION's `classic`: the Legacy Viewer's tabs, on that one.
+    /// BLOCK_DEMO_REGION's `classic`: the Legacy Viewer's tabs, on that one.
     pub fn demo_classic(&mut self, tab: ClassicTab) {
         self.force_classic = true;
         self.classic_tab = tab;
     }
 
-    /// AURORA_DEMO_REGION on People: a row ticked, a dialog or the picker.
+    /// BLOCK_DEMO_REGION on People: a row ticked, a dialog or the picker.
     pub fn demo_people(&mut self, people: PeopleDemo) {
         self.people.demo = Some(people);
     }
@@ -332,7 +332,7 @@ impl RegionUi {
             self.as_resident = false;
         }
         let screen = ctx.content_rect();
-        // Preferences › Aurora: the Legacy Viewer's eight tabs, no "View as"
+        // Preferences › Block: the Legacy Viewer's eight tabs, no "View as"
         let classic_look = settings.classic_region_estate || self.force_classic;
         if classic_look {
             self.as_resident = false;

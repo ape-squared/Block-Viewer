@@ -71,7 +71,7 @@ impl App {
         }
     }
 
-    /// AURORA_DEMO_DIRECTOR=orbit: the view locked on our avatar's neck and
+    /// BLOCK_DEMO_DIRECTOR=orbit: the view locked on our avatar's neck and
     /// the track replaced by an orbit round it, one turn in 10 s from 6 m
     /// away, travelling with it.
     pub(super) fn director_shots_demo(&mut self) {

@@ -1,5 +1,5 @@
 //! Demo of Help › Grid status (#1123), without a grid or a network:
-//! `AURORA_DEMO_GRID_STATUS=<mode>` puts the Grid status button at the end
+//! `BLOCK_DEMO_GRID_STATUS=<mode>` puts the Grid status button at the end
 //! of the bottom toolbar (for this run only) and serves a feed from memory
 //! (`grid_status::DEMO_FEED`): an incident in progress, a maintenance
 //! scheduled and two incidents resolved.
@@ -26,7 +26,7 @@ static NEWS: AtomicBool = AtomicBool::new(false);
 pub fn mode() -> Option<&'static str> {
     static MODE: OnceLock<Option<String>> = OnceLock::new();
     MODE.get_or_init(|| {
-        let mode = std::env::var("AURORA_DEMO_GRID_STATUS").ok()?;
+        let mode = std::env::var("BLOCK_DEMO_GRID_STATUS").ok()?;
         let mode = mode.trim();
         match mode {
             "" | "0" => None,

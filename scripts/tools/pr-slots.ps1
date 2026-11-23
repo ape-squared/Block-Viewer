@@ -9,7 +9,7 @@
 $PrSlotLimit = 10
 $PrSlotLabel = 'waiting-for-slot'
 # Marker of the workflow's own comments, at their end.
-$PrSlotMarker = '<!-- aurora-review-slot -->'
+$PrSlotMarker = '<!-- block-review-slot -->'
 
 # One author's open pull requests -> what to do. Each item: Number, Draft,
 # Waiting (carries the label), OnHold, Protected (in the merge queue or set
@@ -65,7 +65,7 @@ function Format-PrSlotWait([string]$Author, [int]$Open, $Links) {
         '',
         "Why: every change is reviewed by hand, and the team cannot review $Open pull requests from one person at once; those in review would wait weeks. A short queue gets each of them reviewed sooner.",
         '',
-        'Thanks for contributing to Aurora!',
+        'Thanks for contributing to Block!',
         '',
         $PrSlotMarker
     ) -join "`n"

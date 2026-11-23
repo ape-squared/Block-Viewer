@@ -8,7 +8,7 @@ SHA-256 of the original file:
 
 The version is pinned to keep the Flood, Surface and Raycast modes and the
 analysis parameters used by Firestorm. The header is kept unmodified under
-its BSD-3-Clause licence. `bridge.cpp` is the Aurora adapter: ownership of
+its BSD-3-Clause licence. `bridge.cpp` is the Block adapter: ownership of
 the allocations, contained exceptions, cancellation and progress.
 The models are processed in parallel by the Rust workers; each native
 instance runs synchronously to avoid multiplying threads.

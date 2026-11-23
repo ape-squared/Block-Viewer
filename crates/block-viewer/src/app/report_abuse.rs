@@ -277,14 +277,14 @@ impl App {
         });
     }
 
-    /// AURORA_DEMO_REPORT_ABUSE: the window opened from the Help menu
+    /// BLOCK_DEMO_REPORT_ABUSE: the window opened from the Help menu
     /// (`menu`), on Nova (`avatar`), on an object (`object`), on a chat line
     /// (`chat`), with the object picker armed (`pick`); `send`, `missing`
     /// and `copyright` fill the form and press "Report Abuse" at frame 700;
     /// `experience` opens the profile of the demo group's experience (its
     /// "Report" button), `experience-report` the window opened from it.
     fn report_abuse_demo(&mut self, grid: &str) -> Vec<ReportAction> {
-        let Ok(mode) = std::env::var("AURORA_DEMO_REPORT_ABUSE") else {
+        let Ok(mode) = std::env::var("BLOCK_DEMO_REPORT_ABUSE") else {
             return Vec::new();
         };
         let experience = crate::demo::group::GROUP_EXPERIENCE;

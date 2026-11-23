@@ -33,7 +33,7 @@ instead of asking for a whole log.
    a GitHub comment, the window says so: use **Save as .txt** and attach the
    file.
 
-Aurora sends nothing by itself: the text only goes where you paste it. It
+Block sends nothing by itself: the text only goes where you paste it. It
 never holds a password, a token or a capability address, and never the
 region's name or your position.
 
@@ -67,7 +67,7 @@ English.
 How to read a copy:
 
 - The first line names the build and the tool:
-  `Aurora 0.7.2+12.g1a2b3c · J2 · target: nearest avatar · names hidden`.
+  `Block 0.7.2+12.g1a2b3c · J2 · target: nearest avatar · names hidden`.
   Look at that commit's code, not at `main`.
 - J1 / J2 write, for each prim of the target, every face: drawn ones as
   `[face tex … rgba … legacy/glTF alpha mode cutoff … tex alpha … -> Pass]`,
@@ -127,7 +127,7 @@ text in Send a diagnostic), **live** (a text kept up to date there),
 | J3 | Copy the warnings | copy | The last 50 warnings and errors of the session |
 | J4 | Copy the system configuration | copy | Version, commit, OS, CPU, memory, GPU and driver, screen, graphics settings |
 | J5 | Copy a tool's output | copy | What P3, P4, P5, P6, O9 and M1 wrote in the last 60 s |
-| J6 | Open the logs folder | window | The folder of `aurora.log` |
+| J6 | Open the logs folder | window | The folder of `block.log` |
 | J7 | Script errors | window | The script debug window |
 | J9 | Worn animesh skeleton | copy | Each animated object the target wears (nearest avatar within 3 m, my avatar, or the wearer of the selection): the joints its meshes are skinned to, every joint position override they ask and which one wins, the control skeleton's skeleton-file / rest / current local positions of the overridden and animated joints, the animations playing (priority, joints keyed in position with their first and current values) and its place on its attachment point; then each ordinary worn attachment with rigged meshes (point, temporary or not; identical meshes written once with `and N more alike`), the joints its meshes are skinned to, the overrides all worn rigged meshes ask of the wearer's skeleton, and the animations playing on the wearer with the keyed joints that are attachment points or unknown |
 | J10 | Contacts tab state | copy | Where the Contacts tab of Conversations is (its first tab, or torn off in its own window, open or closed), whether Preferences shows it, whether the Contacts pane is the one shown, the window's appearance and column state, the tab chosen, the column's search, and how many friends (online), groups and contact sets there are |
@@ -187,7 +187,7 @@ logs in.
 
 What a run does:
 
-- **Inventory**: it creates the folder `#RLV/~AuroraSelfTest` (and `#RLV`
+- **Inventory**: it creates the folder `#RLV/~BlockSelfTest` (and `#RLV`
   when the avatar has none) with six copies of a Library object and one
   link. It never renames, moves, trashes or deletes anything, its own items
   included: a later run finds them again by name, place and owner.
@@ -210,7 +210,7 @@ What a run does:
   set. Each refused attempt shows the usual "restricted by RLVa" notice: a
   few dozen of them during a run are expected.
 - **Phase 2** (the box): it rezzes up to two 0.5 m prims named
-  `~AuroraSelfTest seat` within 3 m in front of the avatar, sits the avatar
+  `~BlockSelfTest seat` within 3 m in front of the avatar, sits the avatar
   on one, takes off and lands once, then deletes its own prims (to the
   Trash). The avatar ends where the simulator stands it up, beside the
   seat: `@standtp` is held over the sit and released before the avatar
@@ -227,5 +227,5 @@ The report has one line per case: `PASS`, `FAIL`, `SKIPPED (why)` or
 commands, what was expected and what was observed. It names no asset and
 no resident.
 
-Offline, `AURORA_DEMO_RLVA=selftest` runs the same cases against the demo's
+Offline, `BLOCK_DEMO_RLVA=selftest` runs the same cases against the demo's
 simulated region ([docs/TESTING.md](TESTING.md)).

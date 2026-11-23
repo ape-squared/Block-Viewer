@@ -44,7 +44,7 @@ $labels = @(
     @{ Name = 'inventory'; Color = 'AAAAAA'; Desc = 'Inventory window, folders and items' },
     @{ Name = 'build-tools'; Was = 'construction'; Color = 'FCD34D'; Desc = 'In-world building and editing tools' },
     @{ Name = 'tooling'; Was = 'outillage'; Color = '6F7BA0'; Desc = 'GitHub repository, CI, scripts and development environment' },
-    # state of a PR (AGENTS.md section 9): hidden from the Aurora Tools PR panel
+    # state of a PR (AGENTS.md section 9): hidden from the Block Tools PR panel
     @{ Name = 'on-hold'; Color = '94A3B8'; Desc = 'PR paused by a maintainer: not reviewed nor merged until the label is removed' },
     # PR whose description misses parts of the template (PR description
     # workflow, scripts/check-pr-description.ps1, which creates it if missing)

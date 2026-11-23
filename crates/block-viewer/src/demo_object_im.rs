@@ -1,4 +1,4 @@
-//! AURORA_DEMO_OBJECT_IM=off|region|parcel|strict: objects' messages from
+//! BLOCK_DEMO_OBJECT_IM=off|region|parcel|strict: objects' messages from
 //! near and far (`world/object_im_filter.rs`), with the filter set for this
 //! run only: `off`, on for the region, on for the parcel, or on for the
 //! parcel with friends' objects blocked too. Seven messages reach nearby
@@ -14,7 +14,7 @@ use uuid::Uuid;
 
 /// The filter of this run, if the scenario is on.
 pub fn settings() -> Option<Settings> {
-    let value = std::env::var("AURORA_DEMO_OBJECT_IM").ok()?;
+    let value = std::env::var("BLOCK_DEMO_OBJECT_IM").ok()?;
     let mode = value.split(',').next().unwrap_or_default();
     let on = |scope, allow_friends| Settings {
         on: true,
@@ -31,7 +31,7 @@ pub fn settings() -> Option<Settings> {
 
 /// `,returns`: the return message hidden for the run.
 pub fn hide_returns() -> bool {
-    std::env::var("AURORA_DEMO_OBJECT_IM").is_ok_and(|v| v.split(',').skip(1).any(|w| w.trim() == "returns"))
+    std::env::var("BLOCK_DEMO_OBJECT_IM").is_ok_and(|v| v.split(',').skip(1).any(|w| w.trim() == "returns"))
 }
 
 /// An owner who is neither us nor a friend.
@@ -65,7 +65,7 @@ fn im(n: u128, owner: Uuid, agent: Uuid, location: &str, text: &str) -> NetEvent
 
 /// The events of `frame`. The demo parcel is the square 64..192 m.
 pub fn events(frame: u64, agent: Uuid) -> Vec<NetEvent> {
-    let here = block_i18n::tr!("common-aurora-demo");
+    let here = block_i18n::tr!("common-block-demo");
     let ev = match frame {
         700 => im(
             1,
@@ -118,7 +118,7 @@ pub fn events(frame: u64, agent: Uuid) -> Vec<NetEvent> {
                 "Your object '{}' has {} Lost and Found folder from parcel '{}' at {here} 128, 128 due to parcel auto return.",
                 name(8),
                 crate::world::object_im_filter::RETURNED,
-                block_i18n::tr!("common-aurora-plaza")
+                block_i18n::tr!("common-block-plaza")
             ),
         ),
         _ => return Vec::new(),

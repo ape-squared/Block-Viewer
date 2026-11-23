@@ -1,4 +1,4 @@
-//! Aurora's bloom of the bright parts of the image (the Legacy Viewer has
+//! Block's bloom of the bright parts of the image (the Legacy Viewer has
 //! none: its glow, `Glow` in renderer.rs, only lights faces with a glow
 //! value and stays as it is beside this). The mip chain of Jimenez, "Next
 //! Generation Post Processing in Call of Duty: Advanced Warfare" (SIGGRAPH
@@ -27,7 +27,7 @@ pub(crate) const KNEE: f32 = 0.3;
 /// tone mapped), so a halo of only the light over the threshold would hardly
 /// show (measured in the demo: 1 and 3 barely visible, 6 a clear halo).
 pub(crate) const GAIN: f32 = 5.0;
-/// The share spread when `AURORA_BLOOM=1` or `alt` turns it on while the
+/// The share spread when `BLOCK_BLOOM=1` or `alt` turns it on while the
 /// setting is off.
 pub(crate) const DEFAULT_STRENGTH: f32 = 0.5;
 
@@ -40,7 +40,7 @@ pub(crate) const DEFAULT_STRENGTH: f32 = 0.5;
 pub const TILE_REACH: u32 = (5 * ((1u32 << MAX_LEVELS) - 1)).div_ceil(2) + 3 * ((1u32 << (MAX_LEVELS + 1)) - 4) / 2 + 2;
 
 /// The pixels a tile of a photo must draw around what it keeps for the
-/// bloom of `setting` (its strength, 0 off; `AURORA_BLOOM` included): 0
+/// bloom of `setting` (its strength, 0 off; `BLOCK_BLOOM` included): 0
 /// when it is off.
 pub fn tile_reach(setting: f32) -> u32 {
     if Override::from_env().strength(setting, 0).1 {
@@ -63,7 +63,7 @@ pub(crate) fn levels(width: u32, height: u32) -> Vec<(u32, u32)> {
     out
 }
 
-/// `AURORA_BLOOM`: `0` off whatever the setting, `1` on, `alt` on one
+/// `BLOCK_BLOOM`: `0` off whatever the setting, `1` on, `alt` on one
 /// second out of two (to compare in the same session).
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub(crate) enum Override {
@@ -85,7 +85,7 @@ impl Override {
 
     pub(crate) fn from_env() -> Override {
         static ENV: std::sync::OnceLock<Override> = std::sync::OnceLock::new();
-        *ENV.get_or_init(|| Override::parse(std::env::var("AURORA_BLOOM").ok().as_deref()))
+        *ENV.get_or_init(|| Override::parse(std::env::var("BLOCK_BLOOM").ok().as_deref()))
     }
 
     /// The share spread this frame from the setting's (`setting`, 0 =

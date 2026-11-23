@@ -7,7 +7,7 @@
 //! - The window holds the title, which scrolls when it is too long for it
 //!   (the Legacy Viewer moves it one letter at a time; here it slides), and
 //!   the History button.
-//! - Aurora adds a text-only look (the title bar's button): the title alone
+//! - Block adds a text-only look (the title bar's button): the title alone
 //!   laid over the world, with a shadow, moved anywhere by dragging it; its
 //!   right click opens the history, copies the title or gives the window
 //!   back.

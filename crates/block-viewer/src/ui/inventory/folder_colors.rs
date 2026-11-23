@@ -1,7 +1,7 @@
 //! Folder icon colors: a color the user gives the icon of an inventory
 //! folder, to find it at a glance. Kept in this viewer's inventory
 //! preferences by folder id, never sent to the grid: nobody else sees it.
-//! An Aurora addition (the Legacy Viewer has no equivalent), on by default:
+//! A Block addition (the Legacy Viewer has no equivalent), on by default:
 //! nothing changes until a folder is given a color. The inventory
 //! preferences can turn it off (menu entry and tints hidden, colors kept).
 
@@ -197,7 +197,7 @@ fn swatch(ui: &mut egui::Ui, p: &Palette, [r, g, b]: [u8; 3], chosen: bool) -> e
     resp.on_hover_text(crate::ui::widgets::color::format_hex([r, g, b, 255], false))
 }
 
-/// `AURORA_DEMO_INVENTORY=folder-colors|aurora-folder-colors`: colors on the
+/// `BLOCK_DEMO_INVENTORY=folder-colors|block-folder-colors`: colors on the
 /// demo's folders, and the palette open on one of them.
 pub fn demo(st: &mut InventoryUi, prefs: &mut InventoryPreferences) {
     prefs.folder_colors_enabled = true;
@@ -211,14 +211,14 @@ pub fn demo(st: &mut InventoryUi, prefs: &mut InventoryPreferences) {
 /// so each step selects its folder after the demo's own start-up selection):
 /// - every mode: "A — Personal folder" selected at frame 600, before the
 ///   first capture (620);
-/// - `aurora-folder-colors-behind`: the inventory widened (640) and brought
+/// - `block-folder-colors-behind`: the inventory widened (640) and brought
 ///   over the palette (700, a click on it), then "Folder color…" again on
 ///   "Right-click tests" (760). Capture 750 (palette covered), 820 (in front);
-/// - `aurora-folder-colors-follow`: "Clothing" selected (700), then an item
+/// - `block-folder-colors-follow`: "Clothing" selected (700), then an item
 ///   (780). Capture 750 (the palette names Clothing, its pink outlined) and 830
 ///   (no folder: "Select a folder", the palette greyed).
 pub fn demo_frame(ctx: &egui::Context, st: &mut InventoryUi, prefs: &InventoryPreferences, frame: u64) {
-    let Ok(mode) = std::env::var("AURORA_DEMO_INVENTORY") else { return };
+    let Ok(mode) = std::env::var("BLOCK_DEMO_INVENTORY") else { return };
     if !mode.contains("folder-colors") {
         return;
     }
@@ -230,14 +230,14 @@ pub fn demo_frame(ctx: &egui::Context, st: &mut InventoryUi, prefs: &InventoryPr
     };
     match (mode.as_str(), frame) {
         (_, 600) => select(st, 8200),
-        ("aurora-folder-colors-behind", 640) => super::aurora::widen(ctx, "inventory"),
-        ("aurora-folder-colors-behind", 700) => crate::ui::widgets::bring_floater_front(ctx, "inventory"),
-        ("aurora-folder-colors-behind", 760) => {
+        ("block-folder-colors-behind", 640) => super::block::widen(ctx, "inventory"),
+        ("block-folder-colors-behind", 700) => crate::ui::widgets::bring_floater_front(ctx, "inventory"),
+        ("block-folder-colors-behind", 760) => {
             select(st, 8000);
             st.folder_color = Some(Picker::new(prefs, vec![Uuid::from_u128(8000)]));
         }
-        ("aurora-folder-colors-follow", 700) => select(st, 8203),
-        ("aurora-folder-colors-follow", 780) => select(st, 8100),
+        ("block-folder-colors-follow", 700) => select(st, 8203),
+        ("block-folder-colors-follow", 780) => select(st, 8100),
         _ => {}
     }
 }

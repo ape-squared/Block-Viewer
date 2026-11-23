@@ -323,9 +323,9 @@ mod tests {
     }
 
     #[test]
-    #[ignore = "requires AURORA_TEST_LODS_OUTPUT from the native Blender suite"]
+    #[ignore = "requires BLOCK_TEST_LODS_OUTPUT from the native Blender suite"]
     fn blender_lods_native_fixture_decodes_every_level_with_common_bind_palette() {
-        let bytes = std::fs::read(std::env::var_os("AURORA_TEST_LODS_OUTPUT").expect("fixture path")).expect("fixture");
+        let bytes = std::fs::read(std::env::var_os("BLOCK_TEST_LODS_OUTPUT").expect("fixture path")).expect("fixture");
         let request = serde_json::from_slice::<Request>(&bytes).expect("request identity");
         let skeleton = block_assets::Skeleton::parse(include_bytes!("../../assets/character/avatar_skeleton.xml")).expect("skeleton");
         let names = skeleton.joints.iter().map(|joint| joint.name.clone()).collect();

@@ -19,7 +19,7 @@ pub(crate) struct Graphics {
 impl Graphics {
     pub fn new(flags: wgpu::InstanceFlags) -> Result<Self> {
         // SAFETY: The installed Khronos loader dispatches the configured runtime.
-        let entry = if let Some(path) = std::env::var_os("AURORA_OPENXR_LOADER") {
+        let entry = if let Some(path) = std::env::var_os("BLOCK_OPENXR_LOADER") {
             // SAFETY: Explicitly configured native loader; the caller installs it.
             unsafe { xr::Entry::load_from(std::path::Path::new(&path), &())? }
         } else {
@@ -31,9 +31,9 @@ impl Graphics {
         }
         let xr = entry.create_instance(
             &xr::ApplicationInfo {
-                application_name: "Aurora Metal interoperability",
+                application_name: "Block Metal interoperability",
                 application_version: 0,
-                engine_name: "Aurora",
+                engine_name: "Block",
                 engine_version: 0,
                 api_version: xr::Version::new(1, 0, 0),
             },

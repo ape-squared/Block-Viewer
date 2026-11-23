@@ -177,15 +177,15 @@ the parity of the keys and variables with English, as well as selection,
 fallback and plurals. <code>scripts/check.ps1</code> also runs the viewer and network
 tests.</p>
 <p>To compare the languages without changing the preferences:</p>
-<pre><code class="language-powershell">$env:AURORA_DEMO = '1'
-$env:AURORA_DEMO_OPTIONS = '1'
+<pre><code class="language-powershell">$env:BLOCK_DEMO = '1'
+$env:BLOCK_DEMO_OPTIONS = '1'
 cargo run -p block-viewer -- --language en --title &quot;Test langue-viewer&quot;
 cargo run -p block-viewer -- --language fr --title &quot;Test langue-viewer&quot;
 cargo run -p block-viewer -- --language ja --title &quot;Test langue-viewer&quot;
 </code></pre>
 <p>Remove <code>--language</code> to check the saved choice and its change while the
-viewer is running. For screenshots in demo mode, set <code>AURORA_DEMO=1</code> and
-any <code>AURORA_DEMO_*</code> scenario you need, then capture the window titled with
+viewer is running. For screenshots in demo mode, set <code>BLOCK_DEMO=1</code> and
+any <code>BLOCK_DEMO_*</code> scenario you need, then capture the window titled with
 <code>--title</code>.</p>
       </article>
     </div>

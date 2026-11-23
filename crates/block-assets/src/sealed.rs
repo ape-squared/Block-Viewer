@@ -40,9 +40,9 @@ pub const HEADER: usize = 4 + SALT + 8;
 /// Plain bytes per chunk.
 pub const CHUNK: usize = 64 << 10;
 const TAG: usize = 16;
-const INFO: &[u8] = b"aurora cache file v1";
-const NAMES_SALT: &[u8] = b"aurora cache names";
-const NAMES_INFO: &[u8] = b"aurora cache names v1";
+const INFO: &[u8] = b"block cache file v1";
+const NAMES_SALT: &[u8] = b"block cache names";
+const NAMES_INFO: &[u8] = b"block cache names v1";
 /// Hex digits of a store file name (128 bits of the HMAC).
 pub const NAME_LEN: usize = 32;
 

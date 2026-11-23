@@ -2,7 +2,7 @@
 //! Firestorm's LLContextMenu / LLMenuItemGL (indra/llui/llmenugl.cpp,
 //! originally LGPL 2.1): flat rows, label on the left, a ▸ for sub-menus,
 //! thin separators, unavailable entries greyed out rather than hidden.
-//! Aurora adds a Tabler icon at the start of every row, and draws check
+//! Block adds a Tabler icon at the start of every row, and draws check
 //! marks at the right end (the left column holds the icon).
 //!
 //! Menus are egui popups (`Popup` / `SubMenu`): a menu closes when an
@@ -31,9 +31,9 @@ const CHECK_ROOM: f32 = RIGHT + 4.0;
 /// up with it.
 pub const TEXT_INDENT: f32 = PAD + ICON + PAD;
 
-/// Tooltip of the entries Firestorm has but Aurora does not do yet.
+/// Tooltip of the entries Firestorm has but Block does not do yet.
 pub fn not_yet() -> &'static str {
-    block_i18n::tr!("common-not-available-in-aurora-yet")
+    block_i18n::tr!("common-not-available-in-block-yet")
 }
 
 /// What the right end of a row shows.
@@ -62,7 +62,7 @@ struct RowTrack {
 }
 
 fn rows_id() -> Id {
-    Id::unique("aurora_menu_rows")
+    Id::unique("block_menu_rows")
 }
 
 /// Menu style: the popup and sub-menu frames (`Frame::menu`) are built
@@ -890,7 +890,7 @@ pub fn item_tip(ui: &mut Ui, p: &Palette, icon: &str, label: &str, enabled: bool
     clicked && enabled
 }
 
-/// Firestorm entry Aurora does not do yet: greyed, with a tooltip.
+/// Firestorm entry Block does not do yet: greyed, with a tooltip.
 pub fn todo(ui: &mut Ui, p: &Palette, icon: &str, label: &str) {
     row(ui, p, icon, label, false, End::None, false).on_hover_text(not_yet());
 }
@@ -1100,7 +1100,7 @@ pub fn voice_volume(ui: &mut Ui, p: &Palette, v: VoiceVolume) -> Option<VoiceEdi
 /// egui temp data: where the voice row of the menu in `layer` was drawn,
 /// and in which frame.
 fn keep_open_id(layer: LayerId) -> Id {
-    Id::unique("aurora_menu_keep_open").with(layer.id)
+    Id::unique("block_menu_keep_open").with(layer.id)
 }
 
 /// A click this frame lands on the voice row the menu `popup` drew last
@@ -1372,9 +1372,9 @@ fn hidden(ui: &mut Ui) -> egui::Response {
 /// empty each time; a click in it leaves a menu that closes on any click
 /// open. While it filters, the first entry found is selected, the up and
 /// down arrows move the selection (wrapping around) and Enter clicks it.
-/// Aurora's own: the Legacy Viewer's menus have no search.
+/// Block's own: the Legacy Viewer's menus have no search.
 pub fn searchable(ui: &mut Ui, p: &Palette, body: impl FnOnce(&mut Ui)) {
-    let id = ui.layer_id().id.with("aurora_menu_search");
+    let id = ui.layer_id().id.with("block_menu_search");
     let frame = ui.ctx().cumulative_frame_nr();
     let mut state = ui.data(|d| d.get_temp::<SearchState>(id)).unwrap_or_default();
     let opened = state.frame + 1 < frame;
@@ -1453,12 +1453,12 @@ pub fn searchable(ui: &mut Ui, p: &Palette, body: impl FnOnce(&mut Ui)) {
     }
 }
 
-/// `AURORA_DEMO_MENU_SEARCH=<query>`: the wolf menu of the islands (the
+/// `BLOCK_DEMO_MENU_SEARCH=<query>`: the wolf menu of the islands (the
 /// default bars) clicked at frames 540–541 and `query` typed in its search
 /// field at 560; capture frame 620.
 pub fn search_demo_events(frame: u64) -> Vec<egui::Event> {
     static QUERY: std::sync::OnceLock<Option<String>> = std::sync::OnceLock::new();
-    let Some(query) = QUERY.get_or_init(|| std::env::var("AURORA_DEMO_MENU_SEARCH").ok()) else {
+    let Some(query) = QUERY.get_or_init(|| std::env::var("BLOCK_DEMO_MENU_SEARCH").ok()) else {
         return Vec::new();
     };
     let wolf = egui::pos2(30.0, 30.0);

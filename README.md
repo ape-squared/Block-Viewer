@@ -73,7 +73,7 @@ cargo build -p block-viewer            # debug
 cargo build -p block-viewer --release  # release
 ```
 
-Dev helpers: `block-tools.cmd` (Block Tools). Old `aurora-tools.cmd` still launches it.
+Dev helpers: `block-tools.cmd` (Block Tools).
 
 ---
 

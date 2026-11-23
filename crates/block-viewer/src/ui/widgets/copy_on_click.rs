@@ -1,7 +1,7 @@
 //! Click to copy: a name drawn as a label (a resident's display name and
 //! username, a group's name) copies itself on a left click. The name is
 //! underlined for a moment and a small "Copied" follows the pointer, both
-//! fading out within a second, so the click visibly did something. An Aurora
+//! fading out within a second, so the click visibly did something. A Block
 //! addition: the Legacy Viewer copies names only through menus.
 
 use crate::theme::Palette;
@@ -30,7 +30,7 @@ struct Copied {
 }
 
 fn key() -> Id {
-    Id::unique("aurora_copy_on_click")
+    Id::unique("block_copy_on_click")
 }
 
 /// `resp` comes from a widget that senses clicks (a `Label` with

@@ -5,7 +5,7 @@
 //! reads "Track's value" (or "Live") with a button to give the keyframe its
 //! own.
 //!
-//! Aurora's own: the Legacy Viewer has no camera path tool. Which
+//! Block's own: the Legacy Viewer has no camera path tool. Which
 //! animations may be played is the shared rule
 //! (`world::inventory::actions::animation_playable`), the one of the
 //! inventory's "Play in world".

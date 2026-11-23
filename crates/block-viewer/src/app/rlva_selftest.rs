@@ -18,7 +18,7 @@ pub(super) struct SelfTest {
     /// The report as the window shows and copies it: the build first,
     /// residents' names hidden.
     text: Option<String>,
-    /// AURORA_DEMO_RLVA=selftest: 1 once the dialog is asked for, 2 once it
+    /// BLOCK_DEMO_RLVA=selftest: 1 once the dialog is asked for, 2 once it
     /// is answered.
     demo_step: u8,
 }
@@ -148,7 +148,7 @@ impl App {
         }
     }
 
-    /// AURORA_DEMO_RLVA=selftest: the one start that no human pressed, in
+    /// BLOCK_DEMO_RLVA=selftest: the one start that no human pressed, in
     /// demo mode only, where there is no grid. The dialog opens at frame
     /// 300 with the in-world cases ticked and is answered at frame 420; both
     /// phases run against the demo's simulated region, the relays simulated.
@@ -156,7 +156,7 @@ impl App {
         if !self.demo || self.rlva_selftest.demo_step > 1 || self.frame_count < 300 {
             return;
         }
-        if !std::env::var("AURORA_DEMO_RLVA").is_ok_and(|mode| mode == "selftest") {
+        if !std::env::var("BLOCK_DEMO_RLVA").is_ok_and(|mode| mode == "selftest") {
             return;
         }
         if self.rlva_selftest.demo_step == 0 {

@@ -1,5 +1,5 @@
 //! Compact inventory library: lateral grid and bottom shelf backed by the
-//! actual subtree under #Aurora/Aurora Library.
+//! actual subtree under #Aurora/Block Library.
 
 pub(crate) mod catalogue;
 mod material_editor;
@@ -285,7 +285,7 @@ impl LibraryUi {
                         self.prepared = false;
                         self.message.clear();
                         world.inventory.request(world.inventory.root);
-                        if let Some(id) = catalogue::child(&world.inventory, world.inventory.root, catalogue::AURORA) {
+                        if let Some(id) = catalogue::child(&world.inventory, world.inventory.root, catalogue::BLOCK) {
                             world.inventory.request(id);
                         }
                         self.catalogue.invalidate();
@@ -426,7 +426,7 @@ impl LibraryUi {
             return;
         }
         let mut change = Mutation::default();
-        let aurora = if let Some(id) = catalogue::child(inv, inv.root, catalogue::AURORA) {
+        let aurora = if let Some(id) = catalogue::child(inv, inv.root, catalogue::BLOCK) {
             if inv.folders.get(&id).is_none_or(|f| f.state != FetchState::Fetched) {
                 self.request_root(inv, id);
                 return;
@@ -437,7 +437,7 @@ impl LibraryUi {
             change.operations.push(Operation::Folder {
                 id,
                 parent: inv.root,
-                name: catalogue::AURORA.into(),
+                name: catalogue::BLOCK.into(),
                 type_default: -1,
             });
             change.refresh.push(inv.root);

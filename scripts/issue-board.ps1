@@ -1,6 +1,6 @@
 ﻿<#
 .SYNOPSIS
-    Reads or moves an issue on the team's GitHub project (Aurora Team
+    Reads or moves an issue on the team's GitHub project (Block Team
     Planning), and lists the issues still to take, highest priority first.
     The project manager sets Priority (an issue field of the organisation,
     like the type) and the milestone; the agents only move the project's
@@ -29,7 +29,7 @@ param(
     [string]$Status,
     [switch]$Todo,
     [string]$List,
-    [string]$Project = 'Aurora Team Planning'
+    [string]$Project = 'Block Team Planning'
 )
 . "$PSScriptRoot\common.ps1"
 # gh writes UTF-8; the console decodes it with its OEM code page by default

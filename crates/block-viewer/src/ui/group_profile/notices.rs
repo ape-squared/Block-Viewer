@@ -6,7 +6,7 @@
 //! ability, a new notice: subject, message and an inventory item that we
 //! may copy and transfer (send_group_notice, LLGroupDropTarget).
 //!
-//! Which notices are unread is Aurora's: those that arrived since the
+//! Which notices are unread is Block's: those that arrived since the
 //! group's list was first seen and were never opened (`world/group_data.rs`).
 
 use super::view::{self, View};
@@ -168,7 +168,7 @@ pub fn show(st: &mut GroupProfileUi, ui: &mut egui::Ui, c: &mut Ctx, v: &View, a
     );
     ui.allocate_rect(body, Sense::hover());
     // panel_group_notices.xml places the message below the list. Keep
-    // Aurora's two columns only when both panes have room for their actions.
+    // Block's two columns only when both panes have room for their actions.
     let scale = crate::ui::fonts::scale(ui.ctx());
     let (left, right) = if body.width() < 640.0 * scale {
         let list_h = (body.height() * 0.4).min(220.0 * scale);

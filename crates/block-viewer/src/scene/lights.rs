@@ -4,7 +4,7 @@
 //! light with a light texture is a projector (LLVOVolume::isLightSpotlight):
 //! it lights the frustum that leaves its prim, through that texture. Shadow
 //! slots follow LLPipeline::generateSunShadow (mShadowSpotLight /
-//! mTargetShadowSpotLight), extended to an adjustable budget in Aurora.
+//! mTargetShadowSpotLight), extended to an adjustable budget in Block.
 //!
 //! The Legacy Viewer keeps the 256 nearest lights within the draw distance
 //! (RenderLocalLightCount) and draws those in the camera's frustum. The
@@ -327,7 +327,7 @@ impl Scene {
             let limit = usize::from(view.projector_shadow_limit).min(MAX_PROJECTOR_SHADOWS);
             let targets = self.spot_shadows.targets(&mut ranked, limit);
             self.spot_shadows.update(&targets[..limit], eye, view.dt);
-            if std::env::var_os("AURORA_PROJECTOR_TRACE").is_some() {
+            if std::env::var_os("BLOCK_PROJECTOR_TRACE").is_some() {
                 log::info!(
                     "projector trace: eye={eye:?} targets={targets:?} slots={:?} fade={:?} ranked={ranked:?}",
                     self.spot_shadows.lights,

@@ -3,7 +3,7 @@
 //! frame that asks, mapped without waiting, and made small on a worker
 //! thread once the GPU is through with it. The answer comes a few frames
 //! later, tagged with the number its caller gave: never a wait on the GPU,
-//! neither on the main thread nor on the render thread. Aurora's own.
+//! neither on the main thread nor on the render thread. Block's own.
 
 use std::sync::Arc;
 use std::sync::atomic::{AtomicU8, Ordering};
@@ -145,7 +145,7 @@ impl Thumbnails {
                 MAPPED => {
                     let flight = self.flights.swap_remove(index);
                     let tx = self.tx.clone();
-                    let spawned = std::thread::Builder::new().name("aurora-thumbnail".into()).spawn(move || {
+                    let spawned = std::thread::Builder::new().name("block-thumbnail".into()).spawn(move || {
                         let picture = flight.buffer.get_mapped_range(..).ok().map(|view| {
                             let (width, height, rgba) =
                                 downscale(&view, flight.width, flight.height, flight.row, flight.bgra, THUMBNAIL_MAX);

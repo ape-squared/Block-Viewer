@@ -119,14 +119,14 @@ impl App {
             return;
         }
         if self.demo
-            && let Ok(mode) = std::env::var("AURORA_DEMO_PORTALS")
+            && let Ok(mode) = std::env::var("BLOCK_DEMO_PORTALS")
             && mode.starts_with("slice-")
         {
             self.portal_slice_demo(&mode);
         }
         if self.demo
             && !self.portal_ui.demo_seeded
-            && let Ok(mode) = std::env::var("AURORA_DEMO_PORTALS")
+            && let Ok(mode) = std::env::var("BLOCK_DEMO_PORTALS")
         {
             self.portal_ui.demo_seeded = true;
             self.portal_ui.open = true;

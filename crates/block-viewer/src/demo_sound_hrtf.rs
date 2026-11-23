@@ -1,4 +1,4 @@
-//! 3D sound for headphones (AURORA_DEMO_SOUND_HRTF=1|circle|updown,
+//! 3D sound for headphones (BLOCK_DEMO_SOUND_HRTF=1|circle|updown,
 //! docs/TESTING.md): one looping sound circling the listener (the camera)
 //! slowly on the level of the ears, ahead, to the right, behind, to the
 //! left; one swinging ahead from below to high above and back. With
@@ -25,7 +25,7 @@ pub enum Mode {
 
 pub fn mode() -> Option<Mode> {
     static MODE: OnceLock<Option<Mode>> = OnceLock::new();
-    *MODE.get_or_init(|| match std::env::var("AURORA_DEMO_SOUND_HRTF").ok()?.as_str() {
+    *MODE.get_or_init(|| match std::env::var("BLOCK_DEMO_SOUND_HRTF").ok()?.as_str() {
         "" | "0" => None,
         "circle" => Some(Mode::Circle),
         "updown" => Some(Mode::UpDown),

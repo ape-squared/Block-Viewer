@@ -107,7 +107,7 @@ mod tests {
 
     #[test]
     fn key_file_is_made_once_then_kept() {
-        let dir = std::env::temp_dir().join(format!("aurora-cache-key-{}", uuid::Uuid::new_v4()));
+        let dir = std::env::temp_dir().join(format!("block-cache-key-{}", uuid::Uuid::new_v4()));
         let path = dir.join(FILE);
         let first = from_file(&path).expect("made");
         assert_eq!(from_file(&path).expect("kept"), first);

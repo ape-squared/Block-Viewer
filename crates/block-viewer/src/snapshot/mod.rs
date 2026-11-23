@@ -225,7 +225,7 @@ pub struct Settings {
     pub interface: bool,
     pub huds: bool,
     /// "Look at camera": while the photo window is open, our avatar's head
-    /// and eyes follow the camera (`app::photo_gaze`). Aurora's own, off.
+    /// and eyes follow the camera (`app::photo_gaze`). Block's own, off.
     pub look_at_camera: bool,
     /// "Look intensity" (%): how far the head turns to the camera under
     /// "Look at camera"; the eyes do the rest. 100 faces it, about 50 a
@@ -275,7 +275,7 @@ pub struct Settings {
     /// The photo's looks, the first one drawn first (`looks`); none: the
     /// Legacy Viewer's "No Filter".
     pub looks: Vec<looks::Layer>,
-    /// The settings of Aurora's looks by id (`knobs`), kept when a look is
+    /// The settings of Block's looks by id (`knobs`), kept when a look is
     /// taken out.
     pub look_settings: std::collections::BTreeMap<String, Vec<f32>>,
     /// The 360° snapshot window's (`capture_360`).
@@ -758,7 +758,7 @@ pub fn stitch(photo: &mut [u8], photo_width: u32, pass: TilePass, pixels: &[u8])
 /// part to its last (issues #977, #1109). The Legacy Viewer draws every tile
 /// in one call (LLViewerWindow::rawSnapshot, indra/newview/llviewerwindow.cpp,
 /// originally LGPL 2.1: display() per tile, no idle() between them), so
-/// nothing moves from one tile to the next; Aurora draws a tile per frame and
+/// nothing moves from one tile to the next; Block draws a tile per frame and
 /// stops the world's clock instead, or an avatar that moves is cut at every
 /// seam.
 #[derive(Debug, Clone, Copy, PartialEq)]

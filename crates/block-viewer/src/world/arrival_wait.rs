@@ -9,7 +9,7 @@
 //! Differences from the Legacy Viewer, both for the resident stuck in that
 //! state: giving up says so in a notice, where the Legacy Viewer is silent. And
 //! a crossing waits the same time: the Legacy Viewer keeps sending agent
-//! updates during one, while Aurora holds them until the arrival, so it must
+//! updates during one, while Block holds them until the arrival, so it must
 //! let them go at some point.
 
 use std::time::{Duration, Instant};

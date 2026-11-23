@@ -1,4 +1,4 @@
-//! The Pay window: L$ to a resident or a group, and the Aurora look of the
+//! The Pay window: L$ to a resident or a group, and the Block look of the
 //! payment to an object. Port of LLFloaterPay (indra/newview/llfloaterpay.cpp,
 //! floater_pay.xml, floater_pay_object.xml, originally LGPL 2.1):
 //! - the quick amounts L$ 1, 5, 10, 20 (those of llSetPayPrice for an
@@ -9,7 +9,7 @@
 //!   when the balance covers it and the payee is not ourselves (FIRE-24208);
 //! - give_money: the Buy L$ window when the balance falls short.
 //!
-//! The Aurora look (the human's choice of the mockup, variant A) keeps the
+//! The Block look (the human's choice of the mockup, variant A) keeps the
 //! window open until the server answers and says what was sent; Firestorm's
 //! (`Settings::classic_pay_window`) closes at once, as floater_pay.xml does.
 
@@ -90,7 +90,7 @@ pub struct PayUi {
     /// look (PayConfirmation): the amount and the object's name.
     pub object_confirm: Option<(i32, String)>,
     /// The payee's profile picture (a resident) or insignia (a group), asked
-    /// of the app while the Aurora look draws it.
+    /// of the app while the Block look draws it.
     pub wanted_pics: HashSet<Uuid>,
     pub wanted_images: HashSet<Uuid>,
 }
@@ -168,7 +168,7 @@ impl PayUi {
     }
 
     /// LLFloaterPay::give, or the Buy L$ window when the balance is short
-    /// (give_money). The Aurora look waits for the server's answer.
+    /// (give_money). The Block look waits for the server's answer.
     fn give(&mut self, amount: i32, world: &World, actions: &mut Vec<PayAction>) {
         let Some(payee) = self.payee.as_mut() else { return };
         if !world.rlva_can_pay() {
@@ -268,7 +268,7 @@ impl PayUi {
             if classic {
                 self.show_classic(ctx, p, world, confirm, threshold, &mut actions);
             } else {
-                self.show_aurora(ctx, p, world, pics, confirm, threshold, &mut actions);
+                self.show_block(ctx, p, world, pics, confirm, threshold, &mut actions);
             }
         }
         actions
@@ -297,7 +297,7 @@ impl PayUi {
         }
     }
 
-    fn show_aurora(
+    fn show_block(
         &mut self,
         ctx: &egui::Context,
         p: &Palette,
@@ -666,7 +666,7 @@ impl PayUi {
         }
     }
 
-    /// The Aurora look of a payment to an object (floater_pay_object.xml):
+    /// The Block look of a payment to an object (floater_pay_object.xml):
     /// its buttons of llSetPayPrice, the free amount unless the script hides
     /// it, the confirmation above the threshold. Returns the amount to pay,
     /// which `Interactions::confirm` checks again.
@@ -920,7 +920,7 @@ impl PayUi {
         }
     }
 
-    /// AURORA_DEMO_PAY: the window in the state its mode names
+    /// BLOCK_DEMO_PAY: the window in the state its mode names
     /// (docs/TESTING.md).
     pub fn demo(&mut self, id: Uuid, mode: &str) {
         let group = mode == "group";

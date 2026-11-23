@@ -13,7 +13,7 @@
 //! way it was. A turn by anything else (the rotate handles, a script) makes
 //! the rotation it then has the new truth.
 //!
-//! An Aurora feature, beside its snap to objects (`object_snap.rs`); no
+//! A Block feature, beside its snap to objects (`object_snap.rs`); no
 //! Legacy Viewer has it. The surfaces are those the snap uses: what objects
 //! show (the triangles picking uses), and the ground. The move is sent as
 //! the Align tool's (`TransformUpdate` per linkset root), so only the

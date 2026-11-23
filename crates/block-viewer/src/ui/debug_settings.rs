@@ -8,7 +8,7 @@
 //! Reset to default, and the DebugSettingsWarning notification with its
 //! "ignore". A setting RLVa holds is greyed, as `updateControl` does.
 //!
-//! Differences: the names are Aurora's own (`camera.fov`), its settings being
+//! Differences: the names are Block's own (`camera.fov`), its settings being
 //! typed fields (the Legacy names are in Preferences' code comments); the
 //! comment of a setting is what Preferences says of it, in the interface's
 //! language, and a setting Preferences does not show has only its name; a

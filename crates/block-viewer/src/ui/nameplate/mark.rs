@@ -1,9 +1,9 @@
 //! What each staff mark (`world::staff::Mark`) looks like, for the plates
-//! (`paint.rs`) and the windows (`ui/staff.rs`): the Aurora team's
-//! northern light (`aurora.rs`) or Linden Lab's stars and shine
+//! (`paint.rs`) and the windows (`ui/staff.rs`): the Block team's
+//! northern light (`block.rs`) or Linden Lab's stars and shine
 //! (`linden.rs`), their tag's words, icon and colors.
 
-use super::{aurora, block, linden};
+use super::{block, borealis, linden};
 use crate::theme::Palette;
 use crate::world::staff::Mark;
 use egui::{Color32, Mesh, Rect};
@@ -89,13 +89,13 @@ impl Look {
     /// A plate's border, `width` points inside its edge, over its halo.
     #[allow(clippy::too_many_arguments)]
     pub fn border(&self, mesh: &mut Mesh, p: &Palette, rect: Rect, ppp: f32, t: f32, alpha: f32, width: f32, scale: f32) {
-        aurora::border(mesh, rect, ppp, alpha, width, scale, |s| self.edge(p, s, t));
+        borealis::border(mesh, rect, ppp, alpha, width, scale, |s| self.edge(p, s, t));
     }
 
     /// The tag's surface at `rect`: `fill` inside the border.
     #[allow(clippy::too_many_arguments)]
     pub fn tag(&self, mesh: &mut Mesh, p: &Palette, rect: Rect, radius: f32, ppp: f32, t: f32, fill: Color32, alpha: f32, width: f32) {
-        aurora::tag(mesh, rect, radius, ppp, fill, alpha, width, |s| self.edge(p, s + 0.25, t));
+        borealis::tag(mesh, rect, radius, ppp, fill, alpha, width, |s| self.edge(p, s + 0.25, t));
     }
 
     /// The light over a profile's banner: the curtains rising from its

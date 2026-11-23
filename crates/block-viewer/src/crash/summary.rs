@@ -9,7 +9,7 @@ use std::io::{Read, Seek, SeekFrom};
 use std::path::Path;
 
 /// Recognised by the repository's crash triage.
-pub const MARKER: &str = "<!-- aurora-crash v1 -->";
+pub const MARKER: &str = "<!-- block-crash v1 -->";
 const MAX_FRAMES: usize = 40;
 const LOG_HEAD: u64 = 64 * 1024;
 const LOG_TAIL: u64 = 256 * 1024;
@@ -553,7 +553,7 @@ const STATE_ROWS: &[(&str, &str)] = &[
     ("loss_cause", "GPU loss: what the message is about"),
     ("loss_seen_by", "GPU loss: first seen by"),
     ("stall_ms", "GPU held the render thread past 2 s, longest (ms)"),
-    ("other_viewers", "Other Aurora viewers on this card (count / in front)"),
+    ("other_viewers", "Other Block viewers on this card (count / in front)"),
     ("card_used_mb", "Card memory in use by all programs (MB)"),
     ("card_others_mb", "Card memory in use by other programs (MB)"),
     ("loading", "Still loading (textures in flight / awaiting upload / geometry)"),
@@ -1316,7 +1316,7 @@ mod tests {
     }
 
     fn session() -> (std::path::PathBuf, super::super::Record) {
-        let dir = std::env::temp_dir().join(format!("aurora-crash-summary-test-{}", uuid::Uuid::new_v4()));
+        let dir = std::env::temp_dir().join(format!("block-crash-summary-test-{}", uuid::Uuid::new_v4()));
         std::fs::create_dir(&dir).unwrap();
         let record = super::super::Record {
             schema: 1,
@@ -1338,7 +1338,7 @@ mod tests {
         (dir, record)
     }
 
-    const NATIVE: &str = "Native exception 0xC0000005\nFault address: 0x00007FF6A1B2C3D4\nNative stack (addresses):\n00: 0x00007ffb12345678\n01: 0x00007FF6A1B2C3D4\nFault: aurora_viewer+0x1b2c3d4\nNative stack (modules):\n00: KERNELBASE+0x5678\n01: aurora_viewer+0x1b2c3d4\n02: ?\n03: nvoglv64+0x9abc\nModules:\nKERNELBASE id=0123456789ABCDEF0123456789ABCDEF1 code=6712ABCD3f0000\naurora_viewer id=FEDCBA9876543210FEDCBA98765432101 code=6700000Ac5e0000\nnvoglv64 code=65000000200000\n";
+    const NATIVE: &str = "Native exception 0xC0000005\nFault address: 0x00007FF6A1B2C3D4\nNative stack (addresses):\n00: 0x00007ffb12345678\n01: 0x00007FF6A1B2C3D4\nFault: block_viewer+0x1b2c3d4\nNative stack (modules):\n00: KERNELBASE+0x5678\n01: block_viewer+0x1b2c3d4\n02: ?\n03: nvoglv64+0x9abc\nModules:\nKERNELBASE id=0123456789ABCDEF0123456789ABCDEF1 code=6712ABCD3f0000\nblock_viewer id=FEDCBA9876543210FEDCBA98765432101 code=6700000Ac5e0000\nnvoglv64 code=65000000200000\n";
 
     const NOTICE: &str = "[t WARN  block_render::main_thread] GPU: no discrete GPU visible to Vulkan: on a hybrid PC";
 
@@ -1447,7 +1447,7 @@ mod tests {
         let own = |text: &str| format!("[t ERROR block_render::main_thread] GPU work at the loss: {text}\n");
         // another module's line carrying the marker in a name: nothing
         let injected = format!(
-            "[t WARN  aurora_viewer::world::object_im_filtered] object named \"x] GPU work at the loss: {HANG}\" in a private region\n"
+            "[t WARN  block_viewer::world::object_im_filtered] object named \"x] GPU work at the loss: {HANG}\" in a private region\n"
         );
         assert_eq!(gpu_work_in(&injected), None);
         assert_eq!(
@@ -1529,7 +1529,7 @@ mod tests {
         let summary = build(&record, &dir);
         assert_eq!(
             summary.title,
-            "Crash: native exception 0xC0000005 at aurora_viewer+0x1b2c3d4 (0.7.1+3.gabcdef)"
+            "Crash: native exception 0xC0000005 at block_viewer+0x1b2c3d4 (0.7.1+3.gabcdef)"
         );
         let body = &summary.body;
         assert!(body.starts_with(MARKER));
@@ -1538,8 +1538,8 @@ mod tests {
             "| Session duration | 42 s |",
             "| System | Windows 11 Pro (26200, x86_64) |",
             "| GPU | NVIDIA GeForce RTX 4070 (Vulkan, driver NVIDIA 581.57) |",
-            "00 aurora_viewer+0x1b2c3d4\n01 ?\n02 nvoglv64+0x9abc\n",
-            "aurora_viewer id=FEDCBA9876543210FEDCBA98765432101 code=6700000Ac5e0000",
+            "00 block_viewer+0x1b2c3d4\n01 ?\n02 nvoglv64+0x9abc\n",
+            "block_viewer id=FEDCBA9876543210FEDCBA98765432101 code=6700000Ac5e0000",
             "nvoglv64 code=65000000200000",
             "WARN | block_net | timeout",
             "| Exit code | 0xC0000005 (access violation) |",
@@ -1596,7 +1596,7 @@ mod tests {
         record.demo = true;
         std::fs::write(
             dir.join("panic.txt"),
-            "Rust panic: panicked at C:\\Users\\Private Name\\Aurora\\crates\\block-viewer\\src\\app.rs:120:9:\nresident Alice Resident said PRIVATE_MESSAGE\n   0: <unknown>\nNative stack (modules):\n00: aurora_viewer+0x1000\n01: aurora_viewer+0x2000\nModules:\naurora_viewer id=FEDCBA9876543210FEDCBA98765432101 code=6700000Ac5e0000\n",
+            "Rust panic: panicked at C:\\Users\\Private Name\\Block\\crates\\block-viewer\\src\\app.rs:120:9:\nresident Alice Resident said PRIVATE_MESSAGE\n   0: <unknown>\nNative stack (modules):\n00: block_viewer+0x1000\n01: block_viewer+0x2000\nModules:\nblock_viewer id=FEDCBA9876543210FEDCBA98765432101 code=6700000Ac5e0000\n",
         )
         .unwrap();
         let summary = build(&record, &dir);
@@ -1605,7 +1605,7 @@ mod tests {
             "Crash: Rust panic at crates/block-viewer/src/app.rs:120:9 (0.7.1+3.gabcdef)"
         );
         assert!(summary.body.contains("Location: `crates/block-viewer/src/app.rs:120:9`"));
-        assert!(summary.body.contains("00 aurora_viewer+0x1000\n01 aurora_viewer+0x2000\n"));
+        assert!(summary.body.contains("00 block_viewer+0x1000\n01 block_viewer+0x2000\n"));
         assert!(!summary.body.contains("Risk factors"));
         assert!(summary.body.contains("| Demo session | yes |"));
         for private in ["Users", "Private", "Alice", "PRIVATE_MESSAGE"] {
@@ -1660,7 +1660,7 @@ mod tests {
         std::fs::remove_dir_all(dir).unwrap();
     }
 
-    const FREEZE: &str = "Freeze: no answer for 20 s\nThread: main\nNative stack (modules):\n00: ntdll+0x9d0e4\n01: aurora_viewer+0x5000\nModules:\nntdll id=0123456789ABCDEF0123456789ABCDEF1 code=1234ABCD1f8000\naurora_viewer id=FEDCBA9876543210FEDCBA98765432101 code=6700000Ac5e0000\nThread: block-render\nNative stack (modules):\n00: nvoglv64+0x9abc\n01: aurora_viewer+0x7000\nModules:\nnvoglv64 code=65000000200000\naurora_viewer id=FEDCBA9876543210FEDCBA98765432101 code=6700000Ac5e0000\nThread: Private Name\nNative stack (modules):\n00: secret+0x1\n";
+    const FREEZE: &str = "Freeze: no answer for 20 s\nThread: main\nNative stack (modules):\n00: ntdll+0x9d0e4\n01: block_viewer+0x5000\nModules:\nntdll id=0123456789ABCDEF0123456789ABCDEF1 code=1234ABCD1f8000\nblock_viewer id=FEDCBA9876543210FEDCBA98765432101 code=6700000Ac5e0000\nThread: block-render\nNative stack (modules):\n00: nvoglv64+0x9abc\n01: block_viewer+0x7000\nModules:\nnvoglv64 code=65000000200000\nblock_viewer id=FEDCBA9876543210FEDCBA98765432101 code=6700000Ac5e0000\nThread: Private Name\nNative stack (modules):\n00: secret+0x1\n";
 
     #[test]
     fn recoveries_are_counted_with_when_and_how_and_nothing_else() {
@@ -1712,8 +1712,8 @@ mod tests {
             "| Exit code | 0x00000001 (ended from outside, as by Task Manager, or exit(1)) |",
             "| Session duration | 100 s |",
             "| Window | not answering for the last 30 s |",
-            "### Stack\n\n```text\n00 ntdll+0x9d0e4\n01 aurora_viewer+0x5000\n```",
-            "### Stack (block-render thread)\n\n```text\n00 nvoglv64+0x9abc\n01 aurora_viewer+0x7000\n```",
+            "### Stack\n\n```text\n00 ntdll+0x9d0e4\n01 block_viewer+0x5000\n```",
+            "### Stack (block-render thread)\n\n```text\n00 nvoglv64+0x9abc\n01 block_viewer+0x7000\n```",
             "| Video memory used / budget (MB) | 5800/6000 |",
             "| Video memory headroom, tightest in 60 s (MB) | -512 |",
             "| Texture memory pressure | 7/7 |",
@@ -1730,14 +1730,14 @@ mod tests {
             "| GPU loss: first seen by | callback |",
             "| GPU held the render thread past 2 s, longest (ms) | 2300 |",
             "| Ambient occlusion / contact shadows of that frame (ms) | 20.5/2100.0 |",
-            "| Other Aurora viewers on this card (count / in front) | 2/1 |",
+            "| Other Block viewers on this card (count / in front) | 2/1 |",
             "| Card memory in use by all programs (MB) | 6100 |",
             "| Card memory in use by other programs (MB) | 3200 |",
         ] {
             assert!(body.contains(expected), "missing {expected:?} in\n{body}");
         }
         // One module list, each module once.
-        assert_eq!(body.matches("aurora_viewer id=").count(), 1, "{body}");
+        assert_eq!(body.matches("block_viewer id=").count(), 1, "{body}");
         assert!(!body.contains("End of session"), "{body}");
         for private in ["Private", "secret", "region_name", "someone", "layers_note", "OLD_NOTE"] {
             assert!(!body.contains(private), "leaked {private}:\n{body}");
@@ -1797,7 +1797,7 @@ mod tests {
         std::fs::remove_dir_all(dir).unwrap();
     }
 
-    const OOM: &str = "Out of memory: 64 bytes\nNative stack (modules):\n00: aurora_viewer+0x10\nModules:\naurora_viewer id=FEDCBA9876543210FEDCBA98765432101 code=6700000Ac5e0000\nOut of memory: 70368744177664 bytes\nNative stack (modules):\n00: aurora_viewer+0x1234\n01: aurora_viewer+0x5678\nModules:\naurora_viewer id=FEDCBA9876543210FEDCBA98765432101 code=6700000Ac5e0000\n";
+    const OOM: &str = "Out of memory: 64 bytes\nNative stack (modules):\n00: block_viewer+0x10\nModules:\nblock_viewer id=FEDCBA9876543210FEDCBA98765432101 code=6700000Ac5e0000\nOut of memory: 70368744177664 bytes\nNative stack (modules):\n00: block_viewer+0x1234\n01: block_viewer+0x5678\nModules:\nblock_viewer id=FEDCBA9876543210FEDCBA98765432101 code=6700000Ac5e0000\n";
 
     #[test]
     fn a_failed_allocation_names_the_crash_only_when_the_process_failed_fast() {
@@ -1813,7 +1813,7 @@ mod tests {
             summary.body
         );
         assert!(
-            summary.body.contains("00 aurora_viewer+0x1234\n01 aurora_viewer+0x5678\n"),
+            summary.body.contains("00 block_viewer+0x1234\n01 block_viewer+0x5678\n"),
             "{}",
             summary.body
         );
@@ -1901,7 +1901,7 @@ mod tests {
         let (dir, record) = session();
         std::fs::write(
             dir.join("panic.txt"),
-            "Rust panic: panicked at crates/block-net/src/session.rs:10:5:\nboom\nNative stack (modules):\n00: aurora_viewer+0x1000\n",
+            "Rust panic: panicked at crates/block-net/src/session.rs:10:5:\nboom\nNative stack (modules):\n00: block_viewer+0x1000\n",
         )
         .unwrap();
         std::fs::write(dir.join("thread.txt"), "block-net").unwrap();
@@ -1952,12 +1952,12 @@ mod tests {
     fn gpu_errors_name_the_kind_and_operation_and_never_a_label() {
         let e = WGPU_ERROR;
         let log = format!(
-            "[2026-11-04T09:59:00.000Z INFO  aurora_viewer] start\n\
+            "[2026-11-04T09:59:00.000Z INFO  block_viewer] start\n\
              {e}Out of Memory\n\
              {e}Validation Error\n\nCaused by:\n  In Queue::write_buffer, label = 'Private Place'\n    In Device::nested\n      Buffer with 'Private Place' label is invalid\n\n\
              {e}Validation Error\n\nCaused by:\n  In Queue::write_buffer, label = 'Private Place'\n    Buffer is invalid\n (repeated 154 times in the last 10 s)\n\
              {e}Validation Error\n\nCaused by:\n  In CommandEncoder::finish\n    Encoder is invalid\n\n\
-             [2026-11-04T10:00:01.000Z INFO  aurora_viewer] still here\n"
+             [2026-11-04T10:00:01.000Z INFO  block_viewer] still here\n"
         );
         // a record that says "repeated 154 times" stands for 154 (#2311, x155)
         let expected = Some("out-of-memory (x1), Queue::write_buffer (x155), CommandEncoder::finish (x1)");
@@ -2042,7 +2042,7 @@ mod tests {
         let e = WGPU_ERROR;
         let named = format!(
             "{e}Out of Memory\n\nCaused by:\n  In Device::create_bind_group, label = 'Private Place'\n    Not enough memory left.\n\
-             [2026-11-04T10:00:01.000Z INFO  aurora_viewer] still here\n"
+             [2026-11-04T10:00:01.000Z INFO  block_viewer] still here\n"
         );
         assert_eq!(
             gpu_errors_in(&named, &named).as_deref(),
@@ -2094,7 +2094,7 @@ mod tests {
             ),
             // anything logged elsewhere could carry the marker
             (
-                "[t INFO  aurora_viewer::chat] wgpu error: Out of Memory\n  In Queue::submit\n".to_owned(),
+                "[t INFO  block_viewer::chat] wgpu error: Out of Memory\n  In Queue::submit\n".to_owned(),
                 None,
             ),
             ("  In Queue::submit\n".to_owned(), None),

@@ -1,5 +1,5 @@
 //! Demo of the pose stand (toolbar `pose_stand`), without a grid:
-//! `AURORA_DEMO_POSE_STAND=<mode>` puts the Pose stand button at the end of
+//! `BLOCK_DEMO_POSE_STAND=<mode>` puts the Pose stand button at the end of
 //! the bottom toolbar (for this run only) and opens the stand at frame 600.
 //! The demo simulator answers the stand's AgentAnimation as the grid does:
 //! our avatar plays the pose asked for, over the stand.
@@ -34,7 +34,7 @@ pub const T_POSE: Uuid = POSES[4].id;
 pub fn mode() -> Option<&'static str> {
     static MODE: OnceLock<Option<String>> = OnceLock::new();
     MODE.get_or_init(|| {
-        let mode = std::env::var("AURORA_DEMO_POSE_STAND").ok()?;
+        let mode = std::env::var("BLOCK_DEMO_POSE_STAND").ok()?;
         match mode.trim() {
             "" | "0" => None,
             "1" => Some("open".into()),

@@ -1375,7 +1375,7 @@ mod outgoing_offers {
     }
 
     fn cache(inv: &Inventory) -> CachedInventory {
-        let path = std::env::temp_dir().join(format!("aurora-offer-{}.bin", Uuid::new_v4()));
+        let path = std::env::temp_dir().join(format!("block-offer-{}.bin", Uuid::new_v4()));
         inv.save_cache(&path);
         let cached = read_cache(&path).expect("synthetic inventory snapshot");
         std::fs::remove_file(path).expect("remove synthetic snapshot");
@@ -1597,7 +1597,7 @@ mod outgoing_offers {
     #[test]
     fn a_pending_logout_write_does_not_restore_the_previous_inventory_snapshot() {
         use std::time::Duration;
-        let dir = std::env::temp_dir().join(format!("aurora-offer-pending-{}", Uuid::new_v4()));
+        let dir = std::env::temp_dir().join(format!("block-offer-pending-{}", Uuid::new_v4()));
         let path = crate::cache::path(&dir, "inventory", &id(2), "inv");
         let other_path = crate::cache::path(&dir, "inventory", &id(3), "inv");
         let mut inventory = fixture();
@@ -1666,7 +1666,7 @@ mod outgoing_offers {
         let version = old.folders[&parent].info.version;
         let row = llsd_map! { "id" => parent, "version" => version };
         let snapshot = llsd_map! { "version" => 3, "folders" => Llsd::Array(vec![row]), "items" => Llsd::Array(vec![]) };
-        let path = std::env::temp_dir().join(format!("aurora-offer-v3-{}.bin", Uuid::new_v4()));
+        let path = std::env::temp_dir().join(format!("block-offer-v3-{}.bin", Uuid::new_v4()));
         crate::cache::write(&path, &block_llsd::to_binary(&snapshot)).expect("synthetic v3 snapshot");
         let skeleton = || {
             let mut inv = fixture();

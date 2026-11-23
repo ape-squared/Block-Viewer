@@ -940,7 +940,7 @@ mod tests {
             handle: block_net::origin_to_handle(1012 * 256, 998 * 256),
             role: shown,
             shown,
-            name: "Aurora".into(),
+            name: "Block".into(),
             sim_access: 13,
             flags: u64::from(flags),
             owner: Uuid::from_u128(1),

@@ -12,7 +12,7 @@
 //! indra/newview/llaudiosourcevo.cpp). A triggered sound keeps a zero
 //! velocity (LLAudioSource, indra/llaudio/llaudioengine.cpp).
 //!
-//! Aurora computes the ratio here, once a frame per playing sound, and the
+//! Block computes the ratio here, once a frame per playing sound, and the
 //! mixer plays the clip at that rate (`AudioEngine::world_rate`).
 
 use glam::Vec3;
@@ -59,7 +59,7 @@ impl Doppler {
 /// (c - v_source), each velocity taken along the line between them,
 /// positive toward the other one, and scaled by `factor` (FMOD's Doppler
 /// scale). Kept within [`block_audio::MIN_RATE`]..[`block_audio::MAX_RATE`]
-/// (Aurora's own bound: a velocity glitch, an object warped across the
+/// (Block's own bound: a velocity glitch, an object warped across the
 /// region, never sends a sound out of hearing). 1 when off, when the two
 /// stand at the same place, or on a value that is not a number.
 pub fn ratio(listener: Vec3, listener_velocity: Vec3, source: Vec3, source_velocity: Vec3, factor: f32) -> f32 {

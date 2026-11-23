@@ -1,6 +1,6 @@
 //! Conversations open at logout, kept per account following
 //! FSFloaterIMContainer::saveOpenIMs / restoreOpenIMs (fsfloaterimcontainer.cpp,
-//! originally LGPL 2.1). Aurora also restores group chats (#1683), using
+//! originally LGPL 2.1). Block also restores group chats (#1683), using
 //! their membership names and ordinary group-session start protocol.
 //! Conferences cannot be rejoined by their old session id and are excluded.
 //! The list is always written; the setting decides whether it is reopened.
@@ -16,7 +16,7 @@ pub const FILE: &str = "open_ims.xml";
 pub enum Conversation {
     Resident(Uuid),
     Group(Uuid),
-    /// Older Aurora files also put group ids in other_participant_id.
+    /// Older Block files also put group ids in other_participant_id.
     Legacy(Uuid),
 }
 
@@ -193,7 +193,7 @@ mod tests {
 
     #[test]
     fn the_list_comes_back_in_its_order_without_bad_entries() {
-        let dir = std::env::temp_dir().join(format!("aurora-open-ims-{}", Uuid::new_v4()));
+        let dir = std::env::temp_dir().join(format!("block-open-ims-{}", Uuid::new_v4()));
         let path = dir.join(FILE);
         assert!(load(&path).is_empty(), "no file yet");
         let (a, b) = (Uuid::from_u128(2), Uuid::from_u128(1));
@@ -223,7 +223,7 @@ mod tests {
     fn open_ims_save_distinguishes_groups_and_excludes_conferences() {
         let mut w = world();
         let (resident, group, conference, pending) = (Uuid::from_u128(1), Uuid::from_u128(2), Uuid::from_u128(3), Uuid::from_u128(4));
-        let dir = std::env::temp_dir().join(format!("aurora-open-ims-{}", Uuid::new_v4()));
+        let dir = std::env::temp_dir().join(format!("block-open-ims-{}", Uuid::new_v4()));
         let path = dir.join(FILE);
         w.open_ims_path = Some(path.clone());
         w.social.session_mut(resident);

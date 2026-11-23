@@ -1,4 +1,4 @@
-//! Asset decoders for the Aurora viewer.
+//! Asset decoders for the Block viewer.
 //!
 //! Ports of the Second Life / Firestorm viewer asset formats (originally LGPL 2.1):
 //! - [`j2k`] - JPEG2000 textures (`llimage/llimagej2c.cpp`, `llimagej2coj/llimagej2coj.cpp`)

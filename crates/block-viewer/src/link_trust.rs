@@ -5,7 +5,7 @@
 //!
 //! The trusted domains start from Firestorm's (LLUrlEntrySecondlifeURL and
 //! LLUrlEntryFirestormURL, indra/llui/llurlentry.cpp); the red cross is an
-//! Aurora addition. The host is read as a browser reads it (the WHATWG URL
+//! Block addition. The host is read as a browser reads it (the WHATWG URL
 //! rules of the `url` crate): an address of this computer or of the local
 //! network gets the red cross however it is written (`127.1`,
 //! `0x7f.0.0.1`, `2130706433`, `[::ffff:127.0.0.1]`, `localhost`,
@@ -30,7 +30,7 @@ pub enum BrowserEntryPoint {
     ExplicitExternal,
 }
 
-/// Whether a web link leaves Aurora for the system browser, like
+/// Whether a web link leaves Block for the system browser, like
 /// LLWeb::useExternalBrowser (indra/newview/llweb.cpp, originally LGPL 2.1).
 /// The toolbar's Web browser button is not routed here: toggleWebBrowser
 /// (llviewermenu.cpp) always opens the built-in window.
@@ -50,7 +50,7 @@ pub fn should_use_system_browser(url: &str, behavior: crate::settings::BrowserBe
 /// The hosts of LLWeb::useExternalBrowser's "built-in for Second Life links"
 /// choice, their subdomains included. The Legacy Viewer's pattern
 /// (`\b(lindenlab.com|…)$`) also takes `my-secondlife.com`; only a dot before
-/// the domain counts here, so a look-alike host leaves Aurora.
+/// the domain counts here, so a look-alike host leaves Block.
 const SECOND_LIFE_HOSTS: &[&str] = &[
     "lindenlab.com",
     "secondlife.com",
@@ -60,7 +60,7 @@ const SECOND_LIFE_HOSTS: &[&str] = &[
 ];
 
 /// Whether `url` is a page of the Second Life sites. An address with no host
-/// the parser can read is not one, so it leaves Aurora, as in the Legacy
+/// the parser can read is not one, so it leaves Block, as in the Legacy
 /// Viewer (an empty host matches no pattern).
 pub fn second_life_host(url: &str) -> bool {
     let Some(host) = reqwest::Url::parse(url.trim())
@@ -200,7 +200,7 @@ const LOCAL_SUFFIXES: &[&str] = &[
 
 /// Names a fake site borrows to look official (compared without dots and
 /// dashes, so "second-life-login.example" is caught).
-const IMPERSONATED: &[&str] = &["secondlife", "lindenlab", "firestorm", "auroraviewer", "tiliainc"];
+const IMPERSONATED: &[&str] = &["secondlife", "lindenlab", "firestorm", "blockviewer", "tiliainc"];
 
 /// Verdict on a web link.
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -321,7 +321,7 @@ fn in_list<'a>(host: &str, list: impl IntoIterator<Item = &'a str>) -> bool {
 }
 
 /// Preferences › Protections › Trusted sites: domains the user trusts too, and
-/// built-in ones they no longer trust (Aurora choice; the Legacy Viewer's
+/// built-in ones they no longer trust (Block choice; the Legacy Viewer's
 /// list is fixed).
 #[derive(Debug, Clone, Default, PartialEq, serde::Serialize, serde::Deserialize)]
 #[serde(default)]

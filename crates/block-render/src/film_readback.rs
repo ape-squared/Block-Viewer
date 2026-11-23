@@ -1,6 +1,6 @@
 //! The Director's film frames, read back without waiting for the GPU.
 //!
-//! Aurora's own (the Legacy Viewer records no film). A photo's capture is
+//! Block's own (the Legacy Viewer records no film). A photo's capture is
 //! waited for: the main thread holds its frame until the pixels are back
 //! (`CAPTURE_WAIT`). A film asks for a frame every 1 / fps second, or every
 //! frame of an offline render: waiting for each would stall the frame loop

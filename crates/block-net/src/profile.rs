@@ -437,7 +437,7 @@ mod tests {
     #[test]
     fn location() {
         let p = glam::DVec3::new(256_000.0 + 128.4, 512.0 + 64.0, 22.6);
-        assert_eq!(location_text(&["", "Plage", "Aurora"], p), "Plage, Aurora  (128, 64, 23)");
+        assert_eq!(location_text(&["", "Plage", "Block"], p), "Plage, Block  (128, 64, 23)");
         assert_eq!(location_text(&["Plage"], glam::DVec3::ZERO), "Plage ");
     }
 
@@ -471,13 +471,13 @@ mod tests {
         );
         let c = ClassifiedInfo {
             id: Uuid::from_u128(1),
-            sim_name: "Aurora".into(),
+            sim_name: "Block".into(),
             pos_global: glam::DVec3::new(256_128.0, 256_128.0, 30.0),
             ..Default::default()
         };
         let body = click_body(ClassifiedClick::Teleport, &c);
         assert_eq!(body["type"].as_str(), "teleport");
-        assert_eq!(body["region_name"].as_str(), "Aurora");
+        assert_eq!(body["region_name"].as_str(), "Block");
         assert!(!body["from_search"].as_bool());
         assert_eq!(body["dest_pos_global"][0].as_f64(), 256_128.0);
     }

@@ -8,7 +8,7 @@ from . import exporter, materials
 LEVELS = (("medium", 50.0), ("low", 25.0), ("lowest", 12.5))
 
 
-class AURORA_PG_lod(bpy.types.PropertyGroup):
+class BLOCK_PG_lod(bpy.types.PropertyGroup):
     mode: EnumProperty(name="LOD source", items=[
         ("FALLBACK", "Existing or automatic", "Use the assigned or named object; generate only when none exists"),
         ("EXISTING", "Existing object", "Require the assigned or named mesh"),
@@ -117,13 +117,13 @@ def prepare(context, request, supported, axes):
     from . import tracking
     uuid.UUID(request["id"])
     source = str(uuid.UUID(request["source"]))
-    entry = next((entry for entry in context.scene.aurora_live.objects if entry.source_id == source), None)
+    entry = next((entry for entry in context.scene.block_live.objects if entry.source_id == source), None)
     if entry is None or not tracking.valid(context.scene, entry.object):
         raise ValueError("The requested source is no longer in this scene's live list")
     initialize(entry)
     high = entry.object
     capture = materials.Capture()
-    forward = context.scene.aurora_live.forward
+    forward = context.scene.block_live.forward
     high_mesh, high_slots = _capture(high, supported, forward, axes, capture)
     high_count = sum(len(face["indices"]) // 3 for face in high_mesh["faces"])
     high_materials = [high.material_slots[index].material if index < len(high.material_slots) else None for index in high_slots]
@@ -174,7 +174,7 @@ def prepare(context, request, supported, axes):
 
 
 def draw(layout, context):
-    prefs = context.scene.aurora_live
+    prefs = context.scene.block_live
     if not 0 <= prefs.object_index < len(prefs.objects):
         return
     entry = prefs.objects[prefs.object_index]
@@ -198,4 +198,4 @@ def draw(layout, context):
     layout.label(text="Sources stay unchanged; inspect each LOD in Block Viewer.", icon="INFO")
 
 
-CLASSES = (AURORA_PG_lod,)
+CLASSES = (BLOCK_PG_lod,)

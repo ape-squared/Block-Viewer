@@ -279,7 +279,7 @@ impl App {
             .accounts
             .get(&self.world.agent_id)
             .map_or((false, Uuid::nil()), |a| (a.enabled, a.selected));
-        // (with Aurora's movement, the walk or the stop of the keys first)
+        // (with Block's movement, the walk or the stop of the keys first)
         let raw = self.world.own_signals();
         let preview = self
             .demo

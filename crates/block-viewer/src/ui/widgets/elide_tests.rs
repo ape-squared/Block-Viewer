@@ -4,7 +4,7 @@
 use super::*;
 
 /// A display name with its username, as the lists show complete names.
-pub(crate) const LONG: &str = "Maximilienne ♪ the Wandering Northern Aurora Wolf (maximilienne.wolfeschlegelsteinhausen)";
+pub(crate) const LONG: &str = "Maximilienne ♪ the Wandering Northern Block Wolf (maximilienne.wolfeschlegelsteinhausen)";
 /// Wide and accented letters.
 pub(crate) const WIDE: &str = "ŴŴŴ ÆØÅ MMMMWWWWMMMM ŒŒŒŒ (wwwmmmwwwmmmwwwmmm)";
 pub(crate) const SHORT: &str = "Nova";

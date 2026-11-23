@@ -328,12 +328,12 @@ impl App {
 }
 
 impl App {
-    /// AURORA_DEMO_PARTICLE_EDITOR=1|fountain|inject, with an object of ours
-    /// selected by AURORA_DEMO_BUILD (`move,object:<local id>`): the editor
+    /// BLOCK_DEMO_PARTICLE_EDITOR=1|fountain|inject, with an object of ours
+    /// selected by BLOCK_DEMO_BUILD (`move,object:<local id>`): the editor
     /// opens on it at frame 700; `fountain` tunes a coloured cone, `inject`
     /// also injects it at frame 760.
     pub(super) fn particle_editor_demo(&mut self) {
-        let Ok(mode) = std::env::var("AURORA_DEMO_PARTICLE_EDITOR") else {
+        let Ok(mode) = std::env::var("BLOCK_DEMO_PARTICLE_EDITOR") else {
             return;
         };
         match self.frame_count {

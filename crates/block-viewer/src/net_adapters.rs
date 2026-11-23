@@ -53,9 +53,9 @@ static DETECTED: OnceLock<Option<String>> = OnceLock::new();
 pub fn detected() -> Option<&'static str> {
     DETECTED
         .get_or_init(|| {
-            // `AURORA_DEMO_NET_ADAPTER=<description>`: this adapter instead
+            // `BLOCK_DEMO_NET_ADAPTER=<description>`: this adapter instead
             // of the computer's, to see the automatic mode limited
-            let names = match std::env::var("AURORA_DEMO_NET_ADAPTER") {
+            let names = match std::env::var("BLOCK_DEMO_NET_ADAPTER") {
                 Ok(name) if !name.trim().is_empty() => vec![name],
                 _ => adapter_descriptions(),
             };

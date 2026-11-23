@@ -1,4 +1,4 @@
-//! The column of conversations of Aurora's workspace (FSFloaterIMContainer's
+//! The column of conversations of Block's workspace (FSFloaterIMContainer's
 //! tabs, laid out as a desktop chat's list): a search field that filters
 //! them and starts new ones, Contacts and the nearby chat pinned on top,
 //! then the private messages, the groups and the conferences, each section
@@ -629,7 +629,7 @@ impl TwoEntries {
 /// The button that collapses and expands the column, in its head: first in
 /// the row of the search field and the "new conversation" button, alone at
 /// the top of the rail, so the list loses no height
-/// (`workspace::ColumnChoice`). An Aurora addition: the Legacy Viewer's
+/// (`workspace::ColumnChoice`). A Block addition: the Legacy Viewer's
 /// window has tabs and no such list. The nearest is the unregistered
 /// LLFloaterIMContainer (indra/newview/llfloaterimcontainer.cpp):
 /// onExpandCollapseButtonClicked, ConversationsListPaneCollapsed.
@@ -1074,7 +1074,7 @@ pub(super) fn paint_picture(ui: &egui::Ui, p: &Palette, icon: &Icon, name: &str,
 /// A resident typing to us (#1233), over the bottom of their picture: the
 /// name plates' three bouncing dots (`nameplate::typing_dot`) on a pill
 /// ringed in `ring`, the surface under the picture, like the status dot it
-/// stands in for (whoever types is online). An Aurora addition, the human's
+/// stands in for (whoever types is online). A Block addition, the human's
 /// choice: the Legacy Viewer says it in the conversation's tab only.
 fn paint_typing(ui: &egui::Ui, p: &Palette, picture: egui::Rect, ring: Color32) {
     let w = picture.width();

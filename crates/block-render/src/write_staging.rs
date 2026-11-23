@@ -26,7 +26,7 @@
 //! frames after) or a frame writes more than [`MAX_STAGED`] bytes, the
 //! frame's writes go through the queue. At most `MAX_SLOTS` buffers of
 //! [`MAX_STAGED`] bytes stay allocated (a busy region: 1 to 16 MB each).
-//! `AURORA_WRITE_STAGING=0` keeps the queue writes, `alt` alternates.
+//! `BLOCK_WRITE_STAGING=0` keeps the queue writes, `alt` alternates.
 
 use crate::writes::{TexelDst, WriteSink};
 use std::sync::atomic::{AtomicBool, Ordering};
@@ -41,7 +41,7 @@ const MIN_SIZE: u64 = 1 << 20;
 /// queue: a staging buffer that large would stay allocated.
 pub const MAX_STAGED: u64 = 32 << 20;
 
-/// `AURORA_WRITE_STAGING`: `0` queue writes as before, `alt` alternates.
+/// `BLOCK_WRITE_STAGING`: `0` queue writes as before, `alt` alternates.
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
 enum Mode {
     On,
@@ -51,7 +51,7 @@ enum Mode {
 
 fn mode() -> Mode {
     static MODE: std::sync::OnceLock<Mode> = std::sync::OnceLock::new();
-    *MODE.get_or_init(|| match std::env::var("AURORA_WRITE_STAGING").as_deref() {
+    *MODE.get_or_init(|| match std::env::var("BLOCK_WRITE_STAGING").as_deref() {
         Ok("0") => Mode::Off,
         Ok("alt") => Mode::Alternate,
         _ => Mode::On,
@@ -61,7 +61,7 @@ fn mode() -> Mode {
 /// The old way this second, with `alt`.
 static OLD_NOW: AtomicBool = AtomicBool::new(false);
 
-/// `AURORA_WRITE_STAGING=alt`: the way of second `n` (true: queue writes,
+/// `BLOCK_WRITE_STAGING=alt`: the way of second `n` (true: queue writes,
 /// one second in three). None without `alt`.
 pub fn alternate(n: u64) -> Option<bool> {
     (mode() == Mode::Alternate).then(|| {

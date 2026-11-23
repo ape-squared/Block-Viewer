@@ -57,7 +57,7 @@ impl App {
         }
     }
 
-    /// AURORA_DEMO_GRID_STATUS: the window opened, or the new incident.
+    /// BLOCK_DEMO_GRID_STATUS: the window opened, or the new incident.
     fn demo_grid_status(&mut self) {
         use crate::demo::grid_status as demo;
         if demo::mode().is_none() {

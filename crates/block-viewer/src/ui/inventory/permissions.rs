@@ -1,8 +1,8 @@
 //! Compact presentation of the owner and next-owner masks, shared by the
 //! inventory and both object-contents windows. The same C/M/T bits drive
 //! Legacy LLItemBridge::getLabelSuffix and LLTaskInvFVBridge::getDisplayName
-//! (indra/newview, originally LGPL 2.1). Aurora also shows granted rights.
-//! Every list draws the letters alike: those of Aurora's inventory rows.
+//! (indra/newview, originally LGPL 2.1). Block also shows granted rights.
+//! Every list draws the letters alike: those of Block's inventory rows.
 
 use crate::theme::Palette;
 use crate::world::inventory::{Inventory, actions};
@@ -10,7 +10,7 @@ use block_net::build::perm;
 use egui::{Color32, FontFamily, FontId, Stroke, TextFormat, text::LayoutJob};
 use uuid::Uuid;
 
-/// The size of the letters, as in Aurora's rights column.
+/// The size of the letters, as in Block's rights column.
 const LETTER_SIZE: f32 = 11.0;
 /// The room between two letters of the inline suffix.
 const LETTER_GAP: f32 = 5.0;
@@ -24,7 +24,7 @@ pub fn letter_ink(p: &Palette, allowed: Option<bool>) -> Color32 {
     }
 }
 
-/// Which rights the rows of Aurora's inventory show (its "CMT" menu): yours
+/// Which rights the rows of Block's inventory show (its "CMT" menu): yours
 /// by default, the next owner's (what a resident you give the item to gets),
 /// both, or none. Kept with the inventory preferences.
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
@@ -48,7 +48,7 @@ impl Rights {
 
 /// The same CMT menu, with state supplied independently by its owning window.
 pub fn rights_button(ui: &mut egui::Ui, p: &Palette, rights: &mut Rights, height: f32) -> egui::Response {
-    super::aurora::rights_button(ui, p, rights, height)
+    super::block::rights_button(ui, p, rights, height)
 }
 
 #[derive(Clone, Copy, Default)]
@@ -104,7 +104,7 @@ impl Permissions {
         job
     }
 
-    /// The letters of `aurora::rights`, as text: semi-bold, grey when
+    /// The letters of `block::rights`, as text: semi-bold, grey when
     /// allowed, dimmed and struck through when refused, the next owner's
     /// after an arrow.
     pub fn append_to(self, job: &mut LayoutJob, p: &Palette, family: &FontFamily) {

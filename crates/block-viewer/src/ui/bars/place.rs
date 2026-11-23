@@ -1,4 +1,4 @@
-//! The place island of the Aurora bars: back, forward, home, favourites,
+//! The place island of the Block bars: back, forward, home, favourites,
 //! then the place (rating, parcel, region and position, the parcel's
 //! rights) and the landmark star. A click on the place opens its menu
 //! (SLURL, destination, rights, About Land, history, home, Places, recent
@@ -781,8 +781,8 @@ mod tests {
     #[test]
     fn a_web_address_in_a_parcel_name_is_a_link() {
         assert_eq!(
-            link_runs("Aurora Plaza - https://example.org"),
-            vec![("Aurora Plaza - ", None), ("https://example.org", Some("https://example.org")),]
+            link_runs("Block Plaza - https://example.org"),
+            vec![("Block Plaza - ", None), ("https://example.org", Some("https://example.org")),]
         );
         assert_eq!(
             link_runs("Shop www.example.org now"),
@@ -844,7 +844,7 @@ mod tests {
     /// (63 bytes), the worst a real parcel can give.
     #[test]
     fn a_cut_link_keeps_a_rect_for_its_visible_part() {
-        let name = "Aurora Plaza - https://example.org/really/really/really/more";
+        let name = "Block Plaza - https://example.org/really/really/really/more";
         assert!(name.len() <= 63, "a parcel name the grid accepts");
         let field = 220.0;
         let ctx = egui::Context::default();
@@ -857,7 +857,7 @@ mod tests {
                     font_id: FontId::proportional(12.0),
                     ..Default::default()
                 };
-                job.append("Aurora Plaza - ", 0.0, format.clone());
+                job.append("Block Plaza - ", 0.0, format.clone());
                 let start = job.text.chars().count();
                 job.append("https://example.org/really/really/really/more", 0.0, format);
                 let end = job.text.chars().count();

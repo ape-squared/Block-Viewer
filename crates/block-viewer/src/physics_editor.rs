@@ -256,7 +256,7 @@ pub struct State {
     /// A new layer to edit once the outfit wears it
     /// (requestEditingWearable).
     edit_when_worn: Option<Uuid>,
-    /// AURORA_DEMO_PHYSICS_EDIT=drag: when the sliders start moving.
+    /// BLOCK_DEMO_PHYSICS_EDIT=drag: when the sliders start moving.
     pub(crate) demo_drag: Option<std::time::Instant>,
     /// Import of an appearance XML into the draft.
     pub xml: crate::shape_editor::xml_import::Import,

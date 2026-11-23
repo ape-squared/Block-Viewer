@@ -1,4 +1,4 @@
-//! AURORA_STILL_CHECK: what changed during each second while the picture
+//! BLOCK_STILL_CHECK: what changed during each second while the picture
 //! should stand still (camera locked on an object, nothing touched). One log
 //! line per second: the camera, our avatar, the objects whose faces were
 //! rebuilt (and why), and the placed objects whose model matrix changed.
@@ -120,9 +120,9 @@ pub struct StillCheck {
 }
 
 impl StillCheck {
-    /// The check, when AURORA_STILL_CHECK asks for it.
+    /// The check, when BLOCK_STILL_CHECK asks for it.
     pub fn from_env() -> Option<StillCheck> {
-        std::env::var_os("AURORA_STILL_CHECK")
+        std::env::var_os("BLOCK_STILL_CHECK")
             .filter(|v| v != "0")
             .map(|_| StillCheck::start())
     }

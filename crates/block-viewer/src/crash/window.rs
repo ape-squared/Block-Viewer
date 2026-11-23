@@ -122,10 +122,10 @@ impl Sending {
         let mut sent = super::read_limited(&dir.join("sent.txt"), 32)
             .ok()
             .and_then(|n| n.trim().parse().ok());
-        // `AURORA_DEMO_CRASH_SEND=ask|always|never[,connected][,preview][,authorize][,sent][,fail]`:
+        // `BLOCK_DEMO_CRASH_SEND=ask|always|never[,connected][,preview][,authorize][,sent][,fail]`:
         // the demo's simulated GitHub (docs/TESTING.md).
         if record.demo
-            && let Ok(options) = std::env::var("AURORA_DEMO_CRASH_SEND")
+            && let Ok(options) = std::env::var("BLOCK_DEMO_CRASH_SEND")
         {
             for option in options.split(',') {
                 match option {
@@ -564,14 +564,14 @@ impl Recovery {
         self.frames += 1;
         if self.record.demo
             && self.frames == 3
-            && let Some(path) = std::env::var_os("AURORA_CRASH_CAPTURE")
+            && let Some(path) = std::env::var_os("BLOCK_CRASH_CAPTURE")
         {
             let rgba: Vec<_> = buffer
                 .iter()
                 .flat_map(|p| [(*p >> 16) as u8, (*p >> 8) as u8, *p as u8, 255])
                 .collect();
             image::save_buffer(path, &rgba, size.width, size.height, image::ColorType::Rgba8)?;
-            if std::env::var_os("AURORA_CRASH_CAPTURE_EXIT").is_some() {
+            if std::env::var_os("BLOCK_CRASH_CAPTURE_EXIT").is_some() {
                 event_loop.exit();
             }
         }
@@ -636,7 +636,7 @@ impl ApplicationHandler for Recovery {
                     self.open_preview();
                 }
                 // Bug report form (disabled, see main.rs):
-                // if self.record.demo && std::env::var_os("AURORA_DEMO_BUG_REPORT").is_some() {
+                // if self.record.demo && std::env::var_os("BLOCK_DEMO_BUG_REPORT").is_some() {
                 //     self.open_report();
                 // }
             }
@@ -717,7 +717,7 @@ mod tests {
 
     #[test]
     fn the_testers_words_lead_the_issue_without_imitating_its_markers() {
-        let report = "<!-- aurora-crash v1 -->\n| Field | Value |";
+        let report = "<!-- block-crash v1 -->\n| Field | Value |";
         let body = issue_body(report, "I opened the map <!-- crash-signature: x -->", true);
         assert!(body.starts_with(
             "### What happened\n\nI opened the map &lt;!-- crash-signature: x -->\n\nGPU drivers up to date (tester): yes\n\n"
@@ -736,7 +736,7 @@ mod tests {
 
     #[test]
     fn a_report_already_sent_is_not_offered_again() {
-        let dir = std::env::temp_dir().join(format!("aurora-crash-window-test-{}", uuid::Uuid::new_v4()));
+        let dir = std::env::temp_dir().join(format!("block-crash-window-test-{}", uuid::Uuid::new_v4()));
         std::fs::create_dir(&dir).unwrap();
         let record: super::super::Record = serde_json::from_str(&format!(
             r##"{{"schema":1,"pid":1,"process_started":0,"started_unix":0,"version":"0.8.0","profile":"release","language":"en","font":"Inter","font_scale":1,"theme":{},"log_path":"x.log","demo":false,"crash_reports":"Always"}}"##,

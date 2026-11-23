@@ -109,7 +109,7 @@ impl App {
         }
     }
 
-    /// AURORA_DEMO_POSE_STAND (`demo_pose_stand.rs`).
+    /// BLOCK_DEMO_POSE_STAND (`demo_pose_stand.rs`).
     fn demo_pose_stand(&mut self) {
         use crate::demo::pose_stand::{self as demo, Step};
         let Some(mode) = demo::mode() else { return };

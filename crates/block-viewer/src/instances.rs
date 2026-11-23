@@ -1,4 +1,4 @@
-//! Other Aurora viewers running on this PC, and what they hold of the card.
+//! Other Block viewers running on this PC, and what they hold of the card.
 //!
 //! The driver's memory budget (block_render::vram) already falls when a
 //! second viewer takes video memory, but only once it has taken it: two
@@ -506,7 +506,7 @@ mod tests {
 
     #[test]
     fn two_viewers_see_each_other_through_their_folder() {
-        let root = std::env::temp_dir().join(format!("aurora-instances-test-{}", uuid::Uuid::new_v4()));
+        let root = std::env::temp_dir().join(format!("block-instances-test-{}", uuid::Uuid::new_v4()));
         std::fs::create_dir_all(&root).expect("test folder");
         let file = |pid: u32| root.join(format!("{pid}.{EXTENSION}"));
         let own = |usage: u64, active| Own {

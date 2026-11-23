@@ -1,5 +1,5 @@
 //! Region / Estate in the offline demo
-//! (`AURORA_DEMO_REGION=overview[:owner|:manager|:resident][:preview][:compact]`): the window
+//! (`BLOCK_DEMO_REGION=overview[:owner|:manager|:resident][:preview][:compact]`): the window
 //! opens on the demo region, and the "simulator" answers its requests with
 //! the mockup's figures. The role says who the avatar is to the estate:
 //! its owner (the default), one of its managers (RegionHandshake
@@ -64,7 +64,7 @@ pub enum Role {
     Resident,
 }
 
-/// What AURORA_DEMO_REGION asks for.
+/// What BLOCK_DEMO_REGION asks for.
 #[derive(Debug, Clone, PartialEq)]
 pub struct Scenario {
     pub page: Page,
@@ -81,7 +81,7 @@ pub struct Scenario {
     pub estate_wide: Option<EstateWideDialog>,
     /// The classic window (the Legacy Viewer's tabs).
     pub classic: bool,
-    /// The region is an Aurora-Sim one: DispatchOpenRegionSettings and
+    /// The region is a Block-Sim one: DispatchOpenRegionSettings and
     /// OpenRegionInfo ("Region settings").
     pub open_settings: bool,
 }
@@ -269,7 +269,7 @@ fn parse(v: &str) -> Scenario {
 }
 
 pub fn scenario() -> Option<Scenario> {
-    std::env::var("AURORA_DEMO_REGION").ok().map(|v| parse(&v))
+    std::env::var("BLOCK_DEMO_REGION").ok().map(|v| parse(&v))
 }
 
 pub fn terrain_ids() -> Option<[Uuid; 4]> {
@@ -326,7 +326,7 @@ pub fn open_settings_caps() -> Vec<(String, String)> {
     }
 }
 
-/// `open-settings`: the OpenRegionInfo an Aurora-Sim region sends on
+/// `open-settings`: the OpenRegionInfo a Block-Sim region sends on
 /// arrival, a few values away from the defaults.
 pub fn open_settings_event(handle: block_net::RegionHandle) -> Option<NetEvent> {
     open_settings().then(|| NetEvent::OpenRegionSettings {
@@ -373,7 +373,7 @@ const QUINN: Uuid = Uuid::from_u128(0x6E6E_0000_0000_0000_0000_0000_0000_0010);
 /// but no join / subdivide, parcels with their own environment.
 pub fn region_details() -> RegionDetails {
     RegionDetails {
-        name: block_i18n::tr!("common-aurora-demo").into(),
+        name: block_i18n::tr!("common-block-demo").into(),
         estate_id: ESTATE_ID,
         parent_estate_id: 1,
         flags: u64::from(rf::BLOCK_TERRAFORM | rf::RESTRICT_PUSHOBJECT | rf::ALLOW_VOICE) | ef::ALLOW_ENVIRONMENT_OVERRIDE,
@@ -564,7 +564,7 @@ pub fn experience_name(id: Uuid) -> Option<&'static str> {
 }
 
 /// What the experience picker also finds: the region's allowed ones (the
-/// trusted one is About Land's "Aurora experience"), and a grid-wide one
+/// trusted one is About Land's "Block experience"), and a grid-wide one
 /// to block.
 pub fn found_experiences() -> Vec<FoundExperience> {
     [(XP_HUNT, 0), (XP_TELEPORTERS, 0), (XP_GRID_GAME, XP_PROPERTY_GRID)]
@@ -662,7 +662,7 @@ pub fn covenant_text(asset: Uuid) -> Option<&'static str> {
     })
 }
 
-/// AURORA_DEMO_REGION: two notecards in the inventory, for the covenant.
+/// BLOCK_DEMO_REGION: two notecards in the inventory, for the covenant.
 pub fn seed_notecards(inv: &mut Inventory, agent: Uuid) {
     if inv.items.contains_key(&Uuid::from_u128(NOTECARDS[0].0)) {
         return;
@@ -827,7 +827,7 @@ fn top_objects(report: u32, flags: u32, filter: &str) -> TopObjects {
                 131_072.0,
                 2,
             ),
-            row(3, 0.231, "Greeter", "aurora.demo", [132.0, 126.0, 33.0], "Plaza", 65_536.0, 0),
+            row(3, 0.231, "Greeter", "block.demo", [132.0, 126.0, 33.0], "Plaza", 65_536.0, 0),
             row(4, 0.104, "Door", "lune.example", [110.0, 140.0, 22.5], "Market", 16_384.0, 0),
             row(
                 5,
@@ -889,7 +889,7 @@ fn now_stamp() -> String {
 
 fn estate_info() -> EstateInfo {
     EstateInfo {
-        name: block_i18n::tr!("common-aurora-demo").into(),
+        name: block_i18n::tr!("common-block-demo").into(),
         owner: estate_owner(),
         id: ESTATE_ID,
         flags: with_sent(|s| s.1),
@@ -1014,7 +1014,7 @@ pub fn reply(c: &EstateCommand) -> Vec<NetEvent> {
         EstateCommand::Restart { seconds, .. } if *seconds < 0 => vec![NetEvent::RegionRestartCancelled],
         EstateCommand::Restart { seconds, .. } => vec![NetEvent::RegionRestart(block_net::region_restart::Notice {
             seconds: *seconds,
-            region: Some(block_i18n::tr!("common-aurora-demo").into()),
+            region: Some(block_i18n::tr!("common-block-demo").into()),
             opensim: false,
         })],
         EstateCommand::SetRestartSchedule { handle, days, seconds } => {

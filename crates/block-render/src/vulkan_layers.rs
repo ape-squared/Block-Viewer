@@ -7,16 +7,16 @@
 //! cause of the crashes and lost images that testers meet with overlays:
 //! issue #901, a crash one second after start in `wgpu::Instance::new`,
 //! with Overwolf's overlay layer (`OWClient`) calling into a capture hook
-//! (`graphics-hook64`) before Aurora had drawn anything; RivaTuner's layer
+//! (`graphics-hook64`) before Block had drawn anything; RivaTuner's layer
 //! crashing wgpu's device teardown elsewhere. Each layer is disabled
 //! through the variable its manifest declares (`disable_environment`),
 //! which every loader version honours, unlike `VK_LOADER_LAYERS_DISABLE`
 //! (loader 1.3.234 and later). Two groups:
 //!
 //! - [`CRASHING`]: layers known to crash the viewer, always kept out;
-//! - [`OVERLAYS`]: the other overlays' layers, kept out unless Preferences
-//!   › Graphics › Overlays allows them (an FPS counter, the Steam overlay,
-//!   OBS Studio's game capture).
+//! - [`OVERLAYS`]: the other overlays' layers (an FPS counter, the Steam
+//!   overlay, OBS Studio's game capture). The viewer always keeps them out
+//!   (`disable(false)` in `main`); there is no setting to let them in.
 //!
 //! OBS Studio's game capture layer (`VK_LAYER_OBS_HOOK`, Wallpaper Engine's
 //! copy declares the same variable) joined the overlays after #2443: its
@@ -27,13 +27,13 @@
 //! them hangs the driver reset with the GPU frames well under its time limit
 //! (#2443): modules loaded, in a small sample of crashes, not proof that the
 //! layer was active or caused a loss. OBS's Window Capture needs no layer
-//! and keeps working; a streamer who wants Game Capture allows the overlays.
+//! and keeps working.
 //!
 //! Kept in any case during normal startup: ReShade's layer (installed on
 //! purpose for a program), and the GPU drivers' own layers
 //! (`VK_LAYER_NV_optimus`, `VK_LAYER_NV_present`, AMD's switchable graphics),
 //! which choose the GPU and present. On Windows only, if normal enumeration
-//! returns no adapter, Aurora retries first with AMD's switchable graphics
+//! returns no adapter, Block retries first with AMD's switchable graphics
 //! layer disabled, then lets Dozen back in. Some AMD layer versions
 //! return `VK_INCOMPLETE` during physical-device enumeration; this fallback
 //! preserves the normal layer path unless it prevents the viewer from starting
@@ -45,7 +45,7 @@
 //! manifest variable later, after enumeration fails. They are inherited by
 //! the child processes (media plugins, crash watcher), which use no Vulkan
 //! overlay either.
-//! `AURORA_VULKAN_LAYERS=keep` leaves the environment as it is; a variable
+//! `BLOCK_VULKAN_LAYERS=keep` leaves the environment as it is; a variable
 //! the user already set is left untouched. Overlays that inject a DLL into
 //! the running process instead (Discord) cannot be kept out this way: the
 //! viewer names them in its log (block-viewer's `overlay_hooks.rs`).
@@ -141,7 +141,7 @@ pub const AMD_SWITCHABLE_LAYER: &str = AMD_SWITCHABLE.name;
 /// The `disable_environment` value in AMD's switchable graphics manifest.
 pub const AMD_SWITCHABLE_DISABLE_VARIABLE: &str = AMD_SWITCHABLE.variable;
 
-/// Whether Aurora may temporarily disable AMD's implicit layer for an
+/// Whether Block may temporarily disable AMD's implicit layer for an
 /// adapter-enumeration retry.
 pub fn amd_retry_allowed(keep: Option<&str>, is_set: bool) -> bool {
     !is_set && !keep.is_some_and(|value| value.trim().eq_ignore_ascii_case("keep"))
@@ -153,7 +153,7 @@ pub enum EnumerationRetry {
     DozenIn,
 }
 
-/// Retry AMD's layer first, then let Dozen back in if Aurora disabled it.
+/// Retry AMD's layer first, then let Dozen back in if Block disabled it.
 pub fn retry_plan(adapters_empty: bool, amd_allowed: bool, dozen_was_disabled: bool) -> Vec<EnumerationRetry> {
     if !adapters_empty {
         return Vec::new();
@@ -174,7 +174,7 @@ pub fn retry_plan(adapters_empty: bool, amd_allowed: bool, dozen_was_disabled: b
 pub fn disable_amd_switchable_for_retry(adapters_empty: bool) -> bool {
     #[cfg(windows)]
     {
-        let keep = std::env::var("AURORA_VULKAN_LAYERS").ok();
+        let keep = std::env::var("BLOCK_VULKAN_LAYERS").ok();
         let user_set = std::env::var_os(AMD_SWITCHABLE_DISABLE_VARIABLE).is_some();
         if !adapters_empty || !amd_retry_allowed(keep.as_deref(), user_set) {
             return false;
@@ -192,7 +192,7 @@ pub fn disable_amd_switchable_for_retry(adapters_empty: bool) -> bool {
     }
 }
 
-/// The layers to disable: none with `AURORA_VULKAN_LAYERS=keep` (`keep`),
+/// The layers to disable: none with `BLOCK_VULKAN_LAYERS=keep` (`keep`),
 /// the crashing ones only when overlays are allowed, and none whose
 /// variable is already set (`is_set`).
 pub fn to_disable(keep: Option<&str>, allow_overlays: bool, is_set: impl Fn(&str) -> bool) -> Vec<Layer> {
@@ -272,7 +272,7 @@ pub fn loader_version() -> String {
     "not applicable (Metal)".to_owned()
 }
 
-/// Vulkan loader and Aurora Vulkan override variables set in this process.
+/// Vulkan loader and Block Vulkan override variables set in this process.
 /// Path values redact the home-directory prefix before entering a log.
 pub fn loader_environment() -> Vec<String> {
     const VARIABLES: &[&str] = &[
@@ -294,8 +294,8 @@ pub fn loader_environment() -> Vec<String> {
         "VK_LOADER_DEBUG",
         AMD_SWITCHABLE_DISABLE_VARIABLE,
         "DISABLE_LAYER_NV_OPTIMUS_1",
-        "AURORA_VULKAN_LAYERS",
-        "AURORA_VULKAN_DRIVERS",
+        "BLOCK_VULKAN_LAYERS",
+        "BLOCK_VULKAN_DRIVERS",
     ];
     let mut values: Vec<_> = VARIABLES
         .iter()
@@ -303,7 +303,7 @@ pub fn loader_environment() -> Vec<String> {
         .collect();
     for (name, value) in std::env::vars_os() {
         let Some(name) = name.to_str() else { continue };
-        if !name.starts_with("AURORA_VULKAN_") {
+        if !name.starts_with("BLOCK_VULKAN_") {
             continue;
         }
         let value = value.to_string_lossy();
@@ -421,7 +421,7 @@ pub fn clean_names<'a>(names: impl Iterator<Item = &'a str>) -> Vec<String> {
     out
 }
 
-/// Known layers that are installed and are not excluded by Aurora's
+/// Known layers that are installed and are not excluded by Block's
 /// per-manifest disable variable or the loader's explicit disable filter.
 /// This is eligibility only; it does not imply an instance enabled them.
 pub fn eligible_known_names(installed: &[String], is_disabled: impl Fn(&str) -> bool, loader_filter: Option<&str>) -> Vec<String> {
@@ -451,7 +451,7 @@ fn layer_filter_matches(filter: &str, name: &str) -> bool {
 /// Must be called before any other thread of the process starts (the
 /// first lines of `main`): it changes the environment.
 pub unsafe fn disable(allow_overlays: bool) -> Vec<Layer> {
-    let keep = std::env::var("AURORA_VULKAN_LAYERS").ok();
+    let keep = std::env::var("BLOCK_VULKAN_LAYERS").ok();
     let layers = to_disable(keep.as_deref(), allow_overlays, |v| std::env::var_os(v).is_some());
     for l in &layers {
         // SAFETY: the caller guarantees that no other thread runs yet, so

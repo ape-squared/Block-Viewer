@@ -2,7 +2,7 @@
 // (LLPipeline::renderDoF and deferred/cofF.glsl, LGPL 2.1, Copyright (C)
 // Linden Research, Inc. and the Firestorm project): a thin lens of the
 // camera's focal length and f-number focused at a distance, its blur disk
-// measured in pixels of the image. The blur itself is Aurora's: at half
+// measured in pixels of the image. The blur itself is Block's: at half
 // resolution, the far field and the near field gathered apart (a gather
 // that only takes samples whose own disk reaches the pixel, so a sharp
 // subject never smears into the blurred background), the near field

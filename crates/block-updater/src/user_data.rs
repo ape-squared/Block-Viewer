@@ -2,7 +2,7 @@
 //! data path, so portable installations and profiles may be on different disks.
 //! Selective settings reset follows llappviewer.cpp's startup purge (Firestorm,
 //! originally LGPL 2.1): preserve unrelated profile files. Release thresholds
-//! and recoverable backups are Aurora's explicit publication policy.
+//! and recoverable backups are Block's explicit publication policy.
 
 use crate::{
     Maintenance,
@@ -56,15 +56,15 @@ pub(crate) struct Backup {
 }
 
 fn paths(install: &Path) -> Result<(PathBuf, PathBuf)> {
-    if let Some(root) = std::env::var_os("AURORA_UPDATE_TEST_ROOT") {
+    if let Some(root) = std::env::var_os("BLOCK_UPDATE_TEST_ROOT") {
         let root = PathBuf::from(root).canonicalize()?;
         ensure!(root.join("install") == install, "test data outside isolated installation");
-        let marker: serde_json::Value = serde_json::from_slice(&fs::read(root.join("aurora-update-test.json"))?)?;
+        let marker: serde_json::Value = serde_json::from_slice(&fs::read(root.join("block-update-test.json"))?)?;
         ensure!(marker["schema"].as_u64() == Some(1), "invalid test data marker");
         crate::feed::Source::local(marker["feed"].as_str().context("test feed")?)?;
         return Ok((root.join("cache"), root.join("profile/settings.json")));
     }
-    let dirs = directories::ProjectDirs::from("org", "Aurora", "AuroraViewer").context("user data directories unavailable")?;
+    let dirs = directories::ProjectDirs::from("com", "ape-squared", "BlockViewer").context("user data directories unavailable")?;
     Ok((dirs.cache_dir().into(), dirs.config_dir().join("settings.json")))
 }
 
@@ -250,7 +250,7 @@ fn clear_deferred_at(cache: &Path) -> Result<()> {
         .collect();
     if !old.is_empty() {
         // `remove_dir_all` deletes a link inside, never what it leads to
-        let _ = std::thread::Builder::new().name("aurora-cache-cleared".into()).spawn(move || {
+        let _ = std::thread::Builder::new().name("block-cache-cleared".into()).spawn(move || {
             for dir in old {
                 if let Err(e) = fs::remove_dir_all(&dir) {
                     log::warn!("update: an old cache is left for the next start ({e})");
@@ -273,7 +273,7 @@ mod tests {
     struct Temp(PathBuf);
     impl Temp {
         fn new() -> Self {
-            let path = std::env::temp_dir().join(format!("aurora-data-test-{}", uuid::Uuid::new_v4()));
+            let path = std::env::temp_dir().join(format!("block-data-test-{}", uuid::Uuid::new_v4()));
             fs::create_dir(&path).expect("fixture");
             Self(path)
         }

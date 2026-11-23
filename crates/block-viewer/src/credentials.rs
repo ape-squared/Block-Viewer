@@ -385,7 +385,7 @@ mod tests {
     #[test]
     #[ignore]
     fn store_round_trip() {
-        let (grid, user) = ("test-grid", "aurora-selftest");
+        let (grid, user) = ("test-grid", "block-selftest");
         let h = "$1$00000000000000000000000000000000";
         assert!(store(grid, user, h));
         assert_eq!(load(grid, user).as_deref(), Some(h));

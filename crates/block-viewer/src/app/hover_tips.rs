@@ -39,7 +39,7 @@ impl App {
     /// of a card's button. Nothing while they are off, in mouselook or over
     /// a held photo (`shown` false).
     pub(super) fn draw_hover_tips(&mut self, ctx: &egui::Context, p: &Palette, shown: bool) -> Option<CtxAction> {
-        // AURORA_DEMO_HOVER_TIPS: the scenario's tips, the saved ones kept
+        // BLOCK_DEMO_HOVER_TIPS: the scenario's tips, the saved ones kept
         let (mut settings, legacy) = self
             .demo
             .then(crate::demo::hover_tips::scenario)
@@ -82,7 +82,7 @@ impl App {
                     .iter()
                     .any(|e| matches!(e, egui::Event::Key { pressed: true, .. } | egui::Event::MouseWheel { .. }))
         });
-        // the demo's resting cursor (AURORA_DEMO_HOVER) moves only the
+        // the demo's resting cursor (BLOCK_DEMO_HOVER) moves only the
         // world's, egui has no pointer then
         let ppp = ctx.pixels_per_point();
         let pointer = ctx

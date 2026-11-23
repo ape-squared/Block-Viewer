@@ -82,7 +82,7 @@ impl BugReportUi {
                 self.report.expected.clone(),
                 self.report.actual.clone(),
             ]);
-            match std::env::var("AURORA_DEMO_BUG_REPORT").as_deref() {
+            match std::env::var("BLOCK_DEMO_BUG_REPORT").as_deref() {
                 Ok("details") => {
                     self.tab = 2;
                     self.report.include_excerpt = true;
@@ -111,7 +111,7 @@ impl BugReportUi {
         }
         self.report = report;
         self.session_dir = Some(session_dir.clone());
-        if demo && std::env::var("AURORA_DEMO_BUG_REPORT").as_deref() == Ok("details") {
+        if demo && std::env::var("BLOCK_DEMO_BUG_REPORT").as_deref() == Ok("details") {
             self.tab = 2;
         }
         let (tx, rx) = crossbeam_channel::bounded(1);
@@ -268,7 +268,7 @@ impl BugReportUi {
         if !self.demo || !matches!(frame, 700 | 900) {
             return;
         }
-        match std::env::var("AURORA_DEMO_BUG_REPORT").as_deref() {
+        match std::env::var("BLOCK_DEMO_BUG_REPORT").as_deref() {
             Ok("refresh") => {
                 self.include_ui = frame == 700;
                 self.capture_option_changed(true);

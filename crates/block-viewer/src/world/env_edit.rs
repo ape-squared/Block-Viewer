@@ -535,7 +535,7 @@ impl Rights {
     /// sky and water snapshots, a parcel's or region's day): the settings
     /// flags of that source, None when they are not known. The Legacy
     /// Viewer gives a snapshot every right (loadInventoryItem(null)) and a
-    /// parcel's day its own flags; Aurora follows the source's flags in
+    /// parcel's day its own flags; Block follows the source's flags in
     /// both, and also keeps Save As for a source that allows modifying:
     /// saving without an item uploads new settings, where a no-modify item
     /// only gets a server copy. Settings of unknown rights stay editable

@@ -1,10 +1,10 @@
 //! The physics layer editor in the app: opening, saving, "New physics"
 //! (LLAgentWearables::createWearable with wear_and_edit_cb) and its demo
-//! scenario (AURORA_DEMO_PHYSICS_EDIT, docs/TESTING.md).
+//! scenario (BLOCK_DEMO_PHYSICS_EDIT, docs/TESTING.md).
 use super::*;
 use crate::physics_editor::{KIND, worn_physics};
 
-/// AURORA_DEMO_PHYSICS_EDIT=drag: seconds after the editor opens when the
+/// BLOCK_DEMO_PHYSICS_EDIT=drag: seconds after the editor opens when the
 /// sliders start moving, and how long they take.
 const DEMO_DRAG_START: f32 = 4.0;
 const DEMO_DRAG_SECONDS: f32 = 2.0;
@@ -222,15 +222,15 @@ impl App {
         }
     }
 
-    /// AURORA_DEMO_PHYSICS_EDIT: `1` edits a worn physics layer (the lively
-    /// one of AURORA_DEMO_PHYSICS); `new` runs "New physics" (created, worn,
+    /// BLOCK_DEMO_PHYSICS_EDIT: `1` edits a worn physics layer (the lively
+    /// one of BLOCK_DEMO_PHYSICS); `new` runs "New physics" (created, worn,
     /// edited, nothing moves); `drag`: `new`, then every slider moves to the
     /// lively values as a hand would, a few seconds after the editor opens.
     pub(super) fn demo_physics_editor(&mut self) {
         if !self.demo {
             return;
         }
-        let Ok(mode) = std::env::var("AURORA_DEMO_PHYSICS_EDIT") else {
+        let Ok(mode) = std::env::var("BLOCK_DEMO_PHYSICS_EDIT") else {
             return;
         };
         crate::world::appearance::seed_demo(&mut self.world.inventory, self.world.agent_id);
@@ -278,7 +278,7 @@ impl App {
         });
     }
 
-    /// AURORA_DEMO_PHYSICS_EDIT=drag: the sliders, through the same draft
+    /// BLOCK_DEMO_PHYSICS_EDIT=drag: the sliders, through the same draft
     /// and preview as a mouse drag.
     fn demo_physics_drag(&mut self) {
         let Some(start) = self.physics_ui.demo_drag else {

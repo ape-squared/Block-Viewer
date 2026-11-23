@@ -14,7 +14,7 @@ fn the_file_name_gives_the_language() {
     assert_eq!(user_catalog_code("pt_BR").as_deref(), Some("pt-BR"));
     assert_eq!(user_catalog_code("fil").as_deref(), Some("fil"));
     // "my-test" would be one: Burmese in a script called Test
-    for name in ["", "my-translation", "custom", "und", "d3", "de-!!", "aurora de"] {
+    for name in ["", "my-translation", "custom", "und", "d3", "de-!!", "block de"] {
         assert_eq!(user_catalog_code(name), None, "{name:?}");
     }
 }

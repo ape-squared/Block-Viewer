@@ -49,11 +49,11 @@ const FEATURE_FACE_SELECT_SLOT: usize = 2;
 const XR_RETRIES: u8 = 3;
 #[cfg(any(target_os = "linux", target_os = "windows", target_os = "macos"))]
 const XR_RETRY_DELAY: std::time::Duration = std::time::Duration::from_millis(750);
-/// `AURORA_DEMO_VR_CLOSED`: the frame the VR runtime is taken as closing at.
+/// `BLOCK_DEMO_VR_CLOSED`: the frame the VR runtime is taken as closing at.
 #[cfg(any(target_os = "linux", target_os = "windows", target_os = "macos"))]
 fn demo_vr_closed() -> Option<u64> {
     static AT: std::sync::OnceLock<Option<u64>> = std::sync::OnceLock::new();
-    *AT.get_or_init(|| std::env::var("AURORA_DEMO_VR_CLOSED").ok()?.trim().parse().ok())
+    *AT.get_or_init(|| std::env::var("BLOCK_DEMO_VR_CLOSED").ok()?.trim().parse().ok())
 }
 /// How often the runtime's events are read while no VR session runs: often
 /// enough to let a closing runtime go within its grace of a few seconds
@@ -795,7 +795,7 @@ struct Taa {
     /// whichever one existed when they were made (`remake_taa` follows
     /// every rebuild of the targets).
     motion: Option<wgpu::TextureView>,
-    /// FSR 3.1 in the place of the TAA pass (`AURORA_FSR=1`, fsr.rs), with
+    /// FSR 3.1 in the place of the TAA pass (`BLOCK_FSR=1`, fsr.rs), with
     /// the post bind group reading its image.
     fsr: Option<(crate::fsr::Fsr, wgpu::BindGroup)>,
     parity: usize,
@@ -846,11 +846,11 @@ fn fsr_ratio(aa: AntiAliasing) -> Option<f32> {
     }
 }
 
-/// `AURORA_FSR_BLEND_MOTION=0`: the blended faces give FSR no motion of
+/// `BLOCK_FSR_BLEND_MOTION=0`: the blended faces give FSR no motion of
 /// their own (read once).
 fn fsr_blend_motion() -> bool {
     static ON: std::sync::OnceLock<bool> = std::sync::OnceLock::new();
-    *ON.get_or_init(|| std::env::var("AURORA_FSR_BLEND_MOTION").map_or(true, |v| v.trim() != "0"))
+    *ON.get_or_init(|| std::env::var("BLOCK_FSR_BLEND_MOTION").map_or(true, |v| v.trim() != "0"))
 }
 
 /// The replay of a frame's write journal is logged over this (ms).
@@ -896,11 +896,11 @@ fn inv_view_proj_rot(proj: Mat4, view: Mat4) -> Mat4 {
     (proj.as_dmat4() * rotation).inverse().as_mat4()
 }
 
-/// AURORA_EYE_RELATIVE=0: object vertices transformed in region coordinates,
+/// BLOCK_EYE_RELATIVE=0: object vertices transformed in region coordinates,
 /// as before (comparison).
 fn eye_relative_enabled() -> bool {
     static ENABLED: std::sync::OnceLock<bool> = std::sync::OnceLock::new();
-    *ENABLED.get_or_init(|| std::env::var_os("AURORA_EYE_RELATIVE").is_none_or(|v| v != "0"))
+    *ENABLED.get_or_init(|| std::env::var_os("BLOCK_EYE_RELATIVE").is_none_or(|v| v != "0"))
 }
 
 /// Halton(2,3) jitter sequence in [-0.5, 0.5].
@@ -979,7 +979,7 @@ struct Targets {
     gbuf: Option<wgpu::TextureView>,
     /// SSAO raw and blurred (half resolution).
     ao: Option<(wgpu::TextureView, wgpu::TextureView, u32, u32)>,
-    /// GTAO's targets (gtao.rs), when its method is chosen or `AURORA_AO`
+    /// GTAO's targets (gtao.rs), when its method is chosen or `BLOCK_AO`
     /// keeps both ready.
     gtao: Option<crate::gtao::Targets>,
     /// The frame groups bind GTAO's occlusion rather than the Legacy one.
@@ -997,7 +997,7 @@ struct Targets {
     /// pane of glass.
     solid_depth: Option<(wgpu::Texture, wgpu::TextureView)>,
     /// The contact shadows' mask (contact_shadows.rs), when they are on or
-    /// `AURORA_CONTACT_SHADOWS` keeps it ready.
+    /// `BLOCK_CONTACT_SHADOWS` keeps it ready.
     contact: Option<crate::contact_shadows::Targets>,
     water_refl: Option<ReflTarget>,
     water_air: Option<ReflTarget>,
@@ -1095,7 +1095,7 @@ struct Pipelines {
     particles: wgpu::RenderPipeline,
     water_particles: wgpu::RenderPipeline,
     water_particles_under: wgpu::RenderPipeline,
-    /// Rain prototype (`vs_rain` in env.wgsl, `AURORA_RAIN`).
+    /// Rain prototype (`vs_rain` in env.wgsl, `BLOCK_RAIN`).
     rain: wgpu::RenderPipeline,
     /// Rain prototype's splashes (`vs_rain_splash`).
     rain_splash: wgpu::RenderPipeline,
@@ -1167,7 +1167,7 @@ struct Pipelines {
     /// reads it.
     pre_solid: SidedPipelines,
     pre_solid_normal: SidedPipelines,
-    /// FSR only (`AURORA_FSR=1`): the blended faces covered from
+    /// FSR only (`BLOCK_FSR=1`): the blended faces covered from
     /// `FSR_BLEND_ALPHA`, with their motion, into the occlusion's depth
     /// once the occlusion and the contact shadows have read it.
     fsr_blend_normal: SidedPipelines,
@@ -1254,14 +1254,14 @@ struct GpuTimer {
     last_effects: Option<[f32; 4]>,
     /// Last times of the weather (ms), in [`GPU_WEATHER_PARTS`] order.
     last_weather: Option<[f32; 4]>,
-    /// AURORA_MSAA_PREPASS=alt: the variant each readback slot's frame was
+    /// BLOCK_MSAA_PREPASS=alt: the variant each readback slot's frame was
     /// drawn with, and the frames measured since the variant last changed.
     slot_prepass: [std::cell::Cell<bool>; 3],
     /// The stochastic transparency's pass times summed over `st_n` frames,
-    /// logged every 120 (with `AURORA_PROFILE=1`).
+    /// logged every 120 (with `BLOCK_PROFILE=1`).
     st_sum: [f32; 4],
     st_n: u32,
-    /// The last frame's stochastic pass times (`AURORA_PROFILE_FRAMES`).
+    /// The last frame's stochastic pass times (`BLOCK_PROFILE_FRAMES`).
     last_st: Option<[f32; 4]>,
     /// Whether each readback slot's frame drew the stochastic transparency:
     /// its marks are written every frame (empty spans when it did not run),
@@ -1270,7 +1270,7 @@ struct GpuTimer {
     compare: PrepassCompare,
 }
 
-/// AURORA_MSAA_PREPASS=alt: GPU times of the frames drawn with one variant,
+/// BLOCK_MSAA_PREPASS=alt: GPU times of the frames drawn with one variant,
 /// from one switch to the next.
 #[derive(Default)]
 struct PrepassCompare {
@@ -1624,16 +1624,16 @@ impl GpuTimer {
     }
 }
 
-/// AURORA_PROFILE_FRAMES: one `render profile` / `gpu profile` log line per
-/// frame (~2 lines and 2 file writes per frame). AURORA_PROFILE alone keeps
+/// BLOCK_PROFILE_FRAMES: one `render profile` / `gpu profile` log line per
+/// frame (~2 lines and 2 file writes per frame). BLOCK_PROFILE alone keeps
 /// to the viewer's once-a-second summary, which reads the same values from
 /// `RenderStats`. Read once: the per-frame variable lookup is not free.
 fn profile_frames() -> bool {
     static ON: std::sync::OnceLock<bool> = std::sync::OnceLock::new();
-    *ON.get_or_init(|| std::env::var_os("AURORA_PROFILE_FRAMES").is_some())
+    *ON.get_or_init(|| std::env::var_os("BLOCK_PROFILE_FRAMES").is_some())
 }
 
-/// AURORA_MSAA_PREPASS: what the scene pass starts from with MSAA.
+/// BLOCK_MSAA_PREPASS: what the scene pass starts from with MSAA.
 #[derive(Clone, Copy, PartialEq)]
 enum MsaaPrepass {
     /// The prepass of the multisampled depth (default).
@@ -1649,14 +1649,14 @@ enum MsaaPrepass {
 
 fn msaa_prepass() -> MsaaPrepass {
     static MODE: std::sync::OnceLock<MsaaPrepass> = std::sync::OnceLock::new();
-    *MODE.get_or_init(|| match std::env::var("AURORA_MSAA_PREPASS").as_deref().map(str::trim) {
+    *MODE.get_or_init(|| match std::env::var("BLOCK_MSAA_PREPASS").as_deref().map(str::trim) {
         Ok("0") => MsaaPrepass::Off,
         Ok("alt") => MsaaPrepass::Alternate,
         _ => MsaaPrepass::On,
     })
 }
 
-/// AURORA_PBR_OCCLUSION: whether a PBR face's reflection and ambient take
+/// BLOCK_PBR_OCCLUSION: whether a PBR face's reflection and ambient take
 /// the occlusion of its material (the red of the packed map, as pbrIbl).
 #[derive(Clone, Copy, PartialEq, Debug)]
 enum PbrOcclusion {
@@ -1678,7 +1678,7 @@ impl PbrOcclusion {
 
     fn from_env() -> PbrOcclusion {
         static MODE: std::sync::OnceLock<PbrOcclusion> = std::sync::OnceLock::new();
-        *MODE.get_or_init(|| PbrOcclusion::parse(std::env::var("AURORA_PBR_OCCLUSION").ok().as_deref()))
+        *MODE.get_or_init(|| PbrOcclusion::parse(std::env::var("BLOCK_PBR_OCCLUSION").ok().as_deref()))
     }
 
     /// Whether the frame drawn `secs` whole seconds after the start applies it.
@@ -1691,7 +1691,7 @@ impl PbrOcclusion {
     }
 }
 
-/// AURORA_SPECULAR_AA: the geometric specular anti-aliasing of the objects
+/// BLOCK_SPECULAR_AA: the geometric specular anti-aliasing of the objects
 /// (common.wgsl `specular_aa_roughness`), forced on or off for a launch.
 #[derive(Clone, Copy, PartialEq, Debug)]
 enum SpecularAa {
@@ -1715,7 +1715,7 @@ impl SpecularAa {
 
     fn from_env() -> SpecularAa {
         static MODE: std::sync::OnceLock<SpecularAa> = std::sync::OnceLock::new();
-        *MODE.get_or_init(|| SpecularAa::parse(std::env::var("AURORA_SPECULAR_AA").ok().as_deref()))
+        *MODE.get_or_init(|| SpecularAa::parse(std::env::var("BLOCK_SPECULAR_AA").ok().as_deref()))
     }
 
     /// Whether the frame drawn `secs` whole seconds after the start applies
@@ -1743,7 +1743,7 @@ fn pbr_occlusion_now() -> bool {
 }
 
 /// Whether this frame takes GTAO's indirect light, the setting being `on`
-/// (AURORA_SSIL).
+/// (BLOCK_SSIL).
 fn gtao_indirect_now(on: bool) -> bool {
     static START: std::sync::OnceLock<Instant> = std::sync::OnceLock::new();
     let secs = START.get_or_init(Instant::now).elapsed().as_secs();
@@ -1751,7 +1751,7 @@ fn gtao_indirect_now(on: bool) -> bool {
 }
 
 /// Whether this frame takes the specular occlusion of GTAO's bent normal
-/// (with GTAO shown; AURORA_GTAO_SPECULAR).
+/// (with GTAO shown; BLOCK_GTAO_SPECULAR).
 fn gtao_specular_now() -> bool {
     static START: std::sync::OnceLock<Instant> = std::sync::OnceLock::new();
     let secs = START.get_or_init(Instant::now).elapsed().as_secs();
@@ -1759,14 +1759,14 @@ fn gtao_specular_now() -> bool {
 }
 
 /// Whether GTAO accumulates over the frames this frame
-/// (AURORA_GTAO_TEMPORAL).
+/// (BLOCK_GTAO_TEMPORAL).
 fn gtao_temporal_now() -> bool {
     static START: std::sync::OnceLock<Instant> = std::sync::OnceLock::new();
     let secs = START.get_or_init(Instant::now).elapsed().as_secs();
     crate::gtao::Temporal::from_env().applied(secs)
 }
 
-/// Whether GTAO reads the mesh normals this frame (AURORA_GTAO_NORMALS).
+/// Whether GTAO reads the mesh normals this frame (BLOCK_GTAO_NORMALS).
 fn gtao_mesh_normals_now() -> bool {
     static START: std::sync::OnceLock<Instant> = std::sync::OnceLock::new();
     let secs = START.get_or_init(Instant::now).elapsed().as_secs();
@@ -1774,7 +1774,7 @@ fn gtao_mesh_normals_now() -> bool {
 }
 
 /// Whether TAA reprojects with the motion vectors in the frame drawn `secs`
-/// whole seconds into the session, for `AURORA_TAA_MOTION`: `0` the camera
+/// whole seconds into the session, for `BLOCK_TAA_MOTION`: `0` the camera
 /// alone through the depth (as before the motion vectors), `alt` one second
 /// each, anything else on.
 fn taa_motion_applied(v: Option<&str>, secs: u64) -> bool {
@@ -1789,17 +1789,17 @@ fn taa_motion_now() -> bool {
     static START: std::sync::OnceLock<Instant> = std::sync::OnceLock::new();
     static MODE: std::sync::OnceLock<Option<String>> = std::sync::OnceLock::new();
     let secs = START.get_or_init(Instant::now).elapsed().as_secs();
-    taa_motion_applied(MODE.get_or_init(|| std::env::var("AURORA_TAA_MOTION").ok()).as_deref(), secs)
+    taa_motion_applied(MODE.get_or_init(|| std::env::var("BLOCK_TAA_MOTION").ok()).as_deref(), secs)
 }
 
-/// AURORA_PROFILE: the summary also wants the time each step waited.
+/// BLOCK_PROFILE: the summary also wants the time each step waited.
 fn profile() -> bool {
     static ON: std::sync::OnceLock<bool> = std::sync::OnceLock::new();
-    *ON.get_or_init(|| std::env::var_os("AURORA_PROFILE").is_some())
+    *ON.get_or_init(|| std::env::var_os("BLOCK_PROFILE").is_some())
 }
 
 /// Ends of the steps of a frame ([`RENDER_PHASES`]), in order: the time,
-/// and with AURORA_PROFILE what the thread had run by then
+/// and with BLOCK_PROFILE what the thread had run by then
 /// (`thread_cpu::cycles`, a system call per mark).
 struct Marks {
     cpu: bool,
@@ -1888,7 +1888,7 @@ impl FrameTarget {
 }
 
 /// The passes of a frame and all they own. Lives on the render thread, or
-/// in the `Renderer` itself with AURORA_RENDER_THREAD=0.
+/// in the `Renderer` itself with BLOCK_RENDER_THREAD=0.
 /// What the stochastic transparency is made from the first frame it is on
 /// (`Backend::ensure_st`).
 struct StInit {
@@ -2014,17 +2014,17 @@ pub(crate) struct Backend {
     clouds: Option<crate::clouds::Clouds>,
     /// This frame draws the volumetric clouds over the sky.
     clouds_now: bool,
-    /// This frame draws the contact shadows (`AURORA_CONTACT_SHADOWS=alt`
+    /// This frame draws the contact shadows (`BLOCK_CONTACT_SHADOWS=alt`
     /// switches them each second).
     contact_now: bool,
     /// This frame's GTAO reads the mesh normals the depth prepass draws
-    /// (`AURORA_GTAO_NORMALS=alt` switches them each second).
+    /// (`BLOCK_GTAO_NORMALS=alt` switches them each second).
     gtao_normals_now: bool,
     /// This frame's depth prepass writes each pixel's motion (`motion_view`):
     /// GTAO reads the mesh normals beside it, or TAA reprojects with it.
     motion_now: bool,
     /// This frame draws the blended faces opaque to the eye into the
-    /// occlusion's depth (`AURORA_BLEND_AO`).
+    /// occlusion's depth (`BLOCK_BLEND_AO`).
     blend_ao_depth: bool,
     bloom: crate::bloom::Bloom,
     /// The automatic exposure of skies that are not classic (exposure.rs).
@@ -2084,7 +2084,7 @@ pub(crate) struct Backend {
     /// The photo's look, made the first time one is on.
     looks: Option<crate::looks::Looks>,
     rlva_spheres: Option<crate::rlva::Spheres>,
-    /// The motion vectors' view (AURORA_DEBUG_MOTION).
+    /// The motion vectors' view (BLOCK_DEBUG_MOTION).
     motion_debug: Option<crate::motion_debug::MotionDebug>,
     rlva_overlays: Option<crate::rlva::overlay::Overlays>,
     rlva_resolution_divisor: u32,
@@ -2098,7 +2098,7 @@ pub(crate) struct Backend {
     /// GPU-driven draw lists: the compute culling of the scene's face and
     /// object tables, and its bins (gpu_cull.rs).
     cull: GpuCull,
-    /// The device can draw the GPU lists (and AURORA_CPU_CULL is not set).
+    /// The device can draw the GPU lists (and BLOCK_CPU_CULL is not set).
     gpu_cull: bool,
     /// Depth under the cursor (hover without waiting, clicks).
     depth_pick: crate::pick::DepthPick,
@@ -2833,7 +2833,7 @@ impl RainWet {
             self.soak *= (-dt / RAIN_DRY_SECS).exp();
         }
         let snow = snow.clamp(0.0, 1.0);
-        // (AURORA_SNOW_LYING reaches it as `RainLook::snow_lying`, the floor
+        // (BLOCK_SNOW_LYING reaches it as `RainLook::snow_lying`, the floor
         // set before this step: the app reads it, and drops it with "Snow
         // settles" off)
         if snow > 0.0 {
@@ -2941,12 +2941,12 @@ fn rain_share(quality: u32) -> f32 {
     }
 }
 
-/// Rain prototype: `AURORA_RAIN_DEBUG=1`, the wet pass showing the wetness
+/// Rain prototype: `BLOCK_RAIN_DEBUG=1`, the wet pass showing the wetness
 /// memory; `=snow`, why the snow lies or not (env.wgsl `snow_debug_color`).
 fn rain_constants() -> &'static [(&'static str, f64)] {
     static CONSTANTS: std::sync::OnceLock<[(&'static str, f64); 1]> = std::sync::OnceLock::new();
     CONSTANTS.get_or_init(|| {
-        let debug = match std::env::var("AURORA_RAIN_DEBUG").as_deref() {
+        let debug = match std::env::var("BLOCK_RAIN_DEBUG").as_deref() {
             Ok("1") => 1.0,
             Ok("snow") => 2.0,
             _ => 0.0,
@@ -3129,7 +3129,7 @@ pub(crate) fn shadow_bind_group(
 }
 
 /// The outcome of a target made on first use (`refused`: the memory refused
-/// it, or `AURORA_GPU_OOM_FIRST_USE`), said in the log the first time: a
+/// it, or `BLOCK_GPU_OOM_FIRST_USE`), said in the log the first time: a
 /// required one stops the world as the render targets do, an extra is left
 /// out for a while (`gpu_alloc::Refusals`). Returns whether it was refused.
 /// A free function: the frame's encoding holds borrows of other fields.
@@ -3606,7 +3606,7 @@ fn photo_part(photo_tile: Mat4) -> [f32; 4] {
 }
 
 /// Whether this frame uses the receiver bias of before
-/// (`AURORA_SHADOW_BIAS`: 0 the new one, 1 the old one, 2 one second in
+/// (`BLOCK_SHADOW_BIAS`: 0 the new one, 1 the old one, 2 one second in
 /// two each).
 fn shadow_bias_legacy_now(mode: u8, now: std::time::SystemTime) -> bool {
     match mode {
@@ -3620,7 +3620,7 @@ fn shadow_bias_legacy_now(mode: u8, now: std::time::SystemTime) -> bool {
 }
 
 /// How blended faces take the screen-space occlusion and indirect light
-/// (`AURORA_BLEND_AO`, see the frame uniforms).
+/// (`BLOCK_BLEND_AO`, see the frame uniforms).
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 enum BlendAo {
     /// Those opaque to the eye are in the occlusion's depth and take it
@@ -3750,7 +3750,7 @@ impl Backend {
         let lost = init.lost.clone();
         let (made, oom, invalid) = crate::gpu_alloc::scoped_apart(&device, || Self::make(init, egui_later));
         let mut backend = made?;
-        // (AURORA_GPU_OOM_START's own refusal is a usage error, which the
+        // (BLOCK_GPU_OOM_START's own refusal is a usage error, which the
         // scope does not read as memory)
         let oom = oom || crate::gpu_alloc::start_refused();
         backend.seed = Some(seed);
@@ -4224,7 +4224,7 @@ impl Backend {
         });
 
         let dummies = {
-            // AURORA_GPU_OOM_START: refused as by a full card (no usage)
+            // BLOCK_GPU_OOM_START: refused as by a full card (no usage)
             let refuse = crate::gpu_alloc::start_refused();
             let usage = crate::gpu_alloc::start_usage(wgpu::TextureUsages::TEXTURE_BINDING | wgpu::TextureUsages::COPY_DST, refuse);
             let (wt, white) = make_view(&device, "dummy white", 1, 1, wgpu::TextureFormat::Rgba8Unorm, 1, usage);
@@ -6204,7 +6204,7 @@ impl Backend {
         let (w, h) = (width.max(1), height.max(1));
         let att = wgpu::TextureUsages::RENDER_ATTACHMENT;
         let sampled = wgpu::TextureUsages::RENDER_ATTACHMENT | wgpu::TextureUsages::TEXTURE_BINDING;
-        // (AURORA_GPU_OOM_TARGETS)
+        // (BLOCK_GPU_OOM_TARGETS)
         let hdr_usage = if refuse {
             wgpu::TextureUsages::empty()
         } else {
@@ -6296,7 +6296,7 @@ impl Backend {
             let scene = indirect.then_some(&scene_copy);
             gtao.targets(device, ao_depth_view, scene, w, h, ao_override.level(s.ao_method))
         });
-        // the method shown first; `AURORA_AO=alt` switches it each second
+        // the method shown first; `BLOCK_AO=alt` switches it each second
         let gtao_shown = gtao.is_some() && !legacy_ao;
         let contact = crate::contact_shadows::Override::from_env()
             .needed(s.contact_shadows)
@@ -6744,7 +6744,7 @@ impl Backend {
     }
 
     /// Whether this frame draws the contact shadows: with the sun shadows
-    /// and the mask ready, `AURORA_CONTACT_SHADOWS=alt` every other second.
+    /// and the mask ready, `BLOCK_CONTACT_SHADOWS=alt` every other second.
     fn contact_on(&self, shadows: bool) -> bool {
         static START: std::sync::OnceLock<Instant> = std::sync::OnceLock::new();
         let secs = START.get_or_init(Instant::now).elapsed().as_secs();
@@ -6753,7 +6753,7 @@ impl Backend {
             && crate::contact_shadows::Override::from_env().on_now(self.settings.contact_shadows, secs)
     }
 
-    /// The occlusion method of this frame: `AURORA_AO=alt` switches it each
+    /// The occlusion method of this frame: `BLOCK_AO=alt` switches it each
     /// second, which binds the other result to the frame groups.
     fn show_ao_method(&mut self) {
         static START: std::sync::OnceLock<Instant> = std::sync::OnceLock::new();
@@ -8189,15 +8189,15 @@ impl Backend {
         }
 
         #[cfg(any(target_os = "linux", target_os = "windows", target_os = "macos"))]
-        if !self.xr_finished && self.xr_seed.is_some() && packet.index >= 600 && std::env::var_os("AURORA_DEMO_XR_WORLD").is_some() {
+        if !self.xr_finished && self.xr_seed.is_some() && packet.index >= 600 && std::env::var_os("BLOCK_DEMO_XR_WORLD").is_some() {
             self.xr_finished = true;
             self.vr.request(true);
         }
-        // AURORA_DEMO_VR_CLOSED=<frame>: as if the VR runtime announced its
+        // BLOCK_DEMO_VR_CLOSED=<frame>: as if the VR runtime announced its
         // closing at that frame (the viewer's renderer only, not an eye's)
         #[cfg(any(target_os = "linux", target_os = "windows", target_os = "macos"))]
         if !self.external && demo_vr_closed() == Some(packet.index) {
-            log::warn!("AURORA_DEMO_VR_CLOSED: the VR runtime is taken as closing");
+            log::warn!("BLOCK_DEMO_VR_CLOSED: the VR runtime is taken as closing");
             self.vr.lose_runtime();
         }
         // between sessions, the runtime may announce it is closing
@@ -9053,31 +9053,31 @@ impl Backend {
         };
         main.light_sets.mode[3] = probe_walk.shader_mode(f.probe_walk_list, f.debug.check_probe_sets);
         // the view shown instead of the image (debug_view in common.wgsl):
-        // the cascade each pixel reads and its shadow (AURORA_DEBUG_SHADOWS
+        // the cascade each pixel reads and its shadow (BLOCK_DEBUG_SHADOWS
         // too), or the ambient occlusion
         static SHADOW_VIEW: std::sync::OnceLock<bool> = std::sync::OnceLock::new();
-        let cascades_asked = *SHADOW_VIEW.get_or_init(|| std::env::var_os("AURORA_DEBUG_SHADOWS").is_some());
+        let cascades_asked = *SHADOW_VIEW.get_or_init(|| std::env::var_os("BLOCK_DEBUG_SHADOWS").is_some());
         main.light_sets.mode[2] = match (cascades_asked || f.debug.shadows, f.debug.ambient_occlusion) {
             (true, _) => 1,
             (false, true) => 2,
             (false, false) => 0,
         };
-        // AURORA_SHADOW_FILTER, to compare with the shadow lookup of before:
+        // BLOCK_SHADOW_FILTER, to compare with the shadow lookup of before:
         // `gaps` its filter (4 x 4 taps up to two texels apart: lines along
         // the edges), `mapped` its offset along the normal-mapped normal,
         // `before` both (common.wgsl SHADOW_FILTER_GAPS, SHADOW_OFFSET_MAPPED)
         static SHADOW_BEFORE: std::sync::OnceLock<u32> = std::sync::OnceLock::new();
-        main.light_sets.mode[2] |= *SHADOW_BEFORE.get_or_init(|| match std::env::var("AURORA_SHADOW_FILTER").as_deref().map(str::trim) {
+        main.light_sets.mode[2] |= *SHADOW_BEFORE.get_or_init(|| match std::env::var("BLOCK_SHADOW_FILTER").as_deref().map(str::trim) {
             Ok("gaps") => 0x100,
             Ok("mapped") => 0x200,
             Ok("before") => 0x300,
             _ => 0,
         });
-        // AURORA_SHADOW_BIAS=legacy|new|alt: the receiver bias of before (a
+        // BLOCK_SHADOW_BIAS=legacy|new|alt: the receiver bias of before (a
         // fixed 0.0005 of the cascade's depth range), the one in texels, or
         // one second in two each (common.wgsl SHADOW_BIAS_LEGACY)
         static SHADOW_BIAS: std::sync::OnceLock<u8> = std::sync::OnceLock::new();
-        let bias = *SHADOW_BIAS.get_or_init(|| match std::env::var("AURORA_SHADOW_BIAS").as_deref().map(str::trim) {
+        let bias = *SHADOW_BIAS.get_or_init(|| match std::env::var("BLOCK_SHADOW_BIAS").as_deref().map(str::trim) {
             Ok("legacy") => 1,
             Ok("alt") => 2,
             _ => 0,
@@ -9085,7 +9085,7 @@ impl Backend {
         if shadow_bias_legacy_now(bias, std::time::SystemTime::now()) {
             main.light_sets.mode[2] |= 0x2000;
         }
-        // AURORA_BLEND_AO=new|none|old|alt: the blended faces opaque to the
+        // BLOCK_BLEND_AO=new|none|old|alt: the blended faces opaque to the
         // eye drawn into the occlusion's depth and taking the
         // screen-space occlusion and indirect light (#882), the fainter
         // ones where they lie on a solid surface; no blended face taking
@@ -9094,20 +9094,20 @@ impl Backend {
         // BLEND_SCREEN_DEPTH, BLEND_SCREEN_TERMS)
         static BLEND_AO: std::sync::OnceLock<BlendAo> = std::sync::OnceLock::new();
         let blend_ao = BLEND_AO
-            .get_or_init(|| BlendAo::from_env(std::env::var("AURORA_BLEND_AO").ok().as_deref()))
+            .get_or_init(|| BlendAo::from_env(std::env::var("BLOCK_BLEND_AO").ok().as_deref()))
             .now(std::time::SystemTime::now());
         self.blend_ao_depth = blend_ao == BlendAo::New;
-        // AURORA_LEGACY_GLARE=0: the blended legacy faces without the glare
+        // BLOCK_LEGACY_GLARE=0: the blended legacy faces without the glare
         // of #3259 (object.wgsl LEGACY_GLARE_OFF)
         static GLARE_OFF: std::sync::OnceLock<bool> = std::sync::OnceLock::new();
-        if *GLARE_OFF.get_or_init(|| std::env::var("AURORA_LEGACY_GLARE").is_ok_and(|v| v.trim() == "0")) {
+        if *GLARE_OFF.get_or_init(|| std::env::var("BLOCK_LEGACY_GLARE").is_ok_and(|v| v.trim() == "0")) {
             main.light_sets.mode[2] |= 0x100000;
         }
-        // AURORA_LEGACY_NAN=off|check: the legacy highlights and
+        // BLOCK_LEGACY_NAN=off|check: the legacy highlights and
         // environment unguarded against a NaN as in 0.9.8, or magenta where
         // the guard caught one (object.wgsl LEGACY_NAN_OFF, LEGACY_NAN_CHECK)
         static LEGACY_NAN: std::sync::OnceLock<u32> = std::sync::OnceLock::new();
-        main.light_sets.mode[2] |= *LEGACY_NAN.get_or_init(|| match std::env::var("AURORA_LEGACY_NAN").as_deref().map(str::trim) {
+        main.light_sets.mode[2] |= *LEGACY_NAN.get_or_init(|| match std::env::var("BLOCK_LEGACY_NAN").as_deref().map(str::trim) {
             Ok("off") => 0x200000,
             Ok("check") => 0x400000,
             _ => 0,
@@ -9117,12 +9117,12 @@ impl Backend {
             BlendAo::Old => 0x4000,
             _ => 0,
         };
-        // AURORA_TANGENTS=vertex|pixel|derivative|alt (common.wgsl
+        // BLOCK_TANGENTS=vertex|pixel|derivative|alt (common.wgsl
         // TANGENT_VERTEX, TANGENT_UNIT): the vertices' tangents, the
         // per-pixel frame where a face has none; the per-pixel frame alone;
         // the cotangent frame of before; vertex and pixel a second each
         static TANGENTS: std::sync::OnceLock<u8> = std::sync::OnceLock::new();
-        let tangents = *TANGENTS.get_or_init(|| match std::env::var("AURORA_TANGENTS").as_deref().map(str::trim) {
+        let tangents = *TANGENTS.get_or_init(|| match std::env::var("BLOCK_TANGENTS").as_deref().map(str::trim) {
             Ok("derivative") => 0,
             Ok("pixel") => 1,
             Ok("alt") => 3,
@@ -9399,11 +9399,11 @@ impl Backend {
         // glow passes only when some visible face glows (RenderGlow)
         // (a cut-out photo's alpha holds its coverage instead, cutout.rs)
         let glow_on = f.glow && !f.cutout && (!lists.glow.is_empty() || !lists.glow_alpha.is_empty() || lists.blend_glow.contains(&true));
-        // diagnostic: AURORA_GLOW_SKIP bits leave out a family of glowing faces
+        // diagnostic: BLOCK_GLOW_SKIP bits leave out a family of glowing faces
         // (2 opaque, 4 alpha pool, 8 blended)
         static GLOW_SKIP: std::sync::OnceLock<u32> = std::sync::OnceLock::new();
-        let glow_skip = *GLOW_SKIP.get_or_init(|| std::env::var("AURORA_GLOW_SKIP").ok().and_then(|v| v.parse().ok()).unwrap_or(0));
-        // Aurora's bloom: its levels kept while on (or alternated), none
+        let glow_skip = *GLOW_SKIP.get_or_init(|| std::env::var("BLOCK_GLOW_SKIP").ok().and_then(|v| v.parse().ok()).unwrap_or(0));
+        // Block's bloom: its levels kept while on (or alternated), none
         // under a debug view, which replaces the image
         let bloom = {
             static START: std::sync::OnceLock<Instant> = std::sync::OnceLock::new();
@@ -9448,7 +9448,7 @@ impl Backend {
             glow: if glow_on { 1.0 } else { 0.0 },
             debug_glow: {
                 static DEBUG_GLOW: std::sync::OnceLock<bool> = std::sync::OnceLock::new();
-                let env = *DEBUG_GLOW.get_or_init(|| std::env::var_os("AURORA_DEBUG_GLOW").is_some());
+                let env = *DEBUG_GLOW.get_or_init(|| std::env::var_os("BLOCK_DEBUG_GLOW").is_some());
                 if env || f.debug_glow { 1.0 } else { 0.0 }
             },
             // legacyGamma (postDeferredTonemap / CASF LEGACY_GAMMA): same
@@ -9688,11 +9688,11 @@ impl Backend {
         let main_count = cpu.len();
         // GPU draw lists this frame (gpu_cull.rs)
         let gpu = lists.gpu.filter(|_| self.gpu_cull);
-        // GPU occlusion of the main draws (AURORA_NO_OCCLUSION turns it off)
+        // GPU occlusion of the main draws (BLOCK_NO_OCCLUSION turns it off)
         static NO_OCCLUSION: std::sync::OnceLock<bool> = std::sync::OnceLock::new();
         let occl = self.settings.occlusion
             && (main_count > 0 || gpu.is_some())
-            && !*NO_OCCLUSION.get_or_init(|| std::env::var_os("AURORA_NO_OCCLUSION").is_some());
+            && !*NO_OCCLUSION.get_or_init(|| std::env::var_os("BLOCK_NO_OCCLUSION").is_some());
         if occl {
             use crate::occlusion::CullDraw;
             let mut cull = std::mem::take(&mut self.cull_cpu);
@@ -9988,7 +9988,7 @@ impl Backend {
             pass.set_vertex_buffer(1, scene.skin.slice(..));
             pass.set_index_buffer(scene.indices.slice(..), wgpu::IndexFormat::Uint16);
         };
-        // draw commands recorded (AURORA_PROFILE)
+        // draw commands recorded (BLOCK_PROFILE)
         let calls = std::cell::Cell::new(0u32);
         let draw = |pass: &mut wgpu::RenderPass, pipe: &wgpu::RenderPipeline, r: (u64, u32)| {
             if r.1 > 0 {
@@ -12559,7 +12559,7 @@ impl Backend {
             self.egui.render(&mut pass, &jobs, &sd);
         };
         if !self.label_depth.enabled() {
-            // AURORA_LABEL_OCCLUSION=0: over the scene, by egui-wgpu
+            // BLOCK_LABEL_OCCLUSION=0: over the scene, by egui-wgpu
             if labels_end > 0
                 && let Some(ui) = &mut ui
             {

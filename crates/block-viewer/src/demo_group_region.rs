@@ -1,11 +1,11 @@
-//! AURORA_DEMO_GROUP_REGION: the Group titles window and the title worn by
+//! BLOCK_DEMO_GROUP_REGION: the Group titles window and the title worn by
 //! region (`world/region_titles.rs`). The account has three rules: the demo
-//! region wears "Aurora Builders" › Builder (already worn at the start:
+//! region wears "Block Builders" › Builder (already worn at the start:
 //! nothing is sent), "Boreal Lagoon" wears "Northern Wolves" › Officer, and
 //! a third region a group left since ("Boreal Photographers", listed as
 //! ignored). The demo server answers the titles of every group, keeps the
 //! title chosen in each (GroupTitleUpdate) and names the active group with
-//! it (ActivateGroup → AgentDataUpdate), as the grid does. "Aurora
+//! it (ActivateGroup → AgentDataUpdate), as the grid does. "Block
 //! Builders" also offers a role whose title is blank: the Group titles
 //! window lists it as "<Blank title>" and it is not worn at the start.
 //!
@@ -27,20 +27,20 @@ use crate::world::region_titles::{Saved, Target};
 const WOLF_OFFICERS: Uuid = Uuid::from_u128(0x6E41_0000_0000_0000_0000_0000_0000_0002);
 const WOLF_OWNERS: Uuid = Uuid::from_u128(0x6E41_0000_0000_0000_0000_0000_0000_0001);
 const MARKET_OFFICERS: Uuid = Uuid::from_u128(0x6E42_0000_0000_0000_0000_0000_0000_0002);
-/// The role of "Aurora Builders" the demo wears (demo_group.rs).
+/// The role of "Block Builders" the demo wears (demo_group.rs).
 const BUILDERS: Uuid = Uuid::from_u128(0x6E40_0000_0000_0000_0000_0000_0000_0003);
-/// A role of "Aurora Builders" whose title is blank. Listed, not worn.
+/// A role of "Block Builders" whose title is blank. Listed, not worn.
 const BUILDERS_BLANK: Uuid = Uuid::from_u128(0x6E40_0000_0000_0000_0000_0000_0000_0004);
 
 /// The region the scripted teleport reaches, out of reach of the demo
-/// region like AURORA_DEMO_TP_AWAY's.
+/// region like BLOCK_DEMO_TP_AWAY's.
 const LAGOON: u64 = HANDLE + ((100 * 256u64) << 32);
 
 /// The title chosen in each group (GroupTitleUpdate), the demo's own.
 static SELECTED: Mutex<Option<HashMap<Uuid, Uuid>>> = Mutex::new(None);
 
 fn mode() -> Option<String> {
-    std::env::var("AURORA_DEMO_GROUP_REGION").ok()
+    std::env::var("BLOCK_DEMO_GROUP_REGION").ok()
 }
 
 pub fn on() -> bool {
@@ -63,8 +63,8 @@ pub fn rules() -> Saved {
         return saved;
     }
     saved.assign(
-        block_i18n::tr!("common-aurora-demo"),
-        target(DEMO_GROUP1, BUILDERS, block_i18n::tr!("demo-builder"), "Aurora Builders"),
+        block_i18n::tr!("common-block-demo"),
+        target(DEMO_GROUP1, BUILDERS, block_i18n::tr!("demo-builder"), "Block Builders"),
     );
     saved.assign(
         block_i18n::tr!("common-boreal-lagoon"),
@@ -110,14 +110,14 @@ fn titles(group: &Uuid) -> Option<Vec<(String, Uuid)>> {
 
 fn group_name(group: &Uuid) -> String {
     match *group {
-        DEMO_GROUP1 => "Aurora Builders".into(),
+        DEMO_GROUP1 => "Block Builders".into(),
         DEMO_GROUP2 => block_i18n::tr!("demo-northern-wolves").into(),
         DEMO_GROUP3 => block_i18n::tr!("common-plaza-market").into(),
         _ => String::new(),
     }
 }
 
-/// The title worn in `group`: the one chosen, else Builder in "Aurora
+/// The title worn in `group`: the one chosen, else Builder in "Block
 /// Builders" and the members' title elsewhere.
 fn selected(group: &Uuid) -> Uuid {
     let chosen = SELECTED.lock().ok().and_then(|s| s.as_ref().and_then(|m| m.get(group).copied()));

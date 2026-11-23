@@ -140,7 +140,7 @@ pub fn page(cx: &mut Cx) {
 }
 
 /// "Show Friends Only" itself (FSRenderFriendsOnly), the switch of the
-/// toolbar button and the World menu: an Aurora addition, the Legacy Viewer
+/// toolbar button and the World menu: a Block addition, the Legacy Viewer
 /// has only the next row in its Preferences. Kept per account, so it waits
 /// for a login.
 fn friends_only_row(cx: &mut Cx) {

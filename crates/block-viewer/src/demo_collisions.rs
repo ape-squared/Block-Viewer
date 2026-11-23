@@ -1,4 +1,4 @@
-//! AURORA_DEMO_COLLISIONS: three residents bump the agent, push it with a
+//! BLOCK_DEMO_COLLISIONS: three residents bump the agent, push it with a
 //! script and hit it with objects, a few seconds apart, and the "Bumps,
 //! pushes & hits" window opens on the list. `chat` also turns on the
 //! nearby chat lines for this run (Preferences › Interface).
@@ -10,7 +10,7 @@ use std::time::{SystemTime, UNIX_EPOCH};
 use uuid::Uuid;
 
 pub fn mode() -> Option<String> {
-    std::env::var("AURORA_DEMO_COLLISIONS").ok()
+    std::env::var("BLOCK_DEMO_COLLISIONS").ok()
 }
 
 /// The saved options, with the nearby chat lines for `chat`.

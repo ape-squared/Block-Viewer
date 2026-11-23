@@ -10,7 +10,7 @@
 //! LGPL 2.1. The Legacy Viewer's own changes are kept: no preferences in the
 //! last report and no `ui` block.
 //!
-//! The fields the Legacy Viewer reads from OpenGL carry what Aurora really
+//! The fields the Legacy Viewer reads from OpenGL carry what Block really
 //! has: the graphics API it draws with (Vulkan), the adapter's name, vendor
 //! and driver, and 0 where it has no equivalent.
 
@@ -58,7 +58,7 @@ pub struct ViewerSide {
     pub mem_use_kb: f64,
     pub system: SystemInfo,
     /// 3 deferred, 4 with ambient occlusion, 5 with shadows (the Legacy
-    /// Viewer's own scale; Aurora always renders deferred).
+    /// Viewer's own scale; Block always renders deferred).
     pub shader_level: i32,
     /// UseDisplayNames and NameTagShowUsernames.
     pub display_names: bool,
@@ -331,7 +331,7 @@ pub fn body(v: &ViewerSide, n: &NetCounters, sim_fps: f64, unix_now: i64, region
     } else {
         0.0
     };
-    // LLTranslate::asLLSD: Aurora has no chat translation service
+    // LLTranslate::asLLSD: Block has no chat translation service
     let translation = llsd_map! { "on" => false, "chars_seen" => 0 };
     let agent = llsd_map! {
         "start_time" => i32::try_from(unix_now - v.run_time as i64).unwrap_or(0),
@@ -357,7 +357,7 @@ pub fn body(v: &ViewerSide, n: &NetCounters, sim_fps: f64, unix_now: i64, region
     let vendor = g.vendor_short();
     // "%-6s Class %d " + LLGLManager::getRawGLString ("<vendor> <renderer>")
     // GPU_CLASS_UNKNOWN, the Legacy Viewer's own value before its GPU
-    // benchmark has run: Aurora runs none
+    // benchmark has run: Block runs none
     let gpu_class = -1;
     let vendor6: String = vendor.chars().take(6).collect();
     let gpu = format!("{vendor6:<6} Class {gpu_class} {vendor} {}", g.name);
@@ -437,13 +437,13 @@ pub fn body(v: &ViewerSide, n: &NetCounters, sim_fps: f64, unix_now: i64, region
         "failed_resends" => int(n.failed_resends),
         "off_circuit" => int(n.off_circuit),
         "invalid" => int(n.invalid),
-        // Aurora updates itself (the Legacy Viewer: true without Velopack)
+        // Block updates itself (the Legacy Viewer: true without Velopack)
         "missing_updater" => false,
     };
     let mut misc = Map::new();
     if cfg!(windows) {
         // the Vulkan probe of the report (Dave Houlton 05/2020): the
-        // loader's instance version, the one Aurora's Vulkan instance was
+        // loader's instance version, the one Block's Vulkan instance was
         // made with; "0.0" without Vulkan, as the Legacy Viewer's default
         let detected = g.vulkan.is_some();
         misc.insert(
@@ -472,7 +472,7 @@ pub fn body(v: &ViewerSide, n: &NetCounters, sim_fps: f64, unix_now: i64, region
 
     let inventory = llsd_map! {
         "usable" => v.inventory_usable,
-        // (Aurora runs no inventory validation pass: nothing to report)
+        // (Block runs no inventory validation pass: nothing to report)
         "validation_info" => Llsd::new_map(),
     };
 
@@ -494,7 +494,7 @@ pub fn body(v: &ViewerSide, n: &NetCounters, sim_fps: f64, unix_now: i64, region
 
 /// The reports still being posted. The viewer waits for them, for a bounded
 /// time, before it exits: the Legacy Viewer's last report finishes while it
-/// waits for the LogoutReply, while Aurora's process would end under it
+/// waits for the LogoutReply, while Block's process would end under it
 /// (`NetClient::wait_viewer_stats`).
 #[derive(Debug, Default)]
 pub struct PostsInFlight {

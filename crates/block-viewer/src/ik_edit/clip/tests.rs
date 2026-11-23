@@ -3427,9 +3427,9 @@ fn native_values_outside_the_editor_ranges_import_as_editable_ones() {
 
 #[test]
 fn saving_replaces_the_file_whole_and_leaves_no_temporary_file() {
-    let folder = std::env::temp_dir().join(format!("aurora-anim-save-{}", Uuid::new_v4()));
+    let folder = std::env::temp_dir().join(format!("block-anim-save-{}", Uuid::new_v4()));
     std::fs::create_dir_all(&folder).unwrap();
-    let path = folder.join("wave.auroraanim");
+    let path = folder.join("wave.blockanim");
     std::fs::write(&path, b"previous project").unwrap();
 
     files::write_atomic(&path, b"new project").unwrap();
@@ -3439,10 +3439,10 @@ fn saving_replaces_the_file_whole_and_leaves_no_temporary_file() {
         .unwrap()
         .map(|entry| entry.unwrap().file_name())
         .collect();
-    assert_eq!(names, vec![std::ffi::OsString::from("wave.auroraanim")]);
+    assert_eq!(names, vec![std::ffi::OsString::from("wave.blockanim")]);
 
     // a save that cannot land leaves the previous file as it was
-    let missing = folder.join("missing").join("wave.auroraanim");
+    let missing = folder.join("missing").join("wave.blockanim");
     assert!(files::write_atomic(&missing, b"lost").is_err());
     assert_eq!(std::fs::read(&path).unwrap(), b"new project");
     std::fs::remove_dir_all(&folder).unwrap();

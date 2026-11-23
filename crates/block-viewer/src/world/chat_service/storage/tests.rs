@@ -15,7 +15,7 @@ impl Drop for Dir {
 }
 
 fn temp() -> Dir {
-    Dir(std::env::temp_dir().join(format!("aurora-chat-service-{}", Uuid::new_v4())))
+    Dir(std::env::temp_dir().join(format!("block-chat-service-{}", Uuid::new_v4())))
 }
 
 fn key(n: u64) -> TimeUuidKey {

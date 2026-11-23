@@ -256,7 +256,7 @@ mod tests {
     use super::*;
 
     fn temp_dir() -> PathBuf {
-        std::env::temp_dir().join(format!("aurora-objc-{}", Uuid::new_v4()))
+        std::env::temp_dir().join(format!("block-objc-{}", Uuid::new_v4()))
     }
 
     /// A cache file of one object for this region.

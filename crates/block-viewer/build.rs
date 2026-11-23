@@ -20,7 +20,7 @@ fn main() {
         .and_then(|i| i.checked_sub(1))
         .map(|i| parts[i].clone())
         .unwrap_or_default();
-    println!("cargo:rustc-env=AURORA_BUILD_PROFILE={dir}");
+    println!("cargo:rustc-env=BLOCK_BUILD_PROFILE={dir}");
     dictionaries();
 
     if std::env::var("CARGO_CFG_TARGET_OS").as_deref() == Ok("windows") {

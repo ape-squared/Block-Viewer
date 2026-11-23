@@ -10,15 +10,15 @@ pub enum MaterialShape {
     #[default]
     Sphere,
     Cube,
-    Aurora,
+    Block,
 }
 impl MaterialShape {
-    pub const ALL: [Self; 3] = [Self::Sphere, Self::Cube, Self::Aurora];
+    pub const ALL: [Self; 3] = [Self::Sphere, Self::Cube, Self::Block];
     pub fn label(self) -> &'static str {
         match self {
             Self::Sphere => block_i18n::tr!("import-preview-sphere"),
             Self::Cube => block_i18n::tr!("import-preview-cube"),
-            Self::Aurora => block_i18n::tr!("import-preview-aurora"),
+            Self::Block => block_i18n::tr!("import-preview-block"),
         }
     }
 }
@@ -52,7 +52,7 @@ pub(crate) fn material_geometry(shape: MaterialShape) -> Result<Vec<(Arc<[Vertex
                 })
                 .collect())
         }
-        MaterialShape::Aurora => {
+        MaterialShape::Block => {
             // Cache the bundled geometry once on a worker. Its embedded branding
             // material is replaced by the material being inspected on every face.
             static GEOMETRY: std::sync::OnceLock<Result<Vec<(Arc<[Vertex]>, Arc<[u32]>)>, String>> = std::sync::OnceLock::new();
@@ -60,7 +60,7 @@ pub(crate) fn material_geometry(shape: MaterialShape) -> Result<Vec<(Arc<[Vertex
                 .get_or_init(|| {
                     let result = (|| {
                         let doc =
-                            block_assets::import_gltf::Document::parse(include_bytes!("../../../../assets/models/aurora-3d.glb"), |_| {
+                            block_assets::import_gltf::Document::parse(include_bytes!("../../../../assets/models/block-3d.glb"), |_| {
                                 Err(block_assets::AssetError::invalid("bundled model must be self-contained"))
                             })?;
                         let skeleton = block_assets::Skeleton::parse(include_bytes!("../../assets/character/avatar_skeleton.xml"))?;
@@ -1002,8 +1002,8 @@ mod tests {
     }
 
     #[test]
-    fn bundled_aurora_model_resource_names_are_consistent_and_self_contained() {
-        let doc = block_assets::import_gltf::Document::parse(include_bytes!("../../../../assets/models/aurora-3d.glb"), |_| {
+    fn bundled_block_model_resource_names_are_consistent_and_self_contained() {
+        let doc = block_assets::import_gltf::Document::parse(include_bytes!("../../../../assets/models/block-3d.glb"), |_| {
             panic!("bundled model must not load external resources")
         })
         .expect("bundled GLB");
@@ -1020,7 +1020,7 @@ mod tests {
             "samplers",
         ] {
             for resource in doc.json[key].as_array().expect("resource array") {
-                assert!(resource["name"].as_str().expect("name").starts_with("Aurora 3D"));
+                assert!(resource["name"].as_str().expect("name").starts_with("Block 3D"));
                 assert!(resource.get("uri").is_none());
             }
         }

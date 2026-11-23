@@ -97,7 +97,7 @@ fn main(
     textureStore(out_tex, p, vec4<f32>(sum / weight, 0.0, 0.0, 0.0));
 }
 
-// The mask as it is (`AURORA_CONTACT_SOFT=0`).
+// The mask as it is (`BLOCK_CONTACT_SOFT=0`).
 @compute @workgroup_size(8, 8, 1)
 fn copy(@builtin(global_invocation_id) id: vec3<u32>) {
     let p = vec2<i32>(id.xy);

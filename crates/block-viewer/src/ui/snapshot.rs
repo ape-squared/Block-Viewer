@@ -18,7 +18,7 @@ use egui::{Color32, Pos2, Rect, RichText, Sense, Stroke, Vec2};
 use std::path::{Path, PathBuf};
 
 pub const WINDOW: &str = "photo";
-/// Firestorm's floater (Preferences › Aurora › Photo window): its own
+/// Firestorm's floater (Preferences › Block › Photo window): its own
 /// place and size, kept apart from the panel's.
 pub const CLASSIC_WINDOW: &str = "photo_classic";
 /// Side of the classic window's preview (floater_snapshot.xml's
@@ -590,7 +590,7 @@ impl SnapshotUi {
     }
 
     /// Firestorm's snapshot floater (floater_snapshot.xml, Preferences ›
-    /// Aurora › Photo window › Classic window): a floating window, the
+    /// Block › Photo window › Classic window): a floating window, the
     /// controls in a column on the left (Refresh first, then the options and
     /// the destination), the preview on the right; the same controls.
     #[allow(clippy::too_many_arguments)]

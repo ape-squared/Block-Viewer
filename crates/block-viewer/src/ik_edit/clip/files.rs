@@ -142,7 +142,7 @@ pub(super) fn start(
             }
             if matches!(action, Action::LoadProject) {
                 let Some(path) = rfd::FileDialog::new()
-                    .add_filter(block_i18n::tr!("anim-edit-project-filter"), &["auroraanim"])
+                    .add_filter(block_i18n::tr!("anim-edit-project-filter"), &["blockanim"])
                     .pick_file()
                 else {
                     return Ok(Output::Cancelled);
@@ -156,8 +156,8 @@ pub(super) fn start(
             let document = document.ok_or_else(|| block_i18n::text("anim-edit-invalid").to_owned())?;
             if matches!(action, Action::SaveProject) {
                 let Some(path) = rfd::FileDialog::new()
-                    .add_filter(block_i18n::tr!("anim-edit-project-filter"), &["auroraanim"])
-                    .set_file_name(format!("{}.auroraanim", basename(&document.name)))
+                    .add_filter(block_i18n::tr!("anim-edit-project-filter"), &["blockanim"])
+                    .set_file_name(format!("{}.blockanim", basename(&document.name)))
                     .save_file()
                 else {
                     return Ok(Output::Cancelled);

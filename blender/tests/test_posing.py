@@ -6,33 +6,33 @@ import bpy
 from mathutils import Matrix, Vector
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-import aurora_live
-from aurora_live import exporter, posing, rigging, skinning, starter
+import block_live
+from block_live import exporter, posing, rigging, skinning, starter
 
 
 class PoseControlTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        aurora_live.register()
+        block_live.register()
 
     @classmethod
     def tearDownClass(cls):
-        aurora_live.unregister()
+        block_live.unregister()
 
     def setUp(self):
         if bpy.context.object and bpy.context.object.mode != "OBJECT":
             bpy.ops.object.mode_set(mode="OBJECT")
         bpy.ops.object.select_all(action="SELECT")
         bpy.ops.object.delete(use_global=False)
-        bpy.context.scene.aurora_live.objects.clear()
+        bpy.context.scene.block_live.objects.clear()
         bpy.context.scene.unit_settings.scale_length = 1
-        bpy.context.scene.aurora_live.forward = "NATIVE"
+        bpy.context.scene.block_live.forward = "NATIVE"
         self.rig, self.shirt = starter.create(bpy.context)
-        bpy.context.scene.aurora_live.rig = self.rig
+        bpy.context.scene.block_live.rig = self.rig
 
     def matrices(self):
         bpy.context.view_layer.update()
-        return {b.name: b.matrix.copy() for b in self.rig.pose.bones if not b.bone.get("aurora_control")}
+        return {b.name: b.matrix.copy() for b in self.rig.pose.bones if not b.bone.get("block_control")}
 
     def assertMatrixNear(self, a, b):
         self.assertLess(max(abs(a[i][j] - b[i][j]) for i in range(4) for j in range(4)), 0.0001)
@@ -46,7 +46,7 @@ class PoseControlTests(unittest.TestCase):
         rest = {b.name: (b.matrix_local.copy(), b.parent.name if b.parent else None, b.use_deform) for b in self.rig.data.bones}
         before = self.matrices()
         snapshot = exporter.snapshot([self.shirt], set(rest), 1)
-        self.assertEqual(bpy.ops.aurora.create_pose_controls(kind="ROOT"), {"FINISHED"})
+        self.assertEqual(bpy.ops.block.create_pose_controls(kind="ROOT"), {"FINISHED"})
         posing.setup_root(bpy.context, self.rig)
         self.assertEqual(len(self.rig.data.bones), 161)
         for name, (matrix, parent, deform) in rest.items():
@@ -196,7 +196,7 @@ class PoseControlTests(unittest.TestCase):
         posing.setup_look(bpy.context, self.rig, "CLASSIC")
         for kind, name, group in (("ROOT", posing.ROOT, "ROOT"), ("COG", posing.COG, "ROOT"), ("CLASSIC", posing.target("CLASSIC"), "LOOK")):
             rigging.show(self.rig, "ALL", False)
-            self.assertEqual(bpy.ops.aurora.select_pose_control(kind=kind), {"FINISHED"})
+            self.assertEqual(bpy.ops.block.select_pose_control(kind=kind), {"FINISHED"})
             self.assertEqual(bpy.context.active_pose_bone.name, name)
             self.assertEqual(self.rig.mode, "POSE")
             self.assertTrue(rigging.part_visible(self.rig, group))
@@ -259,4 +259,4 @@ class PoseControlTests(unittest.TestCase):
 result = unittest.TextTestRunner(verbosity=2).run(unittest.defaultTestLoader.loadTestsFromTestCase(PoseControlTests))
 if not result.wasSuccessful():
     sys.exit(1)
-print("AURORA_BLENDER_POSING_TESTS_OK", flush=True)
+print("BLOCK_BLENDER_POSING_TESTS_OK", flush=True)

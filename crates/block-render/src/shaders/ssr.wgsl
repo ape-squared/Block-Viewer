@@ -53,7 +53,7 @@ fn fs_ssr(in: SsrOut) -> @location(0) vec4<f32> {
     // after the SSR mix (reflectionProbeF.glsl doProbeSample), leaving
     // (1 - w) of SSR; w falls off near the probe's plane (0.74 on the face of
     // a 5 cm panel centred on it), so SSR's copy of the scene behind the
-    // camera still showed through. Aurora drops SSR once the mirror takes a
+    // camera still showed through. Block drops SSR once the mirror takes a
     // quarter of the surface, fading over the box's and the image's edges.
     let mirror_w = mirror_tap(p, r, 1.0 - roughness).a;
     let ssr_w = 1.0 - smoothstep(0.0, 0.25, mirror_w);

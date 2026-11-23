@@ -74,7 +74,7 @@ fn progress_step<'a>(text: &'a str, expected: &str) -> Option<&'a str> {
 
 /// What the helper is doing, for the window the viewer's `main` shows over
 /// the whole switch (`splash/`): between the old window's close and the new
-/// one's first frame nothing of Aurora was on screen for several seconds
+/// one's first frame nothing of Block was on screen for several seconds
 /// (the old process's shutdown, the swap, a cache set aside, the antivirus
 /// scan of the new executable).
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -167,8 +167,8 @@ pub(crate) fn plain_dir(path: &Path) -> Result<()> {
     Ok(())
 }
 
-/// The installation sits directly at the root of a drive (`E:\Aurora
-/// Viewer`, `/aurora`): its parent has no parent, which `validate_install`
+/// The installation sits directly at the root of a drive (`E:\Block
+/// Viewer`, `/block`): its parent has no parent, which `validate_install`
 /// refuses, so the update's folder, backup and lock are never written at a
 /// drive's root.
 pub fn at_drive_root(install: &Path) -> bool {
@@ -761,7 +761,7 @@ pub fn started_by_update() -> bool {
 /// on; the helper only compares it with the last one.
 pub fn report_start(step: impl Fn() -> Option<u64> + Send + 'static) {
     let Some(path) = std::env::var_os(ACK_ENV) else { return };
-    let spawned = std::thread::Builder::new().name("aurora-update-progress".into()).spawn(move || {
+    let spawned = std::thread::Builder::new().name("block-update-progress".into()).spawn(move || {
         let opened = (|| -> Result<(PathBuf, Plan)> {
             let work = PathBuf::from(path);
             let plan: Plan = serde_json::from_slice(&fs::read(work.join("plan.json"))?)?;
@@ -992,7 +992,7 @@ mod tests {
 
     #[test]
     fn only_finished_updates_without_a_backup_are_swept() {
-        let root = std::env::temp_dir().join(format!("aurora-sweep-test-{}", uuid::Uuid::new_v4()));
+        let root = std::env::temp_dir().join(format!("block-sweep-test-{}", uuid::Uuid::new_v4()));
         let install = root.join("Block Viewer");
         fs::create_dir_all(&install).expect("install");
         let work = |marker: &[&str]| {

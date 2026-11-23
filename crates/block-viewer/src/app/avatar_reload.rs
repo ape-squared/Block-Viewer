@@ -116,14 +116,14 @@ impl App {
         self.world.system_message(text);
     }
 
-    /// AURORA_DEMO_RELOAD_AVATAR=other|self: the right-click menu of the
+    /// BLOCK_DEMO_RELOAD_AVATAR=other|self: the right-click menu of the
     /// demo's other avatar (or ours) at frame 700, "Reload avatar" chosen at
     /// 740, then again at 760, too soon (docs/TESTING.md).
     pub(super) fn demo_reload_avatar_steps(&mut self) {
         if !self.demo {
             return;
         }
-        let Ok(mode) = std::env::var("AURORA_DEMO_RELOAD_AVATAR") else {
+        let Ok(mode) = std::env::var("BLOCK_DEMO_RELOAD_AVATAR") else {
             return;
         };
         let own = mode.trim() == "self";

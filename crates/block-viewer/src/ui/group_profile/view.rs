@@ -1,5 +1,5 @@
 //! What the window shows of a group, gathered once a frame, and the head of
-//! the Aurora look, laid out like an avatar's (`widgets::hero`): the banner
+//! the Block look, laid out like an avatar's (`widgets::hero`): the banner
 //! with the insignia, the name, the founder and the counts, the badges, the
 //! actions and the tabs.
 

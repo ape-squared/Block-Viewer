@@ -1,6 +1,6 @@
-//! The files demo scenarios take from a folder: AURORA_DEMO_ARRIVAL's
-//! `<folder>`, AURORA_DEMO_STREAM's `j2k=`, and the interface sounds of
-//! AURORA_DEMO_SOUND. Plain asset files are read as they are in every build.
+//! The files demo scenarios take from a folder: BLOCK_DEMO_ARRIVAL's
+//! `<folder>`, BLOCK_DEMO_STREAM's `j2k=`, and the interface sounds of
+//! BLOCK_DEMO_SOUND. Plain asset files are read as they are in every build.
 //! Files of the disk cache's format (cache.rs, sealed with this
 //! installation's key) are read through `crate::cache` by development
 //! builds only; a build of the published profile (`release`) leaves them
@@ -11,7 +11,7 @@ use std::path::Path;
 
 /// Whether this build reads files of the cache's format for the scenarios.
 pub fn reads_cache_files() -> bool {
-    reads_cache_files_in(env!("AURORA_BUILD_PROFILE"))
+    reads_cache_files_in(env!("BLOCK_BUILD_PROFILE"))
 }
 
 /// Every profile but the published one (`dev`, `ci`, `debugging`).
@@ -93,7 +93,7 @@ mod tests {
 
     #[test]
     fn plain_files_read_in_every_build_cache_files_in_development_ones() {
-        let dir = std::env::temp_dir().join(format!("aurora-demo-source-{}", uuid::Uuid::new_v4()));
+        let dir = std::env::temp_dir().join(format!("block-demo-source-{}", uuid::Uuid::new_v4()));
         std::fs::create_dir_all(&dir).expect("folder");
         let plain = dir.join("plain.j2c");
         std::fs::write(&plain, b"\xff\x4f\xff\x51 a codestream").expect("plain file");

@@ -1,7 +1,7 @@
 //! The L$ balance changing (#2675): a `+100 L$` in green or a `-100 L$` in
 //! red under the balance, right-aligned with it, that waits and flies up
 //! into the number. Several changes stack downwards and leave one at a
-//! time. Aurora's own: the Legacy Viewer only has its toast.
+//! time. Block's own: the Legacy Viewer only has its toast.
 //!
 //! The rows come from the balance itself, whatever moved it: a sale, a
 //! payment, L$ bought, a fee, a refund. A change is kept out of the number

@@ -187,7 +187,7 @@ pub fn chat_color(line: &ChatLine, world: &World) -> Color32 {
 /// line said beyond the say range, whole otherwise. LLViewerChat::getChatColor
 /// (indra/newview/llviewerchat.cpp) gives that factor as the line's alpha,
 /// which FSChatHistory::appendMessage and the console apply to the whole
-/// line, the sender's name included; so does Aurora, in every chat style.
+/// line, the sender's name included; so does Block, in every chat style.
 pub fn beyond_range_alpha(line: &ChatLine) -> f32 {
     line_alpha(line, get().chat_beyond_range)
 }
@@ -196,7 +196,7 @@ fn line_alpha(line: &ChatLine, factor: f32) -> f32 {
     if line.beyond_range { factor.clamp(0.0, 1.0) } else { 1.0 }
 }
 
-/// Text of a script error (ScriptErrorColor), the Aurora red by default:
+/// Text of a script error (ScriptErrorColor), the Block red by default:
 /// the same in every style of the chat (#1263).
 pub fn script_error_color() -> Color32 {
     text(get().chat_errors)
@@ -215,7 +215,7 @@ pub fn sender_color(line: &ChatLine) -> Color32 {
 /// The radar's ranges and names, and the name tags' distance
 /// (FSTagShowDistance, FSTagShowDistanceColors in LLVOAvatar::idleUpdateNameTagText,
 /// indra/newview/llvoavatar.cpp). The Legacy Viewer's tags draw the bands
-/// green, yellow and red (NameTagChatDistanceColor…); Aurora keeps the
+/// green, yellow and red (NameTagChatDistanceColor…); Block keeps the
 /// radar's theme colors for both, so that a distance reads the same
 /// everywhere. Its whisper band has the chat's color there too.
 pub fn range_color(p: &crate::theme::Palette, range: Option<f32>) -> Color32 {

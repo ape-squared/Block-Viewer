@@ -1,4 +1,4 @@
-//! AURORA_DEMO_OBJECT_CHAT=aurora|compact|bubbles|legacy|lines[:on]: the
+//! BLOCK_DEMO_OBJECT_CHAT=aurora|compact|bubbles|legacy|lines[:on]: the
 //! nearby chat at the arrival, residents talking among objects (#475): a
 //! greeter, a tip jar, a door's emote, a vendor's line said to us with a
 //! link, our HUD's owner-say and its script error (#1263; the tip jar's is
@@ -37,13 +37,13 @@ pub struct Scene {
 }
 
 pub fn scene() -> Option<Scene> {
-    parse(&std::env::var("AURORA_DEMO_OBJECT_CHAT").ok()?)
+    parse(&std::env::var("BLOCK_DEMO_OBJECT_CHAT").ok()?)
 }
 
 fn parse(v: &str) -> Option<Scene> {
     let mut flags = v.trim().split(':');
     let style = match flags.next()? {
-        "aurora" | "1" => Some(ChatStyle::Aurora),
+        "block" | "1" => Some(ChatStyle::Block),
         "compact" => Some(ChatStyle::Compact),
         "bubbles" => Some(ChatStyle::Bubbles),
         "legacy" => Some(ChatStyle::Legacy),
@@ -232,19 +232,19 @@ mod tests {
                 spoof: false,
             })
         };
-        assert_eq!(parse("aurora"), scene(Some(ChatStyle::Aurora), false));
-        assert_eq!(parse("1"), scene(Some(ChatStyle::Aurora), false));
+        assert_eq!(parse("block"), scene(Some(ChatStyle::Block), false));
+        assert_eq!(parse("1"), scene(Some(ChatStyle::Block), false));
         assert_eq!(parse("compact:on"), scene(Some(ChatStyle::Compact), true));
         assert_eq!(parse("bubbles:on"), scene(Some(ChatStyle::Bubbles), true));
         assert_eq!(parse("legacy"), scene(Some(ChatStyle::Legacy), false));
         assert_eq!(parse("lines:on"), scene(None, true));
         assert_eq!(parse("nothing"), None);
-        let im = parse("aurora:on:im:imlines").expect("a scene");
+        let im = parse("block:on:im:imlines").expect("a scene");
         assert!(im.on && im.im && im.im_lines);
         assert!(parse("compact:on:inspect").unwrap().inspect);
-        let spoof = parse("aurora:spoof").expect("a scene");
+        let spoof = parse("block:spoof").expect("a scene");
         assert!(spoof.unnamed && spoof.spoof);
-        let unnamed = parse("aurora:unnamed").expect("a scene");
+        let unnamed = parse("block:unnamed").expect("a scene");
         assert!(unnamed.unnamed && !unnamed.spoof);
     }
 }

@@ -1,5 +1,5 @@
 //! LLAppearanceMgr::updateAgentWearables notifications (llappearancemgr.cpp,
-//! originally LGPL 2.1). Aurora's native appearance state is the confirmed
+//! originally LGPL 2.1). Block's native appearance state is the confirmed
 //! COF: report removals before additions, after the initial loaded baseline.
 use super::super::{World, appearance};
 use std::collections::BTreeMap;

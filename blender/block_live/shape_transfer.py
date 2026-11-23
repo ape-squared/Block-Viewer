@@ -104,24 +104,24 @@ def apply(context, payload):
     if context.object and context.object.mode != "OBJECT":
         raise ValueError("Switch to Object Mode to receive the shape")
     existing = next((obj for obj in context.scene.objects if obj.type == "ARMATURE"
-                     and obj.get("aurora_shape_id") == payload["id"]), None)
+                     and obj.get("block_shape_id") == payload["id"]), None)
     if existing:
         return existing
     selected, active = list(context.selected_objects), context.view_layer.objects.active
-    previous_rig = context.scene.aurora_live.rig
+    previous_rig = context.scene.block_live.rig
     rig, _unused = starter.create(context, with_tshirt=False, definitions=definitions,
                                  collection_name="Block Shape · " + payload["name"])
     collection = rig.users_collection[0]
     try:
         rig.name = "Shape · " + payload["name"]
-        rig["aurora_shape_id"] = payload["id"]
-        rig["aurora_shape_parameters"] = json.dumps(payload["params"], sort_keys=True)
-        basis = starter._basis(context, rig["aurora_forward"])
+        rig["block_shape_id"] = payload["id"]
+        rig["block_shape_parameters"] = json.dumps(payload["params"], sort_keys=True)
+        basis = starter._basis(context, rig["block_forward"])
         for definition, joint in zip(definitions, payload["joints"]):
             bone = rig.data.bones[definition["name"]]
             # Canonical metres, independent of Blender roll and scene units.
-            bone["aurora_shape_bind"] = joint["inverse_bind"]
-            bone["aurora_shape_head"] = joint["head"]
+            bone["block_shape_bind"] = joint["inverse_bind"]
+            bone["block_shape_head"] = joint["head"]
         for part in payload["parts"]:
             data = bpy.data.meshes.new("Shape " + part["name"])
             obj = bpy.data.objects.new("Shape " + part["name"], data)
@@ -146,8 +146,8 @@ def apply(context, payload):
             obj.parent = rig
             obj.location = (0, 0, 0)
             obj.modifiers.new("SL Avatar", "ARMATURE").object = rig
-            obj["aurora_shape_reference"] = True
-        context.scene.aurora_live.rig = rig
+            obj["block_shape_reference"] = True
+        context.scene.block_live.rig = rig
         context.view_layer.objects.active = rig
         context.view_layer.update()
         return rig
@@ -158,7 +158,7 @@ def apply(context, payload):
             if data.users == 0:
                 (bpy.data.meshes if isinstance(data, bpy.types.Mesh) else bpy.data.armatures).remove(data)
         bpy.data.collections.remove(collection)
-        context.scene.aurora_live.rig = previous_rig
+        context.scene.block_live.rig = previous_rig
         for obj in selected:
             obj.select_set(True)
         context.view_layer.objects.active = active

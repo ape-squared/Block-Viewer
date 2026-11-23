@@ -315,7 +315,7 @@ impl Editors {
         if save { e.save() } else { None }
     }
 
-    /// AURORA_DEMO_EDITOR_SYNC: the script counts as sent to the external
+    /// BLOCK_DEMO_EDITOR_SYNC: the script counts as sent to the external
     /// editor without launching one (the demo's editor is a socket client).
     pub fn demo_external(&mut self, target: ScriptTarget) {
         if let Some(e) = self.documents.iter_mut().find(|e| e.target == target && e.can_edit) {

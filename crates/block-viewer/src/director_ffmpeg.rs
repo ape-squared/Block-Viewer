@@ -1,6 +1,6 @@
 //! Finding the ffmpeg the Director records with, again without restarting
 //! the viewer, and the ffmpeg pack of the project (`block_updater::
-//! ffmpeg_pack`). Aurora's own: the Legacy Viewer records no film (#3897:
+//! ffmpeg_pack`). Block's own: the Legacy Viewer records no film (#3897:
 //! installed, then no sign of how to go on).
 //!
 //! The viewer's own PATH is the one it was started with: an ffmpeg
@@ -162,11 +162,11 @@ pub fn pack_root() -> PathBuf {
     crate::settings::media_plugins_dir().with_file_name("ffmpeg")
 }
 
-/// `AURORA_DIRECTOR_FFMPEG=pack`: the search ignores the ffmpeg chosen by
+/// `BLOCK_DIRECTOR_FFMPEG=pack`: the search ignores the ffmpeg chosen by
 /// hand and those of the PATH and the usual folders, so that the pack's
 /// download can be tried on a computer that has ffmpeg (docs/TESTING.md).
 pub fn pack_only() -> bool {
-    std::env::var("AURORA_DIRECTOR_FFMPEG").is_ok_and(|value| value.trim() == "pack")
+    std::env::var("BLOCK_DIRECTOR_FFMPEG").is_ok_and(|value| value.trim() == "pack")
 }
 
 /// The pack this viewer can download: `None` for a build whose

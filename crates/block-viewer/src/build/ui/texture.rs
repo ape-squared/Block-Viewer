@@ -1365,7 +1365,7 @@ fn blinn_phong(ui: &mut egui::Ui, p: &Palette, tool: &mut BuildTool, world: &mut
     bp_transforms(ui, p, tool, world, s, env, sel, &legacy, normal, spec, editable);
 }
 
-/// Shared UV commits for the Aurora controls and the Legacy vertical rows.
+/// Shared UV commits for the Block controls and the Legacy vertical rows.
 #[allow(clippy::too_many_arguments)]
 fn bp_transforms(
     ui: &mut egui::Ui,

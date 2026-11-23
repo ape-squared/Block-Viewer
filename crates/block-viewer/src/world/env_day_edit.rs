@@ -414,7 +414,7 @@ impl DayDoc {
 }
 
 /// Frames carry no name of their own in a day (LLSettingsDay::getSettings
-/// clones its frames without SETTING_NAME): Aurora writes nothing there of
+/// clones its frames without SETTING_NAME): Block writes nothing there of
 /// its own either.
 fn without_name(mut v: Llsd) -> Llsd {
     if let Llsd::Map(m) = &mut v {

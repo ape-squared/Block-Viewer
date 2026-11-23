@@ -899,7 +899,7 @@ impl WorldMap {
     /// land, My Land (LLFloaterLandHoldings::buttonCore,
     /// indra/newview/llfloaterlandholdings.cpp) and the inventory landmark.
     /// Visible difference: the Legacy Viewer jumps straight to the place
-    /// (`onOpen("center")`, `centerOnTarget(false)`); Aurora opens on the
+    /// (`onOpen("center")`, `centerOnTarget(false)`); Block opens on the
     /// agent and slides there (`PAN_TAU_CENTER`), which shows where the
     /// place is from here.
     pub fn show_location(&mut self, x: f64, y: f64, z: f32) {
@@ -1827,9 +1827,9 @@ mod tests {
     #[test]
     fn known_regions_are_never_asked() {
         let mut m = WorldMap::default();
-        m.ratings.learn("Aurora Démo", 13);
+        m.ratings.learn("Block Démo", 13);
         m.apply_blocks(vec![yiff()]);
-        assert_eq!(m.ratings.want("aurora démo"), Some(13));
+        assert_eq!(m.ratings.want("block démo"), Some(13));
         assert_eq!(m.ratings.want("Yiff"), Some(21));
         assert_eq!(m.ratings.want(""), None);
         assert!(lookups(&mut m).is_empty());

@@ -4,16 +4,16 @@
 //! soft halo, and the "Linden Lab" tag with the verified rosette. All in
 //! the Linden colour of Preferences › Colors (the colour of their names
 //! when names are coloured by relation, shared with the classic tags), so
-//! that it stays apart from the Aurora team's northern light.
+//! that it stays apart from the Block team's northern light.
 //!
-//! Aurora's own: the Legacy Viewer only colours Linden names.
+//! Block's own: the Legacy Viewer only colours Linden names.
 
-use super::aurora::light;
+use super::borealis::light;
 use crate::theme::Palette;
 use egui::{Color32, Mesh, Pos2, Rect, Vec2};
 use std::f32::consts::{FRAC_PI_4, PI, TAU};
 
-/// Share of a star's light that covers what is behind it (`aurora::light`).
+/// Share of a star's light that covers what is behind it (`borealis::light`).
 const STAR_COVER: f32 = 0.8;
 /// Seconds the shine takes to go once around the border.
 const SHINE_LAP: f32 = 2.6;

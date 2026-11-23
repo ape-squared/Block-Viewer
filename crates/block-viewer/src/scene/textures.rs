@@ -643,7 +643,7 @@ impl Entry {
     }
 }
 
-/// AURORA_TEXTURE_TODO.
+/// BLOCK_TEXTURE_TODO.
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
 enum TodoMode {
     /// `update` visits the textures listed for it.
@@ -657,7 +657,7 @@ enum TodoMode {
 
 fn todo_mode() -> TodoMode {
     static MODE: std::sync::OnceLock<TodoMode> = std::sync::OnceLock::new();
-    *MODE.get_or_init(|| match std::env::var("AURORA_TEXTURE_TODO").as_deref() {
+    *MODE.get_or_init(|| match std::env::var("BLOCK_TEXTURE_TODO").as_deref() {
         Ok("0") => TodoMode::Walk,
         Ok("check") => TodoMode::Check,
         _ => TodoMode::Listed,
@@ -944,7 +944,7 @@ pub struct TextureStats {
     pub reduced: u64,
 }
 
-/// Demo textures without a file to decode (AURORA_DEMO_STREAM under a
+/// Demo textures without a file to decode (BLOCK_DEMO_STREAM under a
 /// forced memory budget): `texels` draws the mip chain of one of them
 /// (`has`) at a discard level, on the background pool, when the streamer
 /// wants it finer than it is, as a decode of downloaded data would. Without
@@ -1090,7 +1090,7 @@ pub struct TextureStreamer {
     /// Loaded, downloading, failing and being read: counted as the
     /// textures change, not by the walk.
     counts: Counts,
-    /// AURORA_TEXTURE_TODO=check: updates since the session began.
+    /// BLOCK_TEXTURE_TODO=check: updates since the session began.
     checks: u32,
     by_fetch_key: HashMap<u64, Uuid>,
     /// Downloads to rank again, or to drop (nothing uses the texture any
@@ -1106,7 +1106,7 @@ pub struct TextureStreamer {
     pub staging: Option<Arc<StagingPool>>,
     /// The decode jobs compress to BC7 the textures that come out of it
     /// unharmed (`block_render::bc7`): the GPU has BC compression and
-    /// AURORA_TEXTURE_BC7 does not turn it off.
+    /// BLOCK_TEXTURE_BC7 does not turn it off.
     pub bc7: bool,
     /// The BC7 chains are kept on the disk and read back instead of
     /// decoding the JPEG 2000 data again (`texture_cache.rs`).
@@ -1216,7 +1216,7 @@ pub struct TextureStreamer {
     pub stats: TextureStats,
     last_maintenance: Instant,
     /// Unused textures are evicted after this long (shortened by the
-    /// AURORA_DEMO_TEXTURES_CHURN test).
+    /// BLOCK_DEMO_TEXTURES_CHURN test).
     pub evict_after: Duration,
     /// Textures whose last reference went away, oldest first, with the
     /// time it did (an entry used again since has another `unused_since`).
@@ -1277,7 +1277,7 @@ pub type PreviewRevision = (usize, Option<u8>, Option<(u32, u32)>, bool);
 
 fn legacy_bump_diagnostics() -> bool {
     static ENABLED: std::sync::LazyLock<bool> =
-        std::sync::LazyLock::new(|| std::env::var("AURORA_DEBUG_LEGACY_BUMP").is_ok_and(|v| v == "1"));
+        std::sync::LazyLock::new(|| std::env::var("BLOCK_DEBUG_LEGACY_BUMP").is_ok_and(|v| v == "1"));
     *ENABLED
 }
 
@@ -1807,7 +1807,7 @@ impl TextureStreamer {
         }
     }
 
-    /// AURORA_TEXTURE_TODO=check: every texture with work must be listed,
+    /// BLOCK_TEXTURE_TODO=check: every texture with work must be listed,
     /// and the counters must be those of a walk of every texture.
     fn verify(&self) {
         let mut walked = Counts::default();
@@ -2925,7 +2925,7 @@ impl TextureStreamer {
                         // That level, or a finer one, is already decoded and waits
                         // for its turn to the GPU (`decoded` only follows once it is
                         // sent): decoding it again each time a decode slot frees up
-                        // was half of the decodes of an arrival (AURORA_DEMO_STREAM
+                        // was half of the decodes of an arrival (BLOCK_DEMO_STREAM
                         // with j2k=, 9000 textures: 9126 of 18129).
                         if !e.needs_sculpt_pixels() && uploads.covers(&id, e.epoch, discard) {
                             break 'decode;
@@ -3329,7 +3329,7 @@ impl TextureStreamer {
         }
     }
 
-    /// AURORA_DEMO_TEXTURES: the stress textures arrive as decoded jobs, a
+    /// BLOCK_DEMO_TEXTURES: the stress textures arrive as decoded jobs, a
     /// low-resolution level first then the full one, so they take the
     /// streaming path of grid textures (placeholder, then upgrades).
     pub fn install_demo_stress(&mut self, renderer: &mut Renderer, textures: impl Iterator<Item = u32>) {
@@ -3339,7 +3339,7 @@ impl TextureStreamer {
         }
     }
 
-    /// AURORA_DEMO_TEXTURES with a full table (AURORA_TEXTURE_SLOTS): the
+    /// BLOCK_DEMO_TEXTURES with a full table (BLOCK_TEXTURE_SLOTS): the
     /// stress textures given a slot again (`give_slots`) have no data to
     /// load from; their texels come again, as a download would bring them.
     pub fn refeed_demo_stress(&mut self, textures: impl Iterator<Item = u32>) {
@@ -3350,7 +3350,7 @@ impl TextureStreamer {
         }
     }
 
-    /// AURORA_DEMO_TEXTURES with AURORA_GPU_OOM: the stress textures whose
+    /// BLOCK_DEMO_TEXTURES with BLOCK_GPU_OOM: the stress textures whose
     /// upload waits for video memory (`memory_waits`) have no data to
     /// decode again, unlike a grid texture; once their wait is over their
     /// texels come again, as a download would bring them.
@@ -3375,7 +3375,7 @@ impl TextureStreamer {
             let mips = crate::demo::stress_texture_mips(i, discard);
             // staged without waiting: this runs on the main thread, which
             // never waits for the pool. While the texture pages are refused
-            // (AURORA_GPU_OOM), the uploads waiting for them hold the whole
+            // (BLOCK_GPU_OOM), the uploads waiting for them hold the whole
             // pool, and a refeed of the set waited 100 ms per texture,
             // minutes without a frame. Not staged, it is written directly.
             let staged = self.staging.as_deref().and_then(|pool| {
@@ -3392,7 +3392,7 @@ impl TextureStreamer {
         }
     }
 
-    /// AURORA_DEMO_STREAM with `j2k=`: the texture is in use, the disk
+    /// BLOCK_DEMO_STREAM with `j2k=`: the texture is in use, the disk
     /// cache was looked up and it has no JPEG 2000 data (nothing there, or
     /// its transcoded chain does not hold the level wanted): on the grid, a
     /// download would start; the scenario brings the file instead.
@@ -3402,7 +3402,7 @@ impl TextureStreamer {
             .is_some_and(|e| e.refs > 0 && e.cache_state == 2 && e.data.is_empty() && !e.decoding)
     }
 
-    /// AURORA_DEMO_SCULPT_MISSING: the asset server has no such texture, as
+    /// BLOCK_DEMO_SCULPT_MISSING: the asset server has no such texture, as
     /// a 404 answers. Returns whether it was not known missing already.
     pub fn demo_missing(&mut self, id: &Uuid) -> bool {
         let Some(e) = self.entries.get_mut(id).filter(|e| !e.gone) else {
@@ -3448,7 +3448,7 @@ impl TextureStreamer {
         }));
     }
 
-    /// AURORA_DEMO_SCULPT_MISSING=late: the texture's file is in the disk
+    /// BLOCK_DEMO_SCULPT_MISSING=late: the texture's file is in the disk
     /// cache now; it is read again, as a retry would find it on the server.
     pub fn demo_reread(&mut self, id: &Uuid) {
         if let Some(e) = self.entries.get_mut(id) {
@@ -3458,7 +3458,7 @@ impl TextureStreamer {
         }
     }
 
-    /// AURORA_DEMO_STREAM: the downloaded data a texture loaded at full
+    /// BLOCK_DEMO_STREAM: the downloaded data a texture loaded at full
     /// resolution holds (the demo textures arrive decoded, without any).
     pub fn demo_attach_data(&mut self, id: &Uuid, data: Vec<u8>) {
         if let Some(e) = self.entries.get_mut(id)
@@ -4024,19 +4024,19 @@ const KEEP_RGBA_FROM: u32 = 128;
 /// driver (LLImageGL), which do; this is a deliberate improvement.
 /// Coverage restoration only raises alpha: lowering it could erase a HUD
 /// panel whose creator chose a higher cutoff than the automatic 0.5.
-/// `AURORA_ALPHA_COVERAGE=0` keeps the plain mips, to compare.
+/// `BLOCK_ALPHA_COVERAGE=0` keeps the plain mips, to compare.
 pub(crate) fn alpha_coverage_on() -> bool {
     static ON: std::sync::OnceLock<bool> = std::sync::OnceLock::new();
-    *ON.get_or_init(|| std::env::var("AURORA_ALPHA_COVERAGE").map_or(true, |v| v.trim() != "0"))
+    *ON.get_or_init(|| std::env::var("BLOCK_ALPHA_COVERAGE").map_or(true, |v| v.trim() != "0"))
 }
 
-/// `AURORA_MIP_FILTER=weighted`: the colour of the mips averaged by the
+/// `BLOCK_MIP_FILTER=weighted`: the colour of the mips averaged by the
 /// alpha, as before (`block_render::build_mips_alpha_weighted`), to compare
 /// with the Legacy Viewer's plain average. Clear the transcoded cache
 /// (`<cache>/tex/*.bc7`) between the two, or it serves the mips of the other.
 fn mips_alpha_weighted() -> bool {
     static ON: std::sync::OnceLock<bool> = std::sync::OnceLock::new();
-    *ON.get_or_init(|| std::env::var("AURORA_MIP_FILTER").is_ok_and(|v| v.trim() == "weighted"))
+    *ON.get_or_init(|| std::env::var("BLOCK_MIP_FILTER").is_ok_and(|v| v.trim() == "weighted"))
 }
 
 /// The mip chain of a decoded texture, with its alpha coverage kept when
@@ -4474,7 +4474,7 @@ mod tests {
     #[test]
     fn wearable_bakes_use_resident_bc7_pixels_without_jpeg_and_upgrade_progressively() {
         let id = Uuid::new_v4();
-        let path = std::env::temp_dir().join(format!("aurora-bake-{id}.bc7"));
+        let path = std::env::temp_dir().join(format!("block-bake-{id}.bc7"));
         let mips = block_render::build_mips(512, 512, [25, 100, 200, 255].repeat(512 * 512), 16);
         let blocks = block_render::bc7::encode_chain(&mips, false).expect("compressible image");
         let meta = texture_cache::Meta {
@@ -6141,7 +6141,7 @@ mod tests {
 
     impl RefreshBench {
         fn new() -> Self {
-            let dir = std::env::temp_dir().join(format!("aurora-refresh-{}", Uuid::new_v4()));
+            let dir = std::env::temp_dir().join(format!("block-refresh-{}", Uuid::new_v4()));
             let rt = tokio::runtime::Builder::new_current_thread().build().expect("runtime");
             let (fetcher, _results) = Fetcher::new(rt.handle(), reqwest::Client::new(), 1, Default::default());
             let (jobs, results) = Jobs::new();
@@ -6306,7 +6306,7 @@ mod legacy_bump_cache_tests {
     #[test]
     fn brightness_and_darkness_can_use_bc7_only_sources() {
         let id = Uuid::new_v4();
-        let path = std::env::temp_dir().join(format!("aurora-review-bump-{id}.bc7"));
+        let path = std::env::temp_dir().join(format!("block-review-bump-{id}.bc7"));
         let mips = build_mips(16, 16, [25, 100, 200, 255].repeat(16 * 16), 16);
         let blocks = block_render::bc7::encode_chain(&mips, false).expect("fixture blocks");
         let meta = texture_cache::Meta {

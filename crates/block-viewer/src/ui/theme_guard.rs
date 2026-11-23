@@ -1,8 +1,8 @@
 //! Guard of the interface rules (AGENTS.md, section 7): the sources of the
 //! interface are read by a test, which fails when a window styles itself
-//! instead of taking the Aurora theme:
+//! instead of taking the Block theme:
 //!
-//! - one of egui's stock widgets that Aurora replaced by a shared one of
+//! - one of egui's stock widgets that Block replaced by a shared one of
 //!   `ui/widgets.rs` (check box, radio button, separator, window…);
 //! - a scroll style of its own (egui's floating bar shows over the
 //!   content), when the theme reserves a strip for every bar;
@@ -171,9 +171,9 @@ const ALLOWED: &[(&str, &str, &str)] = &[
         "debug overlay: lines drawn in the world, not a window",
     ),
     (
-        "ui/aurora_bg.rs",
+        "ui/block_bg.rs",
         COLOR,
-        "brand: the painting of the aurora sky (stars, depths of the navy)",
+        "brand: the painting of the block sky (stars, depths of the navy)",
     ),
     (
         "ui/voice_tag.rs",
@@ -408,7 +408,7 @@ fn windows_take_their_appearance_from_the_theme() {
     }
     assert!(
         violations.is_empty(),
-        "the interface styles itself instead of taking the Aurora theme (AGENTS.md, section 7 \"Interface et branding\", \
+        "the interface styles itself instead of taking the Block theme (AGENTS.md, section 7 \"Interface et branding\", \
          and docs/BRANDING.md: shared widgets of ui/widgets.rs, radii of the theme, colors of the Palette):\n{}\n\
          If a shared widget itself must wrap the stock one, or a file paints content by nature (a map), add the file to \
          ALLOWED in ui/theme_guard.rs with the reason. If one radius or color is content rather than chrome (a legend, \

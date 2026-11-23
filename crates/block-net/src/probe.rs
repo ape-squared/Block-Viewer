@@ -1,4 +1,4 @@
-//! Detailed probes of the network side (AURORA_PROFILE): every UDP message
+//! Detailed probes of the network side (BLOCK_PROFILE): every UDP message
 //! type in and out, the kinds of object updates, and the HTTP requests by
 //! kind of asset and by host. Off by default: each counting point first
 //! reads one flag ([`enabled`]), and costs a few relaxed atomic additions
@@ -15,7 +15,7 @@ use std::time::{Duration, Instant};
 
 static ENABLED: AtomicBool = AtomicBool::new(false);
 
-/// Turn the probes on (AURORA_PROFILE): from now on every counting point
+/// Turn the probes on (BLOCK_PROFILE): from now on every counting point
 /// counts.
 pub fn enable() {
     ENABLED.store(true, Relaxed);

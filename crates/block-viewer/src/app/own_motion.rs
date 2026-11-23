@@ -1,4 +1,4 @@
-//! Our avatar's movement each frame: Aurora's prediction (own_motion.rs)
+//! Our avatar's movement each frame: Block's prediction (own_motion.rs)
 //! and the demo's simulated link (demo_link.rs).
 
 use super::*;
@@ -36,7 +36,7 @@ impl App {
         self.running() || self.joystick.running
     }
 
-    /// Offline with AURORA_DEMO_LINK: the keys go to the stand-in simulator
+    /// Offline with BLOCK_DEMO_LINK: the keys go to the stand-in simulator
     /// and its reports come back through the world, as on a grid.
     pub(super) fn drive_demo_link(&mut self, mouselook: bool, dt: f32) {
         let Some(cfg) = self.demo_link_cfg.clone() else {
@@ -126,7 +126,7 @@ impl App {
         }
     }
 
-    /// AURORA_DEMO_SIT_TP=local|region: at frame 300 our avatar sits on the
+    /// BLOCK_DEMO_SIT_TP=local|region: at frame 300 our avatar sits on the
     /// nearest prim of the plaza, at frame 420 it teleports from the seat,
     /// in the region or to another one; at frame 700 the log says whether
     /// it still sits (the stale seat of a teleport, LLAgent::teleportCore).
@@ -136,7 +136,7 @@ impl App {
         if !self.demo || !matches!(self.frame_count, 240 | 300 | 420 | 700) {
             return;
         }
-        let Ok(mode) = std::env::var("AURORA_DEMO_SIT_TP") else {
+        let Ok(mode) = std::env::var("BLOCK_DEMO_SIT_TP") else {
             return;
         };
         let ao = demo_sit_tp_ao();
@@ -163,9 +163,9 @@ impl App {
                 let (x, y) = (me.x - 6.0, me.y - 4.0);
                 let to = Vec3::new(x, y, crate::demo::floor_at(x, y) + 0.9);
                 let region = if mode == "region" {
-                    block_i18n::tr!("app-aurora-elsewhere")
+                    block_i18n::tr!("app-block-elsewhere")
                 } else {
-                    block_i18n::tr!("common-aurora-demo")
+                    block_i18n::tr!("common-block-demo")
                 };
                 self.teleport_to_location(region.into(), to);
             }
@@ -189,7 +189,7 @@ impl App {
     }
 
     /// Offline: our avatar sits on the nearest small prim of the plaza
-    /// (AURORA_DEMO_SIT_TP, AURORA_DEMO_STAND_FLY=object).
+    /// (BLOCK_DEMO_SIT_TP, BLOCK_DEMO_STAND_FLY=object).
     pub(super) fn demo_sit_on_nearest_prim(&mut self) {
         let me = self.world.agent.position;
         let seat = self
@@ -274,7 +274,7 @@ impl App {
         }
     }
 
-    /// `AURORA_DEMO_LINK=…,trace`, or `AURORA_OWN_MOTION_TRACE=1` on a grid
+    /// `BLOCK_DEMO_LINK=…,trace`, or `BLOCK_OWN_MOTION_TRACE=1` on a grid
     /// (only the frames where our avatar moves or a correction is left):
     /// one line per frame with the keys, the drawn position, the
     /// simulator's, the lead, the correction left, the camera and the drawn
@@ -282,7 +282,7 @@ impl App {
     /// velocity, to read a start, a stop, a take-off or a landing.
     pub(super) fn trace_own_motion(&self) {
         static GRID: std::sync::OnceLock<Option<Instant>> = std::sync::OnceLock::new();
-        let grid = *GRID.get_or_init(|| std::env::var_os("AURORA_OWN_MOTION_TRACE").map(|_| Instant::now()));
+        let grid = *GRID.get_or_init(|| std::env::var_os("BLOCK_OWN_MOTION_TRACE").map(|_| Instant::now()));
         let a = &self.world.agent;
         let (offset, lead) = a.drawn_offsets();
         let t = match (self.demo_link.as_ref().filter(|l| l.cfg.trace), grid) {
@@ -339,7 +339,7 @@ impl App {
         );
     }
 
-    /// Aurora's movement of our avatar for this frame (Preferences › Aurora
+    /// Block's movement of our avatar for this frame (Preferences › Block
     /// › Movement): the lead the keys still on their way give it, kept on
     /// the land, and the walk or stop of the keys over the simulator's
     /// signals. Off (the default), or offline without the simulated link,
@@ -384,9 +384,9 @@ impl App {
     }
 }
 
-/// `AURORA_DEMO_SIT_TP=ao-local|ao-region` (`App::demo_sit_teleport`).
+/// `BLOCK_DEMO_SIT_TP=ao-local|ao-region` (`App::demo_sit_teleport`).
 fn demo_sit_tp_ao() -> bool {
-    std::env::var("AURORA_DEMO_SIT_TP").is_ok_and(|m| m.trim().starts_with("ao-"))
+    std::env::var("BLOCK_DEMO_SIT_TP").is_ok_and(|m| m.trim().starts_with("ao-"))
 }
 
 #[cfg(test)]

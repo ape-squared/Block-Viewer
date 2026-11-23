@@ -1,4 +1,4 @@
-// Appended to contact_shadows.wgsl for `AURORA_CONTACT_VARIANT=no-shared`
+// Appended to contact_shadows.wgsl for `BLOCK_CONTACT_VARIANT=no-shared`
 // (contact_shadows.rs, `variant_source`), a diagnostic of the GPU hangs on
 // some AMD cards: no workgroup memory, no barrier. Each thread recomputes
 // from the depth texture what the thread `index % WAVE_SIZE` of its

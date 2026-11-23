@@ -5,7 +5,7 @@
 //!   nearby chat;
 //! - the region we arrived in runs another simulator version than the last
 //!   one (FSShowServerVersionChangeNotice, process_agent_movement_complete),
-//!   told in a notice; off by default in Aurora, on in the Legacy Viewer
+//!   told in a notice; off by default in Block, on in the Legacy Viewer
 //!   (it came at nearly every teleport, human choice of 2026-10-30).
 
 use super::World;

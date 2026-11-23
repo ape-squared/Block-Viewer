@@ -1,4 +1,4 @@
-//! People â€º Friends in Aurora's look (the People mock-up v2): the friend
+//! People â€º Friends in Block's look (the People mock-up v2): the friend
 //! list of Conversations â€º Contacts (FSFloaterContacts, fsfloatercontacts.cpp,
 //! panel_fs_contacts_friends.xml) as rich rows, online and offline apart.
 //! Each row carries the three rights we grant, clickable as the list's

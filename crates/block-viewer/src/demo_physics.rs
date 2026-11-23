@@ -1,4 +1,4 @@
-//! Avatar body physics in the demo (AURORA_DEMO_PHYSICS, docs/TESTING.md):
+//! Avatar body physics in the demo (BLOCK_DEMO_PHYSICS, docs/TESTING.md):
 //! our avatar and the one in front of it wear a physics layer and a rigged
 //! "body", a ball on each breast, the belly and the butt weighted to the
 //! LEFT_PEC, RIGHT_PEC, BELLY and BUTT collision volumes as mesh bodies are.
@@ -40,7 +40,7 @@ pub enum Mode {
 pub fn mode() -> Option<Mode> {
     static MODE: std::sync::OnceLock<Option<Mode>> = std::sync::OnceLock::new();
     *MODE.get_or_init(|| {
-        let value = std::env::var("AURORA_DEMO_PHYSICS").ok()?;
+        let value = std::env::var("BLOCK_DEMO_PHYSICS").ok()?;
         Some(match value.trim() {
             "still" => Mode::Still,
             "off" => Mode::Off,

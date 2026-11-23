@@ -55,7 +55,7 @@ impl Settings {
     /// Bind before the first world update. Import the former shared values
     /// once; an account without saved options always starts from defaults.
     /// This deliberately extends the Legacy Viewer's per-account height to
-    /// all Aurora height options, including HoverHeightAffectsCamera.
+    /// all Block height options, including HoverHeightAffectsCamera.
     pub(crate) fn select_hover_account(&mut self, account: Uuid) {
         self.remember_hover_account();
         let preferences = match &self.hover_height_accounts {

@@ -39,20 +39,20 @@ pub(super) fn folders(view: &ViewCache, inv: &Inventory, root: Uuid, show_root: 
     folders
 }
 
-/// The height of the rows of this window: Aurora's are taller. A Legacy-style
+/// The height of the rows of this window: Block's are taller. A Legacy-style
 /// row is as tall as its tallest label, an item's name with its rights letters
 /// (`permissions::Permissions::append_suffix`, in another face), which a font
 /// scale above 1 makes taller than `ROW_HEIGHT` (its icons stay 16 points).
 /// The lists scroll and draw by this height, so it must be the drawn one:
 /// LLFolderViewItem::getItemHeight (indra/llui/llfolderviewitem.cpp) is
-/// likewise the height every row is laid out at. Aurora difference: there it
+/// likewise the height every row is laid out at. Block difference: there it
 /// is the `FSFolderViewItemHeight` setting, 20 by default, whatever the font
 /// (LLInventoryPanel::createFolderRoot, createFolderViewFolder and
 /// createFolderViewItem in indra/newview/llinventorypanel.cpp); here a row
 /// grows when the font scale makes its label taller.
 pub fn row_height(ui: &egui::Ui, p: &Palette, st: &InventoryUi) -> f32 {
     if st.aurora.is_some() {
-        return super::aurora::rows::HEIGHT;
+        return super::block::rows::HEIGHT;
     }
     // The name, a worn one's in semi-bold, then the rights: a line is as tall
     // as its tallest face, and egui rounds a laid out line's height up.
@@ -87,7 +87,7 @@ pub struct Row {
 
 pub const NONE: usize = usize::MAX;
 
-/// What the explorer's folder shows as tiles (`aurora::gallery`): nothing
+/// What the explorer's folder shows as tiles (`block::gallery`): nothing
 /// (its list), every entry (the gallery view), or the entries that have a
 /// picture, listed before the others (the combination view).
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
@@ -460,7 +460,7 @@ fn rows(
     let height = row_height(ui, p, st);
     for index in range {
         let Some(row) = st.plain.rows.get(index).copied() else { break };
-        // Aurora's rows fit the list's width: they cut long names short.
+        // Block's rows fit the list's width: they cut long names short.
         if row.kind != Kind::Empty && st.aurora.is_none() {
             let width = row_width(
                 ui,
@@ -500,7 +500,7 @@ fn rows(
                         _ => block_i18n::tr!("ui-inventory-loading-folder"),
                     };
                     if st.aurora.is_some() {
-                        ui.add_space(super::aurora::rows::LEAD);
+                        ui.add_space(super::block::rows::LEAD);
                     }
                     let text = RichText::new(text).size(12.0).color(p.muted_dim);
                     if legacy {

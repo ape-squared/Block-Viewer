@@ -107,7 +107,7 @@ const MAX_PAGES: u32 = 1 << (32 - LAYER_BITS);
 pub const SLOTS: u32 = 1 << 18;
 const MAX_SLOTS: u32 = 1 << 20;
 
-/// Slots of the table: [`SLOTS`], or what AURORA_TEXTURE_SLOTS asks for (to
+/// Slots of the table: [`SLOTS`], or what BLOCK_TEXTURE_SLOTS asks for (to
 /// test a full table).
 pub fn slot_capacity(forced: Option<&str>) -> u32 {
     forced
@@ -187,7 +187,7 @@ enum PageJob {
 }
 
 /// Creates the pages of the streamed uploads and destroys the emptied ones
-/// on a thread of its own (`aurora-pages`). Most pages are carved out of a
+/// on a thread of its own (`block-pages`). Most pages are carved out of a
 /// block of video memory the device already holds (a few µs), but the one
 /// that needs a new block (128 then 256 MB each) waits for the driver to
 /// allocate it, under the lock of the device's memory allocator: 1.0 to
@@ -214,7 +214,7 @@ impl PageWorker {
         let (tx, rx) = std::sync::mpsc::channel::<PageJob>();
         let (made_tx, made) = std::sync::mpsc::channel::<MadePage>();
         let device = device.clone();
-        let spawned = std::thread::Builder::new().name("aurora-pages".into()).spawn(move || {
+        let spawned = std::thread::Builder::new().name("block-pages".into()).spawn(move || {
             for job in rx {
                 // (the render thread can wait for it: frame_priority.rs)
                 crate::frame_priority::apply();
@@ -590,7 +590,7 @@ struct PageStore {
     /// The last `replace` / `replace_staged` was refused for want of a page
     /// video memory could not hold (not for its size or format).
     refused_for_memory: bool,
-    /// Pages created so far, by whom and in how long (AURORA_PROFILE).
+    /// Pages created so far, by whom and in how long (BLOCK_PROFILE).
     made: PagesMade,
     /// Pages the page thread made, waiting for the first texture of their
     /// size (with when they arrived).
@@ -1484,7 +1484,7 @@ impl TextureTable {
     }
 
     /// CPU time the caller spent creating pages since the start (ms;
-    /// AURORA_PROFILE): those of the streamed uploads are made by the page
+    /// BLOCK_PROFILE): those of the streamed uploads are made by the page
     /// thread and cost it nothing (`prepare_page`).
     pub fn page_create_ms(&self) -> f32 {
         self.store.made.inline_ms
@@ -1833,8 +1833,8 @@ pub fn build_mips(width: u32, height: u32, data: Vec<u8>, max_levels: u32) -> Ve
 }
 
 /// The same chain with each colour averaged by the alpha of its texels (the
-/// empty ones leave no trace): what Aurora did before, kept to compare
-/// (`AURORA_MIP_FILTER=weighted`).
+/// empty ones leave no trace): what Block did before, kept to compare
+/// (`BLOCK_MIP_FILTER=weighted`).
 pub fn build_mips_alpha_weighted(width: u32, height: u32, data: Vec<u8>, max_levels: u32) -> Vec<(u32, u32, Vec<u8>)> {
     box_mips(width, height, data, max_levels, true)
 }
@@ -2241,7 +2241,7 @@ mod tests {
         assert_eq!(page_capacity(64, false), 64);
         assert_eq!(page_capacity(1 << 20, true), MAX_PAGES);
         assert_eq!(page_capacity(0, true), 1);
-        // AURORA_TEXTURE_SLOTS: a smaller or larger table, within bounds
+        // BLOCK_TEXTURE_SLOTS: a smaller or larger table, within bounds
         assert_eq!(slot_capacity(Some("16384")), 16384);
         assert_eq!(slot_capacity(Some(" 200 ")), 200);
         assert_eq!(slot_capacity(Some("0")), RESERVED + 1);

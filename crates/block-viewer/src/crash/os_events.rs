@@ -33,7 +33,7 @@ fn output_before(command: &mut Command, deadline: Instant) -> std::io::Result<Ou
     let mut child = command.spawn()?;
     let stdout = child.stdout.take();
     let (sender, receiver) = std::sync::mpsc::sync_channel(1);
-    if let Err(error) = std::thread::Builder::new().name("aurora-os-read".into()).spawn(move || {
+    if let Err(error) = std::thread::Builder::new().name("block-os-read".into()).spawn(move || {
         let mut bytes = Vec::new();
         if let Some(stdout) = stdout {
             let mut stdout = stdout.take(MAX_COMMAND_OUTPUT);
@@ -76,7 +76,7 @@ fn stop_child(mut child: Child) {
     if matches!(child.try_wait(), Ok(Some(_))) {
         return;
     }
-    let _ = std::thread::Builder::new().name("aurora-os-reap".into()).spawn(move || {
+    let _ = std::thread::Builder::new().name("block-os-reap".into()).spawn(move || {
         let _ = child.wait();
     });
 }

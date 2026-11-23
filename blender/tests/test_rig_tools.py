@@ -9,30 +9,30 @@ import bpy
 from mathutils import Vector
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-import aurora_live
-from aurora_live import exporter, handles, rigging, skinning, starter, tracking
+import block_live
+from block_live import exporter, handles, rigging, skinning, starter, tracking
 
 
 class RigToolsTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        aurora_live.register()
+        block_live.register()
 
     @classmethod
     def tearDownClass(cls):
-        aurora_live.unregister()
+        block_live.unregister()
 
     def setUp(self):
-        aurora_live._stop()
+        block_live._stop()
         if bpy.context.object and bpy.context.object.mode != "OBJECT":
             bpy.ops.object.mode_set(mode="OBJECT")
         bpy.ops.object.select_all(action="SELECT")
         bpy.ops.object.delete(use_global=False)
-        bpy.context.scene.aurora_live.objects.clear()
+        bpy.context.scene.block_live.objects.clear()
         bpy.context.scene.cursor.location = (0, 0, 0)
-        bpy.context.scene.aurora_live.forward = "NATIVE"
+        bpy.context.scene.block_live.forward = "NATIVE"
         self.rig, self.shirt = starter.create(bpy.context)
-        bpy.context.scene.aurora_live.rig = self.rig
+        bpy.context.scene.block_live.rig = self.rig
 
     def mesh(self, name, points, faces=()):
         data = bpy.data.meshes.new(name)
@@ -65,12 +65,12 @@ class RigToolsTests(unittest.TestCase):
     def test_setup_is_idempotent_and_keeps_sl_rest_bones_and_live_export(self):
         before = {b.name: b.matrix_local.copy() for b in self.rig.data.bones}
         snapshot = exporter.snapshot([self.shirt], set(before), 1)
-        self.assertEqual(bpy.ops.aurora.create_ik(), {"FINISHED"})
+        self.assertEqual(bpy.ops.block.create_ik(), {"FINISHED"})
         rigging.setup(bpy.context, self.rig)
         self.assertEqual(len(self.rig.data.bones), 167)
         for name, matrix in before.items():
             self.assertEqual(matrix, self.rig.data.bones[name].matrix_local)
-        controls = [b for b in self.rig.data.bones if b.get("aurora_control")]
+        controls = [b for b in self.rig.data.bones if b.get("block_control")]
         self.assertEqual(len(controls), 8)
         self.assertTrue(all(not b.use_deform for b in controls))
         for key in rigging.LIMBS:
@@ -97,7 +97,7 @@ class RigToolsTests(unittest.TestCase):
         self.assertEqual(names("SPINE"), {"mSpine1", "mSpine2", "mSpine3", "mSpine4"})
         self.assertTrue(rigging.part_visible(self.rig, "BACK"))
         self.assertFalse(rigging.part_visible(self.rig, "SPINE"))
-        self.assertFalse(bpy.context.window_manager.aurora_live_show_advanced_bones)
+        self.assertFalse(bpy.context.window_manager.block_live_show_advanced_bones)
         # The XML doubles back over the same segments, rather than dividing
         # each classic segment into three shorter anatomical vertebrae.
         for original, reverse, forward in (("mPelvis", "mSpine1", "mSpine2"), ("mTorso", "mSpine3", "mSpine4")):
@@ -115,12 +115,12 @@ class RigToolsTests(unittest.TestCase):
         for mode in ("OBJECT", "POSE", "EDIT"):
             bpy.ops.object.mode_set(mode=mode)
             with self.subTest(mode=mode):
-                bpy.ops.aurora.bone_visibility(part="ALL", visible=True)
-                bpy.ops.aurora.bone_visibility(part="BACK", visible=True)
+                bpy.ops.block.bone_visibility(part="ALL", visible=True)
+                bpy.ops.block.bone_visibility(part="BACK", visible=True)
                 for bone in rigging.bones(self.rig):
                     self.assertEqual(rigging.visible(self.rig, bone), rigging.part(bone) != "SPINE", bone.name)
-                bpy.ops.aurora.bone_visibility(part="SPINE", visible=True)
-                bpy.ops.aurora.bone_visibility(part="BACK", visible=False)
+                bpy.ops.block.bone_visibility(part="SPINE", visible=True)
+                bpy.ops.block.bone_visibility(part="BACK", visible=False)
                 for bone in rigging.bones(self.rig):
                     if mode == "EDIT":
                         native = bone
@@ -141,12 +141,12 @@ class RigToolsTests(unittest.TestCase):
             rigging.show(self.rig, "BACK", True)
             self.assertFalse(rigging.part_visible(self.rig, "SPINE"))
         rigging.show(self.rig, "ALL", False)
-        bpy.ops.aurora.bone_visibility(part="BODY", visible=True)
+        bpy.ops.block.bone_visibility(part="BODY", visible=True)
         self.assertEqual(sum(rigging.visible(self.rig, b) for b in self.rig.data.bones), 6)
         self.assertTrue(rigging.part_visible(self.rig, "HEAD"))
-        bpy.ops.aurora.bone_visibility(part="SPINE", visible=True)
+        bpy.ops.block.bone_visibility(part="SPINE", visible=True)
         self.assertEqual(sum(rigging.visible(self.rig, b) for b in self.rig.data.bones), 10)
-        bpy.ops.aurora.bone_visibility(part="BACK", visible=True)
+        bpy.ops.block.bone_visibility(part="BACK", visible=True)
         self.assertFalse(rigging.part_visible(self.rig, "SPINE"))
 
     def test_simple_back_preserves_spine_weights_animation_deformation_and_export(self):
@@ -177,7 +177,7 @@ class RigToolsTests(unittest.TestCase):
         posed = evaluated()
         selected = list(bpy.context.selected_objects)
         for key, enabled in (("ALL", True), ("BACK", True), ("SPINE", True), ("BACK", False), ("BACK", True)):
-            bpy.ops.aurora.bone_visibility(part=key, visible=enabled)
+            bpy.ops.block.bone_visibility(part=key, visible=enabled)
         bpy.context.view_layer.update()
         self.assertEqual(rest, {b.name: (b.matrix_local.copy(), b.parent.name if b.parent else None, b.use_deform) for b in self.rig.data.bones})
         self.assertEqual(weights, [self.values(self.shirt, i) for i in range(len(self.shirt.data.vertices))])
@@ -256,7 +256,7 @@ class RigToolsTests(unittest.TestCase):
 
     def test_existing_poles_can_be_repositioned_without_rebuilding_or_changing_the_pose(self):
         rigging.setup(bpy.context, self.rig)
-        bpy.ops.aurora.create_pose_controls(kind="ROOT")
+        bpy.ops.block.create_pose_controls(kind="ROOT")
         self.rig.pose.bones["auroraPose.COG"].rotation_mode = "XYZ"
         self.rig.pose.bones["auroraPose.COG"].rotation_euler.z = 0.35
         for key in rigging.LIMBS:
@@ -267,7 +267,7 @@ class RigToolsTests(unittest.TestCase):
         rest = {bone.name: (bone.matrix_local.copy(), bone.parent.name if bone.parent else None) for bone in self.rig.data.bones}
         snapshot = exporter.snapshot([self.shirt], set(rest), 1)
         tracking.add(bpy.context.scene, [self.shirt])
-        bpy.context.scene.aurora_live.objects[0].enabled = False
+        bpy.context.scene.block_live.objects[0].enabled = False
         for enabled in (False, True):
             for key in rigging.LIMBS:
                 if enabled:
@@ -278,13 +278,13 @@ class RigToolsTests(unittest.TestCase):
             before = {key: self.pose(key) for key in rigging.LIMBS}
             selected = list(bpy.context.selected_objects)
             mode = bpy.context.object.mode
-            self.assertEqual(bpy.ops.aurora.reposition_ik_poles(), {"FINISHED"})
+            self.assertEqual(bpy.ops.block.reposition_ik_poles(), {"FINISHED"})
             for key in rigging.LIMBS:
                 self.assertPoseNear(before[key], self.pose(key), 0.0002)
                 self.assertEqual(rigging.constraint(self.rig, key).influence, float(enabled))
             self.assertEqual(rest, {bone.name: (bone.matrix_local.copy(), bone.parent.name if bone.parent else None) for bone in self.rig.data.bones})
             self.assertEqual(snapshot, exporter.snapshot([self.shirt], set(rest), 1))
-            self.assertFalse(bpy.context.scene.aurora_live.objects[0].enabled)
+            self.assertFalse(bpy.context.scene.block_live.objects[0].enabled)
             self.assertEqual(selected, list(bpy.context.selected_objects))
             self.assertEqual(mode, bpy.context.object.mode)
 
@@ -333,7 +333,7 @@ class RigToolsTests(unittest.TestCase):
         targets = {key: self.rig.pose.bones[rigging.control_name(key)].matrix.copy() for key in ("FOOT_L", "FOOT_R")}
         poles = {key: self.rig.pose.bones[rigging.control_name(key, True)].matrix.copy() for key in targets}
         arms = {key: self.pose(key) for key in ("HAND_L", "HAND_R")}
-        self.assertEqual(bpy.ops.aurora.correct_knee_bend(), {"FINISHED"})
+        self.assertEqual(bpy.ops.block.correct_knee_bend(), {"FINISHED"})
         for key in targets:
             root, middle, _end = (self.rig.pose.bones[name] for name in rigging.chain(self.rig, key))
             axis = (middle.tail - root.head).normalized()
@@ -353,7 +353,7 @@ class RigToolsTests(unittest.TestCase):
 
     def test_foot_target_keyframes_keep_the_bend_plane_with_a_rotated_cog(self):
         rigging.setup(bpy.context, self.rig)
-        bpy.ops.aurora.create_pose_controls(kind="ROOT")
+        bpy.ops.block.create_pose_controls(kind="ROOT")
         cog = self.rig.pose.bones["auroraPose.COG"]
         cog.rotation_mode = "XYZ"
         cog.rotation_euler.z = 0.4
@@ -387,7 +387,7 @@ class RigToolsTests(unittest.TestCase):
         rest = {b.name: (b.matrix_local.copy(), b.parent.name if b.parent else None) for b in self.rig.data.bones}
         snapshot = exporter.snapshot([self.shirt], set(rest), 1)
         constraints = {key: (rigging.constraint(self.rig, key).influence, rigging.constraint(self.rig, key).pole_angle) for key in rigging.LIMBS}
-        self.assertEqual(bpy.ops.aurora.refresh_ik_handles(), {"FINISHED"})
+        self.assertEqual(bpy.ops.block.refresh_ik_handles(), {"FINISHED"})
         bpy.context.view_layer.update()
         styles = set()
         for key in rigging.LIMBS:
@@ -396,7 +396,7 @@ class RigToolsTests(unittest.TestCase):
                 self.assertGreater(len(bone.custom_shape.data.edges), 24)
                 self.assertFalse(bone.custom_shape.users_collection)
                 self.assertFalse(bone.use_custom_shape_bone_size)
-                styles.add(bone.custom_shape["aurora_ik_shape"].split(":")[0][:-1])
+                styles.add(bone.custom_shape["block_ik_shape"].split(":")[0][:-1])
                 self.assertFalse(bone.bone.use_deform)
         self.assertEqual(styles, {"HAND", "FOOT", "ELBOW", "KNEE"})
         self.assertEqual(before, {b.name: b.matrix.copy() for b in self.rig.pose.bones})
@@ -443,7 +443,7 @@ class RigToolsTests(unittest.TestCase):
         other = self.rig.copy()
         bpy.context.collection.objects.link(other)
         objects, meshes, scene_objects = len(bpy.data.objects), len(bpy.data.meshes), len(bpy.context.scene.objects)
-        self.rig.aurora_live_ik_handle_size = 1.75
+        self.rig.block_live_ik_handle_size = 1.75
         for _ in range(3):
             handles.apply(self.rig)
         for name in names:
@@ -463,7 +463,7 @@ class RigToolsTests(unittest.TestCase):
         authored = bpy.data.objects.new("Authored hand widget", bpy.data.meshes.new("Authored widget"))
         self.rig.pose.bones[names[0]].custom_shape = authored
         before = {bone.name: bone.matrix.copy() for bone in self.rig.pose.bones}
-        aurora_live._refresh_handles()
+        block_live._refresh_handles()
         self.assertEqual(self.rig.pose.bones[names[0]].custom_shape, authored)
         self.assertTrue(all(self.rig.pose.bones[name].custom_shape for name in names[1:]))
         self.assertEqual(before, {bone.name: bone.matrix.copy() for bone in self.rig.pose.bones})
@@ -483,7 +483,7 @@ class RigToolsTests(unittest.TestCase):
                     members = [b for b in self.rig.data.bones if rigging.part(b) == key]
                     for _repeat in range(2):
                         for visible in (True, False):
-                            self.assertEqual(bpy.ops.aurora.bone_visibility(part=key, visible=visible), {"FINISHED"})
+                            self.assertEqual(bpy.ops.block.bone_visibility(part=key, visible=visible), {"FINISHED"})
                             for bone in members:
                                 pose_bone = self.rig.pose.bones[bone.name]
                                 native = pose_bone if hasattr(pose_bone, "hide") else bone
@@ -649,10 +649,10 @@ class RigToolsTests(unittest.TestCase):
         other.select_set(False)
         old_data = other.data
         before = self.values(other)
-        prefs = bpy.context.scene.aurora_live
+        prefs = bpy.context.scene.block_live
         prefs.weight_source = donor
         bpy.ops.object.mode_set(mode="WEIGHT_PAINT")
-        self.assertEqual(bpy.ops.aurora.transfer_weights(), {"FINISHED"})
+        self.assertEqual(bpy.ops.block.transfer_weights(), {"FINISHED"})
         self.assertEqual(self.shirt.mode, "WEIGHT_PAINT")
         self.assertIsNot(self.shirt.data, old_data)
         self.assertEqual(other.data, old_data)
@@ -660,19 +660,19 @@ class RigToolsTests(unittest.TestCase):
 
     def test_transfer_operator_invalidates_live_preview_without_resuming_paused_entries(self):
         donor = self.weighted_donor()
-        prefs = bpy.context.scene.aurora_live
+        prefs = bpy.context.scene.block_live
         prefs.weight_source = donor
         tracking.add(bpy.context.scene, [self.shirt])
         prefs.objects[0].enabled = False
         fake = SimpleNamespace(close=lambda: None)
-        with patch.object(aurora_live, "_client", fake):
-            aurora_live._dirty = False
-            self.assertEqual(bpy.ops.aurora.transfer_weights(), {"FINISHED"})
-            self.assertTrue(aurora_live._dirty)
+        with patch.object(block_live, "_client", fake):
+            block_live._dirty = False
+            self.assertEqual(bpy.ops.block.transfer_weights(), {"FINISHED"})
+            self.assertTrue(block_live._dirty)
             self.assertFalse(prefs.objects[0].enabled)
 
 
 result = unittest.TextTestRunner(verbosity=2).run(unittest.defaultTestLoader.loadTestsFromTestCase(RigToolsTests))
 if not result.wasSuccessful():
     sys.exit(1)
-print("AURORA_BLENDER_RIG_TOOLS_TESTS_OK", flush=True)
+print("BLOCK_BLENDER_RIG_TOOLS_TESTS_OK", flush=True)

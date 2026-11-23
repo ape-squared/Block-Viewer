@@ -1,4 +1,4 @@
-//! Markers over contact-set members (an Aurora addition, no Legacy Viewer
+//! Markers over contact-set members (a Block addition, no Legacy Viewer
 //! counterpart): which residents get one and where it stands, from one
 //! frame to the next. `ui/contact_markers.rs` projects and paints them.
 //!

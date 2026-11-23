@@ -30,7 +30,7 @@ fn inventory() -> (Inventory, Uuid, Uuid) {
     let root = folder(&mut inv, 1, Uuid::nil(), 8, "Inventory");
     inv.root = root;
     folder(&mut inv, 2, root, 14, "Trash");
-    let aurora = folder(&mut inv, 3, root, -1, catalogue::AURORA);
+    let aurora = folder(&mut inv, 3, root, -1, catalogue::BLOCK);
     let library = folder(&mut inv, 4, aurora, -1, catalogue::LIBRARY);
     let source = folder(&mut inv, 5, root, -1, "Stone");
     for (n, name) in catalogue::DEFAULT_FOLDERS.into_iter().enumerate() {
@@ -882,19 +882,19 @@ fn the_gates_need_full_permissions() {
     }
 }
 
-/// An Aurora 360° upload opens as a panorama; any other 2:1 texture offers
+/// A Block 360° upload opens as a panorama; any other 2:1 texture offers
 /// the switch, off; the user's choice wins; nothing else is eligible.
 #[test]
 fn only_wide_two_to_one_textures_offer_the_panorama_and_the_marker_turns_it_on() {
     use super::windows::panorama_state;
-    assert_eq!(panorama_state(Some((2048, 1024)), "360 Snapshot : Aurora", None), (true, true));
+    assert_eq!(panorama_state(Some((2048, 1024)), "360 Snapshot : Block", None), (true, true));
     assert_eq!(panorama_state(Some((2048, 1024)), "Wide sky", None), (true, false));
     assert_eq!(panorama_state(Some((2048, 1024)), "Wide sky", Some(true)), (true, true));
     assert_eq!(
-        panorama_state(Some((2048, 1024)), "360 Snapshot : Aurora", Some(false)),
+        panorama_state(Some((2048, 1024)), "360 Snapshot : Block", Some(false)),
         (true, false)
     );
-    assert_eq!(panorama_state(Some((1024, 1024)), "360 Snapshot : Aurora", None), (false, false));
+    assert_eq!(panorama_state(Some((1024, 1024)), "360 Snapshot : Block", None), (false, false));
     assert_eq!(panorama_state(Some((128, 64)), "360 Snapshot : x", Some(true)), (false, false));
     assert_eq!(panorama_state(None, "360 Snapshot : x", None), (false, false), "size not known yet");
 }

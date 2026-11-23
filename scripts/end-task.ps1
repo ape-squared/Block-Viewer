@@ -19,7 +19,7 @@ param(
 )
 . "$PSScriptRoot\common.ps1"
 
-$p = Get-AuroraPaths
+$p = Get-BlockPaths
 $slug = Get-TaskSlug $Name
 $dir = Join-Path $p.Work $slug
 if (-not (Test-Path -LiteralPath $dir)) { throw "No work folder $dir." }
@@ -37,7 +37,7 @@ if ($isWorktree) {
     $empty = -not (Get-ChildItem -LiteralPath $dir -Force | Select-Object -First 1)
     $copy = (Test-Path -LiteralPath (Join-Path $dir 'Cargo.toml')) -and (Test-Path -LiteralPath (Join-Path $dir 'AGENTS.md'))
     if (-not ($empty -or $copy)) {
-        throw "$dir is neither a worktree nor a leftover of an Aurora task: nothing is deleted."
+        throw "$dir is neither a worktree nor a leftover of a Block task: nothing is deleted."
     }
     $branch = git branch --list "*/$slug" --format '%(refname:short)' | Select-Object -First 1
 }

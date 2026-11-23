@@ -1,4 +1,4 @@
-//! Cursor-depth selection requested for Aurora: Firestorm's
+//! Cursor-depth selection requested for Block: Firestorm's
 //! LLViewerWindow::handleScrollWheel only zooms the camera. Selection units
 //! and wire messages still follow LLToolSelect::handleObjectSelection
 //! (lltoolselect.cpp, originally LGPL 2.1).

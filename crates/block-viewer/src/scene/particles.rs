@@ -77,7 +77,7 @@ fn wind_at(world: &World, position: Vec3) -> Vec3 {
         .map_or(Vec3::ZERO, |region| region.wind.velocity(position, region.heightmap.size_x as f32))
 }
 
-/// Loading cloud: Firestorm's app_settings/cloud.xml motion, in Aurora's
+/// Loading cloud: Firestorm's app_settings/cloud.xml motion, in Block's
 /// colors (violet to turquoise), on the default soft particle.
 fn cloud_data(avatar: Uuid) -> ps::PartSysData {
     let mut d = ps::PartSysData {

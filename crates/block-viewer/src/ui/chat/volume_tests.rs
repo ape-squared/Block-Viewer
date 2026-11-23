@@ -20,7 +20,7 @@ fn volume_emphasis_reaches_conversations_toasts_links_emoji_and_search() {
         uuid::Uuid::from_u128(42)
     );
     for (renderer, label) in [
-        "Aurora",
+        "Block",
         "Compact",
         "Bubbles",
         "Lines",

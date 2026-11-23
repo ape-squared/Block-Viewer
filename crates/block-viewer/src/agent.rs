@@ -5,7 +5,7 @@
 //! LLSmoothInterpolation::calcInterpolant (indra/llcommon/llcriticaldamp.cpp),
 //! originally LGPL 2.1. Like Firestorm, keyboard input only controls orientation
 //! and the flags sent to the simulator; it does not predict avatar physics.
-//! Aurora's movement (Preferences › Aurora, off by default) draws the avatar
+//! Block's movement (Preferences › Block, off by default) draws the avatar
 //! ahead of the simulator's position by what the keys still on their way
 //! will add (`own_motion.rs`) and fades corrections of 0.5 to 3 m slowly.
 
@@ -117,7 +117,7 @@ pub struct AgentState {
     /// extrapolated position, since the start (the viewer statistics'
     /// AgentPositionSnaps).
     position_snaps: f64,
-    /// Aurora's movement prediction (own_motion.rs): on while
+    /// Block's movement prediction (own_motion.rs): on while
     /// `set_predicting` says so.
     pub prediction: Prediction,
     predicting: bool,
@@ -442,7 +442,7 @@ impl AgentState {
         std::mem::take(&mut self.corrections)
     }
 
-    /// Aurora's movement on or off for this frame: the setting, on a grid
+    /// Block's movement on or off for this frame: the setting, on a grid
     /// (or the demo's simulated link), outside a teleport. Turned off, the
     /// avatar is drawn where the simulator puts it, as in Firestorm.
     pub fn set_predicting(&mut self, on: bool) {
@@ -464,7 +464,7 @@ impl AgentState {
     }
 
     /// What is left of the last correction with the prediction, and the
-    /// lead drawn this frame (`AURORA_DEMO_LINK`'s trace).
+    /// lead drawn this frame (`BLOCK_DEMO_LINK`'s trace).
     pub fn drawn_offsets(&self) -> (Vec3, Vec3) {
         (self.offset, self.drawn_lead)
     }
@@ -719,7 +719,7 @@ impl AgentState {
         }
         let min_distance = 0.001_f32.powi(2) * camera_distance.powi(2);
         if self.predicting {
-            // Aurora: the simulator's extrapolated position, what is left of
+            // Block: the simulator's extrapolated position, what is left of
             // the last correction, and the lead of the keys over it
             let half_life = if self.slow_blend {
                 own_motion::SLOW_CORRECTION_HALF_LIFE
@@ -1307,7 +1307,7 @@ mod tests {
         Intent::from_flags(control::AT_POS | control::FAST_AT, 0.0, false)
     }
 
-    /// Aurora's movement: the drawn avatar moves with the key, ahead of
+    /// Block's movement: the drawn avatar moves with the key, ahead of
     /// the simulator's position, which itself does not move before its
     /// report.
     #[test]
@@ -1406,7 +1406,7 @@ mod tests {
         assert_eq!(agent.take_corrections(), Corrections::default());
     }
 
-    /// Our avatar walking with Aurora's movement against a simulator one
+    /// Our avatar walking with Block's movement against a simulator one
     /// round trip away (0.2 s) that starts and stops at once, keys held
     /// `hold` seconds out of 3: the drawn position frame by frame, and
     /// where the simulator ends.
@@ -1553,7 +1553,7 @@ mod tests {
     /// Firestorm's movement stays as it was: a scripted walk, a 0.5 m
     /// pull-back, a stop and a last correction give, every 0.1 s, the
     /// positions the code of main gave (recorded on 2026-10-16 from
-    /// origin/main e12ff851, `agent.rs` before Aurora's movement).
+    /// origin/main e12ff851, `agent.rs` before Block's movement).
     #[test]
     fn firestorm_movement_draws_what_main_drew() {
         const MAIN: [f32; 20] = [

@@ -11,7 +11,7 @@ pub(super) struct Description {
 }
 
 pub fn document_demo_events(ctx: &egui::Context, frame: u64, st: &mut InventoryUi) -> Vec<egui::Event> {
-    let Ok(mode) = std::env::var("AURORA_DEMO_INVENTORY") else {
+    let Ok(mode) = std::env::var("BLOCK_DEMO_INVENTORY") else {
         return Vec::new();
     };
     if matches!(

@@ -1,4 +1,4 @@
-//! What Aurora's "Places" lists show (`aurora.rs`): the landmarks of the
+//! What Block's "Places" lists show (`block.rs`): the landmarks of the
 //! Landmarks and Favorites folders as places, one per landmark asset (a
 //! favourite is a copy of a landmark in the Favorites folder, as the
 //! "add_to_favbar" entry of LLPanelPlaces::onOverflowMenuItemClicked makes
@@ -26,7 +26,7 @@ pub const VISIT_RADIUS: f64 = 64.0;
 /// its own place (#759).
 pub const VISIT_HEIGHT: f64 = 5.0;
 
-/// How the landmarks are ordered (Preferences › Aurora keeps the choice).
+/// How the landmarks are ordered (Preferences › Block keeps the choice).
 pub use crate::settings::PlacesSort;
 
 /// One line of the lists.

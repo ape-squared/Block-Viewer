@@ -1,4 +1,4 @@
-//! Aurora's own pipeline cache on disk (wgpu `PipelineCache`, a Vulkan
+//! Block's own pipeline cache on disk (wgpu `PipelineCache`, a Vulkan
 //! `VkPipelineCache`): the GPU code the driver compiled for the renderer's
 //! pipelines, read back at the next start so the driver does not compile
 //! it again.
@@ -11,7 +11,7 @@
 //!
 //! - **One file per GPU** (`<cache>/pipelines/<wgpu key>.bin`, the key of
 //!   `wgpu::util::pipeline_cache_key`: the backend, vendor and device ids).
-//!   Its header names the driver and the Aurora build that wrote it, plus a
+//!   Its header names the driver and the Block build that wrote it, plus a
 //!   checksum of the data: another driver or build starts an empty cache
 //!   (and overwrites the file), a damaged file is ignored. wgpu checks its
 //!   own header again and the driver the `VkPipelineCache` one.
@@ -25,7 +25,7 @@
 //!   viewer calls [`flush`] at exit. Unchanged data is not written again. Atomic: a temporary file
 //!   renamed over the old one.
 //! - **Where the backend has no such cache** (Metal), or the driver lacks
-//!   the feature, or `AURORA_PIPELINE_CACHE=0`, nothing changes: the
+//!   the feature, or `BLOCK_PIPELINE_CACHE=0`, nothing changes: the
 //!   pipelines are made without one, as before.
 
 use parking_lot::{Condvar, Mutex};
@@ -76,9 +76,9 @@ pub fn configure(dir: PathBuf, build: &str) {
     });
 }
 
-/// `AURORA_PIPELINE_CACHE=0` turns the cache off (comparisons).
+/// `BLOCK_PIPELINE_CACHE=0` turns the cache off (comparisons).
 fn wanted() -> bool {
-    std::env::var("AURORA_PIPELINE_CACHE").map_or(true, |v| v.trim() != "0")
+    std::env::var("BLOCK_PIPELINE_CACHE").map_or(true, |v| v.trim() != "0")
 }
 
 /// The device feature to ask for, when the adapter has it.
@@ -210,7 +210,7 @@ pub(crate) fn write_atomic(path: &Path, bytes: &[u8]) -> std::io::Result<()> {
 pub(crate) fn open(device: &wgpu::Device, info: &wgpu::AdapterInfo) {
     LOST.store(false, Ordering::Relaxed);
     if !wanted() {
-        log::info!("pipeline cache: off (AURORA_PIPELINE_CACHE=0)");
+        log::info!("pipeline cache: off (BLOCK_PIPELINE_CACHE=0)");
         return;
     }
     if !device.features().contains(wgpu::Features::PIPELINE_CACHE) {
@@ -273,7 +273,7 @@ pub(crate) fn open(device: &wgpu::Device, info: &wgpu::AdapterInfo) {
     // checks the VkPipelineCache header (vendor, device, cache UUID) too.
     let cache = unsafe {
         device.create_pipeline_cache(&wgpu::PipelineCacheDescriptor {
-            label: Some("aurora pipelines"),
+            label: Some("block pipelines"),
             data,
             fallback: true,
         })
@@ -327,7 +327,7 @@ fn start_saver() {
     if STARTED.swap(true, Ordering::Relaxed) {
         return;
     }
-    let spawned = std::thread::Builder::new().name("aurora-pipeline-cache".into()).spawn(|| {
+    let spawned = std::thread::Builder::new().name("block-pipeline-cache".into()).spawn(|| {
         loop {
             {
                 let mut dirty = DIRTY.lock();
@@ -522,7 +522,7 @@ mod tests {
 
     #[test]
     fn the_write_replaces_the_file_whole() {
-        let dir = std::env::temp_dir().join(format!("aurora-pipeline-cache-test-{}", std::process::id()));
+        let dir = std::env::temp_dir().join(format!("block-pipeline-cache-test-{}", std::process::id()));
         let path = dir.join("sub").join("cache.bin");
         write_atomic(&path, b"first version, longer than the second").expect("written");
         write_atomic(&path, b"second").expect("replaced");

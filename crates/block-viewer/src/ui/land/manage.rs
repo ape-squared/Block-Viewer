@@ -1,4 +1,4 @@
-//! "Manage" of the Aurora About Land (`aurora.rs`): every setting of
+//! "Manage" of the Block About Land (`block.rs`): every setting of
 //! Firestorm's General, Options, Objects, Media, Sound, Access, Experiences
 //! and Environment tabs, grouped by what one wants to do, each group with a
 //! sentence that says what it is for and its rarer options folded. The rules
@@ -9,7 +9,7 @@
 //! What the agent may not change is shown greyed, with the power it lacks.
 
 use super::access::AccessState;
-use super::aurora::semibold;
+use super::block::semibold;
 use super::dialogs::{Confirm, SellForm};
 use super::options::{self, Shown};
 use super::{Dialog, LandUi, View};
@@ -955,7 +955,7 @@ fn visibility(
             .find(|c| c.0 == parcel.category)
             .map_or(block_i18n::tr!("status-other"), |c| c.1);
         editable(ui, search_on, |ui| {
-            egui::ComboBox::from_id_salt("land_category_aurora")
+            egui::ComboBox::from_id_salt("land_category_block")
                 .selected_text(current)
                 .width(170.0)
                 .show_ui(ui, |ui| {
@@ -1013,7 +1013,7 @@ fn visibility(
                 Some(t) => {
                     let [w, h] = t.size();
                     egui::Image::from_texture(egui::load::SizedTexture::new(t.id(), size))
-                        .uv(super::aurora::cover_uv(w, h, size))
+                        .uv(super::block::cover_uv(w, h, size))
                         .corner_radius(ui.visuals().window_corner_radius)
                         .paint_at(ui, rect);
                 }
@@ -1288,7 +1288,7 @@ fn parcel_media(
         };
         ui.label(RichText::new(mime).size(11.5).color(p.muted));
         editable(ui, can, |ui| {
-            egui::ComboBox::from_id_salt("land_media_type_aurora")
+            egui::ComboBox::from_id_salt("land_media_type_block")
                 .selected_text(w.map_or("", |w| w.1))
                 .width(150.0)
                 .show_ui(ui, |ui| {
@@ -1929,7 +1929,7 @@ mod tests {
     fn member(group: Uuid, powers: u64) -> GroupMembership {
         GroupMembership {
             id: group,
-            name: "Aurora Builders".into(),
+            name: "Block Builders".into(),
             insignia: Uuid::nil(),
             powers,
             accept_notices: true,

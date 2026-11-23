@@ -226,12 +226,12 @@ make room for another. Opening a file needs no draft, so Import and Open
 project also work before the first animation is created. Save `.anim` files to keep exported clips
 before leaving the viewer. Outside trimmed keys and disabled tracks remain
 in the session draft; an exported file contains the selected active clip.
-Editable `.auroraanim` projects preserve the full timeline and keys, use a
+Editable `.blockanim` projects preserve the full timeline and keys, use a
 64 MiB file-size limit, and reject an oversized save rather than writing a
 project that cannot be reopened. Projects and `.anim` files are written to a
 temporary file beside the target and renamed over it, so a failed save leaves
 the previous file whole.
-Opening `.anim`, `.bvh` or `.auroraanim` files reads at most 64 MiB before
+Opening `.anim`, `.bvh` or `.blockanim` files reads at most 64 MiB before
 decoding, matching the parser limits.
 
 ## Save or import
@@ -258,7 +258,7 @@ skeleton, with the rest pose as its first, reference frame: it opens in Blender
 (File > Import > Motion Capture) and imports back here to the same motion. A
 BVH file has no place for priorities, loop points, ease, hand pose or
 expression: they stay in the `.anim` and the project only.
-**Prepare .anim import** opens Aurora's existing animation import inspector
+**Prepare .anim import** opens Block's existing animation import inspector
 with the same native bytes. Review its preview, destination, name and
 permissions, then use the normal upload action. Preparing the inspector does
 not start an upload or payment. The pose editor closes for this review and
@@ -301,7 +301,7 @@ in one timeline:
    position and turn from A, for the sit targets. **Prepare .anim import**
    uploads the person being edited.
 
-A request reaches Person B only if they wear the Aurora bridge, stand in
+A request reaches Person B only if they wear the Block bridge, stand in
 your region, and their posing privacy allows you (Friends by default): the
 Clip page says when your own bridge is not ready.
 
@@ -312,7 +312,7 @@ among the drafts.
 
 ## Offline validation
 
-`AURORA_DEMO_IK_EDIT=clip` creates head rotation and pelvis position keys at
+`BLOCK_DEMO_IK_EDIT=clip` creates head rotation and pelvis position keys at
 frames 0, 30 and 60, then displays frame 15 on the Bone page, the head
 selected in the picker. `clip-frame` displays frame 45;
 `clip-priority` shows the per-bone priorities on Tracks;

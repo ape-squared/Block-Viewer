@@ -54,7 +54,7 @@ impl App {
         }
     }
 
-    /// `AURORA_DEMO_MOVEMENT=passage-refused`: on closed land, facing
+    /// `BLOCK_DEMO_MOVEMENT=passage-refused`: on closed land, facing
     /// someone else's object, the press is refused by the same rule and
     /// message as on a grid.
     pub(super) fn passage_refused_demo(&mut self) {

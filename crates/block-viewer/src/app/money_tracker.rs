@@ -1,5 +1,5 @@
 //! Application bridge for the money tracker (`ui/money_tracker.rs`): what it
-//! records and when, the look chosen in Preferences › Aurora, what it asks
+//! records and when, the look chosen in Preferences › Block, what it asks
 //! for, and the demo's scenario; with the demo of a direct payment's card in
 //! the conversation with the other resident (`world/payments.rs`).
 
@@ -7,7 +7,7 @@ use super::*;
 use block_net::trans::{GIFT, GROUP_JOIN, OBJECT_SALE, PAY_OBJECT, UPLOAD_CHARGE};
 use ui::money_tracker::{Party, TrackerAction};
 
-/// `AURORA_DEMO_PAYMENT=earning`: a payment this often.
+/// `BLOCK_DEMO_PAYMENT=earning`: a payment this often.
 const EARNING_EVERY: std::time::Duration = std::time::Duration::from_secs(10);
 
 /// L$ of an `earning` payment, 20 to 300, from a random number.
@@ -57,12 +57,12 @@ impl App {
         }
     }
 
-    /// AURORA_DEMO_MONEY_TRACKER=aurora|legacy|select|undo|empty
+    /// BLOCK_DEMO_MONEY_TRACKER=aurora|legacy|select|undo|empty
     /// (docs/TESTING.md): the window opened on a session of payments, in
-    /// the look named (Aurora by default), two rows selected or just
+    /// the look named (Block by default), two rows selected or just
     /// removed, or nothing recorded yet.
     pub(super) fn demo_money_tracker(&mut self) {
-        let Ok(mode) = std::env::var("AURORA_DEMO_MONEY_TRACKER") else {
+        let Ok(mode) = std::env::var("BLOCK_DEMO_MONEY_TRACKER") else {
             return;
         };
         self.world.apply(NetEvent::Balance(12480));
@@ -106,7 +106,7 @@ impl App {
         }
     }
 
-    /// The payments of `AURORA_DEMO_PAYMENT=balance` as their times come,
+    /// The payments of `BLOCK_DEMO_PAYMENT=balance` as their times come,
     /// and those of `earning`, for as long as the viewer runs.
     pub(super) fn demo_gains_tick(&mut self, now: Instant) {
         if self.demo_earning.is_some_and(|next| now >= next) {
@@ -160,7 +160,7 @@ impl App {
         }
     }
 
-    /// AURORA_DEMO_PAYMENT=card|legacy|sent|sent-open|sent-friend|friend|anyone|off|sale|balance|earning
+    /// BLOCK_DEMO_PAYMENT=card|legacy|sent|sent-open|sent-friend|friend|anyone|off|sale|balance|earning
     /// (docs/TESTING.md): a resident's conversation open on their message,
     /// then their two payments as cards, in the bubbles or the legacy lines;
     /// `sent`: then ours to them (the demo keeps no transcript: what comes
@@ -176,7 +176,7 @@ impl App {
     /// an object paid, a direct payment, a purchase or L$ bought, with the
     /// saved switches.
     pub(super) fn demo_payment(&mut self) {
-        let Ok(mode) = std::env::var("AURORA_DEMO_PAYMENT") else {
+        let Ok(mode) = std::env::var("BLOCK_DEMO_PAYMENT") else {
             return;
         };
         use crate::demo::{DEMO_FRIEND, DEMO_NOVA, DEMO_TESS};

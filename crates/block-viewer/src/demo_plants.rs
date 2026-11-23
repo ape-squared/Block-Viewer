@@ -1,4 +1,4 @@
-//! AURORA_DEMO_PLANTS: Linden trees and grass (scene/plants.rs).
+//! BLOCK_DEMO_PLANTS: Linden trees and grass (scene/plants.rs).
 //!
 //! - `1` / `near`: the 21 tree species in three rows 26, 42 and 58 m along
 //!   the start view (species 0 to 6 in the nearest row, left to right), and
@@ -8,7 +8,7 @@
 //! - `dense`: about 600 trees of every species and 400 grass tufts over
 //!   the land around and ahead of the start, for the cost of a forest.
 //!
-//! From the start position, or AURORA_DEMO_POS="x,y" (an open place:
+//! From the start position, or BLOCK_DEMO_POS="x,y" (an open place:
 //! "80,100"). The species textures are not fetched: stand-ins drawn here
 //! under their ids (bark on the left half, leaves in the top right
 //! quarter, as the species textures are laid out).
@@ -35,7 +35,7 @@ enum Mode {
 }
 
 fn mode() -> Option<Mode> {
-    match std::env::var("AURORA_DEMO_PLANTS").ok()?.trim() {
+    match std::env::var("BLOCK_DEMO_PLANTS").ok()?.trim() {
         "1" | "near" => Some(Mode::Near),
         "far" => Some(Mode::Far),
         "dense" => Some(Mode::Dense),
@@ -79,7 +79,7 @@ pub fn events() -> Vec<NetEvent> {
     };
     let look = Vec3::new(0.8, 0.4, 0.0).normalize();
     let across = Vec3::new(-look.y, look.x, 0.0);
-    let eye = std::env::var("AURORA_DEMO_POS")
+    let eye = std::env::var("BLOCK_DEMO_POS")
         .ok()
         .map(|v| v.split(',').filter_map(|s| s.trim().parse::<f32>().ok()).collect::<Vec<_>>())
         .filter(|p| p.len() >= 2)
@@ -219,7 +219,7 @@ fn stand_in(id: &Uuid) -> Option<(Look, [u8; 3], [u8; 3])> {
 /// with this scenario: they are real asset ids on a grid.
 fn active() -> bool {
     static ACTIVE: std::sync::OnceLock<bool> = std::sync::OnceLock::new();
-    *ACTIVE.get_or_init(|| std::env::var_os("AURORA_DEMO").is_some() && mode().is_some())
+    *ACTIVE.get_or_init(|| std::env::var_os("BLOCK_DEMO").is_some() && mode().is_some())
 }
 
 /// Whether `id` is a stand-in species texture (they get mips).

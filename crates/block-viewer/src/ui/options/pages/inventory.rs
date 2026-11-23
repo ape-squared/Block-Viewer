@@ -1,6 +1,6 @@
 //! Preferences › Inventory: the settings of the Inventory window's own
 //! preferences (`ui::inventory::controls::preferences`), the order of its
-//! main tabs, what follows a kept offer, and Aurora's filing of the items
+//! main tabs, what follows a kept offer, and Block's filing of the items
 //! received.
 
 use super::super::cx::{Cx, field};

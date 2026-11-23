@@ -3,7 +3,7 @@
 //!
 //! The Legacy Viewer keeps the screen for a fixed `TeleportArrivalDelay`
 //! (2 s) after AgentMovementComplete (TELEPORT_START_ARRIVAL, then
-//! TELEPORT_ARRIVING in llviewerdisplay.cpp), whatever has loaded. Aurora
+//! TELEPORT_ARRIVING in llviewerdisplay.cpp), whatever has loaded. Block
 //! leaves as soon as the ground is there and a short settling time has
 //! passed, then finishes the bar in a quick glide instead of easing slowly
 //! towards it: the region shows about a second sooner, never before its
@@ -24,7 +24,7 @@ pub const TERRAIN_READY: f32 = 0.97;
 pub const FINISH: Duration = Duration::from_millis(150);
 
 /// The screen's behaviour before 2026-10-17, kept to compare
-/// (`AURORA_TP_SCREEN=legacy`, `alt` one teleport in two).
+/// (`BLOCK_TP_SCREEN=legacy`, `alt` one teleport in two).
 const OLD_SETTLE: Duration = Duration::from_millis(800);
 const OLD_RATE: f32 = 2.6;
 const OLD_DONE: f32 = 0.985;
@@ -37,13 +37,13 @@ pub enum Mode {
 }
 
 impl Mode {
-    /// The screen of the next teleport: `AURORA_TP_SCREEN=legacy` the old
+    /// The screen of the next teleport: `BLOCK_TP_SCREEN=legacy` the old
     /// one, `alt` the old one every other teleport (starting with it),
     /// otherwise quick.
     pub fn for_next_teleport() -> Mode {
         static TELEPORTS: std::sync::atomic::AtomicU32 = std::sync::atomic::AtomicU32::new(0);
         let count = TELEPORTS.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
-        Mode::from_setting(std::env::var("AURORA_TP_SCREEN").ok().as_deref(), count)
+        Mode::from_setting(std::env::var("BLOCK_TP_SCREEN").ok().as_deref(), count)
     }
 
     fn from_setting(value: Option<&str>, count: u32) -> Mode {

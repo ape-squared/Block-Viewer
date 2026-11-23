@@ -213,7 +213,7 @@ pub enum JobResult {
 /// Background jobs give way to the frame: while decodes keep every core
 /// busy (arrival in a region), the main thread, the workers that help it
 /// (frame_par.rs) and the encoder threads would otherwise wait for a core
-/// behind them (frames of 2.4 ms stretched to 5–8 ms in AURORA_DEMO_STREAM).
+/// behind them (frames of 2.4 ms stretched to 5–8 ms in BLOCK_DEMO_STREAM).
 /// Idle cores still go to the jobs, so loading is not slower.
 pub(crate) fn below_normal_priority() {
     #[cfg(windows)]
@@ -231,7 +231,7 @@ pub(crate) fn below_normal_priority() {
     // (a step of nice is ~1.25× less weight). +10 over the nice the thread
     // was created with leaves it about a tenth of a frame thread's weight
     // (110 / 1024), near Windows' "frame first" without starving the
-    // decodes (the AURORA_DEMO_STREAM arrival loads in the same time).
+    // decodes (the BLOCK_DEMO_STREAM arrival loads in the same time).
     // Lowering needs no privilege, unlike the frame's raise, which Linux
     // leaves out (frame_priority.rs). With the default autogroups the nice
     // value only weighs threads of the same session: the jobs give way to
@@ -332,7 +332,7 @@ fn start_trash_thread() -> Sender<Box<dyn Send>> {
     let (tx, rx) = crossbeam_channel::unbounded::<Box<dyn Send>>();
     // (normal priority: behind the decode jobs it could fall behind what the
     // main thread hands over)
-    let spawned = std::thread::Builder::new().name("aurora-trash".into()).spawn(move || {
+    let spawned = std::thread::Builder::new().name("block-trash".into()).spawn(move || {
         for garbage in rx {
             drop(garbage);
         }
@@ -350,7 +350,7 @@ impl Jobs {
         // (without a panic handler, rayon ends the process when a job panics)
         let pool = rayon::ThreadPoolBuilder::new()
             .num_threads(threads.saturating_sub(2).max(1))
-            .thread_name(|i| format!("aurora-jobs-{i}"))
+            .thread_name(|i| format!("block-jobs-{i}"))
             .start_handler(|_| below_normal_priority())
             .panic_handler(job_stopped)
             .build()
@@ -579,11 +579,11 @@ pub fn volume_to_faces(mesh: &block_prim::VolumeMesh) -> (Vec<FaceData>, Vec3, V
 }
 
 /// Mesh faces draw their triangles in the Legacy Viewer's order
-/// (`block_assets::legacy_triangle_order`); `AURORA_MESH_ORDER=asset` keeps
+/// (`block_assets::legacy_triangle_order`); `BLOCK_MESH_ORDER=asset` keeps
 /// the order of the asset, as before (#935). Read once.
 pub fn legacy_triangle_order() -> bool {
     static LEGACY: std::sync::OnceLock<bool> = std::sync::OnceLock::new();
-    *LEGACY.get_or_init(|| std::env::var("AURORA_MESH_ORDER").map_or(true, |v| v.trim() != "asset"))
+    *LEGACY.get_or_init(|| std::env::var("BLOCK_MESH_ORDER").map_or(true, |v| v.trim() != "asset"))
 }
 
 /// Convert decoded mesh faces, optionally applying a transform (bind shape)
@@ -744,7 +744,7 @@ mod tests {
             let elsewhere = elsewhere.clone();
             jobs.spawn_many((0..items).collect(), move |_| {
                 // on the background pool, never on the frame's (frame_par.rs)
-                if !std::thread::current().name().is_some_and(|n| n.starts_with("aurora-jobs-")) {
+                if !std::thread::current().name().is_some_and(|n| n.starts_with("block-jobs-")) {
                     elsewhere.fetch_add(1, Ordering::Relaxed);
                 }
                 let local = 0u8;

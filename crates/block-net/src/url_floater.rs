@@ -5,7 +5,7 @@
 //! Only the `web_content` window exists for it; other names are logged and
 //! dropped, as there. Its `floater_params` (`trusted_content`,
 //! `show_page_title`, `allow_address_entry`) are placeholders the server
-//! does not validate yet: Aurora reads none of them, so a page opened this
+//! does not validate yet: Block reads none of them, so a page opened this
 //! way never gets more trust than any other link.
 
 /// GenericMessage method (MESSAGE_URL_FLOATER).

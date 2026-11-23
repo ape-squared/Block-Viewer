@@ -649,7 +649,7 @@ mod tests {
         assert_eq!(binding.rest, expected.rest);
     }
     fn scene(library: Arc<AvatarLibrary>) -> Scene {
-        Scene::new(std::env::temp_dir().join(format!("aurora-shape-hints-{}", Uuid::new_v4())), library)
+        Scene::new(std::env::temp_dir().join(format!("block-shape-hints-{}", Uuid::new_v4())), library)
     }
 
     #[test]

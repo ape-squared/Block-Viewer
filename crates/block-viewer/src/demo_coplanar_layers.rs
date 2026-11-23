@@ -1,4 +1,4 @@
-//! AURORA_DEMO_COPLANAR_LAYERS: a worn layer lying exactly on the skin.
+//! BLOCK_DEMO_COPLANAR_LAYERS: a worn layer lying exactly on the skin.
 //!
 //! One rigged mesh, a plate of eight horizontal strips hanging behind our
 //! avatar's back (seen from the start camera), worn sixteen times: for each
@@ -24,7 +24,7 @@ const STRIPS: usize = 8;
 const ACROSS: usize = 6;
 
 pub fn enabled() -> bool {
-    std::env::var_os("AURORA_DEMO_COPLANAR_LAYERS").is_some()
+    std::env::var_os("BLOCK_DEMO_COPLANAR_LAYERS").is_some()
 }
 
 /// The plate where the uploader had it: 0.5 m wide and 0.8 m high, 0.55 m

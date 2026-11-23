@@ -1,4 +1,4 @@
-//! The friends' online / offline toasts of Aurora's notification center:
+//! The friends' online / offline toasts of Block's notification center:
 //! small toasts apart from the bell (never a card nor a count), at one of
 //! six places the user chooses (Preferences › Chat › Toasts,
 //! `Settings::presence_position`), top right by default.

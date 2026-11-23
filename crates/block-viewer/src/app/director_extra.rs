@@ -276,7 +276,7 @@ impl App {
         crate::director_keys::sun(&self.director.d, self.world.eep.unturned_sun())
     }
 
-    /// AURORA_DEMO_DIRECTOR=capture: a path flown by hand around our avatar
+    /// BLOCK_DEMO_DIRECTOR=capture: a path flown by hand around our avatar
     /// (a slow circle that speeds up, the view on the avatar, a small shake),
     /// taken twenty times a second and made keyframes as Stop does; with
     /// `anim` the first keyframe also starts the first animation of the

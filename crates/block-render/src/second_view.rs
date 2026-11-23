@@ -1,6 +1,6 @@
 //! The second camera: a small window that keeps our avatar in view (the
 //! face, the whole body, the back) while the main camera looks elsewhere.
-//! Aurora's own: the Legacy Viewer has no such view. The idea comes from
+//! Block's own: the Legacy Viewer has no such view. The idea comes from
 //! SnowPastel's multi-view-viewer (an experimental viewer built on the
 //! Second Life viewer, LGPL 2.1); none of its code is used here.
 //!

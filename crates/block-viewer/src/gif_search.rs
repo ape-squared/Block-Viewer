@@ -2,9 +2,9 @@
 //! KLIPY, their addresses, their answers, the small animations of the
 //! picker's tiles. The picker itself is `ui/chat/gif_picker.rs`.
 //!
-//! An Aurora feature: the Legacy Viewer has no GIF search. What a GIF sends
+//! A Block feature: the Legacy Viewer has no GIF search. What a GIF sends
 //! is its link, a normal chat message: other viewers show the link, and
-//! Aurora's link previews (`link_preview.rs`) play it.
+//! Block's link previews (`link_preview.rs`) play it.
 //!
 //! Both services ask, in their terms of use:
 //! * the requests leave the user's own application, never a proxy or a
@@ -775,7 +775,7 @@ pub mod demo {
                 Gif {
                     provider,
                     id,
-                    title: format!("Aurora demo {}", n % 100),
+                    title: format!("Block demo {}", n % 100),
                     thumb: media(provider, n, "small"),
                     thumb_size: [100, 75 + (n % 3) * 15],
                     send: media(provider, n, "send"),

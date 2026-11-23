@@ -1,5 +1,5 @@
 //! LLScriptEdCore menus / button bar and LLScriptEditor gutter (Firestorm,
-//! LGPL 2.1). Aurora keeps its flat widgets and always-visible experience list.
+//! LGPL 2.1). Block keeps its flat widgets and always-visible experience list.
 
 use super::{
     Action, Editor,

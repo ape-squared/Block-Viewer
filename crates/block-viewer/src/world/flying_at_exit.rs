@@ -17,7 +17,7 @@ pub const FILE: &str = "flying_at_exit.json";
 /// the file at the next login, tried again (`save_retry`) and once more at
 /// exit. The Legacy Viewer's FlyingAtExit is a setting, saved with the
 /// others when the viewer closes.
-static OWED: crate::save_retry::OwedFiles = crate::save_retry::OwedFiles::new("aurora-flying-at-exit", "flying state at logout");
+static OWED: crate::save_retry::OwedFiles = crate::save_retry::OwedFiles::new("block-flying-at-exit", "flying state at logout");
 
 /// The saved state; false when there is none or it cannot be read.
 pub fn load(path: &Path) -> bool {
@@ -59,7 +59,7 @@ mod tests {
 
     #[test]
     fn the_flight_at_logout_comes_back_for_the_same_account_only() {
-        let root = std::env::temp_dir().join(format!("aurora-flying-{}", uuid::Uuid::new_v4()));
+        let root = std::env::temp_dir().join(format!("block-flying-{}", uuid::Uuid::new_v4()));
         let first = root.join("first").join(FILE);
         let second = root.join("second").join(FILE);
         // nothing saved yet: walking
@@ -81,7 +81,7 @@ mod tests {
     /// once the folder takes writes.
     #[test]
     fn a_refused_write_keeps_the_flight_for_the_next_login() {
-        let root = std::env::temp_dir().join(format!("aurora-flying-refused-{}", uuid::Uuid::new_v4()));
+        let root = std::env::temp_dir().join(format!("block-flying-refused-{}", uuid::Uuid::new_v4()));
         let account = root.join("account");
         std::fs::create_dir_all(&root).unwrap();
         std::fs::write(&account, b"in the way").unwrap();

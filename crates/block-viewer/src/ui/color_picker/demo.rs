@@ -4,7 +4,7 @@ use egui::{Event, Modifiers, Pos2};
 
 pub fn mode() -> Option<&'static str> {
     static MODE: std::sync::OnceLock<Option<String>> = std::sync::OnceLock::new();
-    MODE.get_or_init(|| std::env::var("AURORA_DEMO_COLOR_PICKER").ok()).as_deref()
+    MODE.get_or_init(|| std::env::var("BLOCK_DEMO_COLOR_PICKER").ok()).as_deref()
 }
 
 pub fn events(ctx: &egui::Context, picker: &ColorPicker, frame: u64) -> Vec<Event> {

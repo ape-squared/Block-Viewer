@@ -16,7 +16,7 @@ struct Case {
 #[test]
 fn portal_aperture_on_gpu_keeps_side_and_corner_geometry_and_matches_picking() {
     let object = include_str!("shaders/object.wgsl").replace("\r\n", "\n");
-    let cut = &object[object.find("fn portal_clip(").unwrap()..object.find("// One analytically bounded Aurora surface").unwrap()];
+    let cut = &object[object.find("fn portal_clip(").unwrap()..object.find("// One analytically bounded Block surface").unwrap()];
     // Exercise the actual GTAO entry points too: a colour-only cut leaves
     // invisible limbs in occlusion if a new depth/normal pass omits it.
     let mut normal_passes = String::new();

@@ -1,5 +1,5 @@
 //! The build floater (LLFloaterTools, floater_tools.xml, Firestorm) in the
-//! Aurora skin: five editing sections and five tools in one navigation
+//! Block skin: five editing sections and five tools in one navigation
 //! rail. General holds object information and ownership permissions.
 //! The five object sections share a Build title; edit selection/actions belong
 //! to the main panel. The title bar folds it away (FSToolboxExpanded).
@@ -82,7 +82,7 @@ pub enum Request {
     Profile(Uuid),
     GroupProfile(Uuid),
     /// Read a transform vector from the system clipboard (0 position, 1 size,
-    /// 2 rotation); shared by Aurora's actions and the Legacy "p" button.
+    /// 2 rotation); shared by Block's actions and the Legacy "p" button.
     PasteVector(usize),
     CopyKeys,
     Script {
@@ -420,7 +420,7 @@ pub fn show(
     let preview = egui::Id::unique((INSPECTOR_ID, "compact-preview"));
     if env.demo && !ctx.data(|d| d.get_temp::<bool>(preview).unwrap_or(false)) {
         ctx.data_mut(|d| d.insert_temp(preview, true));
-        let mode = std::env::var("AURORA_DEMO_BUILD_TAB").unwrap_or_default();
+        let mode = std::env::var("BLOCK_DEMO_BUILD_TAB").unwrap_or_default();
         if mode.split('+').any(|mode| mode == "folded") {
             s.transform_expanded = false;
         }
@@ -445,7 +445,7 @@ pub fn show(
         .x;
     s.layout.normalize();
     if !s.legacy_window {
-        // Aurora uses the floater's standard minimize/restore button.
+        // Block uses the floater's standard minimize/restore button.
         s.expanded = true;
     }
     if s.legacy_window && tool.tab == 1 {

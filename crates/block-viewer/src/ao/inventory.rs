@@ -1,5 +1,5 @@
 //! AOEngine::{tick, update, reloadStateAnimations, parseNotecard, saveSet,
-//! saveState, addAnimation}: Aurora-owned AO folders using the legacy format.
+//! saveState, addAnimation}: Block-owned AO folders using the legacy format.
 
 use super::*;
 
@@ -10,9 +10,9 @@ use block_net::inventory::operations::{Mutation, Operation};
 use block_net::outfits::OutfitLink;
 use std::collections::HashSet;
 
-pub const FOLDER: &str = "Aurora AO";
+pub const FOLDER: &str = "Block AO";
 pub(super) const OLD_FOLDER: &str = "AO";
-const STAGING: &str = "Aurora AO (Legacy Viewer import)";
+const STAGING: &str = "Block AO (Legacy Viewer import)";
 // Existing interrupted imports must still prevent an automatic second copy.
 const OLD_STAGING: &str = "AO (Firestorm import)";
 /// ROOT_AO_FOLDER (Alchemy indra/newview/aoengine.h): the same set format as
@@ -32,7 +32,7 @@ impl Source {
     /// Inventory path shown to the user; folder names are not translated.
     pub fn path(self) -> &'static str {
         match self {
-            Self::Native => "#Aurora/Aurora AO",
+            Self::Native => "#Aurora/Block AO",
             Self::Legacy => "#Firestorm/#AO",
             Self::Alchemy => ALCHEMY_FOLDER,
         }
@@ -221,7 +221,7 @@ impl Catalog {
                     continue;
                 };
                 // Read actual legacy swim slots, including their cycles and
-                // originals. Aurora-only water slots are not source mappings.
+                // originals. Block-only water slots are not source mappings.
                 if source != Source::Native && state.swimming() && !State::LEGACY_VIEWER_SWIMMING.contains(&state) {
                     continue;
                 }
@@ -528,7 +528,7 @@ pub fn add(inv: &Inventory, set: &Set, state: State, item: Uuid, container: Opti
 /// animations with ACCEPT_YES_MULTI, indra/newview/ao.cpp). As
 /// LLToolDragAndDrop::dragOrDrop does, the whole batch is refused when one
 /// entry is not an animation (a folder, a notecard…). The Legacy Viewer adds
-/// them in its selection order; Aurora's selection keeps none, so they come
+/// them in its selection order; Block's selection keeps none, so they come
 /// in name order, as the inventory lists them. One request links them all,
 /// numbered after the entries already there, and creates a missing state
 /// folder once (AOEngine::addAnimation queues the drops for that).

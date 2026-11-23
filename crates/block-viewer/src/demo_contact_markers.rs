@@ -1,9 +1,9 @@
-//! Contact-set markers (AURORA_DEMO_CONTACT_MARKERS=region|parcel|fade|body,
+//! Contact-set markers (BLOCK_DEMO_CONTACT_MARKERS=region|parcel|fade|body,
 //! docs/TESTING.md): three sets, two with a symbol and one with a plain
 //! dot, Family in circles and the others in diamonds, and four residents
 //! known only by their coarse location: one circling the region, one behind
 //! the camera, one far to the side and one of unknown altitude. With
-//! AURORA_DEMO_TAGS, plate residents join the sets.
+//! BLOCK_DEMO_TAGS, plate residents join the sets.
 
 use super::HANDLE;
 use crate::world::contact_sets::{MarkerScope, MarkerShape, Visuals};
@@ -32,7 +32,7 @@ enum Mode {
 
 fn mode() -> Option<Mode> {
     static MODE: std::sync::OnceLock<Option<Mode>> = std::sync::OnceLock::new();
-    *MODE.get_or_init(|| match std::env::var("AURORA_DEMO_CONTACT_MARKERS").ok()?.trim() {
+    *MODE.get_or_init(|| match std::env::var("BLOCK_DEMO_CONTACT_MARKERS").ok()?.trim() {
         "parcel" => Some(Mode::Parcel),
         "fade" => Some(Mode::Fade),
         "body" => Some(Mode::Body),

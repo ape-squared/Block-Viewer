@@ -19,7 +19,7 @@
 //!   (startTeleportRequest's TELEPORT_PENDING, `maturity.rs`).
 //!
 //! The Legacy Viewer falls back to the `_Notify` tips when a prompt is
-//! ignored; Aurora's notifications cannot be ignored, so the prompt is
+//! ignored; Block's notifications cannot be ignored, so the prompt is
 //! always shown.
 
 use super::{World, notifications};

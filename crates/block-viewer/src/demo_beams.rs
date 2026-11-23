@@ -1,4 +1,4 @@
-//! Offline selection and give beams (`AURORA_DEMO_BEAMS`): another avatar
+//! Offline selection and give beams (`BLOCK_DEMO_BEAMS`): another avatar
 //! edits a cube, its beam sent again every 0.25 s like the Legacy Viewer's
 //! idleUpdateTractorBeam, and gives to a second one now and then; `self`:
 //! we edit a cube of our own, `legacy`: the first with the Legacy look;

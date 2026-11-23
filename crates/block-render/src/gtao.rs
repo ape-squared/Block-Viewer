@@ -6,25 +6,25 @@
 //! Legacy occlusion goes (`screen_ao` in common.wgsl), so the method only
 //! changes the occlusion term.
 //!
-//! `AURORA_AO=legacy|gtao|alt` overrides the method of the settings for a
+//! `BLOCK_AO=legacy|gtao|alt` overrides the method of the settings for a
 //! comparison; `alt` switches every second, both methods kept ready;
 //! `gtao:<0-3>` and `alt:<0-3>` also choose GTAO's quality.
 //!
 //! The result also carries XeGTAO's bent normal, from which the shading
 //! takes a specular occlusion (`specular_occlusion` in common.wgsl): the
 //! reflections fade in the creases and recesses GTAO finds. It comes with
-//! GTAO; `AURORA_GTAO_SPECULAR=0|1|alt` turns it off, on (the default) or
+//! GTAO; `BLOCK_GTAO_SPECULAR=0|1|alt` turns it off, on (the default) or
 //! on every other second, to compare.
 //!
 //! XeGTAO is meant to run under TAA, which spreads its noise over frames;
-//! Aurora's default anti-aliasing is SMAA, so the occlusion gathers its own
+//! Block's default anti-aliasing is SMAA, so the occlusion gathers its own
 //! frames (`temporal` in gtao.wgsl): the noise moves every frame and each
 //! pixel blends with its reprojected history, which takes the fine grain
 //! out of the penumbra that the 3 x 3 blur alone left. The history lives
 //! with the targets, so new ones (a resize, a quality change, a photo
 //! frame or tile) start again from the current frame, as does a frame
 //! after one without GTAO or without the previous camera.
-//! `AURORA_GTAO_TEMPORAL=0|1|alt` turns it off (the noise fixed again, as
+//! `BLOCK_GTAO_TEMPORAL=0|1|alt` turns it off (the noise fixed again, as
 //! before), on (the default) or on every other second.
 //!
 //! With the screen-space indirect light of Preferences on, `main_bitmask`
@@ -33,7 +33,7 @@
 //! thickness per sample (Therrien et al. 2023), blurred like the occlusion
 //! into `Targets::indirect`, which the shading adds to the diffuse light
 //! (`screen_indirect` in common.wgsl). The occlusion stays the main pass's:
-//! the same image with the light on or off. `AURORA_SSIL=0|1|alt`
+//! the same image with the light on or off. `BLOCK_SSIL=0|1|alt`
 //! overrides the setting (`alt`: on every other second).
 
 use crate::pipeline_cache::CachedPipelines;
@@ -65,7 +65,7 @@ const BENT_BLUR: u32 = 3;
 const INDIRECT_EXTRA_BLUR: u32 = 4;
 /// The accumulation: the current frame's least weight with the motion
 /// vectors (the history then holds about thirty frames) and without them
-/// (`AURORA_GTAO_NORMALS=depth`: about ten, as before them, since what
+/// (`BLOCK_GTAO_NORMALS=depth`: about ten, as before them, since what
 /// moved on its own would trail), the same where the point moves on screen by
 /// a pixel a frame or more (about ten frames: the long history lagged
 /// behind the camera, and the motion hides the grain it quiets), and the
@@ -159,7 +159,7 @@ pub(crate) fn quality_for(level: u8, width: u32, height: u32) -> Quality {
     q
 }
 
-/// `AURORA_AO`: the method forced for a comparison.
+/// `BLOCK_AO`: the method forced for a comparison.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub(crate) enum Override {
     None,
@@ -189,7 +189,7 @@ impl Override {
 
     pub(crate) fn from_env() -> Self {
         static MODE: std::sync::OnceLock<Override> = std::sync::OnceLock::new();
-        *MODE.get_or_init(|| Override::parse(std::env::var("AURORA_AO").ok().as_deref()))
+        *MODE.get_or_init(|| Override::parse(std::env::var("BLOCK_AO").ok().as_deref()))
     }
 
     /// The methods to keep ready for `method` of the settings: (Legacy, GTAO).
@@ -224,7 +224,7 @@ impl Override {
     }
 }
 
-/// `AURORA_GTAO_SPECULAR`: the specular occlusion from GTAO's bent normal.
+/// `BLOCK_GTAO_SPECULAR`: the specular occlusion from GTAO's bent normal.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub(crate) enum SpecularOcclusion {
     On,
@@ -244,7 +244,7 @@ impl SpecularOcclusion {
 
     pub(crate) fn from_env() -> Self {
         static MODE: std::sync::OnceLock<SpecularOcclusion> = std::sync::OnceLock::new();
-        *MODE.get_or_init(|| SpecularOcclusion::parse(std::env::var("AURORA_GTAO_SPECULAR").ok().as_deref()))
+        *MODE.get_or_init(|| SpecularOcclusion::parse(std::env::var("BLOCK_GTAO_SPECULAR").ok().as_deref()))
     }
 
     /// Whether the frame drawn `secs` whole seconds into the session takes
@@ -258,7 +258,7 @@ impl SpecularOcclusion {
     }
 }
 
-/// `AURORA_GTAO_TEMPORAL`: the occlusion's accumulation over the frames.
+/// `BLOCK_GTAO_TEMPORAL`: the occlusion's accumulation over the frames.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub(crate) enum Temporal {
     On,
@@ -278,7 +278,7 @@ impl Temporal {
 
     pub(crate) fn from_env() -> Self {
         static MODE: std::sync::OnceLock<Temporal> = std::sync::OnceLock::new();
-        *MODE.get_or_init(|| Temporal::parse(std::env::var("AURORA_GTAO_TEMPORAL").ok().as_deref()))
+        *MODE.get_or_init(|| Temporal::parse(std::env::var("BLOCK_GTAO_TEMPORAL").ok().as_deref()))
     }
 
     /// Whether the frame drawn `secs` whole seconds into the session
@@ -292,7 +292,7 @@ impl Temporal {
     }
 }
 
-/// `AURORA_GTAO_NORMALS`: the surface normal the occlusion starts from.
+/// `BLOCK_GTAO_NORMALS`: the surface normal the occlusion starts from.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub(crate) enum Normals {
     /// The mesh's smooth normal, which the depth prepass draws beside the
@@ -316,7 +316,7 @@ impl Normals {
 
     pub(crate) fn from_env() -> Self {
         static MODE: std::sync::OnceLock<Normals> = std::sync::OnceLock::new();
-        *MODE.get_or_init(|| Normals::parse(std::env::var("AURORA_GTAO_NORMALS").ok().as_deref()))
+        *MODE.get_or_init(|| Normals::parse(std::env::var("BLOCK_GTAO_NORMALS").ok().as_deref()))
     }
 
     /// Whether the frame drawn `secs` whole seconds into the session reads
@@ -367,7 +367,7 @@ impl History {
     }
 }
 
-/// `AURORA_SSIL`: the screen-space indirect light forced on or off.
+/// `BLOCK_SSIL`: the screen-space indirect light forced on or off.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub(crate) enum Indirect {
     /// As the settings say.
@@ -378,11 +378,11 @@ pub(crate) enum Indirect {
     Alternate,
 }
 
-/// `AURORA_SSIL_INTENSITY`: the indirect light's strength in place of the
+/// `BLOCK_SSIL_INTENSITY`: the indirect light's strength in place of the
 /// setting's (0 to 8).
 pub(crate) fn intensity_override() -> Option<f32> {
     static VALUE: std::sync::OnceLock<Option<f32>> = std::sync::OnceLock::new();
-    *VALUE.get_or_init(|| parse_intensity(std::env::var("AURORA_SSIL_INTENSITY").ok().as_deref()))
+    *VALUE.get_or_init(|| parse_intensity(std::env::var("BLOCK_SSIL_INTENSITY").ok().as_deref()))
 }
 
 fn parse_intensity(v: Option<&str>) -> Option<f32> {
@@ -403,7 +403,7 @@ impl Indirect {
 
     pub(crate) fn from_env() -> Self {
         static MODE: std::sync::OnceLock<Indirect> = std::sync::OnceLock::new();
-        *MODE.get_or_init(|| Indirect::parse(std::env::var("AURORA_SSIL").ok().as_deref()))
+        *MODE.get_or_init(|| Indirect::parse(std::env::var("BLOCK_SSIL").ok().as_deref()))
     }
 
     /// Whether its targets are needed with the setting `on`.

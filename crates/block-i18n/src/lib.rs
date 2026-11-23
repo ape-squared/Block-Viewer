@@ -1,12 +1,12 @@
 //! Shared UI language and Fluent messages, including network notifications.
 //! Selection follows LLUI::getUILanguage (indra/llui/llui.cpp): saved choice,
-//! system language, then English. Aurora has no separate installer language.
+//! system language, then English. Block has no separate installer language.
 //!
 //! Besides the bundled catalogs, the user may load a catalog file of their
 //! own (Preferences › Language and updates). It is read once at startup
 //! (`install_user_catalog`), so a new file applies at the next launch. The
-//! Legacy Viewer has no such choice: it is an Aurora addition, for
-//! translators and for the languages Aurora does not ship yet.
+//! Legacy Viewer has no such choice: it is a Block addition, for
+//! translators and for the languages Block does not ship yet.
 
 use fluent_bundle::concurrent::FluentBundle;
 use fluent_bundle::{FluentArgs, FluentResource};

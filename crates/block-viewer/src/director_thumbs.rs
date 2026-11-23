@@ -1,5 +1,5 @@
 //! The keyframes' thumbnails: a small picture of the view above each
-//! keyframe of the timeline. Aurora's own.
+//! keyframe of the timeline. Block's own.
 //!
 //! The picture is taken when a keyframe is laid or updated: the live view is
 //! that keyframe's view then. The renderer copies it and reads it back

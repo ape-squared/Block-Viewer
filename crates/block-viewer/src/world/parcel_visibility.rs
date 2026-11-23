@@ -1,6 +1,6 @@
 //! Viewer-local parcel isolation. Parcel membership follows
 //! LLViewerParcelMgr::inAgentParcel (indra/newview/llviewerparcelmgr.cpp).
-//! The configurable isolation and connected same-owner parcels are Aurora options.
+//! The configurable isolation and connected same-owner parcels are Block options.
 
 use super::World;
 use block_net::{NetCommand, ParcelInfo, RegionHandle, build::BuildCmd};

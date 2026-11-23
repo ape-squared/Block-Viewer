@@ -1,4 +1,4 @@
-"""Exercise list operators through the real client against an offline Aurora.
+"""Exercise list operators through the real client against an offline Block.
 
 Run in Blender --background --factory-startup --python-exit-code 1 --python
 this_file -- --port 17655 [--save-blend /absolute/path.blend].
@@ -12,8 +12,8 @@ import time
 import bpy
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-import aurora_live
-from aurora_live.client import Client
+import block_live
+from block_live.client import Client
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--port", type=int, default=17655)
@@ -39,7 +39,7 @@ def flush(label, count, settle=1.0):
     deadline = time.monotonic() + 10
     acknowledged = False
     while time.monotonic() < deadline:
-        aurora_live._tick()
+        block_live._tick()
         try:
             while True:
                 reply = replies.get_nowait()
@@ -51,19 +51,19 @@ def flush(label, count, settle=1.0):
         if acknowledged:
             break
         time.sleep(0.02)
-    assert acknowledged, (label, aurora_live._client.state())
+    assert acknowledged, (label, block_live._client.state())
     assert len(sent[-1]["meshes"]) == count, (label, sent[-1])
-    print("AURORA_TRACKING_PHASE={} REVISION={} MESHES={} IMAGES={}".format(
+    print("BLOCK_TRACKING_PHASE={} REVISION={} MESHES={} IMAGES={}".format(
         label, sent[-1]["revision"], count, len(sent[-1]["images"])), flush=True)
     time.sleep(settle)
 
 
-aurora_live.register()
-aurora_live.Client = ObservedClient
+block_live.register()
+block_live.Client = ObservedClient
 try:
     bpy.ops.object.select_all(action="SELECT")
     bpy.ops.object.delete(use_global=False)
-    bpy.ops.aurora.create_sl_rig(with_tshirt=True)
+    bpy.ops.block.create_sl_rig(with_tshirt=True)
     shirt = bpy.context.object
     material = shirt.data.materials[0]
     shader = next(n for n in material.node_tree.nodes if n.type == "BSDF_PRINCIPLED")
@@ -82,11 +82,11 @@ try:
     other.data.materials.clear()
     other.data.materials.append(blue)
     other.select_set(True)
-    bpy.ops.aurora.live_selection()
-    entries = bpy.context.scene.aurora_live.objects
+    bpy.ops.block.live_selection()
+    entries = bpy.context.scene.block_live.objects
     assert len(entries) == 2
-    bpy.context.scene.aurora_live.port = args.port
-    bpy.ops.aurora.live_connect()
+    bpy.context.scene.block_live.port = args.port
+    bpy.ops.block.live_connect()
     flush("initial", 2, 4.5)
     broken = bpy.data.materials.new("Unsupported live material")
     broken.use_nodes = True
@@ -95,14 +95,14 @@ try:
     broken.node_tree.links.new(diffuse.outputs[0], output.inputs["Surface"])
     other.data.materials[0] = broken
     flush("invalid_source_isolated", 1)
-    assert other.name in aurora_live._error and entries[1].error
+    assert other.name in block_live._error and entries[1].error
     shirt.data.vertices[0].co.x += 0.1
     shirt.data.update()
-    aurora_live._dirty = True
+    block_live._dirty = True
     flush("valid_source_still_updates", 1)
     other.data.materials[0] = blue
     flush("repaired_source_returns", 2)
-    assert not aurora_live._error and not entries[1].error
+    assert not block_live._error and not entries[1].error
     entries[0].enabled = False
     flush("pause_first", 1)
     image.pixels.foreach_set([0, 1, 0, 1] * 4)
@@ -113,27 +113,27 @@ try:
     entries[0].enabled = True
     flush("resume_latest", 1)
     assert base64.b64decode(sent[-1]["images"][0]["rgba"])[:3] == b"\x00\xff\x00"
-    bpy.ops.aurora.live_remove(index=0)
+    bpy.ops.block.live_remove(index=0)
     flush("remove", 0)
     assert shirt.name in bpy.context.scene.objects
     other.select_set(False)
     shirt.select_set(True)
-    bpy.ops.aurora.live_selection()
+    bpy.ops.block.live_selection()
     flush("add_again", 1)
     entries[0].enabled = True
     flush("resume_other", 2)
     entries[0].enabled = False
     flush("final_pause", 1)
-    bpy.ops.aurora.live_disconnect()
+    bpy.ops.block.live_disconnect()
     assert len(entries) == 2 and not entries[0].enabled and entries[1].enabled
     for obj in bpy.context.selected_objects:
         obj.select_set(False)
-    bpy.ops.aurora.live_connect()
+    bpy.ops.block.live_connect()
     flush("reconnect_list", 1, 4.5)
-    bpy.ops.aurora.live_disconnect()
+    bpy.ops.block.live_disconnect()
     if args.save_blend:
         image.pack()
         bpy.ops.wm.save_as_mainfile(filepath=str(args.save_blend.resolve()))
 finally:
-    aurora_live.unregister()
-print("AURORA_BLENDER_TRACKING_BRIDGE_OK", flush=True)
+    block_live.unregister()
+print("BLOCK_BLENDER_TRACKING_BRIDGE_OK", flush=True)

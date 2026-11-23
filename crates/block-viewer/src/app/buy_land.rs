@@ -127,7 +127,7 @@ impl App {
         }
     }
 
-    /// AURORA_DEMO_BUY_LAND=<mode>: a balance, the plaza parcel for sale
+    /// BLOCK_DEMO_BUY_LAND=<mode>: a balance, the plaza parcel for sale
     /// and the window on it (docs/TESTING.md).
     pub(super) fn demo_buy_land(&mut self) {
         let Some(mode) = crate::demo::land::buy_scenario() else {
@@ -144,7 +144,7 @@ impl App {
         }
     }
 
-    /// AURORA_DEMO_BUY_PASS=<mode>: the ground menu's "Buy access" where the
+    /// BLOCK_DEMO_BUY_PASS=<mode>: the ground menu's "Buy access" where the
     /// avatar stands, on the plaza parcel (docs/TESTING.md).
     pub(super) fn demo_buy_pass(&mut self) {
         if crate::demo::land::pass_scenario().is_some() {

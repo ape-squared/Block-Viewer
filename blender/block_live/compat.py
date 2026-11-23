@@ -35,4 +35,4 @@ def organize_bones(rig, assignments):
             bone.layers = tuple(index == layers[name] for index in range(32))
             rig.pose.bones[bone.name].bone_group = groups[name]
         data.layers = tuple(index in {layers[name] for name in visible} for index in range(32))
-        rig["aurora_bone_layers"] = layers
+        rig["block_bone_layers"] = layers

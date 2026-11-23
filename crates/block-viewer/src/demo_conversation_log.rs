@@ -1,5 +1,5 @@
 //! Demo of the conversation log (toolbar `conversation_log`), without a
-//! grid nor a file: `AURORA_DEMO_CONVERSATION_LOG=<mode>` fills the log at
+//! grid nor a file: `BLOCK_DEMO_CONVERSATION_LOG=<mode>` fills the log at
 //! frame 590 with entries of the demo's residents and groups (a friend, an
 //! entry with offline messages unread, two groups, a conference, entries
 //! of days and weeks ago) and opens the window at frame 600. Nothing is
@@ -38,7 +38,7 @@ pub enum Mode {
 
 pub fn mode() -> Option<Mode> {
     static MODE: OnceLock<Option<Mode>> = OnceLock::new();
-    *MODE.get_or_init(|| parse(&std::env::var("AURORA_DEMO_CONVERSATION_LOG").ok()?))
+    *MODE.get_or_init(|| parse(&std::env::var("BLOCK_DEMO_CONVERSATION_LOG").ok()?))
 }
 
 fn parse(value: &str) -> Option<Mode> {

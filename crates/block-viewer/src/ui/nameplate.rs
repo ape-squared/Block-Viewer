@@ -8,7 +8,7 @@
 //! The states are those of LLVOAvatar::idleUpdateNameTagText
 //! (indra/newview/llvoavatar.cpp, originally LGPL 2.1): away, do not
 //! disturb, typing, muted, friend, too complex. The presentation is
-//! Aurora's own: Firestorm writes them in a status line above the name.
+//! Block's own: Firestorm writes them in a status line above the name.
 
 use crate::settings::ColorSettings;
 use crate::theme::Palette;
@@ -16,8 +16,8 @@ use egui::{Color32, Pos2, Rect, Vec2};
 use std::collections::{HashMap, HashSet};
 use uuid::Uuid;
 
-pub(crate) mod aurora;
 pub(crate) mod block;
+pub(crate) mod borealis;
 pub(crate) mod combo;
 mod fidget;
 mod linden;
@@ -306,7 +306,7 @@ pub struct Content {
     pub blocked: bool,
     /// This avatar runs Block Viewer (peers list or Block team).
     pub block_viewer: bool,
-    /// A member of the Aurora team or a Linden Lab employee
+    /// A member of the Block team or a Linden Lab employee
     /// (`world::staff`): the plate has its light and its tag (`mark.rs`).
     pub mark: Option<crate::world::staff::Mark>,
     /// The distance to us, when the options show it.
@@ -548,7 +548,7 @@ pub fn layout(level: Level, m: &Metrics, text: &TextSize, badges: usize) -> Layo
 }
 
 /// `layout`, with room for a tag `lead` points wide floating over the top
-/// edge from the text's left (the "Aurora Team" tag): the plate is at
+/// edge from the text's left (the "Block Team" tag): the plate is at
 /// least as wide, and on a full plate its floating badges start past it.
 pub fn layout_with(level: Level, m: &Metrics, text: &TextSize, badges: usize, lead: f32) -> Layout {
     let s = m.scale;
@@ -686,11 +686,11 @@ pub fn overdrive(raw: f32) -> f32 {
     }
 }
 
-/// AURORA_VOICE_LEVEL_LOG=1 (temporary): once a second, the loudest moment
+/// BLOCK_VOICE_LEVEL_LOG=1 (temporary): once a second, the loudest moment
 /// of our own plate's voice in the log, to read a real voice's levels.
 pub fn level_log() -> bool {
     static SET: std::sync::OnceLock<bool> = std::sync::OnceLock::new();
-    *SET.get_or_init(|| std::env::var_os("AURORA_VOICE_LEVEL_LOG").is_some())
+    *SET.get_or_init(|| std::env::var_os("BLOCK_VOICE_LEVEL_LOG").is_some())
 }
 
 /// The loudest moment of one plate's voice over a second, for
@@ -898,12 +898,12 @@ pub struct Plates {
     levels: Vec<Level>,
     glass: Vec<bool>,
     waiting: Vec<Uuid>,
-    /// Preferences › Aurora › "Full plates for friends only".
+    /// Preferences › Block › "Full plates for friends only".
     pub friends_only_full: bool,
     /// Preferences › Avatars › "Tint friends' plates": the friends' color
     /// of Preferences › Colors, read each frame so a new color shows at once.
     pub friend_tint: bool,
-    /// Preferences › Aurora › "Expand a plate on hover".
+    /// Preferences › Block › "Expand a plate on hover".
     pub expand_on_hover: bool,
     /// The avatar whose plate is under the pointer this frame (set by the
     /// viewer from the plates of the last frame, outside the windows).

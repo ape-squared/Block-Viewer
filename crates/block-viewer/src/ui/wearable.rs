@@ -67,12 +67,12 @@ fn texture_drop(ui: &egui::Ui, p: &Palette, world: &World, draft: &Draft, slot: 
     texture
 }
 
-/// `AURORA_DEMO_WEARABLE=<type>:drag|drop` carries a texture onto a row.
+/// `BLOCK_DEMO_WEARABLE=<type>:drag|drop` carries a texture onto a row.
 fn demo_enabled() -> bool {
     static ON: std::sync::OnceLock<bool> = std::sync::OnceLock::new();
     *ON.get_or_init(|| {
-        std::env::var("AURORA_DEMO").as_deref() == Ok("1")
-            && std::env::var("AURORA_DEMO_WEARABLE").is_ok_and(|mode| mode.ends_with(":drag") || mode.ends_with(":drop"))
+        std::env::var("BLOCK_DEMO").as_deref() == Ok("1")
+            && std::env::var("BLOCK_DEMO_WEARABLE").is_ok_and(|mode| mode.ends_with(":drag") || mode.ends_with(":drop"))
     })
 }
 

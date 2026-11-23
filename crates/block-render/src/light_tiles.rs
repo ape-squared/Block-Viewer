@@ -43,7 +43,7 @@ const MARGIN_PX: f32 = 2.0;
 pub(crate) const NEAREST: f32 = 1e-3;
 
 /// Where the shaders find the lights of a fragment
-/// (AURORA_LIGHT_TILES; the image is the same).
+/// (BLOCK_LIGHT_TILES; the image is the same).
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum LightCulling {
     /// In the sets of its screen tile and depth (the default).
@@ -61,7 +61,7 @@ pub enum LightCulling {
 impl LightCulling {
     pub fn from_env() -> LightCulling {
         static MODE: std::sync::OnceLock<LightCulling> = std::sync::OnceLock::new();
-        *MODE.get_or_init(|| match std::env::var("AURORA_LIGHT_TILES").as_deref().map(str::trim) {
+        *MODE.get_or_init(|| match std::env::var("BLOCK_LIGHT_TILES").as_deref().map(str::trim) {
             Ok("0") => LightCulling::All,
             Ok("alt") => LightCulling::Alternate,
             Ok("check") => LightCulling::Check,

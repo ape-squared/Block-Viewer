@@ -17,7 +17,7 @@
 //!
 //! Deliberate difference: the Legacy Viewer hides the objects past the
 //! budget in the order its octree happens to rebuild them, so which ones
-//! vanish varies. Aurora adds the areas from the smallest, so that the
+//! vanish varies. Block adds the areas from the smallest, so that the
 //! largest surfaces are the ones hidden, and the same ones every frame.
 
 use super::{GeomKey, Scene};

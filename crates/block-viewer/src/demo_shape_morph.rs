@@ -1,6 +1,6 @@
-//! Progressive shape changes (AURORA_DEMO_SHAPE_MORPH=1, docs/TESTING.md):
+//! Progressive shape changes (BLOCK_DEMO_SHAPE_MORPH=1, docs/TESTING.md):
 //! from frame 600, every 200 frames, the Wolf and the crowd of
-//! AURORA_DEMO_CROWD take the other of two shapes, tall and thin then short
+//! BLOCK_DEMO_CROWD take the other of two shapes, tall and thin then short
 //! and broad. The first one lands at once (a first appearance); each change
 //! after it glides over 0.65 s, stepping back a little, past the new shape,
 //! then settling.
@@ -12,7 +12,7 @@ use uuid::Uuid;
 
 pub fn active() -> bool {
     static ON: OnceLock<bool> = OnceLock::new();
-    *ON.get_or_init(|| std::env::var("AURORA_DEMO_SHAPE_MORPH").is_ok_and(|v| !v.is_empty() && v != "0"))
+    *ON.get_or_init(|| std::env::var("BLOCK_DEMO_SHAPE_MORPH").is_ok_and(|v| !v.is_empty() && v != "0"))
 }
 
 const START: u64 = 600;

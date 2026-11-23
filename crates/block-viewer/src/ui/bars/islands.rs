@@ -1,13 +1,13 @@
-//! Aurora's top bar: glass islands laid over the world instead of a
+//! Block's top bar: glass islands laid over the world instead of a
 //! full-width band (variant A of the bars mockup the human validated). From
-//! the left: the Aurora menu, the bug report (when shown), the place
+//! the left: the Block menu, the bug report (when shown), the place
 //! (stretched to the account island,
 //! `place.rs`), the account (picture with the online status, balance), the
 //! system (SLT clock, latency, frame rate, Firestorm's traffic indicator,
 //! media and volume, as its right click chooses; a detailed tooltip) and the
 //! bell.
 //! The islands keep the windows' blur, sampled within their rectangles
-//! (`widgets::island_shape`): no extra GPU pass. Preferences › Aurora ›
+//! (`widgets::island_shape`): no extra GPU pass. Preferences › Block ›
 //! Appearance › "Top and bottom bars" brings Firestorm's bars back
 //! (`top_bars`, unchanged).
 
@@ -234,7 +234,7 @@ fn readout_width(text_w: f32) -> f32 {
     SLOT_PAD + SYSTEM_ICON + SLOT_PAD + text_w + SLOT_PAD
 }
 
-/// Demo captures (`AURORA_DEMO_BARS`): the menu to open once, at frame 300.
+/// Demo captures (`BLOCK_DEMO_BARS`): the menu to open once, at frame 300.
 pub(super) fn demo_open(ctx: &egui::Context, resp: &egui::Response, which: super::demo::Open) {
     if super::demo::get().open == Some(which) && ctx.cumulative_frame_nr() == 300 {
         egui::Popup::open_id(ctx, egui::Popup::default_response_id(resp));
@@ -346,7 +346,7 @@ pub fn top(
                 menu::searchable(ui, p, |ui| main_menus(ui, p, panels, st, &mut action, true));
             },
         );
-        resp.on_hover_text(block_i18n::tr!("ui-bars-aurora-menu"));
+        resp.on_hover_text(block_i18n::tr!("ui-bars-block-menu"));
     });
     if let Some(bug_rect) = bug_rect {
         area(&ctx, p, "bug", bug_rect, |ui| {
@@ -1161,8 +1161,8 @@ mod tests {
             show_bug_report: bug,
             show_huds: true,
             hud_zoom: 1.0,
-            region: "Aurora Demo",
-            parcel: "Aurora Plaza",
+            region: "Block Demo",
+            parcel: "Block Plaza",
             tp_back: None,
             tp_forward: None,
             tp_session: Default::default(),
@@ -1215,7 +1215,7 @@ mod tests {
                 stretch,
                 rights_text: false,
             },
-            own_name: "Aurora Demo",
+            own_name: "Block Demo",
             own_pic: None,
             recent: Vec::new(),
             favorites: Box::leak(Box::default()),

@@ -20,7 +20,7 @@ pub const OVER_LIMIT_UPDATE_DELAY: Duration = Duration::from_secs(70);
 /// ComplexityChangesPopUpDelay (settings.xml, a debug setting): the time
 /// between two "may not see you" notices.
 pub const POP_UP_DELAY: Duration = Duration::from_secs(300);
-/// The notices of our own complexity come in bursts (Aurora): the values of
+/// The notices of our own complexity come in bursts (Block): the values of
 /// an outfit forming replace the notice still out for this long, then none
 /// shows before [`POP_UP_DELAY`] is over. The Legacy Viewer tells each
 /// change at once; a complexity moving on its own showed a notice every

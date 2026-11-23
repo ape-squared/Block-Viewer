@@ -279,7 +279,7 @@ fn buttons(
             ui,
             p,
             "phone-filled",
-            block_i18n::tr!("ui-profile-aurora-call"),
+            block_i18n::tr!("ui-profile-block-call"),
             ActionKind::Flat,
             size,
             world.calls.voice_enabled && !own,
@@ -297,7 +297,7 @@ fn buttons(
             ui,
             p,
             "send-filled",
-            block_i18n::tr!("ui-profile-aurora-offer-tp"),
+            block_i18n::tr!("ui-profile-block-offer-tp"),
             ActionKind::Flat,
             size,
             // LLInspectAvatar::enableTeleportOffer (LLAvatarActions::canOfferTeleport)
@@ -619,7 +619,7 @@ fn footer(ui: &mut egui::Ui, p: &Palette, world: &World, id: Uuid, friend: Optio
             ui,
             p,
             "user-minus",
-            block_i18n::tr!("ui-profile-aurora-remove-friend"),
+            block_i18n::tr!("ui-profile-block-remove-friend"),
             ActionKind::SoftDanger,
             size,
         )
@@ -733,7 +733,7 @@ mod tests {
                     );
                 });
             }
-            for key in ["common-map", "common-pay", "ui-profile-aurora-remove-friend"] {
+            for key in ["common-map", "common-pay", "ui-profile-block-remove-friend"] {
                 let text = painted(&texts, block_i18n::text(key));
                 assert!(
                     !text.cut && rect.contains_rect(text.rect),

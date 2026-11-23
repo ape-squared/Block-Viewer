@@ -245,11 +245,11 @@ fn reconstructs_all_sets_groups_tracks_options_and_selection_without_changing_fi
             .count(),
         1
     );
-    assert!(inventory::child(&inv, brand, "Aurora AO (Legacy Viewer import)").is_none());
+    assert!(inventory::child(&inv, brand, "Block AO (Legacy Viewer import)").is_none());
 }
 
 #[test]
-fn an_existing_aurora_ao_is_authoritative_even_when_empty_and_firestorm_is_populated() {
+fn an_existing_block_ao_is_authoritative_even_when_empty_and_firestorm_is_populated() {
     let (mut inv, _, selected) = source();
     let brand = inventory::child(&inv, inv.root, "#Aurora").expect("brand");
     let root = folder(&mut inv, brand, inventory::FOLDER);
@@ -269,7 +269,7 @@ fn no_source_does_nothing_even_when_old_swim_items_exist() {
     inv.add_items(vec![InvItem {
         id: Uuid::new_v4(),
         parent: root,
-        name: "Aurora Swim Breaststroke".into(),
+        name: "Block Swim Breaststroke".into(),
         asset_id: Uuid::new_v4(),
         asset_type: 20,
         inv_type: 19,
@@ -317,7 +317,7 @@ fn interrupted_imports_are_not_published_or_blindly_replayed() {
     actions::demo_mutate(&mut inv, owner, change).expect("simulate acknowledged prefix before network failure");
     let brand = inventory::child(&inv, inv.root, "#Aurora").expect("brand");
     assert!(inventory::child(&inv, brand, inventory::FOLDER).is_none());
-    assert!(inventory::child(&inv, brand, "Aurora AO (Legacy Viewer import)").is_some());
+    assert!(inventory::child(&inv, brand, "Block AO (Legacy Viewer import)").is_some());
     assert_eq!(
         firestorm_snapshot(&inv),
         untouched,

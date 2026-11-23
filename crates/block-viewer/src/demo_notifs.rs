@@ -1,13 +1,13 @@
-//! AURORA_DEMO_NOTIFS: the scenario of the notification center's mockup —
+//! BLOCK_DEMO_NOTIFS: the scenario of the notification center's mockup —
 //! a message, a friend coming online (a toast outside the center), a
 //! teleport offer and an inventory offer close together, then a burst of
 //! five. `dnd` plays it with do not disturb on (the paused bell), `legacy`
-//! with Firestorm's toasts (Preferences › Aurora › Notifications); `list`
+//! with Firestorm's toasts (Preferences › Block › Notifications); `list`
 //! opens the list once the burst has folded in, `history` shows its
 //! History tab after answering a few cards. `group-notice` (and
 //! `legacy-group-notice`) sends two group notices, one with its group's
 //! insignia and an attachment; `group-notice-saved` saves that attachment,
-//! `group-notice-chat` closes both cards and shows the Aurora Builders
+//! `group-notice-chat` closes both cards and shows the Block Builders
 //! chat, where its notice left a line.
 //! `purchase` delivers a Marketplace purchase: the grid's notice in the
 //! nearby chat; `purchase-open` then clicks its Received Items link.
@@ -26,7 +26,7 @@ use uuid::Uuid;
 /// The scenario, if asked: `1`, `dnd`, `legacy`, `list`, `history`,
 /// `group-notice`, `legacy-group-notice`, `group-notice-saved`…
 pub fn mode() -> Option<String> {
-    std::env::var("AURORA_DEMO_NOTIFS").ok()
+    std::env::var("BLOCK_DEMO_NOTIFS").ok()
 }
 
 /// Frame at which do not disturb goes on (`dnd`).
@@ -75,7 +75,7 @@ fn lure(agent: Uuid) -> NetEvent {
     let invitation = format!(
         "{}\r\n{}",
         block_i18n::tr!("demo-come-see-the-lagoon-at-sunset"),
-        crate::slurl::make(block_i18n::tr!("common-aurora-demo"), glam::Vec3::new(128.0, 130.0, 25.0))
+        crate::slurl::make(block_i18n::tr!("common-block-demo"), glam::Vec3::new(128.0, 130.0, 25.0))
     );
     im(
         agent,
@@ -133,7 +133,7 @@ fn group_notice(agent: Uuid, group: Uuid, from: (Uuid, &str), subject: &str, bod
 pub const SAVE_AT: u64 = 850;
 
 /// Frame at which `group-notice-chat` closes the cards and shows the
-/// Aurora Builders chat, with its notice's line.
+/// Block Builders chat, with its notice's line.
 pub const CHAT_AT: u64 = 760;
 
 /// Frame at which `fees-answered` and `fees-short` answer the cards.
@@ -175,7 +175,7 @@ fn fee_samples(agent: Uuid, short: bool) -> Vec<NetEvent> {
 /// The events of `frame`.
 pub fn events(frame: u64, agent: Uuid) -> Vec<NetEvent> {
     use super::{DEMO_NOVA, DEMO_TESS};
-    // two group notices at frame 700: Aurora Builders (no insignia) without
+    // two group notices at frame 700: Block Builders (no insignia) without
     // an attachment, Northern Wolves (an insignia) with one
     if mode().is_some_and(|m| m.ends_with("group-notice") || m == "group-notice-saved" || m == "group-notice-chat") {
         return if frame == 700 {
@@ -255,7 +255,7 @@ pub fn events(frame: u64, agent: Uuid) -> Vec<NetEvent> {
                 } else {
                     friend()
                 },
-                "Aurora gift box",
+                "Block gift box",
                 crate::world::notifications::im::TASK_INVENTORY_OFFERED,
                 Uuid::from_u128(0x6170_0000_0000_0000_0000_0000_0000_2000),
                 block_i18n::tr!("demo-notifs-lantern"),
@@ -285,7 +285,7 @@ pub fn events(frame: u64, agent: Uuid) -> Vec<NetEvent> {
             "Nova Exemple",
             0,
             Uuid::nil(),
-            // AURORA_DEMO_APPLINKS=preview: its links on the card (#947)
+            // BLOCK_DEMO_APPLINKS=preview: its links on the card (#947)
             &if super::applinks_preview_scene() {
                 super::applinks_text(None)
             } else {

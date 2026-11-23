@@ -69,7 +69,7 @@ fn the_folder_is_created_once_in_the_viewer_folder() {
 }
 
 #[test]
-fn the_folder_waits_for_the_bridge_to_make_aurora() {
+fn the_folder_waits_for_the_bridge_to_make_block() {
     // the bridge is making `#Aurora`: no second one is asked for
     let mut inv = bare();
     assert!(create_plan(&inv, false).is_none());
@@ -175,7 +175,7 @@ fn the_filter_reads_the_title_its_worn_tag_and_the_type() {
     assert!(!matches("hair", "Boots", None, "Shoes"));
     assert!(matches("worn", "Boots", Some("worn on Left Foot"), "Object"));
     assert!(!matches("worn", "Boots", None, "Object"));
-    // the type too (Aurora's addition)
+    // the type too (Block's addition)
     assert!(matches("shoe", "Boots", None, "Shoes"));
     assert!(!matches("shirt", "Boots", None, "Shoes"));
 }

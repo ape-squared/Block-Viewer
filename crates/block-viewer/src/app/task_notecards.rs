@@ -348,7 +348,7 @@ impl App {
         }
     }
 
-    /// AURORA_DEMO_INVENTORY=task-preview: an object of ours holding a
+    /// BLOCK_DEMO_INVENTORY=task-preview: an object of ours holding a
     /// texture, a sound and an animation of the demo inventory, all three
     /// opened from its contents.
     pub(super) fn demo_task_previews(&mut self) {

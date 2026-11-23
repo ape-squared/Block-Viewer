@@ -1,4 +1,4 @@
-//! Live controls for the current follow (Aurora addition, issue #967).
+//! Live controls for the current follow (Block addition, issue #967).
 use super::widgets::{self, ActionKind, Floater};
 use crate::{autopilot::FollowSettings, theme::Palette};
 

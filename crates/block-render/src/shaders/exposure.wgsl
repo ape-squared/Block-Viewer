@@ -87,7 +87,7 @@ fn cs_exposure(@builtin(local_invocation_id) lid: vec3<u32>, @builtin(local_invo
     let max_l = max(p.b.x, 1e-4);
     let l = clamp(average, 0.0, max_l) / max_l;
     var goal = mix(p.b.z, p.b.y, l * l);
-    // An Aurora difference, on purpose: a truly dark scene stays dark, where the
+    // A Block difference, on purpose: a truly dark scene stays dark, where the
     // Legacy Viewer lifts it to its highest exposure. Dim interiors and daylight
     // keep the Legacy Viewer's exposure. Not on a sky without exposure (range 1)
     if (p.b.z > 1.0) {

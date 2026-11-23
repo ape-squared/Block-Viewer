@@ -1,7 +1,7 @@
-# Aurora Tools: what the development environment needs, what is missing or
-# out of date, and how to fix it (dot-sourced by aurora-tools.ps1).
+# Block Tools: what the development environment needs, what is missing or
+# out of date, and how to fix it (dot-sourced by block-tools.ps1).
 
-$RepoUrl = 'https://github.com/Aurora-Viewer/Aurora-Viewer'
+$RepoUrl = 'https://github.com/ape-squared/Block-Viewer'
 $FirestormUrl = 'https://github.com/FirestormViewer/phoenix-firestorm'
 
 # The command-line tools the agents search with (AGENTS.md section 5,
@@ -156,7 +156,7 @@ function Get-Checks($P, [switch]$Offline) {
     & $add (New-Check identity 'Git identity' $email $(if ($email) { 'ok' } else { 'todo' }) $(if ($email) { 'nothing to do' } else { 'your GitHub username + noreply address' }))
 
     # the --release viewer of RELEASE\ (menu "Release viewer"): information only
-    $version = Join-Path $P.Release 'Aurora-Viewer\version.txt'
+    $version = Join-Path $P.Release 'Block-Viewer\version.txt'
     if ($hasRepo -and (Test-Path $version)) {
         # the line after the reported version: "main: <short sha> <subject> (<date>)",
         # or "PR #42: …" (files written before the switch to English: "main : …")

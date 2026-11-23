@@ -83,7 +83,7 @@ impl World {
     /// FSFloaterNearbyChat::addMessage keeps it for the muted history alone,
     /// shown with FSShowMutedChatHistory: no console line, no flash, no
     /// transcript, no sound, no bubble, no keyword alert, no unread count;
-    /// Aurora keeps it the same way when Preferences › Chat asks for it,
+    /// Block keeps it the same way when Preferences › Chat asks for it,
     /// and translates nothing of it. Ours is never blocked.
     pub(super) fn blocked_chat_line(&mut self, c: ChatMessage) {
         if self.blocked_chat == crate::settings::BlockedChat::Hidden

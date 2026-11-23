@@ -1,12 +1,12 @@
 //! A facial expression and a hand pose on the avatar in front of the start
-//! position (AURORA_DEMO_EMOTE, docs/TESTING.md, #661). From frame 240 it
+//! position (BLOCK_DEMO_EMOTE, docs/TESTING.md, #661). From frame 240 it
 //! plays a looping animation whose header names an expression and a hand
 //! pose, as uploaded animations do; the animation
 //! restarts every 240 frames, which starts its expression again (2.8 s
 //! each time). `signal` signals the expression's built-in UUID next to the
 //! animation instead, as a gesture does; `self` plays it on our own avatar
-//! (framed from the front by AURORA_DEMO_SHAPE=mouth). Combine with
-//! AURORA_DEMO_CLASSIC=1: the morphs move the system body only.
+//! (framed from the front by BLOCK_DEMO_SHAPE=mouth). Combine with
+//! BLOCK_DEMO_CLASSIC=1: the morphs move the system body only.
 
 use super::{DEMO_AGENT, DEMO_LOUP, IDLE_ANIM};
 use block_assets::Animation;
@@ -42,7 +42,7 @@ impl Mode {
 /// left out), the hand pose as its index (3, a fist, by default).
 pub fn mode() -> Option<&'static Mode> {
     static MODE: std::sync::OnceLock<Option<Mode>> = std::sync::OnceLock::new();
-    MODE.get_or_init(|| parse(&std::env::var("AURORA_DEMO_EMOTE").ok()?)).as_ref()
+    MODE.get_or_init(|| parse(&std::env::var("BLOCK_DEMO_EMOTE").ok()?)).as_ref()
 }
 
 fn parse(value: &str) -> Option<Mode> {

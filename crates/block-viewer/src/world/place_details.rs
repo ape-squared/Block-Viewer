@@ -22,7 +22,7 @@ use uuid::Uuid;
 
 /// How long a region name may stay unanswered before the profile gives up.
 /// Firestorm opens nothing until the name is resolved and nothing at all for
-/// an unknown region; Aurora shows the profile at once (loading texts) and
+/// an unknown region; Block shows the profile at once (loading texts) and
 /// needs an end to the wait.
 pub const REGION_TIMEOUT: Duration = Duration::from_secs(10);
 
@@ -384,14 +384,14 @@ mod tests {
         let mut lm = Landmarks::default();
         let mut d = PlaceDetails::default();
         let s = d.open_window(
-            link("Aurora Démo", Vec3::new(140.0, 120.0, 25.0)),
+            link("Block Démo", Vec3::new(140.0, 120.0, 25.0)),
             &WorldMap::default(),
             &mut lm,
             now,
         );
-        assert!(matches!(&d.take_commands()[..], [NetCommand::MapNameRequest { name }] if name == "aurora démo"));
+        assert!(matches!(&d.take_commands()[..], [NetCommand::MapNameRequest { name }] if name == "block démo"));
         assert!(d.windows[0].global.is_none());
-        let map = map_with("Aurora Démo", 1000, 1000);
+        let map = map_with("Block Démo", 1000, 1000);
         d.update(&map, &mut lm, now);
         let place = &d.windows[0];
         assert_eq!(place.serial, s);
@@ -494,7 +494,7 @@ mod tests {
         let mut d = PlaceDetails::default();
         let global = DVec3::new(256_316.4, 256_200.0, 22.0);
         let source = Source::History {
-            title: block_i18n::tr!("demo-place-aurora-lagoon-boreal-lagoon").into(),
+            title: block_i18n::tr!("demo-place-block-lagoon-boreal-lagoon").into(),
             global,
         };
         d.open_panel(source, &WorldMap::default(), &mut lm, Instant::now());

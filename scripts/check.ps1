@@ -5,7 +5,7 @@
     and tests. Run it before each PR.
 
     Clippy and the tests wait for a build slot when other heavy builds
-    already run on the PC (AURORA_BUILD_SLOTS, 2 by default; common.ps1).
+    already run on the PC (BLOCK_BUILD_SLOTS, 2 by default; common.ps1).
 #>
 . "$PSScriptRoot\common.ps1"
 

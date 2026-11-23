@@ -203,14 +203,14 @@ impl Drop for Github {
 }
 
 fn client() -> Result<reqwest::Client, Failure> {
-    block_proxy::http_client(|b| b
-        .user_agent(block_version::user_agent())
-        .https_only(true)
-        .retry(reqwest::retry::never())
-        .redirect(reqwest::redirect::Policy::none())
-        .timeout(Duration::from_secs(20))
-        )
-        .map_err(|_| Failure::Network)
+    block_proxy::http_client(|b| {
+        b.user_agent(block_version::user_agent())
+            .https_only(true)
+            .retry(reqwest::retry::never())
+            .redirect(reqwest::redirect::Policy::none())
+            .timeout(Duration::from_secs(20))
+    })
+    .map_err(|_| Failure::Network)
 }
 
 async fn json(mut response: reqwest::Response) -> Result<Value, Failure> {

@@ -195,7 +195,7 @@ fn panic_text(e: &(dyn std::any::Any + Send)) -> String {
 /// The panic's location, kept by the hook: findings are grouped by it.
 static LOCATION: Mutex<String> = Mutex::new(String::new());
 
-fn fuzz(t: &'static aurora_fuzz::Target, seconds: u64, seed: u64, timeout: u64) -> usize {
+fn fuzz(t: &'static block_fuzz::Target, seconds: u64, seed: u64, timeout: u64) -> usize {
     let mut corpus = (t.seeds)();
     corpus.extend(read_dir(&root().join("corpus").join(t.name)));
     corpus.retain(|c| !c.is_empty());
@@ -285,7 +285,7 @@ fn main() {
     }));
     // The seeds as files, for libFuzzer's corpus folders (the Fuzz workflow).
     if args.first().map(String::as_str) == Some("--write-seeds") {
-        for t in aurora_fuzz::TARGETS {
+        for t in block_fuzz::TARGETS {
             let dir = root().join("corpus").join(t.name);
             let _ = std::fs::create_dir_all(&dir);
             for (i, seed) in (t.seeds)().iter().enumerate() {
@@ -302,7 +302,7 @@ fn main() {
             eprintln!("usage: fuzz-local --replay <target> <file>");
             std::process::exit(64);
         };
-        let Some(t) = aurora_fuzz::target(name) else {
+        let Some(t) = block_fuzz::target(name) else {
             eprintln!("unknown target {name}");
             std::process::exit(64);
         };
@@ -316,7 +316,7 @@ fn main() {
         return;
     }
     let Some(which) = args.first().filter(|a| !a.starts_with("--")) else {
-        let names: Vec<_> = aurora_fuzz::TARGETS.iter().map(|t| t.name).collect();
+        let names: Vec<_> = block_fuzz::TARGETS.iter().map(|t| t.name).collect();
         eprintln!(
             "usage: fuzz-local <target|all> [--seconds N] [--seed S] [--timeout S] [--max-alloc-mb N]\ntargets: {}",
             names.join(", ")
@@ -327,9 +327,9 @@ fn main() {
     let seed = value("--seed", 0x5eed_2026);
     let timeout = value("--timeout", 10);
     let targets: Vec<_> = if which == "all" {
-        aurora_fuzz::TARGETS.iter().collect()
+        block_fuzz::TARGETS.iter().collect()
     } else {
-        match aurora_fuzz::target(which) {
+        match block_fuzz::target(which) {
             Some(t) => vec![t],
             None => {
                 eprintln!("unknown target {which}");

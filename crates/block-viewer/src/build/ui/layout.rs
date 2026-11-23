@@ -619,7 +619,7 @@ fn snap_rows(ui: &mut egui::Ui, p: &Palette, tool: &mut BuildTool, world: &World
     use crate::build::SnapMode;
     const MODES: [SnapMode; 3] = [SnapMode::Off, SnapMode::Grid, SnapMode::Objects];
     let options = [
-        // (the accent for Aurora's own choice, as everywhere)
+        // (the accent for Block's own choice, as everywhere)
         (block_i18n::tr!("build-snap-off"), false),
         (block_i18n::tr!("build-snap-grid"), false),
         (block_i18n::tr!("build-snap-objects"), true),

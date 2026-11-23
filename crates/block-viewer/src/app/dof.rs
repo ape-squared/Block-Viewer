@@ -1,17 +1,17 @@
 //! The depth of field of a frame (LLPipeline::renderDoF's focus point:
 //! the camera's focus, the point under the pointer or the crosshair, a
-//! clicked or locked point), and its demo (`AURORA_DEMO_DOF`).
+//! clicked or locked point), and its demo (`BLOCK_DEMO_DOF`).
 
 use super::App;
 use crate::dof::{self, FocusMode};
 use block_render::{DepthOfField, Renderer};
 
-/// AURORA_DEMO_DOF=<f-number>:<focus distance m>[:debug]: the effect on,
+/// BLOCK_DEMO_DOF=<f-number>:<focus distance m>[:debug]: the effect on,
 /// at that aperture, focused at that distance (no transition).
 fn demo_lens() -> Option<(f32, f32, bool)> {
     static DEMO: std::sync::OnceLock<Option<(f32, f32, bool)>> = std::sync::OnceLock::new();
     *DEMO.get_or_init(|| {
-        let v = std::env::var("AURORA_DEMO_DOF").ok()?;
+        let v = std::env::var("BLOCK_DEMO_DOF").ok()?;
         let mut parts = v.split(':');
         let n = parts.next()?.parse().ok()?;
         let d = parts.next()?.parse().ok()?;
@@ -162,7 +162,7 @@ impl App {
 /// Whether the poser turns the depth of field off: only outside the photo
 /// window, while its "Depth of field while posing" is off. The photo
 /// window's lens is the user's choice for the shot (off included, its All
-/// sharp), so posing in it keeps that lens. An Aurora rule: the Legacy
+/// sharp), so posing in it keeps that lens. A Block rule: the Legacy
 /// Viewer's poser leaves the depth of field alone.
 fn posing_turns_dof_off(posing: bool, poser_dof: bool, photo_open: bool) -> bool {
     posing && !poser_dof && !photo_open

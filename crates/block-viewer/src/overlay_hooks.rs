@@ -38,12 +38,12 @@ pub const KNOWN: &[Hook] = &[
     Hook {
         file: "DiscordHook64.dll",
         program: "Discord (in-game overlay or Go Live capture)",
-        advice: "if the window turns white while the world's sound plays, turn off Discord's in-game overlay for Aurora (Discord › User Settings › Game Overlay, or the game's entry in Registered Games)",
+        advice: "if the window turns white while the world's sound plays, turn off Discord's in-game overlay for Block (Discord › User Settings › Game Overlay, or the game's entry in Registered Games)",
     },
     Hook {
         file: "GameOverlayRenderer64.dll",
         program: "Steam overlay",
-        advice: "if the image is lost, turn off the Steam overlay for Aurora",
+        advice: "if the image is lost, turn off the Steam overlay for Block",
     },
     Hook {
         file: "RTSSHooks64.dll",
@@ -53,7 +53,7 @@ pub const KNOWN: &[Hook] = &[
     Hook {
         file: "we-graphics-hook64.dll",
         program: "Wallpaper Engine's capture hook (a copy of OBS Studio's game capture)",
-        advice: "if the image is lost, close Wallpaper Engine or turn off its capture while Aurora runs",
+        advice: "if the image is lost, close Wallpaper Engine or turn off its capture while Block runs",
     },
     Hook {
         file: "graphics-hook64.dll",
@@ -82,7 +82,7 @@ pub fn arrived(seen: &mut Vec<&'static str>, loaded: &[String]) -> Vec<&'static 
     new
 }
 
-/// `AURORA_DEMO_OVERLAY_HOOK=<file>`, with `AURORA_DEMO` only: that module
+/// `BLOCK_DEMO_OVERLAY_HOOK=<file>`, with `BLOCK_DEMO` only: that module
 /// counts as loaded, to show what the log and the crash report say of it.
 #[cfg_attr(not(windows), allow(dead_code))]
 fn demo_hook(demo: bool, var: Option<&str>) -> Option<String> {
@@ -95,10 +95,10 @@ pub fn start() {
     #[cfg(windows)]
     {
         let demo = demo_hook(
-            std::env::var_os("AURORA_DEMO").is_some(),
-            std::env::var("AURORA_DEMO_OVERLAY_HOOK").ok().as_deref(),
+            std::env::var_os("BLOCK_DEMO").is_some(),
+            std::env::var("BLOCK_DEMO_OVERLAY_HOOK").ok().as_deref(),
         );
-        let spawned = std::thread::Builder::new().name("aurora-overlay-hooks".into()).spawn(move || {
+        let spawned = std::thread::Builder::new().name("block-overlay-hooks".into()).spawn(move || {
             let mut seen = Vec::new();
             let mut samples = 0u8;
             loop {

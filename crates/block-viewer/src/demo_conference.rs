@@ -1,4 +1,4 @@
-//! AURORA_DEMO_CONFERENCE[=<seconds>]: a conference invitation every
+//! BLOCK_DEMO_CONFERENCE[=<seconds>]: a conference invitation every
 //! `<seconds>` (20 by default), from a stranger then from a friend in turn,
 //! to try Preferences › Chat › Ignore conferences and Online status › Ad hoc
 //! conferences while the viewer runs: an ignored invitation never opens a
@@ -15,7 +15,7 @@ const SESSION: u128 = 0xC0F0_0000_0000_0000_0000_0000_0000_0000;
 fn every() -> Option<f32> {
     static EVERY: OnceLock<Option<f32>> = OnceLock::new();
     *EVERY.get_or_init(|| {
-        let v = std::env::var("AURORA_DEMO_CONFERENCE").ok()?;
+        let v = std::env::var("BLOCK_DEMO_CONFERENCE").ok()?;
         // "1" turns it on at the default period
         Some(v.parse::<f32>().ok().filter(|s| *s > 1.0).unwrap_or(20.0))
     })

@@ -133,7 +133,7 @@ fn spirv_val(words: &[u32], facts: &VulkanFacts) -> Option<Result<(), String>> {
         .unwrap_or_else(|| PathBuf::from("spirv-val"));
     static FILES: std::sync::atomic::AtomicUsize = std::sync::atomic::AtomicUsize::new(0);
     let file = std::env::temp_dir().join(format!(
-        "aurora-spirv-fix-{}-{}.spv",
+        "block-spirv-fix-{}-{}.spv",
         std::process::id(),
         FILES.fetch_add(1, std::sync::atomic::Ordering::Relaxed)
     ));

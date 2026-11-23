@@ -25,8 +25,8 @@ fn each_service_s_page_links_are_recognized() {
         ))
     );
     for url in [
-        "https://www.flickr.com/photos/aurora_demo/52000000001/",
-        "https://flickr.com/photos/aurora_demo/52000000001/in/album-72177720300000000/",
+        "https://www.flickr.com/photos/block_demo/52000000001/",
+        "https://flickr.com/photos/block_demo/52000000001/in/album-72177720300000000/",
         "https://m.flickr.com/photos/12345678@N00/52000000001",
         "https://flic.kr/p/2nDemoAb",
     ] {
@@ -43,7 +43,7 @@ fn each_service_s_page_links_are_recognized() {
         "https://m.imgur.com/DemoAb1?s=sms",
         "https://imgur.com/a/DemoAlb",
         "https://imgur.com/gallery/a-new-build-on-the-plaza-DemoGal",
-        "https://imgur.com/t/aurora/DemoAb1",
+        "https://imgur.com/t/block/DemoAb1",
     ] {
         assert_eq!(service(url), Some(Service::Imgur), "{url}");
     }
@@ -56,10 +56,10 @@ fn each_service_s_page_links_are_recognized() {
     }
     let feed = Some(Step::Feed("https://www.reddit.com/comments/demo01/.rss?limit=1".into()));
     for url in [
-        "https://www.reddit.com/r/AuroraDemo/comments/demo01/a_new_build/",
-        "https://old.reddit.com/r/AuroraDemo/comments/demo01/a_new_build/?utm_source=share",
-        "https://new.reddit.com/r/AuroraDemo/comments/demo01",
-        "https://np.reddit.com/user/aurora_demo/comments/demo01/a_new_build/",
+        "https://www.reddit.com/r/BlockDemo/comments/demo01/a_new_build/",
+        "https://old.reddit.com/r/BlockDemo/comments/demo01/a_new_build/?utm_source=share",
+        "https://new.reddit.com/r/BlockDemo/comments/demo01",
+        "https://np.reddit.com/user/block_demo/comments/demo01/a_new_build/",
         "https://reddit.com/comments/demo01",
         "https://redd.it/demo01",
     ] {
@@ -76,16 +76,16 @@ fn each_service_s_page_links_are_recognized() {
         "https://www.reddit.com/media?url=javascript%3Aalert(1)",
         // the services' own pages, profiles, albums of Flickr, videos
         "https://imgur.com/upload",
-        "https://imgur.com/user/aurora_demo",
+        "https://imgur.com/user/block_demo",
         "https://imgur.com/",
-        "https://www.flickr.com/photos/aurora_demo/",
-        "https://www.flickr.com/photos/aurora_demo/albums/72177720300000000",
+        "https://www.flickr.com/photos/block_demo/",
+        "https://www.flickr.com/photos/block_demo/albums/72177720300000000",
         "https://gyazo.com/captures",
         "https://gyazo.com/0a1b2c3d4e5f60718293a4b5c6d7e8f",
         "https://prnt.sc/",
-        "https://www.reddit.com/r/AuroraDemo/",
-        "https://www.reddit.com/r/AuroraDemo/comments/DEMO01/",
-        "https://www.reddit.com/r/AuroraDemo/s/AbCdEf1234",
+        "https://www.reddit.com/r/BlockDemo/",
+        "https://www.reddit.com/r/BlockDemo/comments/DEMO01/",
+        "https://www.reddit.com/r/BlockDemo/s/AbCdEf1234",
         // look-alikes and other sites
         "https://gyazo.com.evil.example/0a1b2c3d4e5f60718293a4b5c6d7e8f9",
         "https://notimgur.com/DemoAb1",
@@ -194,7 +194,7 @@ fn reddit_pictures_are_blurred_until_clicked() {
     for url in [
         "https://i.redd.it/demo01picture.jpeg",
         "https://preview.redd.it/demo01picture.jpg?width=640",
-        "https://www.reddit.com/r/AuroraDemo/comments/demo01/",
+        "https://www.reddit.com/r/BlockDemo/comments/demo01/",
         "https://redd.it/demo01",
         "https://old.reddit.com/media?url=x",
     ] {
@@ -215,8 +215,8 @@ fn bluesky_and_x_posts_are_recognized() {
         )))
     };
     assert_eq!(
-        step("https://bsky.app/profile/aurora-demo.bsky.social/post/3demopost2abc"),
-        thread("aurora-demo.bsky.social", "3demopost2abc")
+        step("https://bsky.app/profile/block-demo.bsky.social/post/3demopost2abc"),
+        thread("block-demo.bsky.social", "3demopost2abc")
     );
     assert_eq!(
         step("https://bsky.app/profile/did:plc:auroraexampledemo2345abcd/post/3demopost2abc?ref=share"),
@@ -226,30 +226,30 @@ fn bluesky_and_x_posts_are_recognized() {
         "https://cdn.syndication.twimg.com/tweet-result?id=1850000000000000001&lang=en&token=4hfy2jnxph".into(),
     ));
     for url in [
-        "https://x.com/AuroraDemo/status/1850000000000000001",
-        "https://www.x.com/AuroraDemo/status/1850000000000000001?s=20",
-        "https://twitter.com/AuroraDemo/status/1850000000000000001/photo/1",
-        "https://mobile.twitter.com/AuroraDemo/status/1850000000000000001",
+        "https://x.com/BlockDemo/status/1850000000000000001",
+        "https://www.x.com/BlockDemo/status/1850000000000000001?s=20",
+        "https://twitter.com/BlockDemo/status/1850000000000000001/photo/1",
+        "https://mobile.twitter.com/BlockDemo/status/1850000000000000001",
         "https://x.com/i/status/1850000000000000001",
         "https://x.com/i/web/status/1850000000000000001",
-        "https://twitter.com/aurora_demo/statuses/1850000000000000001",
+        "https://twitter.com/block_demo/statuses/1850000000000000001",
     ] {
         assert_eq!(step(url), post, "{url}");
     }
     for url in [
-        "https://bsky.app/profile/aurora-demo.bsky.social",
-        "https://bsky.app/profile/aurora-demo.bsky.social/post/",
-        "https://bsky.app/profile/aurora-demo.bsky.social/feed/whats-hot",
+        "https://bsky.app/profile/block-demo.bsky.social",
+        "https://bsky.app/profile/block-demo.bsky.social/post/",
+        "https://bsky.app/profile/block-demo.bsky.social/feed/whats-hot",
         "https://bsky.app/profile/not a handle/post/3demopost2abc",
         "https://bsky.app/profile/nodot/post/3demopost2abc",
-        "https://bsky.app/profile/aurora-demo.bsky.social/post/..",
-        "https://x.com/AuroraDemo",
-        "https://x.com/AuroraDemo/status/",
-        "https://x.com/AuroraDemo/status/12a4",
-        "https://x.com/AuroraDemo/status/99999999999999999999999",
+        "https://bsky.app/profile/block-demo.bsky.social/post/..",
+        "https://x.com/BlockDemo",
+        "https://x.com/BlockDemo/status/",
+        "https://x.com/BlockDemo/status/12a4",
+        "https://x.com/BlockDemo/status/99999999999999999999999",
         "https://x.com/a_name_far_too_long/status/1850000000000000001",
-        "https://x.com.evil.example/AuroraDemo/status/1850000000000000001",
-        "https://fxtwitter.com/AuroraDemo/status/1850000000000000001",
+        "https://x.com.evil.example/BlockDemo/status/1850000000000000001",
+        "https://fxtwitter.com/BlockDemo/status/1850000000000000001",
     ] {
         assert_eq!(recognize(url), None, "{url}");
     }
@@ -281,14 +281,14 @@ fn posts_lead_to_their_picture_and_its_mark() {
     assert_eq!(
         from_post(Service::Bluesky, BLUESKY_POST.as_bytes()),
         Some((
-            "https://cdn.bsky.app/img/feed_fullsize/plain/did:plc:auroraexampledemo2345abcd/bafkreiauroraexampledemopicture01@jpeg".into(),
+            "https://cdn.bsky.app/img/feed_fullsize/plain/did:plc:auroraexampledemo2345abcd/bafkreiblockexampledemopicture01@jpeg".into(),
             false
         ))
     );
     assert_eq!(
         from_post(Service::Bluesky, BLUESKY_LABELLED.as_bytes()),
         Some((
-            "https://video.bsky.app/watch/did%3Aplc%3Aauroraexampledemo2345abcd/bafkreiauroraexampledemovideo01/thumbnail.jpg".into(),
+            "https://video.bsky.app/watch/did%3Aplc%3Aauroraexampledemo2345abcd/bafkreiblockexampledemovideo01/thumbnail.jpg".into(),
             true
         ))
     );
@@ -306,7 +306,7 @@ fn posts_lead_to_their_picture_and_its_mark() {
 
     assert_eq!(
         from_post(Service::X, X_POST.as_bytes()),
-        Some(("https://pbs.twimg.com/media/AuroraDemoPic01.jpg".into(), false))
+        Some(("https://pbs.twimg.com/media/BlockDemoPic01.jpg".into(), false))
     );
     let sensitive = X_POST.replace(r#""possibly_sensitive": false"#, r#""possibly_sensitive": true"#);
     assert_eq!(from_post(Service::X, sensitive.as_bytes()).map(|p| p.1), Some(true));
@@ -325,11 +325,11 @@ fn the_demo_s_links_use_the_saved_answers() {
         Some(("https://i.gyazo.com/0a1b2c3d4e5f60718293a4b5c6d7e8f9.png".into(), false))
     );
     assert_eq!(
-        demo_source("https://bsky.app/profile/aurora-demo.bsky.social/post/3demolabelled").map(|p| p.1),
+        demo_source("https://bsky.app/profile/block-demo.bsky.social/post/3demolabelled").map(|p| p.1),
         Some(true)
     );
     assert_eq!(
-        demo_source("https://x.com/AuroraDemo/status/1850000000000000001").map(|p| p.1),
+        demo_source("https://x.com/BlockDemo/status/1850000000000000001").map(|p| p.1),
         Some(false)
     );
     assert!(demo_source("https://prnt.sc/demo42").is_some());

@@ -15,10 +15,10 @@ function Get-UpdatePolicy([string]$RepoPath, [string]$Tag, [string]$BaseTag, [st
     if ($BaseTag) {
         $message = git -C $RepoPath for-each-ref '--format=%(contents)' "refs/tags/$BaseTag"
         if ($LASTEXITCODE -ne 0) { throw 'Could not read the tag.' }
-        $line = @($message | Where-Object { $_ -like 'Aurora-Update-Policy: *' })
+        $line = @($message | Where-Object { $_ -like 'Block-Update-Policy: *' })
         if ($line.Count -gt 1) { throw 'Several policies in the tag.' }
         if ($line.Count -eq 1) {
-            $previous = $line[0].Substring('Aurora-Update-Policy: '.Length) | ConvertFrom-Json
+            $previous = $line[0].Substring('Block-Update-Policy: '.Length) | ConvertFrom-Json
             Assert-UpdatePolicy $previous $BaseTag.TrimStart('v')
         }
     }

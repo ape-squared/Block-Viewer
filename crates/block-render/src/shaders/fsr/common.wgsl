@@ -5,7 +5,7 @@
 // shares (ffx_fsr3upscaler_common.h, the callbacks' constant buffer and
 // ffx_fsr3upscaler_sample.h); each pass file is appended to it.
 //
-// Differences from the SDK, all forced by WGSL or by Aurora's frame:
+// Differences from the SDK, all forced by WGSL or by Block's frame:
 // - every pass is a full-screen fragment pass (one pixel per invocation,
 //   as the SDK's compute passes are), so every intermediate format stays
 //   renderable and filterable on every backend; the two scattered writes
@@ -49,11 +49,11 @@ struct FsrParams {
     // RCAS sharpness, linear (FsrRcasCon: exp2(-stops))
     rcas: f32,
     view_to_meters: f32,
-    // 1 when the prepass's motion vectors are used (AURORA_TAA_MOTION)
+    // 1 when the prepass's motion vectors are used (BLOCK_TAA_MOTION)
     motion_on: f32,
-    // 0 without the generated reactive mask (AURORA_FSR_REACTIVE=0)
+    // 0 without the generated reactive mask (BLOCK_FSR_REACTIVE=0)
     reactive_on: f32,
-    // 0 without the transparency and composition mask (AURORA_FSR_COMPOSITION=0)
+    // 0 without the transparency and composition mask (BLOCK_FSR_COMPOSITION=0)
     composition_on: f32,
     pad1: f32,
     pad2: f32,

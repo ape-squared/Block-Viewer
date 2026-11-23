@@ -8,7 +8,7 @@
 //! comparators of LLWearableItemsList (same file), originally LGPL 2.1.
 //!
 //! The Legacy Viewer keeps the folder in its own root folder
-//! (ROOT_FIRESTORM_FOLDER); Aurora's is `#Aurora`, like the bridge, the AO
+//! (ROOT_FIRESTORM_FOLDER); Block's is `#Aurora`, like the bridge, the AO
 //! and the particle scripts. Every change is an ordinary inventory
 //! mutation: folders by AIS CreateInventory / UpdateCategory /
 //! RemoveCategory, links by link_inventory_object, removals by
@@ -39,7 +39,7 @@ pub enum SortOrder {
     MostRecent,
     #[default]
     TypeName,
-    /// The order the user dragged the rows into (`Orders`). Aurora's own:
+    /// The order the user dragged the rows into (`Orders`). Block's own:
     /// the Legacy window has no manual order (from iGao's PR #3784).
     Custom,
 }
@@ -226,7 +226,7 @@ pub fn sort(inv: &Inventory, entries: &mut [Entry], order: SortOrder, saved: &[U
 
 /// The filter of the list: a case-insensitive part of the row's title, the
 /// worn tag included (LLPanelInventoryListItemBase::notify "match_filter"),
-/// or of its type ("Shirt", "Object"). The type is Aurora's addition (from
+/// or of its type ("Shirt", "Object"). The type is Block's addition (from
 /// iGao's PR #3784): the Legacy filter reads the title only.
 pub fn matches(filter: &str, name: &str, worn: Option<&str>, kind: &str) -> bool {
     let filter = filter.trim().to_lowercase();
@@ -575,7 +575,7 @@ pub fn delete_folder(inv: &Inventory, id: Uuid) -> Option<Mutation> {
     })
 }
 
-/// `AURORA_DEMO_WEARABLE_FAVORITES`: the favorites of the Appearance demo
+/// `BLOCK_DEMO_WEARABLE_FAVORITES`: the favorites of the Appearance demo
 /// (`appearance::seed_demo`): worn and spare clothing, attachments and body
 /// parts, and an "Evening" folder holding two of them.
 pub fn seed_demo(inv: &mut Inventory, agent: Uuid) {
@@ -664,7 +664,7 @@ pub fn seed_demo(inv: &mut Inventory, agent: Uuid) {
     }]);
 }
 
-/// `AURORA_DEMO_WEARABLE_FAVORITES=import`: the Legacy Viewer's folder next
+/// `BLOCK_DEMO_WEARABLE_FAVORITES=import`: the Legacy Viewer's folder next
 /// to ours (`#Firestorm/#Wearable Favorites`): one link ours has already,
 /// one it lacks, a broken link, an "Evening" subfolder (ours exists) and a
 /// "Party" one (ours does not).

@@ -201,7 +201,7 @@ pub enum Command {
     /// `bw kbps`: the maximum bandwidth, within the range of the
     /// Preferences (Firestorm's command stops at 3,000).
     Bandwidth(u32),
-    /// A command Aurora can't do yet: said in the chat
+    /// A command Block can't do yet: said in the chat
     /// instead of sending the line.
     Unavailable(&'static str),
     /// `key2name uuid`: tell the avatar name once known.

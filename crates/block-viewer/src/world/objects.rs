@@ -263,7 +263,7 @@ impl Object {
         self.pcode == block_prim::params::LL_PCODE_VOLUME && self.volume.path.curve_type == block_prim::params::LL_PCODE_PATH_FLEXIBLE
     }
 
-    /// Whether Aurora simulates this object as a flexi. Meshes and sculpts
+    /// Whether Block simulates this object as a flexi. Meshes and sculpts
     /// keep their own geometry even when their volume path is flexible.
     pub fn is_flexible(&self) -> bool {
         self.has_flexible_path() && !self.volume.is_sculpt() && !self.visual_volume().is_mesh()

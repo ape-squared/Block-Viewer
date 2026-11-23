@@ -58,7 +58,7 @@ impl App {
     }
 
     /// Not an avatar and nothing an avatar wears (HUDs included). The
-    /// Legacy Viewer leaves out our attachments only; Aurora also leaves out
+    /// Legacy Viewer leaves out our attachments only; Block also leaves out
     /// someone else's, whose right click opens that avatar's menu
     /// (app/context_menu.rs), so it is the avatar's rule that applies.
     fn turns_toward(&self, idx: usize) -> bool {
@@ -102,7 +102,7 @@ impl App {
 }
 
 impl App {
-    /// AURORA_DEMO_TURN_SELECT: at frame 300 the camera looks down on the
+    /// BLOCK_DEMO_TURN_SELECT: at frame 300 the camera looks down on the
     /// avatar from above, off the avatar, and the build tools select the
     /// nearest object more than 53° to its side, as a click would; the log
     /// gives the yaw as the avatar turns.

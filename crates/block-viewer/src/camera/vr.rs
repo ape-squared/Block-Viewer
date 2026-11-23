@@ -1,5 +1,5 @@
 //! VR body projection and translation-only Avatar framing. The body/camera
-//! separation follows XR body-transformer practice; comfort thresholds are Aurora's.
+//! separation follows XR body-transformer practice; comfort thresholds are Block's.
 use glam::Vec3;
 
 pub const FOLLOW_START: f32 = 0.18;

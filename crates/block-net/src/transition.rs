@@ -1,4 +1,4 @@
-//! Timeline of a teleport or a region crossing (AURORA_PROFILE): every
+//! Timeline of a teleport or a region crossing (BLOCK_PROFILE): every
 //! step from the request (or the CrossedRegion event) to the arrival, with
 //! its time since the start, written as one `teleport timeline` or
 //! `crossing timeline` line when it ends, fails or times out, with what the

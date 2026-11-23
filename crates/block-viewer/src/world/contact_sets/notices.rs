@@ -48,8 +48,8 @@ pub struct SetResponse {
 /// The global choices of the sets' notices; `notices_chat` is on by default
 /// (FSContactSetsNotificationNearbyChat), `notices_toast` off
 /// (FSContactSetsNotificationToast).
-pub(super) const NOTICES_TOAST: &str = "aurora_notices_toast";
-pub(super) const NOTICES_CHAT: &str = "aurora_notices_chat";
+pub(super) const NOTICES_TOAST: &str = "block_notices_toast";
+pub(super) const NOTICES_CHAT: &str = "block_notices_chat";
 
 impl ContactSet {
     /// getAutoresponseForSet.

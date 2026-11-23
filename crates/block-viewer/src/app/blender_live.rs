@@ -83,7 +83,7 @@ impl App {
             && let Some(snapshot) = &self.blender_live.snapshot
             && let Some(source) = snapshot.sources.iter().find(|source| source.id == id)
         {
-            if self.demo && std::env::var("AURORA_DEMO_BLENDER_LIVE").as_deref() == Ok("upload") {
+            if self.demo && std::env::var("BLOCK_DEMO_BLENDER_LIVE").as_deref() == Ok("upload") {
                 self.imports
                     .open_live_mesh(source.clone(), snapshot.images.clone(), &self.scene.jobs, ctx);
             } else {
@@ -194,14 +194,14 @@ impl App {
         // An offline fixture uses the exact protocol and production skin path.
         if self.demo
             && !self.blender_live.demo_started
-            && std::env::var_os("AURORA_DEMO_BLENDER_LIVE").is_some()
+            && std::env::var_os("BLOCK_DEMO_BLENDER_LIVE").is_some()
             && self.world.objects.index_of_uuid(&self.world.agent_id).is_some()
-            && (self.frame_count >= 300 || std::env::var("AURORA_DEMO_BLENDER_LIVE").is_ok_and(|mode| !mode.starts_with("static")))
+            && (self.frame_count >= 300 || std::env::var("BLOCK_DEMO_BLENDER_LIVE").is_ok_and(|mode| !mode.starts_with("static")))
         {
             self.blender_live.demo_started = true;
             self.blender_live.open = true;
             // Isolate automated bridge tests from already-open Blender clients.
-            if let Ok(port) = std::env::var("AURORA_DEMO_BLENDER_PORT").unwrap_or_default().parse::<u16>()
+            if let Ok(port) = std::env::var("BLOCK_DEMO_BLENDER_PORT").unwrap_or_default().parse::<u16>()
                 && port >= 1024
             {
                 self.blender_live.port = port;
@@ -212,7 +212,7 @@ impl App {
                 &self.egui_ctx,
                 renderer.staging_pool(),
             );
-            let mode = std::env::var("AURORA_DEMO_BLENDER_LIVE").unwrap_or_default();
+            let mode = std::env::var("BLOCK_DEMO_BLENDER_LIVE").unwrap_or_default();
             if mode == "plugins" || mode.starts_with("installer-") {
                 self.blender_live.tab = crate::blender_live::Tab::Plugins;
             }
@@ -259,7 +259,7 @@ impl App {
         }
         if self.demo
             && self.frame_count == 450
-            && let Ok(mode) = std::env::var("AURORA_DEMO_BLENDER_LIVE")
+            && let Ok(mode) = std::env::var("BLOCK_DEMO_BLENDER_LIVE")
             && mode.starts_with("static")
             && let Some(source) = self.blender_live.selected
         {
@@ -304,7 +304,7 @@ impl App {
         }
         if self.demo
             && self.frame_count == 520
-            && std::env::var("AURORA_DEMO_BLENDER_LIVE")
+            && std::env::var("BLOCK_DEMO_BLENDER_LIVE")
                 .is_ok_and(|mode| matches!(mode.as_str(), "static-linked-menu" | "static-linked-hud-menu"))
             && let Some(source) = self
                 .blender_live
@@ -340,7 +340,7 @@ impl App {
             });
         }
         if self.demo
-            && std::env::var("AURORA_DEMO_BLENDER_LIVE").as_deref() == Ok("lods")
+            && std::env::var("BLOCK_DEMO_BLENDER_LIVE").as_deref() == Ok("lods")
             && !self.blender_live.import.demo_requested
             && let Some(source) = self.blender_live.snapshot.as_ref().and_then(|snapshot| snapshot.sources.first())
         {

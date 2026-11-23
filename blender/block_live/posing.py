@@ -28,15 +28,15 @@ def eye_constraint(key):
 
 
 def joints(rig, names):
-    lookup = {str(b.get("aurora_joint", b.name)): b.name for b in rig.data.bones if not b.get("aurora_control")}
+    lookup = {str(b.get("block_joint", b.name)): b.name for b in rig.data.bones if not b.get("block_control")}
     if any(name not in lookup for name in names):
         raise ValueError("This rig is missing the required SL joints")
     return [lookup[name] for name in names]
 
 
 def root_ready(rig):
-    if not all(name in rig.data.bones and rig.data.bones[name].get("aurora_control_kind") == "ROOT" and
-               rig.data.bones[name].get("aurora_control") for name in (ROOT, COG)):
+    if not all(name in rig.data.bones and rig.data.bones[name].get("block_control_kind") == "ROOT" and
+               rig.data.bones[name].get("block_control") for name in (ROOT, COG)):
         return False
     pelvis = joints(rig, ["mPelvis"])[0]
     con = rig.pose.bones[pelvis].constraints.get(ROOT_CONSTRAINT)
@@ -45,7 +45,7 @@ def root_ready(rig):
 
 def look_ready(rig, key):
     bone = rig.data.bones.get(target(key))
-    if bone is None or not bone.get("aurora_control") or bone.get("aurora_control_kind") != "LOOK":
+    if bone is None or not bone.get("block_control") or bone.get("block_control_kind") != "LOOK":
         return False
     names = joints(rig, EYES[key][1:])
     return all((con := rig.pose.bones[name].constraints.get(eye_constraint(key))) is not None and
@@ -95,7 +95,7 @@ def _bone(rig, name, head, size, kind, parent=None):
     bone.head, bone.tail = head, head + Vector((0, size, 0))
     bone.parent = parent
     bone.use_deform = False
-    bone["aurora_control"], bone["aurora_control_kind"] = True, kind
+    bone["block_control"], bone["block_control_kind"] = True, kind
     return bone
 
 
@@ -119,8 +119,8 @@ def _group(rig, names, kind):
 
 def _shape(rig, name, size):
     key = "Root" if name == ROOT else "COG" if name == COG else "Look"
-    shape_name = "_AuroraPoseShape." + key
-    obj = next((obj for obj in bpy.data.objects if obj.name == shape_name and obj.get("aurora_pose_shape")), None)
+    shape_name = "_BlockPoseShape." + key
+    obj = next((obj for obj in bpy.data.objects if obj.name == shape_name and obj.get("block_pose_shape")), None)
     if obj is None:
         if key == "Root":
             vertices = [(math.cos(i * math.tau / 24), math.sin(i * math.tau / 24), 0) for i in range(24)]
@@ -134,7 +134,7 @@ def _shape(rig, name, size):
         mesh = bpy.data.meshes.new(shape_name)
         mesh.from_pydata(vertices, edges, [])
         obj = bpy.data.objects.new(shape_name, mesh)
-        obj["aurora_pose_shape"] = True
+        obj["block_pose_shape"] = True
         # Unlinked shape datablocks never become synchronized scene meshes.
     pose = rig.pose.bones[name]
     pose.custom_shape = obj
@@ -157,7 +157,7 @@ def setup_root(context, rig):
         _bone(rig, COG, center, size, "ROOT", root)
         # Only our existing helper bones follow Root. SL parents/rest stay intact.
         for bone in rig.data.edit_bones:
-            if bone.get("aurora_control") and bone.name not in {ROOT, COG} and bone.parent is None:
+            if bone.get("block_control") and bone.name not in {ROOT, COG} and bone.parent is None:
                 bone.parent = root
     con = rig.pose.bones[pelvis].constraints.new("CHILD_OF")
     con.name, con.target, con.subtarget = ROOT_CONSTRAINT, rig, COG
@@ -184,7 +184,7 @@ def setup_look(context, rig, key):
     forward.normalize()
     with editing(context, rig):
         root = rig.data.edit_bones.get(ROOT)
-        if root and root.get("aurora_control_kind") != "ROOT":
+        if root and root.get("block_control_kind") != "ROOT":
             root = None
         _bone(rig, target(key), position + forward * size * 40, size, "LOOK", root)
     for name in names:

@@ -1,4 +1,4 @@
-//! Deep profile (AURORA_PROFILE=1): beside the `perf summary` and `net
+//! Deep profile (BLOCK_PROFILE=1): beside the `perf summary` and `net
 //! summary` lines of each second, every 10 s one line per area, so that a
 //! long session can be ranked by what costs the most: `msg summary` (UDP
 //! messages by type, object updates by kind), `http summary` (requests by
@@ -233,7 +233,7 @@ pub struct DeepProfile {
     before: Option<Before>,
     /// Start of the second being counted.
     second: Option<Instant>,
-    /// The probes of the 10 s period so far (with AURORA_PROFILE).
+    /// The probes of the 10 s period so far (with BLOCK_PROFILE).
     probes: ProbeTotals,
     /// The probes of the last second, and its number.
     last_second: Option<ProbeTotals>,
@@ -242,7 +242,7 @@ pub struct DeepProfile {
 
 impl Default for DeepProfile {
     fn default() -> Self {
-        DeepProfile::new(std::env::var_os("AURORA_PROFILE").is_some())
+        DeepProfile::new(std::env::var_os("BLOCK_PROFILE").is_some())
     }
 }
 
@@ -268,7 +268,7 @@ impl DeepProfile {
     }
 
     /// The probes count while the resource monitor is open (they are on
-    /// for good with AURORA_PROFILE); nothing more is logged.
+    /// for good with BLOCK_PROFILE); nothing more is logged.
     pub fn set_live(&mut self, live: bool) {
         if live == self.live {
             return;

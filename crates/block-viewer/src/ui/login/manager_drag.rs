@@ -113,7 +113,7 @@ impl State {
 
     /// Synthetic input only; it never moves the OS pointer or loads profiles.
     pub fn demo_events(&mut self, frame: u64) -> Vec<egui::Event> {
-        if std::env::var("AURORA_DEMO_LOGIN").as_deref() != Ok("manage-drag") || !(20..=40).contains(&frame) {
+        if std::env::var("BLOCK_DEMO_LOGIN").as_deref() != Ok("manage-drag") || !(20..=40).contains(&frame) {
             return Vec::new();
         }
         if self.demo_gesture.is_none() && self.rows.len() >= 2 {

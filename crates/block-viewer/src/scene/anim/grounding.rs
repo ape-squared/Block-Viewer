@@ -626,7 +626,7 @@ impl Placement {
             .zip(pose.rotations)
             .map(|(&placed, &raw)| placed * raw.inverse())
             .collect();
-        log::trace!(target: "aurora_viewer::foot_placement", "terrain anchor={} body={:.5} reference={reference_floor:.5} contact={:?} targets={targets:?}",
+        log::trace!(target: "block_viewer::foot_placement", "terrain anchor={} body={:.5} reference={reference_floor:.5} contact={:?} targets={targets:?}",
             frame.standing_anchor, height.value, self.feet.each_ref().map(|foot| foot.contact));
         self.held = Some(result.clone());
         Some(result)
@@ -1797,7 +1797,7 @@ mod tests {
             // A newly evaluated paused controller uses its retained procedural
             // states, giving a deterministic additive body-noise substitute.
             let mut controller = Controller {
-                aurora_feet: enabled,
+                block_feet: enabled,
                 ground: enabled.then(|| f.frame(Vec3::Z * 0.2, 0.0)),
                 paused_at: Some(now),
                 held_procedural: vec![(torso, 2, 1.0, additive, true)],
@@ -1831,7 +1831,7 @@ mod tests {
             frame.standing_anchor = anchored;
             frame.velocity_z = -2.0;
             let mut controller = Controller {
-                aurora_feet: true,
+                block_feet: true,
                 ground: Some(frame),
                 ..Default::default()
             };
@@ -1861,7 +1861,7 @@ mod tests {
         let ankle = f.rig.names["mAnkleLeft"];
         let expected = f.rig.world_with(&f.rig.local_rot, Vec3::ZERO, &f.base.local_pos, &f.base.scale);
         let mut controller = Controller {
-            aurora_feet: true,
+            block_feet: true,
             ground: Some(f.frame(Vec3::Z * 0.2, 0.0)),
             paused_at: Some(now),
             ..Default::default()
@@ -1928,7 +1928,7 @@ mod tests {
             };
             let mut controller = Controller {
                 control,
-                aurora_feet: true,
+                block_feet: true,
                 ground: Some(f.frame(Vec3::ZERO, 0.0)),
                 ..Default::default()
             };

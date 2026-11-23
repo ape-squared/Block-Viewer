@@ -50,7 +50,7 @@ pub(crate) fn range(tone_mapped: bool, hdr_scale: f32) -> (f32, f32) {
     }
 }
 
-/// exposureF.glsl's target for an average luminance, and Aurora's dark scene
+/// exposureF.glsl's target for an average luminance, and Block's dark scene
 /// term (mirrors the shader, for the tests).
 #[cfg(test)]
 fn target(average: f32, (lo, hi): (f32, f32)) -> f32 {
@@ -60,7 +60,7 @@ fn target(average: f32, (lo, hi): (f32, f32)) -> f32 {
     (hi + (lo - hi) * l * l) * dark
 }
 
-/// `AURORA_AUTO_EXPOSURE`: `0` off (exposure 1 on every sky), `1` or unset
+/// `BLOCK_AUTO_EXPOSURE`: `0` off (exposure 1 on every sky), `1` or unset
 /// on, `alt` on one second out of two (to compare in the same session).
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub(crate) enum Override {
@@ -80,7 +80,7 @@ impl Override {
 
     fn from_env() -> Override {
         static ENV: std::sync::OnceLock<Override> = std::sync::OnceLock::new();
-        *ENV.get_or_init(|| Override::parse(std::env::var("AURORA_AUTO_EXPOSURE").ok().as_deref()))
+        *ENV.get_or_init(|| Override::parse(std::env::var("BLOCK_AUTO_EXPOSURE").ok().as_deref()))
     }
 
     /// Whether the automatic exposure is on at `secs` seconds into the
@@ -124,7 +124,7 @@ pub(crate) struct Exposure {
     bg: Option<wgpu::BindGroup>,
     last: Option<Instant>,
     start: Instant,
-    /// The automatic exposure was off last frame (`AURORA_AUTO_EXPOSURE`).
+    /// The automatic exposure was off last frame (`BLOCK_AUTO_EXPOSURE`).
     was_off: bool,
     /// The log's read back: a copy of `state`, its map state, when the next
     /// one is due, and the range it was taken with.
@@ -377,7 +377,7 @@ mod tests {
     #[test]
     fn truly_dark_scenes_stay_dark() {
         let r = range(true, 2.0);
-        // an Aurora difference: the Legacy Viewer lifts them to 2
+        // a Block difference: the Legacy Viewer lifts them to 2
         assert!((target(0.002, r) - 0.8).abs() < 1e-3);
         // a dim interior and daylight keep the Legacy Viewer's exposure
         assert!((target(0.02, r) - 1.9976).abs() < 1e-3);

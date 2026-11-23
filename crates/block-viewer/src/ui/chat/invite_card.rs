@@ -361,15 +361,15 @@ mod tests {
 
     #[test]
     fn teleport_invitation_removes_the_nearby_sender_slurl() {
-        let destination = place(Some("Aurora Demo"));
+        let destination = place(Some("Block Demo"));
         // The report's links differ by 2 m horizontally and 1 m vertically.
-        let message = "Join me\r\nhttp://maps.secondlife.com/secondlife/Aurora%20Demo/130/130/24";
+        let message = "Join me\r\nhttp://maps.secondlife.com/secondlife/Block%20Demo/130/130/24";
         assert_eq!(without_own_place(message, Some(&destination)), "Join me");
         assert_eq!(without_own_place(message, Some(&place(None))), message);
         assert_eq!(without_own_place(message, None), message);
         for other in [
-            "Join me\nhttp://maps.secondlife.com/secondlife/Aurora%20Demo/160/130/25",
-            "Join me\nhttp://maps.secondlife.com/secondlife/Aurora%20Demo/128/130/1000",
+            "Join me\nhttp://maps.secondlife.com/secondlife/Block%20Demo/160/130/25",
+            "Join me\nhttp://maps.secondlife.com/secondlife/Block%20Demo/128/130/1000",
             "Join me\nhttp://maps.secondlife.com/secondlife/Other%20Region/130/130/24",
         ] {
             assert_eq!(without_own_place(other, Some(&destination)), other);

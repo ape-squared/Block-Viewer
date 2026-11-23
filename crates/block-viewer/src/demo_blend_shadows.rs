@@ -1,4 +1,4 @@
-//! AURORA_DEMO_BLEND_SHADOWS: alpha-blended prims standing in the sun, to
+//! BLOCK_DEMO_BLEND_SHADOWS: alpha-blended prims standing in the sun, to
 //! see their shadows (fs_shadow) and what they cost.
 //!
 //! - `1`: six 2 m panels lying 1.3 m above the ground in a row 14 m along
@@ -8,9 +8,9 @@
 //!   Viewer, the shadows are: the frame alone, solid; the frame alone,
 //!   dithered; dithered; none; solid; dithered.
 //! - `dense`: 400 greenhouse panes over a 60 m square ahead, for the cost of
-//!   the blended casters (AURORA_PROFILE, AURORA_BLEND_SHADOWS=0 to compare).
+//!   the blended casters (BLOCK_PROFILE, BLOCK_BLEND_SHADOWS=0 to compare).
 //!
-//! From the start position, or AURORA_DEMO_POS="x,y".
+//! From the start position, or BLOCK_DEMO_POS="x,y".
 
 use super::{BLANK_TEXTURE, HANDLE, height, prim, shape};
 use block_net::NetEvent;
@@ -34,7 +34,7 @@ enum Mode {
 }
 
 fn mode() -> Option<Mode> {
-    match std::env::var("AURORA_DEMO_BLEND_SHADOWS").ok()?.trim() {
+    match std::env::var("BLOCK_DEMO_BLEND_SHADOWS").ok()?.trim() {
         "1" => Some(Mode::Row),
         "dense" => Some(Mode::Dense),
         _ => None,
@@ -66,7 +66,7 @@ pub fn events() -> Vec<NetEvent> {
     let look = Vec3::new(0.8, 0.4, 0.0).normalize();
     let across = Vec3::new(-look.y, look.x, 0.0);
     let yaw = look.y.atan2(look.x);
-    let eye = std::env::var("AURORA_DEMO_POS")
+    let eye = std::env::var("BLOCK_DEMO_POS")
         .ok()
         .map(|v| v.split(',').filter_map(|s| s.trim().parse::<f32>().ok()).collect::<Vec<_>>())
         .filter(|p| p.len() >= 2)

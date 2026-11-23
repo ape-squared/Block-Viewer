@@ -1,6 +1,6 @@
 //! Build â€º Edit particles: the particle editor window (ParticleEditor,
 //! floater_particle_editor.xml, indra/newview/particleeditor.cpp, originally
-//! LGPL 2.1) in the Aurora skin. The emitter, the particles and their motion
+//! LGPL 2.1) in the Block skin. The emitter, the particles and their motion
 //! in three sections, then the flags; Copy puts the script on the clipboard,
 //! Inject writes it into the prim (`app/particle_editor.rs`). Every change
 //! shows at once on the prim (`ParticleManager::set_preview`).

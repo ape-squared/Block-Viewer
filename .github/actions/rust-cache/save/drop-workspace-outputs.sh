@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Removes the outputs of the workspace's own packages from target/ before
-# save/action.yml saves the Rust cache. Aurora's crates are rebuilt by every
+# save/action.yml saves the Rust cache. Block's crates are rebuilt by every
 # run that restores the cache: the checkout gives their sources a newer time
 # than the cached outputs, so Cargo finds every one of them stale, even the
 # crates a change did not touch. Kept, they only make the cache larger.

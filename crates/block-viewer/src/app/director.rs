@@ -173,7 +173,7 @@ impl App {
         let pack_only = crate::director_ffmpeg::pack_only();
         let chosen = (!pack_only).then(|| self.settings.director_record.ffmpeg.clone()).flatten();
         if pack_only {
-            log::info!("director: AURORA_DIRECTOR_FFMPEG=pack, only the ffmpeg pack is looked for");
+            log::info!("director: BLOCK_DIRECTOR_FFMPEG=pack, only the ffmpeg pack is looked for");
         }
         let (tx, rx) = std::sync::mpsc::channel();
         std::thread::spawn(move || {
@@ -392,10 +392,10 @@ impl App {
     fn director_record_start(&mut self, size: (u32, u32)) {
         let options = self.settings.director_record.clone();
         let (format, fps) = (options.format, options.rate());
-        // AURORA_DEMO_DIRECTOR_FILM: the raw frames into that file, no encoder
+        // BLOCK_DEMO_DIRECTOR_FILM: the raw frames into that file, no encoder
         let raw = self
             .demo
-            .then(|| std::env::var_os("AURORA_DEMO_DIRECTOR_FILM"))
+            .then(|| std::env::var_os("BLOCK_DEMO_DIRECTOR_FILM"))
             .flatten()
             .map(PathBuf::from);
         // the sound's encoder and ffmpeg, when the film has sound (film_sound.rs)
@@ -712,7 +712,7 @@ impl App {
             can_undo: self.director.history.can_undo(),
             can_redo: self.director.history.can_redo(),
             can_record: matches!(self.director.ffmpeg, Ffmpeg::Ready(_))
-                || (self.demo && std::env::var_os("AURORA_DEMO_DIRECTOR_FILM").is_some()),
+                || (self.demo && std::env::var_os("BLOCK_DEMO_DIRECTOR_FILM").is_some()),
             recording: self.director.recording.is_some(),
             shots: self.director_shots_here(),
             frozen: self.snapshots.ui.freeze_world,
@@ -1056,7 +1056,7 @@ impl App {
         );
     }
 
-    /// AURORA_DEMO_DIRECTOR: once in the world, the window opened on a
+    /// BLOCK_DEMO_DIRECTOR: once in the world, the window opened on a
     /// track of four keyframes around our avatar; `play` plays it at once,
     /// without a start delay; `lock` locks the view on our avatar's neck,
     /// live and all along the track, its second keyframe on the neck and its
@@ -1074,7 +1074,7 @@ impl App {
             self.director_demo_record();
             return;
         }
-        let Ok(mode) = std::env::var("AURORA_DEMO_DIRECTOR") else {
+        let Ok(mode) = std::env::var("BLOCK_DEMO_DIRECTOR") else {
             self.director.demo_done = true;
             return;
         };
@@ -1129,7 +1129,7 @@ impl App {
         }
         if mode.starts_with("record") {
             // a second of film, through the ffmpeg found or, with
-            // AURORA_DEMO_DIRECTOR_FILM, as raw frames
+            // BLOCK_DEMO_DIRECTOR_FILM, as raw frames
             self.director.d.track.set_duration(1.0);
             self.director.d.time = 0.0;
             self.settings.director_record.fps = 24;
@@ -1172,7 +1172,7 @@ impl App {
         if !self.director.demo_record {
             return;
         }
-        let raw = std::env::var_os("AURORA_DEMO_DIRECTOR_FILM").is_some();
+        let raw = std::env::var_os("BLOCK_DEMO_DIRECTOR_FILM").is_some();
         let ready = raw || matches!(self.director.ffmpeg, Ffmpeg::Ready(_));
         let missing = !raw && matches!(self.director.ffmpeg, Ffmpeg::Missing);
         if missing {

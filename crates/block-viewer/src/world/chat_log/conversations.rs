@@ -260,7 +260,7 @@ pub fn merge(list: &mut Vec<Conversation>, incoming: Vec<Conversation>, offline:
 /// session is added; a listed one only takes a later time, and keeps its
 /// name, file and offline mark. True when the list changed. An entry
 /// older than `LIFETIME_DAYS` is still added, and the next login drops it
-/// as it drops any other: Aurora keeps its lifetime rule for every entry
+/// as it drops any other: Block keeps its lifetime rule for every entry
 /// (a deliberate difference, the LL viewer has none).
 pub fn advance_service(list: &mut Vec<Conversation>, c: Conversation) -> bool {
     match list.iter_mut().find(|e| e.session == c.session) {

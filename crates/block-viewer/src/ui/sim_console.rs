@@ -125,7 +125,7 @@ mod tests {
                 (console, ConsoleInput::default())
             },
             |(console, input), ctx, p| {
-                show(ctx, p, &mut true, "Aurora", true, console, input);
+                show(ctx, p, &mut true, "Block", true, console, input);
             },
         );
     }

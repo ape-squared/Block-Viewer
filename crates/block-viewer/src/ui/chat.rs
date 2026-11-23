@@ -98,10 +98,10 @@ pub struct ChatUi {
     /// Conversations, `Settings::chat_latest_button` off): `latest.rs`.
     pub hide_latest: bool,
     /// Enter on an empty field gives the keyboard back in every
-    /// conversation, not only the nearby chat (Preferences › Chat, Aurora's).
+    /// conversation, not only the nearby chat (Preferences › Chat, Block's).
     pub enter_toggles: bool,
     /// Enter from the world goes back to `last_field` (Preferences › Chat,
-    /// Aurora's): `start_chat`.
+    /// Block's): `start_chat`.
     pub enter_last_field: bool,
     /// The chat field a message was last sent from.
     last_field: ChatField,
@@ -149,16 +149,16 @@ pub struct ChatUi {
     /// The text selected in the lines of a conversation (`select.rs`), and
     /// which conversation: another tab starts without one.
     selection: (Option<uuid::Uuid>, select::Selection),
-    /// `AURORA_DEMO_CONV_SELECT`: a selection to make once lines are shown
+    /// `BLOCK_DEMO_CONV_SELECT`: a selection to make once lines are shown
     /// ("all", or "part" of three lines).
     pub demo_select: Option<String>,
-    /// `AURORA_DEMO_CONV_MENU=local|im|group|conference`: the conversation
+    /// `BLOCK_DEMO_CONV_MENU=local|im|group|conference`: the conversation
     /// of the list whose right-click menu the demo opens.
     pub demo_menu: Option<String>,
     /// Explicit offline pointer fixture for conversation rearrangement
-    /// (`AURORA_DEMO_CONV_REORDER`).
+    /// (`BLOCK_DEMO_CONV_REORDER`).
     pub demo_reorder: Option<ReorderDemo>,
-    /// `AURORA_DEMO_CONV_SCROLL`: this conversation goes to its top once it
+    /// `BLOCK_DEMO_CONV_SCROLL`: this conversation goes to its top once it
     /// is shown with its lines laid out; `demo_scrolled` once it is there.
     pub demo_scroll: Option<uuid::Uuid>,
     pub demo_scrolled: bool,
@@ -196,22 +196,22 @@ pub struct ChatUi {
     /// A demo scenario's style, which the settings do not keep, until the
     /// preferences choose another.
     pub demo_style: Option<crate::settings::ChatStyle>,
-    /// `AURORA_DEMO_CONV=aurora:new`: open the menu of the column's "new
+    /// `BLOCK_DEMO_CONV=block:new`: open the menu of the column's "new
     /// conversation" button once it is drawn.
     pub demo_new_menu: bool,
-    /// `AURORA_DEMO_CONV=aurora:local:volume`: open the menu of the nearby
+    /// `BLOCK_DEMO_CONV=block:local:volume`: open the menu of the nearby
     /// chat's volume once it is drawn.
     pub demo_volume_menu: bool,
     /// The emojis used last, the row under the fields.
     pub recent_emojis: super::emoji::recent::Recent,
-    /// `AURORA_DEMO_CONV=aurora:local:channel`: the channel selector shown
+    /// `BLOCK_DEMO_CONV=block:local:channel`: the channel selector shown
     /// without changing the preferences.
     pub demo_channel: bool,
     /// What the button in the column's head asked; `collapsed` is
     /// given every frame by the app, from the settings.
     pub column: workspace::ColumnChoice,
     /// Demo mode: the column's state of this session, which stands in for
-    /// the preferences (`AURORA_DEMO_CONV=aurora:collapsed` starts it
+    /// the preferences (`BLOCK_DEMO_CONV=block:collapsed` starts it
     /// collapsed; the button changes it, never the settings file).
     pub demo_column: Option<bool>,
     /// The workspace's layout last frame (None before the first): a window
@@ -288,7 +288,7 @@ pub struct ChatUi {
     /// is in progress.
     pub output_devices: Vec<String>,
     pub output_device: String,
-    /// Aurora's workspace (`workspace.rs`): the members' panel of a group
+    /// Block's workspace (`workspace.rs`): the members' panel of a group
     /// or a conference is open.
     pub members_open: bool,
     /// The stage of the call is reduced to its strip.
@@ -786,13 +786,13 @@ impl ChatUi {
         }
     }
 
-    /// `AURORA_DEMO_BARS=window…`: the nearby chat back in the
+    /// `BLOCK_DEMO_BARS=window…`: the nearby chat back in the
     /// Conversations window, whatever the profile saved.
     pub fn demo_dock_nearby(&mut self) {
         self.popped.remove(None);
     }
 
-    /// `AURORA_DEMO_CONV_POPOUT`: `conversation` in its own window, at `pos`.
+    /// `BLOCK_DEMO_CONV_POPOUT`: `conversation` in its own window, at `pos`.
     pub fn demo_pop_out(&mut self, ctx: &egui::Context, conversation: Option<uuid::Uuid>, pos: egui::Pos2, size: egui::Vec2) {
         self.popped.pop_out(conversation, self.members_open, self.stage_mini, false);
         demo_place_window(ctx, conversation, pos, size);
@@ -859,7 +859,7 @@ impl ChatUi {
         self.local_typing.update(now, std::mem::take(&mut self.local_field))
     }
 
-    /// `AURORA_DEMO_TYPING`: we type without a key, every frame; true when
+    /// `BLOCK_DEMO_TYPING`: we type without a key, every frame; true when
     /// it starts.
     pub fn hold_local_typing(&mut self, now: std::time::Instant) -> bool {
         self.local_field = typing::LocalField::default();
@@ -1736,7 +1736,7 @@ pub enum ConvAction {
     OpenPeople(u8),
     /// From the "Contacts" tab.
     Contacts(super::contacts::ContactsAction),
-    /// From the "Contacts" tab in Aurora's look: People's friends tab.
+    /// From the "Contacts" tab in Block's look: People's friends tab.
     People(super::people::PeopleAction),
     /// Block / unblock the avatar of a 1:1 conversation.
     ToggleBlock(uuid::Uuid),
@@ -2983,7 +2983,7 @@ fn select_lines(
     to_field
 }
 
-/// `AURORA_DEMO_CONV_SELECT`: "all" as Ctrl+A, "part" from the middle of the
+/// `BLOCK_DEMO_CONV_SELECT`: "all" as Ctrl+A, "part" from the middle of the
 /// last line drawn but two to the middle of the last one.
 fn demo_selection(sel: &mut select::Selection, mode: &str, drawn: &[select::Row], ends: Option<(u64, u64)>) {
     if mode == "part" {
@@ -3033,7 +3033,7 @@ struct Lines<'a> {
 enum Rows<'t, 'a> {
     /// The classic lines, or the bubbles (`LineEnv::bubbles`).
     Classic(Option<bool>),
-    /// The rows of Aurora's workspace (`thread.rs`).
+    /// The rows of Block's workspace (`thread.rs`).
     Thread(&'t mut thread::Thread<'a>),
 }
 
@@ -3058,7 +3058,7 @@ fn conversation_lines(ui: &mut egui::Ui, p: &Palette, l: Lines, st: &mut ChatUi,
     let layout = match &rows {
         Rows::Classic(_) => view::Layout::Classic,
         Rows::Thread(th) if th.compact => view::Layout::Compact,
-        Rows::Thread(_) => view::Layout::Aurora,
+        Rows::Thread(_) => view::Layout::Block,
     };
     let mut to_field = ToField::Nothing;
     let (lines, clock) = match st.selected {
@@ -3417,7 +3417,7 @@ pub(crate) fn draw_line(ui: &mut egui::Ui, env: &mut LineEnv, line: &crate::worl
                     let reserve = time.size().x + ui.spacing().item_spacing.x;
                     let emphasis = moderator_look(env, line).map(|(n, _)| n).unwrap_or_default();
                     let r = header_names(ui, p, shown_name(line, &name), username.as_deref(), col, reserve, emphasis);
-                    // the inspector in the Legacy Viewer; Aurora opens the
+                    // the inspector in the Legacy Viewer; Block opens the
                     // profile (a history line's when its sender is known)
                     let avatar = match (logged, own) {
                         _ if line.anonymous() => uuid::Uuid::nil(),
@@ -3471,7 +3471,7 @@ pub(crate) fn draw_line(ui: &mut egui::Ui, env: &mut LineEnv, line: &crate::worl
                     mark,
                 );
             }
-            // Aurora also offers its previews in Lines (#976), extending
+            // Block also offers its previews in Lines (#976), extending
             // LLChatHistory::appendMessage (indra/newview/llchathistory.cpp).
             previews::cards(ui, env, line, &text);
         });
@@ -3740,7 +3740,7 @@ pub fn show(
     contacts: &mut super::contacts::ContactsUi,
     contacts_settings: &mut super::contacts::ContactsSettings,
     show_contacts_tab: bool,
-    // People's friends tab, the workspace's Contacts tab in Aurora's look of
+    // People's friends tab, the workspace's Contacts tab in Block's look of
     // People (None: the contact list as it is)
     friends: Option<super::people::FriendsPane<'_, '_>>,
     open: &mut bool,
@@ -4350,7 +4350,7 @@ fn classic_pane(
     let anchor = emoji_btn.unwrap_or(resp.rect).left_top();
     gif_picker::popup(ui.ctx(), p, icons, st, anchor, 4.0, conv_input, ChatType::Normal, actions);
     // the Enter that asked for the keyboard (start_chat) is not one typed in
-    // the field (compose.rs, Aurora's style, does the same)
+    // the field (compose.rs, Block's style, does the same)
     let focusing = std::mem::take(&mut st.conv_focus_request);
     if focusing {
         resp.request_focus();
@@ -4644,7 +4644,7 @@ impl Held {
 
 /// Recent chat lines floating above the chat bar (fade out after 20 s);
 /// names of linked avatars and pictures of the senders are asked through
-/// `want_names` / `wanted_pics`. `cards`: Aurora's cards grouped by sender
+/// `want_names` / `wanted_pics`. `cards`: Block's cards grouped by sender
 /// (`console.rs`), else the Legacy Viewer's one-line look (pills over the
 /// islands when `pills`). Without `residents`, only the other lines.
 #[allow(clippy::too_many_arguments)]
@@ -4884,10 +4884,10 @@ fn line_extras(
     }
 }
 
-/// `AURORA_DEMO_BARS=chatname`: a click on a resident's name in the pills
-/// at frame 700 (its profile opens); `AURORA_DEMO_CONV_MENU`'s right click
-/// on a conversation of the list (`conv_menu`); `AURORA_DEMO_CONV_GIVE`'s
-/// inventory carried to an IM (`workspace`); `AURORA_DEMO_GIFS=menu`'s
+/// `BLOCK_DEMO_BARS=chatname`: a click on a resident's name in the pills
+/// at frame 700 (its profile opens); `BLOCK_DEMO_CONV_MENU`'s right click
+/// on a conversation of the list (`conv_menu`); `BLOCK_DEMO_CONV_GIVE`'s
+/// inventory carried to an IM (`workspace`); `BLOCK_DEMO_GIFS=menu`'s
 /// right click on the GIF button (`gif_picker`).
 pub fn demo_events(ctx: &egui::Context, frame: u64) -> Vec<egui::Event> {
     let docking = docking::demo_events(ctx, frame);
@@ -4965,7 +4965,7 @@ fn sender_link(world: &World, line: &crate::world::ChatLine) -> Option<SenderLin
 /// nothing else changes (the human's choice).
 fn bubble_sender_link(ctx: &egui::Context, p: &Palette, world: &World, k: usize, rect: egui::Rect, line: &crate::world::ChatLine) {
     let Some(target) = sender_link(world, line) else { return };
-    // AURORA_DEMO_BARS=chatname: the newest resident's name is clicked
+    // BLOCK_DEMO_BARS=chatname: the newest resident's name is clicked
     if matches!(target, SenderLink::Resident(_)) && super::bars::demo::get().click_name {
         ctx.data_mut(|d| d.insert_temp(egui::Id::unique("chat_toast_demo_name"), rect));
     }
@@ -5929,8 +5929,8 @@ mod tests {
         crate::theme::Theme::default().apply(&ctx, 1.0);
         let p = crate::theme::Theme::default().palette();
         let mut world = World::new(std::sync::Arc::new(crate::scene::avatar::AvatarLibrary::load()));
-        world.map.ratings.learn("Aurora Démo", block_net::search::SIM_ACCESS_PG);
-        let text = "Ici http://maps.secondlife.com/secondlife/Aurora%20D%C3%A9mo/1/2/3, là secondlife:///app/region/Pin%C3%A8de/4/5/6 \
+        world.map.ratings.learn("Block Démo", block_net::search::SIM_ACCESS_PG);
+        let text = "Ici http://maps.secondlife.com/secondlife/Block%20D%C3%A9mo/1/2/3, là secondlife:///app/region/Pin%C3%A8de/4/5/6 \
                     et secondlife://Pinède/7/8/9";
         let mut output = ctx.run_ui(
             egui::RawInput {
@@ -6142,12 +6142,12 @@ mod tests {
         assert!(mentions(&t, &me));
         assert!(!mentions(&t, &jane), "an about link is not a mention");
         assert!(!mentions(&format!("secondlife:///app/agent/{me}/about"), &me));
-        let name = |id: &uuid::Uuid, _: bool| (*id == me).then(|| "Aurora Demo".to_owned());
+        let name = |id: &uuid::Uuid, _: bool| (*id == me).then(|| "Block Demo".to_owned());
         let app = |_: &str, _: &crate::slapp::AppLink| "Demo Group".to_owned();
         let anonym = |_: uuid::Uuid| "A resident".to_owned();
         assert_eq!(
             plain_text(&t, name, anonym, app),
-            format!("@Aurora Demo see {jane} at https://example.org"),
+            format!("@Block Demo see {jane} at https://example.org"),
             "an unknown name keeps its id, a web link its address"
         );
         assert_eq!(plain_text("[https://example.org the site] now", name, anonym, app), "the site now");
@@ -6342,8 +6342,8 @@ mod tests {
     #[test]
     fn the_workspace_by_default_bubbles_and_legacy_lines_on_demand() {
         use crate::settings::ChatStyle;
-        assert_eq!(crate::settings::Settings::default().chat_style, ChatStyle::Aurora);
-        assert!(ChatStyle::Aurora.workspace() && ChatStyle::Compact.workspace());
+        assert_eq!(crate::settings::Settings::default().chat_style, ChatStyle::Block);
+        assert!(ChatStyle::Block.workspace() && ChatStyle::Compact.workspace());
         assert!(!ChatStyle::Bubbles.workspace() && !ChatStyle::Legacy.workspace());
         // the nearby chat and the groups name their senders, a 1:1 does not
         assert_eq!(line_style(ChatStyle::Bubbles, None), Some(true));
@@ -6717,7 +6717,7 @@ mod tests {
     #[test]
     fn opening_conversations_focuses_the_selected_chat_without_taking_it_back() {
         for style in [
-            crate::settings::ChatStyle::Aurora,
+            crate::settings::ChatStyle::Block,
             crate::settings::ChatStyle::Compact,
             crate::settings::ChatStyle::Bubbles,
             crate::settings::ChatStyle::Legacy,
@@ -6824,7 +6824,7 @@ mod tests {
     #[test]
     fn each_tab_keeps_its_draft_and_takes_the_keyboard() {
         for style in [
-            crate::settings::ChatStyle::Aurora,
+            crate::settings::ChatStyle::Block,
             crate::settings::ChatStyle::Compact,
             crate::settings::ChatStyle::Bubbles,
             crate::settings::ChatStyle::Legacy,
@@ -6900,7 +6900,7 @@ mod tests {
     #[test]
     fn a_conversation_opened_to_type_takes_the_keyboard() {
         for style in [
-            crate::settings::ChatStyle::Aurora,
+            crate::settings::ChatStyle::Block,
             crate::settings::ChatStyle::Compact,
             crate::settings::ChatStyle::Bubbles,
             crate::settings::ChatStyle::Legacy,
@@ -6985,10 +6985,10 @@ mod tests {
         select_and_copy_like_a_transcript(crate::settings::ChatStyle::Bubbles);
     }
 
-    /// The same in Aurora's workspace, roomy and compact.
+    /// The same in Block's workspace, roomy and compact.
     #[test]
     fn the_workspace_lines_select_and_copy_like_a_transcript() {
-        select_and_copy_like_a_transcript(crate::settings::ChatStyle::Aurora);
+        select_and_copy_like_a_transcript(crate::settings::ChatStyle::Block);
         select_and_copy_like_a_transcript(crate::settings::ChatStyle::Compact);
     }
 
@@ -7151,7 +7151,7 @@ mod tests {
     #[test]
     fn contacts_tab_visibility_updates_the_list_and_selected_pane() {
         for style in [
-            crate::settings::ChatStyle::Aurora,
+            crate::settings::ChatStyle::Block,
             crate::settings::ChatStyle::Compact,
             crate::settings::ChatStyle::Bubbles,
             crate::settings::ChatStyle::Legacy,

@@ -14,13 +14,13 @@
 //! - "Copy as CSV" (time;name;amount, negative when paid) and "Delete" act
 //!   on the selected rows, "Clear" on all of them.
 //!
-//! The Aurora look (`aurora.rs`, the human's choice of the mockup, variant
+//! The Block look (`block.rs`, the human's choice of the mockup, variant
 //! A) adds the totals, a received / paid filter, what each transaction was
 //! (TransactionInfo's type and item), the newest first and an undo after a
 //! deletion; `legacy.rs` is the Legacy Viewer's window
 //! (`Settings::legacy_money_tracker`).
 
-mod aurora;
+mod block;
 mod legacy;
 
 use crate::theme::Palette;
@@ -266,7 +266,7 @@ pub fn csv(payments: &[&Payment], name: impl Fn(&Payment) -> String) -> String {
         .join("\n")
 }
 
-/// Which rows the Aurora look shows.
+/// Which rows the Block look shows.
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 pub enum Filter {
     #[default]
@@ -349,7 +349,7 @@ impl MoneyTrackerUi {
         if legacy {
             self.show_legacy(ctx, p, world, open, always, &mut actions);
         } else {
-            self.show_aurora(ctx, p, world, pics, open, always, &mut actions);
+            self.show_block(ctx, p, world, pics, open, always, &mut actions);
         }
         if !*open {
             self.was_open = false;
@@ -434,7 +434,7 @@ impl MoneyTrackerUi {
         }
     }
 
-    /// AURORA_DEMO_MONEY_TRACKER: a session of payments, the most recent
+    /// BLOCK_DEMO_MONEY_TRACKER: a session of payments, the most recent
     /// one a few seconds old.
     pub fn demo(&mut self, rows: &[(u64, Party, bool, i32, i32, &str)]) {
         let now = SystemTime::now();

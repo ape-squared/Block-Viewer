@@ -20,7 +20,7 @@ using System.Text;
 using System.Threading;
 using System.Windows.Forms;
 
-namespace AuroraAutomation
+namespace BlockAutomation
 {
     internal static class Native
     {
@@ -69,7 +69,7 @@ namespace AuroraAutomation
 
         internal Border()
         {
-            Text = "Aurora automation border";
+            Text = "Block automation border";
             FormBorderStyle = FormBorderStyle.None;
             ShowInTaskbar = false;
             StartPosition = FormStartPosition.Manual;
@@ -195,7 +195,7 @@ namespace AuroraAutomation
         public static void Run(int processId)
         {
             bool created;
-            using (var mutex = new Mutex(true, "Local\\AuroraAutomationBorder-" + processId, out created))
+            using (var mutex = new Mutex(true, "Local\\BlockAutomationBorder-" + processId, out created))
             {
                 if (!created) return;
                 try
@@ -216,4 +216,4 @@ namespace AuroraAutomation
 }
 '@
 
-[AuroraAutomation.Runner]::Run($ViewerProcessId)
+[BlockAutomation.Runner]::Run($ViewerProcessId)

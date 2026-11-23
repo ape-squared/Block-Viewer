@@ -3,7 +3,7 @@
 //! only among the adapters Vulkan shows and that can present to the window,
 //! and it says nothing of the others. Here every adapter is listed in the
 //! log with its type, memory and whether it can present, then tried in an
-//! order of our own: the user's choice (`AURORA_GPU`, Preferences ›
+//! order of our own: the user's choice (`BLOCK_GPU`, Preferences ›
 //! Graphics), then discrete before integrated before the rest, the larger
 //! video memory first. An adapter that fails to open hands over to the next
 //! instead of ending the session.
@@ -70,7 +70,7 @@ pub enum Wanted {
 }
 
 impl Wanted {
-    /// `AURORA_GPU` or the setting: empty or `auto` for the automatic choice.
+    /// `BLOCK_GPU` or the setting: empty or `auto` for the automatic choice.
     pub fn parse(value: &str) -> Wanted {
         let v = value.trim();
         if v.is_empty() || v.eq_ignore_ascii_case("auto") {

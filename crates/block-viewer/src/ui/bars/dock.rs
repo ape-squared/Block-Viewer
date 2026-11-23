@@ -1,4 +1,4 @@
-//! Aurora's bottom bar: the local chat in a glass island on the left and the
+//! Block's bottom bar: the local chat in a glass island on the left and the
 //! toolbar's buttons in a centred glass dock (variant A of the bars mockup
 //! the human validated), instead of Firestorm's full-width bar. The chat
 //! island keeps the chat bar's behaviour (`chat::bar_input`, after
@@ -6,7 +6,7 @@
 //! keeps the toolbar's commands, drags, menus and Speak panel
 //! (`bars::toolbar_row`, after LLToolBar), in fixed buttons. Both sample the
 //! windows' blur like the top islands (`islands::area`): no extra GPU pass.
-//! Preferences › Aurora › Appearance › "Top and bottom bars" brings
+//! Preferences › Block › Appearance › "Top and bottom bars" brings
 //! Firestorm's bar back (`bars::bottom_bar`, unchanged).
 
 use super::islands::{GAP, MARGIN, PAD, area, slot_face, slot_ink};

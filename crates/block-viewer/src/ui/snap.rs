@@ -8,7 +8,7 @@
 //! (LLFloater::addDependentFloater, LLFloater::translate). The rules kept:
 //! the margin, an edge meets the facing edge of a neighbor or lines up with
 //! its same-side edge when the two are already neighbors on the other axis,
-//! and the edges of the parent count too. What Aurora does its own way: a
+//! and the edges of the parent count too. What Block does its own way: a
 //! window only attracts another when they would share a stretch of edge (a
 //! floater far above attracts in Firestorm), the snap of a moved window is
 //! shown by a guide and applied when the mouse is released rather than under

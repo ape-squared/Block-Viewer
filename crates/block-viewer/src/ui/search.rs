@@ -1,6 +1,6 @@
 //! "Search": Firestorm's legacy search floater (FSFloaterSearch,
 //! indra/newview/fsfloatersearch.cpp, floater_fs_search.xml and
-//! panel_fs_search_legacy_*.xml, originally LGPL 2.1) drawn the Aurora way:
+//! panel_fs_search_legacy_*.xml, originally LGPL 2.1) drawn the Block way:
 //! one window with the tabs People, Groups, Places, Land Sales,
 //! Events, Classifieds and Web. Each directory tab has its form (the fields
 //! `find()` reads), the result list with sortable headers, the count and the
@@ -10,13 +10,13 @@
 //!
 //! The window only reads the world: what it asks for comes back as
 //! [`SearchAction`]s. State and rules: `world/search.rs`. This is the
-//! Legacy look (Preferences › Aurora); Aurora's own, one field and the
-//! details beside rich rows, is `search/aurora.rs`, on the same lists.
+//! Legacy look (Preferences › Block); Block's own, one field and the
+//! details beside rich rows, is `search/block.rs`, on the same lists.
 
-mod aurora;
-mod aurora_details;
+mod block;
+mod block_details;
 #[cfg(test)]
-mod aurora_tests;
+mod block_tests;
 mod details;
 
 use super::place_details::Ctx;
@@ -78,7 +78,7 @@ pub enum SearchAction {
     JoinGroup(Uuid),
     /// The saved choices changed.
     SettingsChanged,
-    /// A row of Aurora's window shows a parcel (place, land sale) whose
+    /// A row of Block's window shows a parcel (place, land sale) whose
     /// snapshot and region it does not have yet: ParcelInfoRequest.
     WantParcel(Uuid),
     /// The same for a classified: ClassifiedInfoRequest.
@@ -145,8 +145,8 @@ pub struct SearchUi {
     web_home: String,
     /// Profile pictures of the residents shown.
     pub wanted_pics: HashSet<Uuid>,
-    /// Aurora's window: its field, type and selection.
-    aurora: aurora::Aurora,
+    /// Block's window: its field, type and selection.
+    aurora: block::Block,
 }
 
 impl Default for SearchUi {
@@ -176,7 +176,7 @@ impl Default for SearchUi {
             web_edit: None,
             web_home: String::new(),
             wanted_pics: HashSet::new(),
-            aurora: aurora::Aurora::default(),
+            aurora: block::Block::default(),
         }
     }
 }
@@ -281,7 +281,7 @@ pub(crate) fn event_parts(unix: i64, zone: ClockZone) -> (i64, usize, i64, usize
 /// (FSPanelSearchEvents' "date" column, LLPanelEventInfo's mTimeStr). In
 /// local time, the same "MM/DD HH:MM" worked out from the event's UTC time,
 /// with the zone ("11/04 23:00 CET"): the Legacy Viewer's clock has no
-/// local time, Aurora's events follow Aurora's clock. Without a time, the
+/// local time, Block's events follow Block's clock. Without a time, the
 /// directory's text.
 pub(crate) fn event_date_text(server: &str, unix: i64, zone: ClockZone) -> String {
     if zone == ClockZone::Slt || unix <= 0 {
@@ -519,12 +519,12 @@ impl SearchUi {
         self.tab = tab.index();
         self.restored = true;
         self.focus = true;
-        self.aurora.open(aurora::Kind::of(tab));
+        self.aurora.open(block::Kind::of(tab));
     }
 
-    /// Aurora's window on its "All" chip (demo).
+    /// Block's window on its "All" chip (demo).
     pub fn open_all(&mut self) {
-        self.aurora.open(aurora::Kind::All);
+        self.aurora.open(block::Kind::All);
         self.focus = true;
     }
 
@@ -634,7 +634,7 @@ impl SearchUi {
         floater.min_size = MIN_SIZE;
         floater.show(ctx, p, open, |ui| {
             if !classic {
-                self.aurora_body(ui, c, pics, settings, web, &mut actions);
+                self.block_body(ui, c, pics, settings, web, &mut actions);
                 return;
             }
             // "ls_tabs" of floater_fs_search.xml, in its order (Tab::ALL)
@@ -877,7 +877,7 @@ impl SearchUi {
             return;
         };
         // loadURL(SearchQuery()): the search page at once. Firestorm loads it
-        // each time the floater opens, whatever the tab; Aurora waits for the
+        // each time the floater opens, whatever the tab; Block waits for the
         // web tab to be shown (no browser and no request before that). A page
         // of an earlier session is replaced.
         if self.web_home != home {

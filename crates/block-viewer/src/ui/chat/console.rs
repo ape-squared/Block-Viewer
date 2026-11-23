@@ -1,8 +1,8 @@
-//! The nearby chat lines above the chat bar, Aurora's look: the recent lines
+//! The nearby chat lines above the chat bar, Block's look: the recent lines
 //! grouped by sender in cards like the Conversations window's messages (the
 //! sender's picture, their name, the time and the volume on a head row, the
 //! lines under it), on the same faded glass as the Legacy Viewer's one-line
-//! look (`toasts`, Preferences › Aurora › Nearby chat lines). They let clicks
+//! look (`toasts`, Preferences › Block › Nearby chat lines). They let clicks
 //! through to the world like the lines did: the name, the picture and the
 //! links get their own small click areas (`bubble_sender_link`,
 //! `bubble_link`). No status dot on the picture, as in the Conversations
@@ -65,7 +65,7 @@ fn alpha(seconds: f32, line: &ChatLine, now: std::time::SystemTime) -> f32 {
 }
 
 /// Newest whole messages within the wrapped-text budget, in reading order,
-/// following LLConsole::draw (indra/llui/llconsole.cpp). Headers of Aurora's
+/// following LLConsole::draw (indra/llui/llconsole.cpp). Headers of Block's
 /// cards are presentation, not message text. Measure only until the budget
 /// is full; the renderer reuses egui's cached text layouts.
 pub(super) fn recent(
@@ -303,7 +303,7 @@ fn card<'a>(
                 let (r, _) = ui.allocate_exact_size(galley.size(), egui::Sense::hover());
                 ui.painter().galley(r.min, galley, p.ink);
                 names.push((r, first));
-                // a member of the Aurora team (objects never are)
+                // a member of the Block team (objects never are)
                 let author = if first.kind.is_own() { world.agent_id } else { first.source };
                 if !matches!(first.kind, ChatKind::Object(_) | ChatKind::ObjectIm) {
                     crate::ui::staff::after_name(ui, p, crate::world::staff::mark(world, &author), 9.5);

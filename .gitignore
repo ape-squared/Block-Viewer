@@ -2,7 +2,7 @@
 /target/
 **/target/
 # The macOS bundle scripts/package-macos.ps1 builds (docs/MACOS.md)
-/Aurora Viewer.app/
+/Block Viewer.app/
 
 # Agent worktrees, scratch space and release builds (they live outside the
 # repository, this is a safety net)
@@ -17,12 +17,12 @@
 
 # Cache folders the scene's streamers create where the tests run (the
 # crate's folder): never sources
-/crates/aurora-viewer/anim/
-/crates/aurora-viewer/mat/
-/crates/aurora-viewer/mesh/
-/crates/aurora-viewer/settings/
-/crates/aurora-viewer/sound/
-/crates/aurora-viewer/tex/
+/crates/block-viewer/anim/
+/crates/block-viewer/mat/
+/crates/block-viewer/mesh/
+/crates/block-viewer/settings/
+/crates/block-viewer/sound/
+/crates/block-viewer/tex/
 
 # Fuzzing: the corpus libFuzzer grows, the failing inputs, coverage data
 # (fuzz/; the seeds are made by the targets' code)

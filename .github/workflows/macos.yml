@@ -63,7 +63,7 @@ jobs:
 
   mac-runner:
     # The runners of the two jobs below, in the queue and on main: the
-    # team's Mac mini (label aurora-mac, two runners, each with its build
+    # team's Mac mini (label block-mac, two runners, each with its build
     # folder kept between runs) for each of its runners online and idle,
     # GitHub's otherwise, so that nothing waits for a machine that is off.
     # Two entries that pick at the same moment may both count the same idle
@@ -104,10 +104,10 @@ jobs:
           MANIFESTS: ${{ hashFiles('Cargo.lock', 'Cargo.toml', 'crates/*/Cargo.toml', 'rust-toolchain.toml') }}
         run: |
           github='"macos-15"'
-          mac='["self-hosted", "aurora-mac"]'
+          mac='["self-hosted", "block-mac"]'
           free=0
           if [ -n "$GH_TOKEN" ]; then
-            free=$(gh api "repos/$REPO/actions/runners" --jq '[.runners[] | select(.status == "online" and (.busy | not) and any(.labels[]; .name == "aurora-mac"))] | length') || free=0
+            free=$(gh api "repos/$REPO/actions/runners" --jq '[.runners[] | select(.status == "online" and (.busy | not) and any(.labels[]; .name == "block-mac"))] | length') || free=0
           fi
           rest=$github
           interface=$github
@@ -134,7 +134,7 @@ jobs:
     needs: [scope, mac-runner]
     # mac-runner is skipped on pull requests: run anyway
     if: ${{ !cancelled() && needs.scope.result == 'success' && needs.scope.outputs.needed == 'true' }}
-    # Apple Silicon (arm64), the only Macs Aurora supports
+    # Apple Silicon (arm64), the only Macs Block supports
     runs-on: ${{ needs.mac-runner.outputs.rest && fromJSON(needs.mac-runner.outputs.rest) || 'macos-15' }}
     # GitHub's runner (3 cores) building the cache from nothing took 34 to
     # 44 minutes for the whole job with unoptimised dependencies; optimised
@@ -202,11 +202,11 @@ jobs:
         if: github.event_name != 'pull_request'
         timeout-minutes: 15
         env:
-          AURORA_DEMO: '1'
-          AURORA_DEMO_GPU_STALL: '300:10'
-          AURORA_CAPTURE: ${{ runner.temp }}/metal-demo.png
-          AURORA_CAPTURE_FRAMES: '620'
-          AURORA_CAPTURE_EXIT: '1'
+          BLOCK_DEMO: '1'
+          BLOCK_DEMO_GPU_STALL: '300:10'
+          BLOCK_CAPTURE: ${{ runner.temp }}/metal-demo.png
+          BLOCK_CAPTURE_FRAMES: '620'
+          BLOCK_CAPTURE_EXIT: '1'
         run: |
           # The team's Mac mini has nobody at its keyboard: once its display
           # sleeps, macOS presents no frame of the window, which then never
@@ -219,8 +219,8 @@ jobs:
             caffeinate -d -i -w $$ &
           fi
           cargo run --profile ci --locked -p block-viewer -- --title "CI macOS"
-          test -s "$AURORA_CAPTURE"
-          log="$HOME/Library/Application Support/org.Aurora.AuroraViewer/logs/aurora-demo-ci-macos.log"
+          test -s "$BLOCK_CAPTURE"
+          log="$HOME/Library/Application Support/org.Block.BlockViewer/logs/block-demo-ci-macos.log"
           if ! grep -q "notice shown" "$log" || ! grep -q "the graphics card answered again" "$log"; then
             echo "::error::the GPU stall and its notice did not happen as expected (see the demo log)"
             exit 1
@@ -240,7 +240,7 @@ jobs:
           name: macos-demo
           path: |
             ${{ runner.temp }}/metal-demo.png
-            ~/Library/Application Support/org.Aurora.AuroraViewer/logs/aurora-demo-*.log
+            ~/Library/Application Support/org.Block.BlockViewer/logs/block-demo-*.log
           if-no-files-found: warn
 
   macos-interface:

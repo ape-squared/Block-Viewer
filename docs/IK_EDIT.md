@@ -16,7 +16,7 @@ discards the temporary pose. Teleporting or logging out leaves the tool too.
 `.anim` save and import preparation. For photo poses, use the
 [Poser](POSER.md).
 
-The shared Aurora tab strip separates **Pose**, **Animations** and
+The shared Block tab strip separates **Pose**, **Animations** and
 **Display**. The **Options** footer stays under every tab, outside the
 scrolling content: World/Local space, Symmetry, Reset pose and the four limb
 switches.
@@ -129,6 +129,6 @@ pose. These layers are temporary: closing IK Edit drops them.
 
 ## Offline validation
 
-`AURORA_DEMO_IK_EDIT` opens IK Edit on the demo avatar and drives it through
+`BLOCK_DEMO_IK_EDIT` opens IK Edit on the demo avatar and drives it through
 its modes (gizmo, limbs, symmetry, display groups, animation layers, native
 animation creation); [TESTING.md](TESTING.md) lists them and what to capture.

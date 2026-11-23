@@ -184,7 +184,7 @@ pub struct Listener {
     pub forward: Vec3,
     pub up: Vec3,
     pub underwater: bool,
-    /// World sounds rendered binaurally, for headphones (Aurora's own,
+    /// World sounds rendered binaurally, for headphones (Block's own,
     /// Preferences › Sound; off: panned, as in the Legacy Viewer).
     pub binaural: bool,
 }
@@ -219,11 +219,11 @@ pub fn ear_position(ear: crate::settings::VoiceEar, camera: Vec3, agent: Vec3) -
     }
 }
 
-/// `AURORA_SOUND_HRTF=0|1`: the 3D sound for headphones forced off or on
+/// `BLOCK_SOUND_HRTF=0|1`: the 3D sound for headphones forced off or on
 /// for this launch, without saving it.
 pub fn binaural_forced() -> Option<bool> {
     static FORCED: std::sync::OnceLock<Option<bool>> = std::sync::OnceLock::new();
-    *FORCED.get_or_init(|| match std::env::var("AURORA_SOUND_HRTF").as_deref() {
+    *FORCED.get_or_init(|| match std::env::var("BLOCK_SOUND_HRTF").as_deref() {
         Ok("0") => Some(false),
         Ok("1") => Some(true),
         _ => None,
@@ -1222,7 +1222,7 @@ mod tests {
 
     #[test]
     fn gesture_sound_preload_waits_past_a_cache_miss() {
-        let mut sounds = SoundManager::new(std::env::temp_dir().join("aurora-gesture-sound-preload-tests"));
+        let mut sounds = SoundManager::new(std::env::temp_dir().join("block-gesture-sound-preload-tests"));
         let id = Uuid::from_u128(2931);
         sounds.want(id);
         assert!(!sounds.asset_settled(&id));
@@ -1296,7 +1296,7 @@ mod tests {
             fetcher.request(request(1, "busy", urgent::ANIMATION));
             started_rx.recv_timeout(Duration::from_secs(10)).expect("saturated");
             fetcher.request(request(2, "crowd", urgent::ANIMATION));
-            let mut sounds = SoundManager::new(std::env::temp_dir().join("aurora-gesture-queue-tests"));
+            let mut sounds = SoundManager::new(std::env::temp_dir().join("block-gesture-queue-tests"));
             let id = Uuid::from_u128(2931);
             sounds.want(id);
             sounds.clips.get_mut(&id).expect("wanted").state = 4;
@@ -1333,7 +1333,7 @@ mod tests {
 
     #[test]
     fn decoded_sounds_past_the_count_go_oldest_first_except_those_in_use() {
-        let mut sounds = SoundManager::new(std::env::temp_dir().join("aurora-sound-memory-tests"));
+        let mut sounds = SoundManager::new(std::env::temp_dir().join("block-sound-memory-tests"));
         for i in 1..=8u128 {
             decoded(&mut sounds, Uuid::from_u128(i), 480);
         }
@@ -1363,7 +1363,7 @@ mod tests {
 
     #[test]
     fn gaming_mode_releases_every_idle_sound_and_keeps_those_in_use() {
-        let mut sounds = SoundManager::new(std::env::temp_dir().join("aurora-sound-memory-tests"));
+        let mut sounds = SoundManager::new(std::env::temp_dir().join("block-sound-memory-tests"));
         for i in 1..=4u128 {
             decoded(&mut sounds, Uuid::from_u128(i), 480);
         }
@@ -1379,7 +1379,7 @@ mod tests {
 
     #[test]
     fn decoded_sounds_past_the_memory_budget_are_dropped() {
-        let mut sounds = SoundManager::new(std::env::temp_dir().join("aurora-sound-memory-tests"));
+        let mut sounds = SoundManager::new(std::env::temp_dir().join("block-sound-memory-tests"));
         // 4800 mono frames: 38 400 bytes once stereo
         for i in 1..=4u128 {
             decoded(&mut sounds, Uuid::from_u128(i), 4_800);
@@ -1400,7 +1400,7 @@ mod tests {
         let world = hud_world();
         let object = object_id(&world, crate::demo::hud::CHILD);
         let asset = Uuid::from_u128(17);
-        let mut sounds = SoundManager::new(std::env::temp_dir().join("aurora-sound-explorer-tests"));
+        let mut sounds = SoundManager::new(std::env::temp_dir().join("block-sound-explorer-tests"));
         let l = Listener {
             pos: Vec3::ZERO,
             right: Vec3::X,
@@ -1445,7 +1445,7 @@ mod tests {
         let mut world = hud_world();
         let object = object_id(&world, crate::demo::hud::CHILD);
         let asset = Uuid::from_u128(21);
-        let mut sounds = SoundManager::new(std::env::temp_dir().join("aurora-sound-explorer-tests"));
+        let mut sounds = SoundManager::new(std::env::temp_dir().join("block-sound-explorer-tests"));
         let l = Listener {
             pos: Vec3::ZERO,
             right: Vec3::X,
@@ -1502,7 +1502,7 @@ mod tests {
         let other = Uuid::from_u128(555);
         let asset = Uuid::from_u128(21);
         world.mutes.reset(owner);
-        let mut sounds = SoundManager::new(std::env::temp_dir().join("aurora-direct-sound-tests"));
+        let mut sounds = SoundManager::new(std::env::temp_dir().join("block-direct-sound-tests"));
         sounds.insert(asset, SoundClip::from_pcm(&[0.0; 4800], 1, 48_000));
         sounds.set_attached(None, child, asset, 1.0, FLAG_LOOP);
         sounds.set_owner(child, owner);
@@ -1558,7 +1558,7 @@ mod tests {
     #[test]
     fn hud_sounds_play_at_the_listener_on_roots_and_linked_prims() {
         let world = hud_world();
-        let mut sounds = SoundManager::new(std::env::temp_dir().join("aurora-hud-sound-tests"));
+        let mut sounds = SoundManager::new(std::env::temp_dir().join("block-hud-sound-tests"));
         let sound = Uuid::from_u128(1);
         sounds.insert(sound, SoundClip::from_pcm(&[0.0; 4800], 1, 48_000));
         let mut ids = Vec::new();
@@ -1602,7 +1602,7 @@ mod tests {
         let root = object_id(&world, crate::demo::hud::FIRST);
         let first = Uuid::from_u128(1);
         let second = Uuid::from_u128(2);
-        let mut sounds = SoundManager::new(std::env::temp_dir().join("aurora-hud-sound-tests"));
+        let mut sounds = SoundManager::new(std::env::temp_dir().join("block-hud-sound-tests"));
         let listener = Listener {
             pos: Vec3::splat(100.0),
             right: Vec3::X,
@@ -1651,7 +1651,7 @@ mod tests {
         let now = Instant::now();
         let avatar = world.objects.index_of_uuid(&world.agent_id).unwrap();
         let wearer_pos = Scene::object_transform(&world, avatar, now, 0).unwrap().0;
-        let mut sounds = SoundManager::new(std::env::temp_dir().join("aurora-hud-sound-tests"));
+        let mut sounds = SoundManager::new(std::env::temp_dir().join("block-hud-sound-tests"));
         let sound = Uuid::from_u128(1);
         sounds.insert(sound, SoundClip::from_pcm(&[0.0; 4800], 1, 48_000));
         sounds.apply_object_sound(
@@ -1702,7 +1702,7 @@ mod tests {
             binaural: false,
         };
         let sound = Uuid::from_u128(1);
-        let mut sounds = SoundManager::new(std::env::temp_dir().join("aurora-hud-sound-tests"));
+        let mut sounds = SoundManager::new(std::env::temp_dir().join("block-hud-sound-tests"));
         sounds.insert(sound, SoundClip::from_pcm(&[0.0; 4800], 1, 48_000));
         sounds.set_attached(None, object, sound, 0.6, FLAG_LOOP);
         // SoundTrigger positions remain in the world, even if the emitter is a HUD.
@@ -1731,7 +1731,7 @@ mod tests {
         assert_eq!(ear_position(VoiceEar::Camera, camera, agent), camera);
         assert_eq!(ear_position(VoiceEar::Avatar, camera, agent), agent);
         let sound = Uuid::from_u128(1);
-        let mut sounds = SoundManager::new(std::env::temp_dir().join("aurora-ear-sound-tests"));
+        let mut sounds = SoundManager::new(std::env::temp_dir().join("block-ear-sound-tests"));
         sounds.insert(sound, SoundClip::from_pcm(&[0.0; 4800], 1, 48_000));
         sounds.set_attached(None, object, sound, 0.6, FLAG_LOOP);
         // a 2 m cut-off radius, measured from the ear

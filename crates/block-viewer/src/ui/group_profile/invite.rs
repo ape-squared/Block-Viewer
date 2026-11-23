@@ -524,10 +524,10 @@ mod tests {
         let list = [
             group(1, "zebra club", invite),
             group(2, "No rights", groups::powers::NOTICES_RECEIVE),
-            group(3, "Aurora Builders", invite | groups::powers::MEMBER_EJECT),
+            group(3, "Block Builders", invite | groups::powers::MEMBER_EJECT),
         ];
         let names: Vec<&str> = invite_groups(&list).iter().map(|g| g.name.as_str()).collect();
-        assert_eq!(names, ["Aurora Builders", "zebra club"]);
+        assert_eq!(names, ["Block Builders", "zebra club"]);
     }
 
     #[test]

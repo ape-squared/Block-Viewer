@@ -86,7 +86,7 @@ impl Tab {
         }
     }
 
-    /// The section a demo or a link names (`AURORA_DEMO_PERF=monitor-…`).
+    /// The section a demo or a link names (`BLOCK_DEMO_PERF=monitor-…`).
     pub fn from_key(key: &str) -> Option<Tab> {
         Some(match key {
             "overview" => Tab::Overview,
@@ -199,13 +199,13 @@ impl Default for Monitor {
 }
 
 impl Monitor {
-    /// The scene section on its objects (`AURORA_DEMO_PERF=monitor-scene-objects`).
+    /// The scene section on its objects (`BLOCK_DEMO_PERF=monitor-scene-objects`).
     pub fn show_scene_objects(&mut self) {
         self.tab = Tab::Scene;
         self.scene_view = SceneView::Objects;
     }
 
-    /// The scene section on what the agent wears (`AURORA_DEMO_PERF=monitor-scene-worn`
+    /// The scene section on what the agent wears (`BLOCK_DEMO_PERF=monitor-scene-worn`
     /// or `monitor-scene-huds`).
     pub fn show_scene_worn(&mut self, huds: bool) {
         self.tab = Tab::Scene;
@@ -563,7 +563,7 @@ pub fn export_csv(s: &Snapshot) -> String {
     out
 }
 
-/// The demo's section (`AURORA_DEMO_PERF=monitor-<section>`) for the next
+/// The demo's section (`BLOCK_DEMO_PERF=monitor-<section>`) for the next
 /// frames the window draws.
 pub fn demo_tab(ctx: &egui::Context, tab: Tab) {
     ctx.data_mut(|d| d.insert_temp(egui::Id::unique(("monitor", "demo-tab")), tab_index(tab)));

@@ -1,4 +1,4 @@
-//! People â€º Recent in Aurora's look (the People mock-up v2): the residents
+//! People â€º Recent in Block's look (the People mock-up v2): the residents
 //! we dealt with lately (`world/recent.rs`, LLRecentPeople; the recent tab
 //! of LLPanelPeople, panel_people.xml) as Near you's rows, newest first,
 //! with how long ago and the region we were in. The menu is the avatar

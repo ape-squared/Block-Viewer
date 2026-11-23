@@ -1,5 +1,5 @@
 //! World sounds muffled by what stands between them and the listener: a
-//! sound behind a wall, a sound played by someone shut in a box. Aurora's
+//! sound behind a wall, a sound played by someone shut in a box. Block's
 //! own (Preferences › Sound, "Muffle sounds behind walls", on): the Legacy
 //! Viewer plays every world sound unobstructed, which the switch turned off
 //! keeps.
@@ -63,14 +63,14 @@ const SEND_STEP: f32 = 0.02;
 /// often.
 const LOG_STEP: f32 = 0.05;
 const LOG_EVERY: Duration = Duration::from_millis(500);
-/// The profile's summary line (AURORA_PROFILE).
+/// The profile's summary line (BLOCK_PROFILE).
 const SUMMARY_EVERY: Duration = Duration::from_secs(10);
 
-/// `AURORA_SOUND_OCCLUSION=0|1`: the setting overridden for this launch
+/// `BLOCK_SOUND_OCCLUSION=0|1`: the setting overridden for this launch
 /// (A/B measures), never saved.
 pub fn forced() -> Option<bool> {
     static FORCED: std::sync::OnceLock<Option<bool>> = std::sync::OnceLock::new();
-    *FORCED.get_or_init(|| match std::env::var("AURORA_SOUND_OCCLUSION").as_deref() {
+    *FORCED.get_or_init(|| match std::env::var("BLOCK_SOUND_OCCLUSION").as_deref() {
         Ok("0") => Some(false),
         Ok("1") => Some(true),
         _ => None,
@@ -148,9 +148,9 @@ pub struct SoundOcclusion {
     by_emitter: HashMap<Uuid, (f32, Instant)>,
     /// The amount last logged per voice, and when.
     logged: HashMap<u64, (f32, Instant)>,
-    /// Log lines at info level (AURORA_DEMO_SOUND_OCCLUSION), else debug.
+    /// Log lines at info level (BLOCK_DEMO_SOUND_OCCLUSION), else debug.
     verbose: bool,
-    /// A summary every ten seconds (AURORA_PROFILE).
+    /// A summary every ten seconds (BLOCK_PROFILE).
     profile: bool,
     stats: Stats,
     candidates: Vec<(usize, u64)>,
@@ -168,7 +168,7 @@ impl Default for SoundOcclusion {
             by_emitter: HashMap::new(),
             logged: HashMap::new(),
             verbose: crate::demo::sound_occlusion::active(),
-            profile: std::env::var_os("AURORA_PROFILE").is_some(),
+            profile: std::env::var_os("BLOCK_PROFILE").is_some(),
             stats: Stats::default(),
             candidates: Vec::new(),
         }

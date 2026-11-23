@@ -1,4 +1,4 @@
-"""Real Blender coverage for Avastar axes and older Aurora rest meshes."""
+"""Real Blender coverage for Avastar axes and older Block rest meshes."""
 from pathlib import Path
 import sys
 import unittest
@@ -7,27 +7,27 @@ import bpy
 from mathutils import Vector
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-import aurora_live
-from aurora_live import exporter, starter
+import block_live
+from block_live import exporter, starter
 
 
 class CoordinateTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        aurora_live.register()
+        block_live.register()
 
     @classmethod
     def tearDownClass(cls):
-        aurora_live.unregister()
+        block_live.unregister()
 
     def setUp(self):
-        aurora_live._stop()
+        block_live._stop()
         if bpy.context.object and bpy.context.object.mode != "OBJECT":
             bpy.ops.object.mode_set(mode="OBJECT")
         bpy.ops.object.select_all(action="SELECT")
         bpy.ops.object.delete(use_global=False)
-        bpy.context.scene.aurora_live.objects.clear()
-        bpy.context.scene.aurora_live.property_unset("forward")
+        bpy.context.scene.block_live.objects.clear()
+        bpy.context.scene.block_live.property_unset("forward")
         bpy.context.scene.unit_settings.scale_length = 1
         bpy.context.scene.cursor.location = (0, 0, 0)
         self.names = {joint["name"] for joint in starter.joints()}
@@ -51,7 +51,7 @@ class CoordinateTests(unittest.TestCase):
                                     1e-4 if field == "normal" else 1e-5, field)
 
     def test_default_rig_faces_negative_y_and_has_the_same_canonical_live_mesh(self):
-        self.assertEqual(bpy.context.scene.aurora_live.forward, "AUTO")
+        self.assertEqual(bpy.context.scene.block_live.forward, "AUTO")
         native, reference = starter.create(bpy.context, forward="NATIVE")
         expected = self.capture([reference], "NATIVE")[0]
         rig, shirt = starter.create(bpy.context)
@@ -60,7 +60,7 @@ class CoordinateTests(unittest.TestCase):
         self.assertMeshNear(self.capture([shirt])[0], expected)
         self.assertEqual(len(native.data.bones), len(rig.data.bones))
 
-    def test_external_avastar_orientation_needs_no_aurora_metadata_and_can_mix_with_old_rigs(self):
+    def test_external_avastar_orientation_needs_no_block_metadata_and_can_mix_with_old_rigs(self):
         native, old = starter.create(bpy.context, forward="NATIVE")
         avastar, external = starter.create(bpy.context, forward="NEGATIVE_Y")
         for rig in (native, avastar):
@@ -91,7 +91,7 @@ class CoordinateTests(unittest.TestCase):
         self.assertEqual(rig.matrix_world, before)
 
     def test_saved_manual_enum_values_keep_their_previous_meaning(self):
-        prefs = bpy.context.scene.aurora_live
+        prefs = bpy.context.scene.block_live
         for number, identifier in ((0, "NATIVE"), (1, "NEGATIVE_Y"), (2, "AUTO")):
             prefs["forward"] = number
             self.assertEqual(prefs.forward, identifier)

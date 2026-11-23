@@ -1,5 +1,5 @@
 //! A `secondlife:///app/...` command clicked in a text (`slapp.rs`): what
-//! the Legacy Viewer's command handler does with it, run with Aurora's
+//! the Legacy Viewer's command handler does with it, run with Block's
 //! windows (LLGroupHandler → group profile, LLParcelHandler → place
 //! profile, LLObjectIMHandler → the remote object inspector,
 //! LLInventoryHandler → inventory with the item selected, LLClassifiedHandler
@@ -26,7 +26,7 @@ pub(super) struct UnblockAsk {
 impl App {
     /// Reuse the real command dispatch for offline minimize/reopen captures.
     pub(super) fn prepare_uri_restore_demo(&mut self, action: &CtxAction) {
-        if !std::env::var("AURORA_DEMO_APPLINKS").is_ok_and(|mode| mode.ends_with(":restore")) {
+        if !std::env::var("BLOCK_DEMO_APPLINKS").is_ok_and(|mode| mode.ends_with(":restore")) {
             return;
         }
         let window = match action {
@@ -116,7 +116,7 @@ impl App {
                 ui::widgets::open_floater(&self.egui_ctx, ui::area_search::WINDOW, &mut self.panels.area_search);
             }
             // UNTRUSTED_BLOCK from a text received from someone else; the
-            // Legacy Viewer says it once per session, Aurora at each click
+            // Legacy Viewer says it once per session, Block at each click
             // so that a click never seems lost
             AppLink::Blocked(_) => {
                 self.world
@@ -235,7 +235,7 @@ impl App {
         self.search_ui.open_tab(tab);
         ui::widgets::open_floater(&self.egui_ctx, ui::search::WINDOW, &mut self.panels.search);
         self.world.search.show_one(tab, key);
-        self.search_ui.aurora_show_one(tab, key, &self.settings.search);
+        self.search_ui.block_show_one(tab, key, &self.settings.search);
     }
 
     /// LLSearchHandler: Search on the category ("all", "standard",
@@ -261,7 +261,7 @@ impl App {
                 .into_iter()
                 .collect()
         } else {
-            self.search_ui.aurora_requests(&self.settings.search)
+            self.search_ui.block_requests(&self.settings.search)
         };
         let access = self.world.agent_access();
         for request in requests {

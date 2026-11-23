@@ -7,7 +7,7 @@ use crate::world::contact_sets::appearance::ICONS;
 /// list of sets, its picker, the set's editor, Quick sort): its badge in
 /// its colour, else its first letter, on a wash of its colour when its
 /// plates have a background and ringed in it when they have a border, so
-/// that the tile wears the set's look as its members' plates do. Aurora's
+/// that the tile wears the set's look as its members' plates do. Block's
 /// own: the Legacy Viewer shows a set by its name only.
 pub(crate) fn set_tile(ui: &egui::Ui, p: &Palette, tile: egui::Rect, set: &crate::world::contact_sets::ContactSet) {
     let color = tile_face(ui, p, tile, set);

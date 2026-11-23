@@ -1,4 +1,4 @@
-//! AURORA_DEMO_CHATLOG: the conversation transcripts without a grid. The
+//! BLOCK_DEMO_CHATLOG: the conversation transcripts without a grid. The
 //! demo is its own "grid" (`chat_log::grid_name`), so its files live in the
 //! demo account's own folder, under the demo settings; this scenario writes
 //! there the transcripts it shows, the same at every run.
@@ -25,7 +25,7 @@
 //! - `import`: the import window of Preferences › Chat over a synthetic
 //!   Legacy Viewer folder (`import:run` imports and shows the merged
 //!   History, `import:again` imports twice, `import:login` as the import at
-//!   login does, `import:same` with the folder Aurora writes to, `import:none`
+//!   login does, `import:same` with the folder Block writes to, `import:none`
 //!   with no Legacy Viewer found);
 //! - `long:<n>`: a conversation of `n` lines, nothing written (to measure
 //!   the cost of the conversation view); `long:<n>:scroll` scrolls it up
@@ -78,7 +78,7 @@ pub enum ImportStage {
 }
 
 pub fn mode() -> Option<Mode> {
-    let v = std::env::var("AURORA_DEMO_CHATLOG").ok()?;
+    let v = std::env::var("BLOCK_DEMO_CHATLOG").ok()?;
     let (mode, arg) = v.split_once(':').unwrap_or((v.as_str(), ""));
     Some(match mode {
         "find" => Mode::Find,
@@ -113,7 +113,7 @@ pub const SKEW_SECS: i64 = 133;
 /// `service:skew`: the demo grid's clock ahead of the computer's, and a
 /// live IM the service keeps too.
 pub fn service_skew() -> bool {
-    std::env::var("AURORA_DEMO_CHATLOG").is_ok_and(|value| value == "service:skew")
+    std::env::var("BLOCK_DEMO_CHATLOG").is_ok_and(|value| value == "service:skew")
 }
 
 /// When `service:skew`'s live IM was received, on the grid's clock, in
@@ -133,7 +133,7 @@ pub fn skewed_live_message(agent: Uuid) -> NetEvent {
 static DELAYED_MUTES: std::sync::Mutex<Option<NetEvent>> = std::sync::Mutex::new(None);
 
 fn slow_restore() -> bool {
-    std::env::var("AURORA_DEMO_CHATLOG").is_ok_and(|value| value == "restore:slow")
+    std::env::var("BLOCK_DEMO_CHATLOG").is_ok_and(|value| value == "restore:slow")
 }
 
 pub fn mute_list_reply(text: String) -> Vec<NetEvent> {
@@ -179,13 +179,13 @@ pub fn peer_name() -> String {
 /// The word the find bar and the History search look for (`find:none`: a
 /// word the conversation does not hold).
 pub fn needle() -> &'static str {
-    if find_flag("none") { "zqxw" } else { "aurora" }
+    if find_flag("none") { "zqxw" } else { "block" }
 }
 
 /// `find:<flag>…` (`none`, `legacy`, `narrow`): the find scenario with no
 /// match, in the Legacy style, or in a window narrow enough for the rail.
 pub fn find_flag(flag: &str) -> bool {
-    std::env::var("AURORA_DEMO_CHATLOG").is_ok_and(|v| {
+    std::env::var("BLOCK_DEMO_CHATLOG").is_ok_and(|v| {
         let mut parts = v.split(':');
         parts.next() == Some("find") && parts.any(|f| f == flag)
     })
@@ -209,7 +209,7 @@ pub fn legacy_root(dir: &Path) -> PathBuf {
 
 /// The synthetic Legacy Viewer folder of `shared`, beside the demo's
 /// transcripts: `<root>/<account folder>/<peer>.txt` holds what the Legacy
-/// Viewer wrote, rewritten at each launch, and a file of its own that Aurora
+/// Viewer wrote, rewritten at each launch, and a file of its own that Block
 /// must leave as it is.
 pub fn seed_shared(root: &Path, folder: &str, own_name: &str) -> std::io::Result<()> {
     let _ = std::fs::remove_dir_all(root);
@@ -231,7 +231,7 @@ pub fn seed_shared(root: &Path, folder: &str, own_name: &str) -> std::io::Result
     std::fs::write(dir.join("conversation.log"), "kept as written\n")
 }
 
-/// What a Legacy Viewer left for the demo account: the conversation Aurora
+/// What a Legacy Viewer left for the demo account: the conversation Block
 /// has too, earlier and with a message both have, a group, the nearby chat
 /// by day, and a file of its own that is not a transcript.
 pub fn seed_legacy(root: &Path, own_name: &str, stage: ImportStage) -> std::io::Result<()> {
@@ -252,7 +252,7 @@ pub fn seed_legacy(root: &Path, own_name: &str, stage: ImportStage) -> std::io::
         let from = if i % 2 == 0 { peer.as_str() } else { own_name };
         text.push_str(&line(day * 30 - Duration::from_secs(600 * i as u64), from, sentence));
     }
-    // the message Aurora's file has too
+    // the message Block's file has too
     text.push_str(&line(day + Duration::from_secs(300), &peer, s[4]));
     let path = names::file_path(&dir, &names::resident(&peer), None);
     std::fs::write(path.ok_or_else(|| std::io::Error::other("no file name"))?, text)?;
@@ -398,7 +398,7 @@ pub fn long_line(i: usize) -> (bool, String) {
         text.push_str(s[(i + 2) % 6]);
     }
     if i.is_multiple_of(11) {
-        text.push_str(" https://example.invalid/aurora ✨");
+        text.push_str(" https://example.invalid/block ✨");
     }
     (i % 4 == 1, format!("{text} ({})", i + 1))
 }
@@ -486,7 +486,7 @@ fn service_row_at(
 
 /// A resident's whole history on the service, newest first.
 fn service_history(agent: Uuid, resident: Uuid) -> Vec<block_net::chat_service::HistoryRow> {
-    let own = "Aurora Demo";
+    let own = "Block Demo";
     let s = sentences();
     let day = Duration::from_secs(86_400);
     let mut rows = Vec::new();

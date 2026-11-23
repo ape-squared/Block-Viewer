@@ -104,7 +104,7 @@ pub struct State {
     /// The longest time the render thread was held by the GPU past 2 s
     /// (ms); 0 when it never was, and then no row.
     pub stall_ms: u64,
-    /// The other Aurora viewers on this card and how many of them are in
+    /// The other Block viewers on this card and how many of them are in
     /// front (instances.rs); None when the registry does not run (demo).
     pub viewers_on_card: Option<(u32, u32)>,
     /// The card's memory in use by every program and by the others, in MB
@@ -274,7 +274,7 @@ pub fn start(dir: &Path) {
         let main = super::native::Thread::current();
         let dir = dir.to_owned();
         if let Err(error) = std::thread::Builder::new()
-            .name("aurora-watchdog".into())
+            .name("block-watchdog".into())
             .spawn(move || run(&dir, main.as_ref()))
         {
             eprintln!("crash watchdog not started: {error}");
@@ -372,7 +372,7 @@ pub fn save_gpu_stall(dir: &Path, seconds: u64) {
         return;
     }
     let dir = dir.to_owned();
-    let _ = std::thread::Builder::new().name("aurora-crash-stall".into()).spawn(move || {
+    let _ = std::thread::Builder::new().name("block-crash-stall".into()).spawn(move || {
         let out = stacks(&header, None);
         if GPU_ANSWERS.load(Ordering::SeqCst) == answers && dir.join("gpu-stall.txt").exists() {
             write_stacks(&dir, "gpu-stall", out);

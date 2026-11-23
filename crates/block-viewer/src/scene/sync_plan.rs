@@ -31,11 +31,11 @@ pub(super) const AVATAR_LOD_RADIUS: f32 = 2.2;
 /// ranked by their own scale, 7 ranked as their avatar; the scenery's
 /// textures start later meanwhile (1,100 instead of 3,100 in the first
 /// 30 s), which more requests at once make up for. Turned off on 2026-10-18,
-/// when a slow link was the limit. `AURORA_WORN_RANK=own` ranks them by
+/// when a slow link was the limit. `BLOCK_WORN_RANK=own` ranks them by
 /// their own scale, as before.
 pub(super) fn mesh_rank_radius(lod_radius: f32, worn: bool) -> f32 {
     static AVATAR_SCALE: std::sync::OnceLock<bool> = std::sync::OnceLock::new();
-    let avatar_scale = *AVATAR_SCALE.get_or_init(|| std::env::var("AURORA_WORN_RANK").as_deref() != Ok("own"));
+    let avatar_scale = *AVATAR_SCALE.get_or_init(|| std::env::var("BLOCK_WORN_RANK").as_deref() != Ok("own"));
     rank_radius(lod_radius, worn && avatar_scale)
 }
 
@@ -112,7 +112,7 @@ pub(super) struct FrameState<'a> {
     pub(super) mat_gen: u64,
     pub(super) mat_changes: &'a super::mat_changes::MatChanges,
     /// HUD attachments are placed when they change, not with their wearer
-    /// at each frame (false with AURORA_SYNC_SLICE).
+    /// at each frame (false with BLOCK_SYNC_SLICE).
     pub(super) still_huds: bool,
 }
 
@@ -126,7 +126,7 @@ impl SyncState for FrameState<'_> {
     }
 
     fn anchored(&self, idx: usize) -> bool {
-        // (in the seconds of AURORA_MOVING_ANCHORS=alt that leave them to
+        // (in the seconds of BLOCK_MOVING_ANCHORS=alt that leave them to
         // the sync, what hangs from a mover is placed by it again)
         self.gpu
             .get(idx)

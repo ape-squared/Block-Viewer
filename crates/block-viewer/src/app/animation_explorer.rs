@@ -4,7 +4,7 @@
 //! and Stop / Stop and revoke / Blacklist.
 //!
 //! Deliberate difference: the Legacy Viewer asks an object's name with an
-//! ObjectSelect immediately followed by an ObjectDeselect. Aurora asks it as
+//! ObjectSelect immediately followed by an ObjectDeselect. Block asks it as
 //! a hover does (RequestObjectPropertiesFamily), which selects nothing.
 use super::*;
 use crate::scene::anim::{AnimStreamer, Controller};
@@ -235,7 +235,7 @@ impl App {
         rows
     }
 
-    /// AURORA_DEMO_ANIMATION_EXPLORER=1|blacklist: a pose ball dances our
+    /// BLOCK_DEMO_ANIMATION_EXPLORER=1|blacklist: a pose ball dances our
     /// avatar, a worn object's motion has stopped, our own stand is listed;
     /// `blacklist` also lists the stopped motion in the Asset blacklist.
     pub(super) fn demo_animation_explorer(&mut self, mode: &str) {

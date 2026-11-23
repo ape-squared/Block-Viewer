@@ -940,7 +940,7 @@ fn poser_window_stays_steady_at_scaled_fonts_and_keeps_the_upload_footer_visible
                         block_i18n::tr!(
                             "poser-saved-to",
                             path = format!(
-                                "/a-long-local-profile-directory/{}/Portrait.aurora-pose.json",
+                                "/a-long-local-profile-directory/{}/Portrait.block-pose.json",
                                 "nested-directory/".repeat(12)
                             )
                         )

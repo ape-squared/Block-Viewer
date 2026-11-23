@@ -101,14 +101,14 @@ const F_MIRROR: u32 = 8u;
 const F_PROBE: u32 = 16u;
 const F_OCCLUSION: u32 = 32u;
 const F_SHADOW_STATS: u32 = 64u;
-// every caster drawn with the alpha test (AURORA_SHADOW_LEGACY)
+// every caster drawn with the alpha test (BLOCK_SHADOW_LEGACY)
 const F_SHADOW_ALPHA_ALL: u32 = 128u;
 // the shadow map of the probe being captured is drawn this frame
 const F_PROBE_SHADOW: u32 = 256u;
 // projector shadow map k is drawn
 const F_SPOT: u32 = 65536u;
 const F_WATER_AIR: u32 = 1024u;
-// blended faces that are not rigged cast too (off: AURORA_BLEND_SHADOWS=0)
+// blended faces that are not rigged cast too (off: BLOCK_BLEND_SHADOWS=0)
 const F_BLEND_CASTS: u32 = 2048u;
 const F_FIRST_PERSON: u32 = 4096u;
 const F_SHOW_SELF: u32 = 8192u;

@@ -1,6 +1,6 @@
 //! Wire contract of LLToolDragAndDrop::dropObject / pack_permissions_slam
 //! (Firestorm indra/newview/lltooldraganddrop.cpp, originally LGPL 2.1).
-//! Placement and permission decisions are made by Aurora before queueing.
+//! Placement and permission decisions are made by Block before queueing.
 
 use super::InvItem;
 use crate::types::RegionHandle;

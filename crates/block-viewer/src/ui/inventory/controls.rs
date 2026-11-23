@@ -1,4 +1,4 @@
-//! Firestorm inventory view menu and finder options, presented with Aurora widgets.
+//! Firestorm inventory view menu and finder options, presented with Block widgets.
 use super::view::{Age, Creator, Filters, InventoryPreferences, Links, SearchField, types};
 use super::{Inventory, InventoryUi, Palette};
 use crate::ui::widgets::{self, Floater, flat_button, switch, underlined_button};

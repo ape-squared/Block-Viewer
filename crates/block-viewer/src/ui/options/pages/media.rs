@@ -123,7 +123,7 @@ pub fn page(cx: &mut Cx) {
     cx.group(tr!("ui-options-plugins"), |cx| {
         cx.row(
             tr!("ui-options-plugins-folder"),
-            tr!("ui-options-folder-containing-llplugin-blank-aurora-s-own-plugins"),
+            tr!("ui-options-folder-containing-llplugin-blank-block-s-own-plugins"),
             &field!(media.plugin_dir),
             |ui, s| {
                 ui.add(
@@ -137,7 +137,7 @@ pub fn page(cx: &mut Cx) {
         cx.wide().row_with(tr!("ui-options-plugins"), "", &Nothing, |ui, _, st, _| {
             use crate::media::pack::PackState;
             let megabytes = |bytes: u64| block_i18n::integer((bytes / (1024 * 1024)) as i64);
-            // plugins found: their folder; otherwise where Aurora's pack stands
+            // plugins found: their folder; otherwise where Block's pack stands
             // (`retry`: the button that asks for the download, Download or
             // Retry)
             let (status, download, retry) = if !st.media_plugins.is_empty() {

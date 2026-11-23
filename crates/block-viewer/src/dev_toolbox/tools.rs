@@ -276,7 +276,7 @@ impl ContactsReport<'_> {
         let _ = writeln!(
             out,
             "appearance: {}, column {}",
-            if self.workspace { "Aurora workspace" } else { "Legacy" },
+            if self.workspace { "Block workspace" } else { "Legacy" },
             if self.column_collapsed { "collapsed" } else { "expanded" }
         );
         let _ = writeln!(
@@ -539,7 +539,7 @@ mod tests {
             "placement: torn off, its own window",
             "window: Contacts closed",
             "contacts pane: not shown",
-            "appearance: Aurora workspace, column collapsed",
+            "appearance: Block workspace, column collapsed",
             "tab: Groups",
             "column search: \"bob\"",
             "friends: 12 (3 online) · groups: 5 · contact sets: 2",

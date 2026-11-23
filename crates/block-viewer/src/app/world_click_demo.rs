@@ -20,7 +20,7 @@ const WORN_CHILD: u32 = 988;
 
 fn mode() -> Option<&'static str> {
     static MODE: std::sync::OnceLock<Option<String>> = std::sync::OnceLock::new();
-    MODE.get_or_init(|| std::env::var("AURORA_DEMO_WORLD_CLICKS").ok()).as_deref()
+    MODE.get_or_init(|| std::env::var("BLOCK_DEMO_WORLD_CLICKS").ok()).as_deref()
 }
 
 impl App {
@@ -388,7 +388,7 @@ impl App {
         }
         if mode.starts_with("photo-") {
             self.panels.snapshot = true;
-            self.settings.photo_window = crate::settings::PhotoWindowStyle::Aurora;
+            self.settings.photo_window = crate::settings::PhotoWindowStyle::Block;
             self.settings.snapshot.huds = true;
             self.settings.show_huds = true;
             self.settings.snapshot.viewfinder.hints = true;

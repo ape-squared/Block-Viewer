@@ -1,4 +1,4 @@
-//! Aurora's private attachment factory and confirmed Movelock state.
+//! Block's private attachment factory and confirmed Movelock state.
 //! The library-copy/attach/script-upload sequence follows FSLSLBridge
 //! (indra/newview/fslslbridge.cpp, originally LGPL 2.1).
 use super::{World, inventory::FetchState};
@@ -15,7 +15,7 @@ use std::time::{Duration, Instant};
 use uuid::Uuid;
 
 pub const FOLDER: &str = "#Aurora";
-pub const SUBFOLDER: &str = "Aurora Bridge";
+pub const SUBFOLDER: &str = "Block Bridge";
 const OLD_SUBFOLDER: &str = "Bridge";
 pub const NAME: &str = "#Aurora Bridge v1.0";
 /// Center 2, where both viewers wear their bridge (FS_BRIDGE_POINT,
@@ -57,7 +57,7 @@ const SOURCE: &str = include_str!("bridge/bridge.lsl");
 pub const QUERY_NAME: &str = "#Aurora Bridge Query";
 const QUERY_SOURCE: &str = include_str!("bridge/query.lsl");
 /// The third script older bridges carried: a relay that listened on a fixed
-/// region channel for hand contacts that objects published to Aurora viewers.
+/// region channel for hand contacts that objects published to Block viewers.
 /// It was removed (Second Life's shared experience policy; AGENTS.md, "No
 /// data of our own in shared places"), and the listing deletes it from a
 /// bridge that still has it.
@@ -186,7 +186,7 @@ pub enum QueryState {
     Failed,
     /// The wearer took the bridge off.
     Detached,
-    /// Turned off in Preferences › Aurora.
+    /// Turned off in Preferences › Block.
     Off,
 }
 
@@ -311,7 +311,7 @@ pub struct Bridge {
     capture_sent: Option<Instant>,
     firestorm_poll: Option<Instant>,
     firestorm_detached: HashSet<Uuid>,
-    /// Preferences › Aurora "Use the Aurora bridge" is off.
+    /// Preferences › Block "Use the Block bridge" is off.
     disabled: bool,
     own_poll: Option<Instant>,
     own_detached: HashSet<Uuid>,
@@ -409,7 +409,7 @@ impl Bridge {
         if let Some(since) = self.watch.silent_since
             && now.duration_since(since) >= SILENCE_LIMIT
         {
-            log::warn!("Aurora bridge: no reply for {} s", now.duration_since(since).as_secs());
+            log::warn!("Block bridge: no reply for {} s", now.duration_since(since).as_secs());
             self.reinstall(world, true, now);
             return true;
         }
@@ -439,7 +439,7 @@ impl Bridge {
             }
             return;
         }
-        log::warn!("Aurora bridge: reinstalling a bridge that stopped responding");
+        log::warn!("Block bridge: reinstalling a bridge that stopped responding");
         self.reinstalls.push(now);
         world.system_message(block_i18n::tr!("bridge-reinstalling"));
         self.retry(now);
@@ -471,7 +471,7 @@ impl Bridge {
         if let Some(free) = ack.free_memory
             && self.memory_low.is_none_or(|low| free + 1024 <= low)
         {
-            log::info!("Aurora bridge: script memory low mark {free} bytes free");
+            log::info!("Block bridge: script memory low mark {free} bytes free");
             self.memory_low = Some(free);
         }
         self.ack = ack;
@@ -512,7 +512,7 @@ impl Bridge {
             && self.capture_sent.is_some_and(|at| now.duration_since(at) < Duration::from_secs(1))
     }
     fn enter(&mut self, phase: Phase, now: Instant) {
-        log::info!("Aurora bridge: {:?} -> {:?}", self.phase, phase);
+        log::info!("Block bridge: {:?} -> {:?}", self.phase, phase);
         self.phase = phase;
         self.since = Some(now);
         self.poll = None;
@@ -537,7 +537,7 @@ impl Bridge {
     }
     fn fail(&mut self, reason: String) {
         // Never log protocol messages, endpoints, source or identities.
-        log::warn!("Aurora bridge: timeout or failure in {:?}", self.phase);
+        log::warn!("Block bridge: timeout or failure in {:?}", self.phase);
         self.phase = Phase::Failed;
         self.error = Some(reason);
         self.ack.locked = false;
@@ -603,7 +603,7 @@ impl Bridge {
             _ => false,
         }
     }
-    /// Preferences › Aurora "Use the Aurora bridge", the Legacy Viewer's
+    /// Preferences › Block "Use the Block bridge", the Legacy Viewer's
     /// UseLSLBridge (fslslbridge.cpp: initBridge and processDetach do
     /// nothing while it is off). Off, nothing is made, worn or checked; unlike
     /// the Legacy Viewer, which leaves a worn bridge running and ignores its
@@ -662,7 +662,7 @@ impl Bridge {
             }
         }
         if !detach.is_empty() {
-            log::info!("Aurora bridge: turned off in Preferences, detaching the worn bridge");
+            log::info!("Block bridge: turned off in Preferences, detaching the worn bridge");
             self.commands.push(NetCommand::DetachAttachments(detach));
         }
     }
@@ -803,7 +803,7 @@ impl Bridge {
             && folder == self.folder
         {
             if self.query.as_ref().is_none_or(|current| current.token != endpoint.token) {
-                log::info!("Aurora bridge: query service ready");
+                log::info!("Block bridge: query service ready");
             }
             self.query = Some(endpoint);
             self.query_watch = Watch::default();
@@ -1070,7 +1070,7 @@ impl Bridge {
             return;
         }
         if self.relocated && self.since.is_some_and(|since| now.duration_since(since) > RELOCATION_TIMEOUT) {
-            log::warn!("Aurora bridge: no hello since its URL changed");
+            log::warn!("Block bridge: no hello since its URL changed");
             self.reinstall(world, true, now);
             return;
         }
@@ -1314,7 +1314,7 @@ impl Bridge {
             }
             Phase::Store if world.worn_attachment(&self.item).is_none() => {
                 let detached = *self.detached.get_or_insert_with(|| {
-                    log::info!("Aurora bridge: detachment observed; waiting for simulator save delay");
+                    log::info!("Block bridge: detachment observed; waiting for simulator save delay");
                     now
                 });
                 if now.duration_since(detached) >= STORE_DELAY {
@@ -1398,7 +1398,7 @@ impl Bridge {
         });
     }
     /// Return true only for events consumed by this bridge. Never show an
-    /// Aurora handshake, token, endpoint or script's raw protocol in chat.
+    /// Block handshake, token, endpoint or script's raw protocol in chat.
     pub fn event(&mut self, world: &mut World, event: &NetEvent, now: Instant) -> bool {
         if self.disabled {
             // Hide a still-worn bridge's messages until its detach lands, as
@@ -1431,7 +1431,7 @@ impl Bridge {
                             Err(rejection) if chat.source_id == self.object && self.rejection != Some(rejection) => {
                                 // A rejected URL is not a stopped script. Only
                                 // record the reason, never the private reply.
-                                log::warn!("Aurora bridge: rejected response ({rejection:?})");
+                                log::warn!("Block bridge: rejected response ({rejection:?})");
                                 self.rejection = Some(rejection);
                             }
                             Err(_) => {}
@@ -1471,7 +1471,7 @@ impl Bridge {
                                 .is_some_and(|object| object.full_id == chat.source_id && Some(object.key.region) == world.main_region)
                         {
                             if self.boot != Some(boot) {
-                                log::info!("Aurora bridge: script status permissions={} url={}", boot.0, boot.1);
+                                log::info!("Block bridge: script status permissions={} url={}", boot.0, boot.1);
                             }
                             self.boot = Some(boot);
                         }
@@ -1574,7 +1574,7 @@ impl Bridge {
                                 world.agent_id,
                                 world.groups.active,
                                 name,
-                                "Aurora's private bridge",
+                                "Block's private bridge",
                             ));
                         }
                     }
@@ -1641,7 +1641,7 @@ impl Bridge {
                 // A run-time error halts the script; only a recompile resets it.
                 let controller = *item_id == self.script;
                 log::warn!(
-                    "Aurora bridge: the {} script is not running",
+                    "Block bridge: the {} script is not running",
                     if controller { "controller" } else { "query" }
                 );
                 self.reinstall(world, controller, now);

@@ -260,7 +260,7 @@ impl App {
         if !self.demo {
             return;
         }
-        let Ok(mode) = std::env::var("AURORA_DEMO_RLVA") else {
+        let Ok(mode) = std::env::var("BLOCK_DEMO_RLVA") else {
             return;
         };
         // (the self-test's own scenario: app/rlva_selftest.rs)
@@ -445,11 +445,11 @@ impl App {
                 self.request_user_teleport(
                     NetCommand::TeleportToRegion {
                         request,
-                        name: "Aurora Deferred Demo".into(),
+                        name: "Block Deferred Demo".into(),
                         position: Vec3::new(128.0, 128.0, 30.0),
                         look_at: Vec3::X,
                     },
-                    "Aurora Deferred Demo".into(),
+                    "Block Deferred Demo".into(),
                     true,
                 );
                 "@tploc=n".to_owned()

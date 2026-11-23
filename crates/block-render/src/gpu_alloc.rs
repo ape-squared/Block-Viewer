@@ -223,20 +223,20 @@ fn reason(text: &str) -> String {
     lines.last().map_or_else(|| text.trim().to_owned(), |l| (*l).to_owned())
 }
 
-/// `AURORA_GPU_OOM=<MB>[,<seconds>]`: every allocation of at least that
+/// `BLOCK_GPU_OOM=<MB>[,<seconds>]`: every allocation of at least that
 /// size fails as if video memory were full (testing; 0 fails them all),
 /// for the whole run or, with a duration, that long after the first
 /// allocation checked: the memory then comes back, as when another program
 /// that held it closes.
 fn injected_failure(bytes: u64) -> Option<String> {
     static LIMIT: OnceLock<Option<InjectedOom>> = OnceLock::new();
-    let limit = *LIMIT.get_or_init(|| std::env::var("AURORA_GPU_OOM").ok().and_then(|v| parse_oom(&v, Instant::now())));
+    let limit = *LIMIT.get_or_init(|| std::env::var("BLOCK_GPU_OOM").ok().and_then(|v| parse_oom(&v, Instant::now())));
     limit
         .filter(|oom| bytes >= oom.bytes && oom.active(Instant::now()))
-        .map(|_| "out of video memory (AURORA_GPU_OOM)".to_owned())
+        .map(|_| "out of video memory (BLOCK_GPU_OOM)".to_owned())
 }
 
-/// `AURORA_GPU_OOM`, read.
+/// `BLOCK_GPU_OOM`, read.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 struct InjectedOom {
     bytes: u64,
@@ -252,7 +252,7 @@ impl InjectedOom {
     }
 }
 
-/// `<MB>[,<seconds>[,<after seconds>]]` of `AURORA_GPU_OOM`, from `now`
+/// `<MB>[,<seconds>[,<after seconds>]]` of `BLOCK_GPU_OOM`, from `now`
 /// (the first allocation): the size, for how long, and after how long it
 /// starts. A start after the first frames lets the reserved textures and
 /// the first pages be made, as on a card another program fills later.
@@ -279,7 +279,7 @@ fn parse_oom(value: &str, now: Instant) -> Option<InjectedOom> {
     })
 }
 
-/// `AURORA_GPU_OOM_TARGETS=<seconds>`: for that long after the first frame
+/// `BLOCK_GPU_OOM_TARGETS=<seconds>`: for that long after the first frame
 /// target made, the render targets come back invalid as if video memory
 /// were full (testing). They are made with no usage, which wgpu refuses:
 /// the same invalid texture a full card leaves, in a real device, without
@@ -287,7 +287,7 @@ fn parse_oom(value: &str, now: Instant) -> Option<InjectedOom> {
 pub fn targets_refused() -> bool {
     static UNTIL: OnceLock<Option<Instant>> = OnceLock::new();
     let until = *UNTIL.get_or_init(|| {
-        std::env::var("AURORA_GPU_OOM_TARGETS")
+        std::env::var("BLOCK_GPU_OOM_TARGETS")
             .ok()
             .and_then(|v| v.trim().parse::<u64>().ok())
             .map(|seconds| Instant::now() + Duration::from_secs(seconds))
@@ -295,7 +295,7 @@ pub fn targets_refused() -> bool {
     until.is_some_and(|t| Instant::now() < t)
 }
 
-/// `AURORA_GPU_OOM_FIRST_USE=<seconds>`: for that long after the first
+/// `BLOCK_GPU_OOM_FIRST_USE=<seconds>`: for that long after the first
 /// target made on first use (the selection outline, the depth of field, a
 /// photo look, RLVa's spheres, the rigged blend depth…), every such target
 /// counts as refused by a full video memory (testing): the target is made,
@@ -304,7 +304,7 @@ pub fn targets_refused() -> bool {
 pub fn first_use_refused() -> bool {
     static UNTIL: OnceLock<Option<Instant>> = OnceLock::new();
     let until = *UNTIL.get_or_init(|| {
-        std::env::var("AURORA_GPU_OOM_FIRST_USE")
+        std::env::var("BLOCK_GPU_OOM_FIRST_USE")
             .ok()
             .and_then(|v| v.trim().parse::<u64>().ok())
             .map(|seconds| Instant::now() + Duration::from_secs(seconds))
@@ -318,11 +318,11 @@ pub fn first_use_refused() -> bool {
 /// scopes of its own, before the renderer's first allocation. `None`: it
 /// came through. Refused by the video memory: `VideoMemoryFull`; refused for
 /// another reason: `Device`, so that the box gives the driver advice and
-/// not the programs to close. `AURORA_GPU_OOM_UI=1` refuses it as a full
+/// not the programs to close. `BLOCK_GPU_OOM_UI=1` refuses it as a full
 /// memory (testing).
 pub fn mapped_buffer_refused(device: &wgpu::Device) -> Option<crate::RenderError> {
-    if std::env::var_os("AURORA_GPU_OOM_UI").is_some_and(|v| v == "1") {
-        log::warn!("egui buffers: refused by AURORA_GPU_OOM_UI");
+    if std::env::var_os("BLOCK_GPU_OOM_UI").is_some_and(|v| v == "1") {
+        log::warn!("egui buffers: refused by BLOCK_GPU_OOM_UI");
         return Some(crate::RenderError::VideoMemoryFull);
     }
     let oom = device.push_error_scope(wgpu::ErrorFilter::OutOfMemory);
@@ -350,14 +350,14 @@ pub fn mapped_buffer_refused(device: &wgpu::Device) -> Option<crate::RenderError
     None
 }
 
-/// `AURORA_GPU_OOM_START=<seconds>`: for that long after the renderer is
+/// `BLOCK_GPU_OOM_START=<seconds>`: for that long after the renderer is
 /// first made, its placeholder textures come back invalid as if video
 /// memory were full, at start and at each remake of the renderer
-/// (testing). Made with no usage, as for `AURORA_GPU_OOM_TARGETS`.
+/// (testing). Made with no usage, as for `BLOCK_GPU_OOM_TARGETS`.
 pub fn start_refused() -> bool {
     static UNTIL: OnceLock<Option<Instant>> = OnceLock::new();
     let until = *UNTIL.get_or_init(|| {
-        std::env::var("AURORA_GPU_OOM_START")
+        std::env::var("BLOCK_GPU_OOM_START")
             .ok()
             .and_then(|v| v.trim().parse::<u64>().ok())
             .map(|seconds| Instant::now() + Duration::from_secs(seconds))
@@ -366,7 +366,7 @@ pub fn start_refused() -> bool {
 }
 
 /// The usage a placeholder texture is made with: none while
-/// `AURORA_GPU_OOM_START` refuses it, which wgpu answers with an invalid
+/// `BLOCK_GPU_OOM_START` refuses it, which wgpu answers with an invalid
 /// texture.
 pub fn start_usage(usage: wgpu::TextureUsages, refuse: bool) -> wgpu::TextureUsages {
     if refuse { wgpu::TextureUsages::empty() } else { usage }
@@ -384,7 +384,7 @@ pub fn start_remade(oom: bool, invalid: bool, targets_refused: bool, lost: bool)
 }
 
 /// The interface's blur and glass of a window this size fall under
-/// `AURORA_GPU_OOM`, as a texture of the window's size.
+/// `BLOCK_GPU_OOM`, as a texture of the window's size.
 pub fn ui_targets_refused(size: [u32; 2]) -> bool {
     injected_failure(u64::from(size[0]) * u64::from(size[1]) * 4).is_some()
 }
@@ -762,11 +762,11 @@ mod tests {
         assert!(pollster::block_on(scope.pop()).is_none());
     }
 
-    /// Run in a separate process with AURORA_GPU_OOM=0.
+    /// Run in a separate process with BLOCK_GPU_OOM=0.
     #[test]
     #[ignore]
     fn refused_upload_buffer_growth_keeps_a_valid_buffer() {
-        assert_eq!(std::env::var("AURORA_GPU_OOM").as_deref(), Ok("0"));
+        assert_eq!(std::env::var("BLOCK_GPU_OOM").as_deref(), Ok("0"));
         let _gpu = crate::test_gpu::lock();
         let mut desc = wgpu::InstanceDescriptor::new_without_display_handle();
         desc.backends = wgpu::Backends::VULKAN;

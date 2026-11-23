@@ -25,8 +25,8 @@
 //! chain. The comparison line and the photo's coverage come from the scene
 //! before the first.
 //!
-//! Aurora adds operations of its own (`LookOp::Grain` and those after it),
-//! for the looks of `looks/aurora/`: film grain, lens effects, colour
+//! Block adds operations of its own (`LookOp::Grain` and those after it),
+//! for the looks of `looks/block/`: film grain, lens effects, colour
 //! toning, creative effects, three that read the scene's depth (from the
 //! focus distance of the frame: the photo's depth of field, or the scene at
 //! the middle of the photo) and a 3D look-up table read from a .cube file
@@ -39,7 +39,7 @@ use std::sync::Arc;
 mod cube;
 mod parse;
 pub use cube::{CubeError, Lut, parse_cube};
-pub use parse::{AuroraLook, AuroraSection, LookError, aurora_look, aurora_looks, legacy_look, legacy_looks, parse_look};
+pub use parse::{BlockLook, BlockSection, LookError, aurora_look, block_looks, legacy_look, legacy_looks, parse_look};
 
 /// Operations of one look at most (Miniature has 27).
 pub const MAX_OPS: usize = 64;
@@ -134,7 +134,7 @@ pub enum LookOp {
     },
     /// colortransform: the rows give the output channels.
     ColorTransform([[f32; 3]; 3]),
-    // ---- Aurora's own; sizes are shares of the photo's height
+    // ---- Block's own; sizes are shares of the photo's height
     /// Film grain of `amount` (of the full range) in cells of `size` photo
     /// pixels, the same on the three channels when `mono`.
     Grain {
@@ -632,7 +632,7 @@ fn plan(ops: &[LookOp]) -> Plan {
     plan
 }
 
-/// An Aurora operation: its kind and three parameters.
+/// A Block operation: its kind and three parameters.
 fn kind(kind: f32, params: [f32; 3]) -> GpuOp {
     GpuOp {
         a: [kind, params[0], params[1], params[2]],

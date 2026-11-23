@@ -7,7 +7,7 @@
 //! once complete. Nothing in it runs before that: the viewer only asks the
 //! ffmpeg found in a complete folder what it encodes.
 //!
-//! Aurora's own: the Legacy Viewer records no film.
+//! Block's own: the Legacy Viewer records no film.
 
 use crate::{
     Cancel, Failure, Progress,

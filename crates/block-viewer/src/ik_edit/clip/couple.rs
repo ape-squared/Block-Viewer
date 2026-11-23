@@ -272,7 +272,7 @@ impl Editor {
         self.clip.changed();
         true
     }
-    /// AURORA_DEMO_COUPLE's scripted modes (`clip`, `hover`), for screenshots with no clicks: ask `peer`, then take them
+    /// BLOCK_DEMO_COUPLE's scripted modes (`clip`, `hover`), for screenshots with no clicks: ask `peer`, then take them
     /// as Person B once they accept, standing face to face, with the Clip
     /// page open. True once couple mode runs.
     pub fn demo_couple_step(&mut self, world: &World, peer: Uuid) -> bool {
@@ -297,7 +297,7 @@ impl Editor {
             _ => false,
         }
     }
-    /// AURORA_DEMO_COUPLE=mirror: press "Mirror yourself" once the editor
+    /// BLOCK_DEMO_COUPLE=mirror: press "Mirror yourself" once the editor
     /// is open. True once asked.
     pub fn demo_mirror_step(&mut self) -> bool {
         if !self.clip.active || self.clip.couple.is_some() {

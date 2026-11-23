@@ -15,7 +15,7 @@
 //! by a background job the first time the hover search tests a large face
 //! of a mesh or a sculpt ([`PickAccel::get_or_ask`]): until it is there,
 //! every triangle is tested as before. Indexed left-click queries reuse
-//! ready hierarchies; AURORA_HOVER_CHECK independently tests every triangle.
+//! ready hierarchies; BLOCK_HOVER_CHECK independently tests every triangle.
 
 use crate::media::pick::{TriangleHit, ray_triangle};
 use glam::Vec3;

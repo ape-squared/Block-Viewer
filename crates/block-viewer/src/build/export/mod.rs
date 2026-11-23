@@ -3,7 +3,7 @@
 //! Legacy Viewer's Collada export (ColladaExportFloater and DAESaver,
 //! indra/newview/daeexport.cpp, Latif Khalifa and Cinder Biscuits; its
 //! rights, FSExportPermsCheck, indra/newview/fsexportperms.cpp, Cinder
-//! Biscuits; LGPL 2.1). OBJ is Aurora's own, from the same model.
+//! Biscuits; LGPL 2.1). OBJ is Block's own, from the same model.
 //!
 //! - `rights.rs`: which prims and textures may be written.
 //! - `gather.rs`: the selection's prims, their facts and geometry, read from

@@ -37,9 +37,9 @@ pub fn headset_ready() -> bool {
         extensions.khr_vulkan_enable2 = true;
         let xr = entry.create_instance(
             &xr::ApplicationInfo {
-                application_name: "Aurora headset probe",
+                application_name: "Block headset probe",
                 application_version: 0,
-                engine_name: "Aurora",
+                engine_name: "Block",
                 engine_version: 0,
                 api_version: xr::Version::new(1, 0, 0),
             },
@@ -75,9 +75,9 @@ impl Graphics {
         extensions.khr_vulkan_enable2 = true;
         let xr = entry.create_instance(
             &xr::ApplicationInfo {
-                application_name: "Aurora Vulkan interoperability",
+                application_name: "Block Vulkan interoperability",
                 application_version: 0,
-                engine_name: "Aurora experiment",
+                engine_name: "Block experiment",
                 engine_version: 0,
                 api_version: xr::Version::new(1, 0, 0),
             },

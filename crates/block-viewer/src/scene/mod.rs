@@ -214,14 +214,14 @@ struct GeomEntry {
 
 /// Frames an unused geometry is kept (an object may want it back soon).
 const GEOM_KEEP_FRAMES: u32 = 600;
-/// `AURORA_DEBUG_GEOM_DELAY=<seconds>`: every built geometry reaches the
+/// `BLOCK_DEBUG_GEOM_DELAY=<seconds>`: every built geometry reaches the
 /// arena that long after its job ended, as on a slow PC in a busy region
 /// (a geometry pending longer than `GEOM_KEEP_FRAMES` is collected and
 /// built a second time).
 fn geom_arrival_delay() -> Option<std::time::Duration> {
     static DELAY: std::sync::OnceLock<Option<std::time::Duration>> = std::sync::OnceLock::new();
     *DELAY.get_or_init(|| {
-        std::env::var("AURORA_DEBUG_GEOM_DELAY")
+        std::env::var("BLOCK_DEBUG_GEOM_DELAY")
             .ok()
             .and_then(|v| v.trim().parse::<f32>().ok())
             .filter(|s| *s > 0.0)
@@ -800,7 +800,7 @@ pub struct SceneStats {
     /// Objects that move by themselves placed from a mover (anchors.rs).
     pub movers: usize,
     /// Skeletons built again this frame (a shape, an attachment or their
-    /// age changed), out of `posed` (AURORA_PROFILE).
+    /// age changed), out of `posed` (BLOCK_PROFILE).
     pub skeletons_rebuilt: usize,
     /// How the avatars of the last lists are drawn.
     pub avatars: AvatarCounts,
@@ -836,7 +836,7 @@ pub struct AvatarCounts {
 }
 
 /// What the worn objects of the avatars cost (`avatar summary`), read
-/// every 10 s with AURORA_PROFILE by walking the objects.
+/// every 10 s with BLOCK_PROFILE by walking the objects.
 #[derive(Debug, Default, Clone, Copy, PartialEq, Eq)]
 pub struct AvatarSample {
     /// Objects worn by avatars (HUDs left out), and those of the avatars
@@ -873,7 +873,7 @@ pub struct Scene {
     foot_support: foot_support::FootSupport,
     sculpt_watch: Option<sculpt_watch::SculptWatch>,
     /// Optional local-only diagnostic toggle, exposed in Hover Height by
-    /// AURORA_TEST_NEUTRAL_POSE, initially off. Keep evaluating the real motion controller
+    /// BLOCK_TEST_NEUTRAL_POSE, initially off. Keep evaluating the real motion controller
     /// while displaying the exact shaped rest skeleton used by auto hover.
     pub neutral_pose_test: Option<bool>,
     pub jobs: Jobs,
@@ -1074,7 +1074,7 @@ pub struct Scene {
     posed_at: FastMap<Uuid, Instant>,
     /// The skeletons posed in this frame, by object index.
     posed_now: FastSet<usize>,
-    /// AURORA_SYNC_CHECK: impostor pictures taken, and those taken with a
+    /// BLOCK_SYNC_CHECK: impostor pictures taken, and those taken with a
     /// pose of an earlier frame (must stay 0), logged every 10 s.
     picture_check: (u64, u64, Option<Instant>),
     /// Avatars still loading (clouds).
@@ -1154,11 +1154,11 @@ pub struct Scene {
     pub build_hologram: build_hologram::BuildHologram,
     pub physics_shapes: physics_shapes::PhysicsShapes,
     pub stats: SceneStats,
-    /// AURORA_STILL_CHECK: what changes while the picture should stand still.
+    /// BLOCK_STILL_CHECK: what changes while the picture should stand still.
     pub still: Option<still_check::StillCheck>,
-    /// AURORA_SYNC_CHECK: what the sync visits, and what comes of it.
+    /// BLOCK_SYNC_CHECK: what the sync visits, and what comes of it.
     sync_check: Option<sync_check::SyncCheck>,
-    /// AURORA_SYNC_SLOW: the limit above which a frame's sync is detailed.
+    /// BLOCK_SYNC_SLOW: the limit above which a frame's sync is detailed.
     sync_slow: Option<f32>,
     /// HUD attachments of our avatar and what places them besides their
     /// own updates (screen aspect, local zoom and offset): they are placed
@@ -1211,9 +1211,9 @@ pub struct Scene {
     /// system allocator, that growth queued the main thread behind the
     /// jobs during bursts of results).
     geom_waiting_spare: Vec<(GeomKey, jobs::PreparedGeom, f32)>,
-    /// Geometry held back by `AURORA_DEBUG_GEOM_DELAY` until its time.
+    /// Geometry held back by `BLOCK_DEBUG_GEOM_DELAY` until its time.
     geom_delayed: VecDeque<(Instant, GeomKey, jobs::PreparedGeom, f32)>,
-    /// Streaming time of the frame by part (AURORA_PROFILE `s_*`), taken by
+    /// Streaming time of the frame by part (BLOCK_PROFILE `s_*`), taken by
     /// the frame profile at the end of the frame.
     pub parts: crate::frame_profile::Parts,
     /// Rest skeleton (shape + joint offsets of worn meshes) per skeleton owner.
@@ -1489,11 +1489,11 @@ fn rigged_layer_rank(skin_face: bool, object: &Uuid) -> u32 {
 /// through which its iris showed. A blended face takes the rank of its
 /// number, so the later face lies over the earlier ones there too. The other
 /// passes keep rank 0: a blended face still passes the depth of an opaque or
-/// masked face it lies on. `AURORA_BLEND_FACE_RANK=0`: no rank, as before, to
+/// masked face it lies on. `BLOCK_BLEND_FACE_RANK=0`: no rank, as before, to
 /// compare.
 fn stacked_layer_rank(pass: Pass, te_index: u8) -> u32 {
     static OFF: std::sync::OnceLock<bool> = std::sync::OnceLock::new();
-    let off = *OFF.get_or_init(|| std::env::var("AURORA_BLEND_FACE_RANK").is_ok_and(|v| v.trim() == "0"));
+    let off = *OFF.get_or_init(|| std::env::var("BLOCK_BLEND_FACE_RANK").is_ok_and(|v| v.trim() == "0"));
     if pass == Pass::Blend && !off {
         u32::from(te_index).min(flags::LAYER_RANK_MAX)
     } else {
@@ -1537,14 +1537,14 @@ impl Scene {
         self.debug_alpha = debug_alpha;
     }
 
-    /// Dev Toolbox P4 "What changes when still" (AURORA_STILL_CHECK).
+    /// Dev Toolbox P4 "What changes when still" (BLOCK_STILL_CHECK).
     pub fn set_still_check(&mut self, on: bool) {
         if on != self.still.is_some() {
             self.still = on.then(still_check::StillCheck::start);
         }
     }
 
-    /// Dev Toolbox P5 "What the sync visits" (AURORA_SYNC_CHECK).
+    /// Dev Toolbox P5 "What the sync visits" (BLOCK_SYNC_CHECK).
     pub fn set_sync_check(&mut self, on: bool) {
         if on != self.sync_check.is_some() {
             self.sync_check = on.then(sync_check::SyncCheck::start);
@@ -1555,7 +1555,7 @@ impl Scene {
         self.sync_check.is_some()
     }
 
-    /// Dev Toolbox P3 "Slow frames" (AURORA_SYNC_SLOW): the limit in ms.
+    /// Dev Toolbox P3 "Slow frames" (BLOCK_SYNC_SLOW): the limit in ms.
     pub fn set_slow_sync(&mut self, limit_ms: Option<f32>) {
         self.sync_slow = limit_ms;
     }
@@ -1564,7 +1564,7 @@ impl Scene {
         self.sync_slow
     }
 
-    /// Dev Toolbox O9 "Follow sculpts" (AURORA_SCULPT_WATCH) of an avatar.
+    /// Dev Toolbox O9 "Follow sculpts" (BLOCK_SCULPT_WATCH) of an avatar.
     pub fn set_sculpt_watch(&mut self, target: Option<Uuid>) {
         if target != self.sculpt_watch.as_ref().map(|w| w.target()) {
             self.sculpt_watch = target.map(sculpt_watch::SculptWatch::new);
@@ -1895,7 +1895,7 @@ impl Scene {
             remote_soles: Default::default(),
             foot_scope: foot_scope::Scope::from_environment(),
             foot_support: Default::default(),
-            neutral_pose_test: (std::env::var("AURORA_TEST_NEUTRAL_POSE").as_deref() == Ok("1")).then_some(false),
+            neutral_pose_test: (std::env::var("BLOCK_TEST_NEUTRAL_POSE").as_deref() == Ok("1")).then_some(false),
         }
     }
 
@@ -2557,12 +2557,12 @@ impl Scene {
         }
         let pool = renderer.staging_pool();
         self.textures.staging = Some(pool.clone());
-        // (AURORA_TEXTURE_BC7=0: every texture stays RGBA8, to compare)
-        let wanted = std::env::var("AURORA_TEXTURE_BC7").map_or(true, |v| v != "0");
+        // (BLOCK_TEXTURE_BC7=0: every texture stays RGBA8, to compare)
+        let wanted = std::env::var("BLOCK_TEXTURE_BC7").map_or(true, |v| v != "0");
         self.textures.bc7 = wanted && renderer.textures.bc7();
-        // (AURORA_TEXTURE_BC7_CACHE=0: BC7 without its disk cache, every
+        // (BLOCK_TEXTURE_BC7_CACHE=0: BC7 without its disk cache, every
         // texture decoded from its JPEG 2000 data as before)
-        let cached = std::env::var("AURORA_TEXTURE_BC7_CACHE").map_or(true, |v| v != "0");
+        let cached = std::env::var("BLOCK_TEXTURE_BC7_CACHE").map_or(true, |v| v != "0");
         self.textures.bc7_cache = self.textures.bc7 && cached;
         log::info!(
             "textures: BC7 compression {} (GPU support: {})",
@@ -3726,7 +3726,7 @@ impl Scene {
         }
     }
 
-    /// AURORA_SYNC_CHECK: a look at the objects of `range` (the frame's
+    /// BLOCK_SYNC_CHECK: a look at the objects of `range` (the frame's
     /// slice of the check's pass over every object). Those at rest whose
     /// detail level could be judged and those whose wanted geometry is not
     /// what their distance asks for at this moment, then the same for the
@@ -5004,7 +5004,7 @@ impl Scene {
     /// visits the objects with blended or glowing faces (`ObjGpu::special`),
     /// a thirtieth of the objects for the texture usage, the selection,
     /// the pictured impostors and, in debug, everything. Without them (or
-    /// AURORA_CPU_CULL=1) every object is visited and every list built here.
+    /// BLOCK_CPU_CULL=1) every object is visited and every list built here.
     pub fn build_lists(&mut self, renderer: &mut Renderer, view: &CullView, shadows: bool) {
         let t0 = Instant::now();
         self.lists.clear();
@@ -5914,7 +5914,7 @@ impl Scene {
         )
     }
 
-    /// What the avatars wear and play (`avatar summary`, AURORA_PROFILE):
+    /// What the avatars wear and play (`avatar summary`, BLOCK_PROFILE):
     /// one walk over the objects, every 10 s.
     pub fn avatar_sample(&self) -> AvatarSample {
         let mut s = AvatarSample::default();
@@ -6094,7 +6094,7 @@ impl Scene {
             };
             motions.ground = self.grounding_frame(world, idx, now);
             motions.legacy_ground = self.legacy_grounding_frame(world, idx, now);
-            motions.aurora_feet = self.ground_avatar_feet;
+            motions.block_feet = self.ground_avatar_feet;
             motions.look_over_animations = photo_look;
             motions.look_glance = if photo_look { world.look_at.photo.glance } else { 0.0 };
             match look {

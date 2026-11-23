@@ -1,4 +1,4 @@
-//! What asks for the user's attention while Aurora is in the background:
+//! What asks for the user's attention while Block is in the background:
 //! the taskbar flash of the messages (LLIMProcessing::processNewMessage →
 //! LLWindow::flashIcon, FSFlashOnMessage / FSFlashOnObjectIM /
 //! FSFlashOnScriptDialog) and the system notifications of the Legacy
@@ -22,7 +22,7 @@ pub enum Cause {
     /// A script dialog or text box (FSFlashOnScriptDialog).
     ScriptDialog,
     /// A line that mentions the agent (secondlife:///app/agent/<id>/mention).
-    /// The Legacy Viewer flashes for it only when it is an IM; Aurora
+    /// The Legacy Viewer flashes for it only when it is an IM; Block
     /// flashes for a mention in nearby chat too, with the message setting.
     Mention,
     /// A line that holds one of the keywords (FSKeywords::notify): its

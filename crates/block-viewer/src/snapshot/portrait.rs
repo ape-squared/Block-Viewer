@@ -1,4 +1,4 @@
-//! Auto portrait of an outfit (Fider #447, an Aurora addition: the Legacy
+//! Auto portrait of an outfit (Fider #447, a Block addition: the Legacy
 //! Viewer's outfit gallery only takes a snapshot of the current view,
 //! LLOutfitGallery / LLFloaterSimpleSnapshot): our avatar framed on its
 //! own from its drawn joints, straight in front, on a studio backdrop, for

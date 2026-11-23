@@ -1,5 +1,5 @@
 //! What the pointer offers in the world besides the joints and the gizmo,
-//! in both poser windows (Aurora's own: the Legacy Viewer's poser changes
+//! in both poser windows (Block's own: the Legacy Viewer's poser changes
 //! joint group and subject from its window only):
 //! - with Ctrl held over a part of the subject that another joint group
 //!   governs (a hand while posing the Body), that part is tinted in the

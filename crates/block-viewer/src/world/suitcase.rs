@@ -2,7 +2,7 @@
 //! (HGSuitcaseInventoryService), other grids see only the My Suitcase
 //! folder (LLFolderType::FT_MY_SUITCASE, 100): an attachment or a wearable
 //! worn from anywhere else cannot be loaded there, and goes missing on
-//! arrival. The Legacy Viewer says nothing; Aurora asks before the
+//! arrival. The Legacy Viewer says nothing; Block asks before the
 //! teleport leaves (`App::teleport_to_location_looking`).
 
 use super::inventory::Inventory;

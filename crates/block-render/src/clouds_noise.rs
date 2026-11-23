@@ -291,11 +291,11 @@ pub fn parse(bytes: &[u8]) -> Result<Noise, String> {
     })
 }
 
-/// The noise to upload: the shipped file, or the file `AURORA_CLOUD_NOISE`
+/// The noise to upload: the shipped file, or the file `BLOCK_CLOUD_NOISE`
 /// names (a test of the fallback: a missing or damaged file gives an error
 /// and the shader generates the noise instead).
 pub fn load() -> Result<Noise, String> {
-    load_from(std::env::var_os("AURORA_CLOUD_NOISE").as_deref())
+    load_from(std::env::var_os("BLOCK_CLOUD_NOISE").as_deref())
 }
 
 /// The noise from the file at `path`, or the shipped one for None.

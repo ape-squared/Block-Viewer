@@ -260,19 +260,19 @@ impl App {
     }
 }
 
-/// `AURORA_DEMO_AUTOTUNE`: `1` runs it on the real frames, `slow` on a
+/// `BLOCK_DEMO_AUTOTUNE`: `1` runs it on the real frames, `slow` on a
 /// simulated heavy scene ([`demo_frame_ms`]), `once` the same without
 /// "Continuous" (it stops on its own, with Keep and Give back).
 fn demo_mode() -> Option<&'static str> {
     static MODE: std::sync::OnceLock<Option<String>> = std::sync::OnceLock::new();
-    MODE.get_or_init(|| std::env::var("AURORA_DEMO_AUTOTUNE").ok().map(|v| v.trim().to_owned()))
+    MODE.get_or_init(|| std::env::var("BLOCK_DEMO_AUTOTUNE").ok().map(|v| v.trim().to_owned()))
         .as_deref()
 }
 
 /// The demo's heavy scene: a frame costs 16 ms, 2.4 ms per avatar drawn in
 /// full and 0.1 ms per metre of draw distance, so that at a 30 fps target
 /// both levers are needed with the default settings and a crowd
-/// (`AURORA_DEMO_CROWD=20`): 16 avatars at 96 m is 64 ms, six still 40 ms,
+/// (`BLOCK_DEMO_CROWD=20`): 16 avatars at 96 m is 64 ms, six still 40 ms,
 /// reached at 56 m.
 fn demo_frame_ms(avatars_full: usize, draw_distance: f32) -> f32 {
     16.0 + 2.4 * avatars_full as f32 + 0.1 * draw_distance

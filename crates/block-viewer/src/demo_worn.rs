@@ -1,4 +1,4 @@
-//! Offline worn object (AURORA_DEMO_WORN): a two-prim linkset on the back
+//! Offline worn object (BLOCK_DEMO_WORN): a two-prim linkset on the back
 //! of our avatar, with the flags and the inventory item the menus of worn
 //! objects depend on. It goes through the same ObjectUpdate, selection and
 //! touch paths as an attachment of the grid. Its `inventory`, `library`
@@ -50,7 +50,7 @@ pub fn root() -> ObjectUpdate {
     linkset(ROOT, POINT).swap_remove(0)
 }
 
-/// The temporary attachment of `AURORA_DEMO_WORN=temporary`: the backpack's
+/// The temporary attachment of `BLOCK_DEMO_WORN=temporary`: the backpack's
 /// shape as an experience attaches it to the left hand, with no item of
 /// ours: its AttachItemID is its own object id (LLViewerObject::isTempAttachment).
 pub const TEMPORARY: u32 = 9320;
@@ -62,21 +62,19 @@ pub fn temporary() -> Vec<ObjectUpdate> {
 }
 
 /// The temporary attachment in the demo's AttachmentResources answer, which
-/// names it, when `AURORA_DEMO_WORN=temporary`.
+/// names it, when `BLOCK_DEMO_WORN=temporary`.
 pub fn temporary_resources() -> Option<block_net::land::ScriptAttachment> {
-    matches!(std::env::var("AURORA_DEMO_WORN").as_deref(), Ok("temporary" | "temporary-outfit")).then(|| {
-        block_net::land::ScriptAttachment {
-            location: "Left Hand".into(),
-            objects: vec![block_net::land::ScriptObject {
-                id: temporary()[0].full_id,
-                name: block_i18n::tr!("demo-worn-temporary-name").into(),
-                owner: DEMO_AGENT,
-                group_owned: false,
-                memory: 64 * 1024,
-                urls: 0,
-                location: None,
-            }],
-        }
+    matches!(std::env::var("BLOCK_DEMO_WORN").as_deref(), Ok("temporary" | "temporary-outfit")).then(|| block_net::land::ScriptAttachment {
+        location: "Left Hand".into(),
+        objects: vec![block_net::land::ScriptObject {
+            id: temporary()[0].full_id,
+            name: block_i18n::tr!("demo-worn-temporary-name").into(),
+            owner: DEMO_AGENT,
+            group_owned: false,
+            memory: 64 * 1024,
+            urls: 0,
+            location: None,
+        }],
     })
 }
 
@@ -142,9 +140,9 @@ pub fn rez(item: &block_net::AttachRequest) -> Option<Vec<ObjectUpdate>> {
     Some(linkset(NEXT.fetch_add(2, Ordering::Relaxed), point))
 }
 
-/// Library hat, shirt and shape of `AURORA_DEMO_WORN=library`.
+/// Library hat, shirt and shape of `BLOCK_DEMO_WORN=library`.
 const LIBRARY: [u128; 3] = [9_310_001, 9_310_002, 9_310_003];
-/// The chime of `AURORA_DEMO_WORN=sound`.
+/// The chime of `BLOCK_DEMO_WORN=sound`.
 const SOUND: u128 = 9_310_004;
 
 /// The inventory rows a mode double-clicks: (first frame, item). Two
@@ -177,7 +175,7 @@ fn demo_item(id: u128, parent: Uuid, owner: Uuid, name: &str, asset_type: i32, i
     }
 }
 
-/// `AURORA_DEMO_WORN=library`: a hat, a shirt and a shape in the Library,
+/// `BLOCK_DEMO_WORN=library`: a hat, a shirt and a shape in the Library,
 /// to be copied into the inventory and worn by a double-click.
 pub fn seed_library(world: &mut crate::world::World) {
     use crate::world::inventory::{FetchState, Folder};
@@ -213,7 +211,7 @@ pub fn seed_library(world: &mut crate::world::World) {
     ]);
 }
 
-/// `AURORA_DEMO_WORN=sound`: a sound item playing `chime`, in the inventory.
+/// `BLOCK_DEMO_WORN=sound`: a sound item playing `chime`, in the inventory.
 pub fn seed_sound(world: &mut crate::world::World, chime: Uuid) {
     let inv = &mut world.inventory;
     let mut item = demo_item(SOUND, inv.root, world.agent_id, block_i18n::tr!("demo-trigger-sound"), 1, 1, 0);

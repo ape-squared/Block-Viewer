@@ -1,4 +1,4 @@
-// Aurora Viewer - RLVa self-test relay.
+// Block Viewer - RLVa self-test relay.
 //
 // Repeats to its owner, with llOwnerSay, whatever its owner says on its
 // private channel: the viewer's RLVa self-test (world/rlva_selftest.rs)

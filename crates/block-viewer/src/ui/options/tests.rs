@@ -304,7 +304,7 @@ const BEFORE: &[&str] = &[
     "lookat.limit_distance",
     "lookat.max_distance",
     "object_im_filter",
-    // Aurora
+    // Block
     "water_effects",
     "sort_received_items",
     "received_items_since",
@@ -414,7 +414,7 @@ fn a_setting_has_one_page() {
     for (page, path) in &paths {
         // the push-to-talk keys: Sound and voice and Shortcuts, as before;
         // the colored sky ambient and order-independent transparency:
-        // Graphics, and Aurora with the other differences from the Legacy
+        // Graphics, and Block with the other differences from the Legacy
         // Viewer;
         // inventory delete confirm: Confirmations and Inventory (#2344)
         if path == "keybinds" || path == "colored_sky_ambient" || path == "inventory.confirm_delete" {
@@ -492,7 +492,7 @@ fn a_page_reset_leaves_the_other_pages_alone() {
     reset_page_settings(Page::Protections, &mut s);
     assert_eq!(s.anti_spam, d.anti_spam);
     assert!(s.lookat.private, "Protections reset preserves Privacy");
-    reset_page_settings(Page::Aurora, &mut s);
+    reset_page_settings(Page::Block, &mut s);
     assert_eq!(s.lookat.style, d.lookat.style);
     assert_eq!(s.lookat.head_yaw, 10.0);
     assert_eq!(s.username, "kept");
@@ -629,9 +629,9 @@ fn the_moved_settings_reset_with_their_new_page() {
     s.audio.media_autoplay = true;
     s.language_is_public = false;
     reset_page_settings(Page::Graphics, &mut s);
-    assert!(!s.water_effects.enabled, "Aurora's water is a graphics setting now");
+    assert!(!s.water_effects.enabled, "Block's water is a graphics setting now");
     assert!(s.water_effects.bubbles);
-    reset_page_settings(Page::Aurora, &mut s);
+    reset_page_settings(Page::Block, &mut s);
     assert!(!s.synchronize_animations);
     reset_page_settings(Page::Avatars, &mut s);
     assert!(!s.ground_avatar_feet);
@@ -737,7 +737,7 @@ fn every_page_names_its_tabs() {
     }
     // the numbers of the former pages still open a page (the docs' demos)
     assert_eq!(Page::parse("0"), Some((Page::Graphics, 0)));
-    assert_eq!(Page::parse("13"), Some((Page::Aurora, 0)));
+    assert_eq!(Page::parse("13"), Some((Page::Block, 0)));
     assert_eq!(Page::parse("9"), None, "the former Debug page is the Dev Toolbox");
     assert_eq!(
         Page::Graphics.tabs()[5..],
@@ -1118,8 +1118,8 @@ fn parcel_visibility_lists_show_full_names_and_regions_with_separate_remove_cont
                 .map(|i| Entry {
                     region: uuid::Uuid::from_u128(i as u128),
                     local_id: i,
-                    name: format!("Northern Aurora Gardens — Observatory, visitor centre and exhibition pavilion {i}"),
-                    region_name: format!("Aurora Demonstration Region {i}"),
+                    name: format!("Northern Block Gardens — Observatory, visitor centre and exhibition pavilion {i}"),
+                    region_name: format!("Block Demonstration Region {i}"),
                 })
                 .collect();
             s.parcel_visibility.parcels = entries[..2].to_vec();
@@ -1347,13 +1347,13 @@ fn the_conversations_choice_switches_the_style() {
     let (mut s, mut st, mut r) = (Settings::default(), OptionsUi::default(), OptionsResult::default());
     let mut texts = Vec::new();
     for _ in 0..3 {
-        texts = page_frame(&mut frames, &mut s, &mut st, &mut r, Page::Aurora, 0, Vec::new());
+        texts = page_frame(&mut frames, &mut s, &mut st, &mut r, Page::Block, 0, Vec::new());
     }
     for (label, style) in [
-        (block_i18n::tr!("ui-options-aurora-compact"), ChatStyle::Compact),
-        (block_i18n::tr!("ui-options-aurora-bubbles"), ChatStyle::Bubbles),
-        (block_i18n::tr!("ui-options-aurora-lines"), ChatStyle::Legacy),
-        (block_i18n::tr!("ui-options-aurora-workspace"), ChatStyle::Aurora),
+        (block_i18n::tr!("ui-options-block-compact"), ChatStyle::Compact),
+        (block_i18n::tr!("ui-options-block-bubbles"), ChatStyle::Bubbles),
+        (block_i18n::tr!("ui-options-block-lines"), ChatStyle::Legacy),
+        (block_i18n::tr!("ui-options-block-workspace"), ChatStyle::Block),
     ] {
         let at = texts
             .iter()
@@ -1362,7 +1362,7 @@ fn the_conversations_choice_switches_the_style() {
             .rect
             .center();
         for events in click(at) {
-            texts = page_frame(&mut frames, &mut s, &mut st, &mut r, Page::Aurora, 0, events);
+            texts = page_frame(&mut frames, &mut s, &mut st, &mut r, Page::Block, 0, events);
         }
         assert_eq!(s.chat_style, style, "{label}");
         assert!(r.changed, "{label} is saved");
@@ -1522,7 +1522,7 @@ fn preferences_keep_their_height_when_text_size_changes() {
         for (page, query) in [
             (Page::Appearance, ""),
             (Page::Shortcuts, ""),
-            (Page::Aurora, ""),
+            (Page::Block, ""),
             (Page::Graphics, "ombre"),
         ] {
             state.page = page;

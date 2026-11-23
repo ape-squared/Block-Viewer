@@ -1,7 +1,7 @@
 //! Destination picker for the inventory's "Move to…" action.
 //! Uses LLFolderBridge's move / protected-folder rules (Firestorm
 //! indra/newview/llinventorybridge.cpp, originally LGPL 2.1). The searchable
-//! picker is an Aurora addition; submission uses the existing move mutation.
+//! picker is a Block addition; submission uses the existing move mutation.
 
 use super::*;
 use crate::ui::widgets::{Floater, above_footer, flat_button, search_field};

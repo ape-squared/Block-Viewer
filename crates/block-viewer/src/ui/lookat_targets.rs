@@ -5,7 +5,7 @@
 //! the avatar's name over it (DebugLookAtShowNames) and a line back to the
 //! avatar (ExodusLookAtLines, FIRE-16912).
 //!
-//! Aurora's look, chosen by the human: a dot with a soft halo in the theme
+//! Block's look, chosen by the human: a dot with a soft halo in the theme
 //! colour of the type, the name in a small pill like the name plates, a
 //! line that fades in from the avatar toward its target, all fading in when
 //! a target appears. Firestorm's (`lookat::Style::Legacy`): a wire

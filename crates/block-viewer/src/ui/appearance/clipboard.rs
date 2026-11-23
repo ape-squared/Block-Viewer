@@ -170,18 +170,18 @@ impl AppearanceUi {
     }
 }
 
-/// The frames of `AURORA_DEMO_APPEARANCE=clipboard`: Ctrl+C on the two
+/// The frames of `BLOCK_DEMO_APPEARANCE=clipboard`: Ctrl+C on the two
 /// items selected in the second outfit, then Ctrl+V into the empty one.
 const DEMO_COPY_FRAME: u64 = 500;
 const DEMO_PASTE_FRAME: u64 = 540;
 
 impl AppearanceUi {
-    /// `AURORA_DEMO_APPEARANCE=clipboard`: the copy and the paste as
+    /// `BLOCK_DEMO_APPEARANCE=clipboard`: the copy and the paste as
     /// egui-winit delivers them, `marker` being what the copy left on the
     /// system clipboard.
     pub fn demo_clipboard_events(&mut self, ctx: &egui::Context, frame: u64, marker: Option<Uuid>) -> Vec<egui::Event> {
         static MODE: std::sync::OnceLock<bool> = std::sync::OnceLock::new();
-        if !*MODE.get_or_init(|| std::env::var("AURORA_DEMO_APPEARANCE").is_ok_and(|mode| mode == "clipboard")) {
+        if !*MODE.get_or_init(|| std::env::var("BLOCK_DEMO_APPEARANCE").is_ok_and(|mode| mode == "clipboard")) {
             return Vec::new();
         }
         match frame {

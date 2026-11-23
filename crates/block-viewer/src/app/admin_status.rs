@@ -214,10 +214,10 @@ impl App {
         }));
     }
 
-    /// AURORA_DEMO_GOD=1: admin status asked at frame 400, the crown in the
+    /// BLOCK_DEMO_GOD=1: admin status asked at frame 400, the crown in the
     /// navigation bar and the notice in the chat.
     pub(super) fn demo_admin_status(&mut self) {
-        if self.demo && self.frame_count == 400 && std::env::var_os("AURORA_DEMO_GOD").is_some() {
+        if self.demo && self.frame_count == 400 && std::env::var_os("BLOCK_DEMO_GOD").is_some() {
             self.request_admin_status(true);
         }
     }

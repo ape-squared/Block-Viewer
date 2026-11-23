@@ -139,11 +139,11 @@ Japanese, beyond the plural:
   tools (J2, L1).
 - Terms: アバター, インベントリ, フレンド, グループ, 区画 (parcel),
   リージョン, 不動産 (estate), オブジェクト, 装着 (attach), アウトフィット,
-  容姿 (appearance), 初期設定 (Preferences), 設定 (Aurora's own settings),
+  容姿 (appearance), 初期設定 (Preferences), 設定 (Block's own settings),
   近くのチャット, テレポート, ランドマーク, スクリプト, テクスチャ, フォルダ,
   ごみ箱; look an existing one up in `ja.ftl` before choosing a new one.
   Second Life, L$ and product names (Blender) stay in Latin letters. The
-  viewers are Auroraビューア and レガシービューア: "Legacy" is レガシー, as in
+  viewers are Blockビューア and レガシービューア: "Legacy" is レガシー, as in
   the option labels the Legacy Viewer's Japanese interface already
   translates (昼間（レガシー）).
 - A label quoted in a hint (「…」) is the exact text of that label in
@@ -206,7 +206,7 @@ Ukrainian have none. The main ones, to look up before choosing another word:
   (重設, 自訂, 工具列, 取得, 帳號, 套用, 清單); zh-Hans uses their Simplified
   form, with the mainland word where the Taiwan one would read oddly (脚本,
   搜索, 偏好设置, 联系人, 添加). Product names stay in Latin letters (Second
-  Life, Aurora Viewer, L$), with a space between Chinese and Latin text.
+  Life, Block Viewer, L$), with a space between Chinese and Latin text.
 - **Spanish** (`es`): Inventario, ítem (item), hito (landmark), parcela, finca
   (estate), contrato (covenant), base (home), Destacados (picks), teleportar /
   teleporte, chat local, MI (IM), Gente, Lista de bloqueados, Expulsar (eject,
@@ -226,7 +226,7 @@ Ukrainian have none. The main ones, to look up before choosing another word:
   Indossa / Togli, Attacca / Stacca, attachment (masculine; allegato is a notice's),
   corpo (shape), Prendi / Prendi copia, rezzare, annotazione (notecard), gesto,
   Modifica / Copia / Trasferisci, proprietario successivo, Preferenze, nome
-  visualizzato (display name), tag del nome (classic) and targhetta (Aurora's
+  visualizzato (display name), tag del nome (classic) and targhetta (Block's
   nameplate), marcatore (beacon), preset, fotogramma chiave, camera (feminine),
   grid (the build grid is griglia); the user is "Lei", also as the "You" label.
 - **Polish** (`pl`): Szafa (inventory, feminine), przedmiot (item), prim, strona (face), mesz,
@@ -260,7 +260,7 @@ Ukrainian have none. The main ones, to look up before choosing another word:
   Lixo, Cartão de visita, Captura, Modificar / Copiar / Transferir, mouselook, nome de
   exibição, alcunha (nickname), sinalizador (beacon), predefinição (preset and default),
   Rodar, Expulsar, Não incomodar, recurso (asset), faixa (track), etiqueta de nome (name
-  tag) / placa de nome (Aurora's name plate), balão (chat bubble), câmara livre, Realizador
+  tag) / placa de nome (Block's name plate), balão (chat bubble), câmara livre, Realizador
   (Director), Definições; ficheiro, ecrã, guardar, rato, "A carregar…", « », «Eu», no "você".
 - **Norwegian Bokmål** (`nb`): no Legacy Viewer interface; its Danish one
   (`xui/da`) is a hint only. Beholdning, gjenstand (item) / objekt, landemerke,
@@ -280,7 +280,7 @@ Ukrainian have none. The main ones, to look up before choosing another word:
   закладка (f.), ділянка, землеволодіння (estate), Добірки (picks), чат
   поблизу, особисте повідомлення (IM), набір контактів, комплект (outfit),
   Вдягнути / Зняти, розмістити (rez), пригода (experience), грід; іменна
-  табличка for name tags and Aurora's plates, звання (group title), набір
+  табличка for name tags and Block's plates, звання (group title), набір
   (preset), оформлення (skin; the Appearance page is «Вигляд»), стенограма
   (transcript), фіксація положення (Movelock), стік / тригер (gamepad); the
   Legacy Viewer is «класичний переглядач». Formal ви in lower case, buttons in
@@ -293,7 +293,7 @@ Dates are messages with named components. For visible decimals, use
 `number` or `number_text`, and `integer` to group thousands; the egui
 controls use the same separator, and `parse_number` accepts it on input.
 
-Translate only what Aurora writes for the user. Protocol fields, command or
+Translate only what Block writes for the user. Protocol fields, command or
 widget identifiers, UUIDs, font names and saved identifiers stay stable.
 Names, descriptions and messages written by residents or received from the
 server stay as they are.
@@ -329,8 +329,8 @@ changes.
 To compare the languages without changing the preferences:
 
 ```powershell
-$env:AURORA_DEMO = '1'
-$env:AURORA_DEMO_OPTIONS = '1'
+$env:BLOCK_DEMO = '1'
+$env:BLOCK_DEMO_OPTIONS = '1'
 cargo run -p block-viewer -- --language en --title "Test langue-viewer"
 cargo run -p block-viewer -- --language fr --title "Test langue-viewer"
 cargo run -p block-viewer -- --language ja --title "Test langue-viewer"

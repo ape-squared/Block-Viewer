@@ -1,4 +1,4 @@
-//! AURORA_DEMO_CHAT_RANGE=aurora|compact|bubbles|legacy|lines: residents
+//! BLOCK_DEMO_CHAT_RANGE=aurora|compact|bubbles|legacy|lines: residents
 //! and objects talk from near and from beyond the say range, so that the
 //! far lines show dimmed (Preferences › Chat › Brightness beyond chat
 //! range, LLViewerChat::getChatColor). A resident 6 m away says a line, one
@@ -15,12 +15,12 @@ use uuid::Uuid;
 /// The Conversations window's style; `Some(None)`: the lines above the chat
 /// bar; None: not this scenario.
 pub fn scene() -> Option<Option<ChatStyle>> {
-    parse(&std::env::var("AURORA_DEMO_CHAT_RANGE").ok()?)
+    parse(&std::env::var("BLOCK_DEMO_CHAT_RANGE").ok()?)
 }
 
 fn parse(v: &str) -> Option<Option<ChatStyle>> {
     match v.trim() {
-        "aurora" | "1" => Some(Some(ChatStyle::Aurora)),
+        "block" | "1" => Some(Some(ChatStyle::Block)),
         "compact" => Some(Some(ChatStyle::Compact)),
         "bubbles" => Some(Some(ChatStyle::Bubbles)),
         "legacy" => Some(Some(ChatStyle::Legacy)),

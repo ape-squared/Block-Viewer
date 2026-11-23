@@ -1,4 +1,4 @@
-//! AURORA_DEMO_BOM_REZZED: a box on the ground whose faces carry the
+//! BLOCK_DEMO_BOM_REZZED: a box on the ground whose faces carry the
 //! bake-on-mesh placeholders, as a BOM body part rezzed out.
 
 use super::{HANDLE, floor_at, prim, shape};
@@ -18,12 +18,12 @@ const SLOTS: [usize; 3] = [8, 9, 10];
 fn active() -> bool {
     static ACTIVE: std::sync::OnceLock<bool> = std::sync::OnceLock::new();
     *ACTIVE.get_or_init(|| {
-        std::env::var_os("AURORA_DEMO").is_some() && std::env::var("AURORA_DEMO_BOM_REZZED").is_ok_and(|v| matches!(v.trim(), "1" | "pbr"))
+        std::env::var_os("BLOCK_DEMO").is_some() && std::env::var("BLOCK_DEMO_BOM_REZZED").is_ok_and(|v| matches!(v.trim(), "1" | "pbr"))
     })
 }
 
 pub fn pbr() -> bool {
-    active() && std::env::var("AURORA_DEMO_BOM_REZZED").as_deref() == Ok("pbr")
+    active() && std::env::var("BLOCK_DEMO_BOM_REZZED").as_deref() == Ok("pbr")
 }
 
 pub(super) const MATERIAL: Uuid = Uuid::from_u128(0xde40_1793_0000_0000_0000_0000_0000_0001);
@@ -41,7 +41,7 @@ pub fn material() -> block_assets::PbrMaterial {
     }
 }
 
-/// AURORA_DEMO_BOM_REZZED=1: the box, ahead of the start view. Not worn,
+/// BLOCK_DEMO_BOM_REZZED=1: the box, ahead of the start view. Not worn,
 /// it shows the placeholders themselves (LLViewerObject::getBakedTextureForMagicId),
 /// never white.
 pub fn events() -> Vec<NetEvent> {

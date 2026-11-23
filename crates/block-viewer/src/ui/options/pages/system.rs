@@ -1,7 +1,7 @@
 //! Preferences › Language and updates: the interface's language, how the
 //! new versions come, whether the `secondlife:` links of web pages open
 //! in this viewer, the backup of the settings (`options/backup.rs`), and
-//! the removal of Aurora from this computer (`uninstall.rs`).
+//! the removal of Block from this computer (`uninstall.rs`).
 
 use super::super::COMBO_W;
 use super::super::cx::{Cx, Nothing, field, fields};
@@ -211,18 +211,18 @@ pub fn page(cx: &mut Cx) {
     });
     // the Legacy Viewer's uninstaller, from the viewer (uninstall.rs): what
     // it registered outside its folders, confirmed first
-    cx.group(tr!("ui-options-remove-aurora"), |cx| {
+    cx.group(tr!("ui-options-remove-block"), |cx| {
         use crate::ui::widgets::{ActionKind, action_button};
         cx.row_with(
-            tr!("ui-options-remove-aurora"),
-            tr!("ui-options-remove-aurora-help"),
+            tr!("ui-options-remove-block"),
+            tr!("ui-options-remove-block-help"),
             &Nothing,
             |ui, _, _, r| {
                 if action_button(
                     ui,
                     &p,
                     "trash-filled",
-                    tr!("ui-options-remove-aurora-button"),
+                    tr!("ui-options-remove-block-button"),
                     ActionKind::Danger,
                     Vec2::new(0.0, 26.0),
                 )

@@ -1,4 +1,4 @@
-//! The Legacy Viewer's conversation options that Aurora lacked, from its
+//! The Legacy Viewer's conversation options that Block lacked, from its
 //! Preferences › Chat (skins/default/xui/en/panel_preferences_chat.xml,
 //! defaults from app_settings/settings.xml):
 //!
@@ -16,7 +16,7 @@
 //!   (FSChatHistory::appendMessage);
 //! - FSIMChatHistoryFade, adapted: the Legacy Viewer fades the instant
 //!   messages it copies into the nearby chat (FIRE-2899) and the times of
-//!   history lines in its plain-text look, neither of which Aurora has; here
+//!   history lines in its plain-text look, neither of which Block has; here
 //!   it fades the history lines themselves, which both viewers already grey;
 //! - FSOpenIMContainerOnOfflineMessage: the Conversations window opens when
 //!   messages kept while we were offline arrive (LLIMMgr::addMessage,
@@ -351,7 +351,7 @@ mod tests {
             );
         }
         let mut s = Settings::DEFAULT;
-        assert_eq!(section_kinds(&s), [P, G, C], "off: Aurora's sections");
+        assert_eq!(section_kinds(&s), [P, G, C], "off: Block's sections");
         s.auto_order = true;
         assert_eq!(section_kinds(&s), [G, C, P]);
     }

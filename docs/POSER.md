@@ -32,7 +32,7 @@ after a shape change.
 ### Compact window
 
 The poser opens in the full window described above, as the Legacy
-Viewer's. A small window is an Aurora addition: the title bar's ⤡ button
+Viewer's. A small window is a Block addition: the title bar's ⤡ button
 switches to it, and ⤢ back; the choice is remembered, and the other window
 opens with the same top right corner. Both windows share the subject, the
 pose, the undo history, the joints selected together and the settings.
@@ -107,7 +107,7 @@ hand button): the joints and shafts fade in while the pointer is over the
 avatar being posed, and out when it leaves; the selected joint's gizmo
 stays, and a drag keeps them.
 
-**Clicks in the world**, in both windows (Aurora's own: the Legacy Viewer
+**Clicks in the world**, in both windows (Block's own: the Legacy Viewer
 changes joint from its list only): a click that no joint, shaft or gizmo
 takes unselects the joint, and the pelvis is not picked again by itself (a
 click a worn HUD takes leaves it selected); Ctrl + click on another avatar
@@ -116,7 +116,7 @@ skeleton shows under the pointer). A plain click on them stays the
 world's: a photo's focus, a HUD drawn over them.
 
 **The Other tab** lists only the bones a worn rigged mesh uses or the pose
-moved (Aurora's own: the Legacy Viewer lists them all). The bones inside the
+moved (Block's own: the Legacy Viewer lists them all). The bones inside the
 body (the spine, the groin, the skull) are left to the full window's list,
 even used, posed there with the sliders and the trackball, with no markers
 nor handles in the world: the spine's are collapsed pairs whose markers sit
@@ -212,7 +212,7 @@ Save reports the saved file’s full path. Load > Pose library opens the saved
 poses directly; its Open folder button opens their directory in the file manager.
 File pickers start in that same directory.
 
-Save writes a named `*.aurora-pose.json` under the current account's local
+Save writes a named `*.block-pose.json` under the current account's local
 `poses/` directory. It retains rotation, relative translation, scale and
 world-lock flags, without subject IDs, avatar names or world coordinates.
 The book in the title bar shows the library in the joints column's place
@@ -223,7 +223,7 @@ unlock and the priority. Load's menu holds the four modes, applied to the
 selected library entry while the library is shown or to a file chosen
 otherwise, and "Open a file".
 
-Load accepts Aurora pose documents, native `.anim` files and `.bvh` files,
+Load accepts Block pose documents, native `.anim` files and `.bvh` files,
 up to 4 MiB. Animation imports sample their first frame. The four load modes
 are All, Rotations only, Unedited joints and Selective rotations. Selective
 loads preserve joints already edited in the current pose. Loading finishes
@@ -244,7 +244,7 @@ changes on the rest skeleton: an untouched capture exports a T-pose.
 BVH export writes the actual skeleton hierarchy in inches and Y-up, with
 a reference frame and two identical posed frames. The pelvis-unlock setting
 controls root rotation and translation. Native animations and BVH have no
-scale tracks; BVH also omits collision volumes. The Aurora pose document
+scale tracks; BVH also omits collision volumes. The Block pose document
 retains those channels. **Upload as animation…** reuses the existing native
 encoder and opens the normal import preview. Upload and the simulator price
 confirmation still require the human's action; saving never uploads.
@@ -256,7 +256,7 @@ bridge. Ask needs the worn bridge (the dialog is shown by its query
 service): until that service answers the button is disabled and the menu says
 why: the bridge is starting, it was taken off, it failed, or it is worn but
 its query script stays silent for 10 seconds. The last two offer **Repair
-Aurora bridge**, the Movelock window's Repair. Ask sends one explicit request,
+Block bridge**, the Movelock window's Repair. Ask sends one explicit request,
 with Cancel while pending. The Poser and the IK Poser (couple mode) share the
 same consent.
 
@@ -293,20 +293,20 @@ The eye next to the gear hides or shows the joint markers and gizmos in one
 click, the same setting as Handling's switch: an open eye while they are
 shown, a struck-through one once hidden. It follows the Legacy Viewer's
 visual manipulators button (`FSFloaterPoser::onToggleVisualManipulators`);
-Aurora keeps the choice at the next opening.
+Block keeps the choice at the next opening.
 
 With stop on close, closing the window (its cross, Ctrl+W, the photo
 viewfinder's wand) loses the edited joints of every subject. When some are
 edited, a dialog asks first: **Minimize** keeps the pose in the window's bar,
 **Close anyway** closes, Escape or a click beside it cancels; "Don't ask
 again" turns the setting off. The Legacy Viewer closes at once
-(`FSFloaterPoser::onClose`); Aurora asks so that no pose is lost by mistake.
+(`FSFloaterPoser::onClose`); Block asks so that no pose is lost by mistake.
 
 Defaults were checked against the local Legacy Viewer source: stop on close,
 joint markers and natural alignment on; DoF in edit, additional BVH, pelvis
 unlock and overwrite confirmation off; trackball sensitivity 0.5. DoF while
 posing permits the normal configured DoF effect, without enabling it globally.
-Settings are saved through Aurora's existing settings store.
+Settings are saved through Block's existing settings store.
 
 Main integration validation on 2026-10-24: the script parser, formatting and Clippy
 pass; the complete workspace has 4,860 passing tests, zero failures and 29
@@ -321,7 +321,7 @@ marker sets. Seventeen native poser scenarios were inspected, with zero
 runtime errors.
 This does not validate real two-client LSL delivery.
 
-Offline demos use `AURORA_DEMO=1` and `AURORA_DEMO_POSER=` with `self`,
+Offline demos use `BLOCK_DEMO=1` and `BLOCK_DEMO_POSER=` with `self`,
 `connected`, `camera`, `scale`, `hands`, `face`, `misc`, `physics`, `library`, `settings`, `animesh`,
 `consent-accept`, `consent-refuse`, `consent-timeout` or `consent-withdraw`.
 Capture frame 620. The synthetic answers exercise the real consent state

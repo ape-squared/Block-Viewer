@@ -1,6 +1,6 @@
-//! The place card shared by the windows that list places (Aurora's Search,
-//! Aurora's Places, whose favourites are dragged into the bar's order, and
-//! Aurora's Destinations): a row with the parcel's snapshot, its name
+//! The place card shared by the windows that list places (Block's Search,
+//! Block's Places, whose favourites are dragged into the bar's order, and
+//! Block's Destinations): a row with the parcel's snapshot, its name
 //! and a second line (region and position, a date…), the G / M / A badge at
 //! the right end, and room before it for what the window adds (traffic, a
 //! sale pill, a favourite star). The snapshot covers its frame, its middle
@@ -23,17 +23,17 @@ impl RowSize {
         height: 52.0,
         thumb: Vec2::new(64.0, 40.0),
     };
-    /// The list of Aurora's Places, widened.
+    /// The list of Block's Places, widened.
     pub const PLACES_WIDE: RowSize = RowSize {
         height: 54.0,
         thumb: Vec2::new(72.0, 42.0),
     };
-    /// The list of Aurora's Places, narrow (as it opens).
+    /// The list of Block's Places, narrow (as it opens).
     pub const PLACES_NARROW: RowSize = RowSize {
         height: 48.0,
         thumb: Vec2::new(52.0, 32.0),
     };
-    /// The guide's places in Aurora's Destinations, as it opens: a larger
+    /// The guide's places in Block's Destinations, as it opens: a larger
     /// photo and three lines.
     pub const DESTINATIONS: RowSize = RowSize {
         height: 72.0,
@@ -61,7 +61,7 @@ pub struct Row<'a> {
     pub selected: bool,
 }
 
-/// What a row of Aurora's Destinations adds to a plain one: a count laid
+/// What a row of Block's Destinations adds to a plain one: a count laid
 /// over its picture (the people there), the rating before its second line
 /// and a third line (a date, a visit), each with its icon.
 #[derive(Default)]
@@ -84,7 +84,7 @@ pub fn row(ui: &mut egui::Ui, p: &Palette, size: RowSize, row: &Row, trailing: i
     paint_row(ui, p, size, row, false, &Extras::default(), trailing)
 }
 
-/// A `row` with what Aurora's Destinations adds (`Extras`).
+/// A `row` with what Block's Destinations adds (`Extras`).
 pub fn row_with(
     ui: &mut egui::Ui,
     p: &Palette,

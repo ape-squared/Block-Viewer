@@ -198,10 +198,10 @@ fn demo_id() -> egui::Id {
     egui::Id::unique("appearance_layer_drag_demo")
 }
 
-/// `AURORA_DEMO_APPEARANCE=layers-drag|layers-hold`: whether the synthetic
+/// `BLOCK_DEMO_APPEARANCE=layers-drag|layers-hold`: whether the synthetic
 /// drag holds on over its landing place.
 fn demo_mode() -> Option<bool> {
-    match std::env::var("AURORA_DEMO_APPEARANCE").ok()?.as_str() {
+    match std::env::var("BLOCK_DEMO_APPEARANCE").ok()?.as_str() {
         "layers-drag" => Some(false),
         "layers-hold" => Some(true),
         _ => None,

@@ -121,7 +121,7 @@ enum Dialog {
 /// and is asked for on a later frame). Deliberate
 /// difference: the Legacy Viewer also calls initCategory at every login
 /// (llstartup.cpp), so the folder appears in every account's inventory;
-/// Aurora creates it only once the window is opened.
+/// Block creates it only once the window is opened.
 pub fn prepare(inv: &mut Inventory, st: &mut AppearanceUi, writable: bool, brand_by_bridge: bool) -> Option<Mutation> {
     let st = &mut st.wearable_favorites;
     if let Some(root) = model::folder(inv) {
@@ -418,7 +418,7 @@ fn filter_bar(
                         "hanger-2-filled",
                         block_i18n::tr!("wearable-favorites-sort-type"),
                     ),
-                    // Aurora's own: the order the rows were dragged into
+                    // Block's own: the order the rows were dragged into
                     (
                         SortOrder::Custom,
                         "grip-vertical",
@@ -576,7 +576,7 @@ fn list_area(
                 } else {
                     items::double_click(response, world, it, is_worn, actions);
                     // the same from a button on the hovered row, for those
-                    // who would not guess the double click (Aurora's own)
+                    // who would not guess the double click (Block's own)
                     if let Some(action) = toggle
                         && wear_button(ui, p, at, it, is_worn)
                     {
@@ -985,7 +985,7 @@ fn dialogs(
     }
 }
 
-/// `AURORA_DEMO_WEARABLE_FAVORITES=evening`: the Evening folder picked.
+/// `BLOCK_DEMO_WEARABLE_FAVORITES=evening`: the Evening folder picked.
 pub fn demo_pick(inv: &Inventory, st: &mut AppearanceUi, name: &str) {
     if let Some(root) = model::folder(inv) {
         st.wearable_favorites.shown = model::subfolders(inv, root)

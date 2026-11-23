@@ -84,7 +84,7 @@ fn read(text: &str) -> Result<Preferences, String> {
         return Err(invalid());
     }
     let mut note: Document = serde_json::from_str(text).map_err(|_| invalid())?;
-    if note.format != "aurora-inventory-menu"
+    if note.format != "block-inventory-menu"
         || note.version != 1
         || note.menus.profiles.len() != 1
         || !note.menus.profiles.get(SHARED).is_some_and(valid)
@@ -104,7 +104,7 @@ fn write(prefs: &Preferences) -> Result<String, String> {
         profile.locked = true;
     }
     let text = serde_json::to_string_pretty(&Document {
-        format: "aurora-inventory-menu".into(),
+        format: "block-inventory-menu".into(),
         version: 1,
         menus,
     })
@@ -386,7 +386,7 @@ mod tests {
         invalid_slot["menus"]["profiles"][SHARED]["layout"]["slots"]["top"]["paste"] = 8.into();
         for text in [
             "{}".into(),
-            text.replace("aurora-inventory-menu", "aurora-construction-settings"),
+            text.replace("block-inventory-menu", "block-construction-settings"),
             text.replace("\"version\": 1", "\"version\": 255"),
             invalid_slot.to_string(),
             "x".repeat(block_net::inventory::notecard::MAX_TEXT_BYTES + 1),

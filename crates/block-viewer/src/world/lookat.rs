@@ -13,7 +13,7 @@ pub const IDLE: u8 = 1;
 pub const AUTO_LISTEN: u8 = 2;
 pub const FREELOOK: u8 = 3;
 pub const RESPOND: u8 = 4;
-/// Set by the cursor over the world: an Aurora choice, Firestorm defines
+/// Set by the cursor over the world: a Block choice, Firestorm defines
 /// the type without a caller (see `cursor_look`).
 pub const HOVER: u8 = 5;
 pub const CONVERSATION: u8 = 6;
@@ -79,17 +79,17 @@ pub struct Settings {
     pub head_pitch: f32,
     /// FSStaticEyes: an animation that stops the random eye movements.
     pub static_eyes: bool,
-    /// How the targets are drawn: Aurora's halo, or Firestorm's wire
-    /// crosshair (Preferences › Aurora).
+    /// How the targets are drawn: Block's halo, or Firestorm's wire
+    /// crosshair (Preferences › Block).
     pub style: Style,
-    /// Where the head looks while the cursor moves (Preferences › Aurora).
+    /// Where the head looks while the cursor moves (Preferences › Block).
     pub aim: Aim,
 }
 
 /// Where our head looks while the cursor moves (`cursor_look`).
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default, serde::Serialize, serde::Deserialize)]
 pub enum Aim {
-    /// The very point under the cursor (LOOKAT_TARGET_HOVER), Aurora's own:
+    /// The very point under the cursor (LOOKAT_TARGET_HOVER), Block's own:
     /// everyone nearby sees what the cursor is over. A choice, not the default.
     Point,
     /// The Legacy Viewer's: only toward the cursor's side (FREELOOK).
@@ -102,7 +102,8 @@ pub enum Aim {
 pub enum Style {
     /// A dot with a soft halo, theme colours, the name in a pill.
     #[default]
-    Aurora,
+    #[serde(alias = "Aurora")]
+    Block,
     /// LLHUDEffectLookAt::render: wire crosshair, attention colours.
     Legacy,
 }
@@ -122,7 +123,7 @@ impl Default for Settings {
             head_yaw: 90.0,
             head_pitch: 90.0,
             static_eyes: false,
-            style: Style::Aurora,
+            style: Style::Block,
             aim: Aim::Direction,
         }
     }
@@ -245,7 +246,7 @@ pub fn cursor_direction(forward: Vec3, x: f32, y: f32, yaw: f32, pitch: f32) -> 
 /// only turns the head toward the cursor's direction (FREELOOK,
 /// `cursor_direction`): the crosshair stands 1 m from the head, never on
 /// what the cursor points at, and LOOKAT_TARGET_HOVER has no caller: the
-/// default. With `Aim::Point`, chosen in Preferences, Aurora looks at the
+/// default. With `Aim::Point`, chosen in Preferences, Block looks at the
 /// very point under the cursor when there is one (the hover
 /// pick of the cursor icon): an object with the point in its frame, or a
 /// point of the ground (`hover`); over the sky, a window or ourselves, the
@@ -456,7 +457,7 @@ pub enum Gaze {
 /// The gaze of an avatar from its look-at target (`None`: none received).
 /// `ahead`: our own avatar with PrivateLocalLookAtTarget. The Legacy Viewer
 /// only turns our target into "none" there, so the head stops and the eyes
-/// stay on the last point until a restart; Aurora brings both back straight
+/// stay on the last point until a restart; Block brings both back straight
 /// ahead, as the setting says (the head eases back, the random eye
 /// movements go on). Deliberate difference, the human's report of
 /// 2026-10-24.
@@ -827,8 +828,8 @@ mod tests {
         assert!(!s.show_targets && s.show_names == 1 && s.hide_own && !s.lines);
         assert!(!s.private && !s.private_local && !s.limit_distance);
         assert_eq!((s.max_distance, s.head_yaw, s.head_pitch, s.static_eyes), (1.0, 90.0, 90.0, false));
-        // Aurora's look, Firestorm's kept as the legacy one
-        assert_eq!(s.style, Style::Aurora);
+        // Block's look, Firestorm's kept as the legacy one
+        assert_eq!(s.style, Style::Block);
         let legacy = Settings {
             style: Style::Legacy,
             ..Settings::default()
@@ -837,8 +838,8 @@ mod tests {
         assert_eq!(saved["style"], "Legacy");
         let read: Settings = serde_json::from_value(saved).expect("read");
         assert_eq!(read.style, Style::Legacy);
-        // a file without it: Aurora's
+        // a file without it: Block's
         let read: Settings = serde_json::from_value(serde_json::json!({ "lines": true })).expect("read");
-        assert_eq!(read.style, Style::Aurora);
+        assert_eq!(read.style, Style::Block);
     }
 }

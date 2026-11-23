@@ -1,6 +1,6 @@
 //! LLFloaterBulkPermission: eleven type filters above three permission
 //! columns and the request status (Firestorm llfloaterbulkpermission.cpp,
-//! floater_bulk_perms.xml, originally LGPL 2.1). Aurora widgets and palette.
+//! floater_bulk_perms.xml, originally LGPL 2.1). Block widgets and palette.
 
 use super::common::{check, label, section, small};
 use crate::build::BuildTool;
@@ -102,7 +102,7 @@ pub struct BulkState {
     job: Option<Job>,
     pub(crate) deep: Option<crate::build::deep_perms::Job>,
     pub(crate) status: String,
-    /// `AURORA_DEMO_DEEP_PERMS=run`: started once.
+    /// `BLOCK_DEMO_DEEP_PERMS=run`: started once.
     demo_started: bool,
 }
 
@@ -478,7 +478,7 @@ impl BuildTool {
         text
     }
 
-    /// `AURORA_DEMO_DEEP_PERMS=run…`: ticks the option and presses Apply
+    /// `BLOCK_DEMO_DEEP_PERMS=run…`: ticks the option and presses Apply
     /// once the selected prim's properties are known.
     fn demo_deep_start(&mut self, world: &World) -> bool {
         if self.ui.bulk.demo_started || !crate::build::deep_perms::demo::run() {

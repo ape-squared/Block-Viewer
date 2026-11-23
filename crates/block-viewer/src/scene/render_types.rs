@@ -73,7 +73,7 @@ impl Hidden {
         self.any_object() && kind(world, index).is_some_and(|k| self.hides(k))
     }
 
-    /// `AURORA_DEMO_RENDER_TYPES`: the kinds hidden, separated by commas
+    /// `BLOCK_DEMO_RENDER_TYPES`: the kinds hidden, separated by commas
     /// (`terrain,water,sky,clouds,objects,avatars,animesh,trees,grass`,
     /// `particles`), and whether the particles are among them; unknown
     /// words are left aside.

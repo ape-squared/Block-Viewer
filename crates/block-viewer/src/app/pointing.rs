@@ -10,7 +10,7 @@ impl App {
     /// viewer starts its editing motion from the point-at effect itself.
     pub(super) fn update_pointing(&mut self) {
         if self.demo
-            && let Ok(mode) = std::env::var("AURORA_DEMO_POINTING")
+            && let Ok(mode) = std::env::var("BLOCK_DEMO_POINTING")
         {
             if self.frame_count == 600 {
                 self.settings.ao.accounts.entry(self.world.agent_id).or_default().enabled = false;
@@ -50,7 +50,7 @@ impl App {
             }
         }
         if self.demo
-            && let Ok(mode) = std::env::var("AURORA_DEMO_BEAMS")
+            && let Ok(mode) = std::env::var("BLOCK_DEMO_BEAMS")
         {
             crate::demo::beams::tick(&mut self.world, &mut self.build, &mut self.settings.build, self.frame_count, &mode);
             if self.frame_count == 600 {

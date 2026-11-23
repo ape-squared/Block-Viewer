@@ -332,7 +332,7 @@ impl Editor {
     }
     /// The joint's reset: a click resets the selected joint (both sides in
     /// Mirror), Shift + click the whole pose, as Whole pose › Reset all
-    /// (Aurora's shortcut; Ctrl+Z undoes either).
+    /// (Block's shortcut; Ctrl+Z undoes either).
     pub(super) fn reset_button(&mut self, ui: &mut egui::Ui, p: &Palette, rig: &Rig, frame: &Frame) {
         let tip = format!(
             "{}\n{}",

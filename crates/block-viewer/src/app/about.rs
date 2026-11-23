@@ -146,11 +146,11 @@ impl App {
         }
     }
 
-    /// AURORA_DEMO_SYSINFO=1: "Send system information" chosen in the
+    /// BLOCK_DEMO_SYSINFO=1: "Send system information" chosen in the
     /// friend's conversation at frame 600; its confirmation shows once the
     /// computer is read.
     pub(super) fn demo_sysinfo(&mut self) {
-        if self.demo && self.frame_count == 600 && std::env::var_os("AURORA_DEMO_SYSINFO").is_some() {
+        if self.demo && self.frame_count == 600 && std::env::var_os("BLOCK_DEMO_SYSINFO").is_some() {
             self.ask_sysinfo(crate::demo::DEMO_FRIEND, true);
         }
     }
@@ -174,7 +174,7 @@ impl App {
                 Row::text("about-commit", block_version::commit()),
                 Row::text(
                     "about-build",
-                    format!("{} ({})", crate::ui::about::build_label(), env!("AURORA_BUILD_PROFILE")),
+                    format!("{} ({})", crate::ui::about::build_label(), env!("BLOCK_BUILD_PROFILE")),
                 ),
                 Row::text("about-language", block_i18n::language()),
                 Row::text("about-window-size", format!("{w} × {h} px")),

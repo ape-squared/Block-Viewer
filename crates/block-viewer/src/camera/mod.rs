@@ -104,7 +104,7 @@ const SIT_CAMERA_THRESHOLD_SQUARED: f32 = 0.001 * 0.001;
 const AVATAR_ZOOM_DISTANCE: f32 = 2.5;
 const AVATAR_ZOOM_EYE_Z: f32 = 1.0;
 const AVATAR_ZOOM_FOCUS_Z: f32 = 0.6;
-/// Aurora's right-drag orbit rate (radians per pixel at sensitivity 1).
+/// Block's right-drag orbit rate (radians per pixel at sensitivity 1).
 pub(crate) const DRAG_RATE: f32 = 0.0042;
 
 /// LLSmoothInterpolation::getInterpolant.
@@ -1501,7 +1501,7 @@ impl Camera {
     /// on a point or an object, the flycam, the free camera and the zoom stay
     /// where they are, and a camera on the avatar follows it there. A
     /// teleport to another region always brings the camera back
-    /// (TELEPORT_START_ARRIVAL's resetView in update_tp_display); Aurora
+    /// (TELEPORT_START_ARRIVAL's resetView in update_tp_display); Block
     /// keeps the orbit, pitch and zoom there when the switch is off.
     pub fn on_teleport_arrival(&mut self, s: &CameraSettings, local: bool) {
         if local && !s.reset_on_teleport {
@@ -1549,7 +1549,7 @@ impl Camera {
         }
     }
 
-    /// AURORA_DEMO_CAM: heading offset, pitch and distance.
+    /// BLOCK_DEMO_CAM: heading offset, pitch and distance.
     pub fn demo_orbit(&mut self, yaw: f32, pitch: f32, distance: Option<f32>, s: &CameraSettings) {
         self.orbit_yaw = yaw;
         self.pitch = pitch;
@@ -1813,7 +1813,7 @@ impl Camera {
             if (shift || ctrl) && self.rlva.preset_locked {
                 // RlvActions::isCameraPresetLocked: the Legacy Viewer writes
                 // the user's rear view here, which its RLVa view hides until
-                // the lock ends. Aurora's view reads the offsets RLVa left to
+                // the lock ends. Block's view reads the offsets RLVa left to
                 // the user, so they stay as they are: stricter.
                 return false;
             }
@@ -1959,7 +1959,7 @@ impl Camera {
         }
     }
 
-    /// Right drag (Aurora): around the avatar without turning it, or around
+    /// Right drag (Block): around the avatar without turning it, or around
     /// the alt-camera focus point.
     pub fn orbit_drag(&mut self, dx: f32, dy: f32, sensitivity: f32, agent: &mut AgentState) {
         let k = DRAG_RATE * sensitivity;
@@ -5031,7 +5031,7 @@ mod tests {
         // #3982: a collar that "forces mouselook" limits the camera to 0 m
         // from the avatar. The Legacy Viewer applies the limit in the
         // third-person and follow views, from the head; mouselook keeps the
-        // eyes. Aurora measured from the avatar's centre in every view.
+        // eyes. Block measured from the avatar's centre in every view.
         for command in ["@camdistmax:0=n", "@setcam_avdistmax:0=n"] {
             let (mut cam, mut w, s) = rlva_avatar_camera("@clear");
             cam.change_to_mouselook(&mut w.agent, &s, false);
@@ -6004,7 +6004,7 @@ mod tests {
         assert!(!cam.focus_on_avatar);
     }
 
-    /// The camera limits on, as in the Legacy Viewer (Aurora turns them off
+    /// The camera limits on, as in the Legacy Viewer (Block turns them off
     /// by default).
     fn constrained() -> CameraSettings {
         CameraSettings {

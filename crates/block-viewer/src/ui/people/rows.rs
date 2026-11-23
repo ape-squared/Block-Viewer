@@ -1,4 +1,4 @@
-//! The pieces the lists of People share in Aurora's look (the mock-up's
+//! The pieces the lists of People share in Block's look (the mock-up's
 //! rows): a row's face, its round picture and status dot, its two lines of
 //! names, the fixed controls laid out from the right edge (what does not
 //! fit folds into "+2" or steps aside), the quick actions over the names
@@ -186,7 +186,7 @@ pub(super) fn names(
     person_names(ui, p, rect, left, right, first, color, second, dot.map(SetMark::Dot), tag, None)
 }
 
-/// `names` for a resident: a member of the Aurora team or of Linden Lab
+/// `names` for a resident: a member of the Block team or of Linden Lab
 /// (`mark`) gets its tag right after the name, which is cut before the
 /// tag is (the tag is how the staff is recognized).
 #[allow(clippy::too_many_arguments)]
@@ -957,7 +957,7 @@ mod tests {
 
     #[test]
     fn group_initials() {
-        assert_eq!(initials("Aurora Builders"), "AB");
+        assert_eq!(initials("Block Builders"), "AB");
         assert_eq!(initials("Loups du Nord"), "LN");
         assert_eq!(initials("Marché de la Place"), "MP");
         assert_eq!(initials("club des lucioles"), "CD");

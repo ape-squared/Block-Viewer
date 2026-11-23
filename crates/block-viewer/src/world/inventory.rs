@@ -880,7 +880,7 @@ fn read_cache_with_timeout(path: &std::path::Path, timeout: std::time::Duration)
 /// no usable cache), or hangs up if the thread could not start.
 pub fn read_cache_in_background(path: std::path::PathBuf) -> crossbeam_channel::Receiver<Option<CachedInventory>> {
     let (tx, rx) = crossbeam_channel::bounded(1);
-    let spawned = std::thread::Builder::new().name("aurora-inventory-cache".into()).spawn(move || {
+    let spawned = std::thread::Builder::new().name("block-inventory-cache".into()).spawn(move || {
         let _ = tx.send(read_cache(&path));
     });
     if let Err(e) = spawned {
@@ -1190,7 +1190,7 @@ mod tests {
             .expect("outfit")
             .items
             .extend([item, item]);
-        let path = std::env::temp_dir().join(format!("aurora-inventory-{}.bin", Uuid::new_v4()));
+        let path = std::env::temp_dir().join(format!("block-inventory-{}.bin", Uuid::new_v4()));
         inv.save_cache(&path);
         let mut restored = fixture();
         for folder in restored.folders.values_mut() {
@@ -1219,7 +1219,7 @@ mod tests {
     }
 
     fn saved(inv: &Inventory) -> CachedInventory {
-        let path = std::env::temp_dir().join(format!("aurora-inventory-{}.bin", Uuid::new_v4()));
+        let path = std::env::temp_dir().join(format!("block-inventory-{}.bin", Uuid::new_v4()));
         inv.save_cache(&path);
         let cache = read_cache(&path).expect("synthetic cache");
         std::fs::remove_file(path).expect("synthetic cache cleanup");
@@ -1298,7 +1298,7 @@ mod tests {
 
     #[test]
     fn an_unreadable_cache_is_no_cache() {
-        let path = std::env::temp_dir().join(format!("aurora-inventory-{}.bin", Uuid::new_v4()));
+        let path = std::env::temp_dir().join(format!("block-inventory-{}.bin", Uuid::new_v4()));
         assert!(read_cache(&path).is_none());
         let old = block_llsd::llsd_map! { "version" => 2, "folders" => Llsd::Array(Vec::new()), "items" => Llsd::Array(Vec::new()) };
         std::fs::write(&path, block_llsd::to_binary(&old)).expect("old inventory cache");

@@ -64,7 +64,7 @@ impl Tab {
         self.index().checked_sub(1)
     }
 
-    /// The names of `AURORA_DEMO_SEARCH`.
+    /// The names of `BLOCK_DEMO_SEARCH`.
     pub fn from_name(name: &str) -> Option<Tab> {
         Some(match name.trim().to_lowercase().as_str() {
             "people" => Tab::People,
@@ -134,7 +134,7 @@ pub struct SearchSettings {
     /// FSLegacySearchActionOnTeleport: 0 nothing, 1 close the window,
     /// 2 minimize it.
     pub teleport_action: u8,
-    /// The G / M / A toggles of Aurora's window, one set for every type
+    /// The G / M / A toggles of Block's window, one set for every type
     /// (the Legacy Viewer's defaults: General only).
     pub aurora_ratings: RatingBoxes,
 }
@@ -1004,7 +1004,7 @@ pub struct WebHome {
 /// opened anonymously. This is a deliberate deviation from Firestorm, asked
 /// by the human: Firestorm sends the beta session id (and gives the beta
 /// OpenID cookie to the browser) to search.secondlife.com. `query` is the
-/// text of Aurora's field (the Legacy tab opens the page without one).
+/// text of Block's field (the Legacy tab opens the page without one).
 pub fn web_home(grid: SearchGrid, query: &str, access: search::AgentAccess, language: &str, session: Option<Uuid>) -> Option<WebHome> {
     // LLWeb::expandURLSubstitutions: [GRID] is "secondlife.com" for every
     // grid but Linden Lab's staging one
@@ -1417,18 +1417,18 @@ mod tests {
             &mut s,
             id,
             None,
-            DirRows::Groups(vec![g(1, "loups gris", 40), g(2, "Aurora", 7), g(3, "Meute", 310)]),
+            DirRows::Groups(vec![g(1, "loups gris", 40), g(2, "Block", 7), g(3, "Meute", 310)]),
         );
         assert!(matches!(&s.take_commands()[..], [.., NetCommand::GroupProfileRequest(a)] if *a == Uuid::from_u128(1)));
         let list = s.list_mut(Tab::Groups).expect("list");
         let names = |l: &List| l.sorted().iter().map(|r| r.name.clone()).collect::<Vec<_>>();
-        assert_eq!(names(list), ["loups gris", "Aurora", "Meute"], "the directory's order");
+        assert_eq!(names(list), ["loups gris", "Block", "Meute"], "the directory's order");
         list.sort_by(0);
-        assert_eq!(names(list), ["Aurora", "loups gris", "Meute"]);
+        assert_eq!(names(list), ["Block", "loups gris", "Meute"]);
         list.sort_by(1);
-        assert_eq!(names(list), ["Aurora", "loups gris", "Meute"]);
+        assert_eq!(names(list), ["Block", "loups gris", "Meute"]);
         list.sort_by(1);
-        assert_eq!(names(list), ["Meute", "loups gris", "Aurora"]);
+        assert_eq!(names(list), ["Meute", "loups gris", "Block"]);
         // a selection asks for the details of its kind
         s.select(Tab::Groups, Key::Id(Uuid::from_u128(3)));
         assert!(matches!(&s.take_commands()[..], [NetCommand::GroupProfileRequest(a)] if *a == Uuid::from_u128(3)));
@@ -1550,7 +1550,7 @@ mod tests {
         assert!(!none.identified && !none.url.contains("sid"));
         // any other grid: no page, as before
         assert_eq!(web_home(SearchGrid::Other, "", ACCESS, "fr", Some(session)), None);
-        // the text of Aurora's field goes to the page, escaped
+        // the text of Block's field goes to the page, escaped
         let asked = web_home(SearchGrid::Main, "lune rousse", ACCESS, "fr", None).expect("search page");
         assert!(asked.url.contains("query_term=lune%20rousse&"), "{}", asked.url);
     }
@@ -1558,10 +1558,10 @@ mod tests {
     #[test]
     fn the_address_shown_never_carries_the_session() {
         let session = Uuid::from_u128(0x5E55_1011_0000_4000_8000_0000_0000_00A1);
-        let home = web_url("secondlife.com", "aurora", ACCESS, "fr", Some(session));
+        let home = web_url("secondlife.com", "block", ACCESS, "fr", Some(session));
         assert!(home.contains(&session.to_string()));
         let shown = without_session(&home, Some(session));
-        assert_eq!(shown, web_url("secondlife.com", "aurora", ACCESS, "fr", None));
+        assert_eq!(shown, web_url("secondlife.com", "block", ACCESS, "fr", None));
         assert!(!shown.contains(&session.to_string()) && !shown.contains("sid="));
         // wherever a page of the site puts it afterwards
         for (url, expected) in [

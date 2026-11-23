@@ -1,4 +1,4 @@
-//! Account cards and separate Add button: user-selected Aurora design.
+//! Account cards and separate Add button: user-selected Block design.
 //! Account selection follows LLPanelLogin::onUserListCommit (Firestorm).
 use super::{LoginAction, LoginForm, derez, img};
 use crate::login_accounts::Account;
@@ -632,7 +632,7 @@ pub fn show(
         } else {
             account.apply(settings);
         }
-        if std::env::var_os("AURORA_DEMO").is_none() {
+        if std::env::var_os("BLOCK_DEMO").is_none() {
             crate::login_accounts::replace(&mut form.accounts, &previous, account);
         }
     }

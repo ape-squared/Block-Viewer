@@ -375,12 +375,12 @@ pub struct InventoryPreferences {
     /// show again" box turns this off). Purge from Trash always asks.
     /// On by default (#2344).
     pub confirm_delete: bool,
-    /// The rights Aurora's rows show (its "CMT" menu).
+    /// The rights Block's rows show (its "CMT" menu).
     pub rights: super::permissions::Rights,
-    /// Aurora's window shows the selection's details: the card at the
+    /// Block's window shows the selection's details: the card at the
     /// bottom of the narrow and medium widths, the pane of the wide one.
     pub show_details: bool,
-    /// Aurora's dual-panel layout: two panes side by side in the Inventory
+    /// Block's dual-panel layout: two panes side by side in the Inventory
     /// window, each with its own folder, search and selection. Off by
     /// default (the Legacy Viewer has one pane).
     pub dual_panel: bool,
@@ -483,7 +483,7 @@ impl Default for ExplorerPreferences {
 /// The views of the Legacy Viewer's single folder mode (LLPanelMainInventory
 /// ::setViewMode, indra/newview/llpanelmaininventory.cpp): the list, the
 /// gallery of every entry, or the combination of a gallery of the entries
-/// that have a picture above a list of the others. Aurora difference: the
+/// that have a picture above a list of the others. Block difference: the
 /// choice is kept, and the explorer starts with its list as before (the
 /// Legacy Viewer starts each single folder mode in the combination view).
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Serialize, Deserialize)]
@@ -1307,7 +1307,7 @@ fn compare(a: &Entry, b: &Entry, sort: Sort) -> Ordering {
     // including in date order, as for Firestorm's support folder. #RLV
     // joins them like the Legacy Viewer's FT_RLV (LLFolderBridge::getSortGroup
     // with FSSortFSFoldersToTop, llinventorybridge.cpp).
-    let support = |e: &Entry| e.folder && !e.library && matches!(e.name.as_str(), "#aurora" | "#firestorm" | "#rlv");
+    let support = |e: &Entry| e.folder && !e.library && matches!(e.name.as_str(), "#block" | "#firestorm" | "#rlv");
     let pinned = support(b).cmp(&support(a));
     if pinned != Ordering::Equal {
         return pinned;

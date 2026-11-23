@@ -407,7 +407,7 @@ mod tests {
 
     impl Files {
         fn new() -> Self {
-            Self(std::env::temp_dir().join(format!("aurora-received-read-{}", Uuid::new_v4())))
+            Self(std::env::temp_dir().join(format!("block-received-read-{}", Uuid::new_v4())))
         }
         fn path(&self, name: &str) -> PathBuf {
             self.0.join(name)

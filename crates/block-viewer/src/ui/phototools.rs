@@ -51,7 +51,7 @@ impl Tab {
         }
     }
 
-    /// `AURORA_DEMO_PHOTOTOOLS=<tab>`.
+    /// `BLOCK_DEMO_PHOTOTOOLS=<tab>`.
     pub fn parse(text: &str) -> Option<usize> {
         let tab = match text.trim().to_ascii_lowercase().as_str() {
             "env" | "environment" => Tab::Environment,

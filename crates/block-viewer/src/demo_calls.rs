@@ -1,17 +1,17 @@
-//! Voice calls in the demo (AURORA_DEMO_CALL): the ChatSessionRequest
+//! Voice calls in the demo (BLOCK_DEMO_CALL): the ChatSessionRequest
 //! answers and a stand-in for the voice server, which the offline demo does
 //! not have. Every call made from the interface works with it; the variable
 //! starts one, or makes someone call:
 //!
 //! - `p2p`: we call Tess; she answers after 3 s, then the two talk in turn;
 //! - `hangup`: the same, and Tess hangs up after 12 s;
-//! - `group`: a call in the group Aurora Builders (Nova, Tess, Orion);
+//! - `group`: a call in the group Block Builders (Nova, Tess, Orion);
 //! - `conference`: a voice conference with Tess and Nova ("start
 //!   conference", then the call once the session has its id);
 //! - `conference-focus`: start a conference by hand; its real id arrives 20 s later.
 //! - `incoming`: Tess calls us (the card with Accept / Decline / Reply by
 //!   text);
-//! - `incoming-group`: Nova starts a call in Aurora Builders;
+//! - `incoming-group`: Nova starts a call in Block Builders;
 //! - `conference-legacy`: the conference of `conference`, refused by the
 //!   capability (400): it starts by message (IM_SESSION_CONFERENCE_START).
 //!
@@ -42,18 +42,18 @@ pub enum Mode {
 }
 
 pub fn mode() -> Option<Mode> {
-    // the calls of AURORA_DEMO_CONV=aurora:call…
-    if let Some(call) = super::aurora_scenario().and_then(|s| s.call) {
-        use super::AuroraCall;
+    // the calls of BLOCK_DEMO_CONV=block:call…
+    if let Some(call) = super::block_scenario().and_then(|s| s.call) {
+        use super::BlockCall;
         return Some(match call {
-            AuroraCall::Incoming => Mode::Incoming,
-            AuroraCall::InCall | AuroraCall::Mini => Mode::Group,
-            AuroraCall::Ongoing | AuroraCall::IncomingGroup => Mode::IncomingGroup,
-            AuroraCall::P2p => Mode::P2p,
-            AuroraCall::Conference => Mode::Conference,
+            BlockCall::Incoming => Mode::Incoming,
+            BlockCall::InCall | BlockCall::Mini => Mode::Group,
+            BlockCall::Ongoing | BlockCall::IncomingGroup => Mode::IncomingGroup,
+            BlockCall::P2p => Mode::P2p,
+            BlockCall::Conference => Mode::Conference,
         });
     }
-    match std::env::var("AURORA_DEMO_CALL").ok()?.as_str() {
+    match std::env::var("BLOCK_DEMO_CALL").ok()?.as_str() {
         "p2p" => Some(Mode::P2p),
         "hangup" => Some(Mode::Hangup),
         "group" => Some(Mode::Group),
@@ -183,7 +183,7 @@ pub fn reply(method: CallMethod, session: Uuid) -> Vec<NetEvent> {
 
 fn invite(group: bool) -> VoiceInvite {
     let (session, from, from_name, session_name) = if group {
-        (DEMO_GROUP1, DEMO_TESS, "Nova Example", "Aurora Builders")
+        (DEMO_GROUP1, DEMO_TESS, "Nova Example", "Block Builders")
     } else {
         // (the demo's names call DEMO_NOVA "Tess" and DEMO_TESS "Nova")
         (
@@ -222,7 +222,7 @@ impl CallDemo {
             .map(|(_, event)| event)
     }
 
-    /// Starts the scenario of AURORA_DEMO_CALL once in world: a call made
+    /// Starts the scenario of BLOCK_DEMO_CALL once in world: a call made
     /// in `world`, or invitation events to apply.
     pub fn scenario(&mut self, world: &mut World, in_world: bool) -> Vec<NetEvent> {
         if !self.pending_conferences.is_empty()

@@ -1,9 +1,9 @@
-//! `AURORA_DEMO_MENTION=list|names`: the chat bar's suggestions of residents
+//! `BLOCK_DEMO_MENTION=list|names`: the chat bar's suggestions of residents
 //! (#980), typed at frame 550 in the nearby chat: `list` writes `Hi @` (the
 //! residents within chat range to mention), `names` turns the name
 //! prediction on and writes the first three letters of the nearest
 //! resident's user name after `Hi ` (the rest predicted, selected).
-//! The gestures' list is `AURORA_DEMO_GESTURES=list` (`gestures.rs`).
+//! The gestures' list is `BLOCK_DEMO_GESTURES=list` (`gestures.rs`).
 
 use super::*;
 use std::sync::OnceLock;
@@ -11,7 +11,7 @@ use std::sync::OnceLock;
 /// The scenario asked for ("" without it).
 pub(super) fn mode() -> &'static str {
     static MODE: OnceLock<String> = OnceLock::new();
-    MODE.get_or_init(|| std::env::var("AURORA_DEMO_MENTION").unwrap_or_default())
+    MODE.get_or_init(|| std::env::var("BLOCK_DEMO_MENTION").unwrap_or_default())
 }
 
 impl App {

@@ -12,7 +12,7 @@ param(
 )
 . "$PSScriptRoot\common.ps1"
 
-$p = Get-AuroraPaths
+$p = Get-BlockPaths
 $nwo = (gh repo view --json nameWithOwner --jq .nameWithOwner).Trim()
 $files = $Files | ForEach-Object { (Resolve-Path $_ -ErrorAction Stop).Path }
 $tmp = Join-Path $p.Work ".captures-$Pr-$PID"

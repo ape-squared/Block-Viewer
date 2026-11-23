@@ -17,8 +17,8 @@ const DEMO_TAKEN: u32 = block_net::control::AT_POS
     | block_net::control::YAW_POS
     | block_net::control::YAW_NEG;
 
-/// The frame `AURORA_DEMO_RELEASE_KEYS` takes the controls at (the region is
-/// in, before `AURORA_DEMO_MENU_SEARCH` opens the menu at 540).
+/// The frame `BLOCK_DEMO_RELEASE_KEYS` takes the controls at (the region is
+/// in, before `BLOCK_DEMO_MENU_SEARCH` opens the menu at 540).
 const DEMO_FRAME: u64 = 400;
 
 /// Whether the entry is enabled (Tools.EnableReleaseKeys): a script holds a
@@ -54,12 +54,12 @@ impl App {
         self.send(NetCommand::ForceScriptControlRelease);
     }
 
-    /// `AURORA_DEMO_RELEASE_KEYS=1`: a vehicle script takes the movement keys.
+    /// `BLOCK_DEMO_RELEASE_KEYS=1`: a vehicle script takes the movement keys.
     pub(super) fn release_keys_demo_steps(&mut self) {
         static ON: std::sync::OnceLock<bool> = std::sync::OnceLock::new();
         if !self.demo
             || self.frame_count != DEMO_FRAME
-            || !*ON.get_or_init(|| std::env::var("AURORA_DEMO_RELEASE_KEYS").is_ok_and(|v| v == "1"))
+            || !*ON.get_or_init(|| std::env::var("BLOCK_DEMO_RELEASE_KEYS").is_ok_and(|v| v == "1"))
         {
             return;
         }

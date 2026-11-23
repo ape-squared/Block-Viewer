@@ -6,7 +6,7 @@
 //! alike), at the times they were flown, so the track plays the hand-held
 //! move back at its own pace.
 //!
-//! Aurora's own: the Legacy Viewer has no camera path tool.
+//! Block's own: the Legacy Viewer has no camera path tool.
 
 use crate::camera::track::{self, Keyframe, Pose};
 use crate::director::KeyAim;

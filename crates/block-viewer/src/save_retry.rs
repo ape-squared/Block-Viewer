@@ -355,7 +355,7 @@ mod tests {
         let runs = Arc::new(AtomicUsize::new(0));
         let counted = runs.clone();
         let retrying = Retrying::start_with(
-            "aurora-test-retry",
+            "block-test-retry",
             "test file",
             Backoff::new(Duration::from_millis(5), Duration::from_millis(20)),
             move || match counted.fetch_add(1, Ordering::SeqCst) {
@@ -443,8 +443,8 @@ mod tests {
     /// is free, nothing owed then.
     #[test]
     fn an_owed_file_is_kept_read_back_and_written_later() {
-        static FILES: OwedFiles = OwedFiles::new("aurora-test-owed", "test file");
-        let root = std::env::temp_dir().join(format!("aurora-owed-{}", uuid::Uuid::new_v4()));
+        static FILES: OwedFiles = OwedFiles::new("block-test-owed", "test file");
+        let root = std::env::temp_dir().join(format!("block-owed-{}", uuid::Uuid::new_v4()));
         std::fs::create_dir_all(&root).unwrap();
         let folder = root.join("account");
         std::fs::write(&folder, b"in the way").unwrap();
@@ -466,7 +466,7 @@ mod tests {
         let runs = Arc::new(AtomicUsize::new(0));
         let counted = runs.clone();
         let retrying = Retrying::start_with(
-            "aurora-test-retry-exit",
+            "block-test-retry-exit",
             "test file",
             Backoff::new(Duration::from_secs(60), Duration::from_secs(60)),
             move || {

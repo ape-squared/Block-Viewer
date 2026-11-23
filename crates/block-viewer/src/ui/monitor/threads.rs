@@ -17,20 +17,20 @@ fn role(group: &str) -> &'static str {
         "main" => tr!("monitor-thread-main"),
         "block-render" => tr!("monitor-thread-render"),
         "block-render-finish" => tr!("monitor-thread-render-finish"),
-        "aurora-worker" => tr!("monitor-thread-worker"),
-        "aurora-jobs" => tr!("monitor-thread-jobs"),
-        "aurora-pages" => tr!("monitor-thread-pages"),
+        "block-worker" => tr!("monitor-thread-worker"),
+        "block-jobs" => tr!("monitor-thread-jobs"),
+        "block-pages" => tr!("monitor-thread-pages"),
         "block-net" => tr!("monitor-thread-net"),
         "block-voice" | "block-voice-rt" => tr!("monitor-thread-voice"),
         "block-audio-out" => tr!("monitor-thread-audio-out"),
         "block-audio-in" => tr!("monitor-thread-audio-in"),
         "block-audio-stream" => tr!("monitor-thread-audio-stream"),
-        "aurora-texcache" => tr!("monitor-thread-texcache"),
-        "aurora-cache" => tr!("monitor-thread-cache"),
-        "aurora-trash" => tr!("monitor-thread-trash"),
-        "aurora-inventory-cache" => tr!("monitor-thread-inventory"),
-        "aurora-chatlog" | "aurora-transcript" | "aurora-notification-history" | "aurora-experience-log" => tr!("monitor-thread-logs"),
-        "aurora-monitor" | "aurora-probe" => tr!("monitor-thread-monitor"),
+        "block-texcache" => tr!("monitor-thread-texcache"),
+        "block-cache" => tr!("monitor-thread-cache"),
+        "block-trash" => tr!("monitor-thread-trash"),
+        "block-inventory-cache" => tr!("monitor-thread-inventory"),
+        "block-chatlog" | "block-transcript" | "block-notification-history" | "block-experience-log" => tr!("monitor-thread-logs"),
+        "block-monitor" | "block-probe" => tr!("monitor-thread-monitor"),
         "unnamed" => tr!("monitor-thread-unnamed"),
         _ => "",
     }
@@ -97,7 +97,7 @@ pub(super) fn show(ui: &mut egui::Ui, p: &Palette, s: &Snapshot) {
             draw::card(ui, p, |ui| {
                 draw::card_title(ui, p, tr!("monitor-processes-title"), tr!("monitor-processes-units"));
                 let own = f64::from(cpu.process) * cpu.cores as f64;
-                process_row(ui, p, "Aurora", own, s.memory.map(|mem| mem.working_set as f64));
+                process_row(ui, p, "Block", own, s.memory.map(|mem| mem.working_set as f64));
                 for (proc_, usage) in &s.attribution.media {
                     let one_core = usage.get(Column::Cpu).map_or(0.0, |v| v * cpu.cores as f64);
                     process_row(ui, p, &format!("SLPlugin · {}", proc_.label), one_core, usage.get(Column::Ram));

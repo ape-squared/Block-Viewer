@@ -31,7 +31,7 @@ on:
       - packaging/linux/**
       - packaging/macos/**
       - scripts/package-macos.ps1
-      - assets/branding/aurora.icns
+      - assets/branding/block.icns
       - scripts/verify-version.ps1
 
 # a new push to a pull request stops its previous dry run; a release (a
@@ -72,7 +72,7 @@ jobs:
       - name: Build
         shell: pwsh
         run: |
-          if ($env:TAG -ne 'dry-run') { $env:AURORA_VERSION_TAG = $env:TAG }
+          if ($env:TAG -ne 'dry-run') { $env:BLOCK_VERSION_TAG = $env:TAG }
           # the OpenXR loader built in: the published exe needs nothing beside it
           cargo build --release --locked -p block-viewer --features xr-static-loader
       - name: Verify compiled version
@@ -302,7 +302,7 @@ jobs:
         env:
           CARGO_PROFILE_RELEASE_STRIP: debuginfo
         run: |
-          if [ "$TAG" != dry-run ]; then export AURORA_VERSION_TAG="$TAG"; fi
+          if [ "$TAG" != dry-run ]; then export BLOCK_VERSION_TAG="$TAG"; fi
           cargo build --release --locked -p block-viewer
       - name: Verify compiled version
         if: env.TAG != 'dry-run'
@@ -390,7 +390,7 @@ jobs:
         env:
           CARGO_PROFILE_RELEASE_STRIP: debuginfo
         run: |
-          if [ "$TAG" != dry-run ]; then export AURORA_VERSION_TAG="$TAG"; fi
+          if [ "$TAG" != dry-run ]; then export BLOCK_VERSION_TAG="$TAG"; fi
           cargo build --release --locked -p block-viewer
       - name: Verify compiled version
         if: env.TAG != 'dry-run'

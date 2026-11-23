@@ -117,13 +117,13 @@ pub fn below_estimate(bytes_below: u64, used: u64, live: u64) -> u64 {
     (bytes_below as f64 * (used as f64 / live.max(1) as f64)) as u64
 }
 
-/// AURORA_TEXTURE_BUDGET_MB: the texture memory target forced to this many
+/// BLOCK_TEXTURE_BUDGET_MB: the texture memory target forced to this many
 /// megabytes, whatever the setting and the driver say (tests of the budget
 /// on any machine).
 pub fn forced_target() -> Option<u64> {
     static FORCED: std::sync::OnceLock<Option<u64>> = std::sync::OnceLock::new();
     *FORCED.get_or_init(|| {
-        let mb: u64 = std::env::var("AURORA_TEXTURE_BUDGET_MB").ok()?.trim().parse().ok()?;
+        let mb: u64 = std::env::var("BLOCK_TEXTURE_BUDGET_MB").ok()?.trim().parse().ok()?;
         Some(mb.clamp(1, 1 << 20) * MB)
     })
 }

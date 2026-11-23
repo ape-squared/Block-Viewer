@@ -1,5 +1,5 @@
 //! Quick sort: the friends in no contact set, one at a time, to put in
-//! sets (Aurora's own; the Legacy Viewer adds residents to a set from its
+//! sets (Block's own; the Legacy Viewer adds residents to a set from its
 //! panel or their menus only). The queue is taken when the window opens
 //! (generateAvatarList's NO_SETS, online first); a click or the keys 1 to 9
 //! choose the sets of the friend shown, Enter saves them and goes to the

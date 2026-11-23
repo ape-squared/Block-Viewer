@@ -1,7 +1,7 @@
 # Rain sounds
 
 The loops of the rain (the rain prototype's ambience): field recordings from
-Freesound, cut, levelled and converted for Aurora.
+Freesound, cut, levelled and converted for Block.
 
 | File | Recording | Licence |
 |---|---|---|

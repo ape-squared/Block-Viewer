@@ -1,6 +1,6 @@
 //! The secret a Blender add-on must send before the preview accepts it.
 //!
-//! An Aurora addition (the Legacy Viewer has no live link): the loopback port
+//! A Block addition (the Legacy Viewer has no live link): the loopback port
 //! alone let any local program, another user's included, push meshes while
 //! the preview was on. Each start of the preview draws a new random secret
 //! and writes it to `<data folder>/blender-live/<port>.token`, a folder of the
@@ -17,7 +17,7 @@ use std::{
 pub(super) const LEN: usize = 64;
 
 /// The folder of the token files, the add-on's `token_path` in
-/// blender/aurora_live/client.py.
+/// blender/block_live/client.py.
 pub(super) fn folder() -> Option<PathBuf> {
     directories::ProjectDirs::from("com", "ape-squared", "BlockViewer").map(|d| d.data_local_dir().join("blender-live"))
 }
@@ -114,7 +114,7 @@ mod tests {
 
     #[test]
     fn the_file_holds_the_secret_and_goes_away_with_the_preview() {
-        let folder = std::env::temp_dir().join(format!("aurora-live-token-{}", uuid::Uuid::new_v4().simple()));
+        let folder = std::env::temp_dir().join(format!("block-live-token-{}", uuid::Uuid::new_v4().simple()));
         let file = File::write(&folder, 17655).expect("token file");
         let path = folder.join("17655.token");
         assert_eq!(fs::read_to_string(&path).expect("read"), file.secret());
@@ -131,7 +131,7 @@ mod tests {
 
     #[test]
     fn a_later_viewer_keeps_its_own_file() {
-        let folder = std::env::temp_dir().join(format!("aurora-live-token-{}", uuid::Uuid::new_v4().simple()));
+        let folder = std::env::temp_dir().join(format!("block-live-token-{}", uuid::Uuid::new_v4().simple()));
         let first = File::write(&folder, 17656).expect("first");
         let second = File::write(&folder, 17656).expect("second");
         drop(first);

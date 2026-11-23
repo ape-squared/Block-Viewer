@@ -135,7 +135,7 @@ fn the_run_removes_every_part_and_reports_absent_and_failed_ones() {
         secret_fail: Some("store locked".into()),
         blender: vec![AddonRemoval {
             executable: "blender".into(),
-            removed: vec!["profile/aurora_live_mesh".into()],
+            removed: vec!["profile/block_live_mesh".into()],
             backups: None,
             error: None,
         }],
@@ -192,7 +192,7 @@ fn the_remaining_places_exist_and_nest_once() {
         // macOS: the logs and the media plugins live in the settings folder
         (Kind::Logs, root.join("support/logs")),
         (Kind::MediaPlugins, root.join("support/media-plugins")),
-        (Kind::ChosenCache, PathBuf::from("D:/cache/AuroraViewerCache")),
+        (Kind::ChosenCache, PathBuf::from("D:/cache/BlockViewerCache")),
         (Kind::Transcripts, PathBuf::from("gone")),
         (Kind::Viewer, PathBuf::new()),
     ];
@@ -210,7 +210,7 @@ fn the_remaining_places_exist_and_nest_once() {
             },
             Remaining {
                 kinds: vec![Kind::ChosenCache],
-                path: PathBuf::from("D:/cache/AuroraViewerCache"),
+                path: PathBuf::from("D:/cache/BlockViewerCache"),
             },
         ]
     );
@@ -264,8 +264,8 @@ fn paths_are_shown_without_the_user_name() {
     let sep = std::path::MAIN_SEPARATOR;
     // the longest base wins
     assert_eq!(
-        shown(&local.join("Aurora").join("AuroraViewer"), &bases),
-        format!("%LOCALAPPDATA%{sep}{}", Path::new("Aurora").join("AuroraViewer").display())
+        shown(&local.join("Block").join("BlockViewer"), &bases),
+        format!("%LOCALAPPDATA%{sep}{}", Path::new("Block").join("BlockViewer").display())
     );
     assert_eq!(shown(&home.join("Desktop"), &bases), format!("%USERPROFILE%{sep}Desktop"));
     assert_eq!(shown(&home, &bases), "%USERPROFILE%");

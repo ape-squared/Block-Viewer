@@ -1,4 +1,4 @@
-//! Aurora's workspace (the conversations' "Aurora" and "Compact" styles,
+//! Block's workspace (the conversations' "Block" and "Compact" styles,
 //! the human's choice of 2026-10-15): the window of conversations laid
 //! out as a desktop chat. The column of conversations (`sidebar.rs`) at
 //! the left; at the right the conversation shown: its head (`head.rs`),
@@ -134,7 +134,7 @@ pub(super) struct Env<'a> {
     pub contacts: &'a mut crate::ui::contacts::ContactsUi,
     pub contacts_settings: &'a mut crate::ui::contacts::ContactsSettings,
     pub show_contacts_tab: bool,
-    /// People's friends tab, the Contacts tab in Aurora's look of People;
+    /// People's friends tab, the Contacts tab in Block's look of People;
     /// None: the contact list.
     pub friends: Option<crate::ui::people::FriendsPane<'a, 'a>>,
     pub docked: bool,
@@ -460,12 +460,12 @@ pub(super) fn drops(
     }
 }
 
-/// `AURORA_DEMO_CONV_GIVE=away|over|many|drop|give` (with `AURORA_DEMO_CONV=aurora`).
+/// `BLOCK_DEMO_CONV_GIVE=away|over|many|drop|give` (with `BLOCK_DEMO_CONV=aurora`).
 fn give_demo() -> Option<&'static str> {
     static MODE: std::sync::OnceLock<Option<String>> = std::sync::OnceLock::new();
     MODE.get_or_init(|| {
-        (std::env::var("AURORA_DEMO").as_deref() == Ok("1"))
-            .then(|| std::env::var("AURORA_DEMO_CONV_GIVE").ok())
+        (std::env::var("BLOCK_DEMO").as_deref() == Ok("1"))
+            .then(|| std::env::var("BLOCK_DEMO_CONV_GIVE").ok())
             .flatten()
             .filter(|mode| matches!(mode.as_str(), "away" | "over" | "many" | "drop" | "give"))
     })
@@ -476,7 +476,7 @@ fn give_demo_id() -> egui::Id {
     egui::Id::unique("conversation_give_demo")
 }
 
-/// The entries `drop` gives: seven of `AURORA_DEMO_INVENTORY`'s, its no-copy
+/// The entries `drop` gives: seven of `BLOCK_DEMO_INVENTORY`'s, its no-copy
 /// and no-transfer objects among them (world/inventory/demo.rs).
 const GIVE_DEMO_ITEMS: [u128; 7] = [8100, 8103, 8109, 8110, 8111, 8104, 8105];
 
@@ -635,7 +635,7 @@ impl NewLines {
 }
 
 /// Our names, lowercase, whose mention marks a message: the name we show
-/// and our user name (a first name alone would mark too much: "Aurora").
+/// and our user name (a first name alone would mark too much: "Block").
 fn our_names(world: &World, own_name: &str) -> Vec<String> {
     let mut me = vec![own_name.to_lowercase()];
     let names = &world.social.avatar_names;

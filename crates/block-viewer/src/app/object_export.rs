@@ -587,9 +587,9 @@ impl App {
 }
 
 impl App {
-    /// AURORA_DEMO_OBJECT_EXPORT: the garden lamp before us, then the window
+    /// BLOCK_DEMO_OBJECT_EXPORT: the garden lamp before us, then the window
     /// on it; with
-    /// AURORA_DEMO_OBJECT_EXPORT_FILE, Save as to that file without the
+    /// BLOCK_DEMO_OBJECT_EXPORT_FILE, Save as to that file without the
     /// dialog.
     pub(super) fn object_export_demo_steps(&mut self) {
         use crate::demo::object_export as fixture;

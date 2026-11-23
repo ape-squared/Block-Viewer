@@ -10,11 +10,11 @@
 //! the account that left. The demo has its own grid name and its own
 //! settings folder, so it never touches a real account.
 //!
-//! With the Legacy layout (an Aurora option, off by default) and a chosen
+//! With the Legacy layout (a Block option, off by default) and a chosen
 //! folder, the account's files are `<folder>/<first_last>` instead, the
 //! Legacy Viewer's own (`legacy_profile::Account::chat_folder`): both
 //! viewers then read and add to the same files. That folder is shared, so
-//! Aurora only appends lines to it: no import, merge, move or erasing
+//! Block only appends lines to it: no import, merge, move or erasing
 //! there (`shared`).
 //!
 //! - `format`: the text of a line and its reading back;
@@ -214,7 +214,7 @@ impl ChatLog {
     }
 
     /// The Legacy layout on or off (Preferences › Chat). Logged in, the next
-    /// lines go to the other folder and nothing moves: the account's Aurora
+    /// lines go to the other folder and nothing moves: the account's Block
     /// files stay where they are, and come back with the option off. Waits
     /// while an import, a move or an erasing is under way (asked again by
     /// the next frame).
@@ -233,7 +233,7 @@ impl ChatLog {
     }
 
     /// The account's files are in the Legacy layout, in a folder the Legacy
-    /// Viewer reads and writes too: Aurora only appends lines there.
+    /// Viewer reads and writes too: Block only appends lines there.
     pub fn shared(&self) -> bool {
         self.open.as_ref().is_some_and(|o| o.shared)
     }
@@ -603,7 +603,7 @@ mod tests {
     const WAIT: Duration = Duration::from_secs(10);
 
     fn temp() -> PathBuf {
-        let dir = std::env::temp_dir().join(format!("aurora-chatlog-{}", Uuid::new_v4()));
+        let dir = std::env::temp_dir().join(format!("block-chatlog-{}", Uuid::new_v4()));
         std::fs::create_dir_all(&dir).unwrap();
         dir
     }
@@ -1001,12 +1001,12 @@ mod tests {
         log.login_named(me, JANE);
         assert!(log.shared());
         assert_eq!(log.dir(), Some(legacy.as_path()));
-        log.append("Bob Smith", now(), "Bob Smith", "from aurora");
+        log.append("Bob Smith", now(), "Bob Smith", "from block");
         assert!(log.flush(WAIT));
         // appended, the Legacy Viewer's line left as it was written
         let text = std::fs::read_to_string(legacy.join("Bob Smith.txt")).unwrap();
         assert!(text.starts_with(written), "{text}");
-        assert_eq!(texts(&legacy.join("Bob Smith.txt")), ["from the legacy viewer", "from aurora"]);
+        assert_eq!(texts(&legacy.join("Bob Smith.txt")), ["from the legacy viewer", "from block"]);
         // and read back as the conversation's history
         assert!(log.request_history(Uuid::from_u128(1), "Bob Smith"));
         let loaded = wait_loaded(&mut log);
@@ -1015,7 +1015,7 @@ mod tests {
         assert!(!log.erase());
         assert!(!log.import(vec![root.join("elsewhere")]));
         assert_eq!(std::fs::read_to_string(legacy.join("conversation.log")).unwrap(), "kept");
-        // nothing of Aurora's layout was made
+        // nothing of Block's layout was made
         let aurora = store::folder(
             &root,
             &Identity {
@@ -1053,7 +1053,7 @@ mod tests {
         assert_eq!(log.dir(), Some(other.join("jane_doe").as_path()));
         assert!(log.flush(WAIT));
         assert_eq!(texts(&root.join("jane_doe").join("Bob Smith.txt")), ["shared"]);
-        // back to the default folder: Aurora's layout, still no move
+        // back to the default folder: Block's layout, still no move
         assert!(!log.relocate(None));
         assert!(!log.shared());
         std::fs::remove_dir_all(&root).unwrap();
@@ -1069,7 +1069,7 @@ mod tests {
         log.login_named(me, JANE);
         assert_eq!(log.dir(), Some(root.join("jane_doe.second_life_beta").as_path()));
         log.logout();
-        // another grid's label is the Legacy Viewer's own: Aurora's layout
+        // another grid's label is the Legacy Viewer's own: Block's layout
         log.set_grid("custom_osgrid_org".into());
         log.login_named(me, JANE);
         assert!(!log.shared());
@@ -1083,7 +1083,7 @@ mod tests {
         let dir = log.dir().unwrap();
         assert_eq!(dir.parent(), Some(root.as_path()));
         std::fs::remove_dir_all(&root).unwrap();
-        // without a chosen folder: Aurora's own layout (nothing is written)
+        // without a chosen folder: Block's own layout (nothing is written)
         let mut default = ChatLog::default();
         default.set_grid("agni".into());
         default.set_legacy_layout(true);

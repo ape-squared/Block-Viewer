@@ -17,7 +17,7 @@
 //!
 //! The wanted priority is global; each thread applies it to itself at its
 //! next turn ([`apply`]), so it can change while the viewer runs
-//! (AURORA_FRAME_PRIORITY=alt compares both, second after second).
+//! (BLOCK_FRAME_PRIORITY=alt compares both, second after second).
 
 use std::cell::Cell;
 use std::sync::atomic::{AtomicU8, Ordering};
@@ -81,7 +81,7 @@ fn set_thread_priority(raised: bool) {
     let _ = raised;
 }
 
-/// AURORA_FRAME_PRIORITY: `normal` keeps the frame's threads at normal
+/// BLOCK_FRAME_PRIORITY: `normal` keeps the frame's threads at normal
 /// priority, `alt` raises them two seconds in three (comparison); anything
 /// else, or nothing, raises them.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -101,7 +101,7 @@ impl PriorityMode {
     }
 
     pub fn from_env() -> Self {
-        Self::parse(std::env::var("AURORA_FRAME_PRIORITY").ok().as_deref())
+        Self::parse(std::env::var("BLOCK_FRAME_PRIORITY").ok().as_deref())
     }
 }
 

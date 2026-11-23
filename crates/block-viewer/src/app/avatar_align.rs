@@ -128,7 +128,7 @@ impl App {
         );
     }
 
-    /// AURORA_DEMO_AVATAR_ALIGN: the commands run one after the other, each
+    /// BLOCK_DEMO_AVATAR_ALIGN: the commands run one after the other, each
     /// logging the bearing before and after (`avatar align:` lines).
     fn demo_avatar_align(&mut self) {
         let Some(mode) = crate::demo::avatar_align::mode() else {

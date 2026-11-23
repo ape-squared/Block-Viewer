@@ -5,8 +5,8 @@ use super::*;
 fn mode() -> Option<&'static str> {
     static MODE: std::sync::OnceLock<Option<String>> = std::sync::OnceLock::new();
     MODE.get_or_init(|| {
-        (std::env::var("AURORA_DEMO").as_deref() == Ok("1"))
-            .then(|| std::env::var("AURORA_DEMO_TEXTURE_LIBRARY").ok())
+        (std::env::var("BLOCK_DEMO").as_deref() == Ok("1"))
+            .then(|| std::env::var("BLOCK_DEMO_TEXTURE_LIBRARY").ok())
             .flatten()
             .filter(|mode| {
                 matches!(

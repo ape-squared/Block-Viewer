@@ -168,8 +168,8 @@ impl App {
     /// Once a frame, before mouselook takes a cursor it does not hold: Alt
     /// frees it or gives it back to the gun.
     pub(super) fn mouselook_alt_cursor(&mut self) {
-        // (AURORA_DEMO_CAMERA scripts the keys: the window needs no focus)
-        let focused = self.focused || self.demo && std::env::var_os("AURORA_DEMO_CAMERA").is_some();
+        // (BLOCK_DEMO_CAMERA scripts the keys: the window needs no focus)
+        let focused = self.focused || self.demo && std::env::var_os("BLOCK_DEMO_CAMERA").is_some();
         let capture = self.mouselook_capture_enabled();
         if !capture && self.cursor_hold.kind == Some(HoldKind::Mouselook) {
             self.release_cursor(false);
@@ -216,7 +216,7 @@ impl App {
 
     fn hold_cursor_from(&mut self, focus: bool, origin: (f32, f32)) {
         if self.gfx.is_none() || self.clicks.scripted() {
-            // AURORA_DEMO_CLICKS: several camera drags a second must not
+            // BLOCK_DEMO_CLICKS: several camera drags a second must not
             // take the real cursor of someone using the PC
             return;
         }

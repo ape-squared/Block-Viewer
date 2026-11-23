@@ -1,5 +1,5 @@
 //! The photo window's "Look at camera", "Others look at camera" and "Turn
-//! to camera" (Aurora's own: the Legacy Viewer's photo tools have none).
+//! to camera" (Block's own: the Legacy Viewer's photo tools have none).
 //!
 //! - **Look at camera** keeps our look-at target on the camera while the
 //!   window is open: a FOCUS target on a global point, the type the Legacy
@@ -136,8 +136,8 @@ impl App {
 }
 
 impl App {
-    /// AURORA_DEMO_PHOTO_GAZE=look[:<percent>]|turn|orbit, with the photo window open
-    /// (`AURORA_DEMO_SNAPSHOT=open` or `viewfinder`, frame 600): at frame
+    /// BLOCK_DEMO_PHOTO_GAZE=look[:<percent>]|turn|orbit, with the photo window open
+    /// (`BLOCK_DEMO_SNAPSHOT=open` or `viewfinder`, frame 600): at frame
     /// 610 the camera stands 3 m from our avatar, 70° to its left, at the
     /// height of its head. `look` turns "Look at camera" on (the head and
     /// eyes turn to the lens); `turn` presses "Turn to camera" at frame 660
@@ -145,7 +145,7 @@ impl App {
     /// on and the camera goes round the avatar, a turn every 12 s, the head
     /// following as far as it can.
     pub(super) fn demo_photo_gaze(&mut self) {
-        let Ok(mode) = std::env::var("AURORA_DEMO_PHOTO_GAZE") else {
+        let Ok(mode) = std::env::var("BLOCK_DEMO_PHOTO_GAZE") else {
             return;
         };
         let frame = self.frame_count;
@@ -186,7 +186,7 @@ impl App {
 }
 
 impl App {
-    /// AURORA_DEMO_PHOTO_GAZE=others: at frame 400 the poser's crowd of five
+    /// BLOCK_DEMO_PHOTO_GAZE=others: at frame 400 the poser's crowd of five
     /// residents stands in front of us (`demo::poser::crowd`); at 600 every
     /// avatar nearby that is not muted is asked to allow posing and accepts
     /// (the poser's consent fixture); at

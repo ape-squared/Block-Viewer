@@ -59,17 +59,17 @@ impl App {
         }
     }
 
-    /// `AURORA_DEMO_WEARABLE_FAVORITES=1|evening|recent|custom|create|import|import-done`: the window
+    /// `BLOCK_DEMO_WEARABLE_FAVORITES=1|evening|recent|custom|create|import|import-done`: the window
     /// open on the favorites of the Appearance demo (`evening`: its Evening
     /// folder; `recent`: sorted by most recent; `custom`: a Custom order,
     /// the type order upside down; `create`: no favorites yet,
     /// the window creates the folder; `import`: the Legacy
     /// Viewer's favorites beside, the window offers to import them; `import-done`: after the import).
     pub(super) fn demo_wearable_favorites(&mut self) {
-        let Ok(mode) = std::env::var("AURORA_DEMO_WEARABLE_FAVORITES") else {
+        let Ok(mode) = std::env::var("BLOCK_DEMO_WEARABLE_FAVORITES") else {
             return;
         };
-        if std::env::var_os("AURORA_DEMO_APPEARANCE").is_none() {
+        if std::env::var_os("BLOCK_DEMO_APPEARANCE").is_none() {
             crate::world::appearance::seed_demo(&mut self.world.inventory, self.world.agent_id);
             for cmd in
                 crate::world::appearance::sync_commands(&self.world.inventory, self.world.agent_id, &self.world.outfit_attachment_items())

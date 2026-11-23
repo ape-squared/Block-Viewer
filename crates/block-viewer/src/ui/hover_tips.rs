@@ -1,7 +1,7 @@
 //! The world's hover tips on the screen (`hover_tips.rs` says what they
-//! show and when): Aurora's bubble next to the pointer, its card with the
+//! show and when): Block's bubble next to the pointer, its card with the
 //! details and the actions, its readout in the corner of the work area, or
-//! the Legacy Viewer's text with its "i" button (Preferences › Aurora).
+//! the Legacy Viewer's text with its "i" button (Preferences › Block).
 
 use crate::hover_tips::{Tip, TipAction, TipKind};
 use crate::settings::HoverTipForm;
@@ -145,7 +145,7 @@ fn title(ui: &mut egui::Ui, p: &Palette, tip: &Tip, size: f32) {
     }
 }
 
-/// Aurora's bubble: the name, the owner, the sale and the flags.
+/// Block's bubble: the name, the owner, the sale and the flags.
 fn bubble(ui: &mut egui::Ui, p: &Palette, tip: &Tip) {
     widgets::overlay(ui, p, egui::Margin::symmetric(10, 8), |ui| {
         ui.set_max_width(BUBBLE_MAX_W);
@@ -171,7 +171,7 @@ fn sale_line(ui: &mut egui::Ui, p: &Palette, tip: &Tip) {
     }
 }
 
-/// Aurora's card: the details, the flags without a button, and the actions;
+/// Block's card: the details, the flags without a button, and the actions;
 /// the "i" opens the inspector, the profile or About Land.
 fn card(ui: &mut egui::Ui, p: &Palette, tip: &Tip) -> Option<TipAction> {
     let mut action = None;
@@ -275,7 +275,7 @@ fn readout_parts(tip: &Tip) -> Vec<String> {
     out
 }
 
-/// Aurora's readout in the bottom left corner of the work area: what is
+/// Block's readout in the bottom left corner of the work area: what is
 /// under the pointer, and the parcel it stands on. Nothing near the pointer.
 fn readout(ctx: &egui::Context, p: &Palette, tip: Option<&Tip>, land: Option<&Tip>) -> Option<Drawn> {
     let thing = tip.filter(|t| t.kind != TipKind::Land);

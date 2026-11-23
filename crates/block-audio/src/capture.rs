@@ -248,7 +248,7 @@ const CLOSE_WARN_AFTER: Duration = Duration::from_secs(3);
 /// has not ended after `warn_after`. Returns at once; if no thread can be
 /// started, `h` is detached rather than joined here.
 fn close_in_background(h: thread::JoinHandle<()>, warn_after: Duration) {
-    let spawned = thread::Builder::new().name("aurora-mic-close".into()).spawn(move || {
+    let spawned = thread::Builder::new().name("block-mic-close".into()).spawn(move || {
         let start = std::time::Instant::now();
         while !h.is_finished() {
             if start.elapsed() >= warn_after {

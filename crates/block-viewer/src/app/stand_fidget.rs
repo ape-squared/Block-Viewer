@@ -6,7 +6,7 @@
 //! (indra/newview/llvoavatar.cpp), and of LLAgent::onAnimStop, which stops
 //! the variant when the stand ends.
 //!
-//! Aurora leaves it out while its own AO is on, whose stands replace the
+//! Block leaves it out while its own AO is on, whose stands replace the
 //! stock one (a scripted AO that overrides Standing already removes the
 //! stock stand, so the rule below covers it too), and while sitting.
 
@@ -81,10 +81,10 @@ impl App {
     /// A frame of the stand variants, once the animations of the frame are in.
     pub(super) fn update_stand_fidget(&mut self, now: Instant) {
         let me = self.world.agent_id;
-        // AURORA_DEMO_FIDGET=1: the demo's simulator plays its own idle
+        // BLOCK_DEMO_FIDGET=1: the demo's simulator plays its own idle
         // animation; from frame 60 it signals the stock stand instead, so
         // the variants start (the log gives each request)
-        if self.demo && self.frame_count >= 60 && std::env::var_os("AURORA_DEMO_FIDGET").is_some() {
+        if self.demo && self.frame_count >= 60 && std::env::var_os("BLOCK_DEMO_FIDGET").is_some() {
             let anims = self.world.animations.entry(me).or_default();
             if !anims.iter().any(|a| a.id == crate::own_motion::ANIM_STAND) {
                 anims.push(crate::world::PlayingAnimation::from_signal(

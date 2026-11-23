@@ -41,7 +41,7 @@ fn object_im() -> NetEvent {
         message: "Your gift is ready".into(),
         offline: false,
         from_group: false,
-        binary_bucket: b"Aurora Demo/128/128/25\0".to_vec(),
+        binary_bucket: b"Block Demo/128/128/25\0".to_vec(),
         timestamp: 0,
     })
 }
@@ -125,7 +125,7 @@ fn an_object_ims_line_belongs_to_the_object_and_names_its_owner() {
     let o = w.chat_object(line).expect("the line's origin");
     assert_eq!((o.id, o.owner, o.group_owned), (object, VENDOR, false));
     assert_eq!(o.name, "Plaza Vendor");
-    assert_eq!(o.slurl, format!("{}/128/128/25", crate::slurl::encode("Aurora Demo")));
+    assert_eq!(o.slurl, format!("{}/128/128/25", crate::slurl::encode("Block Demo")));
     // a region without the task id: no object to inspect or block
     let NetEvent::InstantMessage(mut older) = object_im() else {
         unreachable!()

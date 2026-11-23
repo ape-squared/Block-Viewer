@@ -3,11 +3,11 @@
     "$type": "app.bsky.feed.defs#threadViewPost",
     "post": {
       "uri": "at://did:plc:auroraexampledemo2345abcd/app.bsky.feed.post/3demopost2abc",
-      "cid": "bafyreiauroraexampledemopostcid",
+      "cid": "bafyreiblockexampledemopostcid",
       "author": {
         "did": "did:plc:auroraexampledemo2345abcd",
-        "handle": "aurora-demo.bsky.social",
-        "displayName": "Aurora Demo",
+        "handle": "block-demo.bsky.social",
+        "displayName": "Block Demo",
         "labels": []
       },
       "record": {
@@ -19,14 +19,14 @@
         "$type": "app.bsky.embed.images#view",
         "images": [
           {
-            "thumb": "https://cdn.bsky.app/img/feed_thumbnail/plain/did:plc:auroraexampledemo2345abcd/bafkreiauroraexampledemopicture01@jpeg",
-            "fullsize": "https://cdn.bsky.app/img/feed_fullsize/plain/did:plc:auroraexampledemo2345abcd/bafkreiauroraexampledemopicture01@jpeg",
+            "thumb": "https://cdn.bsky.app/img/feed_thumbnail/plain/did:plc:auroraexampledemo2345abcd/bafkreiblockexampledemopicture01@jpeg",
+            "fullsize": "https://cdn.bsky.app/img/feed_fullsize/plain/did:plc:auroraexampledemo2345abcd/bafkreiblockexampledemopicture01@jpeg",
             "alt": "A build on the plaza at sunset",
             "aspectRatio": { "width": 1600, "height": 1200 }
           },
           {
-            "thumb": "https://cdn.bsky.app/img/feed_thumbnail/plain/did:plc:auroraexampledemo2345abcd/bafkreiauroraexampledemopicture02@jpeg",
-            "fullsize": "https://cdn.bsky.app/img/feed_fullsize/plain/did:plc:auroraexampledemo2345abcd/bafkreiauroraexampledemopicture02@jpeg",
+            "thumb": "https://cdn.bsky.app/img/feed_thumbnail/plain/did:plc:auroraexampledemo2345abcd/bafkreiblockexampledemopicture02@jpeg",
+            "fullsize": "https://cdn.bsky.app/img/feed_fullsize/plain/did:plc:auroraexampledemo2345abcd/bafkreiblockexampledemopicture02@jpeg",
             "alt": "The same build seen from above"
           }
         ]

@@ -1,5 +1,5 @@
 schema_version = "1.0.0"
-id = "aurora_live_mesh"
+id = "block_live_mesh"
 version = "0.14.10"
 name = "Block Live Mesh"
 tagline = "Preview rigged and static mesh edits live in Block Viewer"

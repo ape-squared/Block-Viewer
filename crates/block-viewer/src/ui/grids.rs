@@ -68,7 +68,7 @@ impl Manager {
         let grid = grids::parse_info(
             "http://grid.example:8002",
             br#"<gridinfo>
-            <gridname>Aurora Grid</gridname><gridnick>aurora</gridnick>
+            <gridname>Block Grid</gridname><gridnick>aurora</gridnick>
             <login>http://grid.example:8002/</login><gatekeeper>http://gate.example:8002/</gatekeeper>
             <welcome>https://grid.example/welcome</welcome><register>https://grid.example/register</register>
             <password>https://grid.example/password</password><help>https://grid.example/help</help>
@@ -81,7 +81,7 @@ impl Manager {
             self.draft = grid.clone();
             let _ = grids::store(settings, grid, None);
         }
-        self.tab = usize::from(std::env::var("AURORA_DEMO_GRIDS").is_ok_and(|mode| mode == "pages"));
+        self.tab = usize::from(std::env::var("BLOCK_DEMO_GRIDS").is_ok_and(|mode| mode == "pages"));
         self.open = true;
     }
 

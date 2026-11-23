@@ -74,14 +74,14 @@ pub struct ProxySettings {
     pub web_port: u16,
     /// Let voice connect directly while a proxy is on. Voice (WebRTC) cannot
     /// go through these proxies and shows the real address to the voice
-    /// servers; the Legacy Viewer always lets it go direct. Aurora turns
+    /// servers; the Legacy Viewer always lets it go direct. Block turns
     /// voice off while a proxy is on, unless the user turns this on after a
     /// warning. Off.
     pub direct_voice: bool,
     /// Let the media plugins connect directly while a proxy is on: the web
     /// browser without the HTTP proxy, the video plugin always (neither can
     /// use a SOCKS 5 proxy). The Legacy Viewer always lets them go direct;
-    /// Aurora keeps them off unless the user turns this on after a warning.
+    /// Block keeps them off unless the user turns this on after a warning.
     /// Off.
     pub direct_media: bool,
 }

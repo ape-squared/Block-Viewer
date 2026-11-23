@@ -17,7 +17,7 @@
 //!   (indra/newview/llviewerjointattachment.cpp), which
 //!   LLVOAvatar::clampAttachmentPositions runs at each update of an
 //!   attachment (LLViewerObject::processUpdateMessage). The Legacy Viewer
-//!   writes the clamped offset into the object; Aurora keeps the offset the
+//!   writes the clamped offset into the object; Block keeps the offset the
 //!   simulator sent and clamps where the attachment's transform is composed
 //!   (`Scene::object_transform`, `anchors::anchored_or_moving`), so the
 //!   draw, the picking and the selection see the same place whichever of

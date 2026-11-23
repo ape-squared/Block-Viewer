@@ -211,7 +211,7 @@ mod tests {
         let mut land = Land::default();
         let mut social = Social::default();
         social.names.insert(Uuid::from_u128(11), "Étoile Resident".into());
-        land.group_names.insert(Uuid::from_u128(12), "Aurora Builders".into());
+        land.group_names.insert(Uuid::from_u128(12), "Block Builders".into());
         let mut table = Table::default();
         let mut group_row = entry(2, "Door", 64, 0, 0.0, "Parcel");
         group_row.object.group_owned = true;
@@ -277,11 +277,11 @@ mod tests {
         let mut land = Land::default();
         let mut social = Social::default();
         let agent = Uuid::from_u128(99);
-        social.names.insert(agent, "Aurora Demo".into());
+        social.names.insert(agent, "Block Demo".into());
         let mut object = entry(1, "HUD", 1, 0, 0.0, "").object;
         object.owner = Uuid::nil();
         let mut table = Table {
-            filter: "aurora".into(),
+            filter: "block".into(),
             ..Default::default()
         };
         table.replace(vec![Row::attachment(object, "Skull".into(), agent)], 1);

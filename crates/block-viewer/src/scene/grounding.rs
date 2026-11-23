@@ -365,7 +365,7 @@ mod tests {
         assert!(scene.grounding_frame(&world, idx, now).is_none());
         assert!(
             scene.legacy_grounding_frame(&world, idx, now).is_some(),
-            "the Aurora height limit does not gate native context"
+            "the Block height limit does not gate native context"
         );
         scene.ground_feet_max_height = 0.4;
         scene.ground_avatar_feet = false;

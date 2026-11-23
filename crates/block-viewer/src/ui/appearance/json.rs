@@ -142,7 +142,7 @@ impl State {
             scope: scope(world),
             receiver,
         });
-        if let Err(e) = std::thread::Builder::new().name("aurora-appearance-file".into()).spawn(move || {
+        if let Err(e) = std::thread::Builder::new().name("block-appearance-file".into()).spawn(move || {
             let _ = sender.send(work());
             ctx.request_repaint();
         }) {

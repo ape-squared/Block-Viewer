@@ -1,7 +1,7 @@
-# Aurora Tools: manage the GitHub releases — create one (a SemVer tag on the
+# Block Tools: manage the GitHub releases — create one (a SemVer tag on the
 # latest main: the Release workflow builds and publishes it) or delete one
-# (dot-sourced by aurora-tools.ps1). Needs write access to the repository.
-# $DryRun (aurora-tools.ps1 -DryRun) prints the GitHub writes instead.
+# (dot-sourced by block-tools.ps1). Needs write access to the repository.
+# $DryRun (block-tools.ps1 -DryRun) prints the GitHub writes instead.
 
 # gh's JSON output as objects, one per array item: Windows PowerShell 5.1
 # passes a whole JSON array down the pipeline as a single object, so
@@ -85,14 +85,14 @@ function Invoke-Releases {
             @{ Key = '2'; Label = 'Delete a release'; Hint = 'release and tag, cannot be undone' }
         ) { Show-Logo 'Releases'; Write-Color "  Repository: $($repo.Slug)" muted; Show-ReleaseList $releases }
         switch ($pick.Key) {
-            '1' { New-AuroraRelease $repo }
-            '2' { Remove-AuroraRelease $repo $releases }
+            '1' { New-BlockRelease $repo }
+            '2' { Remove-BlockRelease $repo $releases }
             default { return }
         }
     }
 }
 
-function New-AuroraRelease($Repo) {
+function New-BlockRelease($Repo) {
     Show-Logo 'New release'
     Write-Color '  Checking main and the PRs merged since the last release…' muted_dim
     $run = Invoke-GhJson @('run', 'list', '-R', $Repo.Slug, '--workflow', 'CI', '--branch', 'main', '--limit', '1', '--json', 'status,conclusion,displayTitle') | Select-Object -First 1
@@ -152,7 +152,7 @@ function New-AuroraRelease($Repo) {
     Write-Color "  Settings: $(if ($policy.settings_reset_before) { 'reset for versions before ' + $policy.settings_reset_before } else { 'kept and migrated automatically if needed' })." ink
     if (-not (Read-YesNo "Create the release ${tag}?")) { return }
 
-    $message = "Block Viewer $($tag.TrimStart('v'))`n`nAurora-Update-Policy: $($policy | ConvertTo-Json -Compress -Depth 4)"
+    $message = "Block Viewer $($tag.TrimStart('v'))`n`nBlock-Update-Policy: $($policy | ConvertTo-Json -Compress -Depth 4)"
 
     if ($DryRun) {
         Write-Color "  [dry run] tag $tag on origin/main with policy: $($policy | ConvertTo-Json -Compress -Depth 4)" teal
@@ -202,7 +202,7 @@ function New-AuroraRelease($Repo) {
     Wait-Back
 }
 
-function Remove-AuroraRelease($Repo, $Releases) {
+function Remove-BlockRelease($Repo, $Releases) {
     if (-not $Releases) { Write-Color '  No release to delete.' muted; Wait-Back; return }
     $shortcuts = @(1..9 | ForEach-Object { [string]$_ }) + @(97..122 | ForEach-Object { [string][char]$_ })
     $items = @()

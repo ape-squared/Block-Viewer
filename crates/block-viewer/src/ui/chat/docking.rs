@@ -75,7 +75,7 @@ pub(crate) fn title_drop(ctx: &egui::Context, p: &Palette, source: &str) -> bool
 /// detached-IM/group fixture. `dock-hold` leaves the target highlighted.
 pub(super) fn demo_events(ctx: &egui::Context, frame: u64) -> Vec<egui::Event> {
     static MODE: std::sync::OnceLock<Option<String>> = std::sync::OnceLock::new();
-    let Some(mode) = MODE.get_or_init(|| std::env::var("AURORA_DEMO_CONV_POPOUT").ok()).as_deref() else {
+    let Some(mode) = MODE.get_or_init(|| std::env::var("BLOCK_DEMO_CONV_POPOUT").ok()).as_deref() else {
         return Vec::new();
     };
     if !matches!(mode, "dock" | "dock-hold") || !(700..=741).contains(&frame) {

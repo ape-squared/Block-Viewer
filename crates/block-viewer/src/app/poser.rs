@@ -3,7 +3,7 @@ use super::*;
 use crate::{theme::Palette, ui::widgets, world::bridge::QueryState};
 
 impl App {
-    /// AURORA_DEMO_COUPLE: Nova stands beside you and accepts an Ask from
+    /// BLOCK_DEMO_COUPLE: Nova stands beside you and accepts an Ask from
     /// the animation editor's couple section 1.5 s later, as a resident
     /// would. `leave`: 10 s after she becomes Person B she teleports away
     /// (her avatar is killed), and stays drawn and posable. `clip`,
@@ -24,7 +24,7 @@ impl App {
             self.world.poser_consent = consent;
         }
         // the scripted modes, for screenshots (with
-        // AURORA_DEMO_AVATAR_STUDIO=animation-editor, which opens the
+        // BLOCK_DEMO_AVATAR_STUDIO=animation-editor, which opens the
         // editor at frame 800): Nova is asked and becomes Person B
         // (`mirror`: a mirror of you is Person B instead)
         let scripted = matches!(mode, "clip" | "hover" | "mirror");
@@ -228,7 +228,7 @@ impl App {
             self.camera.set_view(eye, focus, &mut self.world.agent, &self.settings.camera);
         }
     }
-    /// AURORA_DEMO_POSER=compact-crowd: five residents around you (400),
+    /// BLOCK_DEMO_POSER=compact-crowd: five residents around you (400),
     /// their names (kept over the demo's own reply), asked at 450, all
     /// accepting at 480, and the subject menu open at 500.
     fn poser_crowd_demo(&mut self) {
@@ -272,7 +272,7 @@ impl App {
     pub(super) fn tick_poser_consent(&mut self) {
         let mut consent = std::mem::take(&mut self.world.poser_consent);
         consent.sync(&self.world, Instant::now());
-        let bridge = match self.demo.then(|| std::env::var("AURORA_DEMO_POSER").ok()).flatten() {
+        let bridge = match self.demo.then(|| std::env::var("BLOCK_DEMO_POSER").ok()).flatten() {
             // The demo has no worn bridge: its poser fixtures stand for a
             // ready one, unless a bridge-* mode shows a waiting state.
             Some(mode) => match mode.as_str() {

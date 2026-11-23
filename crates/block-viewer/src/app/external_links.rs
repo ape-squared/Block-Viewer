@@ -10,7 +10,7 @@
 //! once in the world it opens the place's details. A command, or a place
 //! received while logging in, waits for the world. Deliberate difference:
 //! the Legacy Viewer drops a command given at startup (LLStartUp::dispatchURL
-//! is no longer called); Aurora runs it once in the world.
+//! is no longer called); Block runs it once in the world.
 
 use super::*;
 use crate::external_url::{Request, Throttle};

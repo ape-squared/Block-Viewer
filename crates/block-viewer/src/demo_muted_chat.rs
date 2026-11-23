@@ -1,4 +1,4 @@
-//! AURORA_DEMO_MUTED_CHAT=aurora|compact|bubbles|legacy|lines[:hidden|collapsed|greyed]:
+//! BLOCK_DEMO_MUTED_CHAT=aurora|compact|bubbles|legacy|lines[:hidden|collapsed|greyed]:
 //! the demo's blocked resident (Violet Wolf, on the demo block list) talks
 //! in nearby chat among Nova's lines, three lines in a row then one more,
 //! and the blocked spam box says a line in between (FSShowMutedChatHistory,
@@ -20,13 +20,13 @@ use uuid::Uuid;
 /// The Conversations window's style (None: the lines above the chat bar),
 /// and the mode for the run (None: the preference's).
 pub fn scene() -> Option<(Option<ChatStyle>, Option<BlockedChat>)> {
-    parse(&std::env::var("AURORA_DEMO_MUTED_CHAT").ok()?)
+    parse(&std::env::var("BLOCK_DEMO_MUTED_CHAT").ok()?)
 }
 
 fn parse(v: &str) -> Option<(Option<ChatStyle>, Option<BlockedChat>)> {
     let mut words = v.trim().split(':');
     let style = match words.next()? {
-        "aurora" | "1" => Some(ChatStyle::Aurora),
+        "block" | "1" => Some(ChatStyle::Block),
         "compact" => Some(ChatStyle::Compact),
         "bubbles" => Some(ChatStyle::Bubbles),
         "legacy" => Some(ChatStyle::Legacy),
@@ -138,7 +138,7 @@ mod tests {
             Some((Some(ChatStyle::Legacy), Some(BlockedChat::Collapsed)))
         );
         assert_eq!(parse("lines"), Some((None, None)));
-        assert_eq!(parse("aurora:greyed"), Some((Some(ChatStyle::Aurora), Some(BlockedChat::Greyed))));
+        assert_eq!(parse("block:greyed"), Some((Some(ChatStyle::Block), Some(BlockedChat::Greyed))));
         assert_eq!(parse("nope"), None);
     }
 

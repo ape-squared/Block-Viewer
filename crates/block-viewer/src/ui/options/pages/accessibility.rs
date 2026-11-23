@@ -1,4 +1,4 @@
-//! Preferences › Accessibility (Aurora's own page; the Legacy Viewer has
+//! Preferences › Accessibility (Block's own page; the Legacy Viewer has
 //! no colour blindness option): the high contrast palette
 //! (`crate::high_contrast`, #906), disable glass (`crate::disable_glass`),
 //! the colour vision the interface adapts to (`crate::colorblind`, #418)

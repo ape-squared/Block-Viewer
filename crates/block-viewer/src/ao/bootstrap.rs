@@ -1,5 +1,5 @@
-//! One startup fallback from the Legacy Viewer AO to Aurora-owned inventory links.
-//! Existing Aurora folders, including an empty AO, are always authoritative.
+//! One startup fallback from the Legacy Viewer AO to Block-owned inventory links.
+//! Existing Block folders, including an empty AO, are always authoritative.
 use super::inventory::{self, Catalog};
 use crate::world::{
     World,

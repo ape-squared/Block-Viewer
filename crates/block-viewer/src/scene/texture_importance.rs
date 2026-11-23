@@ -86,11 +86,11 @@ pub fn per_repeats(px: f32, repeats: f32) -> f32 {
     px / (repeats * repeats).clamp(SCALE_MIN_AREA, SCALE_MAX_AREA).sqrt()
 }
 
-/// `AURORA_TEXTURE_SIZING=screen`: the sizing of before, to compare — the
+/// `BLOCK_TEXTURE_SIZING=screen`: the sizing of before, to compare — the
 /// object's diameter on screen times the repeats, no importance boost.
 fn screen_sizing() -> bool {
     static SCREEN: std::sync::OnceLock<bool> = std::sync::OnceLock::new();
-    *SCREEN.get_or_init(|| std::env::var("AURORA_TEXTURE_SIZING").is_ok_and(|v| v == "screen"))
+    *SCREEN.get_or_init(|| std::env::var("BLOCK_TEXTURE_SIZING").is_ok_and(|v| v == "screen"))
 }
 
 /// The camera's mean speed and turn rate over the last frames, as

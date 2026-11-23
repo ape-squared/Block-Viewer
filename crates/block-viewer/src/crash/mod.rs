@@ -73,7 +73,7 @@ pub fn session_log() -> Option<std::fs::File> {
 }
 
 fn root() -> PathBuf {
-    root_for(std::env::var_os("AURORA_DEMO").is_some(), std::env::var_os("AURORA_DEMO_CRASH_DIR"))
+    root_for(std::env::var_os("BLOCK_DEMO").is_some(), std::env::var_os("BLOCK_DEMO_CRASH_DIR"))
 }
 
 fn root_for(demo: bool, demo_dir: Option<std::ffi::OsString>) -> PathBuf {
@@ -168,14 +168,14 @@ fn helper_command(dir: &Path, mode: &str, demo: bool) -> std::io::Result<std::pr
     command.current_dir(&session_root);
     if demo {
         // The helper's working directory differs from the viewer's: a
-        // relative AURORA_DEMO_CRASH_DIR would name another folder there.
-        command.env("AURORA_DEMO_CRASH_DIR", &session_root);
+        // relative BLOCK_DEMO_CRASH_DIR would name another folder there.
+        command.env("BLOCK_DEMO_CRASH_DIR", &session_root);
     }
     Ok(command)
 }
 
 fn spawn_helper(dir: &Path, mode: &str) -> std::io::Result<std::process::Child> {
-    let mut command = helper_command(dir, mode, std::env::var_os("AURORA_DEMO").is_some())?;
+    let mut command = helper_command(dir, mode, std::env::var_os("BLOCK_DEMO").is_some())?;
     if let Some(title) = &crate::cli::get().title {
         command.arg("--title").arg(title);
     }
@@ -183,9 +183,9 @@ fn spawn_helper(dir: &Path, mode: &str) -> std::io::Result<std::process::Child> 
         command.arg("--fps-limit").arg(fps.to_string());
     }
     command
-        .env_remove("AURORA_DEMO_CRASH")
-        .env_remove("AURORA_CAPTURE")
-        .env_remove("AURORA_CAPTURE_EXIT");
+        .env_remove("BLOCK_DEMO_CRASH")
+        .env_remove("BLOCK_CAPTURE")
+        .env_remove("BLOCK_CAPTURE_EXIT");
     #[cfg(windows)]
     {
         use std::os::windows::process::CommandExt;
@@ -215,13 +215,13 @@ fn start_inner() -> anyhow::Result<()> {
         started_unix: SystemTime::now().duration_since(UNIX_EPOCH).unwrap_or_default().as_secs(),
         version: block_version::version().to_owned(),
         commit: block_version::commit().to_owned(),
-        profile: env!("AURORA_BUILD_PROFILE").to_owned(),
+        profile: env!("BLOCK_BUILD_PROFILE").to_owned(),
         language: block_i18n::language().into(),
         font: settings.font,
         font_scale: settings.font_scale,
         theme: crate::ui::skin::recovery_theme(),
         log_path: crate::logging::log_path(),
-        demo: std::env::var_os("AURORA_DEMO").is_some(),
+        demo: std::env::var_os("BLOCK_DEMO").is_some(),
         os: format!(
             "{} ({}, {})",
             sysinfo::System::long_os_version().unwrap_or_else(|| std::env::consts::OS.into()),
@@ -238,7 +238,7 @@ fn start_inner() -> anyhow::Result<()> {
         dir: dir.clone(),
         panic_file,
     });
-    if record.demo && std::env::var("AURORA_DEMO_CRASH").as_deref() == Ok("recovery") {
+    if record.demo && std::env::var("BLOCK_DEMO_CRASH").as_deref() == Ok("recovery") {
         return Ok(());
     }
     #[cfg(windows)]
@@ -262,7 +262,7 @@ fn start_inner() -> anyhow::Result<()> {
 /// worker. Installed enumeration is available even before instance creation.
 fn note_vulkan_layers(dir: &Path) {
     let dir = dir.to_owned();
-    let spawned = std::thread::Builder::new().name("aurora-crash-facts".into()).spawn(move || {
+    let spawned = std::thread::Builder::new().name("block-crash-facts".into()).spawn(move || {
         let names = block_render::vulkan_layers::loaded_names();
         let eligible = block_render::vulkan_layers::eligible_known_names(
             &names,
@@ -654,10 +654,10 @@ fn trace(dir: &Path) -> String {
 
 /// Deliberate failures are only available in the offline demo.
 pub fn demo() -> bool {
-    if std::env::var_os("AURORA_DEMO").is_none() {
+    if std::env::var_os("BLOCK_DEMO").is_none() {
         return false;
     }
-    match std::env::var("AURORA_DEMO_CRASH").as_deref() {
+    match std::env::var("BLOCK_DEMO_CRASH").as_deref() {
         Ok("panic") => panic!("Offline crash recovery demonstration"),
         Ok("native") => native::demo_exception(),
         // An allocation no machine can give: the allocator's failure path,
@@ -684,11 +684,11 @@ fn demo_overflow(depth: u64) -> u64 {
     demo_overflow(depth + 1) + frame[0]
 }
 
-/// `AURORA_DEMO_CRASH=thread`, once the window shows: a background thread
+/// `BLOCK_DEMO_CRASH=thread`, once the window shows: a background thread
 /// under a critical name panics, as the network runtime's session loop
 /// could; the app ends the session at its next frame.
 pub fn demo_thread_death() {
-    if std::env::var_os("AURORA_DEMO").is_none() || std::env::var("AURORA_DEMO_CRASH").as_deref() != Ok("thread") {
+    if std::env::var_os("BLOCK_DEMO").is_none() || std::env::var("BLOCK_DEMO_CRASH").as_deref() != Ok("thread") {
         return;
     }
     let _ = std::thread::Builder::new()
@@ -696,11 +696,11 @@ pub fn demo_thread_death() {
         .spawn(|| panic!("Offline thread death demonstration"));
 }
 
-/// `AURORA_DEMO_CRASH=freeze`, once the window shows: the main thread stops
+/// `BLOCK_DEMO_CRASH=freeze`, once the window shows: the main thread stops
 /// answering, the watchdog saves its stacks, then the process is ended
 /// from outside like Task Manager's End task (exit code 1).
 pub fn demo_freeze() {
-    if std::env::var_os("AURORA_DEMO").is_none() || std::env::var("AURORA_DEMO_CRASH").as_deref() != Ok("freeze") {
+    if std::env::var_os("BLOCK_DEMO").is_none() || std::env::var("BLOCK_DEMO_CRASH").as_deref() != Ok("freeze") {
         return;
     }
     std::thread::sleep(std::time::Duration::from_secs(watchdog::HUNG_AFTER + 8));
@@ -731,7 +731,7 @@ mod tests {
 
     #[test]
     fn session_snapshot_survives_language_theme_changes_and_rejects_unknown_formats() {
-        let dir = std::env::temp_dir().join(format!("aurora-crash-test-{}", uuid::Uuid::new_v4()));
+        let dir = std::env::temp_dir().join(format!("block-crash-test-{}", uuid::Uuid::new_v4()));
         std::fs::create_dir(&dir).unwrap();
         let mut record = Record {
             schema: 1,
@@ -767,7 +767,7 @@ mod tests {
     }
 
     fn scratch_root() -> PathBuf {
-        let root = std::env::temp_dir().join(format!("aurora-crash-test-{}", uuid::Uuid::new_v4()));
+        let root = std::env::temp_dir().join(format!("block-crash-test-{}", uuid::Uuid::new_v4()));
         std::fs::create_dir(&root).unwrap();
         root
     }
@@ -807,7 +807,7 @@ mod tests {
         let exported = |command: &std::process::Command| {
             command
                 .get_envs()
-                .find(|(name, _)| *name == "AURORA_DEMO_CRASH_DIR")
+                .find(|(name, _)| *name == "BLOCK_DEMO_CRASH_DIR")
                 .and_then(|(_, value)| value.map(std::ffi::OsStr::to_owned))
         };
         for mode in ["--crash-watch", "--crash-show"] {
@@ -818,7 +818,7 @@ mod tests {
             assert_eq!(command.get_current_dir(), Some(helper_root.as_path()));
             assert_eq!(session_dir(&helper_root, args[1]).unwrap(), dir.canonicalize().unwrap());
         }
-        // A relative AURORA_DEMO_CRASH_DIR is resolved by the viewer: the
+        // A relative BLOCK_DEMO_CRASH_DIR is resolved by the viewer: the
         // helper does not start in the same working directory.
         let relative = Path::new("crash-reports").join(uuid::Uuid::new_v4().to_string());
         let command = helper_command(&relative, "--crash-watch", true).unwrap();
@@ -976,7 +976,7 @@ mod tests {
 
     #[test]
     fn normal_exit_and_crashes_are_distinct() {
-        let dir = std::env::temp_dir().join(format!("aurora-crash-test-{}", uuid::Uuid::new_v4()));
+        let dir = std::env::temp_dir().join(format!("block-crash-test-{}", uuid::Uuid::new_v4()));
         std::fs::create_dir(&dir).unwrap();
         assert!(should_report(&dir, 0));
         std::fs::write(dir.join("normal"), []).unwrap();
@@ -989,7 +989,7 @@ mod tests {
 
     #[test]
     fn absent_and_oversized_traces_are_not_read_as_valid_reports() {
-        let dir = std::env::temp_dir().join(format!("aurora-crash-test-{}", uuid::Uuid::new_v4()));
+        let dir = std::env::temp_dir().join(format!("block-crash-test-{}", uuid::Uuid::new_v4()));
         std::fs::create_dir(&dir).unwrap();
         assert!(trace(&dir).is_empty());
         let file = std::fs::File::create(dir.join("panic.txt")).unwrap();

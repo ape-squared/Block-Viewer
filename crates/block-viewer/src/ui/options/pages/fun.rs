@@ -1,4 +1,4 @@
-//! Preferences › Just for fun (Aurora's own page, #1112 and #1114): little
+//! Preferences › Just for fun (Block's own page, #1112 and #1114): little
 //! things to play with, all off by default. The name plates wobble like a
 //! jelly under the pointer (`ui/nameplate/fidget.rs`), and a click combo
 //! counts the clicks on each plate (`ui/nameplate/combo.rs`). A sample

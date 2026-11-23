@@ -13,10 +13,10 @@
 //! A row changes the very field its Preferences row edits, with the same
 //! range and the same clamp (`Settings::sanitized`), and the app applies and
 //! saves the change like a change of Preferences, so the two never differ.
-//! Some Aurora ranges differ from the Legacy Viewer's (volume LOD 0.5..4
+//! Some Block ranges differ from the Legacy Viewer's (volume LOD 0.5..4
 //! against 0..4, fully rendered avatars
 //! 1..100 against 1..66, bandwidth 50..4000 against 50..3000). Left out for
-//! lack of an Aurora setting: FSNameTagZOffsetCorrection ("Tags Offset") and
+//! lack of a Block setting: FSNameTagZOffsetCorrection ("Tags Offset") and
 //! DebugShowColor ("Color Under Cursor"). Not here yet: the editor of the
 //! rows (any debug setting, add / remove / reorder, QuickPrefsEditMode).
 
@@ -56,7 +56,7 @@ pub enum Slot {
 }
 
 impl Slot {
-    /// The rows of the Legacy Viewer's quick_preferences.xml that Aurora has
+    /// The rows of the Legacy Viewer's quick_preferences.xml that Block has
     /// a setting for, in its order.
     pub const ROWS: [Slot; 5] = [Slot::DrawDistance, Slot::Particles, Slot::PhysicsDetail, Slot::Lod, Slot::Avatars];
 
@@ -155,7 +155,7 @@ pub fn set_complexity_position(s: &mut Settings, position: u32) {
     s.max_complexity = crate::scene::complexity::slider::to_limit(position);
 }
 
-/// AvatarNameTagMode (0 off, 1 on, 2 fade) as Aurora keeps it: the friends'
+/// AvatarNameTagMode (0 off, 1 on, 2 fade) as Block keeps it: the friends'
 /// and the other residents' "show name tags" switches and the "briefly" one
 /// of Preferences › Avatars. The own tag's switch is RenderNameShowSelf, a
 /// setting of its own that the Legacy Viewer's quick preferences leave
@@ -604,7 +604,7 @@ mod tests {
                 let status = block_i18n::tr!("ui-environment-skies-waters-day-cycles", value0 = "0", value1 = "0", value2 = "0");
                 for label in [
                     block_i18n::tr!("common-personal-lighting"),
-                    block_i18n::tr!("ui-weather-aurora"),
+                    block_i18n::tr!("ui-weather-block"),
                     &status,
                 ] {
                     let text = crate::ui::widgets::elide_tests::painted(&bottom_texts, label);

@@ -197,7 +197,7 @@ mod tests {
     fn rigged_skin_parity_unknown_joint_follows_the_posed_pelvis() {
         use glam::{Quat, Vec3};
         let mut rig = rig(3);
-        // The fallback is the pelvis, independently of its Aurora index.
+        // The fallback is the pelvis, independently of its Block index.
         rig.pelvis = 2;
         let mut binds = SkinBinds::default();
         let skin = skin(&["j1", "obsolete_joint"]);

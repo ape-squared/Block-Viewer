@@ -1,4 +1,4 @@
-//! CPU time of the calling thread (AURORA_PROFILE): with the clock, it tells
+//! CPU time of the calling thread (BLOCK_PROFILE): with the clock, it tells
 //! a step that worked from one that waited — for a lock, or for a core
 //! behind another thread. Counted in the processor's cycles on Windows and
 //! in nanoseconds on Linux ([`cycles_per_ms`] converts either); elsewhere
